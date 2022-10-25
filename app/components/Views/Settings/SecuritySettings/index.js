@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
@@ -36,8 +35,6 @@ import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
   EXISTING_USER,
-  BIOMETRY_CHOICE,
-  PASSCODE_CHOICE,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
@@ -48,6 +45,9 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
+import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
+import { Authentication } from '../../../../core';
+import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
@@ -172,6 +172,9 @@ Heading.propTypes = {
   ]),
   first: PropTypes.bool,
 };
+
+const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+const BIOMETRY_CHOICE_STRING = 'biometryChoice';
 
 /**
  * Main view for app configurations
@@ -317,7 +320,6 @@ class Settings extends PureComponent {
   componentDidMount = async () => {
     this.updateNavBar();
     AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
@@ -326,25 +328,35 @@ class Settings extends PureComponent {
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
 
-    if (biometryType) {
-      let passcodeEnabled = false;
-      const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-      if (!biometryChoice) {
-        const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
-        if (passcodeChoice !== '' && passcodeChoice === TRUE) {
-          passcodeEnabled = true;
-        }
-      }
+    const authType = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+
+    if (
+      authType.type === AUTHENTICATION_TYPE.BIOMETRIC ||
+      authType.type === AUTHENTICATION_TYPE.PASSCODE
+    )
       this.setState({
-        biometryType:
-          biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: !!biometryChoice,
+        biometryType: Device.isAndroid()
+          ? AUTHENTICATION_TYPE.BIOMETRIC
+          : authType.biometryType,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+        passcodeChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
         analyticsEnabled,
-        passcodeChoice: passcodeEnabled,
         hintText: manualBackup,
       });
-    } else {
+    else {
       this.setState({
+        biometryType:
+          Device.isAndroid() && authType.biometryType
+            ? AUTHENTICATION_TYPE.BIOMETRIC
+            : authType.biometryType,
         analyticsEnabled,
         hintText: manualBackup,
       });
@@ -358,20 +370,21 @@ class Settings extends PureComponent {
     this.updateNavBar();
   };
 
-  onSingInWithBiometrics = async (enabled) => {
+  setPassword = async (enabled, passwordType) => {
     this.setState({ loading: true }, async () => {
       let credentials;
       try {
-        credentials = await SecureKeychain.getGenericPassword();
+        credentials = await Authentication.getPassword();
       } catch (error) {
         Logger.error(error);
       }
+
       if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'biometryChoice');
+        this.storeCredentials(credentials.password, enabled, passwordType);
       } else {
         this.props.navigation.navigate('EnterPasswordSimple', {
           onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'biometryChoice');
+            this.storeCredentials(password, enabled, passwordType);
           },
         });
       }
@@ -381,29 +394,17 @@ class Settings extends PureComponent {
   isMainnet = () => this.props.type === MAINNET;
 
   onSignInWithPasscode = async (enabled) => {
-    this.setState({ loading: true }, async () => {
-      let credentials;
-      try {
-        credentials = await SecureKeychain.getGenericPassword();
-      } catch (error) {
-        Logger.error(error);
-      }
+    await this.setPassword(enabled, PASSCODE_CHOICE_STRING);
+  };
 
-      if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
-      } else {
-        this.props.navigation.navigate('EnterPasswordSimple', {
-          onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'passcodeChoice');
-          },
-        });
-      }
-    });
+  onSingInWithBiometrics = async (enabled) => {
+    await this.setPassword(enabled, BIOMETRY_CHOICE_STRING);
   };
 
   storeCredentials = async (password, enabled, type) => {
     try {
-      await SecureKeychain.resetGenericPassword();
+      //Undefined is being pass to reset the generic password
+      await Authentication.storePassword(undefined, undefined);
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
@@ -411,25 +412,29 @@ class Settings extends PureComponent {
 
       if (!enabled) {
         this.setState({ [type]: false, loading: false });
-        if (type === 'passcodeChoice') {
+        if (type === PASSCODE_CHOICE_STRING) {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (type === 'biometryChoice') {
+        } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
       }
 
-      if (type === 'passcodeChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.PASSCODE,
-        );
-      else if (type === 'biometryChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.BIOMETRICS,
-        );
+      try {
+        let authType;
+        if (type === BIOMETRY_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.BIOMETRIC;
+        } else if (type === PASSCODE_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.PASSCODE;
+        } else {
+          authType = AUTHENTICATION_TYPE.PASSWORD;
+        }
+        await Authentication.storePassword(password, authType);
+      } catch (error) {
+        Logger.error(error);
+      }
 
       this.props.passwordSet();
 

@@ -184,6 +184,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
   const finishSync = useCallback(
     async (opts) => {
+      //TODO refactor to use Authentication instead of SecureKeychain when the sync feature is enabled
+
       if (opts.biometrics) {
         try {
           await SecureKeychain.setGenericPassword(
@@ -353,7 +355,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
       initWebsockets();
       await pubnubWrapperRef.current?.startSync?.();
       return true;
-    } catch (e) {
+    } catch (e: any) {
       unsetLoading();
       if (e.message === 'Sync::timeout') {
         Alert.alert(

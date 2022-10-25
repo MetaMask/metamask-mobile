@@ -15,28 +15,23 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
-import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { logIn, logOut, checkedAuth } from '../../../actions/user';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
+import { passcodeType } from '../../../util/authentication/passcodeType';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
-import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
   ONBOARDING_WIZARD,
-  ENCRYPTION_LIB,
   TRUE,
-  ORIGINAL,
-  EXISTING_USER,
+  PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -44,6 +39,8 @@ import ErrorBoundary from '../ErrorBoundary';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
@@ -196,11 +193,13 @@ const createStyles = (colors) =>
     },
   });
 
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const DELETE = 'delete';
+const PASSCODE_NOT_SET_ERROR = 'Error: Error: Passcode not set.';
+const WRONG_PASSWORD_ERROR = 'Error: Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
-  'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
-const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+  'Error: Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+const VAULT_ERROR = 'Error: Error: Cannot unlock without a previous vault.';
+const isTextDelete = (text) => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -216,19 +215,13 @@ class Login extends PureComponent {
      */
     setOnboardingWizardStep: PropTypes.func,
     /**
-     * Temporary string that controls if componentDidMount should handle initial auth logic on mount
+     * Route passed in props from navigation
      */
-    initialScreen: PropTypes.string,
+    route: PropTypes.object,
     /**
-     * A string representing the selected address => account
+     * Users current address
      */
     selectedAddress: PropTypes.string,
-    logIn: PropTypes.func,
-    logOut: PropTypes.func,
-    /**
-     * TEMPORARY state for animation control on Nav/App/index.js
-     */
-    checkedAuth: PropTypes.func,
 
     /**
      * Action to set if the user is using remember me
@@ -255,151 +248,70 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    const { initialScreen } = this.props;
-    const { KeyringController } = Engine.context;
-    const shouldHandleInitialAuth = initialScreen !== 'onboarding';
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
-    // Lock keyring just in case
-    if (KeyringController.isUnlocked()) {
-      await KeyringController.setLocked();
-    }
-
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (biometryType) {
-      const previouslyDisabled = await AsyncStorage.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const enabled = !(previouslyDisabled && previouslyDisabled === TRUE);
-
+    //Setup UI to handle Biometric
+    const { type } = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+    if (type === AUTHENTICATION_TYPE.BIOMETRIC)
       this.setState({
-        biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: enabled,
+        biometryType: type,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
         biometryPreviouslyDisabled: !!previouslyDisabled,
+        hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
-      if (shouldHandleInitialAuth) {
-        try {
-          if (enabled && !previouslyDisabled) {
-            await this.tryBiometric();
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-        if (!enabled) {
-          await this.checkIfRememberMeEnabled();
-        }
-      }
-    } else {
-      shouldHandleInitialAuth && (await this.checkIfRememberMeEnabled());
+    else if (type === AUTHENTICATION_TYPE.PASSCODE)
+      this.setState({
+        biometryType: passcodeType(type),
+        biometryChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
+        biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
+        hasBiometricCredentials: !this.props.route?.params?.params?.logout,
+      });
+    else if (type === AUTHENTICATION_TYPE.REMEMBER_ME) {
+      this.setState({
+        hasBiometricCredentials: false,
+        rememberMe: true,
+      });
+      this.props.setAllowLoginWithRememberMe(true);
     }
-
-    this.props.checkedAuth();
   }
 
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
   }
 
-  handleBackPress = () => {
-    this.props.logOut();
+  handleBackPress = async () => {
+    await Authentication.logout();
     return false;
   };
 
-  /**
-   * Checks to see if the user has enabled Remember Me and logs
-   * into the application if it is enabled.
-   */
-  checkIfRememberMeEnabled = async () => {
-    try {
-      const credentials = await SecureKeychain.getGenericPassword();
-      if (credentials) {
-        this.setState({ rememberMe: true });
-        this.props.setAllowLoginWithRememberMe(true);
-        // Restore vault with existing credentials
-        const { KeyringController } = Engine.context;
-        try {
-          await KeyringController.submitPassword(credentials.password);
-          const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-          if (encryptionLib !== ORIGINAL) {
-            await recreateVaultWithSamePassword(
-              credentials.password,
-              this.props.selectedAddress,
-            );
-            await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-          }
-          // Get onboarding wizard state
-          const onboardingWizard = await DefaultPreference.get(
-            ONBOARDING_WIZARD,
-          );
-          if (!onboardingWizard) {
-            this.props.setOnboardingWizardStep(1);
-          }
-
-          // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-          this.setState({ hasBiometricCredentials: false });
-          delete credentials.password;
-          this.props.logIn();
-          this.props.navigation.replace('HomeNav');
-        } catch (error) {
-          this.setState({ rememberMe: false });
-          Logger.error(error, 'Failed to login using Remember Me');
-        }
-      }
-    } catch (error) {
-      if (error.message === 'User canceled the operation.') {
-        return;
-      }
-      Logger.error(error, 'Failed to access SecureKeychain');
-    }
-  };
-
-  onLogin = async (hasCredentials = false) => {
+  onLogin = async () => {
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
     if (locked) this.setState({ error: strings('login.invalid_password') });
     if (this.state.loading || locked) return;
+
+    const authType = await Authentication.componentAuthenticationType(
+      this.state.biometryChoice,
+      this.state.rememberMe,
+    );
+
     try {
-      this.setState({ loading: true, error: null });
-      const { KeyringController } = Engine.context;
-      // Restore vault with user entered password
-      await KeyringController.submitPassword(this.state.password);
-      const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      if (encryptionLib !== ORIGINAL && existingUser) {
-        await recreateVaultWithSamePassword(
-          this.state.password,
-          this.props.selectedAddress,
-        );
-        await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-      }
-      // If the tryBiometric has been called and they password was retrived don't set it again
-      if (!hasCredentials) {
-        if (this.state.biometryChoice && this.state.biometryType) {
-          await SecureKeychain.setGenericPassword(
-            this.state.password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-        } else if (this.state.rememberMe) {
-          await SecureKeychain.setGenericPassword(
-            this.state.password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-        } else {
-          await SecureKeychain.resetGenericPassword();
-        }
-      }
-
-      this.props.logIn();
-
-      // Get onboarding wizard state
+      await Authentication.userEntryAuth(
+        password,
+        authType,
+        this.props.selectedAddress,
+      );
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-      if (onboardingWizard) {
-        this.props.navigation.replace('HomeNav');
-      } else {
-        this.props.setOnboardingWizardStep(1);
-        this.props.navigation.replace('HomeNav');
-      }
+      if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       this.setState({
         loading: false,
@@ -408,7 +320,6 @@ class Login extends PureComponent {
       });
       field.setValue('');
     } catch (e) {
-      // Should we force people to enable passcode / biometrics?
       const error = e.toString();
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
@@ -429,17 +340,41 @@ class Login extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
-        const vaultCorruptionError = new Error('Vault Corruption Error');
-        Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
         this.setState({
           loading: false,
           error: strings('login.clean_vault_error'),
         });
+        Logger.error(
+          'Vault Corruption Error',
+          strings('login.clean_vault_error'),
+        );
       } else {
         this.setState({ loading: false, error });
       }
       Logger.error(error, 'Failed to unlock');
     }
+  };
+
+  tryBiometric = async (e) => {
+    if (e) e.preventDefault();
+    const { current: field } = this.fieldRef;
+    field?.blur();
+    try {
+      await Authentication.appTriggeredAuth(this.props.selectedAddress);
+      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+      if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
+      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+      this.setState({
+        loading: false,
+        password: '',
+        hasBiometricCredentials: false,
+      });
+      field.setValue('');
+    } catch (error) {
+      this.setState({ hasBiometricCredentials: true });
+      Logger.log(error);
+    }
+    field?.blur();
   };
 
   triggerLogIn = () => {
@@ -456,8 +391,10 @@ class Login extends PureComponent {
   updateBiometryChoice = async (biometryChoice) => {
     if (!biometryChoice) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
     } else {
       await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await AsyncStorage.removeItem(PASSCODE_DISABLED);
     }
     this.setState({ biometryChoice });
   };
@@ -485,28 +422,6 @@ class Login extends PureComponent {
   onCancelPress = () => {
     this.toggleWarningModal();
     InteractionManager.runAfterInteractions(this.toggleDeleteModal);
-  };
-
-  tryBiometric = async (e) => {
-    if (e) e.preventDefault();
-    const { current: field } = this.fieldRef;
-    field.blur();
-    try {
-      const credentials = await SecureKeychain.getGenericPassword();
-      if (!credentials) {
-        this.setState({ hasBiometricCredentials: false });
-        return;
-      }
-      field.blur();
-      this.setState({ password: credentials.password });
-      field.setValue(credentials.password);
-      field.blur();
-      await this.onLogin(true);
-    } catch (error) {
-      this.setState({ hasBiometricCredentials: true });
-      Logger.log(error);
-    }
-    field.blur();
   };
 
   render = () => {
@@ -621,15 +536,12 @@ Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   selectedAddress:
-    state.engine.backgroundState.PreferencesController?.selectedAddress,
-  initialScreen: state.user.initialScreen,
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  userLoggedIn: state.user.userLoggedIn,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-  logIn: () => dispatch(logIn()),
-  logOut: () => dispatch(logOut()),
-  checkedAuth: () => dispatch(checkedAuth('login')),
   setAllowLoginWithRememberMe: (enabled) =>
     dispatch(setAllowLoginWithRememberMe(enabled)),
 });

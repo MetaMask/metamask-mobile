@@ -19,8 +19,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
-import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
 import {
@@ -40,7 +38,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
-import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
@@ -50,12 +48,10 @@ import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
-  SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
   ONBOARDING_WIZARD,
-  EXISTING_USER,
   TRUE,
+  PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -70,6 +66,9 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/ImportFromSeedScreen.testIds';
 import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 import createStyles from './styles';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { passcodeType } from '../../../util/authentication/passcodeType';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -85,7 +84,6 @@ const ImportFromSeed = ({
   setLockTime,
   seedphraseBackedUp,
   setOnboardingWizardStep,
-  logIn,
   route,
 }) => {
   const { colors, themeAppearance } = useTheme();
@@ -116,17 +114,21 @@ const ImportFromSeed = ({
     updateNavBar();
 
     const setBiometricsOption = async () => {
-      const biometryType = await SecureKeychain.getSupportedBiometryType();
-      if (biometryType) {
-        let enabled = true;
-        const previouslyDisabled = await AsyncStorage.removeItem(
-          BIOMETRY_CHOICE_DISABLED,
+      const { type } = await Authentication.getType();
+      const previouslyDisabled = await AsyncStorage.getItem(
+        BIOMETRY_CHOICE_DISABLED,
+      );
+      const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+        PASSCODE_DISABLED,
+      );
+      if (type === AUTHENTICATION_TYPE.BIOMETRIC) {
+        setBiometryType(type);
+        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+      } else if (type === AUTHENTICATION_TYPE.PASSCODE) {
+        setBiometryType(passcodeType(type));
+        setBiometryChoice(
+          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
-        if (previouslyDisabled && previouslyDisabled === TRUE) {
-          enabled = false;
-        }
-        setBiometryType(Device.isAndroid() ? 'biometrics' : biometryType);
-        setBiometryChoice(enabled);
       }
     };
 
@@ -172,35 +174,23 @@ const ImportFromSeed = ({
     } else {
       try {
         setLoading(true);
+        const type = await Authentication.componentAuthenticationType(
+          biometryChoice,
+          rememberMe,
+        );
 
-        const { KeyringController } = Engine.context;
-        await Engine.resetState();
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-        await KeyringController.createNewVaultAndRestore(password, parsedSeed);
-
-        if (biometryType && biometryChoice) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-        } else if (rememberMe) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-        } else {
-          await SecureKeychain.resetGenericPassword();
-        }
+        await Authentication.newWalletAndRestore(
+          password,
+          type,
+          parsedSeed,
+          true,
+        );
+        // Get onboarding wizard state
         // Get onboarding wizard state
         const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-        // mark the user as existing so it doesn't see the create password screen again
-        await AsyncStorage.setItem(EXISTING_USER, TRUE);
-        await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
         setLoading(false);
-        passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
-        logIn();
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(biometryType),
@@ -620,7 +610,6 @@ ImportFromSeed.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
-  logIn: PropTypes.func,
   route: PropTypes.object,
 };
 
@@ -629,7 +618,6 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  logIn: () => dispatch(logIn()),
 });
 
 export default connect(null, mapDispatchToProps)(ImportFromSeed);

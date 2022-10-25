@@ -30,22 +30,25 @@ import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-  EXISTING_USER,
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
+  PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
+import { syncPrefs } from '../../../util/sync';
+import { passcodeType } from '../../../util/authentication/passcodeType';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
@@ -335,13 +338,28 @@ class ResetPassword extends PureComponent {
 
   async componentDidMount() {
     this.updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
 
     const state = { view: CONFIRM_PASSWORD };
-    if (biometryType) {
-      state.biometryType = Device.isAndroid() ? 'biometrics' : biometryType;
-      state.biometryChoice = true;
-    }
+
+    const authType = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+    if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
+      this.setState({
+        biometryType: authType.type,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+      });
+    else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
+      this.setState({
+        biometryType: passcodeType(authType.type),
+        biometryChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
+      });
 
     this.setState(state);
 
@@ -392,28 +410,9 @@ class ResetPassword extends PureComponent {
       this.setState({ loading: true });
 
       await this.recreateVault();
-      // Set biometrics for new password
-      await SecureKeychain.resetGenericPassword();
-      try {
-        if (this.state.biometryType && this.state.biometryChoice) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-        } else if (this.state.rememberMe) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-        }
-      } catch (error) {
-        Logger.error(error);
-      }
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-
+      this.props.passwordSet();
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
@@ -444,11 +443,82 @@ class ResetPassword extends PureComponent {
    */
   recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
-    await recreateVaultWithNewPassword(
-      originalPassword,
-      newPassword,
-      this.props.selectedAddress,
+    const { KeyringController, PreferencesController } = Engine.context;
+    const seedPhrase = await this.getSeedPhrase();
+    const oldPrefs = PreferencesController.state;
+
+    let importedAccounts = [];
+    try {
+      const keychainPassword = originalPassword;
+      // Get imported accounts
+      const simpleKeyrings = KeyringController.state.keyrings.filter(
+        (keyring) => keyring.type === 'Simple Key Pair',
+      );
+      for (let i = 0; i < simpleKeyrings.length; i++) {
+        const simpleKeyring = simpleKeyrings[i];
+        const simpleKeyringAccounts = await Promise.all(
+          simpleKeyring.accounts.map((account) =>
+            KeyringController.exportAccount(keychainPassword, account),
+          ),
+        );
+        importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
+      }
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to get imported accounts on recreate vault',
+      );
+    }
+
+    // Recreate keyring with password given to this method
+    const type = await Authentication.componentAuthenticationType(
+      this.state.biometryChoice,
+      this.state.rememberMe,
     );
+
+    await Authentication.newWalletAndRestore(
+      newPassword,
+      type,
+      seedPhrase,
+      false,
+    );
+
+    // Get props to restore vault
+    const hdKeyring = KeyringController.state.keyrings[0];
+    const existingAccountCount = hdKeyring.accounts.length;
+    const selectedAddress = this.props.selectedAddress;
+
+    // Create previous accounts again
+    for (let i = 0; i < existingAccountCount - 1; i++) {
+      await KeyringController.addNewAccount();
+    }
+
+    try {
+      // Import imported accounts again
+      for (let i = 0; i < importedAccounts.length; i++) {
+        await KeyringController.importAccountWithStrategy('privateKey', [
+          importedAccounts[i],
+        ]);
+      }
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to import accounts on recreate vault',
+      );
+    }
+
+    //Persist old account/identities names
+    const preferencesControllerState = PreferencesController.state;
+    const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
+
+    // Set preferencesControllerState again
+    await PreferencesController.update(prefUpdates);
+    // Reselect previous selected account if still available
+    if (hdKeyring.accounts.includes(selectedAddress)) {
+      PreferencesController.setSelectedAddress(selectedAddress);
+    } else {
+      PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
+    }
   };
 
   /**

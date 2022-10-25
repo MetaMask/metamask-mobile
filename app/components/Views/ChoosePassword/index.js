@@ -17,7 +17,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import {
-  logIn,
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
@@ -26,10 +25,10 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
+import { passcodeType } from '../../../util/authentication/passcodeType';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -42,6 +41,7 @@ import {
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
+  PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -52,7 +52,8 @@ import {
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
@@ -269,7 +270,6 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    logIn: PropTypes.func,
   };
 
   state = {
@@ -298,14 +298,29 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
-    this.updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (biometryType) {
+    //Setup UI to handle Biometric
+
+    const { type } = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+
+    if (type === AUTHENTICATION_TYPE.BIOMETRIC)
       this.setState({
-        biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: true,
+        biometryType: type,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
       });
-    }
+    else if (type === AUTHENTICATION_TYPE.PASSCODE)
+      this.setState({
+        biometryType: passcodeType(type),
+        biometryChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
+      });
+    this.updateNavBar();
     setTimeout(() => {
       this.setState({
         inputWidth: { width: '100%' },
@@ -364,40 +379,21 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: true });
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
+      const authType = await Authentication.componentAuthenticationType(
+        this.state.biometryChoice,
+        this.state.rememberMe,
+      );
+
       if (previous_screen === ONBOARDING) {
-        await this.createNewVaultAndKeychain(password);
+        await Authentication.newWalletAndKeyChain(password, authType);
+        this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
         await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-        await AsyncStorage.setItem(EXISTING_USER, TRUE);
-        await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       } else {
-        await this.recreateVault(password);
+        await this.recreateVault(password, authType);
       }
 
-      // Set state in app as it was with password
-      await SecureKeychain.resetGenericPassword();
-      if (this.state.biometryType && this.state.biometryChoice) {
-        try {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-        } catch (error) {
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
-          throw error;
-        }
-      } else if (this.state.rememberMe) {
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.REMEMBER_ME,
-        );
-      } else {
-        await SecureKeychain.resetGenericPassword();
-      }
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordSet();
-      this.props.logIn();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
@@ -413,7 +409,6 @@ class ChoosePassword extends PureComponent {
     } catch (error) {
       await this.recreateVault('');
       // Set state in app as it was with no password
-      await SecureKeychain.resetGenericPassword();
       await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -444,10 +439,10 @@ class ChoosePassword extends PureComponent {
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
   handleRejectedOsBiometricPrompt = async (error) => {
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !biometryType) {
+    const type = await Authentication.getType();
+    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !type) {
       this.setState({
-        biometryType,
+        biometryType: type,
         biometryChoice: true,
       });
       this.updateBiometryChoice();
@@ -460,7 +455,7 @@ class ChoosePassword extends PureComponent {
    *
    * @param password - Password to recreate and set the vault with
    */
-  recreateVault = async (password) => {
+  recreateVault = async (password, authType) => {
     const { KeyringController, PreferencesController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
 
@@ -490,7 +485,12 @@ class ChoosePassword extends PureComponent {
     }
 
     // Recreate keyring with password given to this method
-    await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+    await Authentication.newWalletAndRestore(
+      password,
+      authType,
+      seedPhrase,
+      true,
+    );
     // Keyring is set with empty password or not
     this.keyringControllerPasswordSet = password !== '';
 
@@ -785,7 +785,7 @@ ChoosePassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+    state.engine.backgroundState.PreferencesController?.selectedAddress,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -793,7 +793,6 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  logIn: () => dispatch(logIn()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
