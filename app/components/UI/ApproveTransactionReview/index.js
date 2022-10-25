@@ -199,13 +199,20 @@ class ApproveTransactionReview extends PureComponent {
      */
     gasSelected: PropTypes.string,
     /**
-     * gas object for calculating the gas transaction cost
-     */
-    gasPriceObject: PropTypes.object,
-    /**
      * update gas transaction state to parent
      */
     updateTransactionState: PropTypes.func,
+    /**
+     * legacy gas object for calculating the legacy transaction
+     */
+    legacyGasObject: {
+      legacyGasLimit: PropTypes.string,
+      suggestedGasPrice: PropTypes.string,
+    },
+    /**
+     * eip1559 gas object for calculating eip1559 transaction
+     */
+    eip1559GasObject: PropTypes.object,
   };
 
   state = {
@@ -562,7 +569,8 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimationReady,
       transactionConfirmed,
       gasSelected,
-      gasPriceObject,
+      legacyGasObject,
+      eip1559GasObject,
       updateTransactionState,
     } = this.props;
     const styles = this.getStyles();
@@ -682,7 +690,9 @@ class ApproveTransactionReview extends PureComponent {
                     isAnimating={isAnimating}
                     gasEstimationReady={gasEstimationReady}
                     legacy={!showFeeMarket}
-                    gasObject={gasPriceObject}
+                    gasObject={
+                      !showFeeMarket ? legacyGasObject : eip1559GasObject
+                    }
                     updateTransactionState={updateTransactionState}
                     onlyGas
                   />

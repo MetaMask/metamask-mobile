@@ -149,9 +149,8 @@ class Approve extends PureComponent {
     transactionConfirmed: false,
     addNickname: false,
     suggestedGasLimit: undefined,
-    gasTransaction: {},
-    gasPriceObject: {},
-    gasTransactionObject: {},
+    eip1559GasObject: {},
+    eip1559GasTransaction: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
   };
@@ -307,7 +306,11 @@ class Approve extends PureComponent {
     this.review();
   };
 
-  saveGasEdition = (legacyGasTransaction, legacyGasObject, gasSelected) => {
+  saveGasEditionLegacy = (
+    legacyGasTransaction,
+    legacyGasObject,
+    gasSelected,
+  ) => {
     legacyGasTransaction.error = this.validateGas(
       legacyGasTransaction.totalHex,
     );
@@ -322,8 +325,8 @@ class Approve extends PureComponent {
     this.review();
   };
 
-  saveGasEditionUpdate = (gasTransaction, gasPriceObject) => {
-    this.setState({ gasTransaction, gasPriceObject });
+  saveGasEdition = (eip1559GasTransaction, eip1559GasObject) => {
+    this.setState({ eip1559GasTransaction, eip1559GasObject });
     this.review();
   };
 
@@ -353,7 +356,7 @@ class Approve extends PureComponent {
 
   prepareTransaction = (transaction) => {
     const { gasEstimateType } = this.props;
-    const { legacyGasTransaction, gasTransaction } = this.state;
+    const { legacyGasTransaction, eip1559GasTransaction } = this.state;
     const transactionToSend = {
       ...transaction,
       value: BNToHex(transaction.value),
@@ -362,12 +365,12 @@ class Approve extends PureComponent {
     };
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = gasTransaction.gasLimitHex;
+      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
       transactionToSend.maxFeePerGas = addHexPrefix(
-        gasTransaction.suggestedMaxFeePerGasHex,
+        eip1559GasTransaction.suggestedMaxFeePerGasHex,
       ); //'0x2540be400'
       transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        gasTransaction.suggestedMaxPriorityFeePerGasHex,
+        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
       delete transactionToSend.gasPrice;
     } else {
@@ -398,11 +401,14 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController } = Engine.context;
     const { transactions, gasEstimateType } = this.props;
-    const { legacyGasTransaction, transactionConfirmed, gasTransaction } =
-      this.state;
+    const {
+      legacyGasTransaction,
+      transactionConfirmed,
+      eip1559GasTransaction,
+    } = this.state;
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      if (this.validateGas(gasTransaction.totalMaxHex)) return;
+      if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
     } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true });
@@ -519,8 +525,8 @@ class Approve extends PureComponent {
     this.setState({ isAnimating: false });
   };
 
-  updateTransactionState = (gasTransactionObject) => {
-    this.setState({ gasTransactionObject });
+  updateTransactionState = (gas) => {
+    this.setState({ eip1559GasTransaction: gas, legacyGasTransaction: gas });
   };
 
   render = () => {
@@ -532,9 +538,8 @@ class Approve extends PureComponent {
       animateOnChange,
       isAnimating,
       transactionConfirmed,
-      gasPriceObject,
-      gasTransaction,
-      gasTransactionObject,
+      eip1559GasObject,
+      eip1559GasTransaction,
       legacyGasObject,
       legacyGasTransaction,
     } = this.state;
@@ -551,14 +556,14 @@ class Approve extends PureComponent {
 
     const selectedGasObject = {
       suggestedMaxFeePerGas:
-        gasPriceObject.suggestedMaxFeePerGas ||
+        eip1559GasObject.suggestedMaxFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas:
-        gasPriceObject.suggestedMaxPriorityFeePerGas ||
+        eip1559GasObject.suggestedMaxPriorityFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
       suggestedGasLimit:
-        gasPriceObject.suggestedGasLimit ||
-        gasTransactionObject.suggestedGasLimit,
+        eip1559GasObject.suggestedGasLimit ||
+        eip1559GasTransaction.suggestedGasLimit,
     };
 
     const selectedLegacyGasObject = {
@@ -615,7 +620,9 @@ class Approve extends PureComponent {
                 review={this.review}
               >
                 <ApproveTransactionReview
-                  gasError={gasTransaction.error || legacyGasTransaction.error}
+                  gasError={
+                    eip1559GasTransaction.error || legacyGasTransaction.error
+                  }
                   onCancel={this.onCancel}
                   onConfirm={this.onConfirm}
                   over={over}
@@ -637,7 +644,8 @@ class Approve extends PureComponent {
                   }
                   chainId={chainId}
                   updateTransactionState={this.updateTransactionState}
-                  gasPriceObject={this.state.gasPriceObject}
+                  legacyGasObject={this.state.legacyGasObject}
+                  eip1559GasObject={this.state.eip1559GasObject}
                 />
                 {/** View fixes layout issue after removing <CustomGas/> */}
                 <View />
@@ -654,7 +662,7 @@ class Approve extends PureComponent {
                   primaryCurrency={primaryCurrency}
                   chainId={chainId}
                   onCancel={this.cancelGasEdition}
-                  onSave={this.saveGasEditionUpdate}
+                  onSave={this.saveGasEdition}
                   animateOnChange={animateOnChange}
                   isAnimating={isAnimating}
                   view={'Approve'}
@@ -671,7 +679,7 @@ class Approve extends PureComponent {
                   primaryCurrency={primaryCurrency}
                   chainId={chainId}
                   onCancel={this.cancelGasEdition}
-                  onSave={this.saveGasEdition}
+                  onSave={this.saveGasEditionLegacy}
                   animateOnChange={animateOnChange}
                   isAnimating={isAnimating}
                   view={'Approve'}
