@@ -205,10 +205,7 @@ class ApproveTransactionReview extends PureComponent {
     /**
      * legacy gas object for calculating the legacy transaction
      */
-    legacyGasObject: {
-      legacyGasLimit: PropTypes.string,
-      suggestedGasPrice: PropTypes.string,
-    },
+    legacyGasObject: PropTypes.object,
     /**
      * eip1559 gas object for calculating eip1559 transaction
      */
