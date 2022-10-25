@@ -9,7 +9,7 @@ import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
-import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal'
+import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js'
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js'
 
 Given(/^I just installed MetaMask on my device/, async () => {
