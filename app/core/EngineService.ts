@@ -1,9 +1,19 @@
 import UntypedEngine from './Engine';
 import AppConstants from './AppConstants';
+import { getVaultFromBackup } from '../core/backupVault';
+import { store as importedStore } from '../store';
+import {
+  NO_VAULT_IN_BACKUP_ERROR,
+  VAULT_CREATION_ERROR,
+} from '../constants/error';
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 
+interface InitializeEngineResult {
+  success: boolean;
+  error?: string;
+}
 class EngineService {
   private engineInitialized = false;
 
@@ -12,13 +22,17 @@ class EngineService {
    *
    * @param store - Redux store
    */
+
   initalizeEngine = (store: any) => {
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
 
     Engine.init(state);
+    this.updateControllers(store, Engine);
+  };
 
+  private updateControllers = (store: any, engine: any) => {
     const controllers = [
       { name: 'AccountTrackerController' },
       { name: 'AddressBookController' },
@@ -39,27 +53,27 @@ class EngineService {
       { name: 'SwapsController' },
       {
         name: 'TokenListController',
-        key: `${Engine.context.TokenListController.name}:stateChange`,
+        key: `${engine.context.TokenListController.name}:stateChange`,
       },
       {
         name: 'CurrencyRateController',
-        key: `${Engine.context.CurrencyRateController.name}:stateChange`,
+        key: `${engine.context.CurrencyRateController.name}:stateChange`,
       },
       {
         name: 'GasFeeController',
-        key: `${Engine.context.GasFeeController.name}:stateChange`,
+        key: `${engine.context.GasFeeController.name}:stateChange`,
       },
       {
         name: 'ApprovalController',
-        key: `${Engine.context.ApprovalController.name}:stateChange`,
+        key: `${engine.context.ApprovalController.name}:stateChange`,
       },
       {
         name: 'PermissionController',
-        key: `${Engine.context.PermissionController.name}:stateChange`,
+        key: `${engine.context.PermissionController.name}:stateChange`,
       },
     ];
 
-    Engine?.datamodel?.subscribe?.(() => {
+    engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
@@ -72,15 +86,52 @@ class EngineService {
         store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
       if (name !== 'NetworkController')
         !key
-          ? Engine.context[name].subscribe(update_bg_state_cb)
-          : Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
+          ? engine.context[name].subscribe(update_bg_state_cb)
+          : engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       else
-        Engine.controllerMessenger.subscribe(
+        engine.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           update_bg_state_cb,
         );
     });
   };
+
+  /**
+   * Initialize the engine with a backup vault from the Secure KeyChain
+   *
+   * @returns Promise<InitializeEngineResult>
+   *  InitializeEngineResult {
+        success: boolean;
+        error?: string;
+      }
+   */
+  async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
+    const keyringState = await getVaultFromBackup();
+    const reduxState = importedStore.getState?.();
+    const state = reduxState?.engine?.backgroundState || {};
+    const Engine = UntypedEngine as any;
+    // This ensures we create an entirely new engine
+    await Engine.destroyEngine();
+    if (keyringState) {
+      const instance = Engine.init(state, keyringState);
+      if (instance) {
+        this.updateControllers(importedStore, instance);
+        // this is a hack to give the engine time to reinitialize
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return {
+          success: true,
+        };
+      }
+      return {
+        success: false,
+        error: VAULT_CREATION_ERROR,
+      };
+    }
+    return {
+      success: false,
+      error: NO_VAULT_IN_BACKUP_ERROR,
+    };
+  }
 }
 
 /**

@@ -57,6 +57,9 @@ import {
   LOGIN_VIEW_TITLE_ID,
   LOGIN_VIEW_UNLOCK_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
+import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
+import { parseVaultValue } from '../../../util/validators';
+import { getVaultFromBackup } from '../../../core/backupVault';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -298,6 +301,55 @@ class Login extends PureComponent {
     return false;
   };
 
+  handleVaultCorruption = async () => {
+    const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
+    const { navigation } = this.props;
+    this.setState({ loading: true });
+    try {
+      const backupResult = await getVaultFromBackup();
+      if (backupResult.vault && this.state.password) {
+        const vaultSeed = await parseVaultValue(
+          this.state.password,
+          backupResult.vault,
+        );
+        if (vaultSeed) {
+          // get authType
+          const authData = await Authentication.componentAuthenticationType(
+            this.state.biometryChoice,
+            this.state.rememberMe,
+          );
+          try {
+            await Authentication.storePassword(
+              this.state.password,
+              authData.currentAuthType,
+            );
+            navigation.navigate(
+              ...createRestoreWalletNavDetailsNested({
+                previousScreen: Routes.ONBOARDING.LOGIN,
+              }),
+            );
+            this.setState({
+              loading: false,
+              error: null,
+            });
+          } catch (e) {
+            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
+          }
+        } else {
+          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
+        }
+      } else if (backupResult.error) {
+        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
+      }
+    } catch (e) {
+      Logger.error(e);
+      this.setState({
+        loading: false,
+        error: strings('login.invalid_password'),
+      });
+    }
+  };
+
   onLogin = async () => {
     const { password } = this.state;
     const { current: field } = this.fieldRef;
@@ -317,6 +369,7 @@ class Login extends PureComponent {
         authType,
         this.props.selectedAddress,
       );
+
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
@@ -355,6 +408,7 @@ class Login extends PureComponent {
       } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
         const vaultCorruptionError = new Error('Vault Corruption Error');
         Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
+        await this.handleVaultCorruption();
         this.setState({
           loading: false,
           error: strings('login.clean_vault_error'),
@@ -367,6 +421,10 @@ class Login extends PureComponent {
       }
       Logger.error(error, 'Failed to unlock');
     }
+  };
+
+  tempBreakTheVault = async () => {
+    await this.handleVaultCorruption();
   };
 
   tryBiometric = async (e) => {
@@ -529,6 +587,9 @@ class Login extends PureComponent {
                   {...generateTestId(Platform, RESET_WALLET_ID)}
                 >
                   {strings('login.reset_wallet')}
+                </Button>
+                <Button style={styles.goBack} onPress={this.tempBreakTheVault}>
+                  [Never merge] Break the vault
                 </Button>
               </View>
             </View>
