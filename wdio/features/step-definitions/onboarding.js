@@ -164,6 +164,6 @@ When(/^secure wallet page is presented/, async () => {
 });
 
 Then(/^I should proceed to the new wallet/, async () => {
-  await OnboardingWizardModal.isVisible();
+  await CreateNewWalletScreen.isNotVisible();
 });
 

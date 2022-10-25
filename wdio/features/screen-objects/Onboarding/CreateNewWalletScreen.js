@@ -93,6 +93,11 @@ async isNewAccountScreenFieldsVisible(){
 await expect(this.newWalletPasswordField).toBeDisplayed();
 }
 
+async isNotVisible(){
+  await expect(this.SECURE_WALLET_SCREEN).not.toBeDisplayed();
+
+}
+
 }
 
 export default new CreateNewWalletScren();
