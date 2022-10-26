@@ -197,6 +197,13 @@ android {
       keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
       keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
     }
+    // TODO: Change environment variables to match Flask ones
+    flask {
+      storeFile file('../keystores/internalRelease.keystore')
+      storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+      keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+      keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+    }
 		debug {
       storeFile file('debug.keystore')
       storePassword 'android'
@@ -240,6 +247,12 @@ android {
           applicationIdSuffix ".qa"
           applicationId "io.metamask"
           signingConfig signingConfigs.qa
+        }
+        flask {
+          dimension "version"
+          applicationIdSuffix ".flask"
+          applicationId "io.metamask"
+          signingConfig signingConfigs.flask
         }
         prod {
           dimension "version"

@@ -157,7 +157,12 @@ buildAndroidRun(){
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug
+	react-native run-android --variant=debugQa
+}
+
+buildAndroidRunFlask(){
+	prebuild_android
+	react-native run-android --variant=debugFlask
 }
 
 buildAndroidRunE2E(){
@@ -386,8 +391,10 @@ buildAndroid() {
 		buildAndroidQAE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
-	elif [ "$MODE" == "qaDebug" ] ; then
+	elif [ "$MODE" == "debugQa" ] ; then
 		buildAndroidRunQA
+  elif [ "$MODE" == "debugFlask" ] ; then
+		buildAndroidRunFlask
 	else
 		buildAndroidRun
 	fi
