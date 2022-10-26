@@ -10,7 +10,6 @@ import {
   PersonalMessageManager,
   MessageManager,
   NetworkController,
-  NetworkControllerMessenger,
   PhishingController,
   PreferencesController,
   TokenBalancesController,
@@ -174,6 +173,7 @@ class Engine {
           useIPFSSubdomains: false,
         },
       );
+      console.log('TEST');
       const tokensController = new TokensController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -184,11 +184,12 @@ class Engine {
           ),
         config: { provider: networkController.provider },
       });
+
       const tokenListController = new TokenListController({
         chainId: networkController.provider.chainId,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:providerChange`,
+            `${networkController.name}:stateChange`,
             listener,
           ),
         messenger: this.controllerMessenger,

@@ -65,8 +65,8 @@ class EngineService {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () =>
         store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
-      console.log('ENGINE INIT', name, Engine.context[name]);
-      if (!key && name !== 'NetworkController') Engine.context[name].subscribe(update_bg_state_cb);
+      if (!key && name !== 'NetworkController')
+        Engine.context[name].subscribe(update_bg_state_cb);
       else Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
     });
   };
