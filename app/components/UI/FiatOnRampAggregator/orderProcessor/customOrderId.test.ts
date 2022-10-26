@@ -1,9 +1,6 @@
+import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { SDK } from '../sdk';
-import processCustomOrderId, {
-  INITIAL_DELAY,
-  EXPIRATION_TIME,
-  SECOND,
-} from './customOrderId';
+import processCustomOrderId, { INITIAL_DELAY, SECOND } from './customOrderId';
 
 describe('CustomOrderId processor', () => {
   afterEach(() => {
@@ -67,7 +64,7 @@ describe('CustomOrderId processor', () => {
         ({
           getOrder: jest
             .fn()
-            .mockResolvedValue({ status: 'NOT_CUSTOM_ID_REGISTERED' }),
+            .mockResolvedValue({ status: OrderStatusEnum.Pending }),
         } as any),
     );
 
@@ -84,17 +81,17 @@ describe('CustomOrderId processor', () => {
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
       dummmyCustomOrderIdData,
-      { status: 'NOT_CUSTOM_ID_REGISTERED' },
+      { status: OrderStatusEnum.Pending },
     ]);
   });
 
-  it('should update custom order object when state is CUSTOM_ID_REGISTERED', async () => {
+  it('should update custom order object when state is Precreated', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
         ({
           getOrder: jest
             .fn()
-            .mockResolvedValue({ status: 'CUSTOM_ID_REGISTERED' }),
+            .mockResolvedValue({ status: OrderStatusEnum.Precreated }),
         } as any),
     );
 
@@ -142,13 +139,12 @@ describe('CustomOrderId processor', () => {
     ]);
   });
 
-  it('should update custom order object when error is 4xx and within expiration time', async () => {
+  it('should update custom order object when error state is Precreated', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
         ({
-          getOrder: jest.fn().mockImplementation(() => {
-            // eslint-disable-next-line no-throw-literal
-            throw { response: { status: 404 } };
+          getOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Precreated,
           }),
         } as any),
     );
@@ -162,7 +158,7 @@ describe('CustomOrderId processor', () => {
       chainId: '1',
       account: '0x123',
       createdAt: 0,
-      lastTimeFetched: now - 1.5 * EXPIRATION_TIME,
+      lastTimeFetched: now - 1,
       errorCount: 0,
     };
 
@@ -175,13 +171,12 @@ describe('CustomOrderId processor', () => {
     ]);
   });
 
-  it('should expire custom order object when error is 4xx and is over expiration time', async () => {
+  it('should expire custom order object when state is IdExpired', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
         ({
-          getOrder: jest.fn().mockImplementation(() => {
-            // eslint-disable-next-line no-throw-literal
-            throw { response: { status: 404 } };
+          getOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.IdExpired,
           }),
         } as any),
     );
@@ -195,8 +190,8 @@ describe('CustomOrderId processor', () => {
       chainId: '1',
       account: '0x123',
       createdAt: 0,
-      lastTimeFetched: now + EXPIRATION_TIME,
       errorCount: 0,
+      lastTimeFetched: now - 1,
     };
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
@@ -208,13 +203,12 @@ describe('CustomOrderId processor', () => {
     ]);
   });
 
-  it('should update custom order object when error is 5xx', async () => {
+  it('should update custom order object when state is Unknown', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
         ({
-          getOrder: jest.fn().mockImplementation(() => {
-            // eslint-disable-next-line no-throw-literal
-            throw { response: { status: 503 } };
+          getOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Unknown,
           }),
         } as any),
     );
@@ -228,15 +222,15 @@ describe('CustomOrderId processor', () => {
       chainId: '1',
       account: '0x123',
       createdAt: 0,
-      lastTimeFetched: now - 1.5 * EXPIRATION_TIME,
+      lastTimeFetched: now - 1,
       errorCount: 0,
     };
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
       {
         ...dummmyCustomOrderIdData,
-        lastTimeFetched: now,
         errorCount: 1,
+        lastTimeFetched: now,
       },
       null,
     ]);

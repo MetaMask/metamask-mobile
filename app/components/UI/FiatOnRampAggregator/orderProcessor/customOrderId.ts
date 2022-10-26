@@ -1,11 +1,9 @@
+import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import { SDK } from '../sdk';
 
 export const SECOND = 60 * 1000;
-const MINUTE = 60 * SECOND;
-const HOUR = 60 * MINUTE;
 export const INITIAL_DELAY = 10 * SECOND;
-export const EXPIRATION_TIME = HOUR;
 
 export default async function processCustomOrderIdData(
   customOrderIdData: CustomIdData,
@@ -40,28 +38,8 @@ export default async function processCustomOrderIdData(
       customOrderIdData.account,
     );
 
-    /* TODO: add 'CUSTOM_ID_REGISTERED' to OrderStatusEnum */
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore CUSTOM_ID_REGISTERED is not in OrderStatusEnum
-    if (updatedCustomOrderIdData.status !== 'CUSTOM_ID_REGISTERED') {
-      return [customOrderIdData, updatedCustomOrderIdData];
-    }
-
-    return [
-      { ...customOrderIdData, lastTimeFetched: Date.now(), errorCount: 0 },
-      null,
-    ];
-  } catch (error: any) {
-    if (!error?.response?.status) {
-      return [customOrderIdData, null];
-    }
-
-    if (error.response.status >= 400 && error.response.status < 500) {
-      if (customOrderIdData.lastTimeFetched + EXPIRATION_TIME >= now) {
-        return [{ ...customOrderIdData, expired: true }, null];
-      }
-      return [{ ...customOrderIdData, lastTimeFetched: Date.now() }, null];
-    } else if (error.response.status >= 500) {
+    if (updatedCustomOrderIdData.status === OrderStatusEnum.Unknown) {
+      /** This represents an error, we update the error count and the last time fetched */
       return [
         {
           ...customOrderIdData,
@@ -70,6 +48,19 @@ export default async function processCustomOrderIdData(
         },
         null,
       ];
+    } else if (updatedCustomOrderIdData.status === OrderStatusEnum.IdExpired) {
+      /** In this case the order is expired and will be removed from the list */
+      return [{ ...customOrderIdData, expired: true }, null];
+    } else if (updatedCustomOrderIdData.status !== OrderStatusEnum.Precreated) {
+      /** In this case the order is not error, expired or precreated, so it is an actual order */
+      return [customOrderIdData, updatedCustomOrderIdData];
     }
+
+    return [
+      { ...customOrderIdData, lastTimeFetched: Date.now(), errorCount: 0 },
+      null,
+    ];
+  } catch (error: any) {
+    return [customOrderIdData, null];
   }
 }

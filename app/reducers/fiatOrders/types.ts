@@ -6,4 +6,5 @@ export interface CustomIdData {
   lastTimeFetched: number;
   errorCount: number;
   expired?: boolean;
+  order?: Record<string, any>;
 }
