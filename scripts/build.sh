@@ -157,12 +157,12 @@ buildAndroidRun(){
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=debugQa
+	react-native run-android --variant=qaDebug
 }
 
 buildAndroidRunFlask(){
 	prebuild_android
-	react-native run-android --variant=debugFlask
+	react-native run-android --variant=flaskDebug
 }
 
 buildAndroidRunE2E(){
