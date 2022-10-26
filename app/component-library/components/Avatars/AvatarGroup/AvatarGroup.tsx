@@ -4,9 +4,8 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import { AvatarSize } from '../Avatar/Avatar.types';
+import Avatar, { AvatarSize, AvatarVariants } from '../Avatar';
 import Text, { TextVariants } from '../../Texts/Text';
-import AvatarToken from '../Avatar/variants/AvatarToken';
 
 // Internal dependencies.
 import styleSheet from './AvatarGroup.styles';
@@ -40,8 +39,8 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
               key={`${name}-${id}`}
               style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
             >
-              <AvatarToken
-                name={name}
+              <Avatar
+                variant={AvatarVariants.Image}
                 imageSource={imageSource}
                 size={extraSmallSize}
               />

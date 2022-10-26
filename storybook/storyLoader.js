@@ -6,17 +6,17 @@
 function loadStories() {
   require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
   require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
+  require('../app/component-library/components/Avatars/AvatarDeprecated/Avatar.stories');
+  require('../app/component-library/components/Avatars/AvatarDeprecated/variants/AvatarAccount/AvatarAccount.stories');
+  require('../app/component-library/components/Avatars/AvatarDeprecated/variants/AvatarFavicon/AvatarFavicon.stories');
+  require('../app/component-library/components/Avatars/AvatarDeprecated/variants/AvatarIcon/AvatarIcon.stories');
+  require('../app/component-library/components/Avatars/AvatarDeprecated/variants/AvatarNetwork/AvatarNetwork.stories');
+  require('../app/component-library/components/Avatars/AvatarDeprecated/variants/AvatarToken/AvatarToken.stories');
   require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
-  require('../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
-  require('../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
-  require('../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
-  require('../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
-  require('../app/component-library/components/Avatars/Avatar2/Avatar2.stories');
-  require('../app/component-library/components/Avatars/Avatar2/variants/AvatarIcon/AvatarIcon.stories');
-  require('../app/component-library/components/Avatars/Avatar2/variants/AvatarImage/AvatarImage.stories');
-  require('../app/component-library/components/Avatars/Avatar2/variants/AvatarInitial/AvatarInitial.stories');
-  require('../app/component-library/components/Avatars/Avatar2/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
@@ -71,11 +71,11 @@ const stories = [
   '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
-  '../app/component-library/components/Avatars/Avatar2/Avatar2.stories',
-  '../app/component-library/components/Avatars/Avatar2/variants/AvatarIcon/AvatarIcon.stories',
-  '../app/component-library/components/Avatars/Avatar2/variants/AvatarImage/AvatarImage.stories',
-  '../app/component-library/components/Avatars/Avatar2/variants/AvatarInitial/AvatarInitial.stories',
-  '../app/component-library/components/Avatars/Avatar2/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
+  '../app/component-library/components/Avatars/Avatar/Avatar.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',

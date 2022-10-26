@@ -42,7 +42,7 @@ const ContractBoxBase = ({
     <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
       <View style={styles.rowContainer}>
         <Avatar
-          variant={AvatarVariants.Token}
+          variant={AvatarVariants.Image}
           size={AvatarSize.Xl}
           imageSource={contractLocalImage}
         />

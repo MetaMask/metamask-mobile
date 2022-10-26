@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from './PickerAccount.types';
 
 // Internal dependencies.
 import PickerAccount from './PickerAccount';

@@ -26,9 +26,8 @@ const PickerNetwork = ({
   return (
     <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
       <Avatar
-        variant={AvatarVariants.Network}
+        variant={AvatarVariants.Image}
         size={AvatarSize.Xs}
-        name={label}
         imageSource={imageSource}
       />
       <Text style={styles.label} variant={TextVariants.sBodyMD}>

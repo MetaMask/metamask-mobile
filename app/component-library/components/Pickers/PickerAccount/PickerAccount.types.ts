@@ -1,6 +1,13 @@
 // External dependencies.
-import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
 import { PickerBaseProps } from '../PickerBase';
+
+/**
+ * AvatarAccount variants.
+ */
+export enum AvatarAccountType {
+  JazzIcon = 'JazzIcon',
+  Blockies = 'Blockies',
+}
 
 /**
  * PickerAccount component props.

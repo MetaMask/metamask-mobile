@@ -19,7 +19,7 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
   return (
     <View style={styles.base} {...props}>
       <Avatar
-        variant={AvatarVariants.Favicon}
+        variant={AvatarVariants.Image}
         imageSource={imageSource}
         size={AvatarSize.Md}
       />

@@ -15,7 +15,6 @@ import styleSheet from './BadgeNetwork.styles';
 
 const BadgeNetwork = ({
   position = BadgeNetworkPosition.TopRight,
-  name,
   imageSource,
 }: BadgeNetworkProps) => {
   const { styles } = useStyles(styleSheet, { position });
@@ -23,8 +22,7 @@ const BadgeNetwork = ({
   return (
     <BadgeBase style={styles.base} testID={BADGE_NETWORK_TEST_ID}>
       <Avatar
-        variant={AvatarVariants.Network}
-        name={name}
+        variant={AvatarVariants.Image}
         imageSource={imageSource}
         size={AvatarSize.Xs}
       />

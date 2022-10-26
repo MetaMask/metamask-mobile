@@ -6,10 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import {
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { TEST_REMOTE_IMAGE_SOURCE } from '../Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
 import Text, { TextVariants } from '../../Texts/Text';
 
@@ -19,7 +16,6 @@ import BadgeWrapper from './BadgeWrapper';
 storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
   const badgeProps: BadgeProps = {
     variant: BadgeVariants.Network,
-    name: TEST_NETWORK_NAME,
     imageSource: TEST_REMOTE_IMAGE_SOURCE,
   };
 

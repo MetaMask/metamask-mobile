@@ -1,30 +1,16 @@
 // External dependencies.
+import { AvatarVariants } from '../../Avatar.types';
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
-import { AvatarVariants, AvatarSize } from '../../Avatar.types';
-import { IconProps, IconSize } from '../../../../Icon/Icon.types';
+import { IconProps } from '../../../../Icon';
 
 /**
  * AvatarIcon component props.
  */
-export interface AvatarIconProps extends AvatarBaseProps {
+export interface AvatarIconProps
+  extends AvatarBaseProps,
+    Omit<IconProps, 'size'> {
   /**
-   * Variant of Avatar
+   * Avatar variants.
    */
-  variant?: AvatarVariants.Icon;
-  /**
-   * Name of icon to use.
-   */
-  name: IconProps['name'];
+  variant: AvatarVariants.Icon;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type AvatarIconStyleSheetVars = Pick<AvatarIconProps, 'style'>;
-
-/**
- * Mapping of IconSize by AvatarSize.
- */
-export type IconSizeByAvatarSize = {
-  [key in AvatarSize]: IconSize;
-};

@@ -1,13 +1,14 @@
 /* eslint-disable import/prefer-default-export */
-
-// Third party dependencies.
-import { IconSize } from '../../../../Icon';
-
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
+import { IconSize } from '../../../../Icon';
 
-// Internal dependencies.
-import { IconSizeByAvatarSize } from './AvatarIcon.types';
+/**
+ * Mapping of IconSize by AvatarSize.
+ */
+export type IconSizeByAvatarSize = {
+  [key in AvatarSize]: IconSize;
+};
 
 export const ICON_SIZE_BY_AVATAR_SIZE: IconSizeByAvatarSize = {
   [AvatarSize.Xs]: IconSize.Xs,

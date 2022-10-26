@@ -2,27 +2,24 @@
 import React from 'react';
 
 // External dependencies.
-import AvatarAccount from './variants/AvatarAccount';
-import AvatarFavicon from './variants/AvatarFavicon';
 import AvatarIcon from './variants/AvatarIcon';
-import AvatarNetwork from './variants/AvatarNetwork';
-import AvatarToken from './variants/AvatarToken';
+import AvatarImage from './variants/AvatarImage';
+import AvatarInitial from './variants/AvatarInitial';
+import AvatarJazzIcon from './variants/AvatarJazzIcon';
 
 // Internal dependencies.
 import { AvatarProps, AvatarVariants } from './Avatar.types';
 
 const Avatar = (avatarProps: AvatarProps) => {
   switch (avatarProps.variant) {
-    case AvatarVariants.Account:
-      return <AvatarAccount {...avatarProps} />;
-    case AvatarVariants.Favicon:
-      return <AvatarFavicon {...avatarProps} />;
     case AvatarVariants.Icon:
       return <AvatarIcon {...avatarProps} />;
-    case AvatarVariants.Network:
-      return <AvatarNetwork {...avatarProps} />;
-    case AvatarVariants.Token:
-      return <AvatarToken {...avatarProps} />;
+    case AvatarVariants.Image:
+      return <AvatarImage {...avatarProps} />;
+    case AvatarVariants.Initial:
+      return <AvatarInitial {...avatarProps} />;
+    case AvatarVariants.JazzIcon:
+      return <AvatarJazzIcon {...avatarProps} />;
     default:
       throw new Error('Invalid Avatar Variant');
   }

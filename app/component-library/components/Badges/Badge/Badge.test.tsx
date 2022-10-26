@@ -4,10 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { BadgeVariants } from './Badge.types';
-import {
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { TEST_REMOTE_IMAGE_SOURCE } from './variants/BadgeNetwork/BadgeNetwork.constants';
 
 // Internal dependencies.
 import Badge from './Badge';
@@ -18,7 +15,6 @@ describe('Badge - snapshots', () => {
     const wrapper = shallow(
       <Badge
         variant={BadgeVariants.Network}
-        name={TEST_NETWORK_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -31,7 +27,6 @@ describe('Badge', () => {
     const wrapper = shallow(
       <Badge
         variant={BadgeVariants.Network}
-        name={TEST_NETWORK_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );

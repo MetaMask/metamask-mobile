@@ -32,6 +32,8 @@ const styleSheet = (params: {
         borderRadius: sizeAsNum / 2,
         overflow: 'hidden',
         backgroundColor: theme.colors.background.default,
+        justifyContent: 'center',
+        alignItems: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,

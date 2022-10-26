@@ -9,17 +9,18 @@ import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
 import Text, { TextVariants } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
+import { toDataUrl } from '../../../../util/blockies';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
-import { PickerAccountProps } from './PickerAccount.types';
+import { AvatarAccountType, PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
 
 const PickerAccount = ({
   style,
   accountAddress,
-  accountName,
   accountAvatarType,
+  accountName,
   ...props
 }: PickerAccountProps) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -27,13 +28,22 @@ const PickerAccount = ({
 
   const renderCellAccount = () => (
     <View style={styles.cellAccount}>
-      <Avatar
-        variant={AvatarVariants.Account}
-        type={accountAvatarType}
-        accountAddress={accountAddress}
-        size={AvatarSize.Md}
-        style={styles.accountAvatar}
-      />
+      {accountAvatarType === AvatarAccountType.Blockies && (
+        <Avatar
+          variant={AvatarVariants.Image}
+          imageSource={{ uri: toDataUrl(accountAddress) }}
+          size={AvatarSize.Md}
+          style={styles.accountAvatar}
+        />
+      )}
+      {accountAvatarType === AvatarAccountType.JazzIcon && (
+        <Avatar
+          variant={AvatarVariants.JazzIcon}
+          address={accountAddress}
+          size={AvatarSize.Md}
+          style={styles.accountAvatar}
+        />
+      )}
       <View>
         <Text variant={TextVariants.sHeadingSMRegular}>{accountName}</Text>
         <Text variant={TextVariants.sBodyMD} style={styles.accountAddressLabel}>

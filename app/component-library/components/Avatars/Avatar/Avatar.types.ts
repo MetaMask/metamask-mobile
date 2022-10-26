@@ -1,9 +1,8 @@
-// Internal dependencies.
-import { AvatarAccountProps } from './variants/AvatarAccount/AvatarAccount.types';
-import { AvatarFaviconProps } from './variants/AvatarFavicon/AvatarFavicon.types';
+// External dependencies.
 import { AvatarIconProps } from './variants/AvatarIcon/AvatarIcon.types';
-import { AvatarNetworkProps } from './variants/AvatarNetwork/AvatarNetwork.types';
-import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
+import { AvatarImageProps } from './variants/AvatarImage/AvatarImage.types';
+import { AvatarInitialProps } from './variants/AvatarInitial/AvatarInitial.types';
+import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.types';
 
 /**
  * Avatar sizes.
@@ -20,18 +19,17 @@ export enum AvatarSize {
  * Avatar variants.
  */
 export enum AvatarVariants {
-  Account = 'Account',
-  Favicon = 'Favicon',
   Icon = 'Icon',
-  Network = 'Network',
-  Token = 'Token',
+  Image = 'Image',
+  Initial = 'Initial',
+  JazzIcon = 'JazzIcon',
 }
+
 /**
  * Avatar component props.
  */
 export type AvatarProps =
-  | AvatarAccountProps
-  | AvatarFaviconProps
   | AvatarIconProps
-  | AvatarNetworkProps
-  | AvatarTokenProps;
+  | AvatarImageProps
+  | AvatarInitialProps
+  | AvatarJazzIconProps;

@@ -5,10 +5,7 @@ import { shallow } from 'enzyme';
 // External dependencies.
 import Tag from '../../Tags/Tag';
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
-import {
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { TEST_REMOTE_IMAGE_SOURCE } from '../Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
@@ -16,7 +13,6 @@ import { BADGE_WRAPPER_BADGE_TEST_ID } from './BadgeWrapper.constants';
 
 const badgeProps: BadgeProps = {
   variant: BadgeVariants.Network,
-  name: TEST_NETWORK_NAME,
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };
 
