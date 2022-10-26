@@ -17,7 +17,8 @@
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "setup": "yarn clean && yarn allow-scripts && ./scripts/postinstall.sh",
     "start:ios": "./scripts/build.sh ios debug",
-    "start:ios:qa": "./scripts/build.sh ios qaDebug",
+    "start:ios:qa": "./scripts/build.sh ios debugQa",
+    "start:ios:flask": "./scripts/build.sh ios debugFlask",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
@@ -436,7 +437,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^14.0.0",
+    "node": "^16.0.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
