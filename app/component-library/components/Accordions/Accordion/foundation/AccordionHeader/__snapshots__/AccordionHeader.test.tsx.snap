@@ -32,9 +32,6 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
         Object {
           "marginLeft": 4,
         },
-<<<<<<< HEAD
-        [Function],
-=======
         Object {
           "transform": Array [
             Object {
@@ -42,7 +39,6 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
             },
           ],
         },
->>>>>>> main
       ]
     }
     testID="accordion-header-arrow-icon-animation"
