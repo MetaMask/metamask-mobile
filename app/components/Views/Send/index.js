@@ -46,6 +46,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { doENSLookup } from '../../../util/ENSUtils';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -266,10 +267,13 @@ class Send extends PureComponent {
   /**
    * Handle deeplink txMeta recipient
    */
-  handleNewTxMetaRecipient = (recipient) => {
+  handleNewTxMetaRecipient = async (recipient) => {
     let ensRecipient, to;
     if (isENS(recipient)) {
       ensRecipient = recipient;
+      if (!to) {
+        to = await doENSLookup(ensRecipient, this.props.network);
+      }
     } else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
       to = toChecksumAddress(recipient);
     }
@@ -315,7 +319,7 @@ class Send extends PureComponent {
         break;
       case 'send-token': {
         const selectedAsset = await this.handleTokenDeeplink(target_address);
-        const { ensRecipient, to } = this.handleNewTxMetaRecipient(
+        const { ensRecipient, to } = await this.handleNewTxMetaRecipient(
           parameters.address,
         );
         const tokenAmount =
@@ -331,7 +335,7 @@ class Send extends PureComponent {
           to: selectedAsset.address,
           transactionTo: to,
           data: generateTransferData('transfer', {
-            toAddress: parameters.address,
+            toAddress: isENS(parameters.address) ? to : parameters.address,
             amount: tokenAmount,
           }),
           value: '0x0',
