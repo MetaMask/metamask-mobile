@@ -7,10 +7,7 @@ import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
 import useAnalytics from '../hooks/useAnalytics';
 import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
-import {
-  aggregatorInitialFiatOrder,
-  processAggregatorOrder,
-} from '../orderProcessor/aggregator';
+import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
@@ -92,26 +89,28 @@ const CustomActionButton: React.FC<
         const result = await InAppBrowser.openAuth(url, redirectUrl);
 
         let orderId;
+        let orders;
 
         if (result.type === 'success' && result.url) {
-          const orders = await SDK.orders();
+          orders = await SDK.orders();
           orderId = await orders.getOrderIdFromCallback(providerId, result.url);
+        } else {
+          return;
         }
 
         if (!orderId) {
           return;
         }
 
+        const order = await orders.getOrder(orderId, selectedAddress);
         // TODO: remove customOrderId from customOrderIds state.
 
-        const transformedOrder = {
-          ...(await processAggregatorOrder(
-            aggregatorInitialFiatOrder({
-              id: orderId,
-              account: selectedAddress,
-              network: selectedChainId,
-            }),
-          )),
+        if (!order) {
+          return;
+        }
+
+        const transformedOrder: FiatOrder = {
+          ...aggregatorOrderToFiatOrder(order),
           id: orderId,
           account: selectedAddress,
           network: selectedChainId,
