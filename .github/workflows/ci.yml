@@ -8,23 +8,20 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - name: Get Yarn cache directory
-        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $GITHUB_OUTPUT
-        id: yarn-cache-dir
+          node-version-file: .nvmrc
       - name: Get Yarn version
         run: echo "YARN_VERSION=$(yarn --version)" >> $GITHUB_OUTPUT
         id: yarn-version
       - name: Cache yarn dependencies
         uses: actions/cache@v3
         with:
-          path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
+          path: .yarn/cache/
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn --immutable
+        env:
+          YARN_CHECKSUM_BEHAVIOR: update
       - run: yarn setup
       - uses: actions/cache@v3
         id: restore-build
