@@ -67,6 +67,7 @@ export const WHATS_NEW_MODAL_CLOSE_BUTTON_ID = 'whats-new-modal-close-button';
 export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
 export const INPUT_NETWORK_NAME = 'input-network-name';
+export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
 
 // Design System test ids
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
