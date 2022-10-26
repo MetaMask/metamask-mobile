@@ -12,7 +12,6 @@
     "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn pod:install",
     "clean-android": "yarn clean:android && yarn clean:node",
-    "setup:react-native-webrtc": "cd node_modules/react-native-webrtc/tools && ./downloadBitcode.sh && cd ../../../",
     "lint": "eslint '**/*.{js,ts,tsx}' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
