@@ -281,6 +281,37 @@ buildIosQA(){
 	fi
 }
 
+buildIosFlask(){
+	prebuild_ios
+
+  echo "Start Flask build..."
+  echo "BITRISE_GIT_BRANCH: $BITRISE_GIT_BRANCH"
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+    echo "$IOS_ENV"
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios
+		generateArchivePackages "MetaMask-Flask"
+		# Generate sourcemaps
+		yarn sourcemaps:ios
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		./node_modules/.bin/react-native run-ios --scheme MetaMask-Flask  --configuration Release --simulator "iPhone 12 Pro"
+	fi
+}
+
+
+buildIosSimulatorFlask(){
+	prebuild_ios
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --simulator "$SIM" --scheme "MetaMask-Flask"
+}
 
 buildAndroidQA(){
 	if [ "$PRE_RELEASE" = false ] ; then
@@ -372,11 +403,17 @@ buildIos() {
 		buildIosSimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
-	elif [ "$MODE" == "qaDebug" ] ; then
+	elif [ "$MODE" == "debugQa" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
 		else
 			buildIosSimulatorQA
+		fi
+  elif [ "$MODE" == "debugFlask" ] ; then
+    if [ "$RUN_DEVICE" = true ] ; then
+      buildIosFlask
+		else
+			buildIosSimulatorFlask
 		fi
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
