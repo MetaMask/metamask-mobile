@@ -29,5 +29,5 @@ export interface AvatarImageProps extends Avatar2BaseProps {
  */
 export type AvatarImageStyleSheetVars = Pick<
   AvatarImageProps,
-  'size' | 'style'
+  'size' | 'style' | 'isHaloEnabled'
 >;

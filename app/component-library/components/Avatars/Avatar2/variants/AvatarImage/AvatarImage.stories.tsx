@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { select } from '@storybook/addon-knobs';
+import { select, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
@@ -18,12 +18,15 @@ export const getAvatarImageStoryProps = (): AvatarImageProps => {
     storybookPropsGroupID,
   );
 
+  const isHaloEnabled = boolean('isHaloEnabled', false, storybookPropsGroupID);
+
   return {
     variant: AvatarVariants.Image,
     size: sizeSelector,
     imageSource: {
-      uri: 'https://uniswap.org/favicon.ico',
+      uri: 'https://cryptologos.cc/logos/curve-dao-token-crv-logo.png',
     },
+    isHaloEnabled,
   };
 };
 const AvatarImageStory = () => <AvatarImage {...getAvatarImageStoryProps()} />;
