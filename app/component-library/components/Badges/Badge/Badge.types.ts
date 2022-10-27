@@ -1,14 +1,14 @@
 // Internal dependencies.
-import { BadgeNetworkProps } from './variants/BadgeNetwork/BadgeNetwork.types';
+import { BadgeAvatarProps } from './variants/BadgeAvatar/BadgeAvatar.types';
 
 /**
  * Badge variants.
  */
 export enum BadgeVariants {
-  Network = 'network',
+  Avatar = 'avatar',
 }
 
 /**
  * Badge Account component props.
  */
-export type BadgeProps = BadgeNetworkProps;
+export type BadgeProps = BadgeAvatarProps;

@@ -6,9 +6,9 @@ import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
 import {
-  BadgeNetworkPosition,
-  BadgeNetworkStyleSheetVars,
-} from './BadgeNetwork.types';
+  BadgeAvatarPosition,
+  BadgeAvatarStyleSheetVars,
+} from './BadgeAvatar.types';
 
 /**
  * Style sheet function for Badge component.
@@ -20,24 +20,24 @@ import {
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: BadgeNetworkStyleSheetVars;
+  vars: BadgeAvatarStyleSheetVars;
 }) => {
   const { vars } = params;
   const { style, position } = vars;
   let badgePosition: ViewStyle = {};
 
   switch (position) {
-    case BadgeNetworkPosition.TopRight: {
+    case BadgeAvatarPosition.TopRight: {
       badgePosition = {
-        top: -4,
-        right: -4,
+        top: '-12.5%',
+        right: '-12.5%',
       };
       break;
     }
-    case BadgeNetworkPosition.BottomRight: {
+    case BadgeAvatarPosition.BottomRight: {
       badgePosition = {
-        right: -4,
-        bottom: -4,
+        right: '-12.5%',
+        bottom: '-12.5%',
       };
       break;
     }
