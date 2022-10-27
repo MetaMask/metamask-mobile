@@ -84,6 +84,9 @@ When(/^I tap "([^"]*)?"/, async (text) => {
     case 'Import':
       await ImportFromSeedScreen.clickImportButton();
       break;
+    case 'No, Thanks':
+      await WalletMainScreen.tapNoThanks();
+      break;
     default:
       throw new Error('Condition not found');
   }
@@ -158,4 +161,3 @@ When(/^secure wallet page is presented/, async () => {
 Then(/^I should proceed to the new wallet/, async () => {
   await WalletSetupScreen.assertNewWalletWelcomeTutorial();
 });
-
