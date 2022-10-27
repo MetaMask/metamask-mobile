@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -24,7 +26,9 @@ exports[`StyledButton should render correctly on Android the button with type ca
 `;
 
 exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -46,7 +50,9 @@ exports[`StyledButton should render correctly on Android the button with type co
 `;
 
 exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -69,7 +75,9 @@ exports[`StyledButton should render correctly on Android the button with type no
 `;
 
 exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessible={true}
+>
   <View
     style={
       Array [
