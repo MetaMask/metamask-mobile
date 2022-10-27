@@ -28,7 +28,7 @@ import StyledButton from '../../../UI/StyledButton';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
+import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
 import {
@@ -355,12 +355,10 @@ class SendFlow extends PureComponent {
   };
 
   validateToAddress = async () => {
-    const { toAccount } = this.state;
-    const { network } = this.props;
+    const { toAccount, toEnsAddressResolved } = this.state;
     let addressError;
     if (isENS(toAccount)) {
-      const resolvedAddress = await doENSLookup(toAccount, network);
-      if (!resolvedAddress) {
+      if (!toEnsAddressResolved) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
     } else if (!isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
@@ -785,7 +783,15 @@ class SendFlow extends PureComponent {
                 containerStyle={styles.buttonNext}
                 onPress={this.onTransactionDirectionSet}
                 testID={ADDRESS_BOOK_NEXT_BUTTON}
-                disabled={!toSelectedAddressReady}
+                //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
+                //Will be here just to ensure that we don't break existing conditions
+                disabled={
+                  !(
+                    (isValidHexAddress(toEnsAddressResolved) ||
+                      isValidHexAddress(toAccount)) &&
+                    toSelectedAddressReady
+                  )
+                }
               >
                 {strings('address_book.next')}
               </StyledButton>
