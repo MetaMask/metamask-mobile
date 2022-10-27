@@ -165,7 +165,7 @@ export const getCustomOrderIds = createSelector(
     customOrderIds.filter(
       (customOrderId) =>
         customOrderId.account === selectedAddress &&
-        Number(customOrderId.network) === Number(chainId),
+        Number(customOrderId.chainId) === Number(chainId),
     ),
 );
 

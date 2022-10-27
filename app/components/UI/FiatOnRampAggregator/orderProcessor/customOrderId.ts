@@ -5,6 +5,21 @@ import { SDK } from '../sdk';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
+export function createCustomOrderIdData(
+  id: string,
+  chainId: string,
+  account: string,
+): CustomIdData {
+  return {
+    id,
+    chainId,
+    account,
+    createdAt: Date.now(),
+    lastTimeFetched: 0,
+    errorCount: 0,
+  };
+}
+
 export default async function processCustomOrderIdData(
   customOrderIdData: CustomIdData,
 ) {

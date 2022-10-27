@@ -216,8 +216,10 @@ async function processCustomOrderId(
   customOrderIdData,
   { updateFiatCustomIdData, removeFiatCustomIdData, addFiatOrder },
 ) {
-  const [customOrderId, fiatOrderResponse] =
-    processCustomOrderIdData(customOrderIdData);
+  const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
+    customOrderIdData,
+  );
+
   if (fiatOrderResponse) {
     const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
     addFiatOrder(fiatOrder);
@@ -226,7 +228,7 @@ async function processCustomOrderId(
         getNotificationDetails(fiatOrder),
       );
     });
-    removeFiatCustomIdData(customOrderId);
+    removeFiatCustomIdData(customOrderIdData);
   } else if (customOrderId.expired) {
     removeFiatCustomIdData(customOrderId);
   } else {
@@ -251,17 +253,20 @@ function FiatOrders({
     pendingOrders.length ? POLLING_FREQUENCY : null,
   );
 
-  useInterval(async () => {
-    await Promise.all(
-      customOrderIds.map((customOrderIdData) =>
-        processCustomOrderId(customOrderIdData, {
-          updateFiatCustomIdData,
-          removeFiatCustomIdData,
-          addFiatOrder,
-        }),
-      ),
-    );
-  });
+  useInterval(
+    async () => {
+      await Promise.all(
+        customOrderIds.map((customOrderIdData) =>
+          processCustomOrderId(customOrderIdData, {
+            updateFiatCustomIdData,
+            removeFiatCustomIdData,
+            addFiatOrder,
+          }),
+        ),
+      );
+    },
+    customOrderIds.length ? POLLING_FREQUENCY : null,
+  );
 
   return null;
 }

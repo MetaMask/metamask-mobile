@@ -2,20 +2,25 @@ import React, { useCallback, useState } from 'react';
 import { Linking } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { InAppBrowser } from 'react-native-inappbrowser-reborn';
+import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
 import useAnalytics from '../hooks/useAnalytics';
 import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
+import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
-import { addFiatOrder } from '../../../../reducers/fiatOrders';
+import {
+  addFiatCustomIdData,
+  addFiatOrder,
+  removeFiatCustomIdData,
+} from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import NotificationManager from '../../../../core/NotificationManager';
 import Logger from '../../../../util/Logger';
 import { hexToBN } from '../../../../util/number';
-import { useNavigation } from '@react-navigation/native';
 
 interface Props {
   customAction: PaymentCustomAction;
@@ -67,10 +72,7 @@ const CustomActionButton: React.FC<
         providerId,
       );
 
-      const {
-        url,
-        // orderId: customOrderId
-      } = await sdk.getBuyUrl(
+      const { url, orderId: customOrderId } = await sdk.getBuyUrl(
         provider.provider,
         selectedRegion?.id as string,
         selectedPaymentMethodId as string,
@@ -81,7 +83,13 @@ const CustomActionButton: React.FC<
         redirectUrl,
       );
 
-      // TODO: add customOrderId to customOrderIds state.
+      const customIdData = createCustomOrderIdData(
+        customOrderId,
+        selectedChainId,
+        selectedAddress,
+      );
+
+      dispatch(addFiatCustomIdData(customIdData));
 
       if (await InAppBrowser.isAvailable()) {
         dispatch(setLockTime(-1));
@@ -103,7 +111,8 @@ const CustomActionButton: React.FC<
         }
 
         const order = await orders.getOrder(orderId, selectedAddress);
-        // TODO: remove customOrderId from customOrderIds state.
+
+        dispatch(removeFiatCustomIdData(customIdData));
 
         if (!order) {
           return;
