@@ -219,10 +219,14 @@ const UpdateEIP1559Tx = ({
     view: isCancel ? AppConstants.CANCEL_RATE : AppConstants.SPEED_UP_RATE,
   });
 
+  const selectedGasObject = {
+    suggestedMaxFeePerGas: existingGas.maxFeePerGas,
+    suggestedMaxPriorityFeePerGas: existingGas.maxPriorityFeePerGas,
+    suggestedGasLimit,
+  };
   return (
     <EditGasFee1559Update
       selectedGasValue={gasSelected}
-      initialSuggestedGasLimit={suggestedGasLimit}
       gasOptions={gasFeeEstimates}
       primaryCurrency={primaryCurrency}
       chainId={chainId}
@@ -237,7 +241,8 @@ const UpdateEIP1559Tx = ({
       updateOption={updateTx1559Options.current}
       analyticsParams={getGasAnalyticsParams()}
       animateOnChange={animateOnGasChange}
-      existingGas={existingGas}
+      selectedGasObject={selectedGasObject}
+      onlyGas
     />
   );
 };

@@ -8,7 +8,7 @@ import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../../util/theme';
-import Text, { TextVariant } from '../../../Texts/Text';
+import Text, { TextVariants } from '../../../Texts/Text';
 
 // Internal dependencies.
 import MultiselectItem from './MultiselectItem';
@@ -35,7 +35,7 @@ const MultiselectItemExample = () => {
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
       </View>
     </MultiselectItem>
   );
@@ -60,7 +60,7 @@ storiesOf('Component Library / MultiselectItem', module)
             justifyContent: 'center',
           }}
         >
-          <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
+          <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
         </View>
       </MultiselectItem>
     );

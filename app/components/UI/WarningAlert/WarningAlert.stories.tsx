@@ -6,7 +6,7 @@ import { text } from '@storybook/addon-knobs';
 // Internal dependencies.
 import WarningAlert from './WarningAlert';
 
-storiesOf('UI / WarningAlert', module)
+storiesOf('Components / UI / WarningAlert', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
