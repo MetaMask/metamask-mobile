@@ -137,6 +137,7 @@ export const getOrders = createSelector(
   (orders, selectedAddress, chainId) =>
     orders.filter(
       (order) =>
+        !order.excludeFromPurchases &&
         order.account === selectedAddress &&
         Number(order.network) === Number(chainId),
     ),
