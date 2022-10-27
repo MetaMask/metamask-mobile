@@ -150,4 +150,6 @@ module.exports = {
     'react/prefer-es6-class': 2,
     radix: 0,
   },
+
+  ignorePatterns: ['wdio.conf.js'],
 };
