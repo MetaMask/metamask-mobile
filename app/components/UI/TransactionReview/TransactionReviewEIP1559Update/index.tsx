@@ -33,6 +33,7 @@ const TransactionReviewEIP1559Update = ({
   legacy,
   gasSelected,
   gasObject,
+  onlyGas,
   updateTransactionState,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
@@ -50,7 +51,7 @@ const TransactionReviewEIP1559Update = ({
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
-    onlyGas: undefined,
+    onlyGas: !!onlyGas,
     gasSelected,
     legacy: !!legacy,
     gasObject,
