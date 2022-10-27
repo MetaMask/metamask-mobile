@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks/useStyles';
-import { AvatarSize } from '../../Avatar.types';
+import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
 import { AvatarBaseProps } from './AvatarBase.types';
@@ -14,7 +14,7 @@ import styleSheet from './AvatarBase.styles';
 import { AVATAR_BASE_TEST_ID } from './AvatarBase.constants';
 
 const AvatarBase: React.FC<AvatarBaseProps> = ({
-  size = AvatarSize.Md,
+  size = AvatarSizes.Md,
   style,
   children,
 }) => {

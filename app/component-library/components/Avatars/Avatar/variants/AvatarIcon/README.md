@@ -21,8 +21,8 @@ Name of icon to use.
 import AvatarIcon, {
   AvatarIcon,
 } from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
+import { AvatarSizes } from 'app/component-library/components/Avatars/Avatar/Avatar';
 import { IconName } from 'app/component-library/components/Icon';
 
-<AvatarIcon size={AvatarSize.Md} name={IconName.BankFilled} />;
+<AvatarIcon size={AvatarSizes.Md} name={IconName.BankFilled} />;
 ```

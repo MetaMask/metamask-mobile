@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarSize, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarJazzIcon from './AvatarJazzIcon';
@@ -17,7 +17,7 @@ describe('AvatarJazzIcon - Snapshot', () => {
     const wrapper = shallow(
       <AvatarJazzIcon
         variant={AvatarVariants.JazzIcon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         address={TEST_AVATAR_JAZZICON_ADDRESS}
       />,
     );
@@ -30,7 +30,7 @@ describe('AvatarJazzIcon', () => {
     const wrapper = shallow(
       <AvatarJazzIcon
         variant={AvatarVariants.JazzIcon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         address={TEST_AVATAR_JAZZICON_ADDRESS}
       />,
     );

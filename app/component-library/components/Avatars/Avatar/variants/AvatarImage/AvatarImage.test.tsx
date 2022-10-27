@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarSize, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
@@ -20,7 +20,7 @@ describe('AvatarImage - Snapshot', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
       />,
     );
@@ -30,7 +30,7 @@ describe('AvatarImage - Snapshot', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -40,7 +40,7 @@ describe('AvatarImage - Snapshot', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
         isHaloEnabled
       />,
@@ -54,7 +54,7 @@ describe('AvatarImage', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -67,7 +67,7 @@ describe('AvatarImage', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
       />,
     );
@@ -82,7 +82,7 @@ describe('AvatarImage', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -97,7 +97,7 @@ describe('AvatarImage', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
         isHaloEnabled
       />,
@@ -111,7 +111,7 @@ describe('AvatarImage', () => {
     const wrapper = shallow(
       <AvatarImage
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
         isHaloEnabled={false}
       />,

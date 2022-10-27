@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { IconName } from '../../../../Icon';
-import { AvatarSize, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarIcon from './AvatarIcon';
@@ -18,7 +18,7 @@ describe('AvatarIcon - Snapshot', () => {
     const wrapper = shallow(
       <AvatarIcon
         variant={AvatarVariants.Icon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         name={IconName.AddOutline}
       />,
     );
@@ -31,7 +31,7 @@ describe('AvatarIcon', () => {
     const wrapper = shallow(
       <AvatarIcon
         variant={AvatarVariants.Icon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         name={IconName.AddOutline}
       />,
     );
@@ -45,7 +45,7 @@ describe('AvatarIcon', () => {
     const wrapper = shallow(
       <AvatarIcon
         variant={AvatarVariants.Icon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         name={avatarName}
       />,
     );

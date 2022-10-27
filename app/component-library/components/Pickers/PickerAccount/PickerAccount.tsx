@@ -5,7 +5,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Avatar, { AvatarSizes, AvatarVariants } from '../../Avatars/Avatar';
 import Text, { TextVariants } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
@@ -32,7 +32,7 @@ const PickerAccount = ({
         <Avatar
           variant={AvatarVariants.Image}
           imageSource={{ uri: toDataUrl(accountAddress) }}
-          size={AvatarSize.Md}
+          size={AvatarSizes.Md}
           style={styles.accountAvatar}
         />
       )}
@@ -40,7 +40,7 @@ const PickerAccount = ({
         <Avatar
           variant={AvatarVariants.JazzIcon}
           address={accountAddress}
-          size={AvatarSize.Md}
+          size={AvatarSizes.Md}
           style={styles.accountAvatar}
         />
       )}

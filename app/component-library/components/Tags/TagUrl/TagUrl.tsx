@@ -5,7 +5,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Avatar, { AvatarSizes, AvatarVariants } from '../../Avatars/Avatar';
 import Button, { ButtonVariants } from '../../Buttons/Button';
 import Text, { TextVariants } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
@@ -21,7 +21,7 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
       <Avatar
         variant={AvatarVariants.Image}
         imageSource={imageSource}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
       />
       <Text style={styles.label} variant={TextVariants.sBodyMD}>
         {label}

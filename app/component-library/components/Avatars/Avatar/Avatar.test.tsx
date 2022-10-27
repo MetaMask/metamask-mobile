@@ -10,7 +10,7 @@ import { TEST_AVATAR_JAZZICON_ADDRESS } from './variants/AvatarJazzIcon/AvatarJa
 
 // Internal dependencies.
 import Avatar from './Avatar';
-import { AvatarSize, AvatarVariants } from './Avatar.types';
+import { AvatarSizes, AvatarVariants } from './Avatar.types';
 import {
   AVATAR_AVATAR_ICON_TEST_ID,
   AVATAR_AVATAR_IMAGE_TEST_ID,
@@ -23,7 +23,7 @@ describe('Avatar - Snapshot', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.Icon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         name={IconName.AddOutline}
       />,
     );
@@ -33,7 +33,7 @@ describe('Avatar - Snapshot', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -43,7 +43,7 @@ describe('Avatar - Snapshot', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.Initial}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
@@ -53,7 +53,7 @@ describe('Avatar - Snapshot', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.JazzIcon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         address={TEST_AVATAR_JAZZICON_ADDRESS}
       />,
     );
@@ -66,7 +66,7 @@ describe('Avatar', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.Icon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         name={IconName.AddOutline}
       />,
     );
@@ -79,7 +79,7 @@ describe('Avatar', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.Image}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -92,7 +92,7 @@ describe('Avatar', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.Initial}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
@@ -105,7 +105,7 @@ describe('Avatar', () => {
     const wrapper = shallow(
       <Avatar
         variant={AvatarVariants.JazzIcon}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         address={TEST_AVATAR_JAZZICON_ADDRESS}
       />,
     );

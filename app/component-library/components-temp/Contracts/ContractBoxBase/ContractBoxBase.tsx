@@ -4,7 +4,7 @@ import { View, Pressable } from 'react-native';
 
 // External dependencies.
 import Avatar, {
-  AvatarSize,
+  AvatarSizes,
   AvatarVariants,
 } from '../../../components/Avatars/Avatar';
 import Text, { TextVariants } from '../../../components/Texts/Text';
@@ -43,7 +43,7 @@ const ContractBoxBase = ({
       <View style={styles.rowContainer}>
         <Avatar
           variant={AvatarVariants.Image}
-          size={AvatarSize.Xl}
+          size={AvatarSizes.Xl}
           imageSource={contractLocalImage}
         />
         {contractPetName ? (

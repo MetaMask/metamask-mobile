@@ -5,7 +5,7 @@ import { Image, ImageBackground } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSize } from '../../Avatar.types';
+import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
 import styleSheet from './AvatarImage.styles';
@@ -19,7 +19,7 @@ import {
 const AvatarImage = ({
   style,
   imageSource,
-  size = AvatarSize.Md,
+  size = AvatarSizes.Md,
   isHaloEnabled = false,
 }: AvatarImageProps) => {
   const { styles } = useStyles(styleSheet, { style, size, isHaloEnabled });

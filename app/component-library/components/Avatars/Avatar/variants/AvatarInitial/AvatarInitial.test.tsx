@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarSize, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarInitial from './AvatarInitial';
@@ -18,7 +18,7 @@ describe('AvatarInitial - Snapshot', () => {
     const wrapper = shallow(
       <AvatarInitial
         variant={AvatarVariants.Initial}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
@@ -31,7 +31,7 @@ describe('AvatarInitial', () => {
     const wrapper = shallow(
       <AvatarInitial
         variant={AvatarVariants.Initial}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
@@ -44,7 +44,7 @@ describe('AvatarInitial', () => {
     const wrapper = shallow(
       <AvatarInitial
         variant={AvatarVariants.Initial}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
         initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );

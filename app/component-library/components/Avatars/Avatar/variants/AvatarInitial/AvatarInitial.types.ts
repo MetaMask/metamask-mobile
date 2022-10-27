@@ -1,6 +1,6 @@
 // External dependencies.
 import { TextVariants } from '../../../../Texts/Text';
-import { AvatarSize, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
 
 /**
@@ -26,8 +26,8 @@ export type AvatarInitialStyleSheetVars = Pick<
 >;
 
 /**
- * Mapping of TextVariant by AvatarSize.
+ * Mapping of TextVariant by AvatarSizes.
  */
-export type TextVariantByAvatarSize = {
-  [key in AvatarSize]: TextVariants;
+export type TextVariantByAvatarSizes = {
+  [key in AvatarSizes]: TextVariants;
 };

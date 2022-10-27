@@ -7,7 +7,7 @@ import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.ty
 /**
  * Avatar sizes.
  */
-export enum AvatarSize {
+export enum AvatarSizes {
   Xs = '16',
   Sm = '24',
   Md = '32',

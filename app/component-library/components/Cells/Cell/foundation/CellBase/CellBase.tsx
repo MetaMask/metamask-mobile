@@ -7,7 +7,7 @@ import { View } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import Avatar, {
-  AvatarSize,
+  AvatarSizes,
 } from 'app/component-library/components/Avatars/Avatar';
 import Text, { TextVariants } from '../../../../Texts/Text';
 import Tag from '../../../../Tags/Tag';
@@ -41,7 +41,7 @@ const CellBase = ({
         style={styles.avatar}
         testID={CELL_AVATAR_TEST_ID}
         {...avatarProps}
-        size={AvatarSize.Md}
+        size={AvatarSizes.Md}
       />
       <View style={styles.cellBaseInfo}>
         <Text
