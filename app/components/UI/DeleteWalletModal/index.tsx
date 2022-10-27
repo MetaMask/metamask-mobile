@@ -7,6 +7,7 @@ import {
   InteractionManager,
   UIManager,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -24,6 +25,8 @@ import { tlc } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { DELETE_MODAL_UNDERSTAND_CONTINUE_ID } from '../../../../wdio/features/testIDs/Screens/LoginScreen.testIds';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -101,6 +104,7 @@ const DeleteWalletModal = () => {
           onCancelPress={deleteWallet}
           onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
+          {...generateTestId(Platform, DELETE_MODAL_UNDERSTAND_CONTINUE_ID)}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.areYouSure}>
@@ -132,6 +136,7 @@ const DeleteWalletModal = () => {
           onCancelPress={showConfirmModal}
           onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
+          {...generateTestId(Platform, DELETE_MODAL_UNDERSTAND_CONTINUE_ID)}
         >
           <View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>
             <Icon
