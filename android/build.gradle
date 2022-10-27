@@ -65,6 +65,15 @@ allprojects {
 						}
 					}
 				}
+				// Used to support the build fo reanimated
+				if (project.hasProperty("native")){
+					externalNativeBuild {
+						cmake {
+						path file('jni/CMakeLists.txt')
+						version '3.18.1+'
+						}
+					}
+				}
 		}
 	}
 }

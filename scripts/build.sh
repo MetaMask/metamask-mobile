@@ -142,9 +142,6 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
-	# Added specific dependency install for Reanimated 2.10 requires CMake 3.12+
-	$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmake;3.18.1"
-
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
 		then
