@@ -6,8 +6,10 @@ import React from 'react';
 // External dependencies.
 import { toDataUrl } from '../../../../../../util/blockies';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariants as MorphAvatarVariants,
 } from '../../../../../../component-library/components/Avatars/Avatar';
+import AvatarJazzIcon from '../AvatarJazzIcon';
+import { AvatarVariants } from '../../Avatar.types';
 
 // Internal dependencies.
 import { AvatarAccountProps, AvatarAccountType } from './AvatarAccount.types';
@@ -19,12 +21,12 @@ const AvatarAccount = ({
 }: AvatarAccountProps) => (
   <>
     {type === AvatarAccountType.JazzIcon ? (
-      <Avatar {...props} variant={AvatarVariants.JazzIcon} />
+      <AvatarJazzIcon {...props} variant={AvatarVariants.JazzIcon} />
     ) : (
       <Avatar
         source={{ uri: toDataUrl(accountAddress) }}
         {...props}
-        variant={AvatarVariants.Image}
+        variant={MorphAvatarVariants.Image}
       />
     )}
   </>
