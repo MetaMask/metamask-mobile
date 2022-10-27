@@ -106,13 +106,13 @@ When(/^I type (.*) in confirm password field/, async (text) => {
 });
 
 Then(/^device alert (.*) is displayed/, async (text) => {
-  await ImportFromSeedScreen.verifyAlertText(text);
+  await ImportFromSeedScreen.isAlertTextVisible(text);
   await ImportFromSeedScreen.tapOkInAlertMessage();
 
 });
 
 Then(/^password strength (.*) is displayed/, async (text) => {
-  await ImportFromSeedScreen.verifyPasswordStrength(text);
+  await ImportFromSeedScreen.isPasswordStrengthTextCorrect(text);
 });
 
 When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {

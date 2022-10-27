@@ -4,12 +4,9 @@ import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_SCREEN_TITLE_ID,
-
 } from '../../testIDs/Screens/WalletSetupScreen.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-
-export const SECURE_WALLET_SCREEN = 'protect-your-account-screen';
 
 class OnBoardingScreen {
 

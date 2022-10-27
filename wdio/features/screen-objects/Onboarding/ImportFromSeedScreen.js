@@ -57,11 +57,11 @@ class ImportFromSeed {
     await Gestures.waitAndTap(this.importButton);
   }
 
-  async verifyPasswordStrength(text){
+  async isPasswordStrengthTextCorrect(text){
     await expect(this.passwordStrengthLabel).toHaveText(text);
   }
 
-  async verifyAlertText(text){
+  async isAlertTextVisible(text){
     const msg = await driver.getAlertText();
     expect(msg.includes(text)).toBe(true);
   }

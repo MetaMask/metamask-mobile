@@ -15,6 +15,10 @@ import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  SKIP_BUTTON,
+  CANCEL_BUTTON,
+} from '../../../../wdio/features/testIDs/Components/SkipAccountSecurityModalTestIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -78,8 +82,8 @@ const SkipAccountSecurityModal = ({
 
   return (
     <ActionModal
-      cancelTestID={'Cancel-Skip'}
-      confirmTestID={'Skip-button'}
+      cancelTestID={CANCEL_BUTTON}
+      confirmTestID={SKIP_BUTTON}
       confirmText={strings('account_backup_step_1.skip_button_confirm')}
       cancelText={strings('account_backup_step_1.skip_button_cancel')}
       confirmButtonMode={'confirm'}
