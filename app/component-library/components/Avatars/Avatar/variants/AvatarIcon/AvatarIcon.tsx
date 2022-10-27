@@ -3,8 +3,8 @@ import React from 'react';
 import Icon from '../../../../Icon';
 
 // External dependencies.
-import { AvatarSizes } from '../../Avatar.types';
 import AvatarBase from '../../foundation/AvatarBase';
+import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarIconProps } from './AvatarIcon.types';
@@ -14,7 +14,10 @@ import {
   AVATAR_ICON_ICON_TEST_ID,
 } from './AvatarIcon.constants';
 
-const AvatarIcon = ({ size = AvatarSizes.Md, ...props }: AvatarIconProps) => (
+const AvatarIcon = ({
+  size = DEFAULT_AVATAR_SIZE,
+  ...props
+}: AvatarIconProps) => (
   <AvatarBase size={size} testID={AVATAR_ICON_TEST_ID}>
     <Icon
       testID={AVATAR_ICON_ICON_TEST_ID}

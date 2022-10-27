@@ -4,7 +4,6 @@ import {
   AvatarProps,
   AvatarVariants,
 } from '../../../components/Avatars/Avatar/Avatar.types';
-import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import {
   BadgeVariants,
   BadgeProps,
@@ -28,13 +27,11 @@ export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
 };
 
 export const TEST_AVATAR_PROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
-  accountAddress: TEST_ACCOUNT_ADDRESS,
-  type: AvatarAccountType.JazzIcon,
+  variant: AvatarVariants.JazzIcon,
+  address: TEST_ACCOUNT_ADDRESS,
 };
 
 export const BADGE_PROPS: BadgeProps = {
   variant: BadgeVariants.Network,
-  name: 'Ethereum',
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };

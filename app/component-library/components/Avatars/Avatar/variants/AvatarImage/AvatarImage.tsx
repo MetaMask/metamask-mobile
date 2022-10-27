@@ -5,7 +5,7 @@ import { Image, ImageBackground } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSizes } from '../../Avatar.types';
+import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import styleSheet from './AvatarImage.styles';
@@ -18,14 +18,14 @@ import {
 
 const AvatarImage = ({
   style,
-  imageSource,
-  size = AvatarSizes.Md,
+  source,
+  size = DEFAULT_AVATAR_SIZE,
   isHaloEnabled = false,
 }: AvatarImageProps) => {
   const { styles } = useStyles(styleSheet, { style, size, isHaloEnabled });
   const renderImage = () => (
     <Image
-      source={imageSource}
+      source={source}
       style={styles.image}
       resizeMode={'contain'}
       testID={AVATAR_IMAGE_IMAGE_TEST_ID}
@@ -39,7 +39,7 @@ const AvatarImage = ({
           blurRadius={20}
           style={styles.halo}
           imageStyle={styles.haloImage}
-          source={imageSource}
+          source={source}
           testID={AVATAR_IMAGE_HALO_TEST_ID}
         >
           {renderImage()}

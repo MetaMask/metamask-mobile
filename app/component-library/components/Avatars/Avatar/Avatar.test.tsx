@@ -34,7 +34,7 @@ describe('Avatar - Snapshot', () => {
       <Avatar
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -80,7 +80,7 @@ describe('Avatar', () => {
       <Avatar
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
     const AvatarImageComponent = wrapper.findWhere(

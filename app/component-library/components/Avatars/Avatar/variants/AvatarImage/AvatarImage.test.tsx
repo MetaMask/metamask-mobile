@@ -21,7 +21,7 @@ describe('AvatarImage - Snapshot', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -31,7 +31,7 @@ describe('AvatarImage - Snapshot', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -41,7 +41,7 @@ describe('AvatarImage - Snapshot', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
         isHaloEnabled
       />,
     );
@@ -55,7 +55,7 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
     const AvatarImageComponent = wrapper.findWhere(
@@ -68,7 +68,7 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_LOCAL_IMAGE_SOURCE}
       />,
     );
     const AvatarImageImageComponent = wrapper.findWhere(
@@ -83,7 +83,7 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
       />,
     );
     const AvatarImageImageComponent = wrapper.findWhere(
@@ -98,7 +98,7 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
         isHaloEnabled
       />,
     );
@@ -112,7 +112,7 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageSource={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
         isHaloEnabled={false}
       />,
     );

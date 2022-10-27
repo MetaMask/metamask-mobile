@@ -24,7 +24,7 @@ export const getAvatarImageStoryProps = (): AvatarImageProps => {
   return {
     variant: AvatarVariants.Image,
     size: sizeSelector,
-    imageSource: TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE,
+    source: TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE,
     isHaloEnabled,
   };
 };

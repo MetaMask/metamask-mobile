@@ -4,8 +4,8 @@ import Text from '../../../../Texts/Text';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import { AvatarSizes } from '../../Avatar.types';
 import AvatarBase from '../../foundation/AvatarBase';
+import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import styleSheet from './AvatarInitial.styles';
@@ -19,7 +19,7 @@ import {
 const AvatarInitial = ({
   style,
   initial,
-  size = AvatarSizes.Md,
+  size = DEFAULT_AVATAR_SIZE,
   ...props
 }: AvatarInitialProps) => {
   const { styles } = useStyles(styleSheet, { style, size });
