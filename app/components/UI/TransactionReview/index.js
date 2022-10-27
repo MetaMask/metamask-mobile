@@ -40,6 +40,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -352,10 +353,16 @@ class TransactionReview extends PureComponent {
     let url;
     if (
       transaction.origin &&
-      transaction.origin.includes(WALLET_CONNECT_ORIGIN)
+      transaction.origin.startsWith(WALLET_CONNECT_ORIGIN)
     ) {
       return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
+    } else if (
+      transaction.origin &&
+      transaction.origin.startsWith(MM_SDK_REMOTE_ORIGIN)
+    ) {
+      return transaction.origin.split(MM_SDK_REMOTE_ORIGIN)[1];
     }
+
     browser.tabs.forEach((tab) => {
       if (tab.id === browser.activeTab) {
         url = tab.url;
