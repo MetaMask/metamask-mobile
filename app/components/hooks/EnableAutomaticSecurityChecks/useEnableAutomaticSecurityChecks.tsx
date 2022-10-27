@@ -16,7 +16,7 @@ const useEnableAutomaticSecurityChecks = () => {
         ...createEnableAutomaticSecurityChecksModalNavDetails(),
       );
     }
-  });
+  }, [hasUserSelectedAutomaticSecurityCheckOption, navigation]);
 };
 
 export default useEnableAutomaticSecurityChecks;
