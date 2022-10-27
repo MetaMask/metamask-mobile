@@ -17,3 +17,6 @@ export const ICON_SIZE_BY_AVATAR_SIZE: IconSizeByAvatarSize = {
   [AvatarSize.Lg]: IconSize.Lg,
   [AvatarSize.Xl]: IconSize.Xl,
 };
+
+export const AVATAR_ICON_TEST_ID = 'avatar-icon';
+export const AVATAR_ICON_ICON_TEST_ID = 'avatar-icon-icon';

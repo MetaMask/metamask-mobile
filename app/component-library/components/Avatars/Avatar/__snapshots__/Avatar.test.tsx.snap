@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Avatar - Snapshot should render AvatarIcon correctly 1`] = `
+<AvatarIcon
+  name="AddOutline"
+  size="32"
+  testID="avatar-avatar-icon"
+  variant="Icon"
+/>
+`;
+
+exports[`Avatar - Snapshot should render AvatarImage correctly 1`] = `
+<AvatarImage
+  imageSource={
+    Object {
+      "uri": "https://cryptologos.cc/logos/curve-dao-token-crv-logo.png",
+    }
+  }
+  size="32"
+  testID="avatar-avatar-image"
+  variant="Image"
+/>
+`;
+
+exports[`Avatar - Snapshot should render AvatarInitial correctly 1`] = `
+<AvatarInitial
+  initial="Sample Text"
+  size="32"
+  testID="avatar-avatar-initial"
+  variant="Initial"
+/>
+`;
+
+exports[`Avatar - Snapshot should render AvatarJazzIcon correctly 1`] = `
+<AvatarJazzIcon
+  address="0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092"
+  size="32"
+  testID="avatar-avatar-jazzicon"
+  variant="JazzIcon"
+/>
+`;

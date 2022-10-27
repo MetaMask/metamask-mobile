@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarInitial - Snapshot should render AvatarInitial 1`] = `
+<AvatarBase
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderColor": "#D6D9DC",
+      "borderRadius": 16,
+      "borderWidth": 1,
+      "height": 32,
+      "justifyContent": "center",
+      "width": 32,
+    }
+  }
+  testID="avatar-initial"
+  variant="Initial"
+>
+  <Text
+    testID="avatar-initial-text"
+    variant="sBodyMDBold"
+  >
+    S
+  </Text>
+</AvatarBase>
+`;

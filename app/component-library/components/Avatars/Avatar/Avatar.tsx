@@ -9,17 +9,37 @@ import AvatarJazzIcon from './variants/AvatarJazzIcon';
 
 // Internal dependencies.
 import { AvatarProps, AvatarVariants } from './Avatar.types';
+import {
+  AVATAR_AVATAR_ICON_TEST_ID,
+  AVATAR_AVATAR_IMAGE_TEST_ID,
+  AVATAR_AVATAR_INITIAL_TEST_ID,
+  AVATAR_AVATAR_JAZZICON_TEST_ID,
+} from './Avatar.constants';
 
 const Avatar = (avatarProps: AvatarProps) => {
   switch (avatarProps.variant) {
     case AvatarVariants.Icon:
-      return <AvatarIcon {...avatarProps} />;
+      return (
+        <AvatarIcon {...avatarProps} testID={AVATAR_AVATAR_ICON_TEST_ID} />
+      );
     case AvatarVariants.Image:
-      return <AvatarImage {...avatarProps} />;
+      return (
+        <AvatarImage {...avatarProps} testID={AVATAR_AVATAR_IMAGE_TEST_ID} />
+      );
     case AvatarVariants.Initial:
-      return <AvatarInitial {...avatarProps} />;
+      return (
+        <AvatarInitial
+          {...avatarProps}
+          testID={AVATAR_AVATAR_INITIAL_TEST_ID}
+        />
+      );
     case AvatarVariants.JazzIcon:
-      return <AvatarJazzIcon {...avatarProps} />;
+      return (
+        <AvatarJazzIcon
+          {...avatarProps}
+          testID={AVATAR_AVATAR_JAZZICON_TEST_ID}
+        />
+      );
     default:
       throw new Error('Invalid Avatar Variant');
   }

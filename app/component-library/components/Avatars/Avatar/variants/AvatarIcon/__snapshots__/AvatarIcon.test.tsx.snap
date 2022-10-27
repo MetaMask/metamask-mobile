@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarIcon - Snapshot should render correctly 1`] = `
+<AvatarBase
+  size="32"
+  testID="avatar-icon"
+>
+  <Icon
+    name="AddOutline"
+    size="20"
+    testID="avatar-icon-icon"
+    variant="Icon"
+  />
+</AvatarBase>
+`;

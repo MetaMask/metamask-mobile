@@ -8,11 +8,19 @@ import AvatarBase from '../../foundation/AvatarBase';
 
 // Internal dependencies.
 import { AvatarIconProps } from './AvatarIcon.types';
-import { ICON_SIZE_BY_AVATAR_SIZE } from './AvatarIcon.constants';
+import {
+  ICON_SIZE_BY_AVATAR_SIZE,
+  AVATAR_ICON_TEST_ID,
+  AVATAR_ICON_ICON_TEST_ID,
+} from './AvatarIcon.constants';
 
 const AvatarIcon = ({ size = AvatarSize.Md, ...props }: AvatarIconProps) => (
-  <AvatarBase size={size}>
-    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} {...props} />
+  <AvatarBase size={size} testID={AVATAR_ICON_TEST_ID}>
+    <Icon
+      testID={AVATAR_ICON_ICON_TEST_ID}
+      size={ICON_SIZE_BY_AVATAR_SIZE[size]}
+      {...props}
+    />
   </AvatarBase>
 );
 

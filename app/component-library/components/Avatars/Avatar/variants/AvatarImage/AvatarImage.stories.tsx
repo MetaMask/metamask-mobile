@@ -9,6 +9,7 @@ import { AvatarSize, AvatarVariants } from '../../Avatar.types';
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
 import { AvatarImageProps } from './AvatarImage.types';
+import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE } from './AvatarImage.constants';
 
 export const getAvatarImageStoryProps = (): AvatarImageProps => {
   const sizeSelector = select(
@@ -23,9 +24,7 @@ export const getAvatarImageStoryProps = (): AvatarImageProps => {
   return {
     variant: AvatarVariants.Image,
     size: sizeSelector,
-    imageSource: {
-      uri: 'https://cryptologos.cc/logos/curve-dao-token-crv-logo.png',
-    },
+    imageSource: TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE,
     isHaloEnabled,
   };
 };

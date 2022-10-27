@@ -9,6 +9,7 @@ import { AvatarSize, AvatarVariants } from '../../Avatar.types';
 // Internal dependencies.
 import AvatarInitial from './AvatarInitial';
 import { AvatarInitialProps } from './AvatarInitial.types';
+import { TEST_AVATAR_INITIAL_SAMPLE_TEXT } from './AvatarInitial.constants';
 
 export const getAvatarInitialStoryProps = (): AvatarInitialProps => {
   const sizeSelector = select(
@@ -17,7 +18,11 @@ export const getAvatarInitialStoryProps = (): AvatarInitialProps => {
     AvatarSize.Md,
     storybookPropsGroupID,
   );
-  const initialText = text('initial', 'Sample Text', storybookPropsGroupID);
+  const initialText = text(
+    'initial',
+    TEST_AVATAR_INITIAL_SAMPLE_TEXT,
+    storybookPropsGroupID,
+  );
 
   return {
     variant: AvatarVariants.Initial,

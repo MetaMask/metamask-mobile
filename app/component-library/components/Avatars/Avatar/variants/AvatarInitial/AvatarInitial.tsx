@@ -10,7 +10,11 @@ import AvatarBase from '../../foundation/AvatarBase';
 // Internal dependencies.
 import styleSheet from './AvatarInitial.styles';
 import { AvatarInitialProps } from './AvatarInitial.types';
-import { TEXT_VARIANT_BY_AVATAR_SIZE } from './AvatarInitial.constants';
+import {
+  TEXT_VARIANT_BY_AVATAR_SIZE,
+  AVATAR_INITIAL_TEST_ID,
+  AVATAR_INITIAL_TEXT_TEST_ID,
+} from './AvatarInitial.constants';
 
 const AvatarInitial = ({
   style,
@@ -22,8 +26,11 @@ const AvatarInitial = ({
   const initialFirstLetter: string = initial?.[0];
 
   return (
-    <AvatarBase style={styles.base} {...props}>
-      <Text variant={TEXT_VARIANT_BY_AVATAR_SIZE[size]}>
+    <AvatarBase style={styles.base} testID={AVATAR_INITIAL_TEST_ID} {...props}>
+      <Text
+        variant={TEXT_VARIANT_BY_AVATAR_SIZE[size]}
+        testID={AVATAR_INITIAL_TEXT_TEST_ID}
+      >
         {initialFirstLetter}
       </Text>
     </AvatarBase>

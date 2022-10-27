@@ -25,7 +25,7 @@ const styleSheet = (params: {
   const sizeAsNum = Number(size);
 
   return StyleSheet.create({
-    container: Object.assign(
+    base: Object.assign(
       {
         height: sizeAsNum,
         width: sizeAsNum,

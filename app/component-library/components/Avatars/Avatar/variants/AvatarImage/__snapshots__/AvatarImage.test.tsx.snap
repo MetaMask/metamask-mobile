@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarImage - Snapshot should render AvatarImage with halo if isHaloEnabled=true 1`] = `
+<AvatarBase
+  size="32"
+  style={Object {}}
+  testID="avatar-image"
+>
+  <ImageBackground
+    blurRadius={20}
+    imageStyle={
+      Object {
+        "opacity": 0.5,
+      }
+    }
+    source={
+      Object {
+        "testUri": "../../../app/images/fox.png",
+      }
+    }
+    style={
+      Object {
+        "alignItems": "center",
+        "borderRadius": 16,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "width": 32,
+      }
+    }
+    testID="avatar-image-halo"
+  >
+    <Image
+      resizeMode="contain"
+      source={
+        Object {
+          "testUri": "../../../app/images/fox.png",
+        }
+      }
+      style={
+        Object {
+          "borderRadius": 10.24,
+          "height": 20.48,
+          "width": 20.48,
+        }
+      }
+      testID="avatar-image-image"
+    />
+  </ImageBackground>
+</AvatarBase>
+`;
+
+exports[`AvatarImage - Snapshot should render AvatarImage with local imageSource correctly 1`] = `
+<AvatarBase
+  size="32"
+  style={Object {}}
+  testID="avatar-image"
+>
+  <Image
+    resizeMode="contain"
+    source={
+      Object {
+        "testUri": "../../../app/images/fox.png",
+      }
+    }
+    style={
+      Object {
+        "borderRadius": 16,
+        "height": 32,
+        "width": 32,
+      }
+    }
+    testID="avatar-image-image"
+  />
+</AvatarBase>
+`;
+
+exports[`AvatarImage - Snapshot should render AvatarImage with remote imageSource correctly 1`] = `
+<AvatarBase
+  size="32"
+  style={Object {}}
+  testID="avatar-image"
+>
+  <Image
+    resizeMode="contain"
+    source={
+      Object {
+        "uri": "https://cryptologos.cc/logos/curve-dao-token-crv-logo.png",
+      }
+    }
+    style={
+      Object {
+        "borderRadius": 16,
+        "height": 32,
+        "width": 32,
+      }
+    }
+    testID="avatar-image-image"
+  />
+</AvatarBase>
+`;
