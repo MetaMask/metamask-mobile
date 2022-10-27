@@ -13,6 +13,9 @@ import AvatarAccountStory, {
 import AvatarFaviconStory, {
   getAvatarFaviconStoryProps,
 } from './variants/AvatarFavicon/AvatarFavicon.stories';
+import AvatarJazzIconStory, {
+  getAvatarJazzIconStoryProps,
+} from './variants/AvatarJazzIcon/AvatarJazzIcon.stories';
 import AvatarNetworkStory, {
   getAvatarNetworkStoryProps,
 } from './variants/AvatarNetwork/AvatarNetwork.stories';
@@ -46,6 +49,12 @@ export const getAvatarStoryProps = (): AvatarProps => {
         ...getAvatarFaviconStoryProps(),
       };
       break;
+    case AvatarVariants.JazzIcon:
+      avatarProps = {
+        variant: AvatarVariants.JazzIcon,
+        ...getAvatarJazzIconStoryProps(),
+      };
+      break;
     case AvatarVariants.Network:
       avatarProps = {
         variant: AvatarVariants.Network,
@@ -67,6 +76,7 @@ storiesOf('Components / UI / Avatars', module)
   .add('Avatar', AvatarStory)
   .add('Variants / AvatarAccount', AvatarAccountStory)
   .add('Variants / AvatarFavicon', AvatarFaviconStory)
+  .add('Variants / AvatarJazzIcon', AvatarJazzIconStory)
   .add('Variants / AvatarNetwork', AvatarNetworkStory)
   .add('Variants / AvatarToken', AvatarTokenStory);
 

@@ -14,9 +14,6 @@ import AvatarImageStory, {
 import AvatarInitialStory, {
   getAvatarInitialStoryProps,
 } from './variants/AvatarInitial/AvatarInitial.stories';
-import AvatarJazzIconStory, {
-  getAvatarJazzIconStoryProps,
-} from './variants/AvatarJazzIcon/AvatarJazzIcon.stories';
 
 // Internal dependencies.
 import { AvatarVariants, AvatarProps } from './Avatar.types';
@@ -47,11 +44,6 @@ export const getAvatarStoryProps = (): AvatarProps => {
         ...getAvatarInitialStoryProps(),
       };
       break;
-    case AvatarVariants.JazzIcon:
-      avatarProps = {
-        ...getAvatarJazzIconStoryProps(),
-      };
-      break;
   }
 
   return avatarProps;
@@ -62,7 +54,6 @@ storiesOf('Component Library / Avatars', module)
   .add('Avatar', AvatarStory)
   .add('Variants / AvatarIcon', AvatarIconStory)
   .add('Variants / AvatarImage', AvatarImageStory)
-  .add('Variants / AvatarInitial', AvatarInitialStory)
-  .add('Variants / AvatarJazzIcon', AvatarJazzIconStory);
+  .add('Variants / AvatarInitial', AvatarInitialStory);
 
 export default AvatarStory;

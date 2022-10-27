@@ -10,7 +10,6 @@ function loadStories() {
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories');
-  require('../app/component-library/components/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
@@ -50,6 +49,7 @@ function loadStories() {
   require('../app/components/UI/Avatars/Avatar/Avatar.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
+  require('../app/components/UI/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
@@ -68,7 +68,6 @@ const stories = [
   '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories',
-  '../app/component-library/components/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
@@ -108,6 +107,7 @@ const stories = [
   '../app/components/UI/Avatars/Avatar/Avatar.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories',
+  '../app/components/UI/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',

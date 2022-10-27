@@ -3,8 +3,8 @@ import React from 'react';
 import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
+import { storybookPropsGroupID } from '../../../../../../component-library/constants/storybook.constants';
+import { AvatarSizes } from '../../../../../../component-library/components/Avatars/Avatar';
 
 // Internal dependencies.
 import AvatarJazzIcon from './AvatarJazzIcon';
@@ -20,7 +20,6 @@ export const getAvatarJazzIconStoryProps = (): AvatarJazzIconProps => {
   );
 
   return {
-    variant: AvatarVariants.JazzIcon,
     size: sizeSelector,
     address: TEST_AVATAR_JAZZICON_ADDRESS,
   };

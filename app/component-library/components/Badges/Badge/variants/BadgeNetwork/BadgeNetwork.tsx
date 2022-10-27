@@ -26,7 +26,7 @@ const BadgeNetwork = ({
     <BadgeBase style={styles.base} testID={BADGE_NETWORK_TEST_ID}>
       <Avatar
         variant={AvatarVariants.Image}
-        imageSource={imageSource}
+        source={imageSource}
         size={AvatarSizes.Xs}
       />
     </BadgeBase>

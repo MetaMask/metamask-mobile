@@ -12,7 +12,7 @@ export interface AvatarImageProps extends AvatarBaseProps, ImagePropsBase {
   /**
    * Avatar variants.
    */
-  variant: AvatarVariants.Image;
+  variant?: AvatarVariants.Image;
   /**
    * Optional boolean to activate halo effect.
    * @default false

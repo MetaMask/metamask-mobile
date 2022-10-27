@@ -14,5 +14,5 @@ export interface AvatarJazzIconProps
   /**
    * Avatar variants.
    */
-  variant: AvatarVariants.JazzIcon;
+  variant?: AvatarVariants.JazzIcon;
 }

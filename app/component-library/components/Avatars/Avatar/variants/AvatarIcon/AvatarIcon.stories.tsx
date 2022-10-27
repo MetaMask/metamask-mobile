@@ -4,7 +4,7 @@ import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes } from '../../Avatar.types';
 import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
@@ -26,7 +26,6 @@ export const getAvatarIconStoryProps = (): AvatarIconProps => {
   );
 
   return {
-    variant: AvatarVariants.Icon,
     size: sizeSelector,
     name: iconNameSelector,
   };

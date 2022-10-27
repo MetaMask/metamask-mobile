@@ -4,7 +4,7 @@ import { select, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
@@ -22,7 +22,6 @@ export const getAvatarImageStoryProps = (): AvatarImageProps => {
   const isHaloEnabled = boolean('isHaloEnabled', false, storybookPropsGroupID);
 
   return {
-    variant: AvatarVariants.Image,
     size: sizeSelector,
     source: TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE,
     isHaloEnabled,

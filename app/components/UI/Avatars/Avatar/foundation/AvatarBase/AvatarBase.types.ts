@@ -1,14 +1,11 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
-
 // External dependencies
 import { AvatarVariants } from '../../Avatar.types';
-import { AvatarProps } from '../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarBaseProps as MorphAvatarBaseProps } from '../../../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
 
 /**
  * AvatarBase component props.
  */
-export interface AvatarBaseProps extends ViewProps, Pick<AvatarProps, 'size'> {
+export interface AvatarBaseProps extends Omit<MorphAvatarBaseProps, 'variant'> {
   /**
    * Variant of Avatar
    */

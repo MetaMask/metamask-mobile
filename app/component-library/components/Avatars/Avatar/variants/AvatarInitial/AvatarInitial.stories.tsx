@@ -4,7 +4,7 @@ import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
+import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarInitial from './AvatarInitial';
@@ -25,7 +25,6 @@ export const getAvatarInitialStoryProps = (): AvatarInitialProps => {
   );
 
   return {
-    variant: AvatarVariants.Initial,
     size: sizeSelector,
     initial: initialText,
   };

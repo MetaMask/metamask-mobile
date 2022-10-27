@@ -10,7 +10,7 @@ export interface AvatarInitialProps extends AvatarBaseProps {
   /**
    * Avatar variants.
    */
-  variant: AvatarVariants.Initial;
+  variant?: AvatarVariants.Initial;
   /**
    * An Ethereum wallet address.
    */

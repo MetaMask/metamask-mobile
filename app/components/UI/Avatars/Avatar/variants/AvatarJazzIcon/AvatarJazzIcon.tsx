@@ -3,8 +3,8 @@ import React from 'react';
 import Jazzicon from 'react-native-jazzicon';
 
 // External dependencies.
-import AvatarBase from '../../foundation/AvatarBase';
-import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
+import AvatarBase from '../../../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
+import { DEFAULT_AVATAR_SIZE } from '../../../../../../component-library/components/Avatars/Avatar';
 
 // Internal dependencies.
 import { AvatarJazzIconProps } from './AvatarJazzIcon.types';

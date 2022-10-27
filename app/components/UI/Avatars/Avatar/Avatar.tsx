@@ -4,6 +4,7 @@ import React from 'react';
 // External dependencies.
 import AvatarAccount from './variants/AvatarAccount';
 import AvatarFavicon from './variants/AvatarFavicon';
+import AvatarJazzIcon from './variants/AvatarJazzIcon';
 import AvatarNetwork from './variants/AvatarNetwork';
 import AvatarToken from './variants/AvatarToken';
 
@@ -16,6 +17,8 @@ const Avatar = (avatarProps: AvatarProps) => {
       return <AvatarAccount {...avatarProps} />;
     case AvatarVariants.Favicon:
       return <AvatarFavicon {...avatarProps} />;
+    case AvatarVariants.JazzIcon:
+      return <AvatarJazzIcon {...avatarProps} />;
     case AvatarVariants.Network:
       return <AvatarNetwork {...avatarProps} />;
     case AvatarVariants.Token:

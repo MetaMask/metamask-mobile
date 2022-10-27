@@ -12,5 +12,5 @@ export interface AvatarIconProps
   /**
    * Avatar variants.
    */
-  variant: AvatarVariants.Icon;
+  variant?: AvatarVariants.Icon;
 }

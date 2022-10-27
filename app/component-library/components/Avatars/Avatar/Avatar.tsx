@@ -5,7 +5,6 @@ import React from 'react';
 import AvatarIcon from './variants/AvatarIcon';
 import AvatarImage from './variants/AvatarImage';
 import AvatarInitial from './variants/AvatarInitial';
-import AvatarJazzIcon from './variants/AvatarJazzIcon';
 
 // Internal dependencies.
 import { AvatarProps, AvatarVariants } from './Avatar.types';
@@ -13,7 +12,6 @@ import {
   AVATAR_AVATAR_ICON_TEST_ID,
   AVATAR_AVATAR_IMAGE_TEST_ID,
   AVATAR_AVATAR_INITIAL_TEST_ID,
-  AVATAR_AVATAR_JAZZICON_TEST_ID,
 } from './Avatar.constants';
 
 const Avatar = (avatarProps: AvatarProps) => {
@@ -31,13 +29,6 @@ const Avatar = (avatarProps: AvatarProps) => {
         <AvatarInitial
           {...avatarProps}
           testID={AVATAR_AVATAR_INITIAL_TEST_ID}
-        />
-      );
-    case AvatarVariants.JazzIcon:
-      return (
-        <AvatarJazzIcon
-          {...avatarProps}
-          testID={AVATAR_AVATAR_JAZZICON_TEST_ID}
         />
       );
     default:
