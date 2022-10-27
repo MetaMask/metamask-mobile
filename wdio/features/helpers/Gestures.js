@@ -58,19 +58,19 @@ class Gestures  {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
-    await elem.click();
+    (await elem).touchAction('tap');
   }
 
   static async tap(element) {
     // simple touch action on element
     const elem = await element;
-    await elem.click();
+    (await elem).touchAction('tap');
   }
 
   static async typeText(element, text) {
     const elem = await element;
     await elem.waitForDisplayed();
-    await elem.click();
+    (await elem).touchAction('tap');
     await elem.clearValue();
     await elem.setValue(text, +'\n');
   }
