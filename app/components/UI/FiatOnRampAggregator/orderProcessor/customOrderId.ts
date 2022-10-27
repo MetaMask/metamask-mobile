@@ -1,9 +1,9 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import AppConstants from '../../../../core/AppConstants';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import { SDK } from '../sdk';
 
-export const SECOND = 60 * 1000;
-export const INITIAL_DELAY = 10 * SECOND;
+const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
 export default async function processCustomOrderIdData(
   customOrderIdData: CustomIdData,
@@ -11,21 +11,14 @@ export default async function processCustomOrderIdData(
   const now = Date.now();
 
   /**
-   * If the custom order id has been added in less than 10 seconds, we don't fetch it
-   */
-  if (customOrderIdData.createdAt + INITIAL_DELAY > now) {
-    return [customOrderIdData, null];
-  }
-
-  /**
    * If the custom order had errors, we don't fetch it unless
-   * INITIAL_DELAY ^ errorCount + 1 has passed
+   * POLLING_FRECUENCY ^ (errorCount + 1) seconds has passed
    */
   if (
     customOrderIdData.errorCount > 0 &&
     customOrderIdData.lastTimeFetched +
-      Math.pow(INITIAL_DELAY / SECOND, customOrderIdData.errorCount + 1) *
-        SECOND >
+      Math.pow(POLLING_FREQUENCY / 1000, customOrderIdData.errorCount + 1) *
+        1000 >
       now
   ) {
     return [customOrderIdData, null];

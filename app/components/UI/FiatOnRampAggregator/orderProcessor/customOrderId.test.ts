@@ -1,6 +1,6 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { SDK } from '../sdk';
-import processCustomOrderId, { INITIAL_DELAY, SECOND } from './customOrderId';
+import processCustomOrderId from './customOrderId';
 
 describe('CustomOrderId processor', () => {
   afterEach(() => {
@@ -8,30 +8,9 @@ describe('CustomOrderId processor', () => {
     jest.spyOn(SDK, 'orders').mockClear();
   });
 
-  it('should return the same custom order object if the initial delay has not passed', async () => {
-    const createdAt = 123;
-
-    const dummmyCustomOrderIdData = {
-      id: '1',
-      chainId: '1',
-      account: '0x123',
-      createdAt,
-      lastTimeFetched: 0,
-      errorCount: 0,
-    };
-
-    jest
-      .spyOn(Date, 'now')
-      .mockImplementation(() => createdAt + INITIAL_DELAY - 1000);
-    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
-      dummmyCustomOrderIdData,
-      null,
-    ]);
-  });
-
   it('should return the same custom order object if the error backoff has not passed', async () => {
     const createdAt = 0;
-    const lastTimeFetched = INITIAL_DELAY + 1000;
+    const lastTimeFetched = 1000;
     const errorCount = 3;
 
     const dummmyCustomOrderIdData = {
@@ -46,11 +25,18 @@ describe('CustomOrderId processor', () => {
     jest
       .spyOn(Date, 'now')
       .mockImplementation(
-        () =>
-          lastTimeFetched +
-          Math.pow(INITIAL_DELAY / SECOND, errorCount + 1) * 60 * 1000 -
-          1,
+        () => lastTimeFetched + Math.pow(10, errorCount + 1) * 1000 - 1,
       );
+
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Precreated,
+            lastTimeFetched: 1000 + 1,
+          }),
+        } as any),
+    );
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
       dummmyCustomOrderIdData,
@@ -58,7 +44,39 @@ describe('CustomOrderId processor', () => {
     ]);
   });
 
-  it('should return a fiat order object when state is not CUSTOM_ID_REGISTERED', async () => {
+  it('should return an updated object if the error backoff has passed', async () => {
+    const createdAt = 0;
+    const lastTimeFetched = 1000;
+    const errorCount = 3;
+
+    const dummmyCustomOrderIdData = {
+      id: '1',
+      chainId: '1',
+      account: '0x123',
+      createdAt,
+      lastTimeFetched,
+      errorCount,
+    };
+
+    const now = lastTimeFetched + Math.pow(10, errorCount + 1) * 1000 + 1;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Precreated,
+          }),
+        } as any),
+    );
+
+    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
+      { ...dummmyCustomOrderIdData, errorCount: 0, lastTimeFetched: now },
+      null,
+    ]);
+  });
+
+  it('should return a fiat order object when state is not Precreated', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
         ({
@@ -68,7 +86,7 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    jest.spyOn(Date, 'now').mockImplementation(() => INITIAL_DELAY + 1000);
+    jest.spyOn(Date, 'now').mockImplementation(() => 1000);
 
     const dummmyCustomOrderIdData = {
       id: '1',
@@ -95,7 +113,7 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    jest.spyOn(Date, 'now').mockImplementation(() => INITIAL_DELAY + 12345689);
+    jest.spyOn(Date, 'now').mockImplementation(() => 12345689);
 
     const dummmyCustomOrderIdData = {
       id: '1',
@@ -107,7 +125,7 @@ describe('CustomOrderId processor', () => {
     };
 
     expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
-      { ...dummmyCustomOrderIdData, lastTimeFetched: INITIAL_DELAY + 12345689 },
+      { ...dummmyCustomOrderIdData, lastTimeFetched: 12345689 },
       null,
     ]);
   });
@@ -122,7 +140,7 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    jest.spyOn(Date, 'now').mockImplementation(() => INITIAL_DELAY + 1000);
+    jest.spyOn(Date, 'now').mockImplementation(() => 1000);
 
     const dummmyCustomOrderIdData = {
       id: '1',
@@ -149,7 +167,7 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    const now = INITIAL_DELAY + 123123123;
+    const now = 123123123;
 
     jest.spyOn(Date, 'now').mockImplementation(() => now);
 
@@ -181,7 +199,7 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    const now = INITIAL_DELAY + 123123123;
+    const now = 123123123;
 
     jest.spyOn(Date, 'now').mockImplementation(() => now);
 
@@ -213,7 +231,7 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    const now = INITIAL_DELAY + 123123123;
+    const now = 123123123;
 
     jest.spyOn(Date, 'now').mockImplementation(() => now);
 
