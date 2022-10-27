@@ -1,3 +1,4 @@
+/* global $, driver */
 import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
@@ -23,7 +24,7 @@ class WelcomeScreen {
   }
 
   async isScreenTitleVisible() {
-    const elem = await this.splashScreenMetamaskAnimationId
+    const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
     await elem.waitForDisplayed({ reverse: true });
   }
@@ -34,8 +35,7 @@ class WelcomeScreen {
   }
 
   async swipeNextSlide() {
-    const carouselRectangles = await this.getCarouselRect()
-    console.log('carouselRectangles', carouselRectangles);
+    const carouselRectangles = await this.getCarouselRect();
     const y = Math.round(carouselRectangles.y + (carouselRectangles.height / 2));
     await Gestures.swipe(
       { x: Math.round(carouselRectangles.width - (carouselRectangles.width * 0.10)), y },

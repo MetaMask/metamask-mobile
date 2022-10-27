@@ -1,16 +1,14 @@
+/* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import assert from 'assert';
-import Accounts from '../helpers/Accounts.js';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
-import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js'
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js'
+import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
+import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -48,7 +46,7 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
       break;
     case 'Welcome to your new wallet!':
       await OnboardingWizardModal.isVisible();
-      
+
       break;
     default:
       throw new Error('Condition not found');
@@ -78,7 +76,7 @@ When(/^I swipe left on the carousel/, async () => {
 When(/^I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Get started':
-      await driver.pause(7000) //TODO: Needs a smarter set timeout 
+      await driver.pause(7000); //TODO: Needs a smarter set timeout
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':

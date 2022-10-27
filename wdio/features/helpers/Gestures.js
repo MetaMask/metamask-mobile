@@ -1,3 +1,4 @@
+/* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
  * multiple screen sizes the advice is to work with percentages instead of
@@ -71,7 +72,7 @@ class Gestures  {
     await elem.waitForDisplayed();
     await elem.click();
     await elem.clearValue();
-    await elem.setValue(text, + '\n');
+    await elem.setValue(text, +'\n');
   }
 
   /**
@@ -241,4 +242,4 @@ class Gestures  {
   }
 }
 
-export default Gestures
+export default Gestures;

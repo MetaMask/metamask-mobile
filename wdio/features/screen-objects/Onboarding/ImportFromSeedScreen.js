@@ -1,3 +1,4 @@
+/* global driver */
 import {
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
   IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
@@ -8,7 +9,6 @@ import {
 } from '../../testIDs/Screens/ImportFromSeedScreen.testIds';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import assert from 'assert';
 
 class ImportFromSeed {
 
@@ -58,12 +58,12 @@ class ImportFromSeed {
   }
 
   async verifyPasswordStrength(text){
-    await expect(this.passwordStrengthLabel).toHaveText(text);  
+    await expect(this.passwordStrengthLabel).toHaveText(text);
   }
 
   async verifyAlertText(text){
     const msg = await driver.getAlertText();
-    assert(msg.includes(text));
+    expect(msg.includes(text)).toBe(true);
   }
 
   async tapOkInAlertMessage(){

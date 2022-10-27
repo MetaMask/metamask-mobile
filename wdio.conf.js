@@ -22,7 +22,7 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./features/**/*.feature'],
+  specs: ['./wdio/features/**/*.feature'],
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -150,7 +150,7 @@ export const config = {
   // If you are using Cucumber you need to specify the location of your step definitions.
   cucumberOpts: {
     // <string[]> (file/dir) require files before executing features
-    require: ['./features/step-definitions/onboarding.js'],
+    require: ['./wdio/features/step-definitions/onboarding.js'],
     // <boolean> show full backtrace for errors
     backtrace: false,
     // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
@@ -228,7 +228,7 @@ export const config = {
   before: function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
-    }
+    };
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -314,9 +314,9 @@ export const config = {
    * @param {Array.<String>} specs List of spec file paths that ran
    */
   // after: function (result, capabilities) {
-    // if (capabilities.bundleId) {
-    //   driver.terminateApp(capabilities.bundleId)
-    // }
+  // if (capabilities.bundleId) {
+  //   driver.terminateApp(capabilities.bundleId)
+  // }
   // },
   /**
    * Gets executed right after terminating the webdriver session.

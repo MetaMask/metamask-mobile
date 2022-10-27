@@ -18,7 +18,7 @@ class CreateNewWalletScren {
 
   // selectors ====================================
   get title () {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID)
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
   get description() {
@@ -57,26 +57,26 @@ class CreateNewWalletScren {
   get newWalletSubmitButton() {
     return Selectors.getElementByPlatform(SUBMIT_BUTTON);
   }
-  
+
 async inputPasswordInFirstField(firstPassword) {
-  await Gestures.typeText(this.newWalletPasswordField, firstPassword)
+  await Gestures.typeText(this.newWalletPasswordField, firstPassword);
 }
 
 async inputConfirmPasswordField(secondPassword) {
-  await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword)
-  await Gestures.tap(this.termsAndConditionCheckBox)
-  await Gestures.tap(this.newWalletSubmitButton)
+  await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
+  await Gestures.tap(this.termsAndConditionCheckBox);
+  await Gestures.tap(this.newWalletSubmitButton);
 }
 
 async selectRemindMeLater(){
-  await Gestures.tap(this.remindMeLaterButton)
+  await Gestures.tap(this.remindMeLaterButton);
 }
 
 async isAccountCreated(){
   await expect(this.remindMeLaterButton).toBeDisplayed();
   await expect(this.secureWalletScreenText).toBeDisplayed();
 }
-  
+
 async isScreenTitleVisible() {
   await expect(this.title).toBeDisplayed();
 }

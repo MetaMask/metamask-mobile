@@ -6,7 +6,7 @@ import {
   import Gestures from '../../helpers/Gestures';
 
 class SkipAccountSecurityModal {
-    
+
       get skipBackupText() {
         return Selectors.getElementByPlatform(SKIP_BACKUP_TEXT);
       }
@@ -15,8 +15,8 @@ class SkipAccountSecurityModal {
       }
 
   async proceedWithoutWalletSecure(){
-    await Gestures.tap(this.skipBackupText)
-    await Gestures.tap(this.skipButton)
+    await Gestures.tap(this.skipBackupText);
+    await Gestures.tap(this.skipButton);
   }
 
 

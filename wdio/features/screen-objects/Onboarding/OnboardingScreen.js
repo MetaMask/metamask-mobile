@@ -4,7 +4,7 @@ import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_SCREEN_TITLE_ID,
- 
+
 } from '../../testIDs/Screens/WalletSetupScreen.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
@@ -15,7 +15,7 @@ class OnBoardingScreen {
 
   // selectors ====================================
   get title () {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID)
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
   get description() {
@@ -40,9 +40,9 @@ class OnBoardingScreen {
   get newWalletButton() {
     return Selectors.getElementByPlatform(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
   }
-  
+
 // functions and assertions ======================================
-  
+
   async isScreenTitleVisible() {
     await expect(this.title).toBeDisplayed();
   }
