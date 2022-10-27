@@ -61,6 +61,7 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOrders';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -351,9 +352,12 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   customSpendLimitInput = React.createRef();
-  originIsWalletConnect = this.props.transaction.origin?.includes(
+  originIsWalletConnect = this.props.transaction.origin?.startsWith(
     WALLET_CONNECT_ORIGIN,
   );
+
+  originIsMMSDKRemoteConn =
+    this.props.transaction.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
   componentDidMount = async () => {
     const {
@@ -361,11 +365,17 @@ class ApproveTransactionReview extends PureComponent {
       tokenList,
     } = this.props;
     const { AssetsContractController } = Engine.context;
-    const host = getHost(
-      this.originIsWalletConnect
-        ? origin.split(WALLET_CONNECT_ORIGIN)[1]
-        : origin,
-    );
+
+    let host;
+
+    if (this.originIsWalletConnect) {
+      host = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
+    } else if (this.originIsMMSDKRemoteConn) {
+      host = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+    } else {
+      host = getHost(origin);
+    }
+
     let tokenSymbol, tokenDecimals;
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
@@ -438,6 +448,11 @@ class ApproveTransactionReview extends PureComponent {
         },
         unlimited_permission_requested: unlimited,
         referral_type: isDapp ? 'dapp' : transaction?.origin,
+        request_source: this.originIsMMSDKRemoteConn
+          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+          : this.originIsWalletConnect
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);

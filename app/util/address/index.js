@@ -118,7 +118,8 @@ export async function importAccountFromPrivateKey(private_key) {
   }
   const { importedAccountAddress } =
     await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
-  return PreferencesController.setSelectedAddress(importedAccountAddress);
+  const checksummedAddress = safeToChecksumAddress(importedAccountAddress);
+  return PreferencesController.setSelectedAddress(checksummedAddress);
 }
 
 /**
