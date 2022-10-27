@@ -95,7 +95,7 @@ workflows:
       - code_setup
       - e2e_setup
     steps:
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3.1:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -235,7 +235,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3.1:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -280,7 +280,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3.1:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -402,7 +402,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 21e
+      NDK_VERSION: 24.0.8215888
     - opts:
         is_expand: false
       MODULE: app
