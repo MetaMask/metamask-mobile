@@ -10,14 +10,11 @@ import BadgeBase from '../../foundation/BadgeBase';
 import { BADGE_AVATAR_TEST_ID } from '../../Badge.constants';
 
 // Internal dependencies
-import { BadgeAvatarPosition, BadgeAvatarProps } from './BadgeAvatar.types';
+import { BadgeAvatarProps } from './BadgeAvatar.types';
 import styleSheet from './BadgeAvatar.styles';
 
-const BadgeAvatar = ({
-  position = BadgeAvatarPosition.TopRight,
-  avatarProps,
-}: BadgeAvatarProps) => {
-  const { styles } = useStyles(styleSheet, { position });
+const BadgeAvatar = ({ avatarProps, style }: BadgeAvatarProps) => {
+  const { styles } = useStyles(styleSheet, { style });
 
   return (
     <BadgeBase style={styles.base} testID={BADGE_AVATAR_TEST_ID}>

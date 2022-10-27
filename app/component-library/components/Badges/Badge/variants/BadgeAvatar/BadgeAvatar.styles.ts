@@ -5,10 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import {
-  BadgeAvatarPosition,
-  BadgeAvatarStyleSheetVars,
-} from './BadgeAvatar.types';
+import { BadgeAvatarStyleSheetVars } from './BadgeAvatar.types';
 
 /**
  * Style sheet function for Badge component.
@@ -23,33 +20,10 @@ const styleSheet = (params: {
   vars: BadgeAvatarStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, position } = vars;
-  let badgePosition: ViewStyle = {};
-
-  switch (position) {
-    case BadgeAvatarPosition.TopRight: {
-      badgePosition = {
-        top: '-12.5%',
-        right: '-12.5%',
-      };
-      break;
-    }
-    case BadgeAvatarPosition.BottomRight: {
-      badgePosition = {
-        right: '-12.5%',
-        bottom: '-12.5%',
-      };
-      break;
-    }
-  }
+  const { style } = vars;
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        ...badgePosition,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
   });
 };
 
