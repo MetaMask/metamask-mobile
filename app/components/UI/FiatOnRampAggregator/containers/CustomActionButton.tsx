@@ -4,7 +4,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { InAppBrowser } from 'react-native-inappbrowser-reborn';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
-import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  OrderStatusEnum,
+  PaymentCustomAction,
+} from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
 import useAnalytics from '../hooks/useAnalytics';
 import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
@@ -112,9 +115,21 @@ const CustomActionButton: React.FC<
 
         const order = await orders.getOrder(orderId, selectedAddress);
 
+        if (!order) return;
+
+        // If the order is unknown, we don't remove it from custom order ids
+        // (or we add it if customOrderId option is not active for the provider)
+        // and also we don't add it to the orders.
+        if (order.status === OrderStatusEnum.Unknown) {
+          return;
+        }
+
         dispatch(removeFiatCustomIdData(customIdData));
 
-        if (!order) {
+        if (
+          order.status === OrderStatusEnum.Precreated ||
+          order.status === OrderStatusEnum.IdExpired
+        ) {
           return;
         }
 
