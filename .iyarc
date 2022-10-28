@@ -1,6 +1,9 @@
 # improved-yarn-audit advisory exclusions
 
 # This advisory should be fixed before the next release.
-# Current release: 5.9.0
+# Current release: 5.10.0
 GHSA-2j79-8pqc-r7x6
 GHSA-f8q6-p94x-37v3
+
+#SDK in BETA should be fixed before
+GHSA-qm95-pgcg-qqfq
