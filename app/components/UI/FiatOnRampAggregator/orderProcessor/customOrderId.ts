@@ -3,7 +3,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import { SDK } from '../sdk';
 
-const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
+export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
 export function createCustomOrderIdData(
   id: string,
@@ -47,7 +47,14 @@ export default async function processCustomOrderIdData(
     );
 
     if (updatedCustomOrderIdData.status === OrderStatusEnum.Unknown) {
-      /** This represents an error, we update the error count and the last time fetched */
+      /** This represents an error, we update the error count and the
+       * last time fetched, unless it is the 6th error count, then
+       * we expire the custom order id */
+
+      if (customOrderIdData.errorCount === 5) {
+        return [{ ...customOrderIdData, expired: true }, null];
+      }
+
       return [
         {
           ...customOrderIdData,

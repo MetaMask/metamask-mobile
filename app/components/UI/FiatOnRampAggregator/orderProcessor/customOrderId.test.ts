@@ -1,6 +1,6 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { SDK } from '../sdk';
-import processCustomOrderId from './customOrderId';
+import processCustomOrderId, { POLLING_FREQUENCY } from './customOrderId';
 
 describe('CustomOrderId processor', () => {
   afterEach(() => {
@@ -25,7 +25,10 @@ describe('CustomOrderId processor', () => {
     jest
       .spyOn(Date, 'now')
       .mockImplementation(
-        () => lastTimeFetched + Math.pow(10, errorCount + 1) * 1000 - 1,
+        () =>
+          lastTimeFetched +
+          Math.pow(POLLING_FREQUENCY / 1000, errorCount + 1) * 1000 -
+          1,
       );
 
     jest.spyOn(SDK, 'orders').mockImplementation(
@@ -58,7 +61,10 @@ describe('CustomOrderId processor', () => {
       errorCount,
     };
 
-    const now = lastTimeFetched + Math.pow(10, errorCount + 1) * 1000 + 1;
+    const now =
+      lastTimeFetched +
+      Math.pow(POLLING_FREQUENCY / 1000, errorCount + 1) * 1000 +
+      1;
 
     jest.spyOn(Date, 'now').mockImplementation(() => now);
     jest.spyOn(SDK, 'orders').mockImplementation(
@@ -189,6 +195,39 @@ describe('CustomOrderId processor', () => {
     ]);
   });
 
+  it('should expire custom order object when it reaches 6 errors', async () => {
+    jest.spyOn(SDK, 'orders').mockImplementation(
+      () =>
+        ({
+          getOrder: jest.fn().mockResolvedValue({
+            status: OrderStatusEnum.Unknown,
+          }),
+        } as any),
+    );
+
+    const errorCount = 5;
+
+    const now = Math.pow(POLLING_FREQUENCY / 1000, errorCount + 1) * 1000;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const dummmyCustomOrderIdData = {
+      id: '1',
+      chainId: '1',
+      account: '0x123',
+      createdAt: 0,
+      lastTimeFetched: 0,
+      errorCount,
+    };
+
+    expect(await processCustomOrderId(dummmyCustomOrderIdData)).toEqual([
+      {
+        ...dummmyCustomOrderIdData,
+        expired: true,
+      },
+      null,
+    ]);
+  });
   it('should expire custom order object when state is IdExpired', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
