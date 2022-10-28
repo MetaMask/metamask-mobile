@@ -62,9 +62,7 @@ class ImportFromSeed {
   }
 
   async assertDeviceAlertText(text){
-    console.log(`## Alert text: ${text}`);
     const msg = await driver.getAlertText();
-    console.log(`## Actual alert text: ${msg}`);
     assert(msg.includes(text));
     // await driver.acceptAlert();
   }
