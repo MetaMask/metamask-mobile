@@ -11,6 +11,9 @@ const initialState = {
     seedphraseBackedUp: false,
     passwordSet: false,
   },
+  wizard: {
+    step: 0,
+  },
 };
 const store = mockStore(initialState);
 
