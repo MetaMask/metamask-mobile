@@ -364,6 +364,23 @@ export function isNumber(str) {
 }
 
 /**
+ * Determines whether the given number is going to be
+ * displalyed in scientific notation after being converted to a string.
+ *
+ * @param {number} value - The value to check.
+ * @returns {boolean} True if the value is a number in scientific notation, false otherwise.
+ * @see https://262.ecma-international.org/5.1/#sec-9.8.1
+ */
+
+export const isNumberScientificNotationWhenString = (value) => {
+  if (typeof value !== 'number') {
+    return false;
+  }
+  // toLowerCase is needed since E is also valid
+  return value.toString().toLowerCase().includes('e');
+};
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -371,6 +388,11 @@ export function isNumber(str) {
  * @returns {Object} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
+  // check the posibilty to convert to BN
+  // directly on the swaps screen
+  if (isNumberScientificNotationWhenString(value)) {
+    value = value.toFixed(18);
+  }
   return convert.toWei(value, unit);
 }
 

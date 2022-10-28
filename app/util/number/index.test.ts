@@ -46,6 +46,54 @@ describe('Number utils :: fromWei', () => {
   });
 });
 
+describe('Number utils :: toWei', () => {
+  it('toWei using number', () => {
+    expect(toWei(1337).toString()).toEqual('1337000000000000000000');
+    //wei representation of 0.000000000000001337 ether
+    expect(toWei(1.337e-15).toString()).toEqual('1337');
+    expect(toWei(0.000000000000001337).toString()).toEqual('1337');
+    //wei representation of 1337000000000000000 ether
+    expect(toWei(1.337e18).toString()).toEqual(
+      '1337000000000000000000000000000000000',
+    );
+    expect(toWei(1337000000000000000).toString()).toEqual(
+      '1337000000000000000000000000000000000',
+    );
+  });
+
+  it('toWei using string', () => {
+    expect(toWei('1337').toString()).toEqual('1337000000000000000000');
+    //wei representation of 0.000000000000001337 ether
+    expect(toWei('0.000000000000001337').toString()).toEqual('1337');
+    //wei representation of 1337000000000000000 ether
+    expect(toWei('1337000000000000000').toString()).toEqual(
+      '1337000000000000000000000000000000000',
+    );
+
+    // expect errors when passing numbers as strings in scientific notation
+    // since `ethjs-unit` doesn't support it
+    expect(() => toWei('1.337e18')).toThrow(Error);
+    expect(() => toWei('1.337e-15')).toThrow(Error);
+  });
+
+  // bn.js do not support decimals, so tests here only cover integers
+  it('toWei using BN number', () => {
+    expect(toWei(new BN(1337)).toString()).toEqual('1337000000000000000000');
+
+    // Tests for expected limitations of BN.js
+
+    // BN.js do not support decimals
+    expect(toWei(new BN(1.337e-15)).toString()).toEqual('0');
+    // BN.js do not support such big numbers
+    expect(() => toWei(new BN(1.337e18))).toThrow(Error);
+    expect(() => toWei(new BN(1337000000000000000))).toThrow(Error);
+    // For some reason this returns 8338418000000000000000000 wei
+    expect(toWei(new BN('1.337e18'))).not.toEqual(
+      '1337000000000000000000000000000000000',
+    );
+  });
+});
+
 describe('Number utils :: fromTokenMinimalUnit', () => {
   it('fromTokenMinimalUnit using number', () => {
     expect(fromTokenMinimalUnit(1337, 6)).toEqual('0.001337');
