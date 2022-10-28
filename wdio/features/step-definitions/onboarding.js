@@ -1,10 +1,14 @@
+/* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import Accounts from '../helpers/Accounts.js';
-import ImportFromSeedScreen from '../screen-objects/ImportFromSeedScreen.js';
-import OptinMetricsScreen from '../screen-objects/OptinMetricsScreen.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
-import WalletSetupScreen from '../screen-objects/WalletSetupScreen.js';
-import WelcomeScreen from '../screen-objects/WelcomeScreen.js';
+import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
+import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
+
+import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
+import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
+
+import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
+import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -17,31 +21,31 @@ When(/^I launch MetaMask mobile app/, async () => {
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
-      await WelcomeScreen.verifySplashScreen();
+      await WelcomeScreen.isScreenTitleVisible();
       break;
     case 'Wallet setup':
-      await WalletSetupScreen.verifyScreenTitle();
+      await OnboardingScreen.isScreenTitleVisible();
       break;
     case 'Import an existing wallet or create a new one':
-      await WalletSetupScreen.verifyScreenDescription();
+      await OnboardingScreen.isScreenDescriptionVisible();
       break;
     case 'Import using Secret Recovery Phrase':
-      await WalletSetupScreen.verifyImportWalletButton();
+      await OnboardingScreen.isImportWalletButtonVisible();
       break;
     case 'Create a new wallet':
-      await WalletSetupScreen.verifyCreateNewWalletButton();
+      await OnboardingScreen.isCreateNewWalletButtonVisible();
       break;
     case 'By proceeding, you agree to these Terms and Conditions.':
-      await WalletSetupScreen.verifyTermsAndConditionsButton();
+      await OnboardingScreen.isTermsAndConditionsButtonVisible();
       break;
     case 'Help us improve MetaMask':
-      await OptinMetricsScreen.verifyScreenTitle();
+      await MetaMetricsScreen.isScreenTitleVisible();
       break;
     case 'Import from seed':
-      await ImportFromSeedScreen.verifyScreenTitle();
+      await ImportFromSeedScreen.isScreenTitleVisible();
       break;
     case 'Welcome to your new wallet!':
-      await WalletMainScreen.validateOnboardingWizard();
+      await OnboardingWizardModal.isVisible();
       break;
     default:
       throw new Error('Condition not found');
@@ -71,13 +75,14 @@ When(/^I swipe left on the carousel/, async () => {
 When(/^I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Get started':
+      await driver.pause(7000); //TODO: Needs a smarter set timeout
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':
-      await WalletSetupScreen.clickImportWalletButton();
+      await OnboardingScreen.clickImportWalletButton();
       break;
     case 'I agree':
-      await OptinMetricsScreen.clickIAgreeButton();
+      await MetaMetricsScreen.tapIAgreeButton();
       break;
     case 'Import':
       await ImportFromSeedScreen.clickImportButton();
@@ -87,19 +92,74 @@ When(/^I tap "([^"]*)?"/, async (text) => {
   }
 });
 
-When(/^I type "([^"]*)?"/, async (text) => {
-  const validAccount = Accounts.getValidAccount()
+When(/^I type (.*) in SRP field/, async (text) => {
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(text);
+});
+
+When(/^I type (.*) in new password field/, async (text) => {
+  await ImportFromSeedScreen.typeNewPassword(text);
+});
+
+When(/^I type (.*) in confirm password field/, async (text) => {
+  await ImportFromSeedScreen.typeConfirmPassword(text);
+});
+
+Then(/^device alert (.*) is displayed/, async (text) => {
+  await ImportFromSeedScreen.isAlertTextVisible(text);
+  await ImportFromSeedScreen.tapOkInAlertMessage();
+
+});
+
+Then(/^password strength (.*) is displayed/, async (text) => {
+  await ImportFromSeedScreen.isPasswordStrengthTextCorrect(text);
+});
+
+When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
   switch (text) {
-    case 'a valid Secret Recovery Phrase':
-      await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
+    case 'Create a new wallet':
+      await OnboardingScreen.tapCreateNewWalletButton();
       break;
-    case 'a valid New password':
-      await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-      break;
-    case 'a valid Confirm password':
-      await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
+      case 'Agree':
+      await MetaMetricsScreen.tapIAgreeButton();
       break;
     default:
       throw new Error('Condition not found');
   }
-})
+});
+
+When(/^I am presented with a new Account screen with password fields/, async () => {
+  await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
+});
+
+When(/^I input a new password "([^"]*)?"/, async (password) => {
+  await CreateNewWalletScreen.inputPasswordInFirstField(password);
+});
+
+When(/^I confirm the new password "([^"]*)?"/, async (password) => {
+  await CreateNewWalletScreen.inputConfirmPasswordField(password);
+});
+
+When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
+  await SkipAccountSecurityModal.isVisible();
+  switch (button) {
+    case 'Skip':
+      await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+      break;
+      case 'Cancel':
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
+});
+
+When(/^I select remind me later on secure wallet screen/, async () => {
+  await CreateNewWalletScreen.selectRemindMeLater();
+});
+
+When(/^secure wallet page is presented/, async () => {
+  await CreateNewWalletScreen.isAccountCreated();
+});
+
+Then(/^I should proceed to the new wallet/, async () => {
+  await CreateNewWalletScreen.isNotVisible();
+});

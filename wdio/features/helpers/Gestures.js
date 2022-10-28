@@ -1,3 +1,4 @@
+/* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
  * multiple screen sizes the advice is to work with percentages instead of
@@ -57,20 +58,21 @@ class Gestures  {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
-    return elem.click();
+    await elem.click();
   }
 
   static async tap(element) {
     // simple touch action on element
     const elem = await element;
-    return elem.click();
+    await elem.click();
   }
 
   static async typeText(element, text) {
     const elem = await element;
     await elem.waitForDisplayed();
     await elem.click();
-    return elem.setValue(text, + '\n');
+    await elem.clearValue();
+    await elem.setValue(text, +'\n');
   }
 
   /**
@@ -240,4 +242,4 @@ class Gestures  {
   }
 }
 
-export default Gestures
+export default Gestures;

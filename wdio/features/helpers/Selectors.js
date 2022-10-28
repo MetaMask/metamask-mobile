@@ -1,3 +1,4 @@
+/*  global $, driver */
 class Selectors {
   static async getElementByPlatform(id, isNested = false) {
     if (!isNested) {
@@ -19,4 +20,4 @@ class Selectors {
   }
 }
 
-export default Selectors
+export default Selectors;
