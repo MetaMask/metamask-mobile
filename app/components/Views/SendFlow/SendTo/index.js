@@ -416,13 +416,11 @@ class SendFlow extends PureComponent {
     }
   };
 
-  validateToAddress = async () => {
-    const { toAccount } = this.state;
-    const { network } = this.props;
+  validateToAddress = () => {
+    const { toAccount, toEnsAddressResolved } = this.state;
     let addressError;
     if (isENS(toAccount)) {
-      const resolvedAddress = await doENSLookup(toAccount, network);
-      if (!resolvedAddress) {
+      if (!toEnsAddressResolved) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
     } else if (!isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
@@ -516,7 +514,7 @@ class SendFlow extends PureComponent {
       toEnsAddressResolved,
     } = this.state;
     if (!this.isAddressSaved()) {
-      const addressError = await this.validateToAddress();
+      const addressError = this.validateToAddress();
       if (addressError) return;
     }
     const toAddress = toEnsAddressResolved || toAccount;
@@ -837,7 +835,15 @@ class SendFlow extends PureComponent {
                   containerStyle={styles.buttonNext}
                   onPress={this.onTransactionDirectionSet}
                   testID={'address-book-next-button'}
-                  disabled={!toSelectedAddressReady}
+                  //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
+                  //Will be here just to ensure that we don't break existing conditions
+                  disabled={
+                    !(
+                      (isValidHexAddress(toEnsAddressResolved) ||
+                        isValidHexAddress(toAccount)) &&
+                      toSelectedAddressReady
+                    )
+                  }
                 >
                   {strings('address_book.next')}
                 </StyledButton>
