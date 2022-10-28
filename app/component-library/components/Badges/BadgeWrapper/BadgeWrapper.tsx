@@ -20,7 +20,6 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   const { styles } = useStyles(styleSheet, {
     style,
   });
-
   return (
     <View style={styles.base}>
       <View>{children}</View>

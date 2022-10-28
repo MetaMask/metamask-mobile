@@ -6,11 +6,11 @@ import { IconProps } from '../../../../Icon';
 /**
  * AvatarIcon component props.
  */
-export interface AvatarIconProps
-  extends AvatarBaseProps,
-    Omit<IconProps, 'size'> {
-  /**
-   * Avatar variants.
-   */
-  variant?: AvatarVariants.Icon;
-}
+
+export type AvatarIconProps = AvatarBaseProps &
+  Omit<IconProps, 'size'> & {
+    /**
+     * Avatar variants.
+     */
+    variant?: AvatarVariants.Icon;
+  };

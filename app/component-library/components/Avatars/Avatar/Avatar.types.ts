@@ -2,7 +2,6 @@
 import { AvatarIconProps } from './variants/AvatarIcon/AvatarIcon.types';
 import { AvatarImageProps } from './variants/AvatarImage/AvatarImage.types';
 import { AvatarInitialProps } from './variants/AvatarInitial/AvatarInitial.types';
-import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.types';
 
 /**
  * Avatar sizes.
@@ -16,13 +15,20 @@ export enum AvatarSizes {
 }
 
 /**
+ * Avatar Badge Position.
+ */
+export enum AvatarBadgePositions {
+  TopRight = 'TopRight',
+  BottomRight = 'BottomRight',
+}
+
+/**
  * Avatar variants.
  */
 export enum AvatarVariants {
   Icon = 'Icon',
   Image = 'Image',
   Initial = 'Initial',
-  JazzIcon = 'JazzIcon',
 }
 
 /**
@@ -31,5 +37,4 @@ export enum AvatarVariants {
 export type AvatarProps =
   | AvatarIconProps
   | AvatarImageProps
-  | AvatarInitialProps
-  | AvatarJazzIconProps;
+  | AvatarInitialProps;

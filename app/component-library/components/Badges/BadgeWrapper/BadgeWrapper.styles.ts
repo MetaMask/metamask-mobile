@@ -24,7 +24,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     base: Object.assign(
-      { alignSelf: 'flex-start' } as ViewStyle,
+      { alignSelf: 'flex-start', position: 'relative' } as ViewStyle,
       style,
     ) as ViewStyle,
   });

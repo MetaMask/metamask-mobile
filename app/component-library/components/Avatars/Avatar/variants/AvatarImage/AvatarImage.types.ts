@@ -8,17 +8,18 @@ import { AvatarVariants } from '../../Avatar.types';
 /**
  * AvatarImage component props.
  */
-export interface AvatarImageProps extends AvatarBaseProps, ImagePropsBase {
-  /**
-   * Avatar variants.
-   */
-  variant?: AvatarVariants.Image;
-  /**
-   * Optional boolean to activate halo effect.
-   * @default false
-   */
-  isHaloEnabled?: boolean;
-}
+export type AvatarImageProps = AvatarBaseProps &
+  ImagePropsBase & {
+    /**
+     * Avatar variants.
+     */
+    variant?: AvatarVariants.Image;
+    /**
+     * Optional boolean to activate halo effect.
+     * @default false
+     */
+    isHaloEnabled?: boolean;
+  };
 
 /**
  * Style sheet input parameters.

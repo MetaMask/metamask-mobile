@@ -21,6 +21,7 @@ const AvatarImage = ({
   source,
   size = DEFAULT_AVATAR_SIZE,
   isHaloEnabled = false,
+  ...props
 }: AvatarImageProps) => {
   const { styles } = useStyles(styleSheet, { style, size, isHaloEnabled });
   const renderImage = () => (
@@ -33,7 +34,12 @@ const AvatarImage = ({
   );
 
   return (
-    <AvatarBase size={size} style={styles.base} testID={AVATAR_IMAGE_TEST_ID}>
+    <AvatarBase
+      size={size}
+      style={styles.base}
+      testID={AVATAR_IMAGE_TEST_ID}
+      {...props}
+    >
       {isHaloEnabled ? (
         <ImageBackground
           blurRadius={20}

@@ -6,7 +6,7 @@ import { AvatarBaseProps } from '../../foundation/AvatarBase';
 /**
  * AvatarInitial component props.
  */
-export interface AvatarInitialProps extends AvatarBaseProps {
+export type AvatarInitialProps = AvatarBaseProps & {
   /**
    * Avatar variants.
    */
@@ -15,7 +15,7 @@ export interface AvatarInitialProps extends AvatarBaseProps {
    * An Ethereum wallet address.
    */
   initial: string;
-}
+};
 
 /**
  * Style sheet input parameters.
