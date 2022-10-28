@@ -233,7 +233,7 @@ const PaymentMethod = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {filteredPaymentMethods?.map(
+            {filteredPaymentMethods.map(
               ({ id, name, delay, amountTier, paymentType, logo }) => (
                 <View key={id} style={styles.row}>
                   <PaymentOption
