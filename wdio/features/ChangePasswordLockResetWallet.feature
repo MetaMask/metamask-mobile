@@ -29,4 +29,7 @@ Feature: Lock and Reset Wallet
 
     Scenario: Reset Wallet
         When I tap Reset Wallet on Login screen
-        And I tap "I understand, continue" on Delete wallet modal
+        And I tap I understand, continue on Delete wallet modal
+        And I type "delete" on Delete wallet modal permanently
+        And I tap Delete my wallet on Delete wallet modal permanently
+        Then "Wallet setup" is displayed

@@ -1,6 +1,10 @@
 import Gestures from "../helpers/Gestures";
 import Selectors from "../helpers/Selectors";
-import { DELETE_MODAL_UNDERSTAND_CONTINUE_ID } from "../testIDs/Screens/LoginScreen.testIds";
+import { 
+    DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
+    DELETE_MODAL_DELETE_INPUT_ID,
+    DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY,
+ } from "../testIDs/Screens/LoginScreen.testIds";
 
 
 class LoginScreen{
@@ -17,17 +21,32 @@ class LoginScreen{
         return Selectors.getElementByPlatform(DELETE_MODAL_UNDERSTAND_CONTINUE_ID);
     }
 
+    get deleteInput(){
+        return Selectors.getElementByPlatform(DELETE_MODAL_DELETE_INPUT_ID);
+    }
+
+    get deleteMyWallet(){
+        return Selectors.getElementByPlatform(DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY);
+    }
+
     async isLoginScreenVisible(){
         await expect(this.loginScreen).toBeDisplayed();
     }
 
     async tapResetWallet(){
         await Gestures.waitAndTap(this.resetWallet);
-        await driver.pause(5000);
     }
 
-    async tapIUnderstandContinue(){
+    async tapIUnderstandContinue(text){
         await Gestures.waitAndTap(this.understandContinue);
+    }
+
+    async typedelete(deleteText){
+        await Gestures.typeText(this.deleteInput, deleteText);
+    }
+
+    async tapDeleteMyWallet(){
+        await Gestures.waitAndTap(this.deleteMyWallet);
     }
 }
 
