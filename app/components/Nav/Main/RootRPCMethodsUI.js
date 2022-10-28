@@ -513,7 +513,7 @@ const RootRPCMethodsUI = (props) => {
     try {
       ApprovalController.reject(id, error);
     } catch (error) {
-      Logger.error(error);
+      Logger.error(error, 'Reject while rejecting pending connection request');
     }
   };
 
