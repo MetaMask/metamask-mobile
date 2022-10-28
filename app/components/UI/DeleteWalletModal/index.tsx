@@ -7,6 +7,7 @@ import {
   InteractionManager,
   UIManager,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -28,6 +29,7 @@ import {
   DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
   DELETE_MODAL_CANCEL_BUTTON,
 } from '../../../../wdio/features/testIDs/Screens/LoginScreen.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -118,6 +120,7 @@ const DeleteWalletModal = () => {
               <OutlinedTextField
                 style={styles.input}
                 testID={DELETE_WALLET_INPUT_BOX_ID}
+                {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
                 autoFocus
                 returnKeyType={'done'}
                 onChangeText={checkDelete}
