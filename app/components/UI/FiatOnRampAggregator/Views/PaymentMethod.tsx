@@ -189,7 +189,7 @@ const PaymentMethod = () => {
     );
   }
 
-  if (isFetching) {
+  if (!filteredPaymentMethods || isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -203,10 +203,10 @@ const PaymentMethod = () => {
     );
   }
 
-  return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        {filteredPaymentMethods?.length === 0 ? (
+  if (filteredPaymentMethods.length === 0) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
           <ErrorView
             title={strings(
               'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title',
@@ -223,66 +223,69 @@ const PaymentMethod = () => {
             location={'Payment Method Screen'}
             icon="info"
           />
-        ) : (
-          <ScrollView>
-            <ScreenLayout.Content>
-              {filteredPaymentMethods?.map(
-                ({ id, name, delay, amountTier, paymentType, logo }) => (
-                  <View key={id} style={styles.row}>
-                    <PaymentOption
-                      highlighted={id === selectedPaymentMethodId}
-                      title={name}
-                      time={delay}
-                      id={id}
-                      onPress={
-                        id === selectedPaymentMethodId
-                          ? undefined
-                          : () => handlePaymentMethodPress(id)
-                      }
-                      amountTier={amountTier}
-                      paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                      logo={logo}
-                    />
-                  </View>
-                ),
-              )}
-            </ScreenLayout.Content>
-          </ScrollView>
-        )}
-      </ScreenLayout.Body>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
-      {filteredPaymentMethods && filteredPaymentMethods.length > 0 && (
-        <ScreenLayout.Footer>
+  return (
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <ScrollView>
           <ScreenLayout.Content>
-            {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
-              currentPaymentMethod?.paymentType ===
-                PaymentType.DebitCreditCard) && (
-              <View style={styles.row}>
-                <Text small grey centered>
-                  {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
-                    strings(
-                      'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                    )}
-                  {currentPaymentMethod?.paymentType ===
-                    PaymentType.DebitCreditCard &&
-                    strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
-                </Text>
-              </View>
+            {filteredPaymentMethods?.map(
+              ({ id, name, delay, amountTier, paymentType, logo }) => (
+                <View key={id} style={styles.row}>
+                  <PaymentOption
+                    highlighted={id === selectedPaymentMethodId}
+                    title={name}
+                    time={delay}
+                    id={id}
+                    onPress={
+                      id === selectedPaymentMethodId
+                        ? undefined
+                        : () => handlePaymentMethodPress(id)
+                    }
+                    amountTier={amountTier}
+                    paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                    logo={logo}
+                  />
+                </View>
+              ),
             )}
-            <View style={styles.row}>
-              <StyledButton
-                type={'confirm'}
-                onPress={handleContinueToAmount}
-                disabled={!selectedPaymentMethodId}
-              >
-                {strings(
-                  'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
-                )}
-              </StyledButton>
-            </View>
           </ScreenLayout.Content>
-        </ScreenLayout.Footer>
-      )}
+        </ScrollView>
+      </ScreenLayout.Body>
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content>
+          {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
+            currentPaymentMethod?.paymentType ===
+              PaymentType.DebitCreditCard) && (
+            <View style={styles.row}>
+              <Text small grey centered>
+                {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
+                  strings(
+                    'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
+                  )}
+                {currentPaymentMethod?.paymentType ===
+                  PaymentType.DebitCreditCard &&
+                  strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
+              </Text>
+            </View>
+          )}
+          <View style={styles.row}>
+            <StyledButton
+              type={'confirm'}
+              onPress={handleContinueToAmount}
+              disabled={!selectedPaymentMethodId}
+            >
+              {strings(
+                'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
+              )}
+            </StyledButton>
+          </View>
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
     </ScreenLayout>
   );
 };
