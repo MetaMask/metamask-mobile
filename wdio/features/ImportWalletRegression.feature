@@ -19,6 +19,7 @@ Feature: Import Wallet Regression
         And I type <password> in confirm password field
         And I tap "Import"
         Then device alert <error> is displayed
+        When I tap Yes on alert
         Examples:
             | invalid_SRP                                                              | password      | error                          |
             | fold media south not valid secret recovery phrase pause cloth just raven | Metapass12345 | Invalid Secret Recovery Phrase |
@@ -27,6 +28,7 @@ Feature: Import Wallet Regression
         When I type <invalid_SRP> in SRP field
         And I tap "Import"
         Then device alert <error> is displayed
+        When I tap Yes on alert
         Examples:
             | invalid_SRP                                                     | error                                                       |
             | fold media south add since false relax immense pause cloth just | Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words |
@@ -37,7 +39,7 @@ Feature: Import Wallet Regression
             | password      | strength                |
             # | metapass1 | Password strength: Weak |
             | Metapass12345 | Password strength: Good |
-    # | Metapass12345!@ | Password strength: Strong |
+            # | Metapass12345!@ | Password strength: Strong |
 
     Scenario: Import Wallet
         When I type <SRP> in SRP field
