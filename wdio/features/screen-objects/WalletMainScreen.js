@@ -1,11 +1,11 @@
-import Selectors from '../helpers/Selectors';
-import { 
-  WALLET_CONTAINER_ID, 
-  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID 
-} from '../testIDs/Screens/WalletScreen-testIds.js';
-import {ONBOARDING_WIZARD_STEP_1_CONTAINER_ID} from '../testIDs/Components/OnboardingWizard.testIds';
+import { WALLET_CONTAINER_ID} from '../testIDs/Screens/WalletScreen-testIds.js';
+import {
+  ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
+  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+} from '../testIDs/Components/OnboardingWizard.testIds';
 import Selectors from '../helpers/Selectors';
 import {WALLET_VIEW_BURGER_ICON_ID} from '../testIDs/Screens/WalletView.testIds';
+import Gestures from '../helpers/Gestures.js';
 
 class WalletMainScreen {
 
@@ -26,11 +26,11 @@ class WalletMainScreen {
   }
 
   async tapNoThanks(){
-    (await this.noThanks).touchAction('tap');
+    await Gestures.waitAndTap(this.noThanks);
   }
 
   async tapBurgerIcon(){
-    (await this.burgerIcon).touchAction('tap');
+    await Gestures.waitAndTap(this.burgerIcon);
   }
 
   get WalletScreenContainer(){
