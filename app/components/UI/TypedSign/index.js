@@ -17,6 +17,7 @@ import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -101,6 +102,7 @@ class TypedSign extends PureComponent {
         chain_id: chainId,
         sign_type: 'typed',
         version: messageParams?.version,
+        ...currentPageInformation?.analytics,
       };
     } catch (error) {
       return {};
@@ -120,7 +122,8 @@ class TypedSign extends PureComponent {
   ) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
-        messageParams.origin.includes(WALLET_CONNECT_ORIGIN) &&
+        (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
+          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,

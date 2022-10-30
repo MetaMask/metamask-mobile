@@ -34,6 +34,7 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import { trackLegacyEvent } from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -326,7 +327,7 @@ const Wallet = ({ navigation }: any) => {
 
   return (
     <ErrorBoundary view="Wallet">
-      <View style={baseStyles.flexGrow} testID={'wallet-screen'}>
+      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
         <ScrollView
           style={styles.wrapper}
           refreshControl={

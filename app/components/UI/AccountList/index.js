@@ -24,6 +24,7 @@ import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -219,23 +220,23 @@ class AccountList extends PureComponent {
   addAccount = async () => {
     if (this.state.loading) return;
     this.mounted && this.setState({ loading: true });
-    const { KeyringController } = Engine.context;
+    const { KeyringController, PreferencesController } = Engine.context;
     requestAnimationFrame(async () => {
       try {
-        await KeyringController.addNewAccount();
-        const { PreferencesController } = Engine.context;
-        const newIndex = Object.keys(this.props.identities).length - 1;
-        PreferencesController.setSelectedAddress(
-          Object.keys(this.props.identities)[newIndex],
-        );
+        const { addedAccountAddress } = await KeyringController.addNewAccount();
+        const checksummedAddress = safeToChecksumAddress(addedAccountAddress);
+        PreferencesController.setSelectedAddress(checksummedAddress);
         setTimeout(() => {
           this.flatList &&
             this.flatList.current &&
             this.flatList.current.scrollToEnd();
           this.mounted && this.setState({ loading: false });
         }, 500);
-        const orderedAccounts = this.getAccounts();
-        this.mounted && this.setState({ orderedAccounts });
+        // Use setTimeout to ensure latest accounts are reflected in the next frame
+        setTimeout(() => {
+          const orderedAccounts = this.getAccounts();
+          this.mounted && this.setState({ orderedAccounts });
+        }, 0);
       } catch (e) {
         // Restore to the previous index in case anything goes wrong
         Logger.error(e, 'error while trying to add a new account'); // eslint-disable-line

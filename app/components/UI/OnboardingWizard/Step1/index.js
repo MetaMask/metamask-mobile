@@ -1,7 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet, InteractionManager } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  InteractionManager,
+  Platform,
+} from 'react-native';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
@@ -13,6 +19,8 @@ import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import { trackEvent } from '../../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
@@ -85,7 +93,10 @@ class Step1 extends PureComponent {
 
   render() {
     return (
-      <View style={styles.main} testID={'onboarding-wizard-step1-view'}>
+      <View
+        style={styles.main}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
+      >
         <View style={styles.coachmarkContainer}>
           <Coachmark
             title={strings('onboarding_wizard.step1.title')}

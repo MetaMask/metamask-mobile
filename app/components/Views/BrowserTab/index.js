@@ -19,7 +19,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
-import BackgroundBridge from '../../../core/BackgroundBridge';
+import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
@@ -69,7 +69,7 @@ import {
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
-const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -1367,12 +1367,12 @@ export const BrowserTab = (props) => {
               onMessage={onMessage}
               onError={onError}
               onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-              userAgent={USER_AGENT}
               sendCookies
               javascriptEnabled
               allowsInlineMediaPlayback
               useWebkit
               testID={'browser-webview'}
+              applicationNameForUserAgent={'WebView MetaMaskMobile'}
               onFileDownload={handleOnFileDownload}
             />
           )}

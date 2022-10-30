@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Image,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import zxcvbn from 'zxcvbn';
 import CheckBox from '@react-native-community/checkbox';
@@ -62,6 +63,7 @@ import {
   ANDROID_I_UNDERSTAND_BUTTON_ID,
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -678,7 +680,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    testID={CREATE_PASSWORD_INPUT_BOX_ID}
+                    {...generateTestId(Platform, CREATE_PASSWORD_INPUT_BOX_ID)}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -709,6 +711,7 @@ class ChoosePassword extends PureComponent {
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
                     testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    accessibilityLabel={CONFIRM_PASSWORD_INPUT_BOX_ID}
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
@@ -741,6 +744,7 @@ class ChoosePassword extends PureComponent {
                     }}
                     boxType="square"
                     testID={IOS_I_UNDERSTAND_BUTTON_ID}
+                    accessibilityLabel={IOS_I_UNDERSTAND_BUTTON_ID}
                   />
                   <Text
                     style={styles.label}

@@ -9,6 +9,7 @@ import {
   BackHandler,
   Alert,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
@@ -30,6 +31,12 @@ import AppConstants from '../../../core/AppConstants';
 import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  OPTIN_METRICS_I_AGREE_BUTTON_ID,
+  OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+  OPTIN_METRICS_TITLE_ID,
+} from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -298,7 +305,10 @@ class OptinMetrics extends PureComponent {
       <SafeAreaView style={styles.root} testID={'metaMetrics-OptIn'}>
         <ScrollView style={styles.root}>
           <View style={styles.wrapper}>
-            <Text style={styles.title}>
+            <Text
+              style={styles.title}
+              {...generateTestId(Platform, OPTIN_METRICS_TITLE_ID)}
+            >
               {strings('privacy_policy.description_title')}
             </Text>
             <Text style={styles.content}>
@@ -316,7 +326,7 @@ class OptinMetrics extends PureComponent {
               containerStyle={[styles.button, styles.cancel]}
               type={'cancel'}
               onPress={this.onCancel}
-              testID={'cancel-button'}
+              testID={OPTIN_METRICS_NO_THANKS_BUTTON_ID}
             >
               {strings('privacy_policy.decline')}
             </StyledButton>
@@ -324,7 +334,7 @@ class OptinMetrics extends PureComponent {
               containerStyle={[styles.button, styles.confirm]}
               type={'confirm'}
               onPress={this.onConfirm}
-              testID={'agree-button'}
+              testID={OPTIN_METRICS_I_AGREE_BUTTON_ID}
             >
               {strings('privacy_policy.agree')}
             </StyledButton>
