@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
-import Analytics from '../../../../../core/Analytics/Analytics';
 import {
   MetaMetrics,
   DataDeleteStatus,
@@ -40,7 +39,7 @@ const DeleteMetaMetricsData = () => {
   const styles = createStyles(colors);
 
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
-    Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
+    MetaMetrics.checkEnabled() || MetaMetrics.getIsDataRecorded(),
   );
   const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
     DataDeleteStatus.unknown,
@@ -92,7 +91,7 @@ const DeleteMetaMetricsData = () => {
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
-        setDeletionTaskDate(Analytics.getDeletionTaskDate());
+        setDeletionTaskDate(MetaMetrics.getDeleteRegulationDate());
         await trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
@@ -103,28 +102,9 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
-  const checkDataDeleteStatus = useCallback(async () => {
-    try {
-      const response = await Analytics.checkStatusDataDeletionTask();
-      setDataDeleteStatus(response.DataDeleteStatus);
-    } catch (error: any) {
-      Logger.log('Error checkDataDeleteStatus -', error);
-    }
-  }, []);
-
   useEffect(() => {
-    const checkStatus = async () => {
-      const deletionTaskId = Analytics.getDeletionTaskId();
-      if (deletionTaskId) {
-        await checkDataDeleteStatus();
-        setDeletionTaskDate(Analytics.getDeletionTaskDate());
-      }
-    };
-
-    setHasCollectedData(Analytics.getIsDataRecorded() || enableDeleteData());
-
-    checkStatus();
-  }, [checkDataDeleteStatus, enableDeleteData, dataDeleteStatus]);
+    setHasCollectedData(MetaMetrics.getIsDataRecorded() || enableDeleteData());
+  }, [enableDeleteData, dataDeleteStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 

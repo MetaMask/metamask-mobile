@@ -30,6 +30,7 @@ export interface IMetaMetrics {
   // Method to disable data tracking
   disable(): void;
   // Method to add traits to an user
+  checkEnabled(): boolean;
   addTraitsToUser(userTraits: Record<string, string>): void;
   // Method to add an user to a specific group
   group(groupId: string, groupTraits?: GroupTraits): void;
@@ -44,6 +45,12 @@ export interface IMetaMetrics {
     status: DataDeleteResponseStatus;
     error?: string;
   }>;
+  // Method to get the delete regulation ID
+  getDeleteRegulationId(): Promise<string>;
+  // Method to get the delete regulation date
+  getDeleteRegulationDate(): string;
+  // Method to get the state of the recorded data
+  getIsDataRecorded(): boolean;
 }
 
 // Represents an MetaMetrics event

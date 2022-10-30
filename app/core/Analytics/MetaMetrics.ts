@@ -250,6 +250,12 @@ class MetaMetrics implements IMetaMetrics {
     }
   };
 
+  #getDeleteRegulationId = async (): Promise<string> =>
+    await DefaultPreference.get(METAMETRICS_SEGMENT_REGULATION_ID);
+
+  #getDeleteRegulationDate = async (): Promise<string> =>
+    await DefaultPreference.get(METAMETRICS_SEGMENT_REGULATION_ID);
+
   // PUBLIC METHODS
 
   public static getInstance(): IMetaMetrics {
@@ -274,6 +280,10 @@ class MetaMetrics implements IMetaMetrics {
   public disable(): void {
     this.#state = States.disabled;
     this.#storeMetricsOptInPreference();
+  }
+
+  public checkEnabled(): boolean {
+    return this.#state === States.enabled;
   }
 
   public state(): States {
@@ -312,6 +322,18 @@ class MetaMetrics implements IMetaMetrics {
     error?: string;
   }> {
     return this.#createSegmentDeleteRegulation();
+  }
+
+  public getDeleteRegulationId(): Promise<string> {
+    return this.#getDeleteRegulationId();
+  }
+
+  public getDeleteRegulationDate(): string {
+    return this.#deleteRegulationDate;
+  }
+
+  public getIsDataRecorded(): boolean {
+    return this.#isDataRecorded;
   }
 }
 
