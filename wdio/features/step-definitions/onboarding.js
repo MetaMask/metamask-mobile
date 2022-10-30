@@ -165,3 +165,7 @@ When(/^secure wallet page is presented/, async () => {
 Then(/^I should proceed to the new wallet/, async () => {
   await CreateNewWalletScreen.isNotVisible();
 });
+
+Then(/^green check mark is displayed/, async () => {
+  await ImportFromSeedScreen.isPasswordMatchIconVisible();
+});
