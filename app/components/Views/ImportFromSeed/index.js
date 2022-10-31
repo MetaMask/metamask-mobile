@@ -703,11 +703,14 @@ class ImportFromSeed extends PureComponent {
 
               <View style={styles.showMatchingPasswords}>
                 {password !== '' && password === confirmPassword ? (
-                  <Icon name="check" size={12} color={colors.success.default} 
-                  {...generateTestId(
-                    Platform,
-                    IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
-                  )}                    
+                  <Icon
+                    name="check"
+                    size={12}
+                    color={colors.success.default}
+                    {...generateTestId(
+                      Platform,
+                      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+                    )}
                   />
                 ) : null}
               </View>

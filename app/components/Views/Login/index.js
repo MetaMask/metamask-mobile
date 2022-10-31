@@ -516,9 +516,7 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View testID={'login'}
-              {...generateTestId(Platform, 'login')}
-            >
+            <View testID={'login'} {...generateTestId(Platform, 'login')}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
