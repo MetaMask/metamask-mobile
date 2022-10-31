@@ -40,6 +40,7 @@ import {
   getNetworkNameFromProvider,
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -355,7 +356,7 @@ const Wallet = ({ navigation }: any) => {
 
   return (
     <ErrorBoundary view="Wallet">
-      <View style={baseStyles.flexGrow} testID={'wallet-screen'}>
+      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
         <ScrollView
           style={styles.wrapper}
           refreshControl={

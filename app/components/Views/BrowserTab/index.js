@@ -17,7 +17,7 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
-import BackgroundBridge from '../../../core/BackgroundBridge';
+import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
@@ -67,7 +67,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { isEqual } from 'lodash';
 
-const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -1340,12 +1340,12 @@ export const BrowserTab = (props) => {
               onMessage={onMessage}
               onError={onError}
               onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-              userAgent={USER_AGENT}
               sendCookies
               javascriptEnabled
               allowsInlineMediaPlayback
               useWebkit
               testID={'browser-webview'}
+              applicationNameForUserAgent={'WebView MetaMaskMobile'}
               onFileDownload={handleOnFileDownload}
             />
           )}

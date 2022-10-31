@@ -2,25 +2,24 @@
 import URL from 'url-parse';
 import { NetworksChainId } from '@metamask/controllers';
 import { JsonRpcEngine } from 'json-rpc-engine';
-import {
-  JS_POST_MESSAGE_TO_PROVIDER,
-  JS_IFRAME_POST_MESSAGE_TO_PROVIDER,
-} from '../util/browserScripts';
-import MobilePortStream from './MobilePortStream';
-import { setupMultiplex } from '../util/streams';
+import MobilePortStream from '../MobilePortStream';
+import { setupMultiplex } from '../../util/streams';
 import {
   createOriginMiddleware,
   createLoggerMiddleware,
-} from '../util/middlewares';
-import Engine from './Engine';
-import { getAllNetworks } from '../util/networks';
-import Logger from '../util/Logger';
-import AppConstants from './AppConstants';
+} from '../../util/middlewares';
+import Engine from '../Engine';
+import { getAllNetworks } from '../../util/networks';
+import Logger from '../../util/Logger';
+import AppConstants from '../AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import {
   createSwappableProxy,
   createEventEmitterProxy,
 } from 'swappable-obj-proxy';
+import RemotePort from './RemotePort';
+import WalletConnectPort from './WalletConnectPort';
+import Port from './Port';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -30,82 +29,29 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 
-/**
- * Module that listens for and responds to messages from an InpageBridge using postMessage
- */
-
-class Port extends EventEmitter {
-  constructor(window, isMainFrame) {
-    super();
-    this._window = window;
-    this._isMainFrame = isMainFrame;
-  }
-
-  postMessage = (msg, origin = '*') => {
-    const js = this._isMainFrame
-      ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
-      : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
-    if (this._window.webViewRef && this._window.webViewRef.current) {
-      this._window && this._window.injectJavaScript(js);
-    }
-  };
-}
-
-class WalletConnectPort extends EventEmitter {
-  constructor(wcRequestActions) {
-    super();
-    this._wcRequestActions = wcRequestActions;
-  }
-
-  postMessage = (msg) => {
-    try {
-      if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        const { selectedAddress } = Engine.datamodel.flatState;
-        this._wcRequestActions?.updateSession?.({
-          chainId: parseInt(msg.data.params.chainId, 16),
-          accounts: [selectedAddress],
-        });
-      } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
-        const chainId = Engine.context.NetworkController.state.provider.chainId;
-        this._wcRequestActions?.updateSession?.({
-          chainId: parseInt(chainId, 10),
-          accounts: msg.data.params,
-        });
-      } else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
-        // WC DOESN'T NEED THIS EVENT
-      } else if (msg?.data?.error) {
-        this._wcRequestActions?.rejectRequest?.({
-          id: msg.data.id,
-          error: msg.data.error,
-        });
-      } else {
-        this._wcRequestActions?.approveRequest?.({
-          id: msg.data.id,
-          result: msg.data.result,
-        });
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-}
-
 export class BackgroundBridge extends EventEmitter {
   constructor({
     webview,
     url,
     getRpcMethodMiddleware,
     isMainFrame,
+    isRemoteConn,
+    sendMessage,
     isWalletConnect,
     wcRequestActions,
+    getApprovedHosts,
+    remoteConnHost,
   }) {
     super();
     this.url = url;
     this.hostname = new URL(url).hostname;
+    this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
+    this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
+    this.getApprovedHosts = getApprovedHosts;
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -118,7 +64,9 @@ export class BackgroundBridge extends EventEmitter {
 
     this.setProviderAndBlockTracker({ provider, blockTracker });
 
-    this.port = this.isWalletConnect
+    this.port = isRemoteConn
+      ? new RemotePort(sendMessage)
+      : this.isWalletConnect
       ? new WalletConnectPort(wcRequestActions)
       : new Port(this._webviewRef, isMainFrame);
 
@@ -148,6 +96,14 @@ export class BackgroundBridge extends EventEmitter {
     Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
 
     this.on('update', this.onStateUpdate);
+
+    if (this.isRemoteConn) {
+      const memState = this.getState();
+      const publicState = this.getProviderNetworkState(memState);
+      const selectedAddress = memState.selectedAddress;
+      this.notifyChainChanged(publicState);
+      this.notifySelectedAddressChanged(selectedAddress);
+    }
   }
 
   setProviderAndBlockTracker({ provider, blockTracker }) {
@@ -173,6 +129,22 @@ export class BackgroundBridge extends EventEmitter {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
+    if (this.isRemoteConn) {
+      // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
+      // In case we want to send, use  new structure
+      /*const memState = this.getState();
+      const selectedAddress = memState.selectedAddress;
+
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.unlockStateChanged,
+        params: {
+          isUnlocked: true,
+          accounts: [selectedAddress],
+        },
+      });*/
+      return;
+    }
+
     this.sendNotification({
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: true,
@@ -182,6 +154,18 @@ export class BackgroundBridge extends EventEmitter {
   onLock() {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
+
+    if (this.isRemoteConn) {
+      // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
+      // In case we want to send, use  new structure
+      /*this.sendNotification({
+        method: NOTIFICATION_NAMES.unlockStateChanged,
+        params: {
+          isUnlocked: false,
+        },
+      });*/
+      return;
+    }
 
     this.sendNotification({
       method: NOTIFICATION_NAMES.unlockStateChanged,
@@ -214,6 +198,23 @@ export class BackgroundBridge extends EventEmitter {
     return result;
   }
 
+  notifyChainChanged(params) {
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.chainChanged,
+      params,
+    });
+  }
+
+  notifySelectedAddressChanged(selectedAddress) {
+    if (this.isRemoteConn) {
+      if (!this.getApprovedHosts?.()?.[this.remoteConnHost]) return;
+    }
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      params: [selectedAddress],
+    });
+  }
+
   onStateUpdate(memState) {
     const provider = Engine.context.NetworkController.provider;
     const blockTracker = provider._blockTracker;
@@ -231,20 +232,14 @@ export class BackgroundBridge extends EventEmitter {
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.chainChanged,
-        params: publicState,
-      });
+      this.notifyChainChanged(publicState);
     }
 
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect) {
+    if (this.isWalletConnect || this.isRemoteConn) {
       if (this.addressSent !== memState.selectedAddress) {
         this.addressSent = memState.selectedAddress;
-        this.sendNotification({
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: [memState.selectedAddress],
-        });
+        this.notifySelectedAddressChanged(memState.selectedAddress);
       }
     }
   }
