@@ -33,7 +33,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
-import TransactionReviewEIP1559Update from '../TransactionReviewEIP1559Update';
+import TransactionReview from '../TransactionReviewEIP1559Update';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
@@ -214,6 +214,10 @@ class TransactionReviewInformation extends PureComponent {
     amountError: '',
     actionKey: strings('transactions.tx_review_confirm'),
     nonceModalVisible: false,
+    EIP1559GasTransaction: {},
+    EIP1559GasObject: {},
+    legacyGasObject: {},
+    legacyGasTransaction: {},
   };
 
   componentDidMount = async () => {
@@ -528,13 +532,15 @@ class TransactionReviewInformation extends PureComponent {
       isAnimating,
       ready,
       gasSelected,
+      gasObject,
+      updateTransactionState,
     } = this.props;
     let host;
     if (origin) {
       host = new URL(origin).hostname;
     }
     return (
-      <TransactionReviewEIP1559Update
+      <TransactionReview
         gasSelected={gasSelected}
         primaryCurrency={primaryCurrency}
         hideTotal
@@ -543,12 +549,13 @@ class TransactionReviewInformation extends PureComponent {
         onUpdatingValuesStart={onUpdatingValuesStart}
         onUpdatingValuesEnd={onUpdatingValuesEnd}
         animateOnChange={animateOnChange}
+        updateTransactionState={updateTransactionState}
         isAnimating={isAnimating}
         origin={host}
         originWarning={originWarning}
         gasEstimationReady={ready}
         legacy={false}
-        gasPriceObject={{}}
+        gasObject={gasObject}
         onlyGas
       />
     );
@@ -577,7 +584,7 @@ class TransactionReviewInformation extends PureComponent {
       totalGasFiat,
     )();
     return (
-      <TransactionReviewEIP1559Update
+      <TransactionReview
         gasSelected={gasSelected}
         primaryCurrency={primaryCurrency}
         onEdit={this.edit}

@@ -460,6 +460,8 @@ class TransactionReview extends PureComponent {
                       onUpdatingValuesEnd={onUpdatingValuesEnd}
                       animateOnChange={animateOnChange}
                       isAnimating={isAnimating}
+                      updateTransactionState={this.props.updateTransactionState}
+                      gasObject={this.props.gasObject}
                     />
                   </View>
                 </ScrollView>
