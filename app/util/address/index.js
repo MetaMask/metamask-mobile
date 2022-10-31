@@ -11,7 +11,12 @@ import { KeyringTypes } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
+import {
+  doENSLookup,
+  doENSReverseLookup,
+  ENSCache,
+  isDefaultAccountName,
+} from '../../util/ENSUtils';
 import NetworkList from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
 import {
@@ -19,7 +24,6 @@ import {
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
-import { ENSCache, isDefaultAccountName } from '../ENSUtils';
 
 /**
  * Returns full checksummed address
@@ -370,13 +374,13 @@ export async function validateAddressOrENS(params) {
      * Check if it's smart contract address
      */
     /*
-			const smart = false; //
+               const smart = false; //
 
-			if (smart) {
-				addressError = strings('transaction.smartContractAddressWarning');
-				isOnlyWarning = true;
-			}
-			*/
+               if (smart) {
+                    addressError = strings('transaction.smartContractAddressWarning');
+                    isOnlyWarning = true;
+               }
+               */
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
