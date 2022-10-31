@@ -21,7 +21,7 @@ exports[`TabBarItem should render correctly 1`] = `
         "color": "#037DD6",
       }
     }
-    variant="sBodyMD"
+    variant="sBodySM"
   >
     Tab
   </Text>
