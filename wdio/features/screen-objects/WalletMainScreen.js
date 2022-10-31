@@ -25,7 +25,7 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
   }
 
-  async validateOnboardingWizard() {
+  async isOnboardingWizardVisible() {
     await expect(this.wizardContainer).toBeDisplayed();
   }
 
