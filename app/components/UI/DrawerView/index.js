@@ -1363,8 +1363,6 @@ class DrawerView extends PureComponent {
                                 : null,
                             ]}
                             {...generateTestId(Platform, item.testID)}
-                            // accessible={item.accessible}
-                            // accessibilityLabel={item.accessibilityLabel}
                             numberOfLines={1}
                           >
                             {item.name}

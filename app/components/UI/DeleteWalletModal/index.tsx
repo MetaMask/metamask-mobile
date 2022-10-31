@@ -28,7 +28,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
   DELETE_MODAL_CANCEL_BUTTON,
-} from '../../../../wdio/features/testIDs/Screens/LoginScreen.testIds';
+} from '../../../../wdio/features/testIDs/Components/DeleteWalletModal.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const DELETE_KEYWORD = 'delete';

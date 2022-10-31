@@ -21,6 +21,10 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(WALLET_VIEW_BURGER_ICON_ID);
   }
 
+  get WalletScreenContainer(){
+    return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
+  }
+
   async validateOnboardingWizard() {
     await expect(this.wizardContainer).toBeDisplayed();
   }
@@ -31,10 +35,6 @@ class WalletMainScreen {
 
   async tapBurgerIcon(){
     await Gestures.waitAndTap(this.burgerIcon);
-  }
-
-  get WalletScreenContainer(){
-    return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
   }
 
   async isVisible() {

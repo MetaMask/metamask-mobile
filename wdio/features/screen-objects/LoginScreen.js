@@ -1,11 +1,8 @@
 import Gestures from "../helpers/Gestures";
 import Selectors from "../helpers/Selectors";
 import { 
-    DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
-    DELETE_MODAL_DELETE_INPUT_ID,
-    DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY,
+    LOGIN_VIEW_RESET_WALLET_ID,
  } from "../testIDs/Screens/LoginScreen.testIds";
-
 
 class LoginScreen{
 
@@ -13,40 +10,16 @@ class LoginScreen{
         return Selectors.getElementByPlatform('login');
     }
 
-    get resetWallet(){
-        return Selectors.getElementByPlatform('reset-wallet-button');
-    }
-
-    get understandContinue(){
-        return Selectors.getElementByPlatform(DELETE_MODAL_UNDERSTAND_CONTINUE_ID);
-    }
-
-    get deleteInput(){
-        return Selectors.getElementByPlatform(DELETE_MODAL_DELETE_INPUT_ID);
-    }
-
-    get deleteMyWallet(){
-        return Selectors.getElementByPlatform(DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY);
+    get resetWalletButton(){
+        return Selectors.getElementByPlatform(LOGIN_VIEW_RESET_WALLET_ID);
     }
 
     async isLoginScreenVisible(){
         await expect(this.loginScreen).toBeDisplayed();
     }
 
-    async tapResetWallet(){
-        await Gestures.waitAndTap(this.resetWallet);
-    }
-
-    async tapIUnderstandContinue(text){
-        await Gestures.waitAndTap(this.understandContinue);
-    }
-
-    async typedelete(deleteText){
-        await Gestures.typeText(this.deleteInput, deleteText);
-    }
-
-    async tapDeleteMyWallet(){
-        await Gestures.waitAndTap(this.deleteMyWallet);
+    async tapResetWalletButton(){
+        await Gestures.waitAndTap(this.resetWalletButton);
     }
 }
 
