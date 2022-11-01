@@ -1537,15 +1537,16 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.2.1.tgz#1bae47bdf18437cf8c13915b9d0124ca265b8889"
-  integrity sha512-ktSa6Y5JcSvYOrzEwDPSkfn7wVLP3bOjtoeMswp0aQ/D0t6ySUnpBVkVsSg9TYdsHhUYxTEQVhqHYOi8x+6uhg==
+"@consensys/on-ramp-sdk@1.3.0-beta.32":
+  version "1.3.0-beta.32"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.0-beta.32.tgz#f400c0b3d2ee43c296947cfd03d8ae467098c13d"
+  integrity sha512-C2tzLaz5Z9LPEdhZ4X/WVFJ/uimjfpba9iyvb1d7oyy+bohW8wttcBiEY9NU5qtjiRmF9f441H2A7io1HGN2uQ==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
     axios-retry "^3.1.2"
     crypto-js "^4.1.1"
+    uuid "^9.0.0"
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
@@ -22876,6 +22877,16 @@ uuid@^7.0.3:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.3.tgz#c5c9f2c8cf25dc0a372c4df1441c41f5bd0c680b"
   integrity sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
+
+uuid@^8.3.0, uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-android@~8.84.0:
   version "8.84.0"
