@@ -1,7 +1,7 @@
 // External dependencies
 import { AvatarBadgePositions } from '../../../../Avatar.types';
 import { AvatarBaseProps } from '../../../../../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import { BadgeProps } from '../../../../../../../../component-library/components/Badges/Badge';
+import { BadgeProps } from '../../../../../../Badges/Badge';
 
 /**
  * AvatarBaseBase component props.

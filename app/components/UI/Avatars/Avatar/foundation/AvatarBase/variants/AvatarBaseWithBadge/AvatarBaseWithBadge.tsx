@@ -9,7 +9,7 @@ import {
   DEFAULT_AVATAR_BADGE_POSITION,
   DEFAULT_AVATAR_SIZE,
 } from '../../../../Avatar.constants';
-import BadgeWrapper from '../../../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper from '../../../../../../Badges/BadgeWrapper';
 import AvatarBaseBase from '../../foundation/AvatarBaseBase';
 
 // Internal dependencies.
