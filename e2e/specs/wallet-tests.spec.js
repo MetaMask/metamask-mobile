@@ -217,7 +217,7 @@ describe('Wallet Tests', () => {
     // Check that we are on the wallet screen
     // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
-    // Search for Uniswap -updated Nov 2022 because DAI has asset balance in support of token detection tests
+    // Search for Uniswap
     await ImportTokensView.typeInTokenName('Uniswap');
     // Wait for results to load
     await TestHelpers.delay(2000);
