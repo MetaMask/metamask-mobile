@@ -88,7 +88,15 @@ class Engine {
 
       const networkControllerOpts = {
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        messenger: this.controllerMessenger,
+        state: initialState.networkController,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NetworkController',
+          allowedEvents: [
+            'NetworkController:stateChange',
+            'NetworkController:providerChange',
+          ],
+          allowedActions: [],
+        }),
       };
 
       const networkController = new NetworkController(networkControllerOpts);
@@ -130,6 +138,7 @@ class Engine {
           );
         },
       };
+      console.log('networkController', `${networkController.name}`);
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -179,7 +188,7 @@ class Engine {
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:providerChange`,
+            `${networkController.name}:stateChange`,
             listener,
           ),
         config: { provider: networkController.provider },
@@ -205,7 +214,7 @@ class Engine {
         getProvider: () => networkController.provider,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:providerChange`,
+            `${networkController.name}:stateChange`,
             listener,
           ),
         getCurrentNetworkEIP1559Compatibility: async () =>
@@ -265,7 +274,7 @@ class Engine {
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:providerChange`,
+              `${networkController.name}:stateChange`,
               listener,
             ),
           onTokenListStateChange: (listener) =>
@@ -303,7 +312,7 @@ class Engine {
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:providerChange`,
+              `${networkController.name}:stateChange`,
               listener,
             ),
           getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
@@ -340,7 +349,7 @@ class Engine {
             ),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:providerChange`,
+              `${networkController.name}:stateChange`,
               listener,
             ),
         }),
@@ -348,7 +357,7 @@ class Engine {
           getNetworkState: () => networkController.state,
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:providerChange`,
+              `${networkController.name}:stateChange`,
               listener,
             ),
           getProvider: () => networkController.provider,
@@ -417,6 +426,7 @@ class Engine {
       network.refreshNetwork();
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
       this.controllerMessenger.subscribe(
+        'NetworkController:stateChange',
         (state: { network: string, provider: { chainId: any } }) => {
           if (
             state.network !== 'loading' &&

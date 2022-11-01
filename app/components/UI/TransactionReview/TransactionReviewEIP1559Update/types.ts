@@ -66,6 +66,18 @@ export interface TransactionEIP1559UpdateProps {
    * update gas transaction state to parent
    */
   updateTransactionState: any;
+  onlyGas: boolean;
+}
+
+export interface SkeletonProps {
+  /**
+   * Skeleton width
+   */
+  width: number;
+  /**
+   * if noStyle is passed to skeleton
+   */
+  noStyle?: boolean;
 }
 
 export interface SkeletonProps {
