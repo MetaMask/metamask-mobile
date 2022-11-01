@@ -40,12 +40,3 @@ class NetworkApprovalModal {
     }
 }
 export default new NetworkApprovalModal();
-
-
-
-
-
-
-
-
-
