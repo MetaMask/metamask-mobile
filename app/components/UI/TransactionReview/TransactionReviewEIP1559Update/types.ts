@@ -67,6 +67,18 @@ export interface TransactionEIP1559UpdateProps {
    */
   updateTransactionState: any;
   onlyGas: boolean;
+  /**
+   * The gas price in the native currency.
+   */
+  totalMaxNative: string;
+  totalConversion: string;
+  totalNative: string;
+  gasFeeNative: string;
+  dappSuggestedGasPrice: string;
+  dappSuggestedEIP1559Gas: {
+    maxFeePerGas: string;
+    maxPriorityFeePerGas: string;
+  };
 }
 
 export interface SkeletonProps {

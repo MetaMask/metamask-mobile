@@ -18,7 +18,6 @@ import {
   getNormalizedTxState,
   getTicker,
   getActiveTabUrl,
-  parseTransactionLegacy,
 } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
@@ -26,7 +25,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { safeToChecksumAddress } from '../../../util/address';
 import { shallowEqual } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559Update';
-import EditGasFeeLegacy from '../EditGasFeeLegacy';
+import EditGasFeeLegacy from '../EditGasFeeLegacyUpdate';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -36,7 +35,7 @@ import {
   handleGasFeeSelection,
   handleGetGasLimit,
 } from '../../../util/dappTransactions';
-
+import { getLegacyTransactionData } from '../../../core/GasPolling/GasPolling';
 const EDIT = 'edit';
 const REVIEW = 'review';
 
@@ -136,22 +135,14 @@ class TransactionEditor extends PureComponent {
     over: false,
     gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
-    LegacyGasData: {},
-    LegacyGasDataTemp: {},
-
-    EIP1559GasTransaction: {},
-    EIP1559GasObject: {},
+    eip1559GasTransaction: {},
+    eip1559GasObject: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {
-    const {
-      transaction,
-      gasEstimateType,
-      gasFeeEstimates,
-      setTransactionObject,
-    } = this.props;
+    const { gasEstimateType, transaction, setTransactionObject } = this.props;
     const { dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
 
     const gasSelected = gasEstimateTypeChanged
@@ -164,33 +155,10 @@ class TransactionEditor extends PureComponent {
     const dappSuggestedGas = dappSuggestedGasPrice || dappSuggestedEIP1559Gas;
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      let initialGas;
-      if (dappSuggestedEIP1559Gas) {
-        initialGas = {
-          suggestedMaxFeePerGas: fromWei(
-            dappSuggestedEIP1559Gas.maxFeePerGas,
-            'gwei',
-          ),
-          suggestedMaxPriorityFeePerGas: fromWei(
-            dappSuggestedEIP1559Gas.maxPriorityFeePerGas,
-            'gwei',
-          ),
-        };
-      } else if (dappSuggestedGasPrice) {
-        initialGas = {
-          suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-          suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-        };
-      } else {
-        initialGas = gasFeeEstimates[gasSelected];
-      }
-
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
           ready: true,
-          LegacyGasData: {},
-          LegacyGasDataTemp: {},
           advancedGasInserted: Boolean(dappSuggestedGas),
           gasSelected: dappSuggestedGas ? null : gasSelected,
           gasSelectedTemp,
@@ -209,36 +177,25 @@ class TransactionEditor extends PureComponent {
           ? this.props.gasFeeEstimates[selected]
           : this.props.gasFeeEstimates.gasPrice;
 
-      const LegacyGasData = this.parseTransactionDataLegacy(
-        {
+      const legacyGasTransaction = getLegacyTransactionData({
+        ...this.props,
+        transactionState: this.props.transaction,
+        gas: {
           suggestedGasPrice: getGas(gasSelected),
           suggestedGasLimit,
         },
-        { onlyGas: true },
-      );
+      });
 
       handleGasFeeSelection(
-        hexToBN(LegacyGasData.suggestedGasLimitHex),
-        hexToBN(LegacyGasData.suggestedGasPriceHex),
+        hexToBN(legacyGasTransaction.suggestedGasLimitHex),
+        hexToBN(legacyGasTransaction.suggestedGasPriceHex),
         setTransactionObject,
       );
-
-      let LegacyGasDataTemp;
-      if (gasSelected === gasSelectedTemp) {
-        LegacyGasDataTemp = LegacyGasData;
-      } else {
-        LegacyGasDataTemp = this.parseTransactionDataLegacy({
-          suggestedGasPrice: getGas(gasSelectedTemp),
-          suggestedGasLimit,
-        });
-      }
-
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
           ready: true,
-          LegacyGasData,
-          LegacyGasDataTemp,
+          stopUpdateGas: false,
           advancedGasInserted: Boolean(dappSuggestedGasPrice),
           gasSelected: dappSuggestedGasPrice ? null : gasSelected,
           gasSelectedTemp,
@@ -301,25 +258,6 @@ class TransactionEditor extends PureComponent {
     }
   };
 
-  parseTransactionDataLegacy = (gasFee, options) => {
-    const { ticker } = this.props;
-
-    const parsedTransactionLegacy = parseTransactionLegacy(
-      {
-        ...this.props,
-        nativeCurrency: ticker,
-        selectedGasFee: gasFee,
-      },
-      { onlyGas: true },
-    );
-
-    parsedTransactionLegacy.error = this.validateTotal(
-      parsedTransactionLegacy.totalHex,
-    );
-
-    return parsedTransactionLegacy;
-  };
-
   componentDidUpdate = (prevProps) => {
     const { transaction } = this.props;
     if (transaction.data !== prevProps.transaction.data) {
@@ -362,10 +300,10 @@ class TransactionEditor extends PureComponent {
    */
   onConfirm = async () => {
     const { onConfirm, gasEstimateType } = this.props;
-    const { gasSelected, EIP1559GasTransaction } = this.state;
+    const { gasSelected, eip1559GasTransaction } = this.state;
     !(await this.validate()) &&
       onConfirm &&
-      onConfirm({ gasEstimateType, EIP1559GasTransaction, gasSelected });
+      onConfirm({ gasEstimateType, eip1559GasTransaction, gasSelected });
   };
 
   /**
@@ -566,8 +504,8 @@ class TransactionEditor extends PureComponent {
     } = this.props;
 
     const totalError = this.validateTotal(
-      this.state.EIP1559GasTransaction.totalMaxHex ||
-        this.state.LegacyGasData.totalHex,
+      this.state.eip1559GasTransaction.totalMaxHex ||
+        this.state.legacyGasTransaction.totalHex,
     );
     const amountError = await validateAmount(
       assetType,
@@ -592,38 +530,51 @@ class TransactionEditor extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (gas, selected) => {
-    const { transaction } = this.props;
-    if (selected && gas) {
-      gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-    }
+  calculateTempGasFeeLegacy = (selected) => {
     this.setState({
-      LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
   };
 
-  saveGasEdition = (EIP1559GasTransaction, EIP1559GasObject) => {
+  saveGasEdition = (eip1559GasTransaction, eip1559GasObject) => {
+    this.setState(
+      {
+        stopUpdateGas: false,
+        dappSuggestedGasPrice: null,
+        dappSuggestedEIP1559Gas: null,
+        eip1559GasTransaction,
+        eip1559GasObject,
+      },
+      this.review,
+    );
+  };
+
+  saveGasEditionLegacy = (
+    legacyGasTransaction,
+    legacyGasObject,
+    gasSelected,
+  ) => {
     const { gasEstimateType, setTransactionObject } = this.props;
-    const { LegacyGasDataTemp } = this.state;
 
     if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
       handleGasFeeSelection(
-        hexToBN(LegacyGasDataTemp.suggestedGasLimitHex),
-        hexToBN(LegacyGasDataTemp.suggestedGasPriceHex),
+        hexToBN(legacyGasTransaction.suggestedGasLimitHex),
+        hexToBN(legacyGasTransaction.suggestedGasPriceHex),
         setTransactionObject,
       );
     }
 
     this.setState(
       {
-        LegacyGasData: { ...this.state.LegacyGasDataTemp },
         stopUpdateGas: false,
+        gasSelected,
+        gasSelectedTemp: gasSelected,
+        advancedGasInserted: !gasSelected,
         dappSuggestedGasPrice: null,
         dappSuggestedEIP1559Gas: null,
-        EIP1559GasTransaction,
-        EIP1559GasObject,
+        legacyGasTransaction,
+        legacyGasObject,
       },
       this.review,
     );
@@ -631,7 +582,6 @@ class TransactionEditor extends PureComponent {
 
   cancelGasEdition = () => {
     this.setState({
-      LegacyGasDataTemp: { ...this.state.LegacyGasData },
       stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
     });
@@ -667,7 +617,7 @@ class TransactionEditor extends PureComponent {
 
   updateTransactionState = (gas) => {
     this.setState({
-      EIP1559GasTransaction: gas,
+      eip1559GasTransaction: gas,
       legacyGasTransaction: gas,
     });
   };
@@ -688,26 +638,32 @@ class TransactionEditor extends PureComponent {
     const {
       ready,
       over,
-      LegacyGasDataTemp,
       gasSelected,
       dappSuggestedGasPrice,
       dappSuggestedEIP1559Gas,
       animateOnChange,
       isAnimating,
-      EIP1559GasObject,
-      EIP1559GasTransaction,
+      eip1559GasObject,
+      eip1559GasTransaction,
+      legacyGasObject,
+      legacyGasTransaction,
     } = this.state;
 
     const selectedGasObject = {
       suggestedMaxFeePerGas:
-        EIP1559GasObject.suggestedMaxFeePerGas ||
+        eip1559GasObject.suggestedMaxFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas:
-        EIP1559GasObject.suggestedMaxPriorityFeePerGas ||
+        eip1559GasObject.suggestedMaxPriorityFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
       suggestedGasLimit:
-        EIP1559GasObject.suggestedGasLimit ||
-        EIP1559GasTransaction.suggestedGasLimit,
+        eip1559GasObject.suggestedGasLimit ||
+        eip1559GasTransaction.suggestedGasLimit,
+    };
+
+    const selectedLegacyGasObject = {
+      legacyGasLimit: legacyGasObject?.legacyGasLimit,
+      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
     };
 
     return (
@@ -738,11 +694,18 @@ class TransactionEditor extends PureComponent {
                   Boolean(dappSuggestedGasPrice) ||
                   Boolean(dappSuggestedEIP1559Gas)
                 }
-                gasObject={EIP1559GasObject}
+                gasObject={
+                  gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
+                    ? eip1559GasObject
+                    : legacyGasObject
+                }
+                dappSuggestedGasPrice={dappSuggestedGasPrice}
+                dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
                 dappSuggestedGasWarning={
                   Boolean(dappSuggestedGasPrice) &&
                   gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
                 }
+                eip1559GasTransaction={eip1559GasTransaction}
                 updateTransactionState={this.updateTransactionState}
               />
               {/** View fixes layout issue after removing <CustomGas/> */}
@@ -767,7 +730,7 @@ class TransactionEditor extends PureComponent {
                 Boolean(dappSuggestedEIP1559Gas)
               }
               warning={this.renderWarning()}
-              error={EIP1559GasTransaction.error}
+              error={eip1559GasTransaction.error}
               over={over}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
@@ -784,18 +747,14 @@ class TransactionEditor extends PureComponent {
           ) : (
             <EditGasFeeLegacy
               selected={gasSelected}
-              gasFee={LegacyGasDataTemp}
               gasEstimateType={gasEstimateType}
               gasOptions={gasFeeEstimates}
               onChange={this.calculateTempGasFeeLegacy}
-              gasFeeNative={LegacyGasDataTemp.transactionFee}
-              gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
-              gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
               primaryCurrency={primaryCurrency}
               chainId={chainId}
               onCancel={this.cancelGasEdition}
-              onSave={this.saveGasEdition}
-              error={LegacyGasDataTemp.error}
+              onSave={this.saveGasEditionLegacy}
+              error={legacyGasTransaction.error}
               over={over}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
@@ -808,6 +767,7 @@ class TransactionEditor extends PureComponent {
                 gasEstimateType,
                 networkType,
               )}
+              selectedGasObject={selectedLegacyGasObject}
             />
           ))}
       </React.Fragment>
