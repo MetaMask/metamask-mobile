@@ -217,8 +217,8 @@ describe('Wallet Tests', () => {
     // Check that we are on the wallet screen
     // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
-    // Search for SAI
-    await ImportTokensView.typeInTokenName('DAI Stablecoin');
+    // Search for Uniswap -updated Nov 2022 because DAI has asset balance in support of token detection tests
+    await ImportTokensView.typeInTokenName('Uniswap');
     // Wait for results to load
     await TestHelpers.delay(2000);
 
@@ -230,10 +230,10 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
     await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
 
-    await WalletView.isTokenVisibleInWallet('0 DAI');
-    await WalletView.removeTokenFromWallet('0 DAI');
+    await WalletView.isTokenVisibleInWallet('0 UNI');
+    await WalletView.removeTokenFromWallet('0 UNI');
     await TestHelpers.delay(1500);
-    await WalletView.tokenIsNotVisibleInWallet('0 DAI');
+    await WalletView.tokenIsNotVisibleInWallet('0 UNI');
   });
 
   it('should add a custom token', async () => {
