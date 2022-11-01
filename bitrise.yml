@@ -25,6 +25,11 @@ workflows:
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
+            - command: setup:react-native-webrtc
+          title: Yarn Download WebRTC Bitcode
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
             - command: audit:ci
           title: Audit Dependencies
       - yarn@0:
@@ -43,6 +48,11 @@ workflows:
             - cache_local_deps: 'yes'
             - command: setup
           title: Yarn Setup
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: setup:react-native-webrtc
+          title: Yarn Download WebRTC Bitcode
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
