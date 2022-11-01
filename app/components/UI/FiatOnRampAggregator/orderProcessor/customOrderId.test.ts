@@ -1,6 +1,9 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { SDK } from '../sdk';
-import processCustomOrderId, { POLLING_FREQUENCY } from './customOrderId';
+import processCustomOrderId, {
+  MAX_ERROR_COUNT,
+  POLLING_FRECUENCY_IN_SECONDS,
+} from './customOrderId';
 
 describe('CustomOrderId processor', () => {
   afterEach(() => {
@@ -27,7 +30,7 @@ describe('CustomOrderId processor', () => {
       .mockImplementation(
         () =>
           lastTimeFetched +
-          Math.pow(POLLING_FREQUENCY / 1000, errorCount + 1) * 1000 -
+          Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000 -
           1,
       );
 
@@ -63,7 +66,7 @@ describe('CustomOrderId processor', () => {
 
     const now =
       lastTimeFetched +
-      Math.pow(POLLING_FREQUENCY / 1000, errorCount + 1) * 1000 +
+      Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000 +
       1;
 
     jest.spyOn(Date, 'now').mockImplementation(() => now);
@@ -195,7 +198,7 @@ describe('CustomOrderId processor', () => {
     ]);
   });
 
-  it('should expire custom order object when it reaches 6 errors', async () => {
+  it('should expire custom order object when it reaches MAX_ERROR_COUNT', async () => {
     jest.spyOn(SDK, 'orders').mockImplementation(
       () =>
         ({
@@ -205,9 +208,9 @@ describe('CustomOrderId processor', () => {
         } as any),
     );
 
-    const errorCount = 5;
+    const errorCount = MAX_ERROR_COUNT;
 
-    const now = Math.pow(POLLING_FREQUENCY / 1000, errorCount + 1) * 1000;
+    const now = Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000;
 
     jest.spyOn(Date, 'now').mockImplementation(() => now);
 

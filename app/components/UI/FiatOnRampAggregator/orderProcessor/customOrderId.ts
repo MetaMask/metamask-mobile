@@ -4,6 +4,8 @@ import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import { SDK } from '../sdk';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
+export const POLLING_FRECUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;
+export const MAX_ERROR_COUNT = 5;
 
 export function createCustomOrderIdData(
   id: string,
@@ -32,7 +34,7 @@ export default async function processCustomOrderIdData(
   if (
     customOrderIdData.errorCount > 0 &&
     customOrderIdData.lastTimeFetched +
-      Math.pow(POLLING_FREQUENCY / 1000, customOrderIdData.errorCount + 1) *
+      Math.pow(POLLING_FRECUENCY_IN_SECONDS, customOrderIdData.errorCount + 1) *
         1000 >
       now
   ) {
@@ -51,7 +53,7 @@ export default async function processCustomOrderIdData(
        * last time fetched, unless it is the 6th error count, then
        * we expire the custom order id */
 
-      if (customOrderIdData.errorCount === 5) {
+      if (customOrderIdData.errorCount === MAX_ERROR_COUNT) {
         return [{ ...customOrderIdData, expired: true }, null];
       }
 
