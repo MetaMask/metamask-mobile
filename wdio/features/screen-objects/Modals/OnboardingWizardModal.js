@@ -1,5 +1,5 @@
   import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
-    ONBOARDING_WIZARD_BACK_BUTTON } from '../../testIDs/Components/OnboardingWizard.testIds';
+    ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID } from '../../testIDs/Components/OnboardingWizard.testIds';
 
   import Selectors from '../../helpers/Selectors';
   import Gestures from '../../helpers/Gestures';
@@ -12,7 +12,7 @@ class OnboardingWizardModal {
   }
 
   get onBoardingWizardBackButton() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_BACK_BUTTON);
+    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID);
   }
 
   async isVisible(){
