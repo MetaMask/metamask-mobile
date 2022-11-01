@@ -73,7 +73,7 @@ const VERBOSE_SDK = isDevelopment;
 const ACTIVATION_KEYS = process.env.ONRAMP_ACTIVATION_KEYS?.split(',') || [];
 
 export const SDK = OnRampSdk.create(
-  isDevelopment ? Environment.Staging : Environment.Staging,
+  isDevelopment ? Environment.Staging : Environment.Production,
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,
