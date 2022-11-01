@@ -64,6 +64,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
 } from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
 import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 
@@ -702,7 +703,15 @@ class ImportFromSeed extends PureComponent {
 
               <View style={styles.showMatchingPasswords}>
                 {password !== '' && password === confirmPassword ? (
-                  <Icon name="check" size={12} color={colors.success.default} />
+                  <Icon
+                    name="check"
+                    size={12}
+                    color={colors.success.default}
+                    {...generateTestId(
+                      Platform,
+                      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+                    )}
+                  />
                 ) : null}
               </View>
               <Text style={styles.passwordStrengthLabel}>
