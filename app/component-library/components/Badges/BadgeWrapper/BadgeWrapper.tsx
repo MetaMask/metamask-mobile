@@ -17,16 +17,19 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   style,
 }) => {
+  const badgeStyle = badgeProps.style;
   const { styles } = useStyles(styleSheet, {
     style,
+    badgeStyle,
   });
+
   return (
     <View style={styles.base}>
       <View>{children}</View>
       <Badge
-        style={styles.badge}
         testID={BADGE_WRAPPER_BADGE_TEST_ID}
         {...badgeProps}
+        style={styles.badge}
       />
     </View>
   );

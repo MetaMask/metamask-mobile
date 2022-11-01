@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { ViewProps } from 'react-native';
+import { StyleProp, ViewProps, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { BadgeProps } from '../Badge/Badge.types';
@@ -22,4 +22,7 @@ export interface BadgeWrapperProps extends ViewProps {
 /**
  * Style sheet input parameters.
  */
-export type BadgeWrapperStyleSheetVars = Pick<BadgeWrapperProps, 'style'>;
+export interface BadgeWrapperStyleSheetVars
+  extends Pick<BadgeWrapperProps, 'style'> {
+  badgeStyle: StyleProp<ViewStyle>;
+}

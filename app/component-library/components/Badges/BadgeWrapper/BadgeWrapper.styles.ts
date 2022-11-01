@@ -20,16 +20,17 @@ const styleSheet = (params: {
   vars: BadgeWrapperStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style } = vars;
+  const { style, badgeStyle } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
-      { alignSelf: 'flex-start', position: 'relative' } as ViewStyle,
+      { alignSelf: 'flex-start' } as ViewStyle,
       style,
     ) as ViewStyle,
-    badge: {
-      position: 'absolute',
-    },
+    badge: Object.assign(
+      { position: 'absolute' } as ViewStyle,
+      badgeStyle,
+    ) as ViewStyle,
   });
 };
 

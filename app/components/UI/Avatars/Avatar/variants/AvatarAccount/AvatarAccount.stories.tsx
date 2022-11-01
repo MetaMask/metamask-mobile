@@ -11,6 +11,7 @@ import {
 import { storybookPropsGroupID } from '../../../../../../component-library/constants/storybook.constants';
 import { BadgeVariants } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
 import { IconName } from '../../../../../../component-library/components/Icon';
+import { AvatarBadgePositions } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarAccount from './AvatarAccount';
@@ -38,6 +39,12 @@ export const getAvatarAccountStoryProps = (): AvatarAccountProps => ({
       name: IconName.AddOutline,
     },
   },
+  badgePosition: select(
+    'badgePosition',
+    AvatarBadgePositions,
+    AvatarBadgePositions.TopRight,
+    storybookPropsGroupID,
+  ),
 });
 const AvatarAccountStory = () => (
   <AvatarAccount {...getAvatarAccountStoryProps()} />
