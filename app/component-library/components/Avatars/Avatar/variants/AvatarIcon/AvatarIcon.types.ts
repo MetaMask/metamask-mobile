@@ -14,3 +14,8 @@ export type AvatarIconProps = AvatarBaseProps &
      */
     variant?: AvatarVariants.Icon;
   };
+
+/**
+ * Style sheet input parameters.
+ */
+export type AvatarIconStyleSheetVars = Pick<AvatarIconProps, 'style'>;

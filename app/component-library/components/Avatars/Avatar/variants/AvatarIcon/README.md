@@ -4,7 +4,15 @@ AvatarIcon is a component that renders an icon contained within an avatar.
 
 ## Props
 
-This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
+This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts) from the [AvatarBase](../../foundation/AvatarBase/AvatarBase.tsx) component and the [IconProps](../../../../Icon/Icon.types.ts) from the [Icon](../../../../Icon/Icon.tsx) component, with the exception of [IconSizes](../../../../Icon/Icon.types.ts), which is determined by the [AvatarSizes](../../Avatar.types.ts). The mapping for the [AvatarSizes](../../Avatar.types.ts) to the [IconSizes](../../../../Icon/Icon.types.ts) can be found at [AvatarIcon.constants](./AvatarIcon.constants.ts).
+
+### `size`
+
+Optional enum to select between size variants.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
 ### `name`
 
@@ -12,26 +20,19 @@ Name of icon to use.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icon/Icon.types.ts#L53)               | Yes                                                     |
+| [IconName](../../../../Icon/Icon.types.ts)               | Yes                                                     |
+
+### `color`
+
+Color to apply to the icon. Defaults to `icon.default` from theme.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | No                                                      |
 
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarIcon, {
-  AvatarIcon,
-} from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSizes } from 'app/component-library/components/Avatars/Avatar/Avatar';
-import { IconName } from 'app/component-library/components/Icon';
-
 <AvatarIcon size={AvatarSizes.Md} name={IconName.BankFilled} />;
 ```
-const BADGE_PROPS = {
-  variant: BadgeVariants.Avatar,
-  avatarProps: {
-    variant: AvatarVariants.Icon,
-    name: IconName.BankedFilled
-  }
-}
-
 

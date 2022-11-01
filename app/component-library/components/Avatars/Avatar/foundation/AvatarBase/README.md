@@ -1,6 +1,6 @@
 # AvatarBase
 
-The AvatarBase is a **wrapper** component responsible for enforcing dimensions and border radius for AvatarBase components.
+The AvatarBase component is a base component of the [Avatar](../../Avatar.tsx). It contains all the shared configurations and styling amongst all Avatar variants and should not be used unless creating a new type of Avatar.
 
 ## Props
 
@@ -12,17 +12,13 @@ Optional enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarSizes](../../Avatar.types.ts#L10)          | Yes                                                     | Md                                                     |
+| [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import AvatarBase from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import { AvatarSizes } from 'app/component-library/components/Avatars/Avatar/Avatar';
-
 <AvatarBase 
   size={AvatarSizes.Md}>
-    <SampleImageComponent />
+    <SAMPLE_COMPONENT />
 </AvatarBase>;
 ```

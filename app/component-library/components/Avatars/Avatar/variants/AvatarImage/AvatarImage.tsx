@@ -30,16 +30,12 @@ const AvatarImage = ({
       style={styles.image}
       resizeMode={'contain'}
       testID={AVATAR_IMAGE_IMAGE_TEST_ID}
+      {...props}
     />
   );
 
   return (
-    <AvatarBase
-      size={size}
-      style={styles.base}
-      testID={AVATAR_IMAGE_TEST_ID}
-      {...props}
-    >
+    <AvatarBase size={size} style={styles.base} testID={AVATAR_IMAGE_TEST_ID}>
       {isHaloEnabled ? (
         <ImageBackground
           blurRadius={20}

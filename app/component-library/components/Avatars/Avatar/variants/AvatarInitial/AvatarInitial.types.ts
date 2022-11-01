@@ -12,7 +12,7 @@ export type AvatarInitialProps = AvatarBaseProps & {
    */
   variant?: AvatarVariants.Initial;
   /**
-   * An Ethereum wallet address.
+   * An initial to be displayed in the Avatar.
    */
   initial: string;
 };
