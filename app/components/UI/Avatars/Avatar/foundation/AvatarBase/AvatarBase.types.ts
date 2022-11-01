@@ -1,13 +1,8 @@
 // External dependencies
-import { AvatarVariants } from '../../Avatar.types';
-import { AvatarBaseProps as MorphAvatarBaseProps } from '../../../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
+import { AvatarBaseBaseProps } from './foundation/AvatarBaseBase';
+import { AvatarBaseWithBadgeProps } from './variants/AvatarBaseWithBadge';
 
 /**
  * AvatarBase component props.
  */
-export interface AvatarBaseProps extends Omit<MorphAvatarBaseProps, 'variant'> {
-  /**
-   * Variant of Avatar
-   */
-  variant?: AvatarVariants;
-}
+export type AvatarBaseProps = AvatarBaseBaseProps | AvatarBaseWithBadgeProps;

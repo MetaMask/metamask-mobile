@@ -6,6 +6,8 @@ import { ImageSourcePropType } from 'react-native';
 import Avatar, {
   AvatarVariants,
 } from '../../../../../../component-library/components/Avatars/Avatar';
+import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
+import AvatarBase from '../../foundation/AvatarBase/AvatarBase';
 
 // Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';
@@ -14,6 +16,7 @@ const AvatarToken = ({
   name,
   imageSource,
   isHaloEnabled = false,
+  size = DEFAULT_AVATAR_SIZE,
   ...props
 }: AvatarTokenProps) => {
   const [showFallback, setShowFallback] = useState(!imageSource);
@@ -23,11 +26,11 @@ const AvatarToken = ({
   const onError = () => setShowFallback(true);
 
   return (
-    <>
+    <AvatarBase size={size} {...props}>
       {showFallback ? (
         <Avatar
           initial={tokenNameFirstLetter}
-          {...props}
+          size={size}
           variant={AvatarVariants.Initial}
         />
       ) : (
@@ -35,11 +38,11 @@ const AvatarToken = ({
           source={imageSource as ImageSourcePropType}
           onError={onError}
           isHaloEnabled={isHaloEnabled}
-          {...props}
+          size={size}
           variant={AvatarVariants.Image}
         />
       )}
-    </>
+    </AvatarBase>
   );
 };
 

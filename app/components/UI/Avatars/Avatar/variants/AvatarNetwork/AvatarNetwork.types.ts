@@ -8,7 +8,7 @@ import { AvatarVariants } from '../../Avatar.types';
 /**
  * AvatarNetwork component props.
  */
-export interface AvatarNetworkProps extends AvatarBaseProps {
+export type AvatarNetworkProps = AvatarBaseProps & {
   /**
    * Variant of Avatar
    */
@@ -21,4 +21,4 @@ export interface AvatarNetworkProps extends AvatarBaseProps {
    * Optional network image from either a local or remote source.
    */
   imageSource?: ImageSourcePropType;
-}
+};

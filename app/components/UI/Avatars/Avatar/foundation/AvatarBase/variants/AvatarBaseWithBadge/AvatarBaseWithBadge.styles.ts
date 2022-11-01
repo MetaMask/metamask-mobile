@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../../../util/theme/models';
@@ -20,8 +20,7 @@ const styleSheet = (params: {
   vars: AvatarBaseWithBadgeStyleSheetVars;
 }) => {
   const {
-    theme,
-    vars: { style, size, badgePosition },
+    vars: { size, badgePosition },
   } = params;
   const sizeAsNum = Number(size);
   let badgePositions;
@@ -44,18 +43,6 @@ const styleSheet = (params: {
   }
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        height: sizeAsNum,
-        width: sizeAsNum,
-        borderRadius: sizeAsNum / 2,
-        overflow: 'hidden',
-        backgroundColor: theme.colors.background.default,
-        justifyContent: 'center',
-        alignItems: 'center',
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
     badge: {
       transform: [{ scale: 0.5 }],
       ...badgePositions,

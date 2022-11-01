@@ -27,6 +27,9 @@ const styleSheet = (params: {
       { alignSelf: 'flex-start', position: 'relative' } as ViewStyle,
       style,
     ) as ViewStyle,
+    badge: {
+      position: 'absolute',
+    },
   });
 };
 

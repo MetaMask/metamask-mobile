@@ -8,7 +8,7 @@ import { AvatarVariants } from '../../Avatar.types';
 /**
  * AvatarFavicon component props.
  */
-export interface AvatarFaviconProps extends AvatarBaseProps {
+export type AvatarFaviconProps = AvatarBaseProps & {
   /**
    * Variant of Avatar
    */
@@ -17,4 +17,4 @@ export interface AvatarFaviconProps extends AvatarBaseProps {
    * A favicon image from either a local or remote source.
    */
   imageSource: ImageSourcePropType;
-}
+};

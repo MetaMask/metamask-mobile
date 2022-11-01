@@ -23,7 +23,11 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   return (
     <View style={styles.base}>
       <View>{children}</View>
-      <Badge testID={BADGE_WRAPPER_BADGE_TEST_ID} {...badgeProps} />
+      <Badge
+        style={styles.badge}
+        testID={BADGE_WRAPPER_BADGE_TEST_ID}
+        {...badgeProps}
+      />
     </View>
   );
 };

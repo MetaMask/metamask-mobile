@@ -13,18 +13,18 @@ export enum AvatarAccountType {
 /**
  * AvatarAccount component props.
  */
-export interface AvatarAccountProps extends AvatarBaseProps {
-  /**
-   * An Ethereum wallet address.
-   */
-  accountAddress: string;
+export type AvatarAccountProps = AvatarBaseProps & {
   /**
    * Variant of Avatar
    */
   variant?: AvatarVariants.Account;
   /**
+   * An Ethereum wallet address.
+   */
+  accountAddress: string;
+  /**
    * Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
    * @default JazzIcon
    */
   type?: AvatarAccountType;
-}
+};

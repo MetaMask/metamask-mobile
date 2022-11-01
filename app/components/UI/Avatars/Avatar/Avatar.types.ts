@@ -15,6 +15,15 @@ export enum AvatarVariants {
   Network = 'Network',
   Token = 'Token',
 }
+
+/**
+ * Avatar Badge Position.
+ */
+export enum AvatarBadgePositions {
+  TopRight = 'TopRight',
+  BottomRight = 'BottomRight',
+}
+
 /**
  * Avatar component props.
  */
@@ -24,3 +33,5 @@ export type AvatarProps =
   | AvatarJazzIconProps
   | AvatarNetworkProps
   | AvatarTokenProps;
+
+export { AvatarSizes } from '../../../../component-library/components/Avatars/Avatar';

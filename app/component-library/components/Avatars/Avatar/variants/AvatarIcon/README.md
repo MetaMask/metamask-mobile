@@ -26,3 +26,12 @@ import { IconName } from 'app/component-library/components/Icon';
 
 <AvatarIcon size={AvatarSizes.Md} name={IconName.BankFilled} />;
 ```
+const BADGE_PROPS = {
+  variant: BadgeVariants.Avatar,
+  avatarProps: {
+    variant: AvatarVariants.Icon,
+    name: IconName.BankedFilled
+  }
+}
+
+

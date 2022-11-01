@@ -2,28 +2,27 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../../../hooks/useStyles';
 import {
-  DEFAULT_AVATAR_SIZE,
   DEFAULT_AVATAR_BADGE_POSITION,
+  DEFAULT_AVATAR_SIZE,
 } from '../../../../Avatar.constants';
-import BadgeWrapper from '../../../../../../Badges/BadgeWrapper';
+import BadgeWrapper from '../../../../../../../../component-library/components/Badges/BadgeWrapper';
+import AvatarBaseBase from '../../foundation/AvatarBaseBase';
 
 // Internal dependencies.
 import { AvatarBaseWithBadgeProps } from './AvatarBaseWithBadge.types';
 import styleSheet from './AvatarBaseWithBadge.styles';
-import { AVATAR_BASE_WITH_BADGE_TEST_ID } from './AvatarBaseWithBadge.constants';
 
 const AvatarBaseWithBadge: React.FC<AvatarBaseWithBadgeProps> = ({
   size = DEFAULT_AVATAR_SIZE,
-  includeBadge = false,
+  isBadgeIncluded = false,
   badgeProps,
   badgePosition = DEFAULT_AVATAR_BADGE_POSITION,
   style,
-  children,
+  ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     size,
@@ -31,16 +30,14 @@ const AvatarBaseWithBadge: React.FC<AvatarBaseWithBadgeProps> = ({
     style,
   });
   const renderAvatarBaseWithBadge = () => (
-    <View style={styles.base} testID={AVATAR_BASE_WITH_BADGE_TEST_ID}>
-      {children}
-    </View>
+    <AvatarBaseBase size={size} {...props} />
   );
   badgeProps.avatarProps.size = size;
   badgeProps.style = styles.badge;
 
   return (
     <>
-      {includeBadge && !!badgeProps ? (
+      {isBadgeIncluded && !!badgeProps ? (
         <BadgeWrapper badgeProps={badgeProps}>
           {renderAvatarBaseWithBadge()}
         </BadgeWrapper>

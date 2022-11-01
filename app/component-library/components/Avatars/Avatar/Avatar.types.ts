@@ -15,14 +15,6 @@ export enum AvatarSizes {
 }
 
 /**
- * Avatar Badge Position.
- */
-export enum AvatarBadgePositions {
-  TopRight = 'TopRight',
-  BottomRight = 'BottomRight',
-}
-
-/**
  * Avatar variants.
  */
 export enum AvatarVariants {

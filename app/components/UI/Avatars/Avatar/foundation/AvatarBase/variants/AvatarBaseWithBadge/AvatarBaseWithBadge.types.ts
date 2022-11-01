@@ -1,20 +1,20 @@
 // External dependencies
 import { AvatarBaseBaseProps } from '../../foundation/AvatarBaseBase';
-import { BadgeProps } from '../../../../../../Badges/Badge';
+import { BadgeProps } from '../../../../../../../../component-library/components/Badges/Badge';
 
 /**
  * AvatarBaseWithBadgeProps component props.
  */
-export interface AvatarBaseWithBadgeProps extends AvatarBaseBaseProps {
+export type AvatarBaseWithBadgeProps = AvatarBaseBaseProps & {
   /**
    * Boolean to select if badge should be included.
    */
-  includeBadge: true;
+  isBadgeIncluded: true;
   /**
    * Props for Badge
    */
   badgeProps: BadgeProps;
-}
+};
 
 /**
  * Style sheet input parameters.

@@ -10,6 +10,7 @@ import Avatar, {
   DEFAULT_AVATAR_SIZE,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../../../component-library/components/Icon';
+import AvatarBase from '../../foundation/AvatarBase/AvatarBase';
 
 // Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';
@@ -17,6 +18,7 @@ import { AvatarFaviconProps } from './AvatarFavicon.types';
 const AvatarFavicon = ({
   imageSource,
   size = DEFAULT_AVATAR_SIZE,
+  ...props
 }: AvatarFaviconProps) => {
   const [error, setError] = useState(undefined);
 
@@ -35,11 +37,14 @@ const AvatarFavicon = ({
   );
 
   const renderImage = () => (
-    <Avatar
-      variant={AvatarVariants.Image}
-      source={imageSource}
-      onError={onError}
-    />
+    <AvatarBase size={size} {...props}>
+      <Avatar
+        variant={AvatarVariants.Image}
+        size={size}
+        source={imageSource}
+        onError={onError}
+      />
+    </AvatarBase>
   );
 
   return <>{error ? renderError() : renderImage()}</>;

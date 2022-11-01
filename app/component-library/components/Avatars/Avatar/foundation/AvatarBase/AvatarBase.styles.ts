@@ -2,13 +2,13 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import { AvatarBaseBaseStyleSheetVars } from './AvatarBaseBase.types';
+import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
 
 /**
- * Style sheet function for AvatarBaseBase component.
+ * Style sheet function for AvatarBase component.
  *
  * @param params Style sheet params.
  * @param params.vars Inputs that the style sheet depends on.
@@ -16,7 +16,7 @@ import { AvatarBaseBaseStyleSheetVars } from './AvatarBaseBase.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: AvatarBaseBaseStyleSheetVars;
+  vars: AvatarBaseStyleSheetVars;
 }) => {
   const {
     theme,

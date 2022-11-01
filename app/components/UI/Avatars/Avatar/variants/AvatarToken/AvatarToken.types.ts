@@ -8,7 +8,7 @@ import { AvatarVariants } from '../../Avatar.types';
 /**
  * AvatarToken component props.
  */
-export interface AvatarTokenProps extends AvatarBaseProps {
+export type AvatarTokenProps = AvatarBaseProps & {
   /**
    * Variant of Avatar
    */
@@ -26,4 +26,4 @@ export interface AvatarTokenProps extends AvatarBaseProps {
    * @default false
    */
   isHaloEnabled?: boolean;
-}
+};

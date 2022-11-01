@@ -1,13 +1,16 @@
 // Third party dependencies.
 import React from 'react';
-import { text, select } from '@storybook/addon-knobs';
+import { text, select, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import {
   AvatarSizes,
+  AvatarVariants,
   DEFAULT_AVATAR_SIZE,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import { storybookPropsGroupID } from '../../../../../../component-library/constants/storybook.constants';
+import { BadgeVariants } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
+import { IconName } from '../../../../../../component-library/components/Icon';
 
 // Internal dependencies.
 import AvatarAccount from './AvatarAccount';
@@ -27,6 +30,14 @@ export const getAvatarAccountStoryProps = (): AvatarAccountProps => ({
     AvatarAccountType.JazzIcon,
     storybookPropsGroupID,
   ),
+  isBadgeIncluded: boolean('isBadgeIncluded', false, storybookPropsGroupID),
+  badgeProps: {
+    variant: BadgeVariants.Avatar,
+    avatarProps: {
+      variant: AvatarVariants.Icon,
+      name: IconName.AddOutline,
+    },
+  },
 });
 const AvatarAccountStory = () => (
   <AvatarAccount {...getAvatarAccountStoryProps()} />
