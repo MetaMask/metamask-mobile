@@ -18,7 +18,6 @@ import styleSheet from './AvatarBaseWithBadge.styles';
 
 const AvatarBaseWithBadge: React.FC<AvatarBaseWithBadgeProps> = ({
   size = DEFAULT_AVATAR_SIZE,
-  isBadgeIncluded = false,
   badgeProps,
   badgePosition = DEFAULT_AVATAR_BADGE_POSITION,
   style,
@@ -29,22 +28,13 @@ const AvatarBaseWithBadge: React.FC<AvatarBaseWithBadgeProps> = ({
     badgePosition,
     style,
   });
-  const renderAvatarBaseWithBadge = () => (
-    <AvatarBaseBase size={size} {...props} />
-  );
   badgeProps.avatarProps.size = size;
   badgeProps.style = styles.badge;
 
   return (
-    <>
-      {isBadgeIncluded && !!badgeProps ? (
-        <BadgeWrapper badgeProps={badgeProps}>
-          {renderAvatarBaseWithBadge()}
-        </BadgeWrapper>
-      ) : (
-        renderAvatarBaseWithBadge()
-      )}
-    </>
+    <BadgeWrapper badgeProps={badgeProps}>
+      <AvatarBaseBase size={size} {...props} />
+    </BadgeWrapper>
   );
 };
 
