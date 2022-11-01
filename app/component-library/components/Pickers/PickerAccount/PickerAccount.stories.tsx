@@ -6,7 +6,7 @@ import { Alert } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { AvatarAccountType } from '../../Avatars/AvatarAccount';
+import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
 
 // Internal dependencies.
 import PickerAccount from './PickerAccount';

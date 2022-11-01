@@ -3,11 +3,13 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../../components/Avatars/AvatarBase';
-import Text, { TextVariant } from '../../../components/Texts/Text';
+import Avatar, {
+  AvatarSize,
+  AvatarVariants,
+} from '../../../components/Avatars/Avatar';
+import Text, { TextVariants } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import Icon, { IconName, IconSize } from '../../../components/Icon';
-import AvatarToken from '../../../components/Avatars/AvatarToken';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -39,20 +41,21 @@ const ContractBoxBase = ({
   return (
     <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
       <View style={styles.rowContainer}>
-        <AvatarToken
-          size={AvatarBaseSize.Xl}
+        <Avatar
+          variant={AvatarVariants.Token}
+          size={AvatarSize.Xl}
           imageSource={contractLocalImage}
         />
         {contractPetName ? (
           <View>
-            <Text style={styles.header} variant={TextVariant.sHeadingMD}>
+            <Text style={styles.header} variant={TextVariants.sHeadingMD}>
               {contractPetName}
             </Text>
-            <Text variant={TextVariant.sBodyMD}>{formattedAddress}</Text>
+            <Text variant={TextVariants.sBodyMD}>{formattedAddress}</Text>
           </View>
         ) : (
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
-            <Text style={styles.header} variant={TextVariant.sHeadingMD}>
+            <Text style={styles.header} variant={TextVariants.sHeadingMD}>
               {formattedAddress}
             </Text>
           </View>
