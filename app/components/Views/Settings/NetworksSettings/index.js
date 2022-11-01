@@ -399,6 +399,7 @@ class NetworksSettings extends PureComponent {
             strings('app_settings.cancel_remove_network'),
           ]}
           cancelButtonIndex={1}
+          testID={'remove'}
           destructiveButtonIndex={0}
           onPress={this.onActionSheetPress}
           theme={themeAppearance}

@@ -7,6 +7,7 @@ import {
   TextInput,
   SafeAreaView,
   Linking,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../../../styles/common';
@@ -49,6 +50,7 @@ import {
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -744,6 +746,7 @@ class NetworkSettings extends PureComponent {
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToRpcURL}
               testID={INPUT_NETWORK_NAME}
+              {...generateTestId(Platform, INPUT_NETWORK_NAME)}
               keyboardAppearance={themeAppearance}
             />
             <Text style={styles.label}>
@@ -762,6 +765,7 @@ class NetworkSettings extends PureComponent {
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToChainId}
               testID={'input-rpc-url'}
+              {...generateTestId(Platform, 'input-rpc-url')}
               keyboardAppearance={themeAppearance}
             />
             {warningRpcUrl && (
@@ -787,6 +791,7 @@ class NetworkSettings extends PureComponent {
               onSubmitEditing={this.jumpToSymbol}
               keyboardType={'numbers-and-punctuation'}
               testID={'input-chain-id'}
+              {...generateTestId(Platform, 'input-chain-id')}
               keyboardAppearance={themeAppearance}
             />
             {warningChainId ? (
@@ -809,7 +814,8 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_symbol_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
-              testID={'input-network-symbol'}
+              //testID={'input-network-symbol'}
+              {...generateTestId(Platform, 'input-network-symbol')}
               keyboardAppearance={themeAppearance}
             />
 
@@ -827,6 +833,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings(
                 'app_settings.network_block_explorer_placeholder',
               )}
+              {...generateTestId(Platform, 'block-explorer')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.addRpcUrl}
               keyboardAppearance={themeAppearance}
@@ -866,6 +873,10 @@ class NetworkSettings extends PureComponent {
                     type="confirm"
                     onPress={this.addRpcUrl}
                     testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
+                    {...generateTestId(
+                      Platform,
+                      ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
+                    )}
                     containerStyle={styles.syncConfirm}
                     disabled={
                       !enableAction ||

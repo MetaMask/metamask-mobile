@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
@@ -15,6 +15,7 @@ import {
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
 import { util as controllerUtils } from '@metamask/controllers';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: {
   background: { default: string };

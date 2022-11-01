@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
+  Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';

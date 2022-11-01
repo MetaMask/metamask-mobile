@@ -13,6 +13,7 @@ import {
   Image,
   Keyboard,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -30,6 +31,7 @@ import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -979,6 +981,7 @@ export function getWalletNavbarOptions(
         onPress={openDrawer}
         style={styles.backButton}
         testID={'hamburger-menu-button-wallet'}
+        {...generateTestId(Platform, 'hamburger-menu-button-wallet')}
       >
         <IonicIcon
           name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}

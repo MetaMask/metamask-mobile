@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, Platform } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
@@ -14,6 +14,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const styles = StyleSheet.create({
   main: {
@@ -114,7 +115,7 @@ const Step4 = (props) => {
           <TouchableWithoutFeedback
             style={styles.hamburger}
             onPress={onNext}
-            testID={'hamburger-menu-button-wallet-fake'}
+            {...generateTestId(Platform, 'hamburger-menu-button-wallet-fake')}
           >
             <View style={styles.hamburger} />
           </TouchableWithoutFeedback>

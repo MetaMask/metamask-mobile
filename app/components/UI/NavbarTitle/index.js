@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Platform } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
@@ -132,6 +132,7 @@ class NavbarTitle extends PureComponent {
             numberOfLines={1}
             style={styles.networkName}
             testID={'navbar-title-network'}
+            accessibilityLabel={'navbar-title-network'}
           >
             {name}
           </Text>

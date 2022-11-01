@@ -1,6 +1,6 @@
 import Modal from 'react-native-modal';
 import React from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet, Linking, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -21,6 +21,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 import {
   APPROVE_NETWORK_DISPLAY_NAME_ID,
@@ -239,7 +240,10 @@ const NetworkModals = (props: NetworkProps) => {
                 message={strings('networks.provider')}
               />
             )}
-            <View style={styles.nameWrapper} testID={APPROVE_NETWORK_MODAL_ID}>
+            <View
+              style={styles.nameWrapper}
+              {...generateTestId(Platform, APPROVE_NETWORK_MODAL_ID)}
+            >
               <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
               <Text black>{nickname}</Text>
             </View>
