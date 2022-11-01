@@ -1,9 +1,5 @@
 /* eslint-disable react/display-name */
 import React from 'react';
-import NavbarTitle from '../NavbarTitle';
-import ModalNavbarTitle from '../ModalNavbarTitle';
-import AccountRightButton from '../AccountRightButton';
-import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import {
   Alert,
   Text,
@@ -14,34 +10,38 @@ import {
   Keyboard,
   InteractionManager,
 } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import URL from 'url-parse';
-import { strings } from '../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import NavbarTitle from '../NavbarTitle';
+import ModalNavbarTitle from '../ModalNavbarTitle';
+import AccountRightButton from '../AccountRightButton';
+import NavbarBrowserTitle from '../NavbarBrowserTitle';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
 
 const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
+    trackLegacyEvent(event);
   });
 };
 
 const trackEventWithParameters = (event, params) => {
   InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
+    trackLegacyEvent(event, params);
   });
 };
 
@@ -136,7 +136,7 @@ export default function getNavbarOptions(
   function onPress() {
     Keyboard.dismiss();
     drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
   }
 
   return {
@@ -511,7 +511,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
   });
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
-    trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
+    trackEventWithParameters(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,
     });
@@ -607,7 +607,7 @@ export function getBrowserViewNavbarOptions(
   function onPress() {
     Keyboard.dismiss();
     drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
   }
 
   return {
@@ -962,14 +962,14 @@ export function getWalletNavbarOptions(
 
   function openDrawer() {
     drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
   }
 
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
     });
-    trackEvent(ANALYTICS_EVENT_OPTS.WALLET_QR_SCANNER);
+    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
 
   return {
@@ -1380,13 +1380,10 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        });
       });
     }
     navigation.pop();
@@ -1398,13 +1395,10 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        });
       });
     }
     navigation.dangerouslyGetParent()?.pop();

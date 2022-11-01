@@ -9,13 +9,15 @@ import {
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
+import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
@@ -146,13 +148,10 @@ class BackupAlert extends PureComponent {
       screen: 'AccountBackupStep1',
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+        wallet_protection_required: false,
+        source: 'Backup Alert',
+      });
     });
   };
 
@@ -160,13 +159,10 @@ class BackupAlert extends PureComponent {
     const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
     backUpSeedphraseAlertNotVisible();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
+        wallet_protection_required: false,
+        source: 'Backup Alert',
+      });
     });
     if (onDismiss) onDismiss();
   };

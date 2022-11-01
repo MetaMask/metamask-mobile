@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -34,7 +35,7 @@ import {
 
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
 
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -287,9 +288,7 @@ class ManualBackupStep1 extends PureComponent {
   revealSeedPhrase = () => {
     this.setState({ seedPhraseHidden: false });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_REVEALED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
     });
   };
 

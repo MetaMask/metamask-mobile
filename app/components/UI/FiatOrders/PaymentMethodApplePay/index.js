@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
 import { setLockTime } from '../../../../actions/settings';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent } from '../../../../util/analyticsV2';
 import { fastSplit } from '../../../../util/number';
 
 import {
@@ -343,26 +344,23 @@ function PaymentMethodApplePay({
             NotificationManager.showSimpleNotification(
               getNotificationDetails(order),
             );
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
-              {
-                fiat_amount: { value: order.amount, anonymous: true },
-                fiat_currency: { value: order.currency, anonymous: true },
-                crypto_currency: {
-                  value: order.cryptocurrency,
-                  anonymous: true,
-                },
-                crypto_amount: { value: order.cryptoAmount, anonymous: true },
-                fee_in_fiat: { value: order.fee, anonymous: true },
-                fee_in_crypto: { value: order.cryptoFee, anonymous: true },
-                //TODO(on-ramp): {value: fiat_amount_in_usd: '' anonymous: true},
-                order_id: { value: order.id, anonymous: true },
-                'on-ramp_provider': {
-                  value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-                  anonymous: true,
-                },
+            trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_SUBMITTED_LEGACY, {
+              fiat_amount: { value: order.amount, anonymous: true },
+              fiat_currency: { value: order.currency, anonymous: true },
+              crypto_currency: {
+                value: order.cryptocurrency,
+                anonymous: true,
               },
-            );
+              crypto_amount: { value: order.cryptoAmount, anonymous: true },
+              fee_in_fiat: { value: order.fee, anonymous: true },
+              fee_in_crypto: { value: order.cryptoFee, anonymous: true },
+              //TODO(on-ramp): {value: fiat_amount_in_usd: '' anonymous: true},
+              order_id: { value: order.id, anonymous: true },
+              'on-ramp_provider': {
+                value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+                anonymous: true,
+              },
+            });
           });
         } else {
           Logger.error(
@@ -384,16 +382,13 @@ function PaymentMethodApplePay({
       });
       Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMISSION_FAILED,
-          {
-            'on-ramp_provider': {
-              value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-              anonymous: true,
-            },
-            failure_reason: { value: error.message, anonymous: true },
+        trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_SUBMISSION_FAILED, {
+          'on-ramp_provider': {
+            value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+            anonymous: true,
           },
-        );
+          failure_reason: { value: error.message, anonymous: true },
+        });
       });
     } finally {
       setLockTime(prevLockTime);
@@ -443,19 +438,16 @@ function PaymentMethodApplePay({
         navigation,
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED,
-              {
-                payment_rails: PAYMENT_RAILS.APPLE_PAY,
-                payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
-                'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-              },
-            );
+            trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_EXITED, {
+              payment_rails: PAYMENT_RAILS.APPLE_PAY,
+              payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+              'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+            });
           });
         },
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+            trackEvent(MetaMetricsEvents.ONRAMP_CLOSED);
           });
         },
         colors,

@@ -5,19 +5,20 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
+import BigNumber from 'bignumber.js';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
-import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
@@ -121,8 +122,8 @@ const EditGasFee1559Update = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED,
+      trackEvent(
+        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
@@ -141,10 +142,7 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,

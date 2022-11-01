@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { KeyringTypes } from '@metamask/controllers';
-import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import {
   Alert,
@@ -13,18 +12,18 @@ import {
   View,
   SafeAreaView,
 } from 'react-native';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { connect } from 'react-redux';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { strings } from '../../../../locales/i18n';
-import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
-import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
-import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
@@ -196,12 +195,9 @@ class AccountList extends PureComponent {
       InteractionManager.runAfterInteractions(() => {
         setTimeout(() => {
           // Track Event: "Switched Account"
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.SWITCHED_ACCOUNT,
-            {
-              number_of_accounts: Object.keys(accounts ?? {}).length,
-            },
-          );
+          trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+            number_of_accounts: Object.keys(accounts ?? {}).length,
+          });
         }, 1000);
       });
       const orderedAccounts = this.getAccounts();
@@ -212,15 +208,13 @@ class AccountList extends PureComponent {
   importAccount = () => {
     this.props.onImportAccount();
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+      trackLegacyEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
     });
   };
 
   connectHardware = () => {
     this.props.onConnectHardware();
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
-    );
+    trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
   };
 
   addAccount = async () => {
@@ -250,7 +244,7 @@ class AccountList extends PureComponent {
       }
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+      trackLegacyEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
     });
   };
 

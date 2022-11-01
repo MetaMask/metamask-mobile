@@ -8,6 +8,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -29,7 +30,7 @@ import {
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -179,7 +180,7 @@ const AssetDetails = (props: Props) => {
                 tokenSymbol: symbol,
               }),
             });
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
+            trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
               location: 'token_details',
               token_standard: 'ERC20',
               asset_type: 'token',

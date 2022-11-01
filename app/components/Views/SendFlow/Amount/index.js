@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import { fontStyles } from '../../../../styles/common';
 import {
   StyleSheet,
   Text,
@@ -12,6 +11,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { BN } from 'ethereumjs-util';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Modal from 'react-native-modal';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { fontStyles } from '../../../../styles/common';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   setSelectedAsset,
   prepareTransaction,
@@ -19,10 +26,7 @@ import {
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
-import PropTypes from 'prop-types';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Modal from 'react-native-modal';
+
 import TokenImage from '../../../UI/TokenImage';
 import {
   renderFromTokenMinimalUnit,
@@ -48,17 +52,14 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
+import { trackLegacyEvent } from '../../../../util/analyticsV2';
+import ErrorMessage from '../ErrorMessage';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-import { BN } from 'ethereumjs-util';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
@@ -572,10 +573,9 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT,
-        { network: providerType },
-      );
+      trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
+        network: providerType,
+      });
     });
 
     setSelectedAsset(selectedAsset);

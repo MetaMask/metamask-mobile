@@ -30,6 +30,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { MetaMetricsEvents } from '../core/Analytics';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -45,7 +46,7 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
-import AnalyticsV2 from '../util/analyticsV2';
+import { trackEvent } from '../util/analyticsV2';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -253,16 +254,13 @@ class Engine {
             ),
           addDetectedTokens: (tokens) => {
             // Track detected tokens event
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.TOKEN_DETECTED,
-              {
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                chain_id: getDecimalChainId(
-                  networkController.state.provider.chainId,
-                ),
-              },
-            );
+            trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              chain_id: getDecimalChainId(
+                networkController.state.provider.chainId,
+              ),
+            });
             tokensController.addDetectedTokens(tokens);
           },
           getTokensState: () => tokensController.state,

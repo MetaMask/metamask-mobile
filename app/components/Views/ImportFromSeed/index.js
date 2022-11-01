@@ -12,10 +12,15 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
+import zxcvbn from 'zxcvbn';
+import { OutlinedTextField } from 'react-native-material-textfield';
+import DefaultPreference from 'react-native-default-preference';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Clipboard from '@react-native-clipboard/clipboard';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
@@ -26,7 +31,6 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
-import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
 import {
@@ -35,7 +39,6 @@ import {
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
-import { OutlinedTextField } from 'react-native-material-textfield';
 import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -51,9 +54,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
-import Clipboard from '@react-native-clipboard/clipboard';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -294,9 +295,7 @@ class ImportFromSeed extends PureComponent {
 
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_ATTEMPTED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     });
     let error = null;
     if (!passwordRequirementsMet(password)) {
@@ -314,13 +313,10 @@ class ImportFromSeed extends PureComponent {
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
-          {
-            wallet_setup_type: 'import',
-            error_type: error,
-          },
-        );
+        trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: error,
+        });
       });
     } else {
       try {
@@ -355,16 +351,13 @@ class ImportFromSeed extends PureComponent {
         this.props.seedphraseBackedUp();
         this.props.logIn();
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
+          trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(this.state.biometryType),
           });
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED,
-            {
-              wallet_setup_type: 'import',
-              new_wallet: false,
-            },
-          );
+          trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+            wallet_setup_type: 'import',
+            new_wallet: false,
+          });
         });
         if (onboardingWizard) {
           this.props.navigation.replace('ManualBackupStep3');
@@ -386,13 +379,10 @@ class ImportFromSeed extends PureComponent {
           Logger.log('Error with seed phrase import', error);
         }
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
-            {
-              wallet_setup_type: 'import',
-              error_type: error.toString(),
-            },
-          );
+          trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+            wallet_setup_type: 'import',
+            error_type: error.toString(),
+          });
         });
       }
     }

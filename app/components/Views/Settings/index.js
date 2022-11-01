@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, ScrollView, InteractionManager } from 'react-native';
+import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -58,21 +58,21 @@ class Settings extends PureComponent {
 
   onPressGeneral = () => {
     InteractionManager.runAfterInteractions(() =>
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_GENERAL),
+      trackLegacyEvent(MetaMetricsEvents.SETTINGS_GENERAL),
     );
     this.props.navigation.navigate('GeneralSettings');
   };
 
   onPressAdvanced = () => {
     InteractionManager.runAfterInteractions(() =>
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ADVANCED),
+      trackLegacyEvent(MetaMetricsEvents.SETTINGS_ADVANCED),
     );
     this.props.navigation.navigate('AdvancedSettings');
   };
 
   onPressSecurity = () => {
     InteractionManager.runAfterInteractions(() =>
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_SECURITY_AND_PRIVACY),
+      trackLegacyEvent(MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY),
     );
     this.props.navigation.navigate('SecuritySettings');
   };
@@ -83,14 +83,14 @@ class Settings extends PureComponent {
 
   onPressExperimental = () => {
     InteractionManager.runAfterInteractions(() =>
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_EXPERIMENTAL),
+      trackLegacyEvent(MetaMetricsEvents.SETTINGS_EXPERIMENTAL),
     );
     this.props.navigation.navigate('ExperimentalSettings');
   };
 
   onPressInfo = () => {
     InteractionManager.runAfterInteractions(() =>
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ABOUT),
+      trackLegacyEvent(MetaMetricsEvents.SETTINGS_ABOUT),
     );
     this.props.navigation.navigate('CompanySettings');
   };

@@ -2,14 +2,17 @@ import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../../core/Analytics';
 import { colors as importedColors } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import Device from '../../../../util/device';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
+import { trackEvent } from '../../../../util/analyticsV2';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
@@ -75,13 +78,10 @@ const Step5 = (props) => {
       navigation.navigate(Routes.BROWSER_TAB_HOME, {
         screen: Routes.BROWSER_VIEW,
       });
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED,
-      {
-        tutorial_step_count: 5,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
-      },
-    );
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+      tutorial_step_count: 5,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
+    });
   };
 
   /**
@@ -94,13 +94,10 @@ const Step5 = (props) => {
     setTimeout(() => {
       setOnboardingWizardStep && setOnboardingWizardStep(4);
     }, 1);
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED,
-      {
-        tutorial_step_count: 5,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
-      },
-    );
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+      tutorial_step_count: 5,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
+    });
   };
 
   /**

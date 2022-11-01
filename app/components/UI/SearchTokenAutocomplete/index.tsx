@@ -11,7 +11,8 @@ import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackEvent } from '../../../util/analyticsV2';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
@@ -115,10 +116,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     const { TokensController } = Engine.context as any;
     await TokensController.addToken(address, symbol, decimals, image);
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
     // Clear state before closing
     setSearchResults([]);

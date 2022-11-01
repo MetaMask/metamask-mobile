@@ -1,8 +1,9 @@
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { InteractionManager } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent as trackEventV2 } from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
@@ -59,22 +60,13 @@ export const getAnalyticsPayload = (fiatOrder) => {
   };
   switch (fiatOrder.state) {
     case FIAT_ORDER_STATES.FAILED: {
-      return [
-        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_FAILED_LEGACY,
-        payload,
-      ];
+      return [MetaMetricsEvents.ONRAMP_PURCHASE_FAILED_LEGACY, payload];
     }
     case FIAT_ORDER_STATES.CANCELLED: {
-      return [
-        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_CANCELLED_LEGACY,
-        payload,
-      ];
+      return [MetaMetricsEvents.ONRAMP_PURCHASE_CANCELLED_LEGACY, payload];
     }
     case FIAT_ORDER_STATES.COMPLETED: {
-      return [
-        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_COMPLETED_LEGACY,
-        payload,
-      ];
+      return [MetaMetricsEvents.ONRAMP_PURCHASE_COMPLETED_LEGACY, payload];
     }
     case FIAT_ORDER_STATES.PENDING:
     default: {
@@ -194,7 +186,7 @@ export async function processFiatOrder(order, updateFiatOrder) {
         const [analyticsEvent, analyticsPayload] =
           getAnalyticsPayload(updatedOrder);
         if (analyticsEvent) {
-          AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
+          trackEventV2(analyticsEvent, analyticsPayload);
         }
       });
     }

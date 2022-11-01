@@ -9,6 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,7 +30,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { trackEvent } from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
@@ -483,10 +484,7 @@ class NetworkSettings extends PureComponent {
         block_explorer_url: blockExplorerUrl,
         network_name: nickname || RPC,
       };
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       this.props.showNetworkOnboardingAction({
         networkUrl,
         networkType,

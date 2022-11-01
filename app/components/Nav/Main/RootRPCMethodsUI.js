@@ -1,15 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
 import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { ethErrors } from 'eth-json-rpc-errors';
+import Modal from 'react-native-modal';
+import { BN } from 'ethereumjs-util';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { util } from '@metamask/controllers';
+import BigNumber from 'bignumber.js';
 
+import Engine from '../../../core/Engine';
+import {
+  trackEvent,
+  trackLegacyEvent,
+  trackLegacyAnonymousEvent,
+} from '../../../util/analyticsV2';
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
-import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei } from '../../../util/number';
 import {
@@ -18,7 +27,6 @@ import {
 } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
-import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
 import {
   getMethodData,
@@ -30,7 +38,6 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
@@ -43,16 +50,11 @@ import {
   toggleDappTransactionModal,
   toggleApproveModal,
 } from '../../../actions/modals';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
-import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
@@ -210,13 +212,13 @@ const RootRPCMethodsUI = (props) => {
             quote_vs_executionRatio: quoteVsExecutionRatio,
             token_to_amount_received: tokenToAmountReceived.toString(),
           };
-          Analytics.trackEventWithParameters(event, {});
-          Analytics.trackEventWithParameters(event, parameters, true);
+          trackLegacyEvent(event, {});
+          trackLegacyAnonymousEvent(event, parameters);
         });
       } catch (e) {
-        Logger.error(e, ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED);
+        Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED, {
+          trackLegacyEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
             error: e,
           });
         });
@@ -239,7 +241,7 @@ const RootRPCMethodsUI = (props) => {
               });
             } else {
               if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
+                trackSwaps(MetaMetricsEvents.SWAP_FAILED, transactionMeta);
               }
               throw transactionMeta.error;
             }
@@ -249,7 +251,7 @@ const RootRPCMethodsUI = (props) => {
           `${transactionMeta.id}:confirmed`,
           (transactionMeta) => {
             if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-              trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
+              trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
             }
           },
         );
@@ -264,9 +266,7 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
-          );
+          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
         }
       }
     },

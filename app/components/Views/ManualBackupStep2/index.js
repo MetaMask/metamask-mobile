@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
@@ -18,7 +19,7 @@ import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -287,9 +288,7 @@ class ManualBackupStep2 extends PureComponent {
       InteractionManager.runAfterInteractions(() => {
         const words = route.params?.words;
         navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_CONFIRMED,
-        );
+        trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED);
       });
     } else {
       Alert.alert(

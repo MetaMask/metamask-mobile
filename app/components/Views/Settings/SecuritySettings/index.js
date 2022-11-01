@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
@@ -36,7 +37,6 @@ import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -51,7 +51,8 @@ import {
 } from '../../../../constants/storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
-import AnalyticsV2, {
+import {
+  trackEvent,
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
@@ -371,9 +372,9 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SECURITY_SETTINGS);
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
-    const analyticsEnabled = Analytics.checkEnabled();
+    const analyticsEnabled = MetaMetrics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -552,44 +553,35 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: true,
-        },
-      );
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: true,
+      });
     });
   };
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      Analytics.enable();
+      MetaMetrics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      Analytics.disable();
+      MetaMetrics.disable();
       this.setState({ analyticsEnabled: false });
-      Alert.alert(
-        strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_restart_required'),
-      );
     }
   };
 
   goToRevealPrivateCredential = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_INITIATED);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CTA);
+    trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
+    trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'seed_phrase',
     });
   };
 
   goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_INITIATED,
-    );
+    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'private_key',
     });
@@ -602,12 +594,9 @@ class Settings extends PureComponent {
   goToBackup = () => {
     this.props.navigation.navigate('AccountBackupStep1B');
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED,
-        {
-          source: 'Settings',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
+        source: 'Settings',
+      });
     });
   };
 

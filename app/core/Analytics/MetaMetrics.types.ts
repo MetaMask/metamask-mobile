@@ -51,6 +51,12 @@ export interface IMetaMetrics {
   getDeleteRegulationDate(): string;
   // Method to get the state of the recorded data
   getIsDataRecorded(): boolean;
+  // Method to create a new method to suppress and
+  // delete user's data from Segment and all related
+  // destinations.
+  createSegmentDeleteRegulation(): void;
+  // TO DO: Add commentary
+  getMetaMetricsId(): string;
 }
 
 // Represents an MetaMetrics event
@@ -61,6 +67,15 @@ export interface IMetaMetricsEvent {
     name?: string;
     action?: string;
   };
+}
+
+// Interface to asign user properties
+export interface UserIdentityProperties {
+  'Enable OpenSea API'?: string;
+  'NFT AutoDetection'?: string;
+  Theme?: string;
+  'Authentication Type'?: string;
+  token_detection_enable?: string;
 }
 
 // Expected deletion task status

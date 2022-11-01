@@ -5,7 +5,6 @@ import axios from 'axios';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import { store } from '../../store';
 import { MIXPANEL_ENDPOINT_BASE_URL } from './MetaMetrics.constants';
 import {
@@ -21,6 +20,7 @@ import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
 } from './MetaMetrics.types';
+import { MetaMetricsEvents } from './MetaMetrics.events';
 
 const RCTAnalytics = NativeModules.Analytics;
 
@@ -129,7 +129,7 @@ class Analytics {
     { event, params = {}, value, info, anonymously = false },
   ) {
     const isAnalyticsPreferenceSelectedEvent =
-      ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+      MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
     this._setUserProfileProperties();
     if (!__DEV__) {

@@ -3,12 +3,13 @@ import { useSelector } from 'react-redux';
 import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
@@ -171,10 +172,7 @@ const AddCustomCollectible = ({
     const { CollectiblesController } = Engine.context as any;
     CollectiblesController.addCollectible(address, tokenId);
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
 
     navigation.goBack();
   };
