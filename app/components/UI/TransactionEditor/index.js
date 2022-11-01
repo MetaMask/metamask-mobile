@@ -177,7 +177,7 @@ class TransactionEditor extends PureComponent {
           ? this.props.gasFeeEstimates[selected]
           : this.props.gasFeeEstimates.gasPrice;
 
-      const legacyGasTransaction = getLegacyTransactionData({
+      const legacyGasData = getLegacyTransactionData({
         ...this.props,
         transactionState: this.props.transaction,
         gas: {
@@ -187,8 +187,8 @@ class TransactionEditor extends PureComponent {
       });
 
       handleGasFeeSelection(
-        hexToBN(legacyGasTransaction.suggestedGasLimitHex),
-        hexToBN(legacyGasTransaction.suggestedGasPriceHex),
+        hexToBN(legacyGasData.suggestedGasLimitHex),
+        hexToBN(legacyGasData.suggestedGasPriceHex),
         setTransactionObject,
       );
       // eslint-disable-next-line react/no-did-update-set-state
