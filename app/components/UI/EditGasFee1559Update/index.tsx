@@ -23,8 +23,8 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
 import createStyles from './styles';
+import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -33,12 +33,11 @@ const GAS_MIN = new BigNumber(0);
 
 const EditGasFee1559Update = ({
   selectedGasValue,
-  initialSuggestedGasLimit,
   gasOptions,
   primaryCurrency,
   chainId,
-  onChange,
   onCancel,
+  onChange,
   onSave,
   error,
   dappSuggestedGas,
@@ -52,7 +51,8 @@ const EditGasFee1559Update = ({
   isAnimating,
   analyticsParams,
   warning,
-  existingGas,
+  selectedGasObject,
+  onlyGas,
 }: EditGasFee1559UpdateProps) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
@@ -66,10 +66,11 @@ const EditGasFee1559Update = ({
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [selectedOption, setSelectedOption] = useState(selectedGasValue);
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
-  const [gasData, setGasData] = useState({
-    suggestedMaxFeePerGas: existingGas.maxFeePerGas,
-    suggestedMaxPriorityFeePerGas: existingGas.maxPriorityFeePerGas,
-    suggestedGasLimit: initialSuggestedGasLimit,
+  const [gasObject, updateGasObject] = useState({
+    suggestedMaxFeePerGas: selectedGasObject.suggestedMaxFeePerGas,
+    suggestedMaxPriorityFeePerGas:
+      selectedGasObject.suggestedMaxPriorityFeePerGas,
+    suggestedGasLimit: selectedGasObject.suggestedGasLimit,
   });
 
   const [
@@ -81,11 +82,10 @@ const EditGasFee1559Update = ({
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
-    onlyGas: true,
-    gasSelected: selectedOption || null,
+    onlyGas,
+    gasSelected: selectedOption,
     legacy: false,
-    gasLimit: gasData?.suggestedGasLimit || initialSuggestedGasLimit,
-    gasData,
+    gasObject,
   });
 
   const {
@@ -146,16 +146,27 @@ const EditGasFee1559Update = ({
       getAnalyticsParams(),
     );
 
-    onSave(gasTransaction);
-  }, [getAnalyticsParams, onSave, gasTransaction]);
+    const newGasPriceObject = {
+      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
+      suggestedGasLimit: gasObject?.suggestedGasLimit,
+    };
+
+    onSave(gasTransaction, newGasPriceObject);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObject]);
 
   const changeGas = useCallback(
     (gas, option) => {
       setSelectedOption(option);
-      setGasData(gas);
+      updateGasObject({
+        ...gasObject,
+        suggestedMaxFeePerGas: gas.suggestedMaxFeePerGas,
+        suggestedMaxPriorityFeePerGas: gas.suggestedMaxPriorityFeePerGas,
+        suggestedGasLimit: gas.suggestedGasLimit || gasObject.suggestedGasLimit,
+      });
       onChange(option);
     },
-    [onChange],
+    [onChange, gasObject],
   );
 
   const changedGasLimit = useCallback(
@@ -276,7 +287,7 @@ const EditGasFee1559Update = ({
   );
 
   const shouldIgnore = useCallback(
-    (option) => ignoreOptions.find((item: string) => item === option),
+    (option) => ignoreOptions?.find((item: string) => item === option),
     [ignoreOptions],
   );
 

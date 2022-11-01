@@ -93,11 +93,10 @@ class Contacts extends PureComponent {
   };
 
   deleteContact = () => {
-    this.setState({ reloadAddressList: true });
     const { AddressBookController } = Engine.context;
     const { network } = this.props;
     AddressBookController.delete(network, this.contactAddressToRemove);
-    this.setState({ reloadAddressList: false });
+    this.updateAddressList();
   };
 
   onAddressPress = (address) => {
