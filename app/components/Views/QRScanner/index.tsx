@@ -44,6 +44,7 @@ export interface QRScannerParams {
   onScanError?: (error: string) => void;
   onStartScan?: (data: any) => Promise<void>;
   origin?: string;
+  followURL?: boolean = true;
 }
 
 export const createQRScannerNavDetails =
@@ -135,9 +136,10 @@ const QRScanner = () => {
 
       const contentProtocol = getURLProtocol(content);
       if (
-        contentProtocol === PROTOCOLS.HTTP ||
-        contentProtocol === PROTOCOLS.HTTPS
+        (contentProtocol === PROTOCOLS.HTTP || contentProtocol === PROTOCOLS.HTTPS) &&
+        followURL
       ) {
+        
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
