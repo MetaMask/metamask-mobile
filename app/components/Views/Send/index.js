@@ -269,10 +269,15 @@ class Send extends PureComponent {
    */
   handleNewTxMetaRecipient = async (recipient) => {
     let ensRecipient, to;
+
     if (isENS(recipient)) {
       ensRecipient = recipient;
       if (!to) {
-        to = await doENSLookup(ensRecipient, this.props.network);
+        try {
+          to = await doENSLookup(ensRecipient, this.props.network);
+        } catch (error) {
+          Logger.error(error, 'Error while resolving the ENS to an address');
+        }
       }
     } else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
       to = toChecksumAddress(recipient);
@@ -293,21 +298,25 @@ class Send extends PureComponent {
     const { addressBook, network, identities, selectedAddress } = this.props;
 
     let newTxMeta = {};
+    let txRecipient;
     switch (action) {
       case 'send-eth':
+        txRecipient = await this.handleNewTxMetaRecipient(target_address);
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
           type: 'ETHER_TRANSACTION',
           paymentRequest: true,
           selectedAsset: { symbol: 'ETH', isETH: true },
-          ...this.handleNewTxMetaRecipient(target_address),
+          ...txRecipient,
         };
+
         if (parameters && parameters.value) {
           newTxMeta.value = BNToHex(toBN(parameters.value));
           newTxMeta.transactionValue = newTxMeta.value;
           newTxMeta.readableValue = fromWei(newTxMeta.value);
         }
+
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
           network,
@@ -315,10 +324,12 @@ class Send extends PureComponent {
           identities,
           ensRecipient: newTxMeta.ensRecipient,
         });
+
         newTxMeta.transactionTo = newTxMeta.to;
         break;
       case 'send-token': {
         const selectedAsset = await this.handleTokenDeeplink(target_address);
+
         const { ensRecipient, to } = await this.handleNewTxMetaRecipient(
           parameters.address,
         );
