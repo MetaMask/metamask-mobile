@@ -9,6 +9,7 @@ import {
   Image,
   Keyboard,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -30,6 +31,8 @@ import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { WALLET_VIEW_BURGER_ICON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -981,6 +984,7 @@ export function getWalletNavbarOptions(
         testID={'hamburger-menu-button-wallet'}
       >
         <IonicIcon
+          {...generateTestId(Platform, WALLET_VIEW_BURGER_ICON_ID)}
           name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}
