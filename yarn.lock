@@ -13353,10 +13353,10 @@ human-standard-token-abi@^2.0.0:
   resolved "https://registry.yarnpkg.com/human-standard-token-abi/-/human-standard-token-abi-2.0.0.tgz#e0c2057596d0a1d4a110f91f974a37f4b904f008"
   integrity sha512-m1f5DiIvqaNmpgphNqx2OziyTCj4Lvmmk28uMSxGWrOc9/lMpAKH8UcMPhvb13DMNZPzxn07WYFhxOGKuPLryg==
 
-humanize-duration@^3.27.0:
-  version "3.27.0"
-  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.27.0.tgz#3f781b7cf8022ad587f76b9839b60bc2b29636b2"
-  integrity sha512-qLo/08cNc3Tb0uD7jK0jAcU5cnqCM0n568918E7R2XhMr/+7F37p4EY062W/stg7tmzvknNn9b/1+UhVRzsYrQ==
+humanize-duration@^3.27.2:
+  version "3.27.3"
+  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.27.3.tgz#db654e72ebf5ccfe232c7f56bc58aa3a6fe4df88"
+  integrity sha512-iimHkHPfIAQ8zCDQLgn08pRqSVioyWvnGfaQ8gond2wf7Jq2jJ+24ykmnRyiz3fIldcn4oUuQXpjqKLhSVR7lw==
 
 humanize-ms@^1.2.1:
   version "1.2.1"
@@ -17721,10 +17721,10 @@ octal@^1.0.0:
   resolved "https://registry.yarnpkg.com/octal/-/octal-1.0.0.tgz#63e7162a68efbeb9e213588d58e989d1e5c4530b"
   integrity sha1-Y+cWKmjvvrniE1iNWOmJ0eXEUws=
 
-octonode@0.9.5:
-  version "0.9.5"
-  resolved "https://registry.yarnpkg.com/octonode/-/octonode-0.9.5.tgz#0237ea289a2d6642068f6383a420bf97cfca993e"
-  integrity sha512-l+aX9jNVkaagh7u/q2QpNKdL8XUagdztl+ebXxBRU6FJ1tpRxAH/ygIuWh0h7eS491BsyH6bb0QZIQEC2+u5oA==
+octonode@0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/octonode/-/octonode-0.10.2.tgz#2b773866f44f03a2c544741d9b0df2d2c1b4f0cf"
+  integrity sha512-lxKJxAvrw3BuM0Wu3A/TRyFkYxMFWbMm8p7fDO3EoG9KDgOy53d91bjlGR1mmNk1EoF5LjGBx7BmIB+PfmMKLQ==
   dependencies:
     bluebird "^3.5.0"
     deep-extend "^0.6.0"
@@ -19143,6 +19143,11 @@ react-focus-lock@^2.1.0:
     use-callback-ref "^1.2.5"
     use-sidecar "^1.0.5"
 
+react-freeze@^1.0.0:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/react-freeze/-/react-freeze-1.0.3.tgz#5e3ca90e682fed1d73a7cb50c2c7402b3e85618d"
+  integrity sha512-ZnXwLQnGzrDpHBHiC56TXFXvmolPeMjTn1UOm610M4EXGzbEDR7oOIyS2ZiItgbs6eZc4oU/a0hpk8PrcKvv5g==
+
 react-helmet-async@^1.0.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/react-helmet-async/-/react-helmet-async-1.2.2.tgz#38d58d32ebffbc01ba42b5ad9142f85722492389"
@@ -19529,11 +19534,12 @@ react-native-safe-module@^1.1.0:
   dependencies:
     dedent "^0.6.0"
 
-react-native-screens@^3.3.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-3.4.0.tgz#91deeac7630db9f3984053e2ab146d71bba7af4e"
-  integrity sha512-cg+q9MRnVdeOcJyvJtqffoXLur/C2wHA/7IO2+FAipzTlgHbbM1mTuSM7qG+SeiQjoIs4mHOEf7A0ziPKW04sA==
+react-native-screens@3.13.1:
+  version "3.13.1"
+  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-3.13.1.tgz#b3b1c5788dca25a71668909f66d87fb35c5c5241"
+  integrity sha512-xcrnuUs0qUrGpc2gOTDY4VgHHADQwp80mwR1prU/Q0JqbZN5W3koLhuOsT6FkSRKjR5t40l+4LcjhHdpqRB2HA==
   dependencies:
+    react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
 react-native-scrollable-tab-view@^1.0.0:
