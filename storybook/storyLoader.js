@@ -11,6 +11,8 @@ function loadStories() {
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
+  require('../app/component-library/components/Badges/Badge/Badge.stories');
+  require('../app/component-library/components/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories');
@@ -67,6 +69,8 @@ const stories = [
   '../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
+  '../app/component-library/components/Badges/Badge/Badge.stories',
+  '../app/component-library/components/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories',

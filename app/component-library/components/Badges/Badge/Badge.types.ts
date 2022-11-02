@@ -11,4 +11,9 @@ export enum BadgeVariants {
 /**
  * Badge Account component props.
  */
-export type BadgeProps = BadgeAvatarProps;
+export type BadgeProps = BadgeAvatarProps & {
+  /**
+   * Variant of badge.
+   */
+  variant: BadgeVariants;
+};

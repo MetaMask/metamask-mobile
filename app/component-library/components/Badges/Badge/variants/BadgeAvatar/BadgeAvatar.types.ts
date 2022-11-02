@@ -10,7 +10,7 @@ export interface BadgeAvatarProps extends Omit<BadgeBaseProps, 'children'> {
   /**
    * Variant of badge.
    */
-  variant: BadgeVariants.Avatar;
+  variant?: BadgeVariants.Avatar;
   /**
    * Props for the avatarContent.
    */

@@ -7,13 +7,16 @@ import { View } from 'react-native';
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
 import Text, { TextVariants } from '../../Texts/Text';
+import { BadgeProps } from '../Badge/Badge.types';
+import { getBadgeStoryProps } from '../Badge/Badge.stories';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
-import { TEST_BADGE_PROPS } from './BadgeWrapper.constants';
+import { BadgeWrapperProps } from './BadgeWrapper.types';
 
-storiesOf('Component Library / BadgeWrapper', module).add('Default', () => (
-  <BadgeWrapper badgeProps={TEST_BADGE_PROPS}>
+export const getBadgeWrapperStoryProps = (): BadgeWrapperProps => {
+  const badgeProps: BadgeProps = getBadgeStoryProps();
+  const children = (
     <View
       // eslint-disable-next-line react-native/no-inline-styles
       style={{
@@ -25,5 +28,20 @@ storiesOf('Component Library / BadgeWrapper', module).add('Default', () => (
     >
       <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
     </View>
-  </BadgeWrapper>
-));
+  );
+
+  return {
+    badgeProps,
+    children,
+  };
+};
+const BadgeWrapperStory = () => (
+  <BadgeWrapper {...getBadgeWrapperStoryProps()} />
+);
+
+storiesOf('Component Library / Badges', module).add(
+  'BadgeWrapper',
+  BadgeWrapperStory,
+);
+
+export default BadgeWrapperStory;
