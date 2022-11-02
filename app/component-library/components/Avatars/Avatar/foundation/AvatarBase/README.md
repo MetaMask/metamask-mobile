@@ -14,11 +14,20 @@ Optional enum to select between size variants.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
+### `backgroundColor`
+
+Optional enum to add color to the background of the Avatar.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [Color](../../../../../constants/typescript.constants.ts) or 'default'          | No                               |'default'                                                     |
+
 ## Usage
 
 ```javascript
 <AvatarBase 
-  size={AvatarSizes.Md}>
+  size={AvatarSizes.Md}
+  backgroundColor={'#000000'}>
     <SAMPLE_COMPONENT />
 </AvatarBase>;
 ```

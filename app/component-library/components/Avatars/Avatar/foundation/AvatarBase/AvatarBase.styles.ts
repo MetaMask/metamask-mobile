@@ -6,6 +6,7 @@ import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
 import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
+import { DEFAULT_AVATAR_BASE_BACKGROUND_COLOR } from './AvatarBase.constants';
 
 /**
  * Style sheet function for AvatarBase component.
@@ -20,9 +21,13 @@ const styleSheet = (params: {
 }) => {
   const {
     theme,
-    vars: { style, size },
+    vars: { style, size, backgroundColor },
   } = params;
   const sizeAsNum = Number(size);
+  const themedBackgroundColor =
+    backgroundColor === DEFAULT_AVATAR_BASE_BACKGROUND_COLOR
+      ? theme.colors.background.default
+      : backgroundColor;
 
   return StyleSheet.create({
     base: Object.assign(
@@ -31,7 +36,7 @@ const styleSheet = (params: {
         width: sizeAsNum,
         borderRadius: sizeAsNum / 2,
         overflow: 'hidden',
-        backgroundColor: theme.colors.background.default,
+        backgroundColor: themedBackgroundColor,
         justifyContent: 'center',
         alignItems: 'center',
       } as ViewStyle,

@@ -14,6 +14,14 @@ Optional enum to select between size variants.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
+### `backgroundColor`
+
+Optional enum to add color to the background of the Avatar.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [Color](../../../../../constants/typescript.constants.ts) or 'default'          | No                               |'default'                                                     |
+
 ### `name`
 
 Name of icon to use.
@@ -33,6 +41,6 @@ Color to apply to the icon. Defaults to `icon.default` from theme.
 ## Usage
 
 ```javascript
-<AvatarIcon size={AvatarSizes.Md} name={IconName.BankFilled} />;
+<AvatarIcon size={AvatarSizes.Md} name={IconName.BankFilled} backgroundColor={'#000000'}/>;
 ```
 

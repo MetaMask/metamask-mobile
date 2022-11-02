@@ -31,16 +31,19 @@ export const getAvatarStoryProps = (): AvatarProps => {
   switch (avatarVariantsSelector) {
     case AvatarVariants.Icon:
       avatarProps = {
+        variant: AvatarVariants.Icon,
         ...getAvatarIconStoryProps(),
       };
       break;
     case AvatarVariants.Image:
       avatarProps = {
+        variant: AvatarVariants.Image,
         ...getAvatarImageStoryProps(),
       };
       break;
     case AvatarVariants.Initial:
       avatarProps = {
+        variant: AvatarVariants.Initial,
         ...getAvatarInitialStoryProps(),
       };
       break;

@@ -14,6 +14,16 @@ Optional enum to select between size variants.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
+### `backgroundColor`
+
+Optional enum to add color to the background of the Avatar.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [Color](../../../../../constants/typescript.constants.ts) or 'default'          | No                               |'default'                                                     |
+
+## AvatarIcon only props
+
 ### `initial`
 
 An initial to be displayed in the Avatar.
@@ -22,18 +32,9 @@ An initial to be displayed in the Avatar.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | Yes                                                      |
 
-### `source`
-
-The image source (either a remote URL or a local file resource). 
-The currently supported formats are png, jpg, jpeg, bmp, gif, webp (Android only), psd (iOS only).
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [ImageSourcePropType](https://reactnative.dev/docs/images)                                              | Yes                                                      |
-
 ## Usage
 
 ```javascript
-<AvatarInitial size={AvatarSizes.Md} initial={'Morph'}/>;
+<AvatarInitial size={AvatarSizes.Md} initial={'Morph'} backgroundColor={'#000000'}/>;
 ```
 

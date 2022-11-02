@@ -26,7 +26,13 @@ export enum AvatarVariants {
 /**
  * Avatar component props.
  */
-export type AvatarProps =
+export type AvatarProps = (
   | AvatarIconProps
   | AvatarImageProps
-  | AvatarInitialProps;
+  | AvatarInitialProps
+) & {
+  /**
+   * Avatar variants.
+   */
+  variant: AvatarVariants;
+};
