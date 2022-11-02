@@ -273,11 +273,7 @@ class Send extends PureComponent {
     if (isENS(recipient)) {
       ensRecipient = recipient;
       if (!to) {
-        try {
-          to = await doENSLookup(ensRecipient, this.props.network);
-        } catch (error) {
-          Logger.error(error, 'Error while resolving the ENS to an address');
-        }
+        to = await doENSLookup(ensRecipient, this.props.network);
       }
     } else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
       to = toChecksumAddress(recipient);
