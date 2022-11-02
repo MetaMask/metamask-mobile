@@ -7,6 +7,7 @@ import {
   InteractionManager,
   UIManager,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -24,6 +25,11 @@ import { tlc } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
+  DELETE_MODAL_CANCEL_BUTTON,
+} from '../../../../wdio/features/testIDs/Components/DeleteWalletModal.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -97,6 +103,8 @@ const DeleteWalletModal = () => {
         <WarningExistingUserModal
           warningModalVisible
           cancelText={strings('login.delete_my')}
+          cancelTestID={'delete-my-wallet-button-on-permanetly-delete-modal'}
+          confirmTestID={'cancel-button-on-permanetly-delete-modal'}
           cancelButtonDisabled={disableButton}
           onCancelPress={deleteWallet}
           onRequestClose={triggerClose}
@@ -112,6 +120,7 @@ const DeleteWalletModal = () => {
               <OutlinedTextField
                 style={styles.input}
                 testID={DELETE_WALLET_INPUT_BOX_ID}
+                {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
                 autoFocus
                 returnKeyType={'done'}
                 onChangeText={checkDelete}
@@ -132,6 +141,8 @@ const DeleteWalletModal = () => {
           onCancelPress={showConfirmModal}
           onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
+          cancelTestID={DELETE_MODAL_UNDERSTAND_CONTINUE_ID}
+          confirmTestID={DELETE_MODAL_CANCEL_BUTTON}
         >
           <View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>
             <Icon

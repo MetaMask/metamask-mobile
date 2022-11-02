@@ -217,23 +217,21 @@ describe('Wallet Tests', () => {
     // Check that we are on the wallet screen
     // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
-    // Search for SAI
-    await ImportTokensView.typeInTokenName('DAI Stablecoin');
-    // Wait for results to load
+    // Search for XRPL but select RPL
+    await ImportTokensView.typeInTokenName('XRPL');
     await TestHelpers.delay(2000);
 
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
     await TestHelpers.delay(500);
 
     await ImportTokensView.tapImportButton();
-    // Check that we are on the wallet screen
     await WalletView.isVisible();
     await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
 
-    await WalletView.isTokenVisibleInWallet('0 DAI');
-    await WalletView.removeTokenFromWallet('0 DAI');
+    await WalletView.isTokenVisibleInWallet('0 RPL');
+    await WalletView.removeTokenFromWallet('0 RPL');
     await TestHelpers.delay(1500);
-    await WalletView.tokenIsNotVisibleInWallet('0 DAI');
+    await WalletView.tokenIsNotVisibleInWallet('0 RPL');
   });
 
   it('should add a custom token', async () => {

@@ -54,23 +54,32 @@ const SWIPE_DIRECTION = {
   },
 };
 
+const Actions = {
+  PRESS: 'press',
+  LONGPRESS: 'longPress',
+  TAP: 'tap',
+  MOVETO: 'moveTo',
+  WAIT: 'wait',
+  RELEASE: 'release',
+}
+
 class Gestures  {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
-    await elem.click();
+    (await elem).touchAction(Actions.TAP);
   }
 
   static async tap(element) {
     // simple touch action on element
     const elem = await element;
-    await elem.click();
+    (await elem).touchAction(Actions.TAP);
   }
 
   static async typeText(element, text) {
     const elem = await element;
     await elem.waitForDisplayed();
-    await elem.click();
+    (await elem).touchAction(Actions.TAP);
     await elem.clearValue();
     await elem.setValue(text, +'\n');
   }

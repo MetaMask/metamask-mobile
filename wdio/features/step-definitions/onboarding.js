@@ -2,7 +2,7 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
-
+import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
@@ -88,6 +88,9 @@ When(/^I tap "([^"]*)?"/, async (text) => {
     case 'Import':
       await ImportFromSeedScreen.clickImportButton();
       break;
+    case 'No, Thanks':
+      await WalletMainScreen.tapNoThanks();
+      break;
     default:
       throw new Error('Condition not found');
   }
@@ -107,8 +110,6 @@ When(/^I type (.*) in confirm password field/, async (text) => {
 
 Then(/^device alert (.*) is displayed/, async (text) => {
   await ImportFromSeedScreen.isAlertTextVisible(text);
-  await ImportFromSeedScreen.tapOkInAlertMessage();
-
 });
 
 Then(/^password strength (.*) is displayed/, async (text) => {
@@ -165,3 +166,6 @@ Then(/^I should proceed to the new wallet/, async () => {
   await CreateNewWalletScreen.isNotVisible();
 });
 
+Then(/^green check mark is displayed/, async () => {
+  await ImportFromSeedScreen.isPasswordMatchIconVisible();
+});
