@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import Engine from '../Engine';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { fromWei } from '../../util/number';
 import {
   parseTransactionEIP1559,
@@ -143,10 +142,11 @@ export const getLegacyTransactionData = ({
   currentCurrency,
   transactionState,
   ticker,
-  suggestedGasPrice,
-  suggestedGasLimit,
+  gas,
   onlyGas,
 }: LegacyProps) => {
+  // hack: selectedAsset becomes an empty object when legacy transaction is submitted and it breaks the app. See Line 1241 in util/transactions.js
+  transactionState.selectedAsset.isETH = true;
   const parsedTransationData = parseTransactionLegacy(
     {
       contractExchangeRates,
@@ -155,12 +155,12 @@ export const getLegacyTransactionData = ({
       transactionState,
       ticker,
       selectedGasFee: {
-        suggestedGasLimit,
-        suggestedGasPrice,
+        ...gas,
       },
     },
     { onlyGas },
   );
+
   return parsedTransationData;
 };
 
@@ -172,8 +172,9 @@ export const useGasTransaction = ({
   onlyGas,
   gasSelected,
   legacy,
-  gasLimit,
-  gasData,
+  gasObject,
+  dappSuggestedEIP1559Gas,
+  dappSuggestedGasPrice,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -199,33 +200,54 @@ export const useGasTransaction = ({
     transaction: { gas: transactionGas },
   } = transactionState;
 
-  const suggestedGasLimit = gasLimit || fromWei(transactionGas, 'wei');
+  const suggestedGasLimit =
+    gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
+
+  let initialGas;
+  if (dappSuggestedEIP1559Gas) {
+    initialGas = {
+      suggestedMaxFeePerGas: fromWei(
+        dappSuggestedEIP1559Gas.maxFeePerGas,
+        'gwei',
+      ),
+      suggestedMaxPriorityFeePerGas: fromWei(
+        dappSuggestedEIP1559Gas.maxPriorityFeePerGas,
+        'gwei',
+      ),
+    };
+  } else if (dappSuggestedGasPrice) {
+    initialGas = {
+      suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+      suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+    };
+  } else {
+    initialGas = {
+      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
+    };
+  }
 
   if (legacy) {
     return getLegacyTransactionData({
+      gas: {
+        suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
+        suggestedGasPrice:
+          gasFeeEstimates[gasSelected] ||
+          gasFeeEstimates?.gasPrice ||
+          gasObject?.suggestedGasPrice,
+      },
       contractExchangeRates,
       conversionRate,
       currentCurrency,
       transactionState,
       ticker,
-      suggestedGasPrice:
-        gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimates[gasSelected]
-          : gasFeeEstimates.gasPrice,
-      suggestedGasLimit,
       onlyGas,
     });
   }
 
   return getEIP1559TransactionData({
     gas: {
-      ...(gasSelected
-        ? gasFeeEstimates[gasSelected]
-        : {
-            suggestedMaxFeePerGas: gasData?.suggestedMaxFeePerGas,
-            suggestedMaxPriorityFeePerGas:
-              gasData?.suggestedMaxPriorityFeePerGas,
-          }),
+      ...(gasSelected ? gasFeeEstimates[gasSelected] : initialGas),
       suggestedGasLimit,
       selectedOption: gasSelected,
     },
