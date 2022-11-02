@@ -39,7 +39,6 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const FlaskHello = () => <Text>FlaskHello</Text>;
-const FlaskFlaskHello = () => <Text>FlaskFlaskHello</Text>;
 const OrdinaryHello = () => <Text>OrdinaryHello</Text>;
 const FlaskSquare = () => (
   // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
@@ -284,12 +283,10 @@ class OnboardingCarousel extends PureComponent {
             </View>
           </ScrollView>
           <FlaskHello />
+          <OrdinaryHello />
+          <OrdinaryHello />
+          <OrdinaryHello />
           <FlaskSquare />
-          <FlaskHello />
-          <OrdinaryHello />
-          <OrdinaryHello />
-          <OrdinaryHello />
-          <OrdinaryHello />
           <FlaskHello />
           <View style={styles.ctas}>
             <View style={styles.ctaWrapper}>
