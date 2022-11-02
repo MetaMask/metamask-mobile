@@ -38,24 +38,6 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
-const FlaskHello = () => <Text>FlaskHello</Text>;
-const OrdinaryHello = () => <Text>OrdinaryHello</Text>;
-const FlaskSquare = () => (
-  // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
-  <View style={{ width: 50, height: 50, backgroundColor: 'black' }} />
-);
-const OrdinarySquare = () => (
-  // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
-  <View style={{ width: 50, height: 50, backgroundColor: 'red' }} />
-);
-
-function flaskFunction(arg1, arg2) {
-  console.log('mane');
-  console.log('mane mane');
-  const someOperation = arg1 + arg2;
-  return someOperation * 10;
-}
-
 const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
@@ -212,9 +194,6 @@ class OnboardingCarousel extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    flaskFunction(1, 2);
-    console.log('It works');
-
     return (
       <View
         style={baseStyles.flexGrow}
@@ -282,12 +261,6 @@ class OnboardingCarousel extends PureComponent {
               </View>
             </View>
           </ScrollView>
-          <FlaskHello />
-          <OrdinaryHello />
-          <OrdinaryHello />
-          <OrdinaryHello />
-          <FlaskSquare />
-          <FlaskHello />
           <View style={styles.ctas}>
             <View style={styles.ctaWrapper}>
               <StyledButton
