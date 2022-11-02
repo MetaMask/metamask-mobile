@@ -492,10 +492,11 @@ export const getRpcMethodMiddleware = ({
         res.result = `MetaMask/${appVersion}/Mobile`;
       },
 
-      wallet_scanQRCode: () =>
-        new Promise<void>((resolve, reject) => {
+      wallet_scanQRCode: () => {
+        return new Promise<void>((resolve, reject) => {
           checkTabActive();
           navigation.navigate('QRScanner', {
+            followURL: false,
             onScanSuccess: (data: any) => {
               const regex = new RegExp(req.params[0]);
               if (regex && !regex.exec(data)) {
@@ -522,7 +523,8 @@ export const getRpcMethodMiddleware = ({
               throw ethErrors.rpc.internal(e.toString());
             },
           });
-        }),
+        })
+      },
 
       wallet_watchAsset: async () => {
         const {
