@@ -4,7 +4,6 @@ import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import AppConstants from '../AppConstants';
 import { NetworksChainId, NetworkType } from '@metamask/controllers';
 import Networks, {
   blockTagParamIndex,
