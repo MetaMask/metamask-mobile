@@ -132,4 +132,5 @@ export default {
   ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
+  ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
 };

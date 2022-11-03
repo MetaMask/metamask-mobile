@@ -143,7 +143,6 @@ class TypedSign extends PureComponent {
     const version = messageParams.version;
     let rawSig;
     let cleanMessageParams;
-    let messageError;
     try {
       cleanMessageParams = await TypedMessageManager.approveMessage(
         messageParams,
@@ -152,16 +151,10 @@ class TypedSign extends PureComponent {
         cleanMessageParams,
         version,
       );
-    } catch (error) {
-      messageError = error.message;
-    }
-
-    if (!messageError) {
       TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
       this.showWalletConnectNotification(messageParams, true);
-    } else {
-      TypedMessageManager.setMessageStatusSigned(messageId, messageError);
-
+    } catch (error) {
+      TypedMessageManager.setMessageStatusSigned(messageId, error.message);
       this.showWalletConnectNotification(messageParams, false, true);
     }
   };

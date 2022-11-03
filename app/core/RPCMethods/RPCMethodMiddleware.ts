@@ -4,6 +4,7 @@ import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
+import AppConstants from '../AppConstants';
 import { NetworksChainId, NetworkType } from '@metamask/controllers';
 import Networks, {
   blockTagParamIndex,
@@ -313,10 +314,8 @@ export const getRpcMethodMiddleware = ({
 
           res.result = rawSig;
         } else {
-          res.result = 'eth_sign requires 32 byte message hash';
-          throw ethErrors.rpc.invalidParams(
-            'eth_sign requires 32 byte message hash',
-          );
+          res.result = AppConstants.ETH_SIGN_ERROR;
+          throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
         }
       },
 
