@@ -24,6 +24,7 @@ import {
   safeNumberToBN,
   fastSplit,
   isNumber,
+  isNumberScientificNotationWhenString,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -710,5 +711,29 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('.01')).toBe(false);
     expect(isNumber(undefined)).toBe(false);
     expect(isNumber(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: isNumberScientificNotationWhenString', () => {
+  it('isNumberScientificNotationWhenString passing number', () => {
+    expect(isNumberScientificNotationWhenString(1.337e-6)).toEqual(false);
+    expect(isNumberScientificNotationWhenString(1.337e-7)).toEqual(true);
+    expect(isNumberScientificNotationWhenString(1.337e20)).toEqual(false);
+    expect(isNumberScientificNotationWhenString(1.337e21)).toEqual(true);
+
+    expect(isNumberScientificNotationWhenString(0.000001337)).toEqual(false);
+    expect(isNumberScientificNotationWhenString(0.0000001337)).toEqual(true);
+    expect(isNumberScientificNotationWhenString(133700000000000000000)).toEqual(
+      false,
+    );
+    expect(
+      isNumberScientificNotationWhenString(1337000000000000000000),
+    ).toEqual(true);
+  });
+  it('isNumberScientificNotationWhenString should be false when non number is passed', () => {
+    expect(isNumberScientificNotationWhenString('1.337e-6')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e-7')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e20')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e21')).toEqual(false);
   });
 });
