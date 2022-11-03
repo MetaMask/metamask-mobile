@@ -138,7 +138,6 @@ class Engine {
           );
         },
       };
-      console.log('networkController', `${networkController.name}`);
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -182,7 +181,6 @@ class Engine {
           useIPFSSubdomains: false,
         },
       );
-      console.log('TEST');
       const tokensController = new TokensController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
