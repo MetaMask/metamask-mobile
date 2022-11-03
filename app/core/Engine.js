@@ -416,12 +416,11 @@ class Engine {
       const {
         CollectiblesController: collectibles,
         KeyringController: keyring,
-        NetworkController: network,
         TransactionController: transaction,
       } = this.context;
 
       collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
-      network.refreshNetwork();
+
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
       this.controllerMessenger.subscribe(
         'NetworkController:stateChange',
