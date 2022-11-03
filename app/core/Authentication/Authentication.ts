@@ -142,27 +142,36 @@ class AuthenticationService {
     password: string,
     authType: AUTHENTICATION_TYPE,
   ): Promise<void> => {
-    switch (authType) {
-      case AUTHENTICATION_TYPE.BIOMETRIC:
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.BIOMETRICS,
-        );
-        break;
-      case AUTHENTICATION_TYPE.PASSCODE:
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.PASSCODE,
-        );
-        break;
-      case AUTHENTICATION_TYPE.REMEMBER_ME:
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.REMEMBER_ME,
-        );
-        break;
-      default:
-        await SecureKeychain.resetGenericPassword();
+    try {
+      switch (authType) {
+        case AUTHENTICATION_TYPE.BIOMETRIC:
+          await SecureKeychain.setGenericPassword(
+            password,
+            SecureKeychain.TYPES.BIOMETRICS,
+          );
+          break;
+        case AUTHENTICATION_TYPE.PASSCODE:
+          await SecureKeychain.setGenericPassword(
+            password,
+            SecureKeychain.TYPES.PASSCODE,
+          );
+          break;
+        case AUTHENTICATION_TYPE.REMEMBER_ME:
+          await SecureKeychain.setGenericPassword(
+            password,
+            SecureKeychain.TYPES.REMEMBER_ME,
+          );
+          break;
+        default:
+          await SecureKeychain.resetGenericPassword();
+      }
+    } catch (error) {
+      console.log('storePassword', error);
+      throw new AuthenticationError(
+        (error as Error).message,
+        'Authentication.storePassword failed',
+        this.authData,
+      );
     }
   };
 
@@ -254,6 +263,7 @@ class AuthenticationService {
       this.authData = authData;
     } catch (e: any) {
       this.logout();
+      console.log('newWalletAndKeyChain error');
       throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
     }
   };

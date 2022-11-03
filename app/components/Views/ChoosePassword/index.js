@@ -299,6 +299,7 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     //Setup UI to handle Biometric
+    console.log('componentDidMount biometryType', this.state.biometryType);
 
     const { type } = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
@@ -339,6 +340,7 @@ class ChoosePassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
+    console.log('componentDidUpdate', this.state.biometryType);
   }
 
   componentWillUnmount() {
@@ -385,7 +387,12 @@ class ChoosePassword extends PureComponent {
       );
 
       if (previous_screen === ONBOARDING) {
-        await Authentication.newWalletAndKeyChain(password, authType);
+        try {
+          await Authentication.newWalletAndKeyChain(password, authType);
+        } catch (error) {
+          // retry faceID if the user cancels the
+          if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
+        }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
         await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
@@ -439,10 +446,13 @@ class ChoosePassword extends PureComponent {
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
   handleRejectedOsBiometricPrompt = async (error) => {
-    const type = await Authentication.getType();
-    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !type) {
+    console.log('handleRejectedOsBiometricPrompt', error.toString());
+    const authData = await Authentication.getType();
+    console.log('handleRejectedOsBiometricPrompt type', authData);
+    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR)) {
+      console.log('handleRejectedOsBiometricPrompt entered');
       this.setState({
-        biometryType: type,
+        biometryType: authData.type,
         biometryChoice: true,
       });
       this.updateBiometryChoice();
@@ -553,6 +563,7 @@ class ChoosePassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
+    console.log('updateBiometryChoice', biometryChoice);
     if (!biometryChoice) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else {
