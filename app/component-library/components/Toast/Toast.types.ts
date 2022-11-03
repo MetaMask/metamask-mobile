@@ -4,7 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 /**
  * Toast variants.
  */
-export enum ToastVariant {
+export enum ToastVariants {
   Plain = 'Plain',
   Account = 'Account',
   Network = 'Network',
@@ -29,7 +29,7 @@ export interface ToastLinkButtonOptions {
 /**
  * Common toast option shared between all other options.
  */
-interface BaseToastVariant {
+interface BaseToastVariants {
   labelOptions: ToastLabelOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
 }
@@ -37,23 +37,23 @@ interface BaseToastVariant {
 /**
  * Plain toast option.
  */
-interface PlainToastOption extends BaseToastVariant {
-  variant: ToastVariant.Plain;
+interface PlainToastOption extends BaseToastVariants {
+  variant: ToastVariants.Plain;
 }
 
 /**
  * Account toast option.
  */
-interface AccountToastOption extends BaseToastVariant {
-  variant: ToastVariant.Account;
+interface AccountToastOption extends BaseToastVariants {
+  variant: ToastVariants.Account;
   accountAddress: string;
 }
 
 /**
  * Network toast option.
  */
-interface NetworkToastOption extends BaseToastVariant {
-  variant: ToastVariant.Network;
+interface NetworkToastOption extends BaseToastVariants {
+  variant: ToastVariants.Network;
   networkImageSource: ImageSourcePropType;
 }
 

@@ -23,5 +23,6 @@ exports[`ContactForm should render correctly 1`] = `
     }
   }
   network="1"
+  providerType="mainnet"
 />
 `;

@@ -3,9 +3,12 @@ import { ImageSourcePropType } from 'react-native';
 import {
   AvatarProps,
   AvatarVariants,
-} from '../../../../component-library/components/Avatars/Avatar.types';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/AvatarAccount';
-import { BadgeVariants } from '../../../components/Badges/Badge/Badge.types';
+} from '../../../components/Avatars/Avatar/Avatar.types';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import {
+  BadgeVariants,
+  BadgeProps,
+} from '../../../components/Badges/Badge/Badge.types';
 
 const imageSource =
   'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
@@ -30,8 +33,8 @@ export const TEST_AVATAR_PROPS: AvatarProps = {
   type: AvatarAccountType.JazzIcon,
 };
 
-export const BADGE_PROPS = {
+export const BADGE_PROPS: BadgeProps = {
   variant: BadgeVariants.Network,
   name: 'Ethereum',
-  imageSource,
+  imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };
