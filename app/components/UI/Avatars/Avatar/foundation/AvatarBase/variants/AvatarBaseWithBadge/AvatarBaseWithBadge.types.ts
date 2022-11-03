@@ -11,7 +11,7 @@ export type AvatarBaseWithBadgeProps = AvatarBaseBaseProps & {
    */
   isBadgeIncluded: true;
   /**
-   * Props for Badge
+   * Enum for the Badge props.
    */
   badgeProps: BadgeProps;
 };

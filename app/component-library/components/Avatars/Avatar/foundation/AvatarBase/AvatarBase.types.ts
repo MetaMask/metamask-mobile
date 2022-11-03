@@ -1,9 +1,8 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { ColorValue, ViewProps } from 'react-native';
 
 // External dependencies
 import { AvatarSizes } from '../../Avatar.types';
-import { Color } from '../../../../../constants/typescript.constants';
 
 /**
  * AvatarBase component props.
@@ -18,7 +17,7 @@ export interface AvatarBaseProps extends ViewProps {
    * Optional enum to add color to the background of the Avatar.
    * @default 'default'
    */
-  backgroundColor?: Color | 'default';
+  backgroundColor?: ColorValue;
 }
 
 /**

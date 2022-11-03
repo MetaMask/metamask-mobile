@@ -18,9 +18,9 @@ Optional enum to select between size variants.
 
 Optional enum to add color to the background of the Avatar.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [Color](../../../../../constants/typescript.constants.ts) or 'default'          | No                               |'default'                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| ColorValue                                              | No                                                     |
 
 ## Usage
 

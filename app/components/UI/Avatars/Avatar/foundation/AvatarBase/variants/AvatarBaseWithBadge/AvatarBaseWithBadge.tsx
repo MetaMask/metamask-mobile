@@ -32,7 +32,7 @@ const AvatarBaseWithBadge: React.FC<AvatarBaseWithBadgeProps> = ({
   badgeProps.style = styles.badge;
 
   return (
-    <BadgeWrapper badgeProps={badgeProps}>
+    <BadgeWrapper style={styles.base} badgeProps={badgeProps}>
       <AvatarBaseBase size={size} {...props} />
     </BadgeWrapper>
   );

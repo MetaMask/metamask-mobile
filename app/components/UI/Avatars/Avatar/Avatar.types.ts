@@ -27,11 +27,17 @@ export enum AvatarBadgePositions {
 /**
  * Avatar component props.
  */
-export type AvatarProps =
+export type AvatarProps = (
   | AvatarAccountProps
   | AvatarFaviconProps
   | AvatarJazzIconProps
   | AvatarNetworkProps
-  | AvatarTokenProps;
+  | AvatarTokenProps
+) & {
+  /**
+   * Variant of Avatar
+   */
+  variant: AvatarVariants;
+};
 
 export { AvatarSizes } from '../../../../component-library/components/Avatars/Avatar';

@@ -9,15 +9,16 @@ import { BadgeProps } from '../../../../../../Badges/Badge';
 export type AvatarBaseBaseProps = AvatarBaseProps & {
   /**
    * Optional boolean to select if badge should be included.
-   * @default Md
+   * @default false
    */
   isBadgeIncluded?: boolean;
   /**
-   * Props for Badge
+   * Optional enum for the Badge props.
    */
   badgeProps?: BadgeProps;
   /**
-   * Position for Badge
+   * Optional enum to set the position for the Badge.
+   * @default AvatarBadgePositions.TopRight
    */
   badgePosition?: AvatarBadgePositions;
 };

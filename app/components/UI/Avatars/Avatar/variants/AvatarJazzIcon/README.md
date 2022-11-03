@@ -1,10 +1,10 @@
-# AvatarBaseBase
+# AvatarJazzIcon
 
-The AvatarBaseBase component is a base component of Metamask's [AvatarBase](../../AvatarBase.tsx). It contains all the shared configurations and styling amongst all AvatarBase variants and should not be used unless creating a new type of AvatarBase.
+AvatarJazzIcon is a component that renders an avatar with the JazzIcon based on an address.
 
 ## Props
 
-This component extends Morph's [AvatarBaseProp](../../../../../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase/AvatarBase.tsx) component.
+This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts) from [AvatarBase](../../foundation/AvatarBase/AvatarBase.tsx) component.
 
 ### `size`
 
@@ -46,12 +46,33 @@ Optional enum to set the position for the Badge.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarBadgePositions](../../Avatar.types.ts)          | No                                                     | [AvatarBadgePositions.TopRight](../../Avatar.types.ts)                                        |
 
+### `address`
+
+A JazzIcon address.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | Yes                                                     |
+
 ## Usage
 
 ```javascript
-<AvatarBaseBase 
+const avatarProps: AvatarProps = {
+  variant: AvatarVariants.JazzIcon,
+  size: AvatarSizes.Md,
+  address: SAMPLE_JAZZICON_ADDRESS,
+  backgroundColor :'#000000'
+}
+const badgeProps: BadgeProps = {
+  variant: BadgeVariants.Avatar,
+  avatarProps
+}
+
+<AvatarJazzIcon 
   size={AvatarSizes.Md}
-  backgroundColor={'#000000'}>
-    <SAMPLE_COMPONENT />
-</AvatarBaseBase>;
+  backgroundColor={'#000000'}
+  isBadgeIncluded
+  badgeProps={badgeProps}
+  badgePosition={AvatarBadgePositions.BottomRight}
+  address={SAMPLE_JAZZICON_ADDRESS}/>;
 ```
