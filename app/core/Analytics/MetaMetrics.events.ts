@@ -5,7 +5,6 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const generateOpt = (
   category: string | CATEGORIES,
   action?: ACTIONS,
@@ -192,7 +191,7 @@ enum CATEGORIES {
   TOKEN_IMPORTED = 'Custom Token Imported',
 }
 
-const MetaMetricsEvents = {
+const events = {
   // V2 TRACKING EVENTS
 
   // Approval
@@ -368,9 +367,11 @@ const MetaMetricsEvents = {
   ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
   ONRAMP_ERROR: generateOpt('On-ramp Error'),
+};
 
-  // --- LEGACY TRACKING EVENTS ---
+// --- LEGACY TRACKING EVENTS ---
 
+const LegacyMetaMetricsEvents = {
   //Onboarding
   ONBOARDING_METRICS_OPT_IN: generateOpt(
     CATEGORIES.ONBOARDING,
@@ -814,5 +815,7 @@ const MetaMetricsEvents = {
     NAMES.SWAPS,
   ),
 };
+
+const MetaMetricsEvents = { ...events, ...LegacyMetaMetricsEvents };
 
 export { MetaMetricsEvents };
