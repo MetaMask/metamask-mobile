@@ -385,7 +385,13 @@ class ChoosePassword extends PureComponent {
       );
 
       if (previous_screen === ONBOARDING) {
-        await Authentication.newWalletAndKeyChain(password, authType);
+        try {
+          await Authentication.newWalletAndKeyChain(password, authType);
+        } catch (error) {
+          // retry faceID if the user cancels the
+          console.log('retry');
+          if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
+        }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
         await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
@@ -445,6 +451,7 @@ class ChoosePassword extends PureComponent {
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
   handleRejectedOsBiometricPrompt = async (error) => {
+    console.log('handleRejectedOsBiometricPrompt', error);
     const type = await Authentication.getType();
     if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !type) {
       this.setState({
