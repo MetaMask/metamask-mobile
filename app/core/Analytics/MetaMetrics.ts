@@ -35,6 +35,7 @@ import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
+import { EVENT_NAME } from './MetaMetrics.events';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MetaMetrics implements IMetaMetrics {
@@ -136,7 +137,11 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  #trackEvent(event: string, anonymously: boolean, properties: JsonMap): void {
+  #trackEvent(
+    event: EVENT_NAME,
+    anonymously: boolean,
+    properties: JsonMap,
+  ): void {
     if (anonymously) {
       // If the tracking is anonymous, there should not be a MetaMetrics ID
       // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
@@ -362,14 +367,17 @@ class MetaMetrics implements IMetaMetrics {
     this.#group(groupId, groupTraits);
   }
 
-  public trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
+  public trackAnonymousEvent(
+    event: EVENT_NAME,
+    properties: JsonMap = {},
+  ): void {
     if (this.#state === States.disabled) {
       return;
     }
     this.#trackEvent(event, true, properties);
   }
 
-  public trackEvent(event: string, properties: JsonMap = {}): void {
+  public trackEvent(event: EVENT_NAME, properties: JsonMap = {}): void {
     if (this.#state === States.disabled) {
       return;
     }

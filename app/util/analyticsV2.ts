@@ -1,5 +1,9 @@
 import { InteractionManager } from 'react-native';
-import { MetaMetrics, IMetaMetricsEvent } from '../core/Analytics';
+import {
+  MetaMetrics,
+  MetaMetricsEvents,
+  IMetaMetricsEvent,
+} from '../core/Analytics';
 import Logger from './Logger';
 
 export const checkEnabled = (): boolean => MetaMetrics.checkEnabled();
@@ -98,7 +102,8 @@ export const trackErrorAsAnalytics = (
   otherInfo: string,
 ) => {
   try {
-    MetaMetrics.trackEvent('Error occurred', {
+    const { name } = MetaMetricsEvents.ERROR;
+    MetaMetrics.trackEvent(name, {
       error: true,
       type,
       errorMessage,
