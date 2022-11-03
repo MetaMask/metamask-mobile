@@ -41,14 +41,14 @@ Optional enum that represents the position of the network badge.
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import Badge from 'app/component-library/components/Badges/Badge';
-import {BadgeVariants} from 'app/component-library/components/Badges/Badge.types';
-
+const avatarProps: AvatarProps = {
+  variant: AvatarVariants.JazzIcon,
+  size: AvatarSizes.Md,
+  address: SAMPLE_JAZZICON_ADDRESS,
+  backgroundColor :'#000000'
+}
 <Badge
-  variant={BadgeVariants.Network}
-  name={NETWORK_NAME}
-  imageSource={NETWORK_IMAGE_SOURCE}
-  position={BadgeNetworkPosition.TopRight}
+  variant={BadgeVariants.Avatar}
+  avatarProps={avatarProps}
 />;
 ```

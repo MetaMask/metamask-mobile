@@ -5,3 +5,8 @@ import { BadgeBaseProps as MorphBadgeBaseProps } from '../../../../../../compone
  * Badge component props.
  */
 export type BadgeBaseProps = MorphBadgeBaseProps;
+
+/**
+ * Style sheet input parameters.
+ */
+export type BadgeBaseStyleSheetVars = Pick<BadgeBaseProps, 'style'>;

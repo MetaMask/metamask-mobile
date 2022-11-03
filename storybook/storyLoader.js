@@ -52,6 +52,9 @@ function loadStories() {
   require('../app/components/UI/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
+  require('../app/components/UI/Badges/Badge/Badge.stories');
+  require('../app/components/UI/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories');
+  require('../app/components/UI/Badges/BadgeWrapper/BadgeWrapper.stories');
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
@@ -110,6 +113,9 @@ const stories = [
   '../app/components/UI/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
+  '../app/components/UI/Badges/Badge/Badge.stories',
+  '../app/components/UI/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories',
+  '../app/components/UI/Badges/BadgeWrapper/BadgeWrapper.stories',
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',

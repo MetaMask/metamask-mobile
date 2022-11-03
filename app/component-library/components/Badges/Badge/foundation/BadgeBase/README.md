@@ -17,10 +17,6 @@ Any given component to be placed within the badge.
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import BadgeBase from 'app/component-library/components/Badges/foundation/BadgeBase';
-import Tag from 'app/component-library/components/Tags/Tag';
-
 <BadgeBase>
     <Tag label={'Children'} />
 </BadgeBase>,

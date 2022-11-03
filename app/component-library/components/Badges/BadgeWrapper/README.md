@@ -25,11 +25,19 @@ The children element that the badge will attach itself to.
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import BadgeWrapper from 'app/component-library/components/Badges/BadgeWrapper';
-import AvatarAccount from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
+const avatarProps: AvatarProps = {
+  variant: AvatarVariants.Initial,
+  size: AvatarSizes.Md,
+  initial: 'Morph',
+  backgroundColor :'#000000'
+}
 
-<BadgeWrapper badgeProps={BADGE_PROPS}>
-  <AvatarAccount accountAddress={ACCOUNT_ADDRESS} />
+const badgeProps: BadgeProps = {
+  variant: BadgeVariants.Avatar,
+  avatarProps
+}
+
+<BadgeWrapper badgeProps={badgeProps}>
+  <AvatarInitial initial='Sample' />
 </BadgeWrapper>;
 ```
