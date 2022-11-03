@@ -27,6 +27,7 @@ import Keypad from '../components/Keypad';
 import QuickAmounts from '../components/QuickAmounts';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
+import CustomActionButton from '../containers/CustomActionButton';
 
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
@@ -836,13 +837,21 @@ const AmountToBuy = () => {
             onPress={showPaymentMethodsModal as () => void}
           />
           <View style={[styles.row, styles.cta]}>
-            <StyledButton
-              type="confirm"
-              onPress={handleGetQuotePress}
-              disabled={!amountIsValid || amountNumber <= 0}
-            >
-              {strings('fiat_on_ramp_aggregator.get_quotes')}
-            </StyledButton>
+            {currentPaymentMethod?.customAction ? (
+              <CustomActionButton
+                customAction={currentPaymentMethod.customAction}
+                amount={amountNumber}
+                disabled={!amountIsValid || amountNumber <= 0}
+              />
+            ) : (
+              <StyledButton
+                type="confirm"
+                onPress={handleGetQuotePress}
+                disabled={!amountIsValid || amountNumber <= 0}
+              >
+                {strings('fiat_on_ramp_aggregator.get_quotes')}
+              </StyledButton>
+            )}
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

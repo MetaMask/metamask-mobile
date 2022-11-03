@@ -33,7 +33,14 @@ const TransactionReviewEIP1559Update = ({
   legacy,
   gasSelected,
   gasObject,
+  onlyGas,
+  totalMaxNative,
+  totalConversion,
+  totalNative,
+  gasFeeNative,
   updateTransactionState,
+  dappSuggestedGasPrice,
+  dappSuggestedEIP1559Gas,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -50,10 +57,12 @@ const TransactionReviewEIP1559Update = ({
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
-    onlyGas: undefined,
+    onlyGas: !!onlyGas,
     gasSelected,
     legacy: !!legacy,
     gasObject,
+    dappSuggestedGasPrice,
+    dappSuggestedEIP1559Gas,
   });
 
   const {
@@ -72,6 +81,11 @@ const TransactionReviewEIP1559Update = ({
     transactionTotalAmount,
     transactionTotalAmountFiat,
   } = gasTransaction;
+
+  totalMaxNative = renderableTotalMaxNative || totalMaxNative;
+  totalConversion = renderableTotalMinConversion || totalConversion;
+  totalNative = renderableTotalMinNative || totalNative;
+  gasFeeNative = transactionTotalAmount || gasFeeNative;
 
   useEffect(() => {
     if (animateOnChange) {
@@ -279,8 +293,8 @@ const TransactionReviewEIP1559Update = ({
                 >
                   {isMainnet &&
                     switchNativeCurrencyDisplayOptions(
-                      renderableTotalMinConversion,
-                      renderableTotalMinNative,
+                      totalConversion,
+                      totalNative,
                     ) !== 'undefined' && (
                       <Text
                         grey
@@ -294,11 +308,11 @@ const TransactionReviewEIP1559Update = ({
                         {legacy
                           ? switchNativeCurrencyDisplayOptions(
                               transactionTotalAmountFiat,
-                              transactionTotalAmount,
+                              gasFeeNative,
                             )
                           : switchNativeCurrencyDisplayOptions(
-                              renderableTotalMinConversion,
-                              renderableTotalMinNative,
+                              totalConversion,
+                              totalNative,
                             )}
                       </Text>
                     )}
@@ -315,12 +329,12 @@ const TransactionReviewEIP1559Update = ({
                   >
                     {legacy
                       ? switchNativeCurrencyDisplayOptions(
-                          transactionTotalAmount,
+                          gasFeeNative,
                           transactionTotalAmountFiat,
                         )
                       : switchNativeCurrencyDisplayOptions(
-                          renderableTotalMinNative,
-                          renderableTotalMinConversion,
+                          totalNative,
+                          totalConversion,
                         )}
                   </Text>
                 </FadeAnimationView>
@@ -343,7 +357,7 @@ const TransactionReviewEIP1559Update = ({
                     </Text>{' '}
                     <Text small noMargin>
                       {switchNativeCurrencyDisplayOptions(
-                        renderableTotalMaxNative,
+                        totalMaxNative,
                         renderableGasFeeMaxConversion,
                       )}
                     </Text>

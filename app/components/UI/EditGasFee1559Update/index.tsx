@@ -36,8 +36,8 @@ const EditGasFee1559Update = ({
   gasOptions,
   primaryCurrency,
   chainId,
-  onCancel,
   onChange,
+  onCancel,
   onSave,
   error,
   dappSuggestedGas,
@@ -211,7 +211,7 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError('');
+        setMaxPriorityFeeError(null);
       }
 
       const newGas = {
