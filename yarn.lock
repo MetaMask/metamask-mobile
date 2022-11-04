@@ -1537,10 +1537,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@1.3.0-beta.32":
-  version "1.3.0-beta.32"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.0-beta.32.tgz#f400c0b3d2ee43c296947cfd03d8ae467098c13d"
-  integrity sha512-C2tzLaz5Z9LPEdhZ4X/WVFJ/uimjfpba9iyvb1d7oyy+bohW8wttcBiEY9NU5qtjiRmF9f441H2A7io1HGN2uQ==
+"@consensys/on-ramp-sdk@1.3.1-beta.6":
+  version "1.3.1-beta.6"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.1-beta.6.tgz#1f701e6655f0faf1a2ef8afd940cef2e1ddc08fb"
+  integrity sha512-NcsRzFh4jAVDnLzaWuyttUdxyqWCcKxWxd4PPB4vmdUoN3tuXI/+JOKUASMU9D7+wr7iYwXaDYRrwpBwNIsadw==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -22883,16 +22883,6 @@ uuid@^7.0.3:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.3.tgz#c5c9f2c8cf25dc0a372c4df1441c41f5bd0c680b"
   integrity sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
-
-uuid@^8.3.0, uuid@^8.3.2:
-  version "8.3.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
-  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
-uuid@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
-  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-android@~8.84.0:
   version "8.84.0"
