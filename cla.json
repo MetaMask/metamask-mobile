@@ -471,6 +471,14 @@
       "comment_id": 1301252411,
       "created_at": "2022-11-02T21:03:35Z",
       "repoId": 141427485
+    },
+    {
+      "id": 4785135,
+      "name": "vpintorico",
+      "pullRequestNo": 5207,
+      "comment_id": 1303994675,
+      "created_at": "2022-11-04T18:44:24Z",
+      "repoId": 141427485
     }
   ]
 }
