@@ -28,7 +28,7 @@ import StyledButton from '../../../UI/StyledButton';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
+import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
 import {
