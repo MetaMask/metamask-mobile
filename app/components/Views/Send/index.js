@@ -269,12 +269,22 @@ class Send extends PureComponent {
    */
   handleNewTxMetaRecipient = async (recipient) => {
     let ensRecipient, to;
-
-    if (isENS(recipient)) {
+    const recipientIsEns = isENS(recipient);
+    if (recipientIsEns) {
       ensRecipient = recipient;
       to = await doENSLookup(ensRecipient, this.props.network);
-    } else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
-      to = toChecksumAddress(recipient);
+    } else if (recipient && recipient === toChecksumAddress(recipient)) {
+      to = recipient;
+    } else {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: recipientIsEns
+          ? strings('transaction.invalid_recipient_ens_description')
+          : strings('transaction.invalid_recipient_description'),
+      });
+      throw new Error('Recipient is not valid');
     }
     return { ensRecipient, to };
   };

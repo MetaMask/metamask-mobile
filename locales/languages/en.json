@@ -917,7 +917,10 @@
     "invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
     "no_camera_permission_android": "You need to grant MetaMask access to your camera to proceed. You may also need to change your system settings.",
     "mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'.",
-    "hex_data_copied": "Hex data copied to clipboard"
+    "hex_data_copied": "Hex data copied to clipboard",
+    "invalid_recipient": "Invalid recipient",
+    "invalid_recipient_description": "Make sure the case of the address is correct",
+    "invalid_recipient_ens_description": "Make sure this ens is valid"
   },
   "custom_gas": {
     "total": "Total",
