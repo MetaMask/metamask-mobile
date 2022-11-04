@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 // External dependencies.
 // eslint-disable-next-line
 // @ts-ignore
-import { AvatarSize } from '../../Avatar.types';
+import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
@@ -18,7 +18,7 @@ describe('AvatarToken', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={AvatarSize.Xl}
+        size={AvatarSizes.Xl}
         name={TEST_TOKEN_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,

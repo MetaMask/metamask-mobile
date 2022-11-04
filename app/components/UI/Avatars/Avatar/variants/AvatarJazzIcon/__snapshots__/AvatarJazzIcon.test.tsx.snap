@@ -2,13 +2,17 @@
 
 exports[`AvatarJazzIcon - Snapshot should render AvatarJazzIcon correctly 1`] = `
 <AvatarBase
+  address="0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092"
   size="32"
   testID="avatar-jazzicon"
+  variant="JazzIcon"
 >
-  <Jazzicon
-    address="0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092"
-    size={32}
-    variant="JazzIcon"
-  />
+  <AvatarBase
+    size="32"
+  >
+    <Jazzicon
+      size={32}
+    />
+  </AvatarBase>
 </AvatarBase>
 `;

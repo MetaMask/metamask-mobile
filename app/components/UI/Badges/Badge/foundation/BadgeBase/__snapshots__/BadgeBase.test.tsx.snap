@@ -1,16 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BadgeBase - snapshots should render badge correctly 1`] = `
-<View
-  style={
-    Object {
-      "position": "absolute",
-    }
-  }
+<BadgeBase
+  style={Object {}}
   testID="badge-base"
 >
-  <Tag
-    label="Children"
-  />
-</View>
+  <View />
+</BadgeBase>
 `;

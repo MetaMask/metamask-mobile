@@ -3,24 +3,17 @@
 exports[`AvatarToken should render correctly 1`] = `
 <AvatarBase
   size="48"
-  style={Object {}}
 >
-  <Image
+  <Avatar
+    isHaloEnabled={false}
     onError={[Function]}
-    resizeMode="contain"
+    size="48"
     source={
       Object {
         "uri": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
       }
     }
-    style={
-      Object {
-        "flex": 1,
-        "height": undefined,
-        "width": undefined,
-      }
-    }
-    testID="token-avatar-image"
+    variant="Image"
   />
 </AvatarBase>
 `;
