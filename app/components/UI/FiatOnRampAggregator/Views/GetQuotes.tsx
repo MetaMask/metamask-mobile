@@ -195,6 +195,7 @@ const GetQuotes = () => {
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const [isLoading, setIsLoading] = useState(true);
+  const [isQuoteLoading /*, setIsQuoteLoading */] = useState(false);
   const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
   const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
   const [isInPolling, setIsInPolling] = useState(false);
@@ -657,6 +658,7 @@ const GetQuotes = () => {
                   style={[styles.row, index === 0 && styles.withoutTopMargin]}
                 >
                   <Quote
+                    isLoading={isQuoteLoading}
                     quote={quote}
                     onPress={() => handleOnQuotePress(quote)}
                     onPressBuy={() => handleOnPressBuy(quote, index)}

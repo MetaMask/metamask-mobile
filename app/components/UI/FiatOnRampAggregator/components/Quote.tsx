@@ -4,6 +4,7 @@ import {
   View,
   TouchableOpacity,
   LayoutChangeEvent,
+  ActivityIndicator,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Animated, {
@@ -63,6 +64,7 @@ interface Props {
   onPress?: () => any;
   onPressBuy?: () => any;
   highlighted?: boolean;
+  isLoading?: boolean;
   showInfo: () => any;
 }
 
@@ -76,6 +78,7 @@ const Quote: React.FC<Props> = ({
   onPress,
   onPressBuy,
   showInfo,
+  isLoading,
   highlighted,
 }: Props) => {
   const { colors } = useTheme();
@@ -246,9 +249,16 @@ const Quote: React.FC<Props> = ({
               />
             ) : (
               <StyledButton type={'blue'} onPress={onPressBuy}>
-                {strings('fiat_on_ramp_aggregator.buy_with', {
-                  provider: provider.name,
-                })}
+                {isLoading ? (
+                  <ActivityIndicator
+                    size={'small'}
+                    color={colors.primary.inverse}
+                  />
+                ) : (
+                  strings('fiat_on_ramp_aggregator.buy_with', {
+                    provider: provider.name,
+                  })
+                )}
               </StyledButton>
             )}
           </View>
