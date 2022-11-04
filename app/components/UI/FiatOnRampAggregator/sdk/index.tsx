@@ -70,12 +70,15 @@ interface IProviderProps<T> {
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
+const ACTIVATION_KEYS = process.env.ONRAMP_ACTIVATION_KEYS?.split(',') || [];
+
 export const SDK = OnRampSdk.create(
   isDevelopment ? Environment.Staging : Environment.Production,
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,
     locale: I18n.locale,
+    activationKeys: ACTIVATION_KEYS,
   },
 );
 
@@ -86,6 +89,8 @@ I18nEvents.addListener('localeChanged', (locale) => {
 export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
+
+export const callbackBaseDeeplink = 'metamask://';
 
 const appConfig = {
   POLLING_INTERVAL: 20000,
