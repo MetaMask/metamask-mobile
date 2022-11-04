@@ -32,13 +32,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
         Object {
           "marginLeft": 4,
         },
-        Object {
-          "transform": Array [
-            Object {
-              "rotate": "180deg",
-            },
-          ],
-        },
+        [Function],
       ]
     }
     testID="accordion-header-arrow-icon-animation"
@@ -85,13 +79,7 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
         Object {
           "marginLeft": 4,
         },
-        Object {
-          "transform": Array [
-            Object {
-              "rotate": "0deg",
-            },
-          ],
-        },
+        [Function],
       ]
     }
     testID="accordion-header-arrow-icon-animation"
