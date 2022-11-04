@@ -280,9 +280,7 @@ class Send extends PureComponent {
         status: 'simple_notification_rejected',
         duration: 5000,
         title: strings('transaction.invalid_recipient'),
-        description: recipientIsEns
-          ? strings('transaction.invalid_recipient_ens_description')
-          : strings('transaction.invalid_recipient_description'),
+        description: strings('transaction.invalid_recipient_description'),
       });
       throw new Error('Recipient is not valid');
     }

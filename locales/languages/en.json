@@ -919,8 +919,7 @@
     "mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'.",
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
-    "invalid_recipient_description": "Make sure the case of the address is correct",
-    "invalid_recipient_ens_description": "Make sure this ens is valid"
+    "invalid_recipient_description": "Check the address and make sure it's valid"
   },
   "custom_gas": {
     "total": "Total",
