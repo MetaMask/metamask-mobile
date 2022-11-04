@@ -269,8 +269,7 @@ class Send extends PureComponent {
    */
   handleNewTxMetaRecipient = async (recipient) => {
     let ensRecipient, to;
-    const recipientIsEns = isENS(recipient);
-    if (recipientIsEns) {
+    if (isENS(recipient)) {
       ensRecipient = recipient;
       to = await doENSLookup(ensRecipient, this.props.network);
     } else if (recipient && recipient === toChecksumAddress(recipient)) {
