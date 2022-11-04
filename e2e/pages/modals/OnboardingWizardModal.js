@@ -1,6 +1,6 @@
+import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
 import TestHelpers from '../../helpers';
 
-const ONBOARDING_WIZARD_MODAL_CONTAINER_ID = 'onboarding-wizard-step1-view';
 const NO_THANKS_BUTTON_ID = 'onboarding-wizard-back-button';
 const TAKE_TOUR_BUTTON_ID = 'onboarding-wizard-next-button';
 const SECOND_STEP_BUTTON_ID = 'step2-title';
@@ -27,11 +27,11 @@ export default class OnboardingWizardModal {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ONBOARDING_WIZARD_MODAL_CONTAINER_ID);
+    await TestHelpers.checkIfNotVisible(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
   }
 
   static async isYourAccountsTutorialStepVisible() {

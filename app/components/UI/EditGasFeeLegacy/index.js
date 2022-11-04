@@ -108,6 +108,10 @@ const createStyles = (colors) =>
     },
   });
 
+/**
+ * The EditGasFeeLegacy component will be deprecated in favor of EditGasFeeLegacyUpdate as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFeeLegacyUpdate will be renamed EditGasFeeLegacy and this component will be removed. The EditGasFeeLegacyUpdate is currently being used in the Update Transaction(Speed Up/Cancel) flow.
+ */
+
 const EditGasFeeLegacy = ({
   selected,
   gasFee,
