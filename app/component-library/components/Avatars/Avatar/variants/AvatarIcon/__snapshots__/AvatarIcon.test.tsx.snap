@@ -3,6 +3,7 @@
 exports[`AvatarIcon - Snapshot should render correctly 1`] = `
 <AvatarBase
   size="32"
+  style={Object {}}
   testID="avatar-icon"
 >
   <Icon

@@ -4,7 +4,7 @@ import { select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from 'app/component-library/constants/storybook.constants';
+import { storybookPropsGroupID } from '../../../../component-library/constants/storybook.constants';
 import BadgeAvatarStory, {
   getBadgeAvatarStoryProps,
 } from './variants/BadgeAvatar/BadgeAvatar.stories';

@@ -26,7 +26,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
         }
       }
       size="48"
-      variant="Token"
+      variant="Image"
     />
     <View>
       <Text

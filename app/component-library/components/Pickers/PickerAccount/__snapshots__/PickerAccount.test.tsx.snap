@@ -14,15 +14,13 @@ exports[`PickerAccount should render correctly 1`] = `
     }
   >
     <Avatar
-      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      address="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
         Object {
           "marginRight": 16,
         }
       }
-      type="JazzIcon"
-      variant="Account"
     />
     <View>
       <Text

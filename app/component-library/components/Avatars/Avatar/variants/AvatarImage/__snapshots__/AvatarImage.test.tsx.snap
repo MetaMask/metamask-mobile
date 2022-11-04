@@ -45,6 +45,7 @@ exports[`AvatarImage - Snapshot should render AvatarImage with halo if isHaloEna
         }
       }
       testID="avatar-image-image"
+      variant="Image"
     />
   </ImageBackground>
 </AvatarBase>
@@ -71,6 +72,7 @@ exports[`AvatarImage - Snapshot should render AvatarImage with local imageSource
       }
     }
     testID="avatar-image-image"
+    variant="Image"
   />
 </AvatarBase>
 `;
@@ -96,6 +98,7 @@ exports[`AvatarImage - Snapshot should render AvatarImage with remote imageSourc
       }
     }
     testID="avatar-image-image"
+    variant="Image"
   />
 </AvatarBase>
 `;

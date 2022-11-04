@@ -9,9 +9,8 @@ exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
   <CellBase
     avatarProps={
       Object {
-        "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
-        "type": "JazzIcon",
-        "variant": "Account",
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "variant": undefined,
       }
     }
     title="Orangefox.eth"
@@ -28,9 +27,8 @@ exports[`CellSelect - Snapshot should render the proper selected state 1`] = `
   <CellBase
     avatarProps={
       Object {
-        "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
-        "type": "JazzIcon",
-        "variant": "Account",
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "variant": undefined,
       }
     }
     title="Orangefox.eth"

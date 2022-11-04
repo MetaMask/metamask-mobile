@@ -4,9 +4,8 @@ exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = 
 <CellDisplay
   avatarProps={
     Object {
-      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
-      "type": "JazzIcon",
-      "variant": "Account",
+      "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "variant": undefined,
     }
   }
   testID="cell-display"
@@ -19,9 +18,8 @@ exports[`Cell - Snapshot should render CellMultiselect given the type Multiselec
 <CellMultiselect
   avatarProps={
     Object {
-      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
-      "type": "JazzIcon",
-      "variant": "Account",
+      "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "variant": undefined,
     }
   }
   testID="cell-multi-select"
@@ -34,9 +32,8 @@ exports[`Cell - Snapshot should render CellSelect given the type Select 1`] = `
 <CellSelect
   avatarProps={
     Object {
-      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
-      "type": "JazzIcon",
-      "variant": "Account",
+      "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "variant": undefined,
     }
   }
   testID="cell-select"

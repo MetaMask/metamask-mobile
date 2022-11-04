@@ -1,14 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Badge - snapshots should render badge network given the badge network variant 1`] = `
-<BadgeNetwork
-  imageSource={
+exports[`Badge - snapshots should render badge avatar given the badge avatar variant 1`] = `
+<BadgeAvatar
+  avatarProps={
     Object {
-      "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      "source": Object {
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      },
+      "variant": "Image",
     }
   }
-  name="Ethereum"
-  testID="badge-network"
-  variant="network"
+  testID="badge-avatar"
+  variant="avatar"
 />
 `;

@@ -20,9 +20,8 @@ exports[`PickerNetwork should render correctly 1`] = `
         "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
       }
     }
-    name="Ethereum Mainnet"
     size="16"
-    variant="Network"
+    variant="Image"
   />
   <Text
     style={

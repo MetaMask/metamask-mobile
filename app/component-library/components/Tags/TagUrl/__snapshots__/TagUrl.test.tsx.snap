@@ -23,7 +23,7 @@ exports[`TagUrl should render correctly 1`] = `
       }
     }
     size="32"
-    variant="Favicon"
+    variant="Image"
   />
   <Text
     style={
