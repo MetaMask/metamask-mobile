@@ -12,6 +12,7 @@ import Animated, {
   useSharedValue,
   withDelay,
   withTiming,
+  WithTimingConfig,
 } from 'react-native-reanimated';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import Box from './Box';
@@ -65,7 +66,7 @@ interface Props {
   showInfo: () => any;
 }
 
-const animationConfig: Animated.WithTimingConfig = {
+const animationConfig: WithTimingConfig = {
   duration: 150,
   easing: Easing.elastic(0.3),
 };
