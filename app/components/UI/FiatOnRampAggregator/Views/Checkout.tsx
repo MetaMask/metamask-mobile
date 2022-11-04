@@ -102,7 +102,10 @@ const CheckoutWebView = () => {
   }, [dispatch]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
-    if (navState?.url.startsWith(callbackBaseUrl)) {
+    if (
+      navState?.url.startsWith(callbackBaseUrl) &&
+      navState.loading === false
+    ) {
       try {
         const parsedUrl = parseUrl(navState?.url);
         if (Object.keys(parsedUrl.query).length === 0) {
