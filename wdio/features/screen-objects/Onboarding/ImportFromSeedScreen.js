@@ -5,7 +5,8 @@ import {
   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID
+  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID
 } from '../../testIDs/Screens/ImportFromSeedScreen.testIds';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
@@ -34,6 +35,10 @@ class ImportFromSeed {
 
   get passwordStrengthLabel(){
     return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID);
+  }
+
+  get passwordMatchIcon(){
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID);
   }
 
   async isScreenTitleVisible() {
@@ -68,6 +73,10 @@ class ImportFromSeed {
 
   async tapOkInAlertMessage(){
     await driver.acceptAlert();
+  }
+
+  async isPasswordMatchIconVisible(){
+    await expect(this.passwordMatchIcon).toBeDisplayed();
   }
 }
 

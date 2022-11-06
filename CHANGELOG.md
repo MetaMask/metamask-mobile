@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 5.9.1 - Oct 28, 2022
+- [#5172](https://github.com/MetaMask/metamask-mobile/pull/5172): [HOTFIX] ENS name being resolved correctly
+
 ## 5.9.0 - Oct 10, 2022
  - [#5035](https://github.com/MetaMask/metamask-mobile/pull/5035): [FIX] On-Ramp: Fix autolock dispatch for apple pay
  - [#4804](https://github.com/MetaMask/metamask-mobile/pull/4804): [UPDATE] GasPolling refactor UpdateEIP1559Transaction Component
@@ -24,6 +27,7 @@
  - [#4404](https://github.com/MetaMask/metamask-mobile/pull/4404): [FIX] Fixed ERC20 token transfer from Dapps
  - [#5024](https://github.com/MetaMask/metamask-mobile/pull/5024): [UPDATE] app name for release-to-store step
  - [#5006](https://github.com/MetaMask/metamask-mobile/pull/5006): [UPDATE] Bump @keystonehq/ur-decoder from 0.3.0 to 0.6.1
+
 ## 5.8.1 - Oct 5, 2022
 - [#4286](https://github.com/MetaMask/metamask-mobile/pull/4286): [ENHANCEMENT] Integrates MetaMask SDK support
 
