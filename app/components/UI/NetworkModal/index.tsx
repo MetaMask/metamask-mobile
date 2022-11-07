@@ -25,10 +25,12 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 
 import {
   APPROVE_NETWORK_DISPLAY_NAME_ID,
-  APPROVE_NETWORK_MODAL_ID,
   APPROVE_NETWORK_CANCEL_BUTTON_ID,
-  APPROVE_NETWORK_APPROVE_BUTTON_ID,
 } from '../../../constants/test-ids';
+import {
+  APPROVE_NETWORK_APPROVE_BUTTON,
+  APPROVE_NETWORK_MODAL,
+} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -242,7 +244,7 @@ const NetworkModals = (props: NetworkProps) => {
             )}
             <View
               style={styles.nameWrapper}
-              {...generateTestId(Platform, APPROVE_NETWORK_MODAL_ID)}
+              {...generateTestId(Platform, APPROVE_NETWORK_MODAL)}
             >
               <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
               <Text black>{nickname}</Text>
@@ -306,7 +308,8 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'confirm'}
                 onPress={addNetwork}
                 containerStyle={[styles.button, styles.confirm]}
-                testID={APPROVE_NETWORK_APPROVE_BUTTON_ID}
+                testID={APPROVE_NETWORK_APPROVE_BUTTON}
+                {...generateTestId(Platform, APPROVE_NETWORK_APPROVE_BUTTON)}
                 disabled={!validateRpcUrl(rpcUrl)}
               >
                 {strings('networks.approve')}

@@ -5,7 +5,9 @@ import Gestures from '../helpers/Gestures';
 import {INPUT_CHAIN_ID_FIELD,
     INPUT_RPC_URL_FIELD, ADD_NETWORK_BUTTON, 
     INPUT_NETWORK_NAME,
-    NETWORKS_SYMBOL_INPUT_FIELD} from '../testIDs/Screens/NetworksScreen.testids';
+    NETWORKS_SYMBOL_INPUT_FIELD,
+    BLOCK_EXPLORER_FIELD,
+    REMOVE_NETWORK_BUTTON} from '../testIDs/Screens/NetworksScreen.testids';
 
 class NetworksScreen {
 
@@ -38,11 +40,11 @@ class NetworksScreen {
     }
 
     get blockExplorerInputField() {
-        return Selectors.getElementByPlatform('block-explorer');
+        return Selectors.getElementByPlatform(BLOCK_EXPLORER_FIELD);
     }
 
     get removeNetworkButton() {
-        return Selectors.getElementByPlatform('remove-network-button');
+        return Selectors.getElementByPlatform(REMOVE_NETWORK_BUTTON);
     }
 
     get saveNetworkButton() {
@@ -153,8 +155,8 @@ class NetworksScreen {
        await Gestures.tapTextByXpath(network);
     }
 
-    async isNetworkVisible(text) {
-        await expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
+    async isNetworkVisible(network) {
+        await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
     }
 
     async isNetworkNotVisible(text) {

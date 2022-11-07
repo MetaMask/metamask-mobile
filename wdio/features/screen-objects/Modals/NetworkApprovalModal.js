@@ -1,22 +1,26 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
+import {NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,
+    NEW_NETWORK_ADDED_CLOSE_BUTTON,
+    APPROVE_NETWORK_APPROVE_BUTTON,
+    APPROVE_NETWORK_MODAL} from '../../testIDs/Screens/NetworksScreen.testids';
 
 
 class NetworkApprovalModal {
 
     get ApproveNetworkModal() {
-        return Selectors.getElementByPlatform('approve-network-modal', true);
+        return Selectors.getElementByPlatform(APPROVE_NETWORK_MODAL);
     }
 
     get ApproveNetworkApproveButton() {
-        return Selectors.getElementByPlatform('approve-network-approve-button', true);
+        return Selectors.getElementByPlatform(APPROVE_NETWORK_APPROVE_BUTTON);
     }
     get CloseNetworkButton() {
-        return Selectors.getElementByPlatform('close-network-button', true);
+        return Selectors.getElementByPlatform(NEW_NETWORK_ADDED_CLOSE_BUTTON);
     }
 
     get SwitchToNetworkButton() {
-        return Selectors.getElementByPlatform('switch-to-network-button', true);
+        return Selectors.getElementByPlatform(NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON);
     }
 
     async isApproveNetworkModal() {

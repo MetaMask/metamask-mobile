@@ -110,6 +110,7 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
+  await driver.pause(6000);
 });
 
 Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
