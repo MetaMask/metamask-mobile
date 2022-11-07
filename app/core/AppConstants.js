@@ -143,4 +143,5 @@ export default {
   },
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
+  NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
 };

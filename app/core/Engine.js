@@ -92,7 +92,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'NetworkController',
           allowedEvents: [
-            'NetworkController:stateChange',
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
             'NetworkController:providerChange',
           ],
           allowedActions: [],
@@ -143,7 +143,7 @@ class Engine {
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:stateChange`,
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
       });
@@ -153,7 +153,7 @@ class Engine {
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:stateChange`,
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
           getERC721AssetName: assetsContractController.getERC721AssetName.bind(
@@ -186,7 +186,7 @@ class Engine {
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:stateChange`,
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
         config: { provider: networkController.provider },
@@ -196,7 +196,7 @@ class Engine {
         chainId: networkController.provider.chainId,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:stateChange`,
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
         messenger: this.controllerMessenger,
@@ -212,7 +212,7 @@ class Engine {
         getProvider: () => networkController.provider,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `${networkController.name}:stateChange`,
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
         getCurrentNetworkEIP1559Compatibility: async () =>
@@ -272,7 +272,7 @@ class Engine {
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:stateChange`,
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
           onTokenListStateChange: (listener) =>
@@ -310,7 +310,7 @@ class Engine {
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:stateChange`,
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
           getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
@@ -347,7 +347,7 @@ class Engine {
             ),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:stateChange`,
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
         }),
@@ -355,7 +355,7 @@ class Engine {
           getNetworkState: () => networkController.state,
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `${networkController.name}:stateChange`,
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
           getProvider: () => networkController.provider,
@@ -423,7 +423,7 @@ class Engine {
 
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
       this.controllerMessenger.subscribe(
-        'NetworkController:stateChange',
+        AppConstants.NETWORK_STATE_CHANGE_EVENT,
         (state: { network: string, provider: { chainId: any } }) => {
           if (
             state.network !== 'loading' &&
