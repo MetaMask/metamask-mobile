@@ -34,6 +34,7 @@ const CheckoutWebView = () => {
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
+  const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   // @ts-expect-error useRoute params error
@@ -106,6 +107,8 @@ const CheckoutWebView = () => {
       navState?.url.startsWith(callbackBaseUrl) &&
       navState.loading === false
     ) {
+      if (isRedirectionHandled) return;
+      setIsRedirectionHandled(true);
       try {
         const parsedUrl = parseUrl(navState?.url);
         if (Object.keys(parsedUrl.query).length === 0) {
@@ -198,6 +201,7 @@ const CheckoutWebView = () => {
             ctaOnPress={() => {
               setKey((prevKey) => prevKey + 1);
               setError('');
+              setIsRedirectionHandled(false);
             }}
             location={'Provider Webview'}
           />
