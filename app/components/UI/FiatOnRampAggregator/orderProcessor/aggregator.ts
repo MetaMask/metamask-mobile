@@ -70,6 +70,7 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
+  excludeFromPurchases: aggregatorOrder.excludeFromPurchases,
   data: aggregatorOrder,
 });
 
