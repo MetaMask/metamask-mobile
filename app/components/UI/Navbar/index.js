@@ -982,7 +982,6 @@ export function getWalletNavbarOptions(
         onPress={openDrawer}
         style={styles.backButton}
         testID={'hamburger-menu-button-wallet'}
-        {...generateTestId(Platform, 'hamburger-menu-button-wallet')}
       >
         <IonicIcon
           {...generateTestId(Platform, WALLET_VIEW_BURGER_ICON_ID)}

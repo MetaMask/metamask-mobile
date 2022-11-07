@@ -1,27 +1,28 @@
-import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORK} from '../testIDs/Screens/WalletScreen-testIds.js';
+import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORK } from '../testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
 } from '../testIDs/Components/OnboardingWizard.testIds';
 import Selectors from '../helpers/Selectors';
-import {WALLET_VIEW_BURGER_ICON_ID} from '../testIDs/Screens/WalletView.testIds';
+import { WALLET_VIEW_BURGER_ICON_ID } from '../testIDs/Screens/WalletView.testIds';
 import Gestures from '../helpers/Gestures.js';
+
 
 class WalletMainScreen {
 
-  get wizardContainer(){
+  get wizardContainer() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
   }
 
-  get noThanks(){
+  get noThanks() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID);
   }
 
-  get burgerIcon(){
+  get burgerIcon() {
     return Selectors.getElementByPlatform(WALLET_VIEW_BURGER_ICON_ID);
   }
 
-  get WalletScreenContainer(){
+  get WalletScreenContainer() {
     return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
   }
 
@@ -29,11 +30,7 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORK);
   }
 
-  get hamburgerMenu() {
-    return Selectors.getElementByPlatform('hamburger-menu-button-wallet');
-  }
-
-  get drawerSettings(){
+  get drawerSettings() {
     return Selectors.getElementByPlatform('drawer-settings');
   }
 
@@ -41,11 +38,11 @@ class WalletMainScreen {
     await expect(this.wizardContainer).toBeDisplayed();
   }
 
-  async tapNoThanks(){
+  async tapNoThanks() {
     await Gestures.waitAndTap(this.noThanks);
   }
 
-  async tapBurgerIcon(){
+  async tapBurgerIcon() {
     await Gestures.waitAndTap(this.burgerIcon);
   }
 
@@ -57,19 +54,15 @@ class WalletMainScreen {
     await Gestures.tap(this.networkNavBarWalletTitle);
   }
 
-  async tapHamburgerMenu() {
-    await Gestures.tap(this.hamburgerMenu);
-  }
-
-  async isNetworkNameCorrect(network){
+  async isNetworkNameCorrect(network) {
     const textFromElement = await this.networkNavBarWalletTitle;
     const networkName = await textFromElement.getText();
-      await expect(networkName).toContain(network);
-    }
+    await expect(networkName).toContain(network);
+  }
 
-    async tapSettings() {
-      await Gestures.tap(this.drawerSettings);
-    }
+  async tapSettings() {
+    await Gestures.tap(this.drawerSettings);
+  }
 
 }
 

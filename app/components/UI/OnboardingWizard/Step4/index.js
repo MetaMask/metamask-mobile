@@ -112,11 +112,7 @@ const Step4 = (props) => {
     <View style={[styles.main, { top: viewTop }]}>
       <View style={styles.coachmarkContainer}>
         <View style={styles.hamburgerContainer}>
-          <TouchableWithoutFeedback
-            style={styles.hamburger}
-            onPress={onNext}
-            {...generateTestId(Platform, 'hamburger-menu-button-wallet-fake')}
-          >
+          <TouchableWithoutFeedback style={styles.hamburger} onPress={onNext}>
             <View style={styles.hamburger} />
           </TouchableWithoutFeedback>
         </View>

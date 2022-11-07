@@ -39,9 +39,17 @@ When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.clickAddNetworks();
 });
 
-Then(/^the networks page opens with two tab views: Popular networks and Custom network/, async () => {
-  await NetworksScreen.isPopularNetworksTabVisible();
-  await NetworksScreen.isCustomNetworksTabVisible();
+When(/^"([^"]*)?" tab is displayed on networks screen/, async (netWorkTab) => {
+  switch (netWorkTab) {
+    case 'POPULAR':
+      await NetworksScreen.isPopularNetworksTabVisible();
+      break;
+    case 'CUSTOM NETWORKS':
+      await NetworksScreen.isCustomNetworksTabVisible();
+      break;
+    default:
+      throw new Error('Tab not found');
+  }
 });
 
 When(/^I am on the Popular network view/, async () => {
@@ -60,9 +68,18 @@ When(/^I select approve/, async () => {
   await NetworkApprovalModal.tapApproveButton();
 });
 
-When(/^the network approval modal has two options Switch network and close/, async () => {
-  await NetworkApprovalModal.isApproveNetworkButton();
-  await NetworkApprovalModal.isCloseNetworkButton();
+When(/^the network approval modal has button "([^"]*)?" displayed/, async (buttons) => {
+
+  switch (buttons) {
+    case 'Switch Network':
+      await NetworkApprovalModal.isApproveNetworkButton();
+      break;
+    case 'Close':
+      await NetworkApprovalModal.isCloseNetworkButton();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
 
 When(/^I tap on Switch network/, async () => {
@@ -78,7 +95,7 @@ When(/^I should see the added network name "([^"]*)?" in the top navigation bar/
 });
 
 Then(/^I tap on the burger menu/, async () => {
-  await WalletMainScreen.tapHamburgerMenu();
+  await WalletMainScreen.tapBurgerIcon();
 });
 
 Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
@@ -87,18 +104,16 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
       await WalletMainScreen.tapSettings();
       break;
     default:
-      throw new Error('Condition not found');
+      throw new Error('Option not found');
   }
 });
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
-  // eslint-disable-next-line no-undef
-  await $(`//android.widget.TextView[@text='${option}']`).click();
+  await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
 });
 
 Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
-  // eslint-disable-next-line no-undef
-  await expect($(`//android.widget.TextView[@text='${network}']`)).toBeDisplayed();
+  await NetworksScreen.isNetworkVisible(network);
 });
 
 Then(/^I tap on the Add Network button the networks page opens/, async () => {
@@ -106,8 +121,7 @@ Then(/^I tap on the Add Network button the networks page opens/, async () => {
 });
 
 Then(/^"([^"]*)?" is not visible in the Popular Networks section/, async (network) => {
-  // eslint-disable-next-line no-undef
-  await expect($(`//android.widget.TextView[@text='${network}']`)).not.toBeDisplayed();
+  await NetworksScreen.isNetworkNotVisible(network);
 });
 
 Then(/^I tap on the "([^"]*)?" tab/, async (netWorkTab) => {
@@ -119,30 +133,40 @@ Then(/^I tap on the "([^"]*)?" tab/, async (netWorkTab) => {
       await NetworksScreen.tapCustomNetworksTab();
       break;
     default:
-      throw new Error('Condition not found');
+      throw new Error('TAB name not found');
   }
 });
 
-Then(/^the Network name input box is visible and I type "([^"]*)?"/, async (data) => {
+Then(/^the Network name input box is visible/, async () => {
   await NetworksScreen.isNetworkNameVisible();
+});
+
+Then(/^I type "([^"]*)?" into Network name field/, async (data) => {
   await NetworksScreen.typeIntoNetworkName(data);
- 
 });
 
-Then(/^the RPC URL input box is visible and I type "([^"]*)?"/, async (data) => {
+Then(/^the RPC URL input box is visible/, async () => {
   await NetworksScreen.isRPCUrlFieldVisible();
-  await NetworksScreen.typeIntoRPCURLField(data);
-
 });
 
-Then(/^the Chain ID input box is visible and I type "([^"]*)?"/, async (data) => {
+Then(/^I type "([^"]*)?" into the RPC url field/, async (data) => {
+  await NetworksScreen.typeIntoRPCURLField(data);
+});
+
+Then(/^the Chain ID input box is visible/, async () => {
   await NetworksScreen.isChainIDInputVisible();
+});
+
+Then(/^I type "([^"]*)?" into the Chain ID field/, async (data) => {
   await NetworksScreen.typeIntoCHAINIDInputField(data);
 });
 
-Then(/^the Network Symbol input box is visible and I type "([^"]*)?"/, async (data) => {
-  await driver.hideKeyboard();
+Then(/^the Network Symbol input box is visible/, async () => {
   await NetworksScreen.isNetworkSymbolFieldVisible();
+});
+
+Then(/^I type "([^"]*)?" into the Network symbol field/, async (data) => {
+  await driver.hideKeyboard();
   await NetworksScreen.typeIntoNetworkSymbol(data);
 });
 
@@ -170,23 +194,19 @@ Then(/^I tap and hold network "([^"]*)?"/, async (network) => {
 });
 
 Then(/^I should see an alert window with the text "([^"]*)?"/, async (text) => {
-  // eslint-disable-next-line jest/valid-expect, no-undef
-  expect(await $(`//android.widget.TextView[@text='${text}']`)).toBeDisplayed();
+  await NetworksScreen.isButtonTextVisibleByXpath(text);
 });
 
 When(/^I click "([^"]*)?" on remove network modal/, async (text) => {
-  // eslint-disable-next-line jest/valid-expect, no-undef
-  await $(`//android.widget.TextView[@text='${text}']`).click();
+  await NetworksScreen.tapRemoveNetworkButton(text);
 });
 
 Then(/^"([^"]*)?" should be removed from the list of RPC networks/, async (network) => {
-  // eslint-disable-next-line jest/valid-expect, no-undef
-  expect(await $(`//android.widget.TextView[@text='${network}']`)).not.toBeDisplayed();
+  await NetworksScreen.isNetworkRemoved(network);
 });
 
 Then(/^I tap on network "([^"]*)?" on networks screen/, async (network) => {
-  // eslint-disable-next-line jest/valid-expect, no-undef
-  await $(`//android.widget.TextView[@text='${network}']`).touchAction('tap');
+  await NetworksScreen.tapOnNetwork(network);
 });
 
 Then(/^a "([^"]*)?" button should be visible/, async (buttons) => {
@@ -198,7 +218,7 @@ Then(/^a "([^"]*)?" button should be visible/, async (buttons) => {
       await NetworksScreen.isSaveNetworkButtonVisible();
       break;
     default:
-      throw new Error('Condition not found');
+      throw new Error('Button not found');
   }
 });
 
@@ -211,6 +231,6 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
       await NetworksScreen.tapSaveNetworkButton();
       break;
     default:
-      throw new Error('Condition not found');
+      throw new Error('Button not found');
   }
 });

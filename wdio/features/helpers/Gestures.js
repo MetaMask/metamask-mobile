@@ -1,3 +1,5 @@
+import Selectors from '../helpers/Selectors';
+
 /* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
@@ -74,6 +76,22 @@ class Gestures  {
     // simple touch action on element
     const elem = await element;
     (await elem).touchAction(Actions.TAP);
+  }
+
+  static async tapTextByXpath(text, tapType = 'TAP') {
+    switch (tapType) {
+      case 'TAP':
+        (await Selectors.getXpathElementByText(text)).touchAction(Actions.TAP);
+        break;
+      case 'LONGPRESS':
+        (await Selectors.getXpathElementByText(text)).touchAction(Actions.LONGPRESS);
+        break;
+      case 'RELEASE':
+        (await Selectors.getXpathElementByText(text)).touchAction(Actions.RELEASE);
+        break;
+      default:
+        throw new Error('Tap type not found');
+    }
   }
 
   static async typeText(element, text) {

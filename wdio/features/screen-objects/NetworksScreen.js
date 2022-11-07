@@ -1,8 +1,11 @@
-import {
-
-} from '../testIDs/Screens/NetworksScreen.testids';
+// eslint-disable-next-line no-unused-vars
+/* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
+import {INPUT_CHAIN_ID_FIELD,
+    INPUT_RPC_URL_FIELD, ADD_NETWORK_BUTTON, 
+    INPUT_NETWORK_NAME,
+    NETWORKS_SYMBOL_INPUT_FIELD} from '../testIDs/Screens/NetworksScreen.testids';
 
 class NetworksScreen {
 
@@ -15,23 +18,23 @@ class NetworksScreen {
     }
 
     get addNetworkButton() {
-        return Selectors.getElementByPlatform('add-network-button');
+        return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
     }
 
     get networkNameInputField() {
-        return Selectors.getElementByPlatform('input-network-name');
+        return Selectors.getElementByPlatform(INPUT_NETWORK_NAME);
     }
 
     get rpcURLInputField() {
-        return Selectors.getElementByPlatform('input-rpc-url');
+        return Selectors.getElementByPlatform(INPUT_RPC_URL_FIELD);
     }
 
     get inputChainIdField() {
-        return Selectors.getElementByPlatform('input-chain-id');
+        return Selectors.getElementByPlatform(INPUT_CHAIN_ID_FIELD);
     }
 
     get inputNetworkSymbolField() {
-        return Selectors.getElementByPlatform('input-network-symbol');
+        return Selectors.getElementByPlatform(NETWORKS_SYMBOL_INPUT_FIELD);
     }
 
     get blockExplorerInputField() {
@@ -43,7 +46,7 @@ class NetworksScreen {
     }
 
     get saveNetworkButton() {
-        return Selectors.getElementByPlatform(' add-network-button');
+        return Selectors.getElementByPlatform('add-network-button');
     }
 
     async isPopularNetworksTabVisible() {
@@ -55,25 +58,23 @@ class NetworksScreen {
     }
 
     async selectNetwork(network) {
-        // eslint-disable-next-line no-undef
-        await $(`//android.widget.TextView[@text='${network}']`).click();
+       await Gestures.tapTextByXpath(network);
     }
 
     async tapAndHoldNetwork(network) {
-        // eslint-disable-next-line no-undef
-        await $(`//android.widget.TextView[@text='${network}']`).touchAction('longPress');
+       await Gestures.tapTextByXpath(network, 'LONGPRESS');// does not work after update for some reason
     }
 
     async tapAddNetworkButton() {
-        Gestures.tap(this.addNetworkButton);
+        await Gestures.tap(this.addNetworkButton);
     }
 
     async tapPopularNetworksTab() {
-        Gestures.tap(this.getPopularNetworksTab);
+        await Gestures.tap(this.getPopularNetworksTab);
     }
 
     async tapCustomNetworksTab() {
-        Gestures.tap(this.getCustomNetworks);
+        await Gestures.tap(this.getCustomNetworks);
     }
 
     async isNetworkNameVisible() {
@@ -134,6 +135,38 @@ class NetworksScreen {
 
     async isSaveNetworkButtonVisible() {
         await expect(this.saveNetworkButton).toBeDisplayed();
+    }
+
+    async tapRemoveNetworkButton(text) {
+        await Gestures.tapTextByXpath(text);
+    }
+
+    async isButtonTextVisibleByXpath(text) {
+       await expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
+    }
+
+    async isNetworkRemoved(network) {
+       await expect(await (Selectors.getXpathElementByText(network))).not.toBeDisplayed();
+    }
+
+    async tapOnNetwork(network) {
+       await Gestures.tapTextByXpath(network);
+    }
+
+    async isNetworkVisible(text) {
+        await expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
+    }
+
+    async isNetworkNotVisible(text) {
+       await expect(await (Selectors.getXpathElementByText(text))).not.toBeDisplayed();
+    }
+
+    async tapOptionInSettings(text) {
+       await Gestures.tapTextByXpath(text);
+    }
+
+    async isNetworknameDisplayed(network) {
+        await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
     }
 }
 

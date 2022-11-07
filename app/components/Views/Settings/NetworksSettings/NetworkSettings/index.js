@@ -45,12 +45,17 @@ import {
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
-  INPUT_NETWORK_NAME,
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  INPUT_CHAIN_ID_FIELD,
+  INPUT_RPC_URL_FIELD,
+  INPUT_NETWORK_NAME,
+  NETWORKS_SYMBOL_INPUT_FIELD,
+} from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -764,8 +769,8 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_rpc_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToChainId}
-              testID={'input-rpc-url'}
-              {...generateTestId(Platform, 'input-rpc-url')}
+              testID={INPUT_RPC_URL_FIELD}
+              {...generateTestId(Platform, INPUT_RPC_URL_FIELD)}
               keyboardAppearance={themeAppearance}
             />
             {warningRpcUrl && (
@@ -790,8 +795,7 @@ class NetworkSettings extends PureComponent {
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToSymbol}
               keyboardType={'numbers-and-punctuation'}
-              testID={'input-chain-id'}
-              {...generateTestId(Platform, 'input-chain-id')}
+              {...generateTestId(Platform, INPUT_CHAIN_ID_FIELD)}
               keyboardAppearance={themeAppearance}
             />
             {warningChainId ? (
@@ -815,7 +819,7 @@ class NetworkSettings extends PureComponent {
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               //testID={'input-network-symbol'}
-              {...generateTestId(Platform, 'input-network-symbol')}
+              {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
 
