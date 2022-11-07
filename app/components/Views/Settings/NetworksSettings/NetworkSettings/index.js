@@ -41,7 +41,6 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl from '../../../../../util/sanitizeUrl';
 import {
-  REMOVE_NETWORK_ID,
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
@@ -55,6 +54,8 @@ import {
   INPUT_RPC_URL_FIELD,
   INPUT_NETWORK_NAME,
   NETWORKS_SYMBOL_INPUT_FIELD,
+  BLOCK_EXPLORER_FIELD,
+  REMOVE_NETWORK_BUTTON,
 } from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
@@ -818,7 +819,6 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_symbol_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
-              //testID={'input-network-symbol'}
               {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
@@ -837,7 +837,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings(
                 'app_settings.network_block_explorer_placeholder',
               )}
-              {...generateTestId(Platform, 'block-explorer')}
+              {...generateTestId(Platform, BLOCK_EXPLORER_FIELD)}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.addRpcUrl}
               keyboardAppearance={themeAppearance}
@@ -850,7 +850,8 @@ class NetworkSettings extends PureComponent {
                   <StyledButton
                     type="danger"
                     onPress={this.removeRpcUrl}
-                    testID={REMOVE_NETWORK_ID}
+                    testID={REMOVE_NETWORK_BUTTON}
+                    {...generateTestId(Platform, REMOVE_NETWORK_BUTTON)}
                     containerStyle={[styles.button, styles.cancel]}
                   >
                     <CustomText centered red>
