@@ -131,7 +131,6 @@ class Settings extends PureComponent {
           title={strings('app_settings.networks_title')}
           description={strings('app_settings.networks_desc')}
           onPress={this.onPressNetworks}
-          testID={'test'}
         />
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}

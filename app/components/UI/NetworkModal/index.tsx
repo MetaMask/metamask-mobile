@@ -308,7 +308,6 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'confirm'}
                 onPress={addNetwork}
                 containerStyle={[styles.button, styles.confirm]}
-                testID={APPROVE_NETWORK_APPROVE_BUTTON}
                 {...generateTestId(Platform, APPROVE_NETWORK_APPROVE_BUTTON)}
                 disabled={!validateRpcUrl(rpcUrl)}
               >

@@ -412,7 +412,6 @@ export class NetworkList extends PureComponent {
             type="confirm"
             onPress={this.goToNetworkSettings}
             containerStyle={styles.footerButton}
-            testID={ADD_NETWORK_BUTTON}
             {...generateTestId(Platform, ADD_NETWORK_BUTTON)}
           >
             {strings('app_settings.add_network_title')}

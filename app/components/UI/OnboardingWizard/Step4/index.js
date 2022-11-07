@@ -14,7 +14,6 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const styles = StyleSheet.create({
   main: {

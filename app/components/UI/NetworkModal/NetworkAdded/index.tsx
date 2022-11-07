@@ -55,7 +55,6 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       <View style={styles.buttonView}>
         <StyledButton
           type={'cancel'}
-          testID={NEW_NETWORK_ADDED_CLOSE_BUTTON}
           {...generateTestId(Platform, NEW_NETWORK_ADDED_CLOSE_BUTTON)}
           onPress={closeModal}
           containerStyle={[styles.button, styles.cancel]}
@@ -65,7 +64,6 @@ const NetworkAdded = (props: NetworkAddedProps) => {
         <StyledButton
           type={'confirm'}
           onPress={switchNetwork}
-          testID={NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON}
           {...generateTestId(
             Platform,
             NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,

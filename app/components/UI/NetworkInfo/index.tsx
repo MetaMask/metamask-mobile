@@ -236,7 +236,6 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           type="confirm"
           onPress={onClose}
           containerStyle={styles.closeButton}
-          testID={NETWORK_EDUCATION_MODAL_CLOSE_BUTTON}
           {...generateTestId(Platform, NETWORK_EDUCATION_MODAL_CLOSE_BUTTON)}
         >
           {strings('network_information.got_it')}
