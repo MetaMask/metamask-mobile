@@ -268,7 +268,9 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    let ensRecipient, to;
+    let ensRecipient,
+      to,
+      error = false;
     if (isENS(recipient)) {
       ensRecipient = recipient;
       to = await doENSLookup(ensRecipient, this.props.network);
@@ -285,8 +287,9 @@ class Send extends PureComponent {
         description: strings('transaction.invalid_recipient_description'),
       });
       this.props.navigation.navigate('WalletView');
+      error = true;
     }
-    return { ensRecipient, to };
+    return { ensRecipient, to, error };
   };
 
   /**
@@ -306,6 +309,7 @@ class Send extends PureComponent {
     switch (action) {
       case 'send-eth':
         txRecipient = await this.handleNewTxMetaRecipient(target_address);
+        if (txRecipient.error) return;
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
@@ -334,9 +338,10 @@ class Send extends PureComponent {
       case 'send-token': {
         const selectedAsset = await this.handleTokenDeeplink(target_address);
 
-        const { ensRecipient, to } = await this.handleNewTxMetaRecipient(
+        const { ensRecipient, to, error } = await this.handleNewTxMetaRecipient(
           parameters.address,
         );
+        if (error) return;
         const tokenAmount =
           (parameters.uint256 &&
             new BigNumber(parameters.uint256).toString(16)) ||
