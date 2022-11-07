@@ -37,7 +37,7 @@ import {
   generateTransferData,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
-import { isENS } from '../../../util/address';
+import { isENS, isValidHexAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
@@ -272,7 +272,7 @@ class Send extends PureComponent {
     if (isENS(recipient)) {
       ensRecipient = recipient;
       to = await doENSLookup(ensRecipient, this.props.network);
-    } else if (recipient && recipient === toChecksumAddress(recipient)) {
+    } else if (recipient && isValidHexAddress(recipient)) {
       to = recipient;
     } else {
       NotificationManager.showSimpleNotification({
@@ -281,7 +281,7 @@ class Send extends PureComponent {
         title: strings('transaction.invalid_recipient'),
         description: strings('transaction.invalid_recipient_description'),
       });
-      throw new Error('Recipient is not valid');
+      this.props.navigation.navigate('WalletView');
     }
     return { ensRecipient, to };
   };
