@@ -104,10 +104,10 @@ const CheckoutWebView = () => {
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
+      !isRedirectionHandled &&
       navState?.url.startsWith(callbackBaseUrl) &&
       navState.loading === false
     ) {
-      if (isRedirectionHandled) return;
       setIsRedirectionHandled(true);
       try {
         const parsedUrl = parseUrl(navState?.url);
