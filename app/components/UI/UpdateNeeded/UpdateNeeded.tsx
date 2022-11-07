@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { View, Image, Linking, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
@@ -16,6 +16,7 @@ import ButtonTertiary, {
 import { ButtonSize } from '../../../component-library/components/Buttons/Button';
 import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -30,13 +31,32 @@ const UpdateNeeded = () => {
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
 
+  useEffect(() => {
+    AnalyticsV2.trackEvent(
+      AnalyticsV2.ANALYTICS_EVENTS.FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED,
+      { platform: Platform.OS },
+    );
+  }, []);
+
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.dismissModal(cb);
 
-  const triggerClose = () => dismissModal();
+  const triggerClose = () =>
+    dismissModal(() => {
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS
+          .FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
+        { platform: Platform.OS },
+      );
+    });
 
   const openAppStore = useCallback(() => {
     const link = Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
+    AnalyticsV2.trackEvent(
+      AnalyticsV2.ANALYTICS_EVENTS
+        .FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
+      { platform: Platform.OS, link },
+    );
     Linking.canOpenURL(link).then(
       (supported) => {
         supported && Linking.openURL(link);
