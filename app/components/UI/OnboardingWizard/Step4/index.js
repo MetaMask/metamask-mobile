@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, Platform } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';

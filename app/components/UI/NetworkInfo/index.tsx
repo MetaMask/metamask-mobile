@@ -10,7 +10,6 @@ import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
-  NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
