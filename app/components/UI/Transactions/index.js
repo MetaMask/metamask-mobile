@@ -112,8 +112,8 @@ class Transactions extends PureComponent {
      */
     frequentRpcList: PropTypes.array,
     /**
-		 * navigation object required to push new views
-		 */
+     * navigation object required to push new views
+     */
     navigation: PropTypes.object,
     /**
      * Object representing the selected network
@@ -466,19 +466,11 @@ class Transactions extends PureComponent {
     const { selectedAddress, chainId } = this.props;
     const cancelTxId = this.cancelTxId;
 
-    const resetResult =
-      CollectiblesController.resetCollectibleTransactionStatusByTransactionId(
-        cancelTxId,
-        selectedAddress,
-        chainId,
-      );
-
-    if (!resetResult) {
-      Logger.error({
-        message: 'resetCollectibleTransactionStatusByTransactionId failed',
-        cancelTxId,
-      });
-    }
+    CollectiblesController.resetCollectibleTransactionStatusByTransactionId(
+      cancelTxId,
+      selectedAddress,
+      chainId,
+    );
 
     this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
     this.existingGas = null;

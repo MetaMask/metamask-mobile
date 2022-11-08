@@ -1,8 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { TokenListMap } from '@metamask/controllers';
 
-export const ERC721 = 'ERC721';
-
 /**
  * Convert token list object to token list array
  */

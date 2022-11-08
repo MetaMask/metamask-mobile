@@ -80,7 +80,6 @@ import {
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
-import { ERC721 } from '../../../../util/tokens';
 import WarningMessage from '../WarningMessage';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -614,7 +613,10 @@ class Confirm extends PureComponent {
   checkRemoveCollectible = (assetType, selectedAsset) => {
     const { chainId } = this.props;
     const { fromSelectedAddress } = this.state;
-    if (assetType === ERC721 && chainId !== NetworksChainId.mainnet) {
+    if (
+      assetType === TransactionTypes.ASSET.ERC721 &&
+      chainId !== NetworksChainId.mainnet
+    ) {
       const { CollectiblesController } = Engine.context;
       removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
       CollectiblesController.removeCollectible(
@@ -683,6 +685,7 @@ class Confirm extends PureComponent {
   };
 
   onNext = async () => {
+    const ERC721 = TransactionTypes.ASSET.ERC721;
     const { TransactionController, CollectiblesController, KeyringController } =
       Engine.context;
     const {
