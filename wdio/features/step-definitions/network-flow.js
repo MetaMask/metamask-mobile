@@ -117,7 +117,7 @@ Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (n
   await NetworksScreen.isNetworkVisible(network);
 });
 
-Then(/^I tap on the Add Network button the networks page opens/, async () => {
+Then(/^I tap on the Add Network button/, async () => {
   await NetworksScreen.tapAddNetworkButton();
 });
 

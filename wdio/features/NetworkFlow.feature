@@ -25,7 +25,7 @@ Feature: Networks
               And I tap on "Settings" in the menu
               And In settings I tap on "Networks"
              Then "<Network>" should be visible below the Custom Networks section
-             When I tap on the Add Network button the networks page opens
+             When I tap on the Add Network button
              Then "<Network>" is not visible in the Popular Networks section
         Examples:
                   | Network |
@@ -35,15 +35,11 @@ Feature: Networks
             Given I tap on the burger menu
               And I tap on "Settings" in the menu
               And In settings I tap on "Networks"
-              And I tap on the Add Network button the networks page opens
+              And I tap on the Add Network button
              Then "POPULAR" tab is displayed on networks screen
               And "CUSTOM NETWORKS" tab is displayed on networks screen
              When I tap on the "CUSTOM NETWORKS" tab
              Then Add button is disabled
-              And the Network name input box is visible
-              And the RPC URL input box is visible
-              And the Chain ID input box is visible
-              And the Network Symbol input box is visible
              When I type "<Network>" into Network name field
               And I type "<rpcUrl>" into the RPC url field
               And I type "100" into the Chain ID field
@@ -59,7 +55,7 @@ Feature: Networks
             Given I tap on the burger menu
               And I tap on "Settings" in the menu
               And In settings I tap on "Networks"
-              And I tap on the Add Network button the networks page opens
+              And I tap on the Add Network button
              Then "POPULAR" tab is displayed on networks screen
               And "CUSTOM NETWORKS" tab is displayed on networks screen
              When I tap on the "POPULAR" tab
@@ -84,29 +80,23 @@ Feature: Networks
             Given I tap on the burger menu
               And I tap on "Settings" in the menu
               And In settings I tap on "Networks"
-              And I tap on the Add Network button the networks page opens
+              And I tap on the Add Network button
              Then "POPULAR" tab is displayed on networks screen
               And "CUSTOM NETWORKS" tab is displayed on networks screen
              When I tap on the "CUSTOM NETWORKS" tab
              Then Add button is disabled
-              And the Network name input box is visible
-              And the RPC URL input box is visible
-              And the Chain ID input box is visible
-              And the Network Symbol input box is visible
              When I type "<Network>" into Network name field
               And I type "<rpcUrl>" into the RPC url field
-              And I type "100" into the Chain ID field
-              And I type "<Network>" into the Network symbol field
+              And I type "<ChainID>" into the Chain ID field
+              And I type "<Symbol>" into the Network symbol field
              When I tap on the Add button
              Then I should see the added network name "<Network>" in the top navigation bar
              When I tap on the burger menu
               And I tap on "Settings" in the menu
               And In settings I tap on "Networks"
              When I tap on network "<Network>" on networks screen
-              And a "Delete" button should be visible
-              And a "Save" button should be visible
              When I tap the "Delete" button
              Then "<Network>" should be removed from the list of RPC networks
         Examples:
-                  | Network | rpcUrl                      |
-                  | xDai    | https://rpc.gnosischain.com |
+                  | Network | rpcUrl                      | ChainID | Symbol |
+                  | xDai    | https://rpc.gnosischain.com | 100     | xDai   |
