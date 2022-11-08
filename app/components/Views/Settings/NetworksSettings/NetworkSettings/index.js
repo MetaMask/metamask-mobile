@@ -751,7 +751,6 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToRpcURL}
-              testID={INPUT_NETWORK_NAME}
               {...generateTestId(Platform, INPUT_NETWORK_NAME)}
               keyboardAppearance={themeAppearance}
             />
@@ -877,7 +876,6 @@ class NetworkSettings extends PureComponent {
                   <StyledButton
                     type="confirm"
                     onPress={this.addRpcUrl}
-                    testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
                     {...generateTestId(
                       Platform,
                       ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
