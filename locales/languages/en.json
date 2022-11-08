@@ -1692,8 +1692,6 @@
       "lowest_limit": "lowest buy limit",
       "medium_limit": "medium buy limit",
       "highest_limit": "highest buy limit",
-      "apple_cash_not_supported": "Apple Cash is not supported.",
-      "card_fees": "Check with your card provider to understand any fees they may charge you. For example, credit card purchases may incur cash advance fees.",
       "continue_to_amount": "Continue to amount"
     },
     "continue": "Continue",

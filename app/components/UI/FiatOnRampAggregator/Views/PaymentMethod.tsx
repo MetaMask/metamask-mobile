@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentOption from '../components/PaymentOption';
@@ -188,10 +187,11 @@ const PaymentMethod = () => {
         <ScrollView>
           <ScreenLayout.Content>
             {filteredPaymentMethods?.map(
-              ({ id, name, delay, amountTier, paymentType, logo }) => (
+              ({ id, name, delay, amountTier, paymentType, logo, detail }) => (
                 <View key={id} style={styles.row}>
                   <PaymentOption
                     highlighted={id === selectedPaymentMethodId}
+                    detail={detail}
                     title={name}
                     time={delay}
                     id={id}
@@ -212,21 +212,13 @@ const PaymentMethod = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
-            currentPaymentMethod?.paymentType ===
-              PaymentType.DebitCreditCard) && (
+          {currentPaymentMethod?.disclaimer ? (
             <View style={styles.row}>
               <Text small grey centered>
-                {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
-                  strings(
-                    'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                  )}
-                {currentPaymentMethod?.paymentType ===
-                  PaymentType.DebitCreditCard &&
-                  strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
+                {currentPaymentMethod.disclaimer}
               </Text>
             </View>
-          )}
+          ) : null}
           <View style={styles.row}>
             <StyledButton
               type={'confirm'}
