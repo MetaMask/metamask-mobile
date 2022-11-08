@@ -90,7 +90,7 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     Engine.controllerMessenger.subscribe(
-      `NetworkController:stateChange`,
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
     Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
@@ -270,7 +270,7 @@ export class BackgroundBridge extends EventEmitter {
   onDisconnect = () => {
     this.disconnected = true;
     Engine.controllerMessenger.unsubscribe(
-      `NetworkController:stateChange`,
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
     Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);

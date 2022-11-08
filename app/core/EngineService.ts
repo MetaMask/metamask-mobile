@@ -1,4 +1,5 @@
 import UntypedEngine from './Engine';
+import AppConstants from './AppConstants';
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
@@ -71,7 +72,7 @@ class EngineService {
           : Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       else
         Engine.controllerMessenger.subscribe(
-          'NetworkController:stateChange',
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
           update_bg_state_cb,
         );
     });
