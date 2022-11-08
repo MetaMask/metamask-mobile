@@ -352,7 +352,7 @@ class Send extends PureComponent {
           to: selectedAsset.address,
           transactionTo: to,
           data: generateTransferData('transfer', {
-            toAddress: isENS(parameters.address) ? to : parameters.address,
+            toAddress: to,
             amount: tokenAmount,
           }),
           value: '0x0',
