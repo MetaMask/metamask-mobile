@@ -112,8 +112,8 @@ class Transactions extends PureComponent {
      */
     frequentRpcList: PropTypes.array,
     /**
-		/* navigation object required to push new views
-		*/
+		 * navigation object required to push new views
+		 */
     navigation: PropTypes.object,
     /**
      * Object representing the selected network
