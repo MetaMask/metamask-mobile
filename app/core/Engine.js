@@ -233,6 +233,9 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      const phishingController = new PhishingController();
+      phishingController.updatePhishingLists();
+
       const additionalKeyrings = [QRHardwareKeyring];
 
       const controllers = [
@@ -323,7 +326,7 @@ class Engine {
         new PersonalMessageManager(),
         new MessageManager(),
         networkController,
-        new PhishingController(),
+        phishingController,
         preferencesController,
         new TokenBalancesController(
           {
