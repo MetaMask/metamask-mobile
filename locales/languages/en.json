@@ -727,8 +727,8 @@
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
     "private_key_text": "Private Key",
-    "screenshot_warning_title": "Screenshot warning",
-    "screenshot_warning_desc": "If you are going to store your {{credentialName}}, do it in a safe place, not as a screenshot that is likely to be automatically backed up online. Don’t share your {{credentialName}}.",
+    "screenshot_warning_title": "Safety alert",
+    "screenshot_warning_desc": "Screenshots aren't a safe way to keep track of your {{credentialName}}. Store it somewhere that isn't backed up online to keep your account safe.",
     "got_it": "Got it",
     "learn_more": "Learn More"
   },

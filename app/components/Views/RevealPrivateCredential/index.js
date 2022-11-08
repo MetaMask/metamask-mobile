@@ -92,7 +92,7 @@ const RevealPrivateCredential = ({
         credentialName:
           privateCredentialName === PRIVATE_KEY
             ? strings('reveal_credential.private_key_text')
-            : strings('reveal_credential.srp_abbreviation_text'),
+            : strings('reveal_credential.srp_text'),
       }),
       [
         {
