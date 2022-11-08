@@ -240,12 +240,12 @@ const RevealPrivateCredential = ({
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
         );
-        setIsModalVisible(true);
-        setWarningIncorrectPassword('');
-      } else {
-        const msg = strings('reveal_credential.warning_incorrect_password');
-        setWarningIncorrectPassword(msg);
       }
+      setIsModalVisible(true);
+      setWarningIncorrectPassword('');
+    } else {
+      const msg = strings('reveal_credential.warning_incorrect_password');
+      setWarningIncorrectPassword(msg);
     }
   };
 
