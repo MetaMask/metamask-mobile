@@ -769,7 +769,6 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_rpc_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToChainId}
-              testID={INPUT_RPC_URL_FIELD}
               {...generateTestId(Platform, INPUT_RPC_URL_FIELD)}
               keyboardAppearance={themeAppearance}
             />
@@ -849,7 +848,6 @@ class NetworkSettings extends PureComponent {
                   <StyledButton
                     type="danger"
                     onPress={this.removeRpcUrl}
-                    testID={REMOVE_NETWORK_BUTTON}
                     {...generateTestId(Platform, REMOVE_NETWORK_BUTTON)}
                     containerStyle={[styles.button, styles.cancel]}
                   >
