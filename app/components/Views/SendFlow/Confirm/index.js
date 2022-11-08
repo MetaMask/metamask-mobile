@@ -772,7 +772,6 @@ class Confirm extends PureComponent {
         error && error.message,
         [{ text: strings('navigation.ok') }],
       );
-      Logger.error(error, 'error while trying to send transaction (Confirm)');
       if (assetType === ERC721) {
         CollectiblesController.updateCollectible(
           selectedAsset,
