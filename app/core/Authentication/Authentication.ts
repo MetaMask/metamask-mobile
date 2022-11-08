@@ -166,12 +166,13 @@ class AuthenticationService {
           await SecureKeychain.resetGenericPassword();
       }
     } catch (error) {
+      console.log('storePassword', error);
       throw new AuthenticationError(
         (error as Error).message,
         'Authentication.storePassword failed',
         this.authData,
       );
-    };
+    }
   };
 
   /**
