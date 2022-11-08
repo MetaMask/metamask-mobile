@@ -7,8 +7,8 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AssetsContractController');
     expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
-    expect(engine.context).toHaveProperty('CollectibleDetectionController');
-    expect(engine.context).toHaveProperty('CollectiblesController');
+    expect(engine.context).toHaveProperty('NftDetectionController');
+    expect(engine.context).toHaveProperty('NftController');
     expect(engine.context).toHaveProperty('CurrencyRateController');
     expect(engine.context).toHaveProperty('KeyringController');
     expect(engine.context).toHaveProperty('NetworkController');

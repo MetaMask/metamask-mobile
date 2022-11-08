@@ -14,7 +14,7 @@ const initialState = {
         },
       },
       PreferencesController: {
-        useCollectibleDetection: true,
+        useNftDetection: true,
       },
     },
   },
