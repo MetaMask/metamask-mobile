@@ -17,6 +17,7 @@ import { ButtonSize } from '../../../component-library/components/Buttons/Button
 import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { getBuildNumber, getVersion, getBrand } from 'react-native-device-info';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -26,15 +27,31 @@ export const createUpdateNeededNavDetails = createNavigationDetails(
   Routes.MODAL.UPDATE_NEEDED,
 );
 
+interface DeviceMetaData {
+  platform: string;
+  currentBuildNumber: string;
+  applicationVersion: string;
+  operatingSystemVersion: string;
+  deviceBrand: string;
+}
+
 const UpdateNeeded = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
 
+  const generateAnalyticsMetaData = (): DeviceMetaData => ({
+    platform: Platform.OS,
+    currentBuildNumber: getBuildNumber(),
+    applicationVersion: getVersion(),
+    operatingSystemVersion: Platform.Version.toString(),
+    deviceBrand: getBrand(),
+  });
+
   useEffect(() => {
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED,
-      { platform: Platform.OS },
+      generateAnalyticsMetaData(),
     );
   }, []);
 
@@ -46,7 +63,7 @@ const UpdateNeeded = () => {
       AnalyticsV2.trackEvent(
         AnalyticsV2.ANALYTICS_EVENTS
           .FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
-        { platform: Platform.OS },
+        generateAnalyticsMetaData(),
       );
     });
 
@@ -55,7 +72,7 @@ const UpdateNeeded = () => {
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS
         .FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
-      { platform: Platform.OS, link },
+      { ...generateAnalyticsMetaData(), link },
     );
     Linking.canOpenURL(link).then(
       (supported) => {
