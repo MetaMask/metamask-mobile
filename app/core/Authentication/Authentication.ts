@@ -166,6 +166,7 @@ class AuthenticationService {
           await SecureKeychain.resetGenericPassword();
       }
     } catch (error) {
+      // await SecureKeychain.resetGenericPassword();
       console.log('storePassword', error);
       throw new AuthenticationError(
         (error as Error).message,

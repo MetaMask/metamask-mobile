@@ -338,7 +338,7 @@ class ChoosePassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
-    console.log('componentDidUpdate', this.state.biometryType);
+    console.log('componentDidUpdate biometryType', this.state.biometryType);
   }
 
   componentWillUnmount() {
@@ -348,13 +348,6 @@ class ChoosePassword extends PureComponent {
   setSelection = () => {
     const { isSelected } = this.state;
     this.setState(() => ({ isSelected: !isSelected }));
-  };
-
-  createNewVaultAndKeychain = async (password) => {
-    const { KeyringController } = Engine.context;
-    await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
-    this.keyringControllerPasswordSet = true;
   };
 
   onPressCreate = async () => {
@@ -393,16 +386,19 @@ class ChoosePassword extends PureComponent {
           // retry faceID if the user cancels the
           if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
         }
+        console.log('onPressCreate exits handleRejectedOsBiometricPrompt');
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
         await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
       } else {
+        console.log('onPressCreate calling recreateVault', password, authType);
         await this.recreateVault(password, authType);
       }
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
+      console.log('onPressCreate setState', this.state.loading);
       this.props.navigation.replace('AccountBackupStep1');
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
@@ -416,7 +412,9 @@ class ChoosePassword extends PureComponent {
           },
         );
       });
+      console.log('onPressCreate try');
     } catch (error) {
+      console.log('onPressCreate catch', error);
       await this.recreateVault('');
       // Set state in app as it was with no password
       await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
@@ -453,17 +451,19 @@ class ChoosePassword extends PureComponent {
    */
   handleRejectedOsBiometricPrompt = async (error) => {
     console.log('handleRejectedOsBiometricPrompt', error.toString());
-    const authData = await Authentication.getType();
-    console.log('handleRejectedOsBiometricPrompt type', authData);
-    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR)) {
-      console.log('handleRejectedOsBiometricPrompt entered');
-      this.setState({
-        biometryType: authData.type,
-        biometryChoice: true,
-      });
-      this.updateBiometryChoice();
-      throw Error(strings('choose_password.disable_biometric_error'));
-    }
+    // const authData = await Authentication.getType();
+    const newAuthData = await Authentication.componentAuthenticationType(
+      false,
+      false,
+    );
+    console.log('handleRejectedOsBiometricPrompt type', newAuthData);
+    await Authentication.newWalletAndKeyChain(this.state.password, newAuthData);
+    this.setState({
+      biometryType: newAuthData.type,
+      biometryChoice: true,
+    });
+    this.updateBiometryChoice();
+    // throw Error(strings('choose_password.disable_biometric_error'));
   };
 
   /**
@@ -472,9 +472,10 @@ class ChoosePassword extends PureComponent {
    * @param password - Password to recreate and set the vault with
    */
   recreateVault = async (password, authType) => {
+    console.log('recreateVault', password, authType);
     const { KeyringController, PreferencesController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
-
+    console.log('recreateVault seedPhrase', seedPhrase);
     let importedAccounts = [];
     try {
       const keychainPassword = this.keyringControllerPasswordSet
