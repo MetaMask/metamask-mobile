@@ -14,11 +14,12 @@ import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwit
 
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  await driver.pause(10000);
+  const wait = 10000;
+  await driver.pause(wait);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.tapIAgreeButton();
-  const validAccount = Accounts.getValidAccount()
+  const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
@@ -110,7 +111,8 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  await driver.pause(6000);
+  const wait = 6000;
+  await driver.pause(wait);
 });
 
 Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
@@ -238,14 +240,16 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
 
 Then(/^I navigate back to the main wallet view/, async () => {
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(1000);
+  const wait = 1000;
+  await driver.pause(wait);
   await NetworksScreen.tapBackButtonInNewScreen();
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  await driver.pause(1000);
+  const wait = 1000;
+  await driver.pause(wait);
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(1000);
+  await driver.pause(wait);
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });

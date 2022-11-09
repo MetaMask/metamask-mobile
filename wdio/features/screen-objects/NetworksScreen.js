@@ -58,7 +58,7 @@ class NetworksScreen {
     }
 
     get saveNetworkButton() {
-        return Selectors.getElementByPlatform('add-network-button');
+        return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
     }
 
     async isPopularNetworksTabVisible() {
@@ -182,7 +182,7 @@ class NetworksScreen {
     }
 
     async tapBackButtonInNewScreen() {
-       await (await Selectors.getXpathElementByContentDecscription('burger-menu-title-back-arrow-button')).touchAction('tap');
+       await (await Selectors.getXpathElementByContentDecscription(NETWORK_BACK_ARROW_BUTTON_ID)).touchAction('tap');
     }
 
     async tapBackButtonInSettingsScreen() {
