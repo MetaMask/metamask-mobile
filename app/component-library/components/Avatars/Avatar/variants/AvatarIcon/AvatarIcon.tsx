@@ -1,11 +1,11 @@
 // Third party dependencies.
 import React from 'react';
-import Icon from '../../../../Icon';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import AvatarBase from '../../foundation/AvatarBase';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
+import Icon from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import { AvatarIconProps } from './AvatarIcon.types';

@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
 import { AvatarSizes } from '../../Avatar.types';
-import { IconSize } from '../../../../Icon';
+import { IconSize } from '../../../../Icons/Icon';
 
 /**
  * Mapping of IconSize by AvatarSizes.

@@ -12,7 +12,7 @@ import Animated, {
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import Icon, { IconSize, IconName } from '../../../../Icon';
+import Icon, { IconSize, IconName } from '../../../../Icons/Icon';
 import Text, { TextVariants } from '../../../../Texts/Text';
 import { ACCORDION_EXPAND_TRANSITION_DURATION } from '../../Accordion.constants';
 
