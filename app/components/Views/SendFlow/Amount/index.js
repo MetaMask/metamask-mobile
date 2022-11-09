@@ -662,7 +662,7 @@ class Amount extends PureComponent {
       transactionObject.readableValue = value;
     }
 
-    if (selectedAsset.isETH) {
+    if (selectedAsset.isETH) transactionObject.to = transactionTo;
       transactionObject.to = transactionTo;
     }
 
