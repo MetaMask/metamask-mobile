@@ -30,7 +30,7 @@ const initialState = {
         contractExchangeRates: {},
       },
       NftController: {
-        allNfts: { '0x0': { 1: [] } },
+        allNftContracts: { '0x0': { 1: [] } },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
