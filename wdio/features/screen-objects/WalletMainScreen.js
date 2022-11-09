@@ -6,6 +6,7 @@ import {
 import Selectors from '../helpers/Selectors';
 import { WALLET_VIEW_BURGER_ICON_ID } from '../testIDs/Screens/WalletView.testIds';
 import Gestures from '../helpers/Gestures.js';
+import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
 
 
 class WalletMainScreen {
@@ -31,7 +32,7 @@ class WalletMainScreen {
   }
 
   get drawerSettings() {
-    return Selectors.getElementByPlatform('drawer-settings');
+    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
   }
 
   async isOnboardingWizardVisible() {

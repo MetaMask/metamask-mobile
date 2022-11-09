@@ -848,7 +848,7 @@ class NetworkSettings extends PureComponent {
                   <StyledButton
                     type="danger"
                     onPress={this.removeRpcUrl}
-                    {...generateTestId(Platform, REMOVE_NETWORK_BUTTON)}
+                    testID={REMOVE_NETWORK_BUTTON}
                     containerStyle={[styles.button, styles.cancel]}
                   >
                     <CustomText centered red>
