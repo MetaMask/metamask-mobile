@@ -811,28 +811,23 @@ export const BrowserTab = (props) => {
       scheme: 'https:',
     },
     tel: {
-      alertMsg:
-        'This website has been blocked from automatically making a phone call',
+      alertMsg: strings('browser.protocol_alerts.tel'),
       scheme: 'tel:',
     },
     mailto: {
-      alertMsg:
-        'This website has been blocked from automatically composing an email.',
+      alertMsg: strings('browser.protocol_alerts.mailto'),
       scheme: 'mailto:',
     },
     ldap: {
-      alertMsg:
-        'This website has been blocked from automatically accessing an external directory',
+      alertMsg: strings('browser.protocol_alerts.ldap'),
       scheme: 'ldap:',
     },
     telnet: {
-      alertMsg:
-        'This website has been blocked from automatically connecting to an external service',
+      alertMsg: strings('browser.protocol_alerts.telnet'),
       scheme: 'telnet:',
     },
     ssh: {
-      alertMsg:
-        'This website has been blocked from automatically connecting to an external service',
+      alertMsg: strings('browser.protocol_alerts.ssh'),
       scheme: 'ssh:',
     },
   };
