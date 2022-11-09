@@ -803,15 +803,91 @@ export const BrowserTab = (props) => {
     });
   }, []);
 
+  const knownProtocols = {
+    http: {
+      scheme: 'http:',
+    },
+    https: {
+      scheme: 'https:',
+    },
+    tel: {
+      alertMsg:
+        'This website has been blocked from automatically making a phone call',
+      scheme: 'tel:',
+    },
+    mailto: {
+      alertMsg:
+        'This website has been blocked from automatically composing an email.',
+      scheme: 'mailto:',
+    },
+    ldap: {
+      alertMsg:
+        'This website has been blocked from automatically accessing an external directory',
+      scheme: 'ldap:',
+    },
+    telnet: {
+      alertMsg:
+        'This website has been blocked from automatically connecting to an external service',
+      scheme: 'telnet:',
+    },
+    ssh: {
+      alertMsg:
+        'This website has been blocked from automatically connecting to an external service',
+      scheme: 'ssh:',
+    },
+  };
+
+  const allowLinkOpen = (url) =>
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(url);
+        }
+        console.warn(`Can't open url: ${url}`);
+        return null;
+      })
+      .catch((e) => {
+        console.warn(`Error opening URL: ${e}`);
+      });
+
+  const verifyKnownProtocols = (event) => {
+    const { url, isTopFrame } = event;
+
+    const [protocol] = url.split(':');
+
+    const { alertMsg } = knownProtocols[protocol];
+
+    if (!isTopFrame && Boolean(alertMsg)) {
+      Alert.alert(alertMsg, '', [
+        {
+          text: 'Ignore',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {
+          text: 'Allow',
+          onPress: () => allowLinkOpen(url),
+          style: 'allow',
+        },
+      ]);
+      return false;
+    }
+
+    return true;
+  };
+
   /**
    * Stops normal loading when it's ens, instead call go to be properly set up
    */
-  const onShouldStartLoadWithRequest = ({ url }) => {
+  const onShouldStartLoadWithRequest = (event) => {
+    const { url } = event;
+
     if (isENSUrl(url)) {
       go(url.replace(/^http:\/\//, 'https://'));
       return false;
     }
-    return true;
+
+    return verifyKnownProtocols(event);
   };
 
   /**
@@ -1356,6 +1432,15 @@ export const BrowserTab = (props) => {
   /**
    * Main render
    */
+
+  const originWhitelist = Object.keys(knownProtocols).map((key) => {
+    const protocol = key.startsWith('http')
+      ? `${knownProtocols[key].scheme}//`
+      : knownProtocols[key].scheme;
+
+    return `${protocol}*`;
+  });
+
   return (
     <ErrorBoundary view="BrowserTab">
       <View
@@ -1365,7 +1450,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
-              originWhitelist={['https://*', 'http://*']}
+              originWhitelist={originWhitelist}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (
