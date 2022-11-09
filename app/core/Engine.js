@@ -91,10 +91,7 @@ class Engine {
         state: initialState.networkController,
         messenger: this.controllerMessenger.getRestricted({
           name: 'NetworkController',
-          allowedEvents: [
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            'NetworkController:providerChange',
-          ],
+          allowedEvents: [],
           allowedActions: [],
         }),
       };
