@@ -1,10 +1,9 @@
 import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,
   NEW_NETWORK_ADDED_CLOSE_BUTTON,
@@ -55,7 +54,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       <View style={styles.buttonView}>
         <StyledButton
           type={'cancel'}
-          {...generateTestId(Platform, NEW_NETWORK_ADDED_CLOSE_BUTTON)}
+          testID={NEW_NETWORK_ADDED_CLOSE_BUTTON}
           onPress={closeModal}
           containerStyle={[styles.button, styles.cancel]}
         >
@@ -64,10 +63,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
         <StyledButton
           type={'confirm'}
           onPress={switchNetwork}
-          {...generateTestId(
-            Platform,
-            NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,
-          )}
+          testID={NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON}
           containerStyle={[styles.button, styles.confirm]}
         >
           {strings('networks.switch_network')}

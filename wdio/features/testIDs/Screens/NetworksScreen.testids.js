@@ -35,7 +35,13 @@ export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON =
 export const BLOCK_EXPLORER_FIELD =
   'block-explorer';
 
-  export const REMOVE_NETWORK_BUTTON =
+export const REMOVE_NETWORK_BUTTON =
   'remove-network-button';
 
-  
+export const NETWORK_BACK_ARROW_BUTTON_ID =
+  'burger-menu-title-back-arrow-button';
+
+export const NAV_ANDROID_BACK_BUTTON =
+  'nav-android-back';
+
+

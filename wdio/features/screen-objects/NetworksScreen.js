@@ -7,7 +7,9 @@ import {INPUT_CHAIN_ID_FIELD,
     INPUT_NETWORK_NAME,
     NETWORKS_SYMBOL_INPUT_FIELD,
     BLOCK_EXPLORER_FIELD,
-    REMOVE_NETWORK_BUTTON} from '../testIDs/Screens/NetworksScreen.testids';
+    REMOVE_NETWORK_BUTTON,
+    NETWORK_BACK_ARROW_BUTTON_ID,
+    NAV_ANDROID_BACK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
 
 class NetworksScreen {
 
@@ -45,6 +47,14 @@ class NetworksScreen {
 
     get removeNetworkButton() {
         return Selectors.getElementByPlatform(REMOVE_NETWORK_BUTTON);
+    }
+
+    get networkScreenBackButton() {
+        return Selectors.getElementByPlatform(NETWORK_BACK_ARROW_BUTTON_ID);
+    }
+
+    get settingsPageAndroidBackButton() {
+        return Selectors.getElementByPlatform(NAV_ANDROID_BACK_BUTTON);
     }
 
     get saveNetworkButton() {
@@ -169,6 +179,14 @@ class NetworksScreen {
 
     async isNetworknameDisplayed(network) {
         await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
+    }
+
+    async tapBackButtonInNewScreen() {
+       await (await Selectors.getXpathElementByContentDecscription('burger-menu-title-back-arrow-button')).touchAction('tap');
+    }
+
+    async tapBackButtonInSettingsScreen() {
+        await Gestures.tap(this.settingsPageAndroidBackButton);
     }
 }
 

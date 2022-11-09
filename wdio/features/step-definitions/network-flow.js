@@ -1,7 +1,6 @@
 /* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
-import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
@@ -83,6 +82,7 @@ When(/^the network approval modal has button "([^"]*)?" displayed/, async (butto
 });
 
 When(/^I tap on Switch network/, async () => {
+  await NetworkApprovalModal.tapSwitchToNetwork();
   await NetworkApprovalModal.tapSwitchToNetwork();
 });
 
@@ -234,4 +234,18 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
     default:
       throw new Error('Button not found');
   }
+});
+
+Then(/^I navigate back to the main wallet view/, async () => {
+  await NetworksScreen.tapBackButtonInNewScreen();
+  await driver.pause(1000);
+  await NetworksScreen.tapBackButtonInNewScreen();
+  await NetworksScreen.tapBackButtonInSettingsScreen();
+});
+
+Then(/^I go back to the main wallet screen/, async () => {
+  await driver.pause(1000);
+  await NetworksScreen.tapBackButtonInNewScreen();
+  await driver.pause(1000);
+  await NetworksScreen.tapBackButtonInSettingsScreen();
 });

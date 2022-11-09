@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
@@ -14,7 +14,6 @@ import {
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
 import { util as controllerUtils } from '@metamask/controllers';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
 const createStyles = (colors: {
   background: { default: string };
@@ -235,7 +234,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           type="confirm"
           onPress={onClose}
           containerStyle={styles.closeButton}
-          {...generateTestId(Platform, NETWORK_EDUCATION_MODAL_CLOSE_BUTTON)}
+          testID={NETWORK_EDUCATION_MODAL_CLOSE_BUTTON}
         >
           {strings('network_information.got_it')}
         </StyledButton>

@@ -3,11 +3,10 @@ Feature: Networks
               A user should be able to add a custom network via the popular network flow
               A user should also have the ability to a add custom network via the custom network flow.
               A user should be able to add a custom network via a Dapp.
-        Background:
+
+        Scenario: Adding a network via the new popular network flow
             Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
               And I tap No thanks on the onboarding welcome tutorial
-  
-        Scenario: Adding a network via the new popular network flow
              When I tap on the navbar network title button
               And I tap on the Add a Network button
              Then "POPULAR" tab is displayed on networks screen
@@ -27,6 +26,7 @@ Feature: Networks
              Then "<Network>" should be visible below the Custom Networks section
              When I tap on the Add Network button
              Then "<Network>" is not visible in the Popular Networks section
+              And I navigate back to the main wallet view
         Examples:
                   | Network |
                   | Palm    |
@@ -42,13 +42,13 @@ Feature: Networks
              Then Add button is disabled
              When I type "<Network>" into Network name field
               And I type "<rpcUrl>" into the RPC url field
-              And I type "100" into the Chain ID field
+              And I type "<ChainID>" into the Chain ID field
               And I type "<Network>" into the Network symbol field
              When I tap on the Add button
              Then I should see the added network name "<Network>" in the top navigation bar
         Examples:
-                  | Network | rpcUrl                      |
-                  | xDai    | https://rpc.gnosischain.com |
+                  | Network | rpcUrl                                | ChainID | Symbol |
+                  | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
 
 
         Scenario: I can remove a custom network that was added via the popular network flow
@@ -64,17 +64,18 @@ Feature: Networks
              Then the network approval modal has button "Switch Network" displayed
               And the network approval modal has button "Close" displayed
              When I tap on Switch network
-             Then I should see the added network name "Palm" in the top navigation bar
+             Then I should see the added network name "<Network>" in the top navigation bar
              When I tap on the burger menu
               And I tap on "Settings" in the menu
               And In settings I tap on "Networks"
               And I tap and hold network "<Network>"
-             Then I should see an alert window with the text "Do you want to remove this network"
+             Then I should see an alert window with the text "Do you want to remove this network?"
               And I click "Remove" on remove network modal
              Then "<Network>" should be removed from the list of RPC networks
+              And I go back to the main wallet screen
         Examples:
-                  | Network |
-                  | Palm    |
+                  | Network  |
+                  | Optimism |
 
         Scenario: I can remove a custom network that was added via the custom network flow
             Given I tap on the burger menu
@@ -98,5 +99,5 @@ Feature: Networks
              When I tap the "Delete" button
              Then "<Network>" should be removed from the list of RPC networks
         Examples:
-                  | Network | rpcUrl                      | ChainID | Symbol |
-                  | xDai    | https://rpc.gnosischain.com | 100     | xDai   |
+                  | Network            | rpcUrl                           | ChainID | Symbol |
+                  | Optimism on Gnosis | https://optimism.gnosischain.com | 300     | xDAI   |

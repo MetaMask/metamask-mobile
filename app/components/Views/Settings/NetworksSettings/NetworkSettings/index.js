@@ -874,10 +874,7 @@ class NetworkSettings extends PureComponent {
                   <StyledButton
                     type="confirm"
                     onPress={this.addRpcUrl}
-                    {...generateTestId(
-                      Platform,
-                      ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
-                    )}
+                    testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
                     containerStyle={styles.syncConfirm}
                     disabled={
                       !enableAction ||
