@@ -15,7 +15,10 @@ import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Networks, { getAllNetworks } from '../../../../util/networks';
+import Networks, {
+  compareRpcUrls,
+  getAllNetworks,
+} from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import getImage from '../../../../util/getImage';
@@ -174,7 +177,10 @@ class NetworksSettings extends PureComponent {
   removeNetwork = () => {
     // Check if it's the selected network and then switch to mainnet first
     const { provider } = this.props;
-    if (provider.rpcTarget === this.networkToRemove && provider.type === RPC) {
+    if (
+      compareRpcUrls(provider.rpcTarget, this.networkToRemove) &&
+      provider.type === RPC
+    ) {
       this.switchToMainnet();
     }
     const { PreferencesController } = Engine.context;
