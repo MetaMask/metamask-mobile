@@ -663,8 +663,6 @@ class Amount extends PureComponent {
     }
 
     if (selectedAsset.isETH) transactionObject.to = transactionTo;
-      transactionObject.to = transactionTo;
-    }
 
     setTransactionObject(transactionObject);
   };
