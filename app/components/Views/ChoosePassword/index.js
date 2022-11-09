@@ -231,8 +231,6 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const IOS_DENY_BIOMETRIC_ERROR =
-  'The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -298,9 +296,6 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
-    //Setup UI to handle Biometric
-    console.log('componentDidMount biometryType', this.state.biometryType);
-
     const { type } = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -340,7 +335,6 @@ class ChoosePassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
-    console.log('componentDidUpdate', this.state.biometryType);
   }
 
   componentWillUnmount() {
@@ -350,13 +344,6 @@ class ChoosePassword extends PureComponent {
   setSelection = () => {
     const { isSelected } = this.state;
     this.setState(() => ({ isSelected: !isSelected }));
-  };
-
-  createNewVaultAndKeychain = async (password) => {
-    const { KeyringController } = Engine.context;
-    await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
-    this.keyringControllerPasswordSet = true;
   };
 
   onPressCreate = async () => {
@@ -445,19 +432,25 @@ class ChoosePassword extends PureComponent {
    * It resets the state and and prompts the user to both set the "Remember Me" state and to try again.
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
-  handleRejectedOsBiometricPrompt = async (error) => {
-    console.log('handleRejectedOsBiometricPrompt', error.toString());
-    const authData = await Authentication.getType();
-    console.log('handleRejectedOsBiometricPrompt type', authData);
-    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR)) {
-      console.log('handleRejectedOsBiometricPrompt entered');
-      this.setState({
-        biometryType: authData.type,
-        biometryChoice: true,
-      });
-      this.updateBiometryChoice();
+  handleRejectedOsBiometricPrompt = async () => {
+    // const authData = await Authentication.getType();
+    const newAuthData = await Authentication.componentAuthenticationType(
+      false,
+      false,
+    );
+    try {
+      await Authentication.newWalletAndKeyChain(
+        this.state.password,
+        newAuthData,
+      );
+    } catch (err) {
       throw Error(strings('choose_password.disable_biometric_error'));
     }
+    this.setState({
+      biometryType: newAuthData.type,
+      biometryChoice: true,
+    });
+    this.updateBiometryChoice();
   };
 
   /**
@@ -468,7 +461,6 @@ class ChoosePassword extends PureComponent {
   recreateVault = async (password, authType) => {
     const { KeyringController, PreferencesController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
-
     let importedAccounts = [];
     try {
       const keychainPassword = this.keyringControllerPasswordSet
@@ -563,7 +555,6 @@ class ChoosePassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    console.log('updateBiometryChoice', biometryChoice);
     if (!biometryChoice) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else {

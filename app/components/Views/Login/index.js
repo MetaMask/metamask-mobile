@@ -193,13 +193,11 @@ const createStyles = (colors) =>
     },
   });
 
-const DELETE = 'delete';
 const PASSCODE_NOT_SET_ERROR = 'Error: Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Error: Cannot unlock without a previous vault.';
-const isTextDelete = (text) => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -299,6 +297,7 @@ class Login extends PureComponent {
     if (locked) this.setState({ error: strings('login.invalid_password') });
     if (this.state.loading || locked) return;
 
+    this.setState({ loading: true, error: null });
     const authType = await Authentication.componentAuthenticationType(
       this.state.biometryChoice,
       this.state.rememberMe,
@@ -310,8 +309,14 @@ class Login extends PureComponent {
         authType,
         this.props.selectedAddress,
       );
+      // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-      if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
+      if (onboardingWizard) {
+        this.props.navigation.replace('HomeNav');
+      } else {
+        this.props.setOnboardingWizardStep(1);
+        this.props.navigation.replace('HomeNav');
+      }
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       this.setState({
         loading: false,

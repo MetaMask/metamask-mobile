@@ -50,10 +50,11 @@ class AuthenticationService {
   private dispatchLogin(): void {
     if (this.store) {
       this.store.dispatch(logIn());
-    } else
+    } else {
       Logger.log(
         'Attempted to dispatch logIn action but dispatch was not initialized',
       );
+    }
   }
 
   private dispatchLogout(): void {
@@ -162,11 +163,10 @@ class AuthenticationService {
             SecureKeychain.TYPES.REMEMBER_ME,
           );
           break;
-        default:
           await SecureKeychain.resetGenericPassword();
       }
     } catch (error) {
-      console.log('storePassword', error);
+      // await SecureKeychain.resetGenericPassword();
       throw new AuthenticationError(
         (error as Error).message,
         'Authentication.storePassword failed',
@@ -262,8 +262,7 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.logout();
-      console.log('newWalletAndKeyChain error');
+      this.logout(false);
       throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
     }
   };
@@ -282,8 +281,8 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     try {
-      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.type);
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
