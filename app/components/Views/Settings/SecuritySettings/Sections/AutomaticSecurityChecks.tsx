@@ -14,19 +14,14 @@ const AutomaticSecurityChecks = () => {
 
   const toggleAutomaticSecurityChecks = useCallback(
     (value: boolean) => {
-      if (value) {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS
-            .AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS,
-          { platform: Platform.OS },
-        );
-      } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS
-            .AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
-          { platform: Platform.OS },
-        );
-      }
+      AnalyticsV2.trackEvent(
+        value
+          ? AnalyticsV2.ANALYTICS_EVENTS
+              .AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS
+          : AnalyticsV2.ANALYTICS_EVENTS
+              .AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
+        { platform: Platform.OS },
+      );
       dispatch(setAutomaticSecurityChecks(value));
     },
     [dispatch],
