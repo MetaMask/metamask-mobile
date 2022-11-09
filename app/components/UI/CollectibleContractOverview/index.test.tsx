@@ -16,8 +16,8 @@ const initialState = {
       PreferencesController: {
         selectedAddress: '0x1',
       },
-      CollectiblesController: {
-        allCollectibles: {
+      NftController: {
+        allNfts: {
           '0x1': {
             1: [],
           },

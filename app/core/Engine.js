@@ -20,9 +20,9 @@ import {
   WalletDevice,
   GasFeeController,
   TokensController,
-  CollectiblesController,
+  NftController,
   TokenDetectionController,
-  CollectibleDetectionController,
+  NftDetectionController,
   ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
@@ -81,7 +81,7 @@ class Engine {
           useTokenDetection:
             initialState?.PreferencesController?.useTokenDetection ?? true,
           // TODO: Use previous value when preferences UI is available
-          useCollectibleDetection: false,
+          useNftDetection: false,
           openSeaEnabled: false,
         },
       );
@@ -144,7 +144,7 @@ class Engine {
             listener,
           ),
       });
-      const collectiblesController = new CollectiblesController(
+      const nftController = new NftController(
         {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
@@ -261,7 +261,7 @@ class Engine {
         }),
         new AddressBookController(),
         assetsContractController,
-        collectiblesController,
+        nftController,
         tokensController,
         tokenListController,
         new TokenDetectionController({
@@ -300,9 +300,8 @@ class Engine {
               assetsContractController,
             ),
         }),
-        new CollectibleDetectionController({
-          onCollectiblesStateChange: (listener) =>
-            collectiblesController.subscribe(listener),
+        new NftDetectionController({
+          onNftsStateChange: (listener) => nftController.subscribe(listener),
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
@@ -310,11 +309,9 @@ class Engine {
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
-          getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
-          addCollectible: collectiblesController.addCollectible.bind(
-            collectiblesController,
-          ),
-          getCollectiblesState: () => collectiblesController.state,
+          getOpenSeaApiKey: () => nftController.openSeaApiKey,
+          addNft: nftController.addNft.bind(nftController),
+          getNftState: () => nftController.state,
         }),
         currencyRateController,
         new PersonalMessageManager(),
@@ -411,12 +408,12 @@ class Engine {
       }, {});
 
       const {
-        CollectiblesController: collectibles,
+        NftController: nfts,
         KeyringController: keyring,
         TransactionController: transaction,
       } = this.context;
 
-      collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
+      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
 
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
       this.controllerMessenger.subscribe(
@@ -443,12 +440,12 @@ class Engine {
 
   startPolling() {
     const {
-      CollectibleDetectionController,
+      NftDetectionController,
       TokenDetectionController,
       TokenListController,
     } = this.context;
     TokenListController.start();
-    CollectibleDetectionController.start();
+    NftDetectionController.start();
     TokenDetectionController.start();
   }
 
@@ -457,7 +454,7 @@ class Engine {
       AccountTrackerController,
       AssetsContractController,
       TokenDetectionController,
-      CollectibleDetectionController,
+      NftDetectionController,
       NetworkController: { provider, state: NetworkControllerState },
       TransactionController,
       SwapsController,
@@ -475,7 +472,7 @@ class Engine {
     TransactionController.configure({ provider });
     TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
-    CollectibleDetectionController.detectCollectibles();
+    NftDetectionController.detectNfts();
     AccountTrackerController.refresh();
   }
 
@@ -621,7 +618,7 @@ class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
-      const collectibles = backgroundState.CollectiblesController.collectibles;
+      const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
       const tokenBalances =
         backgroundState.TokenBalancesController.contractBalances;
@@ -638,7 +635,7 @@ class Engine {
 
       const fiatBalance = this.getTotalFiatAccountBalance();
 
-      return fiatBalance > 0 || tokenFound || collectibles.length > 0;
+      return fiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
     }
@@ -651,7 +648,7 @@ class Engine {
     const {
       TransactionController,
       TokensController,
-      CollectiblesController,
+      NftController,
       TokenBalancesController,
       TokenRatesController,
     } = this.context;
@@ -663,12 +660,10 @@ class Engine {
       tokens: [],
       suggestedAssets: [],
     });
-    CollectiblesController.update({
-      allCollectibleContracts: {},
-      allCollectibles: {},
-      collectibleContracts: [],
-      collectibles: [],
-      ignoredCollectibles: [],
+    NftController.update({
+      allNftContracts: {},
+      allNfts: {},
+      ignoredNfts: [],
     });
 
     TokensController.update({
@@ -801,7 +796,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
-      CollectiblesController,
+      NftController,
       TokenListController,
       CurrencyRateController,
       KeyringController,
@@ -817,7 +812,7 @@ export default {
       GasFeeController,
       TokensController,
       TokenDetectionController,
-      CollectibleDetectionController,
+      NftDetectionController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -834,7 +829,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
-      CollectiblesController,
+      NftController,
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
       KeyringController,
@@ -850,7 +845,7 @@ export default {
       SwapsController,
       GasFeeController,
       TokenDetectionController,
-      CollectibleDetectionController,
+      NftDetectionController,
     };
   },
   get datamodel() {

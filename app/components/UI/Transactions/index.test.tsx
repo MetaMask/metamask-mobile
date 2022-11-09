@@ -29,8 +29,8 @@ const initialState = {
       TokenRatesController: {
         contractExchangeRates: {},
       },
-      CollectiblesController: {
-        allCollectibleContracts: { '0x0': { 1: [] } },
+      NftController: {
+        allNftContracts: { '0x0': { 1: [] } },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
