@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -19,6 +19,7 @@ import {
   setAutomaticSecurityChecks,
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -38,16 +39,26 @@ const EnableAutomaticSecurityChecksModal = () => {
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.dismissModal(cb);
 
-  const triggerClose = useCallback(
+  const triggerCloseAndDisableAutomaticSecurityChecks = useCallback(
     () =>
-      dismissModal(() =>
-        dispatch(userSelectedAutomaticSecurityChecksOptions()),
-      ),
+      dismissModal(() => {
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS
+            .AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
+          { platform: Platform.OS },
+        );
+        dispatch(userSelectedAutomaticSecurityChecksOptions());
+      }),
     [dispatch],
   );
 
   const enableAutomaticSecurityChecks = useCallback(() => {
     dismissModal(() => {
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS
+          .AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
+        { platform: Platform.OS },
+      );
       dispatch(userSelectedAutomaticSecurityChecksOptions());
       dispatch(setAutomaticSecurityChecks(true));
     });
@@ -79,7 +90,7 @@ const EnableAutomaticSecurityChecksModal = () => {
             'enable_automatic_security_check_modal.secondary_action',
           )}
           size={ButtonSize.Md}
-          onPress={triggerClose}
+          onPress={triggerCloseAndDisableAutomaticSecurityChecks}
           buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         />
       </View>

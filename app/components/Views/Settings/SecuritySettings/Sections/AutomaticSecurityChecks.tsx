@@ -3,6 +3,8 @@ import { SecurityOptionToggle } from '../../../../UI/SecurityOptionToggle';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAutomaticSecurityChecks } from '../../../../../actions/security';
+import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { Platform } from 'react-native';
 
 const AutomaticSecurityChecks = () => {
   const dispatch = useDispatch();
@@ -12,6 +14,19 @@ const AutomaticSecurityChecks = () => {
 
   const toggleAutomaticSecurityChecks = useCallback(
     (value: boolean) => {
+      if (value) {
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS
+            .AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS,
+          { platform: Platform.OS },
+        );
+      } else {
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS
+            .AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
+          { platform: Platform.OS },
+        );
+      }
       dispatch(setAutomaticSecurityChecks(value));
     },
     [dispatch],
