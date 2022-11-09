@@ -31,10 +31,9 @@ import CustomActionButton from '../containers/CustomActionButton';
 
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
-import PaymentIcon from '../components/PaymentIcon';
+import PaymentMethodIcon from '../components/PaymentMethodIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
-import { getPaymentMethodIcon } from '../utils';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
@@ -825,10 +824,9 @@ const AmountToBuy = () => {
           <PaymentMethodSelector
             label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
-              <PaymentIcon
-                iconType={getPaymentMethodIcon(
-                  currentPaymentMethod?.paymentType,
-                )}
+              <PaymentMethodIcon
+                paymentMethodIcons={currentPaymentMethod?.icons}
+                paymentMethodType={currentPaymentMethod?.paymentType}
                 size={20}
                 color={colors.icon.default}
               />
