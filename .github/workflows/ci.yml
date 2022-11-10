@@ -11,14 +11,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: .nvmrc
-      - name: Get Yarn version
-        run: echo "YARN_VERSION=$(yarn --version)" >> $GITHUB_OUTPUT
-        id: yarn-version
-      - name: Cache yarn dependencies
-        uses: actions/cache@v3
-        with:
-          path: .yarn/cache/
-          key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
+          cache: yarn
       - run: yarn --immutable
         env:
           YARN_CHECKSUM_BEHAVIOR: update
