@@ -5,10 +5,13 @@ import { IJazziconProps } from 'react-native-jazzicon';
 import { AvatarVariants } from '../../Avatar.types';
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
 
-export type AvatarJazzIconProps = AvatarBaseProps &
-  Omit<IJazziconProps, 'size'> & {
-    /**
-     * Avatar variants.
-     */
-    variant?: AvatarVariants.JazzIcon;
-  };
+export type AvatarJazzIconProps = AvatarBaseProps & {
+  /**
+   * Avatar variants.
+   */
+  variant?: AvatarVariants.JazzIcon;
+  /**
+   * Props for the JazzIcon content.
+   */
+  jazzIconProps: IJazziconProps;
+};

@@ -9,7 +9,7 @@ import { AvatarSizes } from '../../../../../../component-library/components/Avat
 // Internal dependencies.
 import AvatarJazzIcon from './AvatarJazzIcon';
 import { AvatarJazzIconProps } from './AvatarJazzIcon.types';
-import { TEST_AVATAR_JAZZICON_ADDRESS } from './AvatarJazzIcon.constants';
+import { TEST_AVATAR_JAZZICON_PROPS } from './AvatarJazzIcon.constants';
 
 export const getAvatarJazzIconStoryProps = (): AvatarJazzIconProps => {
   const sizeSelector = select(
@@ -21,7 +21,7 @@ export const getAvatarJazzIconStoryProps = (): AvatarJazzIconProps => {
 
   return {
     size: sizeSelector,
-    address: TEST_AVATAR_JAZZICON_ADDRESS,
+    jazzIconProps: TEST_AVATAR_JAZZICON_PROPS,
   };
 };
 const AvatarJazzIconStory = () => (

@@ -8,7 +8,7 @@ import { AvatarVariants } from '../../Avatar.types';
 // Internal dependencies.
 import AvatarJazzIcon from './AvatarJazzIcon';
 import {
-  TEST_AVATAR_JAZZICON_ADDRESS,
+  TEST_AVATAR_JAZZICON_PROPS,
   AVATAR_JAZZICON_TEST_ID,
 } from './AvatarJazzIcon.constants';
 
@@ -17,7 +17,7 @@ describe('AvatarJazzIcon - Snapshot', () => {
     const wrapper = shallow(
       <AvatarJazzIcon
         variant={AvatarVariants.JazzIcon}
-        address={TEST_AVATAR_JAZZICON_ADDRESS}
+        jazzIconProps={TEST_AVATAR_JAZZICON_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -29,7 +29,7 @@ describe('AvatarJazzIcon', () => {
     const wrapper = shallow(
       <AvatarJazzIcon
         variant={AvatarVariants.JazzIcon}
-        address={TEST_AVATAR_JAZZICON_ADDRESS}
+        jazzIconProps={TEST_AVATAR_JAZZICON_PROPS}
       />,
     );
     const AvatarJazzIconComponent = wrapper.findWhere(

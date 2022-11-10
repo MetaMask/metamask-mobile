@@ -12,7 +12,7 @@ export interface AvatarBaseProps extends Omit<CoinPatternProps, 'size'> {
    * Optional enum to select between Avatar sizes.
    * @default Md
    */
-  size: AvatarSizes;
+  size?: AvatarSizes;
 }
 
 /**
