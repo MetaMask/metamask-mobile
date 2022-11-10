@@ -27,7 +27,7 @@ import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
-import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
+import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
 import {
@@ -353,13 +353,11 @@ class SendFlow extends PureComponent {
     }
   };
 
-  validateToAddress = async () => {
-    const { toAccount } = this.state;
-    const { network } = this.props;
+  validateToAddress = () => {
+    const { toAccount, toEnsAddressResolved } = this.state;
     let addressError;
     if (isENS(toAccount)) {
-      const resolvedAddress = await doENSLookup(toAccount, network);
-      if (!resolvedAddress) {
+      if (!toEnsAddressResolved) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
     } else if (!isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
@@ -453,7 +451,7 @@ class SendFlow extends PureComponent {
       toEnsAddressResolved,
     } = this.state;
     if (!this.isAddressSaved()) {
-      const addressError = await this.validateToAddress();
+      const addressError = this.validateToAddress();
       if (addressError) return;
     }
     const toAddress = toEnsAddressResolved || toAccount;
@@ -775,17 +773,27 @@ class SendFlow extends PureComponent {
 
         {!errorContinue && (
           <View style={styles.footerContainer} testID={'no-eth-message'}>
-            <View style={styles.buttonNextWrapper}>
-              <StyledButton
-                type={'confirm'}
-                containerStyle={styles.buttonNext}
-                onPress={this.onTransactionDirectionSet}
-                testID={ADDRESS_BOOK_NEXT_BUTTON}
-                disabled={!toSelectedAddressReady}
-              >
-                {strings('address_book.next')}
-              </StyledButton>
-            </View>
+            {!errorContinue && (
+              <View style={styles.buttonNextWrapper}>
+                <StyledButton
+                  type={'confirm'}
+                  containerStyle={styles.buttonNext}
+                  onPress={this.onTransactionDirectionSet}
+                  testID={ADDRESS_BOOK_NEXT_BUTTON}
+                  //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
+                  //Will be here just to ensure that we don't break existing conditions
+                  disabled={
+                    !(
+                      (isValidHexAddress(toEnsAddressResolved) ||
+                        isValidHexAddress(toAccount)) &&
+                      toSelectedAddressReady
+                    )
+                  }
+                >
+                  {strings('address_book.next')}
+                </StyledButton>
+              </View>
+            )}
           </View>
         )}
 
