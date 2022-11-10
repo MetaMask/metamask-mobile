@@ -1,8 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-
 // Third party dependences.
-import { ImageSourcePropType } from 'react-native';
+import { ImagePropsBase, ImageSourcePropType } from 'react-native';
 
+// Internal dependencies.
+import { TokenSizes } from './Token.types';
 export const TEST_TOKEN_NAME = 'Wrapped Ethereum';
 
 export const TEST_REMOTE_TOKEN_IMAGES = [
@@ -16,6 +17,12 @@ export const TEST_REMOTE_TOKEN_IMAGES = [
   'https://cryptologos.cc/logos/vechain-vet-logo.png',
 ];
 
-export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
+const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
   uri: TEST_REMOTE_TOKEN_IMAGES[0],
 };
+
+export const TEST_REMOTE_IMAGE_PROPS: ImagePropsBase = {
+  source: TEST_REMOTE_IMAGE_SOURCE,
+};
+
+export const DEFAULT_TOKEN_SIZE = TokenSizes.Md;

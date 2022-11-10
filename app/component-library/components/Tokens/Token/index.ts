@@ -1,1 +1,1 @@
-export { default } from './AvatarToken';
+export { default } from './Token';

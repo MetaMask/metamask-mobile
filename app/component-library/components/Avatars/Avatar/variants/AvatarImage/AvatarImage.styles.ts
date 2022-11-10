@@ -20,24 +20,12 @@ const styleSheet = (params: {
   vars: AvatarImageStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { size, isHaloEnabled } = vars;
-  const imageSize = isHaloEnabled ? Number(size) * 0.64 : Number(size);
+  const { size } = vars;
   return StyleSheet.create({
-    haloImage: {
-      opacity: 0.5,
-    },
-    halo: {
+    image: Object.assign({
       width: Number(size),
       height: Number(size),
-      justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
       borderRadius: Number(size) / 2,
-    },
-    image: Object.assign({
-      width: imageSize,
-      height: imageSize,
-      borderRadius: imageSize / 2,
     } as ImageStyle),
   });
 };

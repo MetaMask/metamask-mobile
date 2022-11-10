@@ -8,19 +8,16 @@ import { shallow } from 'enzyme';
 import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
-import AvatarToken from './AvatarToken';
-import {
-  TEST_TOKEN_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from './AvatarToken.constants';
+import Token from './Token';
+import { TEST_TOKEN_NAME, TEST_REMOTE_IMAGE_PROPS } from './Token.constants';
 
-describe('AvatarToken', () => {
+describe('Token', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarToken
+      <Token
         size={AvatarSizes.Xl}
         name={TEST_TOKEN_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+        imageProps={TEST_REMOTE_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();

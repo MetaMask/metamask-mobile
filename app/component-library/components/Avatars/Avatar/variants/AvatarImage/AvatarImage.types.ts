@@ -17,17 +17,9 @@ export type AvatarImageProps = AvatarBaseProps & {
    * Props for the image content.
    */
   imageProps: ImagePropsBase;
-  /**
-   * Optional boolean to activate halo effect.
-   * @default false
-   */
-  isHaloEnabled?: boolean;
 };
 
 /**
  * Style sheet input parameters.
  */
-export type AvatarImageStyleSheetVars = Pick<
-  AvatarImageProps,
-  'size' | 'isHaloEnabled'
->;
+export type AvatarImageStyleSheetVars = Pick<AvatarImageProps, 'size'>;

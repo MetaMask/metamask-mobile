@@ -18,34 +18,18 @@ import {
 
 const AvatarImage = ({
   size = DEFAULT_AVATAR_SIZE,
-  isHaloEnabled = false,
   imageProps,
 }: AvatarImageProps) => {
-  const { styles } = useStyles(styleSheet, { size, isHaloEnabled });
-  const renderImage = () => (
-    <Image
-      style={styles.image}
-      resizeMode={'contain'}
-      testID={AVATAR_IMAGE_IMAGE_TEST_ID}
-      {...imageProps}
-    />
-  );
+  const { styles } = useStyles(styleSheet, { size });
 
   return (
     <AvatarBase size={size} testID={AVATAR_IMAGE_TEST_ID}>
-      {isHaloEnabled ? (
-        <ImageBackground
-          blurRadius={20}
-          style={styles.halo}
-          imageStyle={styles.haloImage}
-          testID={AVATAR_IMAGE_HALO_TEST_ID}
-          {...imageProps}
-        >
-          {renderImage()}
-        </ImageBackground>
-      ) : (
-        renderImage()
-      )}
+      <Image
+        style={styles.image}
+        resizeMode={'contain'}
+        testID={AVATAR_IMAGE_IMAGE_TEST_ID}
+        {...imageProps}
+      />
     </AvatarBase>
   );
 };

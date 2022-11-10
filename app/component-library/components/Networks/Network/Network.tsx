@@ -28,6 +28,13 @@ const Network = ({
 
   const onError = useCallback(() => setShowFallback(true), [setShowFallback]);
   const chainNameFirstLetter = name?.[0] ?? '?';
+  const renderFallback = () => (
+    <Avatar
+      variant={AvatarVariants.Initial}
+      initial={chainNameFirstLetter}
+      size={size}
+    />
+  );
 
   return (
     <>
@@ -41,11 +48,7 @@ const Network = ({
           />
         </CoinPattern>
       ) : (
-        <Avatar
-          variant={AvatarVariants.Initial}
-          initial={chainNameFirstLetter}
-          size={size}
-        />
+        renderFallback()
       )}
     </>
   );
