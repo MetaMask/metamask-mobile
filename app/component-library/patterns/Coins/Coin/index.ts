@@ -1,2 +1,2 @@
 export { default } from './Coin';
-export type { CoinProps } from './Coin.types';
+export type { CoinPatternProps } from './Coin.types';

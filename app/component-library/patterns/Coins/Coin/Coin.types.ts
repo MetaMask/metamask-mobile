@@ -2,9 +2,9 @@
 import { ViewProps } from 'react-native';
 
 /**
- * Coin sizes.
+ * CoinPattern sizes.
  */
-export enum CoinSizes {
+export enum CoinPatternSizes {
   Xs = '16',
   Sm = '24',
   Md = '32',
@@ -13,17 +13,20 @@ export enum CoinSizes {
 }
 
 /**
- * Coin component props.
+ * CoinPattern component props.
  */
-export interface CoinProps extends ViewProps {
+export interface CoinPatternProps extends ViewProps {
   /**
-   * Optional enum to select between Coin sizes.
+   * Optional enum to select between CoinPattern sizes.
    * @default Md
    */
-  size?: CoinSizes;
+  size?: CoinPatternSizes;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type CoinStyleSheetVars = Pick<CoinProps, 'style' | 'size'>;
+export type CoinPatternStyleSheetVars = Pick<
+  CoinPatternProps,
+  'style' | 'size'
+>;

@@ -1,9 +1,6 @@
 // Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
-// External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
-
 // Internal dependencies.
 import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
 
@@ -14,31 +11,13 @@ import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: AvatarBaseStyleSheetVars;
-}) => {
+const styleSheet = (params: { vars: AvatarBaseStyleSheetVars }) => {
   const {
-    theme,
-    vars: { style, size, backgroundColor },
+    vars: { style },
   } = params;
-  const sizeAsNum = Number(size);
-  const themedBackgroundColor =
-    backgroundColor || theme.colors.background.default;
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        height: sizeAsNum,
-        width: sizeAsNum,
-        borderRadius: sizeAsNum / 2,
-        overflow: 'hidden',
-        backgroundColor: themedBackgroundColor,
-        justifyContent: 'center',
-        alignItems: 'center',
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
   });
 };
 

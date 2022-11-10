@@ -2,23 +2,28 @@
 import React from 'react';
 
 // External dependencies.
-import AvatarIcon from './variants/AvatarIcon';
+import AvatarBlockies from './variants/AvatarBlockies';
 import AvatarImage from './variants/AvatarImage';
 import AvatarInitial from './variants/AvatarInitial';
+import AvatarJazzIcon from './variants/AvatarJazzIcon';
 
 // Internal dependencies.
 import { AvatarProps, AvatarVariants } from './Avatar.types';
 import {
-  AVATAR_AVATAR_ICON_TEST_ID,
+  AVATAR_AVATAR_BLOCKIES_TEST_ID,
   AVATAR_AVATAR_IMAGE_TEST_ID,
   AVATAR_AVATAR_INITIAL_TEST_ID,
+  AVATAR_AVATAR_JAZZICON_TEST_ID,
 } from './Avatar.constants';
 
 const Avatar = (avatarProps: AvatarProps) => {
   switch (avatarProps.variant) {
-    case AvatarVariants.Icon:
+    case AvatarVariants.Blockies:
       return (
-        <AvatarIcon {...avatarProps} testID={AVATAR_AVATAR_ICON_TEST_ID} />
+        <AvatarBlockies
+          {...avatarProps}
+          testID={AVATAR_AVATAR_BLOCKIES_TEST_ID}
+        />
       );
     case AvatarVariants.Image:
       return (
@@ -29,6 +34,13 @@ const Avatar = (avatarProps: AvatarProps) => {
         <AvatarInitial
           {...avatarProps}
           testID={AVATAR_AVATAR_INITIAL_TEST_ID}
+        />
+      );
+    case AvatarVariants.JazzIcon:
+      return (
+        <AvatarJazzIcon
+          {...avatarProps}
+          testID={AVATAR_AVATAR_JAZZICON_TEST_ID}
         />
       );
     default:

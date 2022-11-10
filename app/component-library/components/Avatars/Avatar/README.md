@@ -1,5 +1,6 @@
 # Avatar
 
+Avatar is graphical representation of **an account**: usually a photo, illustration, or initial.
 This component is a union Avatar component, which consists of [AvatarIcon](./variants/AvatarIcon/AvatarIcon.tsx), [AvatarImage](./variants/AvatarImage/AvatarImage.tsx), and [AvatarInitial](./variants/AvatarInitial/AvatarInitial.tsx)
 
 ## Common props

@@ -2,10 +2,10 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External depdendencies.
 import { useStyles } from '../../../../../hooks/useStyles';
+import CoinPattern from '../../../../../patterns/Coins/Coin/Coin';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
@@ -15,20 +15,17 @@ import { AVATAR_BASE_TEST_ID } from './AvatarBase.constants';
 
 const AvatarBase: React.FC<AvatarBaseProps> = ({
   size = DEFAULT_AVATAR_SIZE,
-  backgroundColor,
   style,
   children,
 }) => {
   const { styles } = useStyles(styleSheet, {
-    size,
     style,
-    backgroundColor,
   });
 
   return (
-    <View style={styles.base} testID={AVATAR_BASE_TEST_ID}>
+    <CoinPattern style={styles.base} size={size} testID={AVATAR_BASE_TEST_ID}>
       {children}
-    </View>
+    </CoinPattern>
   );
 };
 

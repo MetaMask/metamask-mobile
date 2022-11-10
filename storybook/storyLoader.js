@@ -7,9 +7,10 @@ function loadStories() {
   require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
   require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
   require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
-  require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarBlockies/AvatarBlockies.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories');
@@ -26,10 +27,13 @@ function loadStories() {
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
-  require('../app/component-library/components/Icon/Icon.stories');
+  require('../app/component-library/components/Favicons/Favicon/AvatarFavicon.stories');
+  require('../app/component-library/components/Icons/Icon/Icon.stories');
+  require('../app/component-library/components/Icons/IconContainer/IconContainer.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
+  require('../app/component-library/components/Networks/Network/AvatarNetwork.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
@@ -42,15 +46,12 @@ function loadStories() {
   require('../app/component-library/components/Texts/Text/Text.stories');
   require('../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories');
   require('../app/component-library/components/Toast/Toast.stories');
+  require('../app/component-library/components/Tokens/Token/AvatarToken.stories');
   require('../app/components/Base/Alert.stories');
   require('../app/components/Base/ListItem.stories');
   require('../app/components/Base/Text.stories');
   require('../app/components/Base/Title.stories');
   require('../app/components/UI/Avatars/Avatar/Avatar.stories');
-  require('../app/components/UI/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
-  require('../app/components/UI/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
-  require('../app/components/UI/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories');
-  require('../app/components/UI/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
   require('../app/components/UI/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
   require('../app/components/UI/Badges/Badge/Badge.stories');
   require('../app/components/UI/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories');
@@ -68,9 +69,10 @@ const stories = [
   '../app/component-library/components/Accordions/Accordion/Accordion.stories',
   '../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories',
   '../app/component-library/components/Avatars/Avatar/Avatar.stories',
-  '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarBlockies/AvatarBlockies.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories',
@@ -87,10 +89,13 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
-  '../app/component-library/components/Icon/Icon.stories',
+  '../app/component-library/components/Favicons/Favicon/AvatarFavicon.stories',
+  '../app/component-library/components/Icons/Icon/Icon.stories',
+  '../app/component-library/components/Icons/IconContainer/IconContainer.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
+  '../app/component-library/components/Networks/Network/AvatarNetwork.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
@@ -103,15 +108,12 @@ const stories = [
   '../app/component-library/components/Texts/Text/Text.stories',
   '../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories',
   '../app/component-library/components/Toast/Toast.stories',
+  '../app/component-library/components/Tokens/Token/AvatarToken.stories',
   '../app/components/Base/Alert.stories',
   '../app/components/Base/ListItem.stories',
   '../app/components/Base/Text.stories',
   '../app/components/Base/Title.stories',
   '../app/components/UI/Avatars/Avatar/Avatar.stories',
-  '../app/components/UI/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories',
-  '../app/components/UI/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories',
-  '../app/components/UI/Avatars/Avatar/variants/AvatarJazzIcon/AvatarJazzIcon.stories',
-  '../app/components/UI/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
   '../app/components/UI/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
   '../app/components/UI/Badges/Badge/Badge.stories',
   '../app/components/UI/Badges/Badge/variants/BadgeAvatar/BadgeAvatar.stories',

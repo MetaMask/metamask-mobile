@@ -1,35 +1,32 @@
 // External dependencies.
-import { AvatarIconProps } from './variants/AvatarIcon/AvatarIcon.types';
+import { AvatarBlockiesProps } from './variants/AvatarBlockies/AvatarBlockies.types';
 import { AvatarImageProps } from './variants/AvatarImage/AvatarImage.types';
 import { AvatarInitialProps } from './variants/AvatarInitial/AvatarInitial.types';
+import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.types';
 
 /**
  * Avatar sizes.
  */
-export enum AvatarSizes {
-  Xs = '16',
-  Sm = '24',
-  Md = '32',
-  Lg = '40',
-  Xl = '48',
-}
+export { CoinPatternSizes as AvatarSizes } from '../../../patterns/Coins/Coin/Coin.types';
 
 /**
  * Avatar variants.
  */
 export enum AvatarVariants {
-  Icon = 'Icon',
+  Blockies = 'Blockies',
   Image = 'Image',
   Initial = 'Initial',
+  JazzIcon = 'JazzIcon',
 }
 
 /**
  * Avatar component props.
  */
 export type AvatarProps = (
-  | AvatarIconProps
+  | AvatarBlockiesProps
   | AvatarImageProps
   | AvatarInitialProps
+  | AvatarJazzIconProps
 ) & {
   /**
    * Avatar variants.

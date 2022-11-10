@@ -4,31 +4,31 @@ import { View } from 'react-native';
 import { shallow } from 'enzyme';
 
 // Internal dependencies.
-import Coin from './Coin';
-import { CoinSizes } from './Coin.types';
-import { COIN_TEST_ID } from './Coin.constants';
+import CoinPattern from './Coin';
+import { CoinPatternSizes } from './Coin.types';
+import { COIN_PATTERN_TEST_ID } from './Coin.constants';
 
-describe('Coin - Snapshot', () => {
+describe('CoinPattern - Snapshot', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <Coin size={CoinSizes.Md}>
+      <CoinPattern size={CoinPatternSizes.Md}>
         <View />
-      </Coin>,
+      </CoinPattern>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 });
 
-describe('Coin', () => {
-  it('should render Coin component', () => {
+describe('CoinPattern', () => {
+  it('should render CoinPattern component', () => {
     const wrapper = shallow(
-      <Coin size={CoinSizes.Md}>
+      <CoinPattern size={CoinPatternSizes.Md}>
         <View />
-      </Coin>,
+      </CoinPattern>,
     );
-    const CoinComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === COIN_TEST_ID,
+    const CoinPatternComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === COIN_PATTERN_TEST_ID,
     );
-    expect(CoinComponent.exists()).toBe(true);
+    expect(CoinPatternComponent.exists()).toBe(true);
   });
 });

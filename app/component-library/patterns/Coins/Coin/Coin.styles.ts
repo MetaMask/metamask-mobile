@@ -2,7 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // Internal dependencies.
-import { CoinStyleSheetVars } from './Coin.types';
+import { CoinPatternStyleSheetVars } from './Coin.types';
 
 /**
  * Style sheet function for Coin component.
@@ -11,7 +11,7 @@ import { CoinStyleSheetVars } from './Coin.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { vars: CoinStyleSheetVars }) => {
+const styleSheet = (params: { vars: CoinPatternStyleSheetVars }) => {
   const {
     vars: { style, size },
   } = params;
