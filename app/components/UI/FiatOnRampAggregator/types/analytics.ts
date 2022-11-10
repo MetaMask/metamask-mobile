@@ -72,6 +72,14 @@ export interface AnalyticsEvents {
   ONRAMP_PROVIDER_DETAILS_VIEWED: {
     provider_onramp: string;
   };
+  ONRAMP_DIRECT_PROVIDER_CLICKED: {
+    region: string;
+    provider_onramp: string;
+    currency_source: string;
+    currency_destination: string;
+    chain_id_destination: string;
+    payment_method_id: string;
+  };
   ONRAMP_PURCHASE_SUBMITTED: {
     provider_onramp: string;
     payment_method_id: string;

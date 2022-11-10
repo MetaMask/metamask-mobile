@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentMethod from '../components/PaymentMethod';
@@ -204,21 +203,13 @@ const PaymentMethods = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
-            currentPaymentMethod?.paymentType ===
-              PaymentType.DebitCreditCard) && (
+          {currentPaymentMethod?.disclaimer ? (
             <View style={styles.row}>
               <Text small grey centered>
-                {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
-                  strings(
-                    'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                  )}
-                {currentPaymentMethod?.paymentType ===
-                  PaymentType.DebitCreditCard &&
-                  strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
+                {currentPaymentMethod.disclaimer}
               </Text>
             </View>
-          )}
+          ) : null}
           <View style={styles.row}>
             <StyledButton
               type={'confirm'}

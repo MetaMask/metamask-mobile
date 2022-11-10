@@ -118,7 +118,7 @@ const PaymentMethod: React.FC<Props> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const { name, logo, amountTier, delay: time } = payment;
+  const { name, logo, amountTier, delay: time, detail } = payment;
 
   return (
     <Box onPress={onPress} highlighted={highlighted}>
@@ -141,6 +141,11 @@ const PaymentMethod: React.FC<Props> = ({
               {name}
             </Text>
           </ListItem.Title>
+          {detail ? (
+            <Text small blue>
+              {detail}
+            </Text>
+          ) : null}
         </ListItem.Body>
         {logo ? (
           <ListItem.Amounts>

@@ -12,7 +12,6 @@ import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { ScreenLocation } from '../types';
-import { strings } from '../../../../../locales/i18n';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -59,7 +58,6 @@ function PaymentMethodModal({
   onItemPress,
   paymentMethods,
   selectedPaymentMethodId,
-  selectedPaymentMethodType,
   location,
 }: Props) {
   const { colors } = useTheme();
@@ -79,6 +77,10 @@ function PaymentMethodModal({
       }
     },
     [location, onItemPress, selectedPaymentMethodId, trackEvent],
+  );
+
+  const selectedPaymentMethod = paymentMethods?.find(
+    ({ id }) => id === selectedPaymentMethodId,
   );
 
   return (
@@ -114,17 +116,11 @@ function PaymentMethodModal({
                     </View>
                   ))}
 
-                  <Text small grey centered>
-                    {selectedPaymentMethodType === PaymentType.ApplePay &&
-                      strings(
-                        'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                      )}
-                    {selectedPaymentMethodType ===
-                      PaymentType.DebitCreditCard &&
-                      strings(
-                        'fiat_on_ramp_aggregator.payment_method.card_fees',
-                      )}
-                  </Text>
+                  {selectedPaymentMethod?.disclaimer ? (
+                    <Text small grey centered>
+                      {selectedPaymentMethod?.disclaimer}
+                    </Text>
+                  ) : null}
                 </ScreenLayout.Content>
               </View>
             </ScrollView>
