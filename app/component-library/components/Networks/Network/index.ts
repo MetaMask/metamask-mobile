@@ -1,1 +1,1 @@
-export { default } from './AvatarNetwork';
+export { default } from './Network';

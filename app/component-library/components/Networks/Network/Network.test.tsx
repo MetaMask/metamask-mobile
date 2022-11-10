@@ -3,22 +3,22 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarSizes } from '../../../../../../component-library/components/Avatars/Avatar';
+import { NetworkSizes } from './Network.types';
 
 // Internal dependencies.
-import AvatarNetwork from './AvatarNetwork';
+import Network from './Network';
 import {
   TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from './AvatarNetwork.constants';
+  TEST_REMOTE_IMAGE_PROPS,
+} from './Network.constants';
 
-describe('AvatarNetwork', () => {
+describe('Network', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarNetwork
-        size={AvatarSizes.Xl}
+      <Network
+        size={NetworkSizes.Xl}
         name={TEST_NETWORK_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+        imageProps={TEST_REMOTE_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();

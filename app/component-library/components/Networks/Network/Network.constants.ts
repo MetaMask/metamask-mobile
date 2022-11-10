@@ -1,18 +1,19 @@
 /* eslint-disable import/prefer-default-export */
+
 // Third party dependencies.
 import { ImagePropsBase, ImageSourcePropType } from 'react-native';
 
 // Internal dependencies.
-import { FaviconSizes } from './Favicon.types';
+import { NetworkSizes } from './Network.types';
 
-const TEST_REMOTE_IMAGE_URL = 'https://uniswap.org/favicon.ico';
+export const TEST_NETWORK_NAME = 'Ethereum';
 
 const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
-  uri: TEST_REMOTE_IMAGE_URL,
+  uri: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
 };
 
 export const TEST_REMOTE_IMAGE_PROPS: ImagePropsBase = {
   source: TEST_REMOTE_IMAGE_SOURCE,
 };
 
-export const DEFAULT_FAVICON_SIZE = FaviconSizes.Md;
+export const DEFAULT_NETWORK_SIZE = NetworkSizes.Md;
