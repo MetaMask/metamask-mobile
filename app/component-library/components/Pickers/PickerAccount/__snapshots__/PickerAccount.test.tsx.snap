@@ -13,7 +13,7 @@ exports[`PickerAccount should render correctly 1`] = `
       }
     }
   >
-    <AvatarAccount
+    <Avatar
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -22,6 +22,7 @@ exports[`PickerAccount should render correctly 1`] = `
         }
       }
       type="JazzIcon"
+      variant="Account"
     />
     <View>
       <Text

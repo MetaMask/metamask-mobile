@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -23,6 +24,12 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  WELCOME_SCREEN_CAROUSEL_TITLE_ID,
+  WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
+  WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+} from '../../../../wdio/features/testIDs/Screens/WelcomeScreen.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -188,13 +195,22 @@ class OnboardingCarousel extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-carousel-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        testID={'onboarding-carouselcarousel-screen--screen'}
+      >
         <OnboardingScreenWithBg screen={'carousel'}>
           <ScrollView
             style={baseStyles.flexGrow}
             contentContainerStyle={styles.scroll}
           >
-            <View style={styles.wrapper}>
+            <View
+              style={styles.wrapper}
+              {...generateTestId(
+                Platform,
+                WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+              )}
+            >
               <ScrollableTabView
                 style={styles.scrollTabs}
                 renderTabBar={this.renderTabBar}
@@ -205,11 +221,14 @@ class OnboardingCarousel extends PureComponent {
                   const imgStyleKey = `carouselImage${key}`;
                   return (
                     <View key={key} style={baseStyles.flexGrow}>
-                      <View style={styles.tab}>
-                        <Text
-                          style={styles.title}
-                          testID={`carousel-screen-${value}`}
-                        >
+                      <View
+                        style={styles.tab}
+                        {...generateTestId(
+                          Platform,
+                          WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
+                        )}
+                      >
+                        <Text style={styles.title}>
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
                         <Text style={styles.subtitle}>
@@ -247,7 +266,7 @@ class OnboardingCarousel extends PureComponent {
               <StyledButton
                 type={'normal'}
                 onPress={this.onPressGetStarted}
-                testID={'onboarding-get-started-button'}
+                testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
               >
                 {strings('onboarding_carousel.get_started')}
               </StyledButton>
