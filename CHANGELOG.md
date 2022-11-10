@@ -1,40 +1,29 @@
 # Changelog
 
 ## Current Main Branch
-- [#5164](https://github.com/MetaMask/metamask-mobile/pull/5164): 5.9.1
-- [#5202](https://github.com/MetaMask/metamask-mobile/pull/5202): On-Ramp: allow Harmony ONE
-- [#5195](https://github.com/MetaMask/metamask-mobile/pull/5195): Onramp: Add exclude from purchases to onramp aggregator orders
-- [#5180](https://github.com/MetaMask/metamask-mobile/pull/5180): Bump socket.io-client from 4.5.1 to 4.5.3
-- [#5192](https://github.com/MetaMask/metamask-mobile/pull/5192): add webrtc setup steps back
-- [#5190](https://github.com/MetaMask/metamask-mobile/pull/5190): Bump Kotlin version
-- [#5085](https://github.com/MetaMask/metamask-mobile/pull/5085): Bump humanize-duration, react-native-screens, and octonode
-- [#5187](https://github.com/MetaMask/metamask-mobile/pull/5187): Test update to select UNI instead of DAI
-- [#5064](https://github.com/MetaMask/metamask-mobile/pull/5064): Refactor Approve Component
-- [#5158](https://github.com/MetaMask/metamask-mobile/pull/5158): On-Ramp: Provider payment method custom action and custom order ids
-- [#5174](https://github.com/MetaMask/metamask-mobile/pull/5174): Appium: Lock and Reset wallet scenarios
-- [#5178](https://github.com/MetaMask/metamask-mobile/pull/5178): ci: temporarily downgrade ubuntu to 20.04
+
+## 5.10.0 - Nov 10, 2022
+- [#5209](https://github.com/MetaMask/metamask-mobile/pull/5209): [FIX] On-ramp: multiple redirection handling
+- [#5217](https://github.com/MetaMask/metamask-mobile/pull/5217): [FIX] Send to the wrong address
+- [#5202](https://github.com/MetaMask/metamask-mobile/pull/5202): [FEAT] On-Ramp: allow Harmony ONE
+- [#5195](https://github.com/MetaMask/metamask-mobile/pull/5195): [FEAT] Onramp: Add exclude from purchases to onramp aggregator orders
+- [#5064](https://github.com/MetaMask/metamask-mobile/pull/5064): [UPDATE] Refactor Approve Component
+- [#5158](https://github.com/MetaMask/metamask-mobile/pull/5158): [FEAT] On-Ramp: Provider payment method custom action and custom order ids
 - [#5119](https://github.com/MetaMask/metamask-mobile/pull/5119): [FIX] Crash when reject two times connect wallet on in app browser
-- [#5182](https://github.com/MetaMask/metamask-mobile/pull/5182): (initial setup): include react-native-webrtc setup
 - [#5173](https://github.com/MetaMask/metamask-mobile/pull/5173): [FIX] android build cMake
-- [#5167](https://github.com/MetaMask/metamask-mobile/pull/5167): Fixed Button Base Size issue
-- [#4987](https://github.com/MetaMask/metamask-mobile/pull/4987): Add componentization template
-- [#4868](https://github.com/MetaMask/metamask-mobile/pull/4868): Refactor ApprovalTransaction Component
-- [#5109](https://github.com/MetaMask/metamask-mobile/pull/5109): E2E Appium - Import wallet and create wallet
-- [#5087](https://github.com/MetaMask/metamask-mobile/pull/5087): 5.9.0
-- [#5149](https://github.com/MetaMask/metamask-mobile/pull/5149): force upgrade strings
-- [#5144](https://github.com/MetaMask/metamask-mobile/pull/5144): Bump actions
-- [#5142](https://github.com/MetaMask/metamask-mobile/pull/5142): Fix high severity audit issues
+- [#5167](https://github.com/MetaMask/metamask-mobile/pull/5167): [FIX] Fixed Button Base Size issue
+- [#4868](https://github.com/MetaMask/metamask-mobile/pull/4868): [UPDATE] Refactor ApprovalTransaction Component
+- [#5142](https://github.com/MetaMask/metamask-mobile/pull/5142): [FIX] Fix high severity audit issues
 - [#4235](https://github.com/MetaMask/metamask-mobile/pull/4235): [FIX] Delete contact on android fixed
 - [#5116](https://github.com/MetaMask/metamask-mobile/pull/5116): [FIX] Updated EditLegacy Component
-- [#4835](https://github.com/MetaMask/metamask-mobile/pull/4835): Refactor SendTransaction Component
-- [#5113](https://github.com/MetaMask/metamask-mobile/pull/5113): avoid using Rinkeby in wallet & import network test
+- [#4835](https://github.com/MetaMask/metamask-mobile/pull/4835): [UPDATE] Refactor SendTransaction Component
+- [#5113](https://github.com/MetaMask/metamask-mobile/pull/5113): [UPDATE] avoid using Rinkeby in wallet & import network test
 - [#4922](https://github.com/MetaMask/metamask-mobile/pull/4922): [FEAT] Segment Integration
-- [#5041](https://github.com/MetaMask/metamask-mobile/pull/5041): Component/4722-accordion
-- [#5091](https://github.com/MetaMask/metamask-mobile/pull/5091): Audit/50901 part 1
-- [#4888](https://github.com/MetaMask/metamask-mobile/pull/4888): Extend popular network list
-- [#5102](https://github.com/MetaMask/metamask-mobile/pull/5102): [TRANSLATION] Terms of use added to en.json for translations
-- [#5096](https://github.com/MetaMask/metamask-mobile/pull/5096): Update audit list
-- [#5067](https://github.com/MetaMask/metamask-mobile/pull/5067): Component: Contract Box component
+- [#5041](https://github.com/MetaMask/metamask-mobile/pull/5041): [FEAT] Add accordion component to Design System
+- [#5091](https://github.com/MetaMask/metamask-mobile/pull/5091): [UPDATE] Standardized Storybook Structure
+- [#4888](https://github.com/MetaMask/metamask-mobile/pull/4888): [FEAT] Extend popular network list
+- [#5096](https://github.com/MetaMask/metamask-mobile/pull/5096): [UPDATE] Update audit list
+- [#5067](https://github.com/MetaMask/metamask-mobile/pull/5067): [FEAT] Component: Contract Box component
 
 ## 5.9.1 - Oct 28, 2022
 - [#5172](https://github.com/MetaMask/metamask-mobile/pull/5172): [HOTFIX] ENS name being resolved correctly
