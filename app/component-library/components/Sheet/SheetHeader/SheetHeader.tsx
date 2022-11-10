@@ -8,7 +8,7 @@ import { View } from 'react-native';
 import Text, { TextVariants } from '../../Texts/Text';
 import Button, { ButtonVariants } from '../../Buttons/Button';
 import { ButtonIconVariants } from '../../Buttons/Button/variants/ButtonIcon';
-import { IconName } from '../../Icon';
+import { IconName } from '../../Icons/Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.

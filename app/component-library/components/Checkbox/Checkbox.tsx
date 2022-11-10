@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react';
 
 // External dependencies.
-import Icon, { IconName, IconSize } from '../Icon';
+import Icon, { IconName, IconSize } from '../Icons/Icon';
 import { useStyles } from '../../hooks';
 
 // Internal dependencies.

@@ -8,6 +8,7 @@ import {
   BadgeVariants,
   BadgeProps,
 } from '../../../components/Badges/Badge/Badge.types';
+import { IJazziconProps } from 'react-native-jazzicon';
 
 const imageSource =
   'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
@@ -26,9 +27,13 @@ export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
   uri: imageSource,
 };
 
+const TEST_JAZZICON_PROPS: IJazziconProps = {
+  address: TEST_ACCOUNT_ADDRESS,
+};
+
 export const TEST_AVATAR_PROPS: AvatarProps = {
   variant: AvatarVariants.JazzIcon,
-  address: TEST_ACCOUNT_ADDRESS,
+  jazzIconProps: TEST_JAZZICON_PROPS,
 };
 
 export const BADGE_PROPS: BadgeProps = {

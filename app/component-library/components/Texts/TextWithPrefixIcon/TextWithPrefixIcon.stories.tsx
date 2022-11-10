@@ -4,7 +4,7 @@ import { text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { IconName, IconProps, IconSize } from '../../Icon';
+import { IconName, IconProps, IconSize } from '../../Icons/Icon';
 import { TextVariants } from '../Text/Text.types';
 
 // Internal dependencies.

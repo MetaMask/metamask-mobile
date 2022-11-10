@@ -4,35 +4,37 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { BadgeVariants } from '../../Badge.types';
-import { TEST_AVATAR_PROPS } from './BadgeAvatar.constants';
 
 // Internal dependencies.
-import BadgeAvatar from './BadgeAvatar';
-import { BADGE_AVATAR_TEST_ID } from '../../Badge.constants';
+import BadgeNetwork from './BadgeNetwork';
+import {
+  BADGE_NETWORK_TEST_ID,
+  TEST_NETWORK_PROPS,
+} from './BadgeNetwork.constants';
 
-describe('BadgeAvatar - snapshots', () => {
+describe('BadgeNetwork - snapshots', () => {
   it('should render badge avatar', () => {
     const wrapper = shallow(
-      <BadgeAvatar
-        variant={BadgeVariants.Avatar}
-        avatarProps={TEST_AVATAR_PROPS}
+      <BadgeNetwork
+        variant={BadgeVariants.Network}
+        networkProps={TEST_NETWORK_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 });
 
-describe('BadgeAvatar', () => {
+describe('BadgeNetwork', () => {
   it('should render badge avatar with the given content', () => {
     const wrapper = shallow(
-      <BadgeAvatar
-        variant={BadgeVariants.Avatar}
-        avatarProps={TEST_AVATAR_PROPS}
+      <BadgeNetwork
+        variant={BadgeVariants.Network}
+        networkProps={TEST_NETWORK_PROPS}
       />,
     );
 
     const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_AVATAR_TEST_ID,
+      (node) => node.prop('testID') === BADGE_NETWORK_TEST_ID,
     );
     expect(contentElement.exists()).toBe(true);
   });

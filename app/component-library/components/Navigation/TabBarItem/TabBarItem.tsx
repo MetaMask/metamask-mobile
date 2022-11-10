@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Text, { TextVariants } from '../../Texts/Text';
-import Icon, { IconSize } from '../../Icon';
+import Icon, { IconSize } from '../../Icons/Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies

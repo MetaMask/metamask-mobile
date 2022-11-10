@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import Icon, { IconName, IconSize } from '../../Icon';
+import Icon, { IconName, IconSize } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { PickerBaseProps } from './PickerBase.types';

@@ -7,7 +7,7 @@ import React from 'react';
 import {
   IconName,
   IconProps,
-} from '../../../component-library/components/Icon';
+} from '../../../component-library/components/Icons/Icon';
 import TextWithPrefixIcon from '../../../component-library/components/Texts/TextWithPrefixIcon';
 import { TextVariants } from '../../../component-library/components/Texts/Text/Text.types';
 

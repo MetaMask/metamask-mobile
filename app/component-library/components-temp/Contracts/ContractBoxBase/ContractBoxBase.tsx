@@ -9,7 +9,7 @@ import Avatar, {
 } from '../../../components/Avatars/Avatar';
 import Text, { TextVariants } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName, IconSize } from '../../../components/Icon';
+import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.

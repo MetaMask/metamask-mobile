@@ -5,9 +5,9 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import BadgeAvatarStory, {
-  getBadgeAvatarStoryProps,
-} from './variants/BadgeAvatar/BadgeAvatar.stories';
+import BadgeNetworkStory, {
+  getBadgeNetworkStoryProps,
+} from './variants/BadgeNetwork/BadgeNetwork.stories';
 
 // Internal dependencies.
 import { BadgeVariants, BadgeProps } from './Badge.types';
@@ -19,14 +19,14 @@ export const getBadgeStoryProps = (): BadgeProps => {
   const badgeVariantsSelector = select(
     'Badge Variant',
     BadgeVariants,
-    BadgeVariants.Avatar,
+    BadgeVariants.Network,
     storybookPropsGroupID,
   );
   switch (badgeVariantsSelector) {
-    case BadgeVariants.Avatar:
+    case BadgeVariants.Network:
       badgeProps = {
-        variant: BadgeVariants.Avatar,
-        ...getBadgeAvatarStoryProps(),
+        variant: BadgeVariants.Network,
+        ...getBadgeNetworkStoryProps(),
       };
       break;
   }
@@ -37,6 +37,6 @@ const BadgeStory = () => <Badge {...getBadgeStoryProps()} />;
 
 storiesOf('Component Library / Badges', module)
   .add('Badge', BadgeStory)
-  .add('Variants / BadgeAvatar', BadgeAvatarStory);
+  .add('Variants / BadgeNetwork', BadgeNetworkStory);
 
 export default BadgeStory;

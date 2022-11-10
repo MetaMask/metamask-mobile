@@ -1,1 +1,1 @@
-export { default } from './AvatarIcon';
+export { default } from './IconContainer';
