@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE } from './variants/AvatarImage/AvatarImage.constants';
+import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './variants/AvatarImage/AvatarImage.constants';
 import { TEST_AVATAR_INITIAL_SAMPLE_TEXT } from './variants/AvatarInitial/AvatarInitial.constants';
 
 // Internal dependencies.
@@ -21,7 +21,7 @@ describe('Avatar - Snapshot', () => {
       <Avatar
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -44,7 +44,7 @@ describe('Avatar', () => {
       <Avatar
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        source={TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE}
+        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     const AvatarImageComponent = wrapper.findWhere(
