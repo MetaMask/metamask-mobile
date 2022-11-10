@@ -18,6 +18,7 @@ const ListItem = BaseListItem as any;
 interface Props {
   title?: string;
   id?: string;
+  detail?: string;
   time: number[];
   amountTier: number[];
   paymentTypeIcon: Icon;
@@ -119,6 +120,7 @@ const PaymentOption: React.FC<Props> = ({
   time,
   amountTier,
   paymentTypeIcon,
+  detail,
   logo,
   onPress,
   highlighted,
@@ -147,8 +149,13 @@ const PaymentOption: React.FC<Props> = ({
               {title}
             </Text>
           </ListItem.Title>
+          {detail ? (
+            <Text small blue>
+              {detail}
+            </Text>
+          ) : null}
         </ListItem.Body>
-        {logo && (
+        {logo ? (
           <ListItem.Amounts>
             <ListItem.Amount>
               <View style={styles.cardIcons}>
@@ -156,7 +163,7 @@ const PaymentOption: React.FC<Props> = ({
               </View>
             </ListItem.Amount>
           </ListItem.Amounts>
-        )}
+        ) : null}
       </ListItem.Content>
 
       <View style={[styles.line, compact && styles.compactLine]} />
