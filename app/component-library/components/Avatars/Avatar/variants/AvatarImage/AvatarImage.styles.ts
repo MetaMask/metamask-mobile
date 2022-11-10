@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, ViewStyle, ImageStyle } from 'react-native';
+import { StyleSheet, ImageStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -20,10 +20,9 @@ const styleSheet = (params: {
   vars: AvatarImageStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, size, isHaloEnabled } = vars;
+  const { size, isHaloEnabled } = vars;
   const imageSize = isHaloEnabled ? Number(size) * 0.64 : Number(size);
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
     haloImage: {
       opacity: 0.5,
     },
@@ -35,14 +34,11 @@ const styleSheet = (params: {
       overflow: 'hidden',
       borderRadius: Number(size) / 2,
     },
-    image: Object.assign(
-      {
-        width: imageSize,
-        height: imageSize,
-        borderRadius: imageSize / 2,
-      } as ImageStyle,
-      style,
-    ) as ImageStyle,
+    image: Object.assign({
+      width: imageSize,
+      height: imageSize,
+      borderRadius: imageSize / 2,
+    } as ImageStyle),
   });
 };
 

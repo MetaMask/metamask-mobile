@@ -17,32 +17,29 @@ import {
 } from './AvatarImage.constants';
 
 const AvatarImage = ({
-  style,
-  source,
   size = DEFAULT_AVATAR_SIZE,
   isHaloEnabled = false,
-  ...props
+  imageProps,
 }: AvatarImageProps) => {
-  const { styles } = useStyles(styleSheet, { style, size, isHaloEnabled });
+  const { styles } = useStyles(styleSheet, { size, isHaloEnabled });
   const renderImage = () => (
     <Image
-      source={source}
       style={styles.image}
       resizeMode={'contain'}
       testID={AVATAR_IMAGE_IMAGE_TEST_ID}
-      {...props}
+      {...imageProps}
     />
   );
 
   return (
-    <AvatarBase size={size} style={styles.base} testID={AVATAR_IMAGE_TEST_ID}>
+    <AvatarBase size={size} testID={AVATAR_IMAGE_TEST_ID}>
       {isHaloEnabled ? (
         <ImageBackground
           blurRadius={20}
           style={styles.halo}
           imageStyle={styles.haloImage}
-          source={source}
           testID={AVATAR_IMAGE_HALO_TEST_ID}
+          {...imageProps}
         >
           {renderImage()}
         </ImageBackground>

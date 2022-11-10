@@ -9,7 +9,7 @@ import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
 import { AvatarImageProps } from './AvatarImage.types';
-import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE } from './AvatarImage.constants';
+import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './AvatarImage.constants';
 
 export const getAvatarImageStoryProps = (): AvatarImageProps => {
   const sizeSelector = select(
@@ -24,7 +24,7 @@ export const getAvatarImageStoryProps = (): AvatarImageProps => {
   return {
     variant: AvatarVariants.Image,
     size: sizeSelector,
-    source: TEST_AVATAR_IMAGE_REMOTE_IMAGE_SOURCE,
+    imageProps: TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
     isHaloEnabled,
   };
 };
