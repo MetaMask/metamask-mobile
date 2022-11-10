@@ -842,6 +842,7 @@ const AmountToBuy = () => {
                 customAction={currentPaymentMethod.customAction}
                 amount={amountNumber}
                 disabled={!amountIsValid || amountNumber <= 0}
+                fiatSymbol={currentFiatCurrency?.symbol}
               />
             ) : (
               <StyledButton

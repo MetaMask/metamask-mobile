@@ -28,12 +28,13 @@ import { hexToBN } from '../../../../util/number';
 interface Props {
   customAction: PaymentCustomAction;
   amount: number;
+  fiatSymbol: string;
   disabled?: boolean;
 }
 
 const CustomActionButton: React.FC<
   Props & React.ComponentProps<typeof CustomActionButtonComponent>
-> = ({ customAction, amount, disabled, ...props }: Props) => {
+> = ({ customAction, amount, disabled, fiatSymbol, ...props }: Props) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
@@ -66,14 +67,25 @@ const CustomActionButton: React.FC<
       return;
     }
     const prevLockTime = lockTime;
+
     try {
       setIsLoading(true);
       const providerId = customAction.buy.providerId;
-      const redirectUrl = `${callbackBaseDeeplink}on-ramp${providerId}`;
       const provider = await sdk.getProvider(
         selectedRegion?.id as string,
         providerId,
       );
+
+      trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+        region: selectedRegion?.id as string,
+        provider_onramp: provider.provider.name,
+        currency_source: fiatSymbol,
+        currency_destination: selectedAsset?.symbol as string,
+        chain_id_destination: selectedChainId as string,
+        payment_method_id: selectedPaymentMethodId as string,
+      });
+
+      const redirectUrl = `${callbackBaseDeeplink}on-ramp${providerId}`;
 
       const { url, orderId: customOrderId } = await sdk.getBuyUrl(
         provider.provider,
@@ -106,6 +118,15 @@ const CustomActionButton: React.FC<
           orders = await SDK.orders();
           orderId = await orders.getOrderIdFromCallback(providerId, result.url);
         } else {
+          trackEvent('ONRAMP_PURCHASE_CANCELLED', {
+            amount,
+            chain_id_destination: selectedChainId,
+            currency_destination: selectedAsset?.symbol as string,
+            currency_source: fiatSymbol,
+            payment_method_id: selectedPaymentMethodId as string,
+            provider_onramp: provider.provider.name,
+          });
+
           return;
         }
 
@@ -184,15 +205,17 @@ const CustomActionButton: React.FC<
     customAction,
     lockTime,
     selectedRegion?.id,
-    selectedPaymentMethodId,
+    trackEvent,
+    fiatSymbol,
+    selectedAsset?.symbol,
     selectedAsset?.id,
+    selectedChainId,
+    selectedPaymentMethodId,
     selectedFiatCurrencyId,
     amount,
     selectedAddress,
     dispatch,
-    selectedChainId,
     navigation,
-    trackEvent,
     accounts,
   ]);
 
