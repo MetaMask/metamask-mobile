@@ -1,3 +1,6 @@
+const { generate } = require('multiple-cucumber-html-reporter');
+const { removeSync } = require('fs-extra');
+
 export const config = {
   //
   // ====================
@@ -144,7 +147,16 @@ export const config = {
   // Test reporter for stdout.
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
-  reporters: ['spec'],
+  reporters: [
+    'spec',
+    [
+      'cucumberjs-json',
+      {
+        jsonFolder: './wdio/reports/json',
+        language: 'en',
+      },
+    ],
+  ],
 
   //
   // If you are using Cucumber you need to specify the location of your step definitions.
@@ -186,8 +198,9 @@ export const config = {
    * @param {Object} config wdio configuration object
    * @param {Array.<Object>} capabilities list of capabilities details
    */
-  // onPrepare: function (config, capabilities) {
-  // },
+  onPrepare: function (config, capabilities) {
+    removeSync('.tmp/');
+  },
   /**
    * Gets executed before a worker process is spawned and can be used to initialise specific service
    * for that worker as well as modify runtime environments in an async fashion.
@@ -334,8 +347,14 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
-  // onComplete: function (exitCode, config, capabilities) {
-  // },
+  onComplete: function (exitCode, config, capabilities) {
+    // Generate the report when it all tests are done
+    generate({
+      jsonDir: './wdio/reports/json',
+      reportPath: './wdio/reports/html',
+      // for more options see https://github.com/wswebcreation/multiple-cucumber-html-reporter#options
+    });
+  },
   /**
    * Gets executed when a refresh happens.
    * @param {String} oldSessionId session ID of the old session
