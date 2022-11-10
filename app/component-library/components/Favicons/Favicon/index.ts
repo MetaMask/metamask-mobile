@@ -1,1 +1,1 @@
-export { default } from './AvatarFavicon';
+export { default } from './Favicon';

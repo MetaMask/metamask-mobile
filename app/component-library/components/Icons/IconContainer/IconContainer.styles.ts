@@ -2,10 +2,10 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { AvatarIconStyleSheetVars } from './AvatarIcon.types';
+import { IconContainerStyleSheetVars } from './IconContainer.types';
 
 /**
  * Style sheet function for Badge component.
@@ -17,13 +17,20 @@ import { AvatarIconStyleSheetVars } from './AvatarIcon.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: AvatarIconStyleSheetVars;
+  vars: IconContainerStyleSheetVars;
 }) => {
-  const { vars } = params;
-  const { style } = vars;
+  const { vars, theme } = params;
+  const { style, backgroundColor } = vars;
+  const themedBackgroundColor =
+    backgroundColor || theme.colors.background.alternative;
 
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    base: Object.assign(
+      {
+        backgroundColor: themedBackgroundColor,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
   });
 };
 

@@ -1,21 +1,31 @@
+// Third party dependencies.
+import { ColorValue } from 'react-native';
+
 // External dependencies.
-import { AvatarVariants } from '../../Avatar.types';
-import { AvatarBaseProps } from '../../foundation/AvatarBase';
-import { IconProps } from '../../../../Icon';
+import { CoinPatternProps } from '../../../patterns/Coins/Coin';
+import { IconProps } from '../../Icons/Icon';
 
 /**
- * AvatarIcon component props.
+ * IconContainer sizes.
  */
+export { CoinPatternSizes as IconContainerSizes } from '../../../patterns/Coins/Coin/Coin.types';
 
-export type AvatarIconProps = AvatarBaseProps &
+/**
+ * IconContainer component props.
+ */
+export type IconContainerProps = CoinPatternProps &
   Omit<IconProps, 'size'> & {
     /**
-     * Avatar variants.
+     * Optional enum to add color to the background of the Avatar.
+     * @default theme.colors.background.alternative
      */
-    variant?: AvatarVariants.Icon;
+    backgroundColor?: ColorValue;
   };
 
 /**
  * Style sheet input parameters.
  */
-export type AvatarIconStyleSheetVars = Pick<AvatarIconProps, 'style'>;
+export type IconContainerStyleSheetVars = Pick<
+  IconContainerProps,
+  'style' | 'backgroundColor'
+>;

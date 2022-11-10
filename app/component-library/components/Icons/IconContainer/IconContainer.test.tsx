@@ -3,56 +3,44 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../../../Icon';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
-import AvatarIcon from './AvatarIcon';
+import IconContainer from './IconContainer';
 import {
-  AVATAR_ICON_TEST_ID,
-  AVATAR_ICON_ICON_TEST_ID,
-} from './AvatarIcon.constants';
+  ICON_CONTAINER_TEST_ID,
+  ICON_CONTAINER_ICON_TEST_ID,
+} from './IconContainer.constants';
+import { IconContainerSizes } from './IconContainer.types';
 
-describe('AvatarIcon - Snapshot', () => {
+describe('IconContainer - Snapshot', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarIcon
-        variant={AvatarVariants.Icon}
-        size={AvatarSizes.Md}
-        name={IconName.AddOutline}
-      />,
+      <IconContainer size={IconContainerSizes.Md} name={IconName.AddOutline} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 });
 
-describe('AvatarIcon', () => {
-  it('should render AvatarIcon component', () => {
+describe('IconContainer', () => {
+  it('should render IconContainer component', () => {
     const wrapper = shallow(
-      <AvatarIcon
-        variant={AvatarVariants.Icon}
-        size={AvatarSizes.Md}
-        name={IconName.AddOutline}
-      />,
+      <IconContainer size={IconContainerSizes.Md} name={IconName.AddOutline} />,
     );
-    const avatarIconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATAR_ICON_TEST_ID,
+    const IconContainerComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === ICON_CONTAINER_TEST_ID,
     );
-    expect(avatarIconComponent.exists()).toBe(true);
+    expect(IconContainerComponent.exists()).toBe(true);
   });
-  it('should render AvatarIcon with the right IconName', () => {
+  it('should render IconContainer with the right IconName', () => {
     const avatarName = IconName.AddOutline;
     const wrapper = shallow(
-      <AvatarIcon
-        variant={AvatarVariants.Icon}
-        size={AvatarSizes.Md}
-        name={avatarName}
-      />,
+      <IconContainer size={IconContainerSizes.Md} name={avatarName} />,
     );
 
-    const avatarIconIconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATAR_ICON_ICON_TEST_ID,
+    const IconContainerIconComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === ICON_CONTAINER_ICON_TEST_ID,
     );
-    expect(avatarIconIconComponent.props().name).toBe(avatarName);
+    expect(IconContainerIconComponent.props().name).toBe(avatarName);
   });
 });

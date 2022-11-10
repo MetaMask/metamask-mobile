@@ -2,37 +2,43 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import AvatarBase from '../../foundation/AvatarBase';
-import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
-import Icon from '../../../../Icons/Icon';
+import { useStyles } from '../../../hooks';
+import CoinPattern from '../../../patterns/Coins/Coin/Coin';
+import Icon from '../../Icons/Icon';
 
 // Internal dependencies.
-import { AvatarIconProps } from './AvatarIcon.types';
+import { IconContainerProps } from './IconContainer.types';
 import {
-  ICON_SIZE_BY_AVATAR_SIZE,
-  AVATAR_ICON_TEST_ID,
-  AVATAR_ICON_ICON_TEST_ID,
-} from './AvatarIcon.constants';
-import styleSheet from './AvatarIcon.styles';
+  DEFAULT_ICON_CONTAINER_SIZE,
+  ICON_SIZE_BY_ICON_CONTAINER_SIZE,
+  ICON_CONTAINER_TEST_ID,
+  ICON_CONTAINER_ICON_TEST_ID,
+} from './IconContainer.constants';
+import styleSheet from './IconContainer.styles';
 
-const AvatarIcon = ({
-  size = DEFAULT_AVATAR_SIZE,
+const IconContainer = ({
+  size = DEFAULT_ICON_CONTAINER_SIZE,
   style,
-  ...props
-}: AvatarIconProps) => {
+  backgroundColor,
+  ...restIconProps
+}: IconContainerProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
+    backgroundColor,
   });
   return (
-    <AvatarBase style={styles.base} size={size} testID={AVATAR_ICON_TEST_ID}>
+    <CoinPattern
+      style={styles.base}
+      size={size}
+      testID={ICON_CONTAINER_TEST_ID}
+    >
       <Icon
-        testID={AVATAR_ICON_ICON_TEST_ID}
-        size={ICON_SIZE_BY_AVATAR_SIZE[size]}
-        {...props}
+        testID={ICON_CONTAINER_ICON_TEST_ID}
+        size={ICON_SIZE_BY_ICON_CONTAINER_SIZE[size]}
+        {...restIconProps}
       />
-    </AvatarBase>
+    </CoinPattern>
   );
 };
 
-export default AvatarIcon;
+export default IconContainer;

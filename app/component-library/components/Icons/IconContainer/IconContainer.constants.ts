@@ -1,22 +1,24 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { AvatarSizes } from '../../Avatar.types';
-import { IconSize } from '../../../../Icons/Icon';
+import { IconContainerSizes } from './IconContainer.types';
+import { IconSize } from '../../Icons/Icon';
 
 /**
- * Mapping of IconSize by AvatarSizes.
+ * Mapping of IconSize by IconContainerSizes.
  */
-export type IconSizeByAvatarSizes = {
-  [key in AvatarSizes]: IconSize;
+export type IconSizeByIconContainerSizes = {
+  [key in IconContainerSizes]: IconSize;
 };
 
-export const ICON_SIZE_BY_AVATAR_SIZE: IconSizeByAvatarSizes = {
-  [AvatarSizes.Xs]: IconSize.Xs,
-  [AvatarSizes.Sm]: IconSize.Sm,
-  [AvatarSizes.Md]: IconSize.Md,
-  [AvatarSizes.Lg]: IconSize.Lg,
-  [AvatarSizes.Xl]: IconSize.Xl,
+export const ICON_SIZE_BY_ICON_CONTAINER_SIZE: IconSizeByIconContainerSizes = {
+  [IconContainerSizes.Xs]: IconSize.Xs,
+  [IconContainerSizes.Sm]: IconSize.Sm,
+  [IconContainerSizes.Md]: IconSize.Md,
+  [IconContainerSizes.Lg]: IconSize.Lg,
+  [IconContainerSizes.Xl]: IconSize.Xl,
 };
 
-export const AVATAR_ICON_TEST_ID = 'avatar-icon';
-export const AVATAR_ICON_ICON_TEST_ID = 'avatar-icon-icon';
+export const DEFAULT_ICON_CONTAINER_SIZE = IconContainerSizes.Md;
+
+export const ICON_CONTAINER_TEST_ID = 'icon-container';
+export const ICON_CONTAINER_ICON_TEST_ID = 'icon-container-icon';

@@ -1,21 +1,21 @@
 // Third party dependencies.
 import React from 'react';
+import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
-import { IconName } from '../../../../Icon';
+import { storybookPropsGroupID } from '../../../constants/storybook.constants';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
-import AvatarIcon from './AvatarIcon';
-import { AvatarIconProps } from './AvatarIcon.types';
+import IconContainer from './IconContainer';
+import { IconContainerProps, IconContainerSizes } from './IconContainer.types';
 
-export const getAvatarIconStoryProps = (): AvatarIconProps => {
+export const getIconContainerStoryProps = (): IconContainerProps => {
   const sizeSelector = select(
     'size',
-    AvatarSizes,
-    AvatarSizes.Md,
+    IconContainerSizes,
+    IconContainerSizes.Md,
     storybookPropsGroupID,
   );
   const iconNameSelector = select(
@@ -26,11 +26,17 @@ export const getAvatarIconStoryProps = (): AvatarIconProps => {
   );
 
   return {
-    variant: AvatarVariants.Icon,
     size: sizeSelector,
     name: iconNameSelector,
   };
 };
-const AvatarIconStory = () => <AvatarIcon {...getAvatarIconStoryProps()} />;
+const IconContainerStory = () => (
+  <IconContainer {...getIconContainerStoryProps()} />
+);
 
-export default AvatarIconStory;
+storiesOf('Component Library / Icons', module).add(
+  'IconContainer',
+  IconContainerStory,
+);
+
+export default IconContainerStory;
