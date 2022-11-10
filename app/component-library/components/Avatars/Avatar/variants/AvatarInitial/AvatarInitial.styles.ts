@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -20,22 +20,25 @@ const styleSheet = (params: {
   vars: AvatarInitialStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { colors } = theme;
-  const { style, size } = vars;
+  const { size, initialColor, backgroundColor } = vars;
+  const themedInitialColor = initialColor || theme.colors.text.default;
+  const themedBackgroundColor =
+    backgroundColor || theme.colors.background.alternative;
+
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        width: Number(size),
-        height: Number(size),
-        borderRadius: Number(size) / 2,
-        backgroundColor: colors.background.alternative,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderColor: colors.border.muted,
-        borderWidth: 1,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: {
+      width: Number(size),
+      height: Number(size),
+      borderRadius: Number(size) / 2,
+      backgroundColor: themedBackgroundColor,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderColor: theme.colors.border.muted,
+      borderWidth: 1,
+    },
+    initial: {
+      color: themedInitialColor,
+    },
   });
 };
 

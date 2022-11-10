@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { select, text } from '@storybook/addon-knobs';
+import { color, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
@@ -24,10 +24,15 @@ export const getAvatarInitialStoryProps = (): AvatarInitialProps => {
     storybookPropsGroupID,
   );
 
+  const initialColor = color('initialColor', '', storybookPropsGroupID);
+  const backgroundColor = color('backgroundColor', '', storybookPropsGroupID);
+
   return {
     variant: AvatarVariants.Initial,
     size: sizeSelector,
     initial: initialText,
+    initialColor,
+    backgroundColor,
   };
 };
 const AvatarInitialStory = () => (

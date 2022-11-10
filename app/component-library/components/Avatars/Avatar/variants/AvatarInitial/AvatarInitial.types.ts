@@ -1,3 +1,5 @@
+import { ColorValue } from 'react-native';
+
 // External dependencies.
 import { TextVariants } from '../../../../Texts/Text';
 import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
@@ -15,6 +17,16 @@ export type AvatarInitialProps = AvatarBaseProps & {
    * An initial to be displayed in the Avatar.
    */
   initial: string;
+  /**
+   * Optional enum to add color to the initial.
+   * @default theme.colors.text.default
+   */
+  initialColor?: ColorValue;
+  /**
+   * Optional enum to add color to the background of the Avatar.
+   * @default theme.colors.background.alternative
+   */
+  backgroundColor?: ColorValue;
 };
 
 /**
@@ -22,7 +34,7 @@ export type AvatarInitialProps = AvatarBaseProps & {
  */
 export type AvatarInitialStyleSheetVars = Pick<
   AvatarInitialProps,
-  'size' | 'style'
+  'size' | 'initialColor' | 'backgroundColor'
 >;
 
 /**

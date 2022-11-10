@@ -17,17 +17,22 @@ import {
 } from './AvatarInitial.constants';
 
 const AvatarInitial = ({
-  style,
   initial,
+  initialColor,
+  backgroundColor,
   size = DEFAULT_AVATAR_SIZE,
-  ...props
 }: AvatarInitialProps) => {
-  const { styles } = useStyles(styleSheet, { style, size });
+  const { styles } = useStyles(styleSheet, {
+    size,
+    initialColor,
+    backgroundColor,
+  });
   const initialFirstLetter: string = initial?.[0];
 
   return (
-    <AvatarBase style={styles.base} testID={AVATAR_INITIAL_TEST_ID} {...props}>
+    <AvatarBase style={styles.base} testID={AVATAR_INITIAL_TEST_ID} size={size}>
       <Text
+        style={styles.initial}
         variant={TEXT_VARIANT_BY_AVATAR_SIZE[size]}
         testID={AVATAR_INITIAL_TEXT_TEST_ID}
       >
