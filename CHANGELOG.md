@@ -2,7 +2,9 @@
 
 ## Current Main Branch
 
-## 5.10.0 - Nov 4, 2022
+## 5.10.0 - Nov 10, 2022
+- [#5209](https://github.com/MetaMask/metamask-mobile/pull/5209): [FIX] On-ramp: multiple redirection handling
+- [#5217](https://github.com/MetaMask/metamask-mobile/pull/5217): [FIX] Send to the wrong address
 - [#5202](https://github.com/MetaMask/metamask-mobile/pull/5202): [FEAT] On-Ramp: allow Harmony ONE
 - [#5195](https://github.com/MetaMask/metamask-mobile/pull/5195): [FEAT] Onramp: Add exclude from purchases to onramp aggregator orders
 - [#5064](https://github.com/MetaMask/metamask-mobile/pull/5064): [UPDATE] Refactor Approve Component
