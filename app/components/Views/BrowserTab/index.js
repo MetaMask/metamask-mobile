@@ -228,7 +228,6 @@ export const BrowserTab = (props) => {
   const url = useRef('');
   const title = useRef('');
   const icon = useRef(null);
-  const webviewUrlPostMessagePromiseResolve = useRef(null);
   const backgroundBridges = useRef([]);
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
@@ -813,6 +812,10 @@ export const BrowserTab = (props) => {
    * When website finished loading
    */
   const onLoadEnd = ({ nativeEvent }) => {
+    // Do not update URL unless website has successfully completed loading.
+    if (nativeEvent.loading) {
+      return;
+    }
     // Use URL to produce real url. This should be the actual website that the user is viewing.
     const urlObj = new URL(nativeEvent.url);
     const { origin, pathname = '', query = '' } = urlObj;
@@ -953,7 +956,7 @@ export const BrowserTab = (props) => {
     if (!isAllowedUrl(hostname)) {
       return handleNotAllowedUrl(nativeEvent.url);
     }
-    webviewUrlPostMessagePromiseResolve.current = null;
+
     setError(false);
 
     changeUrl(nativeEvent);
