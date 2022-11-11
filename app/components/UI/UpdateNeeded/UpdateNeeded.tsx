@@ -61,8 +61,7 @@ const UpdateNeeded = () => {
   const triggerClose = () =>
     dismissModal(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS
-          .FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
+        AnalyticsV2.ANALYTICS_EVENTS.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
         generateAnalyticsMetaData(),
       );
     });
