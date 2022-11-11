@@ -299,6 +299,41 @@ class AccountOverview extends PureComponent {
     });
   };
 
+  onReceive = () => this.props.toggleReceiveModal();
+
+  onSend = () => {
+    const { newAssetTransaction, navigation, ticker } = this.props;
+    newAssetTransaction(getEther(ticker));
+    navigation.navigate('SendFlowView');
+  };
+
+  onBuy = () => {
+    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    InteractionManager.runAfterInteractions(() => {
+      Analytics.trackEventWithParameters(
+        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
+        {
+          text: 'Buy',
+          location: 'Wallet',
+          chain_id_destination: this.props.chainId,
+        },
+      );
+    });
+  };
+
+  goToSwaps = () =>
+    this.props.navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      },
+    });
+
+  goToSnapPOC = () => {
+    console.log('It should navigate');
+    this.props.navigation.navigate('SnapsPOC');
+  };
+
   doENSLookup = async () => {
     const { network, account } = this.props;
     try {
@@ -443,6 +478,41 @@ class AccountOverview extends PureComponent {
                 type={'short'}
               />
             </TouchableOpacity>
+
+            <View style={styles.actions}>
+              <AssetActionButton
+                icon="receive"
+                onPress={this.onReceive}
+                label={strings('asset_overview.receive_button')}
+              />
+              {allowedToBuy(chainId) && (
+                <AssetActionButton
+                  icon="buy"
+                  onPress={this.onBuy}
+                  label={strings('asset_overview.buy_button')}
+                />
+              )}
+              <AssetActionButton
+                testID={'token-send-button'}
+                icon="send"
+                onPress={this.onSend}
+                label={strings('asset_overview.send_button')}
+              />
+              {AppConstants.SWAPS.ACTIVE && (
+                <AssetSwapButton
+                  isFeatureLive={swapsIsLive}
+                  isNetworkAllowed={isSwapsAllowed(chainId)}
+                  onPress={this.goToSwaps}
+                  isAssetAllowed
+                />
+              )}
+              <AssetActionButton
+                testID={'flask-button'}
+                icon="flask"
+                onPress={this.goToSnapPOC}
+                label={'Snap POC'}
+              />
+            </View>
           </View>
         </ScrollView>
       </View>
