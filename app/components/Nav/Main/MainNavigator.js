@@ -673,6 +673,7 @@ const MainNavigator = () => (
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}
     />
+    <Stack.Screen name="SnapsPOC" component={SnapsPOC} />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"

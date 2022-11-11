@@ -443,6 +443,44 @@ class AccountOverview extends PureComponent {
                 type={'short'}
               />
             </TouchableOpacity>
+<<<<<<< HEAD
+=======
+
+            <View style={styles.actions}>
+              <AssetActionButton
+                icon="receive"
+                onPress={this.onReceive}
+                label={strings('asset_overview.receive_button')}
+              />
+              {allowedToBuy(chainId) && (
+                <AssetActionButton
+                  icon="buy"
+                  onPress={this.onBuy}
+                  label={strings('asset_overview.buy_button')}
+                />
+              )}
+              <AssetActionButton
+                testID={'token-send-button'}
+                icon="send"
+                onPress={this.onSend}
+                label={strings('asset_overview.send_button')}
+              />
+              {AppConstants.SWAPS.ACTIVE && (
+                <AssetSwapButton
+                  isFeatureLive={swapsIsLive}
+                  isNetworkAllowed={isSwapsAllowed(chainId)}
+                  onPress={this.goToSwaps}
+                  isAssetAllowed
+                />
+              )}
+              <AssetActionButton
+                testID={'flask-button'}
+                icon="flask"
+                onPress={this.goToSnapPOC}
+                label={'Snap POC'}
+              />
+            </View>
+>>>>>>> bd8cfcb00 (Add some poc code)
           </View>
         </ScrollView>
       </View>
