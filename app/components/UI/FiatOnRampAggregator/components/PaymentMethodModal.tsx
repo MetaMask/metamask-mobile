@@ -6,10 +6,9 @@ import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
-import PaymentOption from './PaymentOption';
+import PaymentMethod from './PaymentMethod';
 
 import useAnalytics from '../hooks/useAnalytics';
-import { getPaymentMethodIcon } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { ScreenLocation } from '../types';
@@ -106,32 +105,17 @@ function PaymentMethodModal({
             <ScrollView>
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
-                  {paymentMethods?.map(
-                    ({
-                      id,
-                      name,
-                      delay,
-                      amountTier,
-                      paymentType,
-                      logo,
-                      detail,
-                    }) => (
-                      <View key={id} style={styles.row}>
-                        <PaymentOption
-                          highlighted={id === selectedPaymentMethodId}
-                          title={name}
-                          detail={detail}
-                          time={delay}
-                          id={id}
-                          onPress={() => handleOnPressItemCallback(id)}
-                          amountTier={amountTier}
-                          paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                          logo={logo}
-                          compact
-                        />
-                      </View>
-                    ),
-                  )}
+                  {paymentMethods?.map((payment) => (
+                    <View key={payment.id} style={styles.row}>
+                      <PaymentMethod
+                        payment={payment}
+                        highlighted={payment.id === selectedPaymentMethodId}
+                        onPress={() => handleOnPressItemCallback(payment.id)}
+                        compact
+                      />
+                    </View>
+                  ))}
+
                   {selectedPaymentMethod?.disclaimer ? (
                     <Text small grey centered>
                       {selectedPaymentMethod?.disclaimer}

@@ -3,13 +3,12 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
-import PaymentOption from '../components/PaymentOption';
+import PaymentMethod from '../components/PaymentMethod';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { getPaymentMethodIcon } from '../utils';
 import Device from '../../../../util/device';
 import SkeletonBox from '../components/SkeletonBox';
 import SkeletonText from '../components/SkeletonText';
@@ -49,7 +48,7 @@ const SkeletonPaymentOption = () => (
   </Box>
 );
 
-const PaymentMethod = () => {
+const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -186,27 +185,19 @@ const PaymentMethod = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {filteredPaymentMethods?.map(
-              ({ id, name, delay, amountTier, paymentType, logo, detail }) => (
-                <View key={id} style={styles.row}>
-                  <PaymentOption
-                    highlighted={id === selectedPaymentMethodId}
-                    detail={detail}
-                    title={name}
-                    time={delay}
-                    id={id}
-                    onPress={
-                      id === selectedPaymentMethodId
-                        ? undefined
-                        : () => handlePaymentMethodPress(id)
-                    }
-                    amountTier={amountTier}
-                    paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                    logo={logo}
-                  />
-                </View>
-              ),
-            )}
+            {filteredPaymentMethods?.map((payment) => (
+              <View key={payment.id} style={styles.row}>
+                <PaymentMethod
+                  payment={payment}
+                  highlighted={payment.id === selectedPaymentMethodId}
+                  onPress={
+                    payment.id === selectedPaymentMethodId
+                      ? undefined
+                      : () => handlePaymentMethodPress(payment.id)
+                  }
+                />
+              </View>
+            ))}
           </ScreenLayout.Content>
         </ScrollView>
       </ScreenLayout.Body>
@@ -236,4 +227,4 @@ const PaymentMethod = () => {
   );
 };
 
-export default PaymentMethod;
+export default PaymentMethods;
