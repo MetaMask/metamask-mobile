@@ -56,6 +56,7 @@ const PaymentMethods = () => {
 
   const {
     selectedRegion,
+    setSelectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedChainId,
@@ -117,6 +118,26 @@ const PaymentMethods = () => {
     [setSelectedPaymentMethodId, trackEvent],
   );
 
+  const handleResetState = useCallback(() => {
+    setSelectedRegion(null);
+    setSelectedPaymentMethodId(null);
+    // @ts-expect-error navigation params error
+    const needsReset = params?.showBack === false;
+    if (needsReset) {
+      navigation.reset({
+        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [
+    // @ts-expect-error navigation params error
+    params?.showBack,
+    setSelectedPaymentMethodId,
+    setSelectedRegion,
+    navigation,
+  ]);
+
   const handleContinueToAmount = useCallback(() => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
   }, [navigation]);
@@ -166,7 +187,7 @@ const PaymentMethods = () => {
     );
   }
 
-  if (isFetching) {
+  if (!filteredPaymentMethods || isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -180,12 +201,37 @@ const PaymentMethods = () => {
     );
   }
 
+  if (filteredPaymentMethods.length === 0) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            title={strings(
+              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title',
+              { regionName: selectedRegion?.name },
+            )}
+            description={strings(
+              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description',
+              { regionName: selectedRegion?.name },
+            )}
+            ctaOnPress={handleResetState}
+            ctaLabel={strings(
+              'fiat_on_ramp_aggregator.payment_method.reset_region',
+            )}
+            location={'Payment Method Screen'}
+            icon="info"
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {filteredPaymentMethods?.map((payment) => (
+            {filteredPaymentMethods.map((payment) => (
               <View key={payment.id} style={styles.row}>
                 <PaymentMethod
                   payment={payment}
