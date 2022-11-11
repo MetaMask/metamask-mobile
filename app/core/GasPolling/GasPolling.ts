@@ -11,6 +11,10 @@ import {
   GetEIP1559TransactionDataProps,
   LegacyProps,
 } from './types';
+import AppConstants from '../AppConstants';
+
+const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
+const RECOMMENDED = GAS_OPTIONS.HIGH;
 
 /**
  *
@@ -95,6 +99,7 @@ export const getEIP1559TransactionData = ({
   nativeCurrency,
   onlyGas,
   swapsParams,
+  suggestedEstimatedGasLimit,
 }: GetEIP1559TransactionDataProps) => {
   try {
     if (
@@ -120,6 +125,9 @@ export const getEIP1559TransactionData = ({
         swapsParams,
         selectedGasFee: {
           ...gas,
+          suggestedEstimatedGasLimit,
+          selectedOption: gas.selectedOption,
+          recommended: RECOMMENDED,
           estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
         },
       },
@@ -242,5 +250,6 @@ export const useGasTransaction = ({
     suggestedGasLimit,
     onlyGas,
     swapsParams,
+    suggestedEstimatedGasLimit: gasObject?.suggestedGasLimit,
   });
 };

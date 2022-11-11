@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import Text from '../../../Base/Text';
 import InfoModal from './InfoModal';
 import EditGasFeeLegacy from '../../EditGasFeeLegacy';
-import EditGasFee1559Update from '../../EditGasFee1559Update';
+import EditGasFee1559 from '../../EditGasFee1559Update';
 import { parseTransactionLegacy } from '../../../../util/transactions';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { strings } from '../../../../../locales/i18n';
@@ -62,8 +62,8 @@ function GasEditModal({
   );
   const [stopUpdateGas, setStopUpdateGas] = useState(false);
   const [hasEnoughEthBalance, setHasEnoughEthBalance] = useState(true);
-  const [gasPriceObject, setGasPriceObject] = useState({});
-  const [gasTransaction, setGasTransaction] = useState({});
+  const [eip1559GasTransaction, setEip1559GasTransaction] = useState({});
+  const [eip1559GasObject, setEip1559GasObject] = useState({});
   const [LegacyTransactionDataTemp, setLegacyTransactionDataTemp] = useState(
     {},
   );
@@ -77,9 +77,12 @@ function GasEditModal({
   const { colors } = useTheme();
 
   useEffect(() => {
-    if (gasTransaction && Object.keys(gasTransaction).length > 0) {
+    if (
+      eip1559GasTransaction &&
+      Object.keys(eip1559GasTransaction).length > 0
+    ) {
       setHasEnoughEthBalance(
-        checkEnoughEthBalance(gasTransaction?.totalMaxHex?.toString(16)),
+        checkEnoughEthBalance(eip1559GasTransaction?.totalMaxHex?.toString(16)),
       );
     } else if (
       LegacyTransactionDataTemp &&
@@ -91,7 +94,7 @@ function GasEditModal({
         ),
       );
     }
-  }, [gasTransaction, LegacyTransactionDataTemp, checkEnoughEthBalance]);
+  }, [eip1559GasTransaction, LegacyTransactionDataTemp, checkEnoughEthBalance]);
 
   useEffect(() => {
     if (stopUpdateGas || !gasSelected) {
@@ -156,16 +159,16 @@ function GasEditModal({
   );
 
   const saveGasEdition = useCallback(
-    (gasTransaction, gasPriceObject) => {
+    (gasTransaction, gasObject) => {
       if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-        setGasPriceObject(gasPriceObject);
-        setGasTransaction(gasTransaction);
+        setEip1559GasTransaction(gasTransaction);
+        setEip1559GasObject(gasObject);
         const {
           suggestedMaxFeePerGas: maxFeePerGas,
           suggestedMaxPriorityFeePerGas: maxPriorityFeePerGas,
           estimatedBaseFee,
           suggestedGasLimit,
-        } = gasPriceObject;
+        } = gasObject;
         onGasUpdate(
           {
             maxFeePerGas,
@@ -210,10 +213,10 @@ function GasEditModal({
 
   const currentGasPriceObject = {
     suggestedMaxFeePerGas:
-      gasPriceObject.suggestedMaxFeePerGas ||
+      eip1559GasObject.suggestedMaxFeePerGas ||
       gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas:
-      gasPriceObject.suggestedMaxPriorityFeePerGas ||
+      eip1559GasObject.suggestedMaxPriorityFeePerGas ||
       gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
   };
 
@@ -223,6 +226,19 @@ function GasEditModal({
     isNativeAsset,
     tradeValue,
     sourceAmount,
+  };
+
+  const selectedGasObject = {
+    suggestedMaxFeePerGas:
+      eip1559GasObject.suggestedMaxFeePerGas ||
+      gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
+    suggestedMaxPriorityFeePerGas:
+      eip1559GasObject.suggestedMaxPriorityFeePerGas ||
+      gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+    suggestedGasLimit:
+      eip1559GasObject.suggestedGasLimit ||
+      eip1559GasTransaction.suggestedGasLimit ||
+      initialGasLimit,
   };
 
   return (
@@ -246,12 +262,21 @@ function GasEditModal({
       >
         {gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
           <>
-            <EditGasFee1559Update
+            <EditGasFee1559
               selectedGasValue={gasSelected}
-              initialSuggestedGasLimit={initialGasLimit}
+              gasOptions={gasFeeEstimates}
+              onChange={updateGasSelected}
+              primaryCurrency={primaryCurrency}
+              chainId={chainId}
+              onCancel={cancelGasEdition}
+              onSave={saveGasEdition}
+              animateOnChange={animateOnChange}
+              isAnimating={isAnimating}
+              view="Swaps"
               ignoreOptions={[GAS_OPTIONS.LOW]}
               extendOptions={{ [GAS_OPTIONS.MEDIUM]: { error: true } }}
               warningMinimumEstimateOption={GAS_OPTIONS.MEDIUM}
+              selectedGasObject={selectedGasObject}
               warning={
                 gasSelected === GAS_OPTIONS.MEDIUM
                   ? strings('swaps.medium_selected_warning')
@@ -260,15 +285,9 @@ function GasEditModal({
               error={
                 !hasEnoughEthBalance
                   ? strings('transaction.insufficient')
-                  : gasTransaction.error
+                  : eip1559GasTransaction.error
               }
               suggestedEstimateOption={defaultGasFeeOptionFeeMarket}
-              gasOptions={gasFeeEstimates}
-              onChange={updateGasSelected}
-              primaryCurrency={primaryCurrency}
-              chainId={chainId}
-              onCancel={cancelGasEdition}
-              onSave={saveGasEdition}
               recommended={{
                 name: GAS_OPTIONS.HIGH,
                 // eslint-disable-next-line react/display-name
@@ -285,9 +304,6 @@ function GasEditModal({
                   </TouchableOpacity>
                 ),
               }}
-              view="Swaps"
-              animateOnChange={animateOnChange}
-              isAnimating={isAnimating}
               onUpdatingValuesStart={onGasAnimationStart}
               onUpdatingValuesEnd={onGasAnimationEnd}
               currentGasPriceObject={currentGasPriceObject}
