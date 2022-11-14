@@ -21,26 +21,26 @@ const Avatar = (avatarProps: AvatarProps) => {
     case AvatarVariants.Blockies:
       return (
         <AvatarBlockies
-          {...avatarProps}
           testID={AVATAR_AVATAR_BLOCKIES_TEST_ID}
+          {...avatarProps}
         />
       );
     case AvatarVariants.Image:
       return (
-        <AvatarImage {...avatarProps} testID={AVATAR_AVATAR_IMAGE_TEST_ID} />
+        <AvatarImage testID={AVATAR_AVATAR_IMAGE_TEST_ID} {...avatarProps} />
       );
     case AvatarVariants.Initial:
       return (
         <AvatarInitial
-          {...avatarProps}
           testID={AVATAR_AVATAR_INITIAL_TEST_ID}
+          {...avatarProps}
         />
       );
     case AvatarVariants.JazzIcon:
       return (
         <AvatarJazzIcon
-          {...avatarProps}
           testID={AVATAR_AVATAR_JAZZICON_TEST_ID}
+          {...avatarProps}
         />
       );
     default:

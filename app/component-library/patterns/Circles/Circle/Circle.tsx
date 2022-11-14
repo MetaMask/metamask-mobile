@@ -16,6 +16,7 @@ import {
 import styleSheet from './Circle.styles';
 import {
   CIRCLE_PATTERN_TEST_ID,
+  CIRCLE_PATTERN_BADGE_TEST_ID,
   DEFAULT_CIRCLE_PATTERN_SIZE,
 } from './Circle.constants';
 
@@ -72,6 +73,7 @@ const CirclePattern: React.FC<CirclePatternProps> = ({
           badgeProps={badgeProps}
           badgePositions={badgePositions}
           badgeScale={badgeScale}
+          testID={CIRCLE_PATTERN_BADGE_TEST_ID}
         >
           {renderCirclePattern()}
         </BadgeWrapper>

@@ -1,7 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { IconContainerSizes } from './IconContainer.types';
 import { IconSize } from '../../Icons/Icon';
+import { TEST_ICON_PROPS } from '../Icon/Icon.constants';
+
+// Internal dependencies.
+import { IconContainerSizes, IconContainerProps } from './IconContainer.types';
 
 /**
  * Mapping of IconSize by IconContainerSizes.
@@ -22,3 +25,7 @@ export const DEFAULT_ICON_CONTAINER_SIZE = IconContainerSizes.Md;
 
 export const ICON_CONTAINER_TEST_ID = 'icon-container';
 export const ICON_CONTAINER_ICON_TEST_ID = 'icon-container-icon';
+
+export const TEST_ICON_CONTAINER_PROPS: IconContainerProps = {
+  iconProps: TEST_ICON_PROPS,
+};

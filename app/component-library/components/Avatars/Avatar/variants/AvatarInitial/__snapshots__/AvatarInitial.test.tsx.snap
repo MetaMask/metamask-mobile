@@ -2,6 +2,7 @@
 
 exports[`AvatarInitial - Snapshot should render AvatarInitial 1`] = `
 <AvatarBase
+  size="32"
   style={
     Object {
       "alignItems": "center",
@@ -18,6 +19,11 @@ exports[`AvatarInitial - Snapshot should render AvatarInitial 1`] = `
   variant="Initial"
 >
   <Text
+    style={
+      Object {
+        "color": "#24272A",
+      }
+    }
     testID="avatar-initial-text"
     variant="sBodyMDBold"
   >

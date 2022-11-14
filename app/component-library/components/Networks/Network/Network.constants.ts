@@ -21,3 +21,5 @@ export const TEST_NETWORK_PROPS: NetworkProps = {
 };
 
 export const DEFAULT_NETWORK_SIZE = NetworkSizes.Md;
+export const NETWORK_TEST_ID = 'network';
+export const NETWORK_IMAGE_TEST_ID = 'network-image';

@@ -1,6 +1,6 @@
 // External dependencies.
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
-import { TEST_NETWORK_PROPS } from '../Badge/variants/BadgeNetwork/BadgeNetwork.constants';
+import { TEST_NETWORK_PROPS } from '../../Networks/Network/Network.constants';
 
 export const BADGE_WRAPPER_BADGE_TEST_ID = 'badge-wrapper-badge';
 

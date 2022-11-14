@@ -41,7 +41,9 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
             >
               <Avatar
                 variant={AvatarVariants.Image}
-                imageSource={imageSource}
+                imageProps={{
+                  source: imageSource,
+                }}
                 size={extraSmallSize}
               />
             </View>

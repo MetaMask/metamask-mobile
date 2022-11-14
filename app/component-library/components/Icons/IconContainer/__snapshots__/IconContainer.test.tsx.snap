@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IconContainer - Snapshot should render correctly 1`] = `
+<CirclePattern
+  size="32"
+  style={
+    Object {
+      "backgroundColor": "#F2F4F6",
+    }
+  }
+  testID="icon-container"
+>
+  <Icon
+    name="AddOutline"
+    size="20"
+    testID="icon-container-icon"
+  />
+</CirclePattern>
+`;

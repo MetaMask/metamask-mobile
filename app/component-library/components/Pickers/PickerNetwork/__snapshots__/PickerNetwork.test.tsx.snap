@@ -14,14 +14,15 @@ exports[`PickerNetwork should render correctly 1`] = `
     }
   }
 >
-  <Avatar
-    imageSource={
+  <Network
+    imageProps={
       Object {
-        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        "source": Object {
+          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        },
       }
     }
     size="16"
-    variant="Image"
   />
   <Text
     style={

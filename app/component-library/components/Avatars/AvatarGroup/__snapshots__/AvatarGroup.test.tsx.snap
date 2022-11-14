@@ -34,9 +34,11 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <Avatar
-        imageSource={
+        imageProps={
           Object {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            "source": Object {
+              "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            },
           }
         }
         size="16"
@@ -60,9 +62,11 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <Avatar
-        imageSource={
+        imageProps={
           Object {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            "source": Object {
+              "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            },
           }
         }
         size="16"
@@ -86,9 +90,11 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <Avatar
-        imageSource={
+        imageProps={
           Object {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            "source": Object {
+              "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            },
           }
         }
         size="16"
@@ -112,9 +118,11 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <Avatar
-        imageSource={
+        imageProps={
           Object {
-            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            "source": Object {
+              "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+            },
           }
         }
         size="16"

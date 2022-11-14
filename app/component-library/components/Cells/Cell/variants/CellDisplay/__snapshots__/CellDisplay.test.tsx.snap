@@ -8,8 +8,10 @@ exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
   <CellBase
     avatarProps={
       Object {
-        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
-        "variant": undefined,
+        "jazzIconProps": Object {
+          "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        },
+        "variant": "JazzIcon",
       }
     }
     title="Orangefox.eth"

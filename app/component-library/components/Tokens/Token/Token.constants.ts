@@ -26,3 +26,7 @@ export const TEST_TOKEN_IMAGE_PROPS: ImagePropsBase = {
 };
 
 export const DEFAULT_TOKEN_SIZE = TokenSizes.Md;
+
+export const TOKEN_TEST_ID = 'token';
+export const TOKEN_HALO_TEST_ID = 'token-halo';
+export const TOKEN_IMAGE_TEST_ID = 'token-image';

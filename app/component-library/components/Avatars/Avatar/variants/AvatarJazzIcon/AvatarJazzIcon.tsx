@@ -15,7 +15,7 @@ const AvatarJazzIcon = ({
   jazzIconProps,
   ...props
 }: AvatarJazzIconProps) => (
-  <AvatarBase size={size} testID={AVATAR_JAZZICON_TEST_ID} {...props}>
+  <AvatarBase size={size} {...props} testID={AVATAR_JAZZICON_TEST_ID}>
     <Jazzicon size={Number(size)} {...jazzIconProps} />
   </AvatarBase>
 );

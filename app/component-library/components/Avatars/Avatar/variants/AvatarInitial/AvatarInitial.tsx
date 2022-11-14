@@ -33,9 +33,9 @@ const AvatarInitial = ({
   return (
     <AvatarBase
       style={styles.base}
-      testID={AVATAR_INITIAL_TEST_ID}
       size={size}
       {...props}
+      testID={AVATAR_INITIAL_TEST_ID}
     >
       <Text
         style={styles.initial}

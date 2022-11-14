@@ -14,21 +14,27 @@ exports[`BadgeWrapper - snapshots should render badge with default position corr
     />
   </View>
   <Badge
-    avatarProps={
+    networkProps={
       Object {
-        "source": Object {
-          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        "imageProps": Object {
+          "source": Object {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          },
         },
-        "variant": "Image",
       }
     }
     style={
       Object {
         "position": "absolute",
+        "transform": Array [
+          Object {
+            "scale": 1,
+          },
+        ],
       }
     }
     testID="badge-wrapper-badge"
-    variant="avatar"
+    variant="network"
   />
 </View>
 `;

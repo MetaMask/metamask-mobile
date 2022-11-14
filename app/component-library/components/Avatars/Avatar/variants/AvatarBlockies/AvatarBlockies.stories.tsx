@@ -9,13 +9,13 @@ import { getAvatarBaseStoryProps } from '../../foundation/AvatarBase/AvatarBase.
 // Internal dependencies.
 import AvatarBlockies from './AvatarBlockies';
 import { AvatarBlockiesProps } from './AvatarBlockies.types';
-import { DUMMY_WALLET_ADDRESS } from './AvatarBlockies.constants';
+import { TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS } from './AvatarBlockies.constants';
 
 export const getAvatarBlockiesStoryProps = (): AvatarBlockiesProps => ({
   ...getAvatarBaseStoryProps(),
   accountAddress: text(
     'accountAddress',
-    DUMMY_WALLET_ADDRESS,
+    TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS,
     storybookPropsGroupID,
   ),
 });

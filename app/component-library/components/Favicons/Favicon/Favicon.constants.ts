@@ -7,7 +7,7 @@ import { FaviconSizes } from './Favicon.types';
 
 const TEST_FAVICON_IMAGE_URL = 'https://uniswap.org/favicon.ico';
 
-const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
+const TEST_FAVICON_IMAGE_SOURCE: ImageSourcePropType = {
   uri: TEST_FAVICON_IMAGE_URL,
 };
 
@@ -16,3 +16,5 @@ export const TEST_FAVICON_IMAGE_PROPS: ImagePropsBase = {
 };
 
 export const DEFAULT_FAVICON_SIZE = FaviconSizes.Md;
+export const FAVICON_TEST_ID = 'favicon';
+export const FAVICON_IMAGE_TEST_ID = 'favicon-image';

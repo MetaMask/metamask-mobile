@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Favicon - Snapshot should render correctly 1`] = `
+<Fragment>
+  <CirclePattern
+    size="48"
+    style={Object {}}
+    testID="favicon"
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        Object {
+          "uri": "https://uniswap.org/favicon.ico",
+        }
+      }
+      style={
+        Object {
+          "borderRadius": 24,
+          "height": 48,
+          "width": 48,
+        }
+      }
+      testID="favicon-image"
+    />
+  </CirclePattern>
+</Fragment>
+`;

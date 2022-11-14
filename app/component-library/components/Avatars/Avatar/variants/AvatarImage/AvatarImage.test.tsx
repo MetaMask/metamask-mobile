@@ -11,7 +11,6 @@ import {
   TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS,
   TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
   AVATAR_IMAGE_TEST_ID,
-  AVATAR_IMAGE_HALO_TEST_ID,
   AVATAR_IMAGE_IMAGE_TEST_ID,
 } from './AvatarImage.constants';
 
@@ -64,7 +63,7 @@ describe('AvatarImage', () => {
       (node) => node.prop('testID') === AVATAR_IMAGE_IMAGE_TEST_ID,
     );
     expect(AvatarImageImageComponent.props().source).toBe(
-      TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS,
+      TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS.source,
     );
   });
   it('should render AvatarImage component with remote imageSource', () => {
@@ -79,7 +78,7 @@ describe('AvatarImage', () => {
       (node) => node.prop('testID') === AVATAR_IMAGE_IMAGE_TEST_ID,
     );
     expect(AvatarImageImageComponent.props().source).toBe(
-      TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
+      TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS.source,
     );
   });
 });

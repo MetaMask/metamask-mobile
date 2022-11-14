@@ -23,7 +23,7 @@ const AvatarImage = ({
   const { styles } = useStyles(styleSheet, { size });
 
   return (
-    <AvatarBase size={size} testID={AVATAR_IMAGE_TEST_ID} {...props}>
+    <AvatarBase size={size} {...props} testID={AVATAR_IMAGE_TEST_ID}>
       <Image
         style={styles.image}
         resizeMode={'contain'}

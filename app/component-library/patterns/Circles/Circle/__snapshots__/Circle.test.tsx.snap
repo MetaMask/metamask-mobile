@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CirclePattern - Snapshot should render CirclePattern correctly 1`] = `
+<Fragment>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "borderRadius": 16,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "width": 32,
+      }
+    }
+    testID="circle"
+  >
+    <View />
+  </View>
+</Fragment>
+`;
+
+exports[`CirclePattern - Snapshot should render CirclePattern with Badge correctly 1`] = `
+<Fragment>
+  <BadgeWrapper
+    badgePositions={
+      Object {
+        "right": -12,
+        "top": -12,
+      }
+    }
+    badgeProps={
+      Object {
+        "networkProps": Object {
+          "imageProps": Object {
+            "source": Object {
+              "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+            },
+          },
+        },
+        "variant": "network",
+      }
+    }
+    badgeScale={0.5}
+    testID="circle-badge"
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "borderRadius": 16,
+          "height": 32,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "width": 32,
+        }
+      }
+      testID="circle"
+    >
+      <View />
+    </View>
+  </BadgeWrapper>
+</Fragment>
+`;

@@ -12,7 +12,11 @@ import Avatar, { AvatarVariants } from '../../Avatars/Avatar';
 // Internal dependencies.
 import styleSheet from './Network.styles';
 import { NetworkProps } from './Network.types';
-import { DEFAULT_NETWORK_SIZE } from './Network.constants';
+import {
+  DEFAULT_NETWORK_SIZE,
+  NETWORK_TEST_ID,
+  NETWORK_IMAGE_TEST_ID,
+} from './Network.constants';
 
 const Network = ({
   style,
@@ -40,11 +44,17 @@ const Network = ({
   return (
     <>
       {imageProps && !showFallback ? (
-        <CirclePattern size={size} style={styles.base} {...props}>
+        <CirclePattern
+          size={size}
+          style={styles.base}
+          testID={NETWORK_TEST_ID}
+          {...props}
+        >
           <Image
             resizeMode={'contain'}
             onError={onError}
             style={styles.image}
+            testID={NETWORK_IMAGE_TEST_ID}
             {...imageProps}
           />
         </CirclePattern>

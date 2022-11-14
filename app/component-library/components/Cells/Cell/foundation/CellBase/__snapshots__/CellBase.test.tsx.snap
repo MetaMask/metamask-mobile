@@ -9,7 +9,11 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
   }
 >
   <Avatar
-    address="0x2990079bcdEe240329a520d2444386FC119da21a"
+    jazzIconProps={
+      Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      }
+    }
     size="32"
     style={
       Object {
@@ -17,6 +21,7 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
       }
     }
     testID="cell-avatar"
+    variant="JazzIcon"
   />
   <View
     style={
@@ -46,7 +51,11 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
   }
 >
   <Avatar
-    address="0x2990079bcdEe240329a520d2444386FC119da21a"
+    jazzIconProps={
+      Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      }
+    }
     size="32"
     style={
       Object {
@@ -54,6 +63,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
       }
     }
     testID="cell-avatar"
+    variant="JazzIcon"
   />
   <View
     style={
@@ -92,7 +102,11 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
   }
 >
   <Avatar
-    address="0x2990079bcdEe240329a520d2444386FC119da21a"
+    jazzIconProps={
+      Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      }
+    }
     size="32"
     style={
       Object {
@@ -100,6 +114,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
       }
     }
     testID="cell-avatar"
+    variant="JazzIcon"
   />
   <View
     style={
@@ -141,7 +156,11 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
   }
 >
   <Avatar
-    address="0x2990079bcdEe240329a520d2444386FC119da21a"
+    jazzIconProps={
+      Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      }
+    }
     size="32"
     style={
       Object {
@@ -149,6 +168,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
       }
     }
     testID="cell-avatar"
+    variant="JazzIcon"
   />
   <View
     style={

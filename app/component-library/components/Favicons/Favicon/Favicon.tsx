@@ -13,7 +13,11 @@ import IconContainer from '../../Icons/IconContainer';
 // Internal dependencies.
 import styleSheet from './Favicon.styles';
 import { FaviconProps } from './Favicon.types';
-import { DEFAULT_FAVICON_SIZE } from './Favicon.constants';
+import {
+  DEFAULT_FAVICON_SIZE,
+  FAVICON_TEST_ID,
+  FAVICON_IMAGE_TEST_ID,
+} from './Favicon.constants';
 
 const Favicon = ({
   style,
@@ -38,11 +42,17 @@ const Favicon = ({
   );
 
   const renderImage = () => (
-    <CirclePattern size={size} style={styles.base} {...props}>
+    <CirclePattern
+      size={size}
+      style={styles.base}
+      testID={FAVICON_TEST_ID}
+      {...props}
+    >
       <Image
         resizeMode={'contain'}
         onError={onError}
         style={styles.image}
+        testID={FAVICON_IMAGE_TEST_ID}
         {...imageProps}
       />
     </CirclePattern>

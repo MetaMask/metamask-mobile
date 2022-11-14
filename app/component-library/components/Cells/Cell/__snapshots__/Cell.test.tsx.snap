@@ -4,8 +4,10 @@ exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = 
 <CellDisplay
   avatarProps={
     Object {
-      "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
-      "variant": undefined,
+      "jazzIconProps": Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      },
+      "variant": "JazzIcon",
     }
   }
   testID="cell-display"
@@ -18,8 +20,10 @@ exports[`Cell - Snapshot should render CellMultiselect given the type Multiselec
 <CellMultiselect
   avatarProps={
     Object {
-      "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
-      "variant": undefined,
+      "jazzIconProps": Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      },
+      "variant": "JazzIcon",
     }
   }
   testID="cell-multi-select"
@@ -32,8 +36,10 @@ exports[`Cell - Snapshot should render CellSelect given the type Select 1`] = `
 <CellSelect
   avatarProps={
     Object {
-      "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
-      "variant": undefined,
+      "jazzIconProps": Object {
+        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      },
+      "variant": "JazzIcon",
     }
   }
   testID="cell-select"
