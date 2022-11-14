@@ -2,17 +2,17 @@
 import { ImagePropsBase } from 'react-native';
 
 // External dependencies.
-import { CoinPatternProps } from '../../../patterns/Coins/Coin';
+import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 
 /**
  * Token sizes.
  */
-export { CoinPatternSizes as TokenSizes } from '../../../patterns/Coins/Coin/Coin.types';
+export { CirclePatternSizes as TokenSizes } from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Token component props.
  */
-export type TokenProps = CoinPatternProps & {
+export type TokenProps = CirclePatternProps & {
   /**
    * Optional token name.
    */

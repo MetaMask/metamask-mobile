@@ -4,7 +4,7 @@ import { Image, ImageBackground } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import CoinPattern from '../../../patterns/Coins/Coin/Coin';
+import CirclePattern from '../../../patterns/Circles/Circle/Circle';
 import Avatar, { AvatarVariants } from '../../Avatars/Avatar';
 
 // Internal dependencies.
@@ -18,6 +18,7 @@ const Token = ({
   imageProps,
   isHaloEnabled = true,
   size = DEFAULT_TOKEN_SIZE,
+  ...props
 }: TokenProps) => {
   const [showFallback, setShowFallback] = useState(!imageProps);
   const { styles } = useStyles(styleSheet, {
@@ -47,7 +48,7 @@ const Token = ({
   return (
     <>
       {imageProps && !showFallback ? (
-        <CoinPattern size={size} style={styles.base}>
+        <CirclePattern size={size} style={styles.base} {...props}>
           {isHaloEnabled ? (
             <ImageBackground
               blurRadius={20}
@@ -60,7 +61,7 @@ const Token = ({
           ) : (
             renderImage()
           )}
-        </CoinPattern>
+        </CirclePattern>
       ) : (
         renderFallback()
       )}

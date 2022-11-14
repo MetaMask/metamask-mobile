@@ -15,10 +15,11 @@ import { AvatarBlockiesProps } from './AvatarBlockies.types';
 const AvatarBlockies = ({
   size = DEFAULT_AVATAR_SIZE,
   accountAddress,
+  ...props
 }: AvatarBlockiesProps) => {
   const { styles } = useStyles(styleSheet, { size });
   return (
-    <AvatarBase size={size}>
+    <AvatarBase size={size} {...props}>
       <Image
         resizeMode={'contain'}
         source={{ uri: toDataUrl(accountAddress) }}

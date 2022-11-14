@@ -7,7 +7,7 @@ import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.ty
 /**
  * Avatar sizes.
  */
-export { CoinPatternSizes as AvatarSizes } from '../../../patterns/Coins/Coin/Coin.types';
+export { CirclePatternSizes as AvatarSizes } from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Avatar variants.

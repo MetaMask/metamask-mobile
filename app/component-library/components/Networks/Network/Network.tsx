@@ -6,7 +6,7 @@ import { Image } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import CoinPattern from '../../../patterns/Coins/Coin/Coin';
+import CirclePattern from '../../../patterns/Circles/Circle/Circle';
 import Avatar, { AvatarVariants } from '../../Avatars/Avatar';
 
 // Internal dependencies.
@@ -19,6 +19,7 @@ const Network = ({
   name,
   imageProps,
   size = DEFAULT_NETWORK_SIZE,
+  ...props
 }: NetworkProps) => {
   const [showFallback, setShowFallback] = useState(!imageProps);
   const { styles } = useStyles(styleSheet, {
@@ -39,14 +40,14 @@ const Network = ({
   return (
     <>
       {imageProps && !showFallback ? (
-        <CoinPattern size={size} style={styles.base}>
+        <CirclePattern size={size} style={styles.base} {...props}>
           <Image
             resizeMode={'contain'}
             onError={onError}
             style={styles.image}
             {...imageProps}
           />
-        </CoinPattern>
+        </CirclePattern>
       ) : (
         renderFallback()
       )}

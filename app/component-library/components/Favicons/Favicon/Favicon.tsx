@@ -6,19 +6,20 @@ import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import CoinPattern from '../../../patterns/Coins/Coin/Coin';
+import CirclePattern from '../../../patterns/Circles/Circle/Circle';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import IconContainer from '../../Icons/IconContainer';
 
 // Internal dependencies.
+import styleSheet from './Favicon.styles';
 import { FaviconProps } from './Favicon.types';
 import { DEFAULT_FAVICON_SIZE } from './Favicon.constants';
-import styleSheet from './Favicon.styles';
 
 const Favicon = ({
   style,
   imageProps,
   size = DEFAULT_FAVICON_SIZE,
+  ...props
 }: FaviconProps) => {
   const [error, setError] = useState(undefined);
   const { styles } = useStyles(styleSheet, {
@@ -37,14 +38,14 @@ const Favicon = ({
   );
 
   const renderImage = () => (
-    <CoinPattern size={size} style={styles.base}>
+    <CirclePattern size={size} style={styles.base} {...props}>
       <Image
         resizeMode={'contain'}
         onError={onError}
         style={styles.image}
         {...imageProps}
       />
-    </CoinPattern>
+    </CirclePattern>
   );
 
   return <>{error ? renderError() : renderImage()}</>;

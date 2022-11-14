@@ -9,7 +9,6 @@ import {
   ACCOUNT_BASE_TEST_ID,
 } from './AccountBase.constants';
 import styles from './AccountBase.styles';
-import { toDataUrl } from '../../../../util/blockies';
 
 const AccountBase = ({
   accountBalance,
@@ -24,9 +23,9 @@ const AccountBase = ({
     <View style={styles.container}>
       <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
         <Avatar
-          variant={AvatarVariants.Image}
+          variant={AvatarVariants.Blockies}
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
-          imageSource={{ uri: toDataUrl(accountAddress) }}
+          accountAddress={accountAddress}
         />
       </BadgeWrapper>
       <View>

@@ -5,7 +5,7 @@ import React from 'react';
 
 // External depdendencies.
 import { useStyles } from '../../../../../hooks/useStyles';
-import CoinPattern from '../../../../../patterns/Coins/Coin/Coin';
+import CirclePattern from '../../../../../patterns/Circles/Circle/Circle';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
@@ -17,15 +17,21 @@ const AvatarBase: React.FC<AvatarBaseProps> = ({
   size = DEFAULT_AVATAR_SIZE,
   style,
   children,
+  ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     style,
   });
 
   return (
-    <CoinPattern style={styles.base} size={size} testID={AVATAR_BASE_TEST_ID}>
+    <CirclePattern
+      style={styles.base}
+      size={size}
+      testID={AVATAR_BASE_TEST_ID}
+      {...props}
+    >
       {children}
-    </CoinPattern>
+    </CirclePattern>
   );
 };
 

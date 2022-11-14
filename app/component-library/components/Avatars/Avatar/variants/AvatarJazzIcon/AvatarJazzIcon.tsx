@@ -13,8 +13,9 @@ import { AVATAR_JAZZICON_TEST_ID } from './AvatarJazzIcon.constants';
 const AvatarJazzIcon = ({
   size = DEFAULT_AVATAR_SIZE,
   jazzIconProps,
+  ...props
 }: AvatarJazzIconProps) => (
-  <AvatarBase size={size} testID={AVATAR_JAZZICON_TEST_ID}>
+  <AvatarBase size={size} testID={AVATAR_JAZZICON_TEST_ID} {...props}>
     <Jazzicon size={Number(size)} {...jazzIconProps} />
   </AvatarBase>
 );

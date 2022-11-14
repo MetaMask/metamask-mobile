@@ -14,5 +14,7 @@ export const CELL_SELECT_TEST_ID = 'cell-select';
 
 export const TEST_AVATAR_PROPS: AvatarProps = {
   variant: AvatarVariants.JazzIcon,
-  address: TEST_ACCOUNT_ADDRESS,
+  jazzIconProps: {
+    address: TEST_ACCOUNT_ADDRESS,
+  },
 };

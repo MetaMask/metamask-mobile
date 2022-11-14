@@ -20,17 +20,18 @@ const styleSheet = (params: {
   vars: BadgeWrapperStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, badgeStyle } = vars;
-
+  const { style, badgePositions, badgeScale } = vars;
+  const scalePercentage = badgeScale || 1;
   return StyleSheet.create({
     base: Object.assign(
       { alignSelf: 'flex-start' } as ViewStyle,
       style,
     ) as ViewStyle,
-    badge: Object.assign(
-      { position: 'absolute' } as ViewStyle,
-      badgeStyle,
-    ) as ViewStyle,
+    badge: {
+      position: 'absolute',
+      transform: [{ scale: scalePercentage }],
+      ...badgePositions,
+    },
   });
 };
 

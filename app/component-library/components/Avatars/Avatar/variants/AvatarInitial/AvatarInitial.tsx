@@ -21,6 +21,7 @@ const AvatarInitial = ({
   initialColor,
   backgroundColor,
   size = DEFAULT_AVATAR_SIZE,
+  ...props
 }: AvatarInitialProps) => {
   const { styles } = useStyles(styleSheet, {
     size,
@@ -30,7 +31,12 @@ const AvatarInitial = ({
   const initialFirstLetter: string = initial?.[0];
 
   return (
-    <AvatarBase style={styles.base} testID={AVATAR_INITIAL_TEST_ID} size={size}>
+    <AvatarBase
+      style={styles.base}
+      testID={AVATAR_INITIAL_TEST_ID}
+      size={size}
+      {...props}
+    >
       <Text
         style={styles.initial}
         variant={TEXT_VARIANT_BY_AVATAR_SIZE[size]}

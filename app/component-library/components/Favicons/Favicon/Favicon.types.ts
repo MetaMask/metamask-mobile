@@ -2,17 +2,17 @@
 import { ImagePropsBase } from 'react-native';
 
 // External dependencies.
-import { CoinPatternProps } from '../../../patterns/Coins/Coin';
+import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 
 /**
  * Favicon sizes.
  */
-export { CoinPatternSizes as FaviconSizes } from '../../../patterns/Coins/Coin/Coin.types';
+export { CirclePatternSizes as FaviconSizes } from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Favicon component props.
  */
-export type FaviconProps = CoinPatternProps & {
+export type FaviconProps = CirclePatternProps & {
   /**
    * Props for the image content.
    */

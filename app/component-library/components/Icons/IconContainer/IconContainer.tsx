@@ -3,7 +3,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import CoinPattern from '../../../patterns/Coins/Coin/Coin';
+import CirclePattern from '../../../patterns/Circles/Circle/Circle';
 import Icon from '../../Icons/Icon';
 
 // Internal dependencies.
@@ -20,24 +20,23 @@ const IconContainer = ({
   size = DEFAULT_ICON_CONTAINER_SIZE,
   style,
   backgroundColor,
-  ...restIconProps
+  iconProps,
+  ...props
 }: IconContainerProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     backgroundColor,
   });
+  iconProps.size = ICON_SIZE_BY_ICON_CONTAINER_SIZE[size];
   return (
-    <CoinPattern
+    <CirclePattern
       style={styles.base}
       size={size}
       testID={ICON_CONTAINER_TEST_ID}
+      {...props}
     >
-      <Icon
-        testID={ICON_CONTAINER_ICON_TEST_ID}
-        size={ICON_SIZE_BY_ICON_CONTAINER_SIZE[size]}
-        {...restIconProps}
-      />
-    </CoinPattern>
+      <Icon testID={ICON_CONTAINER_ICON_TEST_ID} {...iconProps} />
+    </CirclePattern>
   );
 };
 

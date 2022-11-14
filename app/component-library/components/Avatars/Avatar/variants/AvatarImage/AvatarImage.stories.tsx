@@ -1,33 +1,20 @@
 // Third party dependencies.
 import React from 'react';
-import { select, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
+import { AvatarVariants } from '../../Avatar.types';
+import { getAvatarBaseStoryProps } from '../../foundation/AvatarBase/AvatarBase.stories';
 
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
 import { AvatarImageProps } from './AvatarImage.types';
 import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './AvatarImage.constants';
 
-export const getAvatarImageStoryProps = (): AvatarImageProps => {
-  const sizeSelector = select(
-    'size',
-    AvatarSizes,
-    AvatarSizes.Md,
-    storybookPropsGroupID,
-  );
-
-  const isHaloEnabled = boolean('isHaloEnabled', false, storybookPropsGroupID);
-
-  return {
-    variant: AvatarVariants.Image,
-    size: sizeSelector,
-    imageProps: TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
-    isHaloEnabled,
-  };
-};
+export const getAvatarImageStoryProps = (): AvatarImageProps => ({
+  variant: AvatarVariants.Image,
+  ...getAvatarBaseStoryProps(),
+  imageProps: TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
+});
 const AvatarImageStory = () => <AvatarImage {...getAvatarImageStoryProps()} />;
 
 export default AvatarImageStory;

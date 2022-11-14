@@ -12,18 +12,18 @@ import styleSheet from './AvatarImage.styles';
 import { AvatarImageProps } from './AvatarImage.types';
 import {
   AVATAR_IMAGE_TEST_ID,
-  AVATAR_IMAGE_HALO_TEST_ID,
   AVATAR_IMAGE_IMAGE_TEST_ID,
 } from './AvatarImage.constants';
 
 const AvatarImage = ({
   size = DEFAULT_AVATAR_SIZE,
   imageProps,
+  ...props
 }: AvatarImageProps) => {
   const { styles } = useStyles(styleSheet, { size });
 
   return (
-    <AvatarBase size={size} testID={AVATAR_IMAGE_TEST_ID}>
+    <AvatarBase size={size} testID={AVATAR_IMAGE_TEST_ID} {...props}>
       <Image
         style={styles.image}
         resizeMode={'contain'}

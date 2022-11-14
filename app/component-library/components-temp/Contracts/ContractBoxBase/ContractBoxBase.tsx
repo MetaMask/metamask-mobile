@@ -3,10 +3,7 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 
 // External dependencies.
-import Avatar, {
-  AvatarSizes,
-  AvatarVariants,
-} from '../../../components/Avatars/Avatar';
+import Token, { TokenSizes } from '../../../components/Tokens/Token';
 import Text, { TextVariants } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
@@ -41,10 +38,9 @@ const ContractBoxBase = ({
   return (
     <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
       <View style={styles.rowContainer}>
-        <Avatar
-          variant={AvatarVariants.Image}
-          size={AvatarSizes.Xl}
-          imageSource={contractLocalImage}
+        <Token
+          size={TokenSizes.Xl}
+          imageProps={{ source: contractLocalImage }}
         />
         {contractPetName ? (
           <View>

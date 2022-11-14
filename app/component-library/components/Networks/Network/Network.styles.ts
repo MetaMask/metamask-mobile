@@ -16,11 +16,16 @@ import { NetworkStyleSheetVars } from './Network.types';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: NetworkStyleSheetVars }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
   const { style, size } = vars;
 
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    base: Object.assign(
+      {
+        backgroundColor: theme.colors.background.default,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
     image: Object.assign({
       width: Number(size),
       height: Number(size),

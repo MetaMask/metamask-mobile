@@ -2,25 +2,28 @@
 import { ColorValue } from 'react-native';
 
 // External dependencies.
-import { CoinPatternProps } from '../../../patterns/Coins/Coin';
+import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 import { IconProps } from '../../Icons/Icon';
 
 /**
  * IconContainer sizes.
  */
-export { CoinPatternSizes as IconContainerSizes } from '../../../patterns/Coins/Coin/Coin.types';
+export { CirclePatternSizes as IconContainerSizes } from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * IconContainer component props.
  */
-export type IconContainerProps = CoinPatternProps &
-  Omit<IconProps, 'size'> & {
-    /**
-     * Optional enum to add color to the background of the Avatar.
-     * @default theme.colors.background.alternative
-     */
-    backgroundColor?: ColorValue;
-  };
+export type IconContainerProps = CirclePatternProps & {
+  /**
+   * Optional enum to add color to the background of the Avatar.
+   * @default theme.colors.background.alternative
+   */
+  backgroundColor?: ColorValue;
+  /**
+   * Props for the icon content
+   */
+  iconProps: IconProps;
+};
 
 /**
  * Style sheet input parameters.

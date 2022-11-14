@@ -14,13 +14,15 @@ import styleSheet from './BadgeWrapper.styles';
 
 const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   badgeProps,
+  badgePositions,
+  badgeScale,
   children,
   style,
 }) => {
-  const badgeStyle = badgeProps.style;
   const { styles } = useStyles(styleSheet, {
     style,
-    badgeStyle,
+    badgePositions,
+    badgeScale,
   });
 
   return (

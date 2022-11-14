@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
 import { View } from 'react-native';
+import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';

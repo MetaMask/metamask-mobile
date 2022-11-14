@@ -38,5 +38,9 @@ export const TEST_AVATAR_PROPS: AvatarProps = {
 
 export const BADGE_PROPS: BadgeProps = {
   variant: BadgeVariants.Network,
-  imageSource: TEST_REMOTE_IMAGE_SOURCE,
+  networkProps: {
+    imageProps: {
+      source: TEST_REMOTE_IMAGE_SOURCE,
+    },
+  },
 };

@@ -9,7 +9,6 @@ import Avatar, { AvatarSizes, AvatarVariants } from '../../Avatars/Avatar';
 import Text, { TextVariants } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
-import { toDataUrl } from '../../../../util/blockies';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
@@ -30,8 +29,8 @@ const PickerAccount = ({
     <View style={styles.cellAccount}>
       {accountAvatarType === AvatarAccountType.Blockies && (
         <Avatar
-          variant={AvatarVariants.Image}
-          imageSource={{ uri: toDataUrl(accountAddress) }}
+          variant={AvatarVariants.Blockies}
+          accountAddress={accountAddress}
           size={AvatarSizes.Md}
           style={styles.accountAvatar}
         />
@@ -39,7 +38,9 @@ const PickerAccount = ({
       {accountAvatarType === AvatarAccountType.JazzIcon && (
         <Avatar
           variant={AvatarVariants.JazzIcon}
-          address={accountAddress}
+          jazzIconProps={{
+            address: accountAddress,
+          }}
           size={AvatarSizes.Md}
           style={styles.accountAvatar}
         />

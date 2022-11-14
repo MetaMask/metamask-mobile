@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { CoinPatternProps } from '../../../../../patterns/Coins/Coin';
+import { CirclePatternProps } from '../../../../../patterns/Circles/Circle';
 
 // External dependencies
 import { AvatarSizes } from '../../Avatar.types';
@@ -7,7 +7,7 @@ import { AvatarSizes } from '../../Avatar.types';
 /**
  * AvatarBase component props.
  */
-export interface AvatarBaseProps extends Omit<CoinPatternProps, 'size'> {
+export interface AvatarBaseProps extends Omit<CirclePatternProps, 'size'> {
   /**
    * Optional enum to select between Avatar sizes.
    * @default Md

@@ -2,17 +2,17 @@
 import { ImagePropsBase } from 'react-native';
 
 // External dependencies.
-import { CoinPatternProps } from '../../../patterns/Coins/Coin';
+import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 
 /**
  * Network sizes.
  */
-export { CoinPatternSizes as NetworkSizes } from '../../../patterns/Coins/Coin/Coin.types';
+export { CirclePatternSizes as NetworkSizes } from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Network component props.
  */
-export type NetworkProps = CoinPatternProps & {
+export type NetworkProps = CirclePatternProps & {
   /**
    * Props for the image content.
    */
