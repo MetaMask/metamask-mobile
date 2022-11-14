@@ -35,7 +35,7 @@ const USER_PROFILE_PROPERTY = {
 };
 
 /**
- * Class to handle analytics through the app
+ * @deprecated - Class to handle analytics through the app
  */
 class Analytics {
   /**
