@@ -137,10 +137,15 @@ export interface UseGasTransactionProps extends GasTransactionProps {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
   };
-  swapsParams: {
+  swapsParams?: {
     isNativeAsset: boolean;
     tradeValue: string;
     sourceAmount: string;
+  };
+  initialGasLimitSwaps?: string;
+  recommended?: {
+    name: string;
+    render: any;
   };
 }
 
@@ -211,6 +216,16 @@ export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
    */
   suggestedGasLimit: string;
   onlyGas?: boolean;
+  swapsParams?: {
+    isNativeAsset: boolean;
+    tradeValue: string;
+    sourceAmount: string;
+  };
+  suggestedEstimatedGasLimit: string | undefined;
+  recommended?: {
+    name: string;
+    render: any;
+  };
 }
 
 export interface LegacyProps {

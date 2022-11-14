@@ -54,6 +54,7 @@ const EditGasFeeLegacy = ({
   view,
   onlyGas,
   selectedGasObject,
+  initialGasLimitSwaps,
 }: EditGasFeeLegacyUpdateProps) => {
   const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
@@ -77,6 +78,7 @@ const EditGasFeeLegacy = ({
     gasSelected: selectedOption,
     legacy: true,
     gasObject,
+    initialGasLimitSwaps,
   });
 
   const getAnalyticsParams = useCallback(() => {
@@ -111,11 +113,20 @@ const EditGasFeeLegacy = ({
 
     const newGasPriceObject = {
       suggestedGasPrice: gasObject?.suggestedGasPrice,
-      legacyGasLimit: gasObject?.legacyGasLimit,
+      legacyGasLimit: selectedOption
+        ? initialGasLimitSwaps
+        : gasObject?.legacyGasLimit,
     };
 
     onSave(gasTransaction, newGasPriceObject, selectedOption);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, selectedOption]);
+  }, [
+    getAnalyticsParams,
+    onSave,
+    gasTransaction,
+    gasObject,
+    selectedOption,
+    initialGasLimitSwaps,
+  ]);
 
   const changeGas = useCallback(
     (gas, option) => {

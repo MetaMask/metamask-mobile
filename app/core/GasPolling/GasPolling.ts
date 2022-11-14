@@ -11,10 +11,6 @@ import {
   GetEIP1559TransactionDataProps,
   LegacyProps,
 } from './types';
-import AppConstants from '../AppConstants';
-
-const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
-const RECOMMENDED = GAS_OPTIONS.HIGH;
 
 /**
  *
@@ -100,6 +96,7 @@ export const getEIP1559TransactionData = ({
   onlyGas,
   swapsParams,
   suggestedEstimatedGasLimit,
+  recommended,
 }: GetEIP1559TransactionDataProps) => {
   try {
     if (
@@ -127,7 +124,7 @@ export const getEIP1559TransactionData = ({
           ...gas,
           suggestedEstimatedGasLimit,
           selectedOption: gas.selectedOption,
-          recommended: RECOMMENDED,
+          recommended,
           estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
         },
       },
@@ -183,6 +180,8 @@ export const useGasTransaction = ({
   dappSuggestedEIP1559Gas,
   dappSuggestedGasPrice,
   swapsParams,
+  initialGasLimitSwaps,
+  recommended,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -211,14 +210,42 @@ export const useGasTransaction = ({
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
+  let initialGas;
+  if (dappSuggestedEIP1559Gas) {
+    initialGas = {
+      suggestedMaxFeePerGas: fromWei(
+        dappSuggestedEIP1559Gas.maxFeePerGas,
+        'gwei',
+      ),
+      suggestedMaxPriorityFeePerGas: fromWei(
+        dappSuggestedEIP1559Gas.maxPriorityFeePerGas,
+        'gwei',
+      ),
+    };
+  } else if (dappSuggestedGasPrice) {
+    initialGas = {
+      suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+      suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+    };
+  } else {
+    initialGas = {
+      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
+    };
+  }
+
+  const suggestedGasLimitValue =
+    initialGasLimitSwaps || gasObject?.legacyGasLimit || suggestedGasLimit;
+  const suggestedGasPrice =
+    gasFeeEstimates[gasSelected] ||
+    gasFeeEstimates?.gasPrice ||
+    gasObject?.suggestedGasPrice;
+
   if (legacy) {
     return getLegacyTransactionData({
       gas: {
-        suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
-        suggestedGasPrice:
-          gasFeeEstimates[gasSelected] ||
-          gasFeeEstimates?.gasPrice ||
-          gasObject?.suggestedGasPrice,
+        suggestedGasLimit: suggestedGasLimitValue,
+        suggestedGasPrice,
       },
       contractExchangeRates,
       conversionRate,
@@ -251,5 +278,6 @@ export const useGasTransaction = ({
     onlyGas,
     swapsParams,
     suggestedEstimatedGasLimit: gasObject?.suggestedGasLimit,
+    recommended,
   });
 };

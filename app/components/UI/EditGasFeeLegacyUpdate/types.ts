@@ -81,4 +81,5 @@ export interface EditGasFeeLegacyUpdateProps {
   view: string;
   onlyGas?: boolean;
   selectedGasObject: any;
+  initialGasLimitSwaps?: string;
 }

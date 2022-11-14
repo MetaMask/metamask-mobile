@@ -1172,6 +1172,17 @@ function SwapsQuotesView({
     conversionRate,
   ]);
 
+  const initialSwapState = {
+    renderableGasFeeMinNative:
+      selectedQuoteValue &&
+      `${renderFromWei(toWei(selectedQuoteValue.ethFee))} ${getTicker(ticker)}`,
+    renderableGasFeeMaxNative:
+      selectedQuoteValue &&
+      `${renderFromWei(toWei(selectedQuoteValue.maxEthFee))} ${getTicker(
+        ticker,
+      )}`,
+  };
+
   const handleOpenQuotesModal = useCallback(() => {
     if (!selectedQuote || !selectedQuoteValue) return;
     toggleQuotesModal();
@@ -2261,6 +2272,7 @@ function SwapsQuotesView({
         sourceAmount={sourceAmount}
         checkEnoughEthBalance={checkEnoughEthBalance}
         animateOnChange={animateOnGasChange}
+        initialSwapState={initialSwapState}
       />
     </ScreenView>
   );

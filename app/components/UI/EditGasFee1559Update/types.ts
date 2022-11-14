@@ -109,4 +109,8 @@ export interface EditGasFee1559UpdateProps {
     tradeValue: string;
     sourceAmount: string;
   };
+  initialSwapState: {
+    renderableGasFeeMinNative: string;
+    renderableGasFeeMaxNative: string;
+  };
 }
