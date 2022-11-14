@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: require-clean-working-directory
   pull_request:
 jobs:
   setup:
@@ -26,6 +26,11 @@ jobs:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
       - run: yarn setup
+      - uses: actions/cache@v3
+        id: restore-build
+        with:
+          path: ./*
+          key: ${{ github.sha }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -33,11 +38,6 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
   scripts:
     runs-on: ubuntu-20.04
     needs: setup
@@ -60,6 +60,13 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - run: yarn ${{ matrix['scripts'] }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
   tests:
     runs-on: ubuntu-20.04
     strategy:
@@ -85,6 +92,13 @@ jobs:
       - run: yarn test:unit:${{ matrix['units'] }} --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
