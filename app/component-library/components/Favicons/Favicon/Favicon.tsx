@@ -34,7 +34,7 @@ const Favicon = ({
   );
 
   const renderError = () => (
-    <IconContainer size={size} name={IconName.GlobalFilled} />
+    <IconContainer size={size} iconProps={{ name: IconName.GlobalFilled }} />
   );
 
   const renderImage = () => (

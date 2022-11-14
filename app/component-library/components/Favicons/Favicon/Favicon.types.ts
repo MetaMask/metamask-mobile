@@ -5,9 +5,12 @@ import { ImagePropsBase } from 'react-native';
 import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 
 /**
- * Favicon sizes.
+ * Favicon sizes and badge positions.
  */
-export { CirclePatternSizes as FaviconSizes } from '../../../patterns/Circles/Circle/Circle.types';
+export {
+  CirclePatternSizes as FaviconSizes,
+  CirclePatternBadgePositions as FaviconBadgePositions,
+} from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Favicon component props.

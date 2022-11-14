@@ -10,7 +10,7 @@ import { storybookPropsGroupID } from '../../../../component-library/constants/s
 import Favicon from './Favicon';
 import {
   DEFAULT_FAVICON_SIZE,
-  TEST_REMOTE_IMAGE_PROPS,
+  TEST_FAVICON_IMAGE_PROPS,
 } from './Favicon.constants';
 import { FaviconProps, FaviconSizes } from './Favicon.types';
 
@@ -24,7 +24,7 @@ export const getFaviconStoryProps = (): FaviconProps => {
 
   return {
     size: sizeSelector,
-    imageProps: TEST_REMOTE_IMAGE_PROPS,
+    imageProps: TEST_FAVICON_IMAGE_PROPS,
   };
 };
 const FaviconStory = () => <Favicon {...getFaviconStoryProps()} />;
