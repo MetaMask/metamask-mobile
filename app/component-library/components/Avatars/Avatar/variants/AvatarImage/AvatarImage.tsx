@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { Image, ImageBackground } from 'react-native';
+import { Image } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
