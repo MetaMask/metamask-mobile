@@ -8,10 +8,10 @@ import { IMetaMetricsEvent } from './MetaMetrics.types';
 const generateOpt = (
   name: EVENT_NAME,
   action?: ACTIONS,
-  descriptiom?: DESCRIPTION,
+  description?: DESCRIPTION,
 ): IMetaMetricsEvent => {
-  if (action && descriptiom) {
-    return { name, properties: { action, name: descriptiom } };
+  if (action && description) {
+    return { name, properties: { action, name: description } };
   }
   return { name };
 };
