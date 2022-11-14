@@ -28,7 +28,7 @@ Optional enum to set the position for the Badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarBadgePositions](../../Avatar.types.ts)          | No                                                     | [AvatarBadgePositions.TopRight](../../Avatar.types.ts)                                        |
+| [AvatarBadgePositions](../../Avatar.types.ts)          | No                                                     | TopRight                                        |
 
 ## Usage
 ```javascript

@@ -1,6 +1,6 @@
-# AvatarBase
+# CirclePattern
 
-The AvatarBase component is a base component of the [Avatar](../../Avatar.tsx). It contains all the shared configurations and styling amongst all Avatar variants and should not be used unless creating a new type of Avatar.
+The CirclePattern component is pattern for any component that looks and behave like a circle. Components that use this pattern includes [Avatar](../../../components/Avatars/Avatar/Avatar.tsx), [Token](../../../components/Tokens/Token/Token.tsx), [Network](../../../components/Networks/Network/Network.tsx), and many more. This pattern **should not be used unless creating a new component that needs this pattern.**
 
 ## Props
 
@@ -12,22 +12,40 @@ Optional enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
+| [CirclePatternSizes](Circle.types.ts)          | No                                                     | Md                                                     |
 
-### `backgroundColor`
+### `badgeProps` 
 
-Optional enum to add color to the background of the Avatar.
+Optional enum for the Badge props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ColorValue                                              | No                                                     |
+| [BadgeProps](../../../components/Badges/Badge/Badge.types.ts)                                      | No                                                     |
+
+### `badgePosition`
+
+Optional enum to set the position for the Badge.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [CirclePatternBadgePositions](./Circle.types.ts)          | No                                                     | TopRight                                        |
 
 ## Usage
 
 ```javascript
-<AvatarBase 
+const badgeProps = {
+  variant: BadgeVariants.Network,
+  networkProps: {
+    name: SAMPLE_NETWORK_NAME,
+    imageProps: {
+      source: SAMPLE_NETWORK_IMG_SOURCE,
+    }
+  }
+}
+<CirclePattern 
   size={AvatarSizes.Md}
-  backgroundColor={'#000000'}>
+  badgeProps={badgeProps}
+  badgePosition={CirclePatternBadgePositions.BottomRight}>
     <SAMPLE_COMPONENT />
-</AvatarBase>;
+</CirclePattern>;
 ```
