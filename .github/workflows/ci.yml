@@ -10,15 +10,15 @@ jobs:
       - uses: actions/checkout@v3
       - name: Get Node.js version
         id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Get Yarn cache directory
-        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $GITHUB_OUTPUT
+        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
         id: yarn-cache-dir
       - name: Get Yarn version
-        run: echo "YARN_VERSION=$(yarn --version)" >> $GITHUB_OUTPUT
+        run: echo "YARN_VERSION=$(yarn --version)" >> "$GITHUB_OUTPUT"
         id: yarn-version
       - name: Cache yarn dependencies
         uses: actions/cache@v3
@@ -55,7 +55,7 @@ jobs:
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
@@ -85,7 +85,7 @@ jobs:
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
