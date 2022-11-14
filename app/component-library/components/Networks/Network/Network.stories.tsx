@@ -10,8 +10,8 @@ import { storybookPropsGroupID } from '../../../../component-library/constants/s
 import Network from './Network';
 import {
   DEFAULT_NETWORK_SIZE,
-  TEST_NETWORK_IMAGE_PROPS,
-  TEST_NETWORK_NAME,
+  SAMPLE_NETWORK_IMAGE_PROPS,
+  SAMPLE_NETWORK_NAME,
 } from './Network.constants';
 import { NetworkProps, NetworkSizes } from './Network.types';
 
@@ -24,14 +24,14 @@ export const getNetworkStoryProps = (): NetworkProps => {
   );
   const networkNameText = text(
     'name',
-    TEST_NETWORK_NAME,
+    SAMPLE_NETWORK_NAME,
     storybookPropsGroupID,
   );
 
   return {
     size: sizeSelector,
     name: networkNameText,
-    imageProps: TEST_NETWORK_IMAGE_PROPS,
+    imageProps: SAMPLE_NETWORK_IMAGE_PROPS,
   };
 };
 const NetworkStory = () => <Network {...getNetworkStoryProps()} />;

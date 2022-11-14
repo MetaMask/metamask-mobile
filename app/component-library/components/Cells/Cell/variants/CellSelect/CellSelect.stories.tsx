@@ -7,12 +7,12 @@ import { boolean, text } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
+import { SAMPLE_AVATAR_PROPS } from '../../../../Avatars/Avatar/Avatar.constants';
 import {
-  TEST_AVATAR_PROPS,
-  TEST_CELL_TITLE,
-  TEST_CELL_SECONDARY_TEXT,
-  TEST_CELL_TERTIARY_TEXT,
-  TEST_TAG_LABEL_TEXT,
+  SAMPLE_CELL_TITLE,
+  SAMPLE_CELL_SECONDARY_TEXT,
+  SAMPLE_CELL_TERTIARY_TEXT,
+  SAMPLE_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
 import { CellVariants } from '../../Cell.types';
 
@@ -21,29 +21,29 @@ import CellSelect from './CellSelect';
 
 storiesOf('Component Library / CellSelect', module).add('Default', () => {
   const groupId = 'Props';
-  const titleText = text('title', TEST_CELL_TITLE, groupId);
+  const titleText = text('title', SAMPLE_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
     false,
     groupId,
   );
   const secondaryText = includeSecondaryText
-    ? text('secondaryText', TEST_CELL_SECONDARY_TEXT, groupId)
+    ? text('secondaryText', SAMPLE_CELL_SECONDARY_TEXT, groupId)
     : '';
   const includeTertiaryText = boolean('Includes tertiaryText?', false, groupId);
   const tertiaryText = includeTertiaryText
-    ? text('tertiaryText', TEST_CELL_TERTIARY_TEXT, groupId)
+    ? text('tertiaryText', SAMPLE_CELL_TERTIARY_TEXT, groupId)
     : '';
   const includeTagLabel = boolean('Includes label?', false, groupId);
   const tagLabel = includeTagLabel
-    ? text('label', TEST_TAG_LABEL_TEXT, groupId)
+    ? text('label', SAMPLE_TAG_LABEL_TEXT, groupId)
     : '';
   const isSelected = boolean('isSelected?', false, groupId);
 
   return (
     <CellSelect
       variant={CellVariants.Select}
-      avatarProps={TEST_AVATAR_PROPS}
+      avatarProps={SAMPLE_AVATAR_PROPS}
       title={titleText}
       secondaryText={secondaryText}
       tertiaryText={tertiaryText}

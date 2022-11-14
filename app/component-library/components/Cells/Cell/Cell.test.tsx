@@ -2,11 +2,13 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
+import { SAMPLE_AVATAR_PROPS } from '../../Avatars/Avatar/Avatar.constants';
+
 // Internal dependencies.
 import Cell from './Cell';
 import {
-  TEST_AVATAR_PROPS,
-  TEST_CELL_TITLE,
+  SAMPLE_CELL_TITLE,
   CELL_DISPLAY_TEST_ID,
   CELL_MULTI_SELECT_TEST_ID,
   CELL_SELECT_TEST_ID,
@@ -18,8 +20,8 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -28,8 +30,8 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Multiselect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -38,8 +40,8 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -51,8 +53,8 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Display}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
       />,
     );
     const cellDisplayComponent = wrapper.findWhere(
@@ -74,8 +76,8 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Multiselect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
       />,
     );
     const cellDisplayComponent = wrapper.findWhere(
@@ -97,8 +99,8 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Select}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
       />,
     );
     const cellDisplayComponent = wrapper.findWhere(

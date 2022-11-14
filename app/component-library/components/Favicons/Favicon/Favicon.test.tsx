@@ -8,13 +8,16 @@ import { FaviconSizes } from './Favicon.types';
 import {
   FAVICON_TEST_ID,
   FAVICON_IMAGE_TEST_ID,
-  TEST_FAVICON_IMAGE_PROPS,
+  SAMPLE_FAVICON_IMAGE_PROPS,
 } from './Favicon.constants';
 
 describe('Favicon - Snapshot', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <Favicon size={FaviconSizes.Xl} imageProps={TEST_FAVICON_IMAGE_PROPS} />,
+      <Favicon
+        size={FaviconSizes.Xl}
+        imageProps={SAMPLE_FAVICON_IMAGE_PROPS}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -23,7 +26,10 @@ describe('Favicon - Snapshot', () => {
 describe('Favicon', () => {
   it('should render Favicon component', () => {
     const wrapper = shallow(
-      <Favicon size={FaviconSizes.Xl} imageProps={TEST_FAVICON_IMAGE_PROPS} />,
+      <Favicon
+        size={FaviconSizes.Xl}
+        imageProps={SAMPLE_FAVICON_IMAGE_PROPS}
+      />,
     );
     const faviconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === FAVICON_TEST_ID,

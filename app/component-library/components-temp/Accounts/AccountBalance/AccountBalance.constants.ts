@@ -1,18 +1,7 @@
-// Third party dependencies.
-import { ImageSourcePropType } from 'react-native';
-import {
-  AvatarProps,
-  AvatarVariants,
-} from '../../../components/Avatars/Avatar/Avatar.types';
-import {
-  BadgeVariants,
-  BadgeProps,
-} from '../../../components/Badges/Badge/Badge.types';
-import { IJazziconProps } from 'react-native-jazzicon';
+// Test IDs
+export const ACCOUNT_BALANCE_TEST_ID = 'account-balance';
 
-const imageSource =
-  'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
-
+// Sample consts
 export const ACCOUNT_NETWORK = 'Ethereum Network';
 export const UNKNOWN_ACCOUNT_NETWORK = 'Unknown Network';
 export const ACCOUNT_NAME = 'Account 1';
@@ -21,26 +10,3 @@ export const ACCOUNT_NATIVE_CURRENCY = 'DAI';
 export const ACCOUNT_BALANCE = 200.12;
 export const TEST_ACCOUNT_ADDRESS =
   '0x2990079bcdEe240329a520d2444386FC119da21a';
-export const ACCOUNT_BALANCE_TEST_ID = 'account-balance';
-export const TEST_NETWORK_NAME = 'Ethereum';
-export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
-  uri: imageSource,
-};
-
-const TEST_JAZZICON_PROPS: IJazziconProps = {
-  address: TEST_ACCOUNT_ADDRESS,
-};
-
-export const TEST_AVATAR_PROPS: AvatarProps = {
-  variant: AvatarVariants.JazzIcon,
-  jazzIconProps: TEST_JAZZICON_PROPS,
-};
-
-export const BADGE_PROPS: BadgeProps = {
-  variant: BadgeVariants.Network,
-  networkProps: {
-    imageProps: {
-      source: TEST_REMOTE_IMAGE_SOURCE,
-    },
-  },
-};

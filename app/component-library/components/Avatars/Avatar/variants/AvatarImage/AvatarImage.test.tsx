@@ -8,8 +8,8 @@ import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
 import {
-  TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS,
-  TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
+  SAMPLE_AVATAR_IMAGE_LOCAL_IMAGE_PROPS,
+  SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
   AVATAR_IMAGE_TEST_ID,
   AVATAR_IMAGE_IMAGE_TEST_ID,
 } from './AvatarImage.constants';
@@ -20,7 +20,7 @@ describe('AvatarImage - Snapshot', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_LOCAL_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -30,7 +30,7 @@ describe('AvatarImage - Snapshot', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -43,7 +43,7 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     const AvatarImageComponent = wrapper.findWhere(
@@ -56,14 +56,14 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_LOCAL_IMAGE_PROPS}
       />,
     );
     const AvatarImageImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === AVATAR_IMAGE_IMAGE_TEST_ID,
     );
     expect(AvatarImageImageComponent.props().source).toBe(
-      TEST_AVATAR_IMAGE_LOCAL_IMAGE_PROPS.source,
+      SAMPLE_AVATAR_IMAGE_LOCAL_IMAGE_PROPS.source,
     );
   });
   it('should render AvatarImage component with remote imageSource', () => {
@@ -71,14 +71,14 @@ describe('AvatarImage', () => {
       <AvatarImage
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     const AvatarImageImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === AVATAR_IMAGE_IMAGE_TEST_ID,
     );
     expect(AvatarImageImageComponent.props().source).toBe(
-      TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS.source,
+      SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS.source,
     );
   });
 });

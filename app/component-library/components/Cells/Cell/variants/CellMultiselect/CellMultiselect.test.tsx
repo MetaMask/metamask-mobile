@@ -3,7 +3,8 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from '../../Cell.constants';
+import { SAMPLE_AVATAR_PROPS } from '../../../../Avatars/Avatar/Avatar.constants';
+import { SAMPLE_CELL_TITLE } from '../../Cell.constants';
 import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
@@ -15,8 +16,8 @@ describe('CellMultiselect - Snapshot', () => {
     const wrapper = shallow(
       <CellMultiselect
         variant={CellVariants.Multiselect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
         onPress={jest.fn}
       />,
     );
@@ -26,8 +27,8 @@ describe('CellMultiselect - Snapshot', () => {
     const wrapper = shallow(
       <CellMultiselect
         variant={CellVariants.Multiselect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
         isSelected
         onPress={jest.fn}
       />,
@@ -41,8 +42,8 @@ describe('CellMultiselect', () => {
     const wrapper = shallow(
       <CellMultiselect
         variant={CellVariants.Multiselect}
-        avatarProps={TEST_AVATAR_PROPS}
-        title={TEST_CELL_TITLE}
+        avatarProps={SAMPLE_AVATAR_PROPS}
+        title={SAMPLE_CELL_TITLE}
         onPress={jest.fn}
       />,
     );

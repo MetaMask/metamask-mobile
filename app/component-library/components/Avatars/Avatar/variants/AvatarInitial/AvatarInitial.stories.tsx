@@ -10,12 +10,12 @@ import { getAvatarBaseStoryProps } from '../../foundation/AvatarBase/AvatarBase.
 // Internal dependencies.
 import AvatarInitial from './AvatarInitial';
 import { AvatarInitialProps } from './AvatarInitial.types';
-import { TEST_AVATAR_INITIAL_SAMPLE_TEXT } from './AvatarInitial.constants';
+import { SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT } from './AvatarInitial.constants';
 
 export const getAvatarInitialStoryProps = (): AvatarInitialProps => {
   const initialText = text(
     'initial',
-    TEST_AVATAR_INITIAL_SAMPLE_TEXT,
+    SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT,
     storybookPropsGroupID,
   );
 

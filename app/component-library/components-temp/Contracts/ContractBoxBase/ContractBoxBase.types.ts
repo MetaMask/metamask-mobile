@@ -1,4 +1,7 @@
+// Third party dependencies.
 import { ImageSourcePropType } from 'react-native';
+
+// External dependencies.
 import { IconName, IconSize } from '../../../components/Icons/Icon';
 
 export interface ContractBoxBaseProps {

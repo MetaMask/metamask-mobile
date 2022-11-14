@@ -1,5 +1,8 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// Internal dependencies.
 import { ContractBoxProps } from './ContractBox.types';
 import ContractBox from './ContractBox';
 import {

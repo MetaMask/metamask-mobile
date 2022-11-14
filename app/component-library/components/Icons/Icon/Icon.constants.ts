@@ -2,6 +2,7 @@
 // Internal dependencies.
 import { IconName, IconProps } from './Icon.types';
 
-export const TEST_ICON_PROPS: IconProps = {
+// Sample consts
+export const SAMPLE_ICON_PROPS: IconProps = {
   name: IconName.AddOutline,
 };

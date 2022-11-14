@@ -3,10 +3,10 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS } from './variants/AvatarBlockies/AvatarBlockies.constants';
-import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './variants/AvatarImage/AvatarImage.constants';
-import { TEST_AVATAR_INITIAL_SAMPLE_TEXT } from './variants/AvatarInitial/AvatarInitial.constants';
-import { TEST_AVATAR_JAZZICON_PROPS } from './variants/AvatarJazzIcon/AvatarJazzIcon.constants';
+import { SAMPLE_AVATAR_BLOCKIES_ACCOUNT_ADDRESS } from './variants/AvatarBlockies/AvatarBlockies.constants';
+import { SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './variants/AvatarImage/AvatarImage.constants';
+import { SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT } from './variants/AvatarInitial/AvatarInitial.constants';
+import { SAMPLE_AVATAR_JAZZICON_PROPS } from './variants/AvatarJazzIcon/AvatarJazzIcon.constants';
 
 // Internal dependencies.
 import Avatar from './Avatar';
@@ -24,7 +24,7 @@ describe('Avatar - Snapshot', () => {
       <Avatar
         variant={AvatarVariants.Blockies}
         size={AvatarSizes.Md}
-        accountAddress={TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
+        accountAddress={SAMPLE_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -34,7 +34,7 @@ describe('Avatar - Snapshot', () => {
       <Avatar
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -44,7 +44,7 @@ describe('Avatar - Snapshot', () => {
       <Avatar
         variant={AvatarVariants.Initial}
         size={AvatarSizes.Md}
-        initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
+        initial={SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -54,7 +54,7 @@ describe('Avatar - Snapshot', () => {
       <Avatar
         variant={AvatarVariants.JazzIcon}
         size={AvatarSizes.Md}
-        jazzIconProps={TEST_AVATAR_JAZZICON_PROPS}
+        jazzIconProps={SAMPLE_AVATAR_JAZZICON_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -67,7 +67,7 @@ describe('Avatar', () => {
       <Avatar
         variant={AvatarVariants.Blockies}
         size={AvatarSizes.Md}
-        accountAddress={TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
+        accountAddress={SAMPLE_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
       />,
     );
     const AvatarBlockiesComponent = wrapper.findWhere(
@@ -80,7 +80,7 @@ describe('Avatar', () => {
       <Avatar
         variant={AvatarVariants.Image}
         size={AvatarSizes.Md}
-        imageProps={TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
+        imageProps={SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS}
       />,
     );
     const AvatarImageComponent = wrapper.findWhere(
@@ -93,7 +93,7 @@ describe('Avatar', () => {
       <Avatar
         variant={AvatarVariants.Initial}
         size={AvatarSizes.Md}
-        initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
+        initial={SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
     const AvatarInitialComponent = wrapper.findWhere(
@@ -106,7 +106,7 @@ describe('Avatar', () => {
       <Avatar
         variant={AvatarVariants.JazzIcon}
         size={AvatarSizes.Md}
-        jazzIconProps={TEST_AVATAR_JAZZICON_PROPS}
+        jazzIconProps={SAMPLE_AVATAR_JAZZICON_PROPS}
       />,
     );
     const AvatarJazzIconComponent = wrapper.findWhere(

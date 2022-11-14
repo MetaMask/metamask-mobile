@@ -11,8 +11,8 @@ import { storybookPropsGroupID } from '../../../../component-library/constants/s
 import Token from './Token';
 import {
   DEFAULT_TOKEN_SIZE,
-  TEST_TOKEN_IMAGES,
-  TEST_TOKEN_NAME,
+  SAMPLE_TOKEN_IMAGES,
+  SAMPLE_TOKEN_NAME,
 } from './Token.constants';
 import { TokenProps, TokenSizes } from './Token.types';
 
@@ -26,8 +26,8 @@ export const getTokenStoryProps = (): TokenProps => {
 
   const imageUrlSelector = select(
     'imageSource.uri',
-    TEST_TOKEN_IMAGES,
-    TEST_TOKEN_IMAGES[0],
+    SAMPLE_TOKEN_IMAGES,
+    SAMPLE_TOKEN_IMAGES[0],
     storybookPropsGroupID,
   );
   const imageSource: ImageSourcePropType = {
@@ -39,7 +39,7 @@ export const getTokenStoryProps = (): TokenProps => {
 
   const tokenNameSelector = text(
     'name',
-    TEST_TOKEN_NAME,
+    SAMPLE_TOKEN_NAME,
     storybookPropsGroupID,
   );
 

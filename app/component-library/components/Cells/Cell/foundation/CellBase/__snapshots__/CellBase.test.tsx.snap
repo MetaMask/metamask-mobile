@@ -11,7 +11,7 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
   <Avatar
     jazzIconProps={
       Object {
-        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "address": "0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092",
       }
     }
     size="32"
@@ -53,7 +53,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
   <Avatar
     jazzIconProps={
       Object {
-        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "address": "0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092",
       }
     }
     size="32"
@@ -104,7 +104,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
   <Avatar
     jazzIconProps={
       Object {
-        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "address": "0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092",
       }
     }
     size="32"
@@ -158,7 +158,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
   <Avatar
     jazzIconProps={
       Object {
-        "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "address": "0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092",
       }
     }
     size="32"

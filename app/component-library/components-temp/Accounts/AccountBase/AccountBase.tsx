@@ -1,9 +1,14 @@
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { AccountBaseProps } from './AccountBase.types';
+
+// External dependencies.
 import Text, { TextVariants } from '../../../components/Texts/Text';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
 import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
+
+// Internal dependencies.
+import { AccountBaseProps } from './AccountBase.types';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
   ACCOUNT_BASE_TEST_ID,

@@ -10,7 +10,7 @@ import AvatarBlockies from './AvatarBlockies';
 import {
   AVATAR_BLOCKIES_TEST_ID,
   AVATAR_BLOCKIES_IMAGE_TEST_ID,
-  TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS,
+  SAMPLE_AVATAR_BLOCKIES_ACCOUNT_ADDRESS,
 } from './AvatarBlockies.constants';
 
 describe('AvatarBlockies - Snapshot', () => {
@@ -18,7 +18,7 @@ describe('AvatarBlockies - Snapshot', () => {
     const wrapper = shallow(
       <AvatarBlockies
         size={AvatarSizes.Xl}
-        accountAddress={TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
+        accountAddress={SAMPLE_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -30,7 +30,7 @@ describe('AvatarBlockies', () => {
     const wrapper = shallow(
       <AvatarBlockies
         size={AvatarSizes.Xl}
-        accountAddress={TEST_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
+        accountAddress={SAMPLE_AVATAR_BLOCKIES_ACCOUNT_ADDRESS}
       />,
     );
     const avatarBlockiesComponent = wrapper.findWhere(

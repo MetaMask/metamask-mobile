@@ -1,8 +1,13 @@
+// Third party dependencies.
 import React from 'react';
+import { View } from 'react-native';
+
+// External dependencies.
 import Card from '../../../components/Cards/Card';
 import ContractBoxBase from '../ContractBoxBase';
+
+// Internal dependencies.
 import styles from './ContractBox.styles';
-import { View } from 'react-native';
 import { ContractBoxProps } from './ContractBox.types';
 import { CONTRACT_BOX_TEST_ID } from './ContractBox.constants';
 

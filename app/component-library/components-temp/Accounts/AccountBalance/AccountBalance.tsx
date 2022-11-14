@@ -1,7 +1,12 @@
+// Third party dependencies.
 import React from 'react';
-import { AccountBalanceProps } from './AccountBalance.types';
+
+// External dependencies.
 import Card from '../../../components/Cards/Card';
 import AccountBase from '../AccountBase/AccountBase';
+
+// Internal dependencies.
+import { AccountBalanceProps } from './AccountBalance.types';
 import { ACCOUNT_BALANCE_TEST_ID } from './AccountBalance.constants';
 import styles from './AccountBalance.styles';
 

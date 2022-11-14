@@ -3,8 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../Icons/Icon';
-import { TEST_ICON_PROPS } from '../Icon/Icon.constants';
+import { SAMPLE_ICON_PROPS } from '../Icon/Icon.constants';
 
 // Internal dependencies.
 import IconContainer from './IconContainer';
@@ -19,7 +18,7 @@ describe('IconContainer - Snapshot', () => {
     const wrapper = shallow(
       <IconContainer
         size={IconContainerSizes.Md}
-        iconProps={TEST_ICON_PROPS}
+        iconProps={SAMPLE_ICON_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -31,7 +30,7 @@ describe('IconContainer', () => {
     const wrapper = shallow(
       <IconContainer
         size={IconContainerSizes.Md}
-        iconProps={TEST_ICON_PROPS}
+        iconProps={SAMPLE_ICON_PROPS}
       />,
     );
     const IconContainerComponent = wrapper.findWhere(
@@ -40,11 +39,11 @@ describe('IconContainer', () => {
     expect(IconContainerComponent.exists()).toBe(true);
   });
   it('should render IconContainer with the right IconName', () => {
-    const iconName = TEST_ICON_PROPS.name;
+    const iconName = SAMPLE_ICON_PROPS.name;
     const wrapper = shallow(
       <IconContainer
         size={IconContainerSizes.Md}
-        iconProps={TEST_ICON_PROPS}
+        iconProps={SAMPLE_ICON_PROPS}
       />,
     );
 

@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TEST_BADGE_PROPS } from '../../../components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import { SAMPLE_BADGE_PROPS } from '../../../components/Badges/Badge/Badge.constants';
 
 // Internal dependencies.
 import CirclePattern from './Circle';
@@ -25,7 +25,10 @@ describe('CirclePattern - Snapshot', () => {
   });
   it('should render CirclePattern with Badge correctly', () => {
     const wrapper = shallow(
-      <CirclePattern size={CirclePatternSizes.Md} badgeProps={TEST_BADGE_PROPS}>
+      <CirclePattern
+        size={CirclePatternSizes.Md}
+        badgeProps={SAMPLE_BADGE_PROPS}
+      >
         <View />
       </CirclePattern>,
     );
@@ -48,7 +51,10 @@ describe('CirclePattern', () => {
 
   it('should render CirclePattern component with badge if badgeProps is given', () => {
     const wrapper = shallow(
-      <CirclePattern size={CirclePatternSizes.Md} badgeProps={TEST_BADGE_PROPS}>
+      <CirclePattern
+        size={CirclePatternSizes.Md}
+        badgeProps={SAMPLE_BADGE_PROPS}
+      >
         <View />
       </CirclePattern>,
     );

@@ -1,11 +1,16 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
-import ContractBoxBase from './ContractBoxBase';
+
+// External dependencies.
 import {
   CONTRACT_ADDRESS,
   CONTRACT_PET_NAME,
   CONTRACT_LOCAL_IMAGE,
 } from '../ContractBox/ContractBox.constants';
+
+// Internal dependencies.
+import ContractBoxBase from './ContractBoxBase';
 import { CONTRACT_BOX_NO_PET_NAME_TEST_ID } from './ContractBoxBase.constants';
 import { ContractBoxBaseProps } from './ContractBoxBase.types';
 

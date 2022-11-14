@@ -9,13 +9,13 @@ import {
   TOKEN_TEST_ID,
   TOKEN_HALO_TEST_ID,
   TOKEN_IMAGE_TEST_ID,
-  TEST_TOKEN_IMAGE_PROPS,
+  SAMPLE_TOKEN_IMAGE_PROPS,
 } from './Token.constants';
 
 describe('Token - Snapshot', () => {
   it('should render Token correctly with halo on default', () => {
     const wrapper = shallow(
-      <Token size={TokenSizes.Xl} imageProps={TEST_TOKEN_IMAGE_PROPS} />,
+      <Token size={TokenSizes.Xl} imageProps={SAMPLE_TOKEN_IMAGE_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -23,7 +23,7 @@ describe('Token - Snapshot', () => {
     const wrapper = shallow(
       <Token
         size={TokenSizes.Xl}
-        imageProps={TEST_TOKEN_IMAGE_PROPS}
+        imageProps={SAMPLE_TOKEN_IMAGE_PROPS}
         isHaloEnabled={false}
       />,
     );
@@ -34,7 +34,7 @@ describe('Token - Snapshot', () => {
 describe('Token', () => {
   it('should render Token component with halo enabled on default', () => {
     const wrapper = shallow(
-      <Token size={TokenSizes.Xl} imageProps={TEST_TOKEN_IMAGE_PROPS} />,
+      <Token size={TokenSizes.Xl} imageProps={SAMPLE_TOKEN_IMAGE_PROPS} />,
     );
     const tokenComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_TEST_ID,
@@ -53,7 +53,7 @@ describe('Token', () => {
     const wrapper = shallow(
       <Token
         size={TokenSizes.Xl}
-        imageProps={TEST_TOKEN_IMAGE_PROPS}
+        imageProps={SAMPLE_TOKEN_IMAGE_PROPS}
         isHaloEnabled={false}
       />,
     );

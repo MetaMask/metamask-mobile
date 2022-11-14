@@ -13,10 +13,10 @@ import { getAvatarStoryProps } from '../../Avatars/Avatar/Avatar.stories';
 // Internal dependencies.
 import Cell from './Cell';
 import {
-  TEST_CELL_TITLE,
-  TEST_CELL_SECONDARY_TEXT,
-  TEST_CELL_TERTIARY_TEXT,
-  TEST_TAG_LABEL_TEXT,
+  SAMPLE_CELL_TITLE,
+  SAMPLE_CELL_SECONDARY_TEXT,
+  SAMPLE_CELL_TERTIARY_TEXT,
+  SAMPLE_TAG_LABEL_TEXT,
 } from './Cell.constants';
 import { CellVariants } from './Cell.types';
 
@@ -29,22 +29,22 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
     groupId,
   );
   const avatarProps: AvatarProps = getAvatarStoryProps();
-  const titleText = text('title', TEST_CELL_TITLE, groupId);
+  const titleText = text('title', SAMPLE_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
     false,
     groupId,
   );
   const secondaryText = includeSecondaryText
-    ? text('secondaryText', TEST_CELL_SECONDARY_TEXT, groupId)
+    ? text('secondaryText', SAMPLE_CELL_SECONDARY_TEXT, groupId)
     : '';
   const includeTertiaryText = boolean('Includes tertiaryText?', false, groupId);
   const tertiaryText = includeTertiaryText
-    ? text('tertiaryText', TEST_CELL_TERTIARY_TEXT, groupId)
+    ? text('tertiaryText', SAMPLE_CELL_TERTIARY_TEXT, groupId)
     : '';
   const includeTagLabel = boolean('Includes label?', false, groupId);
   const tagLabel = includeTagLabel
-    ? text('label', TEST_TAG_LABEL_TEXT, groupId)
+    ? text('label', SAMPLE_TAG_LABEL_TEXT, groupId)
     : '';
   const isSelected =
     cellVariantsSelector === CellVariants.Multiselect ||

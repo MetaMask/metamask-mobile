@@ -2,6 +2,15 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { text, number } from '@storybook/addon-knobs';
+
+// External dependencies.
+import { SAMPLE_BADGE_PROPS } from '../../../components/Badges/Badge/Badge.constants';
+import {
+  BadgeProps,
+  BadgeVariants,
+} from '../../../components/Badges/Badge/Badge.types';
+
+// Internal dependencies.
 import {
   ACCOUNT_BALANCE,
   ACCOUNT_BALANCE_LABEL,
@@ -9,14 +18,8 @@ import {
   ACCOUNT_NETWORK,
   ACCOUNT_NAME,
   TEST_ACCOUNT_ADDRESS,
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
   UNKNOWN_ACCOUNT_NETWORK,
 } from './AccountBalance.constants';
-import {
-  BadgeProps,
-  BadgeVariants,
-} from '../../../components/Badges/Badge/Badge.types';
 
 // Internal dependencies.
 import AccountBalance from './AccountBalance';
@@ -34,14 +37,9 @@ const accountNativeCurrency = text(
 );
 const accountBalanceLabel = text('accountBalanceLabel', ACCOUNT_BALANCE_LABEL);
 
-const badgeProps: BadgeProps = {
-  variant: BadgeVariants.Network,
-  name: TEST_NETWORK_NAME,
-  imageSource: TEST_REMOTE_IMAGE_SOURCE,
-};
-
 const unknownBadgeProps: BadgeProps = {
   variant: BadgeVariants.Network,
+  networkProps: {},
 };
 
 storiesOf('Components Temp / AccountBalance', module)
@@ -53,7 +51,7 @@ storiesOf('Components Temp / AccountBalance', module)
       accountNativeCurrency={accountNativeCurrency}
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={TEST_ACCOUNT_ADDRESS}
-      badgeProps={badgeProps}
+      badgeProps={SAMPLE_BADGE_PROPS}
     />
   ))
   .add('Unknown Network', () => (

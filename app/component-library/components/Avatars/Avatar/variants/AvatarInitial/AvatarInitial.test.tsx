@@ -8,7 +8,7 @@ import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
 // Internal dependencies.
 import AvatarInitial from './AvatarInitial';
 import {
-  TEST_AVATAR_INITIAL_SAMPLE_TEXT,
+  SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT,
   AVATAR_INITIAL_TEST_ID,
   AVATAR_INITIAL_TEXT_TEST_ID,
 } from './AvatarInitial.constants';
@@ -19,7 +19,7 @@ describe('AvatarInitial - Snapshot', () => {
       <AvatarInitial
         variant={AvatarVariants.Initial}
         size={AvatarSizes.Md}
-        initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
+        initial={SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -32,7 +32,7 @@ describe('AvatarInitial', () => {
       <AvatarInitial
         variant={AvatarVariants.Initial}
         size={AvatarSizes.Md}
-        initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
+        initial={SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
     const AvatarInitialComponent = wrapper.findWhere(
@@ -45,17 +45,17 @@ describe('AvatarInitial', () => {
       <AvatarInitial
         variant={AvatarVariants.Initial}
         size={AvatarSizes.Md}
-        initial={TEST_AVATAR_INITIAL_SAMPLE_TEXT}
+        initial={SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT}
       />,
     );
     const AvatarInitialTextComponent = wrapper.findWhere(
       (node) => node.prop('testID') === AVATAR_INITIAL_TEXT_TEST_ID,
     );
     expect(AvatarInitialTextComponent.props().children).not.toBe(
-      TEST_AVATAR_INITIAL_SAMPLE_TEXT,
+      SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT,
     );
     expect(AvatarInitialTextComponent.props().children).toBe(
-      TEST_AVATAR_INITIAL_SAMPLE_TEXT[0],
+      SAMPLE_AVATAR_INITIAL_SAMPLE_TEXT[0],
     );
   });
 });

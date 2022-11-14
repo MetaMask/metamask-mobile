@@ -8,12 +8,12 @@ import { getAvatarBaseStoryProps } from '../../foundation/AvatarBase/AvatarBase.
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
 import { AvatarImageProps } from './AvatarImage.types';
-import { TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './AvatarImage.constants';
+import { SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS } from './AvatarImage.constants';
 
 export const getAvatarImageStoryProps = (): AvatarImageProps => ({
   variant: AvatarVariants.Image,
   ...getAvatarBaseStoryProps(),
-  imageProps: TEST_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
+  imageProps: SAMPLE_AVATAR_IMAGE_REMOTE_IMAGE_PROPS,
 });
 const AvatarImageStory = () => <AvatarImage {...getAvatarImageStoryProps()} />;
 

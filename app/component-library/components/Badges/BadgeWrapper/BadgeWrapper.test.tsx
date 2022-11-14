@@ -4,18 +4,16 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import Tag from '../../Tags/Tag';
+import { SAMPLE_BADGE_PROPS } from '../Badge/Badge.constants';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
-import {
-  BADGE_WRAPPER_BADGE_TEST_ID,
-  TEST_BADGE_PROPS,
-} from './BadgeWrapper.constants';
+import { BADGE_WRAPPER_BADGE_TEST_ID } from './BadgeWrapper.constants';
 
 describe('BadgeWrapper - snapshots', () => {
   it('should render badge with default position correctly', () => {
     const wrapper = shallow(
-      <BadgeWrapper badgeProps={TEST_BADGE_PROPS}>
+      <BadgeWrapper badgeProps={SAMPLE_BADGE_PROPS}>
         <Tag label={'Children'} />
       </BadgeWrapper>,
     );
@@ -26,7 +24,7 @@ describe('BadgeWrapper - snapshots', () => {
 describe('BadgeWrapper', () => {
   it('should render badge with the given content', () => {
     const wrapper = shallow(
-      <BadgeWrapper badgeProps={TEST_BADGE_PROPS}>
+      <BadgeWrapper badgeProps={SAMPLE_BADGE_PROPS}>
         <Tag label={'Children'} />
       </BadgeWrapper>,
     );

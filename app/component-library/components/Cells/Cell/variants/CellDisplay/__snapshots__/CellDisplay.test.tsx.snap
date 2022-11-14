@@ -9,7 +9,7 @@ exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
     avatarProps={
       Object {
         "jazzIconProps": Object {
-          "address": "0x2990079bcdEe240329a520d2444386FC119da21a",
+          "address": "0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092",
         },
         "variant": "JazzIcon",
       }

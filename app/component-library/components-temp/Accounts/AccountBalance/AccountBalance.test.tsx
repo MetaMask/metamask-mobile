@@ -1,11 +1,14 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// External dependencies.
+import { SAMPLE_BADGE_PROPS } from '../../../components/Badges/Badge/Badge.constants';
+
+// Internal dependencies.
 import { AccountBalanceProps } from './AccountBalance.types';
 import AccountBalance from './AccountBalance';
-import {
-  ACCOUNT_BALANCE_TEST_ID,
-  BADGE_PROPS,
-} from './AccountBalance.constants';
+import { ACCOUNT_BALANCE_TEST_ID } from './AccountBalance.constants';
 
 describe('AccountBalance', () => {
   it('should render AccountBalance', () => {
@@ -17,7 +20,7 @@ describe('AccountBalance', () => {
         accountName={''}
         accountBalanceLabel={''}
         accountAddress={ACCOUNT_BALANCE_TEST_ID}
-        badgeProps={BADGE_PROPS}
+        badgeProps={SAMPLE_BADGE_PROPS}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(

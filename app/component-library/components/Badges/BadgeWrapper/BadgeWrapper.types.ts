@@ -26,7 +26,7 @@ export interface BadgeWrapperProps extends ViewProps {
   /**
    * The children element that the badge will attach itself to.
    */
-  children: React.ReactNode;
+  children?: React.ReactNode;
   /**
    * Optional enum to set the position for the Badge.
    */

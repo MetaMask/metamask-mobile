@@ -27,7 +27,9 @@ export const getIconContainerStoryProps = (): IconContainerProps => {
 
   return {
     size: sizeSelector,
-    name: iconNameSelector,
+    iconProps: {
+      name: iconNameSelector,
+    },
   };
 };
 const IconContainerStory = () => (
