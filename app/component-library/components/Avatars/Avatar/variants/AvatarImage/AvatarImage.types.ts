@@ -14,7 +14,7 @@ export type AvatarImageProps = AvatarBaseProps & {
    */
   variant?: AvatarVariants.Image;
   /**
-   * Props for the image content.
+   * Props for the image content rendered inside the AvatarImage.
    */
   imageProps: ImagePropsBase;
 };

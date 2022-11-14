@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { ButtonSize } from '../../Button.types';
-import { IconName } from '../../../../Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';

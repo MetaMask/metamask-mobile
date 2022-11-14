@@ -1,7 +1,7 @@
 # Avatar
 
 Avatar is graphical representation of **an account**: usually a photo, illustration, or initial.
-This component is a union Avatar component, which consists of [AvatarIcon](./variants/AvatarIcon/AvatarIcon.tsx), [AvatarImage](./variants/AvatarImage/AvatarImage.tsx), and [AvatarInitial](./variants/AvatarInitial/AvatarInitial.tsx)
+This component is a union Avatar component, which consists of [AvatarBlockies](./variants/AvatarBlockies/AvatarBlockies.tsx), [AvatarImage](./variants/AvatarImage/AvatarImage.tsx), [AvatarInitial](./variants/AvatarInitial/AvatarInitial.tsx), and [AvatarJazzIcon](./variants/AvatarJazzIcon/AvatarJazzIcon.tsx)
 
 ## Common props
 
@@ -21,50 +21,41 @@ Optional enum to select between size variants.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
-### `backgroundColor`
+### `badgeProps` 
 
-Optional enum to add color to the background of the Avatar.
+Optional enum for the Badge props.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [BadgeProps](../../../../Badges/Badge/Badge.types.ts)                                      | No                                                     |
+
+### `badgePosition`
+
+Optional enum to set the position for the Badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [Color](../../../../../constants/typescript.constants.ts) or 'default'          | No                               |'default'                                                     |
+| [AvatarBadgePositions](../../Avatar.types.ts)          | No                                                     | [AvatarBadgePositions.TopRight](../../Avatar.types.ts)
 
-## AvatarIcon props
+## AvatarBlockies props
 
-### `name`
+### `accountAddress`
 
-Name of icon to use.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../../../../Icon/Icon.types.ts)               | Yes                                                     |
-
-### `color`
-
-Color to apply to the icon. Defaults to `icon.default` from theme.
+An Ethereum wallet address.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | No                                                      |
+| string                                              | Yes                                                     |
 
 ## AvatarImage props
 
-### `isHaloEnabled`
+### `imageProps`
 
-Optional boolean to activate halo effect.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean          | No                                                     | false                                                     |
-
-### `source`
-
-The image source (either a remote URL or a local file resource). 
-The currently supported formats are png, jpg, jpeg, bmp, gif, webp (Android only), psd (iOS only).
+Props for the image content rendered inside the AvatarImage.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [ImageSourcePropType](https://reactnative.dev/docs/images)                                              | Yes                                                      |
+| [ImagePropsBase](https://reactnative.dev/docs/images)                                              | Yes                                                      |
 
 ## AvatarInitial props
 
@@ -76,11 +67,84 @@ An initial to be displayed in the Avatar.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | Yes                                                      |
 
+### `initialColor`
+
+Optional enum to add color to the initial text.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| ColorValue                                              | No                                                     |
+
+### `backgroundColor`
+
+Optional enum to add color to the background of the Avatar.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| ColorValue                                              | No                                                     |
+
+## AvatarJazzIcon props
+
+### `jazzIconProps`
+
+Props for the JazzIcon content.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [IJazziconProps](https://www.npmjs.com/package/react-native-jazzicon)                                              | Yes                                                     |
+
 ## Usage
 
 ```javascript
-<Avatar variant={AvatarVariants.Icon} size={AvatarSizes.Md} name={IconName.BankFilled} backgroundColor={'#000000'}/>;
-<Avatar variant={AvatarVariants.Image} size={AvatarSizes.Md} source={imageSource} isHaloEnabled backgroundColor={'#000000'}/>;
-<Avatar variant={AvatarVariants.Initial} size={AvatarSizes.Md} initial={'Morph'} backgroundColor={'#000000'}/>;
+const imageProps = {
+    source: {
+        uri: SAMPLE_IMAGE_URI
+    }
+}
+const badgeProps = {
+  variant: BadgeVariants.Network,
+  networkProps: {
+    name: SAMPLE_NETWORK_NAME,
+    imageProps: imageProps,
+  }
+}
+
+const jazzIconProps = {
+  address: SAMPLE_JAZZICON_ADDRESS,
+}
+
+// Avatar Blockies
+<Avatar
+  variant={AvatarVariants.Blockies}
+  size={AvatarSizes.Md}
+  accountAddress={SAMPLE_ACCOUNT_ADDRESS}
+  badgeProps={badgeProps}
+  badgePosition={AvatarBadgePositions.BottomRight}/>;
+
+// Avatar Image
+<Avatar
+  variant={AvatarVariants.Image}
+  size={AvatarSizes.Md}
+  imageProps={imageProps}
+  badgeProps={badgeProps}
+  badgePosition={AvatarBadgePositions.BottomRight}/>
+
+// Avatar Initial
+<Avatar
+  variant={AvatarVariants.Initial}
+  size={AvatarSizes.Md}
+  initial={'Morph'} 
+  initialColor={'#FFFFFF'}
+  backgroundColor={'#000000'}
+  badgeProps={badgeProps}
+  badgePosition={AvatarBadgePositions.BottomRight}/>
+
+// Avatar JazzIcon
+<Avatar 
+  variant={AvatarVariants.JazzIcon}
+  size={AvatarSizes.Md}
+  jazzIconProps={jazzIconProps}
+  badgeProps={badgeProps}
+  badgePosition={AvatarBadgePositions.BottomRight}/>;
 ```
 

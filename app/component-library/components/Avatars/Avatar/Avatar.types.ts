@@ -5,9 +5,12 @@ import { AvatarInitialProps } from './variants/AvatarInitial/AvatarInitial.types
 import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.types';
 
 /**
- * Avatar sizes.
+ * Avatar sizes and badge positions.
  */
-export { CirclePatternSizes as AvatarSizes } from '../../../patterns/Circles/Circle/Circle.types';
+export {
+  CirclePatternSizes as AvatarSizes,
+  CirclePatternBadgePositions as AvatarBadgePositions,
+} from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Avatar variants.

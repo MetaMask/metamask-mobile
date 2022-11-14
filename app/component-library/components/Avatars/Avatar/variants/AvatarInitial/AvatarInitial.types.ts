@@ -18,7 +18,7 @@ export type AvatarInitialProps = AvatarBaseProps & {
    */
   initial: string;
   /**
-   * Optional enum to add color to the initial.
+   * Optional enum to add color to the initial text.
    * @default theme.colors.text.default
    */
   initialColor?: ColorValue;

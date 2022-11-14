@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 import { ButtonSize } from '../../Button.types';
-import { IconName } from '../../../../Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 import ButtonTertiary from './ButtonTertiary';
 import { ButtonTertiaryVariants } from './ButtonTertiary.types';

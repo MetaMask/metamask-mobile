@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName, IconProps, IconSize } from '../../Icon';
+import { IconName, IconProps, IconSize } from '../../Icons/Icon';
 import { TextVariants } from '../Text/Text.types';
 
 // Internal dependencies.

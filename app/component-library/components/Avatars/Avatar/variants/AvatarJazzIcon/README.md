@@ -1,6 +1,6 @@
 # AvatarJazzIcon
 
-AvatarJazzIcon is a component that renders an avatar with the JazzIcon based on an address.
+AvatarJazzIcon is a component that renders an avatar with a JazzIcon image based on an address.
 
 ## Props
 
@@ -8,35 +8,19 @@ This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.
 
 ### `size`
 
-Optional enum to select between size variants.
+Optional enum to select between size variants. 
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
 
-### `backgroundColor`
-
-Optional enum to add color to the background of the Avatar.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ColorValue                                              | No                                                     |
-
-### `isBadgeIncluded`
-
-Optional boolean to select if badge should be included.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                   | No                                                     | false                                                     |
-
-### `badgeProps`
+### `badgeProps` 
 
 Optional enum for the Badge props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeProps](../../../../../../Badges/Badge/Badge.types.ts)                                      | No                                                     |
+| [BadgeProps](../../../../Badges/Badge/Badge.types.ts)                                      | No                                                     |
 
 ### `badgePosition`
 
@@ -46,33 +30,34 @@ Optional enum to set the position for the Badge.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [AvatarBadgePositions](../../Avatar.types.ts)          | No                                                     | [AvatarBadgePositions.TopRight](../../Avatar.types.ts)                                        |
 
-### `address`
+### `jazzIconProps`
 
-A JazzIcon address.
+Props for the JazzIcon content.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
+| [IJazziconProps](https://www.npmjs.com/package/react-native-jazzicon)                                              | Yes                                                     |
 
 ## Usage
 
 ```javascript
-const avatarProps: AvatarProps = {
-  variant: AvatarVariants.JazzIcon,
-  size: AvatarSizes.Md,
-  address: SAMPLE_JAZZICON_ADDRESS,
-  backgroundColor :'#000000'
+const badgeProps = {
+  variant: BadgeVariants.Network,
+  networkProps: {
+    name: SAMPLE_NETWORK_NAME,
+    imageProps: {
+      source: SAMPLE_NETWORK_IMG_SOURCE,
+    }
+  }
 }
-const badgeProps: BadgeProps = {
-  variant: BadgeVariants.Avatar,
-  avatarProps
+
+const jazzIconProps = {
+  address: SAMPLE_JAZZICON_ADDRESS,
 }
 
 <AvatarJazzIcon 
   size={AvatarSizes.Md}
-  backgroundColor={'#000000'}
-  isBadgeIncluded
+  jazzIconProps={jazzIconProps}
   badgeProps={badgeProps}
-  badgePosition={AvatarBadgePositions.BottomRight}
-  address={SAMPLE_JAZZICON_ADDRESS}/>;
+  badgePosition={AvatarBadgePositions.BottomRight}/>;
 ```
