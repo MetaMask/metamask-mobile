@@ -9,7 +9,7 @@ import { NetworkSizes } from './Network.types';
 import Network from './Network';
 import {
   TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_PROPS,
+  TEST_NETWORK_IMAGE_PROPS,
 } from './Network.constants';
 
 describe('Network', () => {
@@ -18,7 +18,7 @@ describe('Network', () => {
       <Network
         size={NetworkSizes.Xl}
         name={TEST_NETWORK_NAME}
-        imageProps={TEST_REMOTE_IMAGE_PROPS}
+        imageProps={TEST_NETWORK_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();

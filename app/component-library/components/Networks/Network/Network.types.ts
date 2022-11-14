@@ -5,9 +5,12 @@ import { ImagePropsBase } from 'react-native';
 import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 
 /**
- * Network sizes.
+ * Network sizes and badge positions.
  */
-export { CirclePatternSizes as NetworkSizes } from '../../../patterns/Circles/Circle/Circle.types';
+export {
+  CirclePatternSizes as NetworkSizes,
+  CirclePatternBadgePositions as NetworkBadgePositions,
+} from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Network component props.
