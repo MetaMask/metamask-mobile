@@ -4202,7 +4202,7 @@
     js-base64 "^3.7.2"
     promise.allsettled "^1.0.5"
 
-"@segment/sovran-react-native@^0.4.5":
+"@segment/sovran-react-native@0.4.5", "@segment/sovran-react-native@^0.4.5":
   version "0.4.5"
   resolved "https://registry.yarnpkg.com/@segment/sovran-react-native/-/sovran-react-native-0.4.5.tgz#2ae057790623cfbd84eb15e4a3bb9835d108f815"
   integrity sha512-/dvud4hkszRNgTHdb7p822U+NXTuPxifqQzhcrfdjmFoXMafnzOUAi1KxeGV6Qdb73VAIxcnr/8hkTqdjZ3YLw==
