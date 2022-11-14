@@ -4191,22 +4191,21 @@
     image-to-base64 "^2.2.0"
     open "^8.2.0"
 
-"@segment/analytics-react-native@2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@segment/analytics-react-native/-/analytics-react-native-2.7.0.tgz#4e8598b599e0ddaf18eda4dc3a78bdfcf3d3cdd5"
-  integrity sha512-JYcXT4WKmpu1S4pZ0gufoJQSf7FS6cm36BI8NMmVIODwogBxnHWnTctDkQwsqU/EZMvHRtd6LMbT4MLZkai2ww==
+"@segment/analytics-react-native@2.9.1":
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/@segment/analytics-react-native/-/analytics-react-native-2.9.1.tgz#6a1f66b987ee2383932f7943cedf79252a70cba6"
+  integrity sha512-tALKLpRTbwyn4uviRbEEG4x+Bis4t/JxKeCrFlfh9dBrh//HEtAEe/uJuM9PZkx+6BtidvpQLqISotFkTZ3wDA==
   dependencies:
     "@react-native-async-storage/async-storage" "^1.15.17"
-    "@segment/sovran-react-native" "^0.4.3"
+    "@segment/sovran-react-native" "^0.4.5"
     deepmerge "^4.2.2"
     js-base64 "^3.7.2"
-    nanoid "^3.1.25"
     promise.allsettled "^1.0.5"
 
-"@segment/sovran-react-native@0.4.4", "@segment/sovran-react-native@^0.4.3":
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/@segment/sovran-react-native/-/sovran-react-native-0.4.4.tgz#2f1e1c0280d2cc3f242970b7c76f8e1dd3ddd18e"
-  integrity sha512-YnXhHfFIdqjMb+6ejMA+1oO0KeJPK3Hv0dHYgcWmq5oxVAWrJNTK8rGiRVuVaVQHfSkGg0zQ/nGB09oMUVteDg==
+"@segment/sovran-react-native@0.4.5", "@segment/sovran-react-native@^0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@segment/sovran-react-native/-/sovran-react-native-0.4.5.tgz#2ae057790623cfbd84eb15e4a3bb9835d108f815"
+  integrity sha512-/dvud4hkszRNgTHdb7p822U+NXTuPxifqQzhcrfdjmFoXMafnzOUAi1KxeGV6Qdb73VAIxcnr/8hkTqdjZ3YLw==
   dependencies:
     "@react-native-async-storage/async-storage" "^1.15.15"
     ansi-regex "5.0.1"
@@ -17145,7 +17144,7 @@ nanoclone@^0.2.1:
   resolved "https://registry.yarnpkg.com/nanoclone/-/nanoclone-0.2.1.tgz#dd4090f8f1a110d26bb32c49ed2f5b9235209ed4"
   integrity sha512-wynEP02LmIbLpcYw8uBKpcfF6dmg2vcpKqxeH5UcoKEYdExslsdUA4ugFauuaeYdTB76ez6gJW8XAZ6CgkXYxA==
 
-nanoid@^3.1.15, nanoid@^3.1.25, nanoid@^3.1.31:
+nanoid@^3.1.15, nanoid@^3.1.31:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.2.0.tgz#62667522da6673971cca916a6d3eff3f415ff80c"
   integrity sha512-fmsZYa9lpn69Ad5eDn7FMcnnSR+8R34W9qJEijxYhTbfOWzr22n1QxCMzXLK+ODyW2973V3Fux959iQoUxzUIA==
