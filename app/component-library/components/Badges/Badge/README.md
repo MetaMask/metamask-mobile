@@ -1,6 +1,6 @@
 # Badge
 
-Badge is a union component, which currently only consist of [BadgeAvatar](./variants/BadgeAvatar/BadgeAvatar.tsx)
+Badge is a union component, which currently only consist of [BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.tsx)
 
 ## Common Props
 
@@ -12,28 +12,32 @@ Variant of badge.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [BadgeVariants](../../Badge.types.ts)                                           | Yes                                                     |
 
-## BadgeAvatar Props
+## BadgeNetwork Props
 
-### `avatarProps`
+### `networkProps`
 
-Props for the avatarContent.
+Props for the network content.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar/Avatar.types.ts)                                              | Yes                                                     |
+| [NetworkProps](../../Networks/Network/Network.types.ts)                                              | Yes                                                     |
 
 ## Usage
 
 ```javascript
-const avatarProps: AvatarProps = {
-  variant: AvatarVariants.Initial,
-  size: AvatarSizes.Md,
-  initial: 'Morph',
-  backgroundColor :'#000000'
+const networkImageProps = {
+    source: {
+        uri: SAMPLE_IMAGE_URI
+    }
+}
+const networkProps = {
+  size: NetworkSizes.Md,
+  name: SAMPLE_NETWORK_NAME,
+  imageProps: networkImageProps,
 }
 
 <Badge
-  variant={BadgeVariants.Avatar}
-  avatarProps={avatarProps}
+  variant={BadgeVariants.Network}
+  networkProps={networkProps}
 />;
 ```

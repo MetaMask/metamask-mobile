@@ -3,14 +3,12 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
+import { TEST_NETWORK_PROPS } from '../../../../Networks/Network/Network.constants';
 import { BadgeVariants } from '../../Badge.types';
 
 // Internal dependencies.
 import BadgeNetwork from './BadgeNetwork';
-import {
-  BADGE_NETWORK_TEST_ID,
-  TEST_NETWORK_PROPS,
-} from './BadgeNetwork.constants';
+import { BADGE_NETWORK_TEST_ID } from './BadgeNetwork.constants';
 
 describe('BadgeNetwork - snapshots', () => {
   it('should render badge avatar', () => {

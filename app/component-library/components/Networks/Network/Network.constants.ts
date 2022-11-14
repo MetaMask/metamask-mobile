@@ -4,7 +4,7 @@
 import { ImagePropsBase, ImageSourcePropType } from 'react-native';
 
 // Internal dependencies.
-import { NetworkSizes } from './Network.types';
+import { NetworkProps, NetworkSizes } from './Network.types';
 
 export const TEST_NETWORK_NAME = 'Ethereum';
 
@@ -14,6 +14,10 @@ const TEST_NETWORK_IMAGE_SOURCE: ImageSourcePropType = {
 
 export const TEST_NETWORK_IMAGE_PROPS: ImagePropsBase = {
   source: TEST_NETWORK_IMAGE_SOURCE,
+};
+
+export const TEST_NETWORK_PROPS: NetworkProps = {
+  imageProps: TEST_NETWORK_IMAGE_PROPS,
 };
 
 export const DEFAULT_NETWORK_SIZE = NetworkSizes.Md;

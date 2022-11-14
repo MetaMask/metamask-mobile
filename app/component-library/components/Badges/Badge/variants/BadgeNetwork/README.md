@@ -1,6 +1,6 @@
-# BadgeAvatar
+# BadgeNetwork
 
-BadgeAvatar is a component that shows the avatar as a badge. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../../../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
+BadgeNetwork is a badge component that contains the Network as the content. **This component is not meant to be used by itself**. It is used by the [BadgeWrapper](../../../BadgeWrapper/BadgeWrapper.tsx) component, which can render this component as a badge.
 
 ## Props
 
@@ -12,26 +12,30 @@ Variant of badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariants.Avatar](../../Badge.types.ts)                                           | No                                                     |
+| [BadgeVariants.Network](../../Badge.types.ts)                                           | No                                                     |
 
-### `avatarProps`
+### `networkProps`
 
-Props for the avatarContent.
+Props for the network content.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar/Avatar.types.ts)                                              | Yes                                                     |
+| [NetworkProps](../../../../Networks/Network/Network.types.ts)                                              | Yes                                                     |
 
 
 ## Usage
 
 ```javascript
-const avatarProps: AvatarProps = {
-  variant: AvatarVariants.Initial,
-  size: AvatarSizes.Md,
-  initial: 'Morph',
-  backgroundColor :'#000000'
+const networkImageProps = {
+    source: {
+        uri: SAMPLE_IMAGE_URI
+    }
+}
+const networkProps = {
+  size: NetworkSizes.Md,
+  name: SAMPLE_NETWORK_NAME,
+  imageProps: networkImageProps,
 }
 
-<BadgeAvatar avatarProps={avatarProps} />;
+<BadgeNetwork networkProps={networkProps} />;
 ```
