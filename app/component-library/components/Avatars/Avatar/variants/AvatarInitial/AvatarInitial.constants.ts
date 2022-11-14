@@ -4,8 +4,12 @@ import { TextVariants } from '../../../../Texts/Text';
 import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
-import { TextVariantByAvatarSizes } from './AvatarInitial.types';
+import {
+  AvatarInitialProps,
+  TextVariantByAvatarSizes,
+} from './AvatarInitial.types';
 
+// Mappings
 export const TEXT_VARIANT_BY_AVATAR_SIZE: TextVariantByAvatarSizes = {
   [AvatarSizes.Xs]: TextVariants.sBodySMBold,
   [AvatarSizes.Sm]: TextVariants.sBodySMBold,
@@ -14,7 +18,12 @@ export const TEXT_VARIANT_BY_AVATAR_SIZE: TextVariantByAvatarSizes = {
   [AvatarSizes.Xl]: TextVariants.sBodyMDBold,
 };
 
-export const TEST_AVATAR_INITIAL_SAMPLE_TEXT = 'Sample Text';
-
+// Test IDs
 export const AVATAR_INITIAL_TEST_ID = 'avatar-initial';
 export const AVATAR_INITIAL_TEXT_TEST_ID = 'avatar-initial-text';
+
+// Test consts
+export const TEST_AVATAR_INITIAL_SAMPLE_TEXT = 'Sample Text';
+export const TEST_AVATAR_INITIAL_PROPS: AvatarInitialProps = {
+  initial: TEST_AVATAR_INITIAL_SAMPLE_TEXT,
+};

@@ -12,7 +12,6 @@ import { IconContainerSizes, IconContainerProps } from './IconContainer.types';
 export type IconSizeByIconContainerSizes = {
   [key in IconContainerSizes]: IconSize;
 };
-
 export const ICON_SIZE_BY_ICON_CONTAINER_SIZE: IconSizeByIconContainerSizes = {
   [IconContainerSizes.Xs]: IconSize.Xs,
   [IconContainerSizes.Sm]: IconSize.Sm,
@@ -21,11 +20,14 @@ export const ICON_SIZE_BY_ICON_CONTAINER_SIZE: IconSizeByIconContainerSizes = {
   [IconContainerSizes.Xl]: IconSize.Xl,
 };
 
+// Defaults
 export const DEFAULT_ICON_CONTAINER_SIZE = IconContainerSizes.Md;
 
+// Test IDs
 export const ICON_CONTAINER_TEST_ID = 'icon-container';
 export const ICON_CONTAINER_ICON_TEST_ID = 'icon-container-icon';
 
+// Test consts
 export const TEST_ICON_CONTAINER_PROPS: IconContainerProps = {
   iconProps: TEST_ICON_PROPS,
 };
