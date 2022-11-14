@@ -40,8 +40,13 @@ import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
+import ModalUseTerms from '../../UI/ModalUseTerms';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
+import {
+  EXISTING_USER,
+  METRICS_OPT_IN,
+  USE_TERMS,
+} from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -203,6 +208,7 @@ class Onboarding extends PureComponent {
     warningModalVisible: false,
     loading: false,
     existingUser: false,
+    showUseTermsModal: false,
   };
 
   seedwords = null;
@@ -240,10 +246,17 @@ class Onboarding extends PureComponent {
     );
   };
 
+  fetchTermsOfUse = async () => {
+    const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
+    if (!isUseTermsAccepted) this.setState({ showUseTermsModal: true });
+  };
+
   componentDidMount() {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+    this.fetchTermsOfUse();
+
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
@@ -495,7 +508,7 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser } = this.state;
+    const { existingUser, showUseTermsModal } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -544,6 +557,11 @@ class Onboarding extends PureComponent {
           onRequestClose={this.toggleWarningModal}
           onConfirmPress={this.toggleWarningModal}
         />
+        {showUseTermsModal && (
+          <ModalUseTerms
+            onDismiss={() => this.setState({ showUseTermsModal: false })}
+          />
+        )}
       </View>
     );
   }

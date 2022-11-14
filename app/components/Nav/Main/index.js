@@ -24,6 +24,7 @@ import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import FiatOrders from '../../UI/FiatOrders';
+import ModalUseTerms from '../../UI/ModalUseTerms';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -51,6 +52,8 @@ import { colors as importedColors } from '../../../styles/common';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { USE_TERMS } from '../../../constants/storage';
 
 const Stack = createStackNavigator();
 
@@ -73,6 +76,7 @@ const Main = (props) => {
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
+  const [showUseTermsModal, setShowUseTermsModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -195,6 +199,11 @@ const Main = (props) => {
     if (skipCheckbox) toggleRemindLater();
   };
 
+  const fetchTermsOfUse = async () => {
+    const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
+    if (!isUseTermsAccepted) setShowUseTermsModal(true);
+  };
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
@@ -252,6 +261,8 @@ const Main = (props) => {
         connectionChangeHandler,
       );
     }, 1000);
+
+    fetchTermsOfUse();
 
     return function cleanup() {
       AppState.removeEventListener('change', handleAppStateChange);
@@ -312,6 +323,9 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
+        {showUseTermsModal && (
+          <ModalUseTerms onDismiss={() => setShowUseTermsModal(false)} />
+        )}
         <RootRPCMethodsUI navigation={props.navigation} />
       </View>
     </React.Fragment>
