@@ -4,26 +4,20 @@ import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
-import PaymentIcon, { Icon } from './PaymentIcon';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import PaymentTypeIcon from './PaymentTypeIcon';
+import PaymentMethodBadges from './PaymentMethodBadges';
 import { Payment } from '@consensys/on-ramp-sdk';
+import PaymentMethodIcon from './PaymentMethodIcon';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 interface Props {
-  title?: string;
-  id?: string;
-  detail?: string;
-  time: number[];
-  amountTier: number[];
-  paymentTypeIcon: Icon;
-  logo: Payment['logo'];
-  onPress?: () => any;
+  payment: Payment;
+  onPress?: () => void;
   highlighted?: boolean;
   compact?: boolean;
 }
@@ -115,19 +109,16 @@ const renderTiers = (tiers: number[]) => {
   ];
 };
 
-const PaymentOption: React.FC<Props> = ({
-  title,
-  time,
-  amountTier,
-  paymentTypeIcon,
-  detail,
-  logo,
+const PaymentMethod: React.FC<Props> = ({
+  payment,
   onPress,
   highlighted,
   compact,
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const { name, logo, amountTier, delay: time, detail } = payment;
 
   return (
     <Box onPress={onPress} highlighted={highlighted}>
@@ -136,8 +127,9 @@ const PaymentOption: React.FC<Props> = ({
           <View
             style={[styles.iconWrapper, compact && styles.compactIconWrapper]}
           >
-            <PaymentIcon
-              iconType={paymentTypeIcon}
+            <PaymentMethodIcon
+              paymentMethodIcons={payment.icons}
+              paymentMethodType={payment.paymentType}
               size={compact ? 13 : 16}
               style={styles.icon}
             />
@@ -146,7 +138,7 @@ const PaymentOption: React.FC<Props> = ({
         <ListItem.Body>
           <ListItem.Title>
             <Text big primary bold>
-              {title}
+              {name}
             </Text>
           </ListItem.Title>
           {detail ? (
@@ -159,7 +151,10 @@ const PaymentOption: React.FC<Props> = ({
           <ListItem.Amounts>
             <ListItem.Amount>
               <View style={styles.cardIcons}>
-                <PaymentTypeIcon style={styles.cardIcon} logosByTheme={logo} />
+                <PaymentMethodBadges
+                  style={styles.cardIcon}
+                  logosByTheme={logo}
+                />
               </View>
             </ListItem.Amount>
           </ListItem.Amounts>
@@ -181,4 +176,4 @@ const PaymentOption: React.FC<Props> = ({
   );
 };
 
-export default PaymentOption;
+export default PaymentMethod;
