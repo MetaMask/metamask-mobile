@@ -1,11 +1,11 @@
 // Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
+import { color, select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import { IconName } from '../../Icons/Icon';
+import { IconName } from '../Icon/Icon.types';
 
 // Internal dependencies.
 import IconContainer from './IconContainer';
@@ -18,18 +18,26 @@ export const getIconContainerStoryProps = (): IconContainerProps => {
     IconContainerSizes.Md,
     storybookPropsGroupID,
   );
-  const iconNameSelector = select(
-    'name',
+  const nameSelector = select(
+    'iconName',
     IconName,
     IconName.LockFilled,
+    storybookPropsGroupID,
+  );
+  const iconColorPicker = color('iconColor', '', storybookPropsGroupID);
+  const backgroundColorPicker = color(
+    'backgroundColor',
+    '',
     storybookPropsGroupID,
   );
 
   return {
     size: sizeSelector,
     iconProps: {
-      name: iconNameSelector,
+      name: nameSelector,
+      color: iconColorPicker,
     },
+    backgroundColor: backgroundColorPicker,
   };
 };
 const IconContainerStory = () => (

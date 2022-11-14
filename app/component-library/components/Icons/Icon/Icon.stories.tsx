@@ -1,23 +1,22 @@
 // Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
+import { color, select } from '@storybook/addon-knobs';
+
+// External dependencies.
+import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 
 // Internal dependencies.
 import Icon from './Icon';
-import { IconSize, IconName } from './Icon.types';
+import { IconProps, IconSize, IconName } from './Icon.types';
 
-storiesOf('Component Library / Icon', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const sizeSelector = select('size', IconSize, IconSize.Md);
-    const nameSelector = select('name', IconName, IconName.LockFilled);
+export const getIconStoryProps = (): IconProps => ({
+  size: select('size', IconSize, IconSize.Md, storybookPropsGroupID),
+  name: select('name', IconName, IconName.LockFilled, storybookPropsGroupID),
+  color: color('color', '', storybookPropsGroupID),
+});
+const IconStory = () => <Icon {...getIconStoryProps()} />;
 
-    return <Icon name={nameSelector} size={sizeSelector} />;
-  })
-  .add('Colored', () => {
-    const sizeSelector = select('size', IconSize, IconSize.Xl);
-    const nameSelector = select('name', IconName, IconName.LockFilled);
+storiesOf('Component Library / Icons', module).add('Icon', IconStory);
 
-    return <Icon name={nameSelector} size={sizeSelector} color={'red'} />;
-  });
+export default IconStory;
