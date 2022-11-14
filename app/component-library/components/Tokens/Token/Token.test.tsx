@@ -9,7 +9,7 @@ import { AvatarSizes } from '../../Avatar.types';
 
 // Internal dependencies.
 import Token from './Token';
-import { TEST_TOKEN_NAME, TEST_REMOTE_IMAGE_PROPS } from './Token.constants';
+import { TEST_TOKEN_NAME, TEST_TOKEN_IMAGE_PROPS } from './Token.constants';
 
 describe('Token', () => {
   it('should render correctly', () => {
@@ -17,7 +17,7 @@ describe('Token', () => {
       <Token
         size={AvatarSizes.Xl}
         name={TEST_TOKEN_NAME}
-        imageProps={TEST_REMOTE_IMAGE_PROPS}
+        imageProps={TEST_TOKEN_IMAGE_PROPS}
       />,
     );
     expect(wrapper).toMatchSnapshot();

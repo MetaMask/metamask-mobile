@@ -69,6 +69,6 @@ const badgeProps = {
   name={SAMPLE_NETWORK_NAME}
   imageProps={imageProps}
   badgeProps={badgeProps}
-  badgePosition={AvatarBadgePositions.BottomRight}/>;
+  badgePosition={NetworkBadgePositions.BottomRight}/>;
 />;
 ```

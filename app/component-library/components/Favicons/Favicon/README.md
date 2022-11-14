@@ -1,6 +1,6 @@
 # Favicon
 
-Favicon is an circular image component that renders a favicon image.
+Favicon is an image component that renders a favicon image.
 
 ## Props
 
@@ -60,5 +60,5 @@ const badgeProps = {
   size={FaviconSizes.Md}
   imageProps={imageProps}
   badgeProps={badgeProps}
-  badgePosition={AvatarBadgePositions.BottomRight}/>;
+  badgePosition={FaviconBadgePositions.BottomRight}/>;
 ```

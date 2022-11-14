@@ -7,7 +7,10 @@ import { CirclePatternProps } from '../../../patterns/Circles/Circle';
 /**
  * Token sizes.
  */
-export { CirclePatternSizes as TokenSizes } from '../../../patterns/Circles/Circle/Circle.types';
+export {
+  CirclePatternSizes as TokenSizes,
+  CirclePatternBadgePositions as TokenBadgePositions,
+} from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
  * Token component props.

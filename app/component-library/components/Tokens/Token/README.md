@@ -1,10 +1,10 @@
-# AvatarToken
+# Token
 
-AvatarToken is a component that renders a token image.
+Token is an image component that renders a token or tradable assets.
 
 ## Props
 
-This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts) from [AvatarBase](../../foundation/AvatarBase/AvatarBase.tsx) component.
+This component extends [CirclePatternProps](../../../patterns/Circles/Circle/Circle.types.ts) from [CirclePattern](../../../patterns/Circles/Circle/Circle.tsx) component.
 
 ### `size`
 
@@ -12,31 +12,15 @@ Optional enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarSizes](../../Avatar.types.ts)          | No                                                     | Md                                                     |
+| [TokenSizes](./Token.types.ts)          | No                                                     | Md                                                     |
 
-### `backgroundColor`
-
-Optional enum to add color to the background of the Avatar.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ColorValue                                              | No                                                     |
-
-### `isBadgeIncluded`
-
-Optional boolean to select if badge should be included.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                   | No                                                     | false                                                     |
-
-### `badgeProps`
+### `badgeProps` 
 
 Optional enum for the Badge props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeProps](../../../../../../Badges/Badge/Badge.types.ts)                                      | No                                                     |
+| [BadgeProps](../../Badges/Badge/Badge.types.ts)                                      | No                                                     |
 
 ### `badgePosition`
 
@@ -44,7 +28,15 @@ Optional enum to set the position for the Badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarBadgePositions](../../Avatar.types.ts)          | No                                                     | TopRight                                        |
+| [TokenBadgePositions](./Token.types.ts)          | No                                                     | TopRight                                        |
+
+### `imageProps`
+
+Props for the image content rendered inside the AvatarImage.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [ImagePropsBase](https://reactnative.dev/docs/images)                                              | Yes                                                      |
 
 ### `name`
 
@@ -52,15 +44,7 @@ Optional token name.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [tokenName](./AvatarToken.types.ts#L10)             | No                                                      |
-
-### `imageSource`
-
-Optional token image from either a local or remote source.
-
-| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------------------------- | :------------------------------------------------------ |
-| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | No                                                      |
+| string                                                | No                                                      |
 
 ### `isHaloEnabled`
 
@@ -68,29 +52,31 @@ Boolean value that activates halo effect (blurred image colors around).
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [isHaloEnabled](./AvatarToken.types.ts#L18)         | No                                                      |
+| boolean                                                | true                                                      |
 
 ## Usage
 
 ```javascript
-const avatarProps: AvatarProps = {
-  variant: AvatarVariants.JazzIcon,
-  size: AvatarSizes.Md,
-  address: SAMPLE_JAZZICON_ADDRESS,
-  backgroundColor :'#000000'
+const imageProps = {
+    source: {
+        uri: SAMPLE_IMAGE_URI
+    }
 }
-const badgeProps: BadgeProps = {
-  variant: BadgeVariants.Avatar,
-  avatarProps
+const badgeProps = {
+  variant: BadgeVariants.Network,
+  networkProps: {
+    name: SAMPLE_NETWORK_NAME,
+    imageProps: {
+      source: SAMPLE_NETWORK_IMG_SOURCE,
+    }
+  }
 }
 
-<AvatarToken 
-  size={AvatarSizes.Md}
-  backgroundColor={'#000000'}
-  isBadgeIncluded
-  badgeProps={badgeProps}
-  badgePosition={AvatarBadgePositions.BottomRight}
+<Token 
+  size={TokenSizes.Md}
   name={SAMPLE_TOKEN_NAME}
-  imageSource={{ uri: SAMPLE_TOKEN_IMAGE_URL }}
-  isHaloEnabled/>;
+  isHaloEnabled
+  imageProps={imageProps}
+  badgeProps={badgeProps}
+  badgePosition={TokenBadgePositions.BottomRight}/>;
 ```
