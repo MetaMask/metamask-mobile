@@ -32,6 +32,7 @@ import {
 import ImageIcon from '../ImageIcon';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -429,7 +430,7 @@ export class NetworkList extends PureComponent {
             type="confirm"
             onPress={this.goToNetworkSettings}
             containerStyle={styles.footerButton}
-            testID={'add-network-button'}
+            testID={ADD_NETWORK_BUTTON}
           >
             {strings('app_settings.add_network_title')}
           </StyledButton>

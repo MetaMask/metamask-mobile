@@ -168,6 +168,9 @@ export const ANALYTICS_EVENTS_V2 = {
   ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     'On-ramp Provider Details Viewed',
   ),
+  ONRAMP_DIRECT_PROVIDER_CLICKED: generateOpt(
+    'On-ramp Provider Custom Action Clicked',
+  ),
   ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
   ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
   ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),

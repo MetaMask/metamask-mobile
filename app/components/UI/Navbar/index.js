@@ -25,11 +25,14 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
-import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { WALLET_VIEW_BURGER_ICON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import {
+  NAV_ANDROID_BACK_BUTTON,
+  NETWORK_BACK_ARROW_BUTTON_ID,
+} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -212,7 +215,7 @@ export function getNavigationOptionsTitle(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.backButton}
-          testID={BACK_ARROW_BUTTON_ID}
+          {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
         >
           <IonicIcon
             name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -825,7 +828,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.backButton}
-          testID={'nav-android-back'}
+          {...generateTestId(Platform, NAV_ANDROID_BACK_BUTTON)}
         >
           <IonicIcon
             name={'md-arrow-back'}

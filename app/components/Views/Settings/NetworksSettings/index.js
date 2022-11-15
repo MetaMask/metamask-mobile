@@ -25,6 +25,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarBaseSize } from '../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
+import { ADD_NETWORK_BUTTON } from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -393,7 +394,7 @@ class NetworksSettings extends PureComponent {
           type="confirm"
           onPress={this.onAddNetwork}
           containerStyle={styles.syncConfirm}
-          testID={'add-network-button'}
+          testID={ADD_NETWORK_BUTTON}
         >
           {strings('app_settings.network_add_network')}
         </StyledButton>
