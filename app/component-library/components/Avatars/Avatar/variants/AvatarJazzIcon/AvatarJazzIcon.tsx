@@ -3,7 +3,7 @@ import React from 'react';
 import Jazzicon from 'react-native-jazzicon';
 
 // External dependencies.
-import AvatarBase from '../../foundation/AvatarBase/AvatarBase';
+import CirclePattern from '../../../../../patterns/Circles/Circle/Circle';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
@@ -15,9 +15,9 @@ const AvatarJazzIcon = ({
   jazzIconProps,
   ...props
 }: AvatarJazzIconProps) => (
-  <AvatarBase size={size} {...props} testID={AVATAR_JAZZICON_TEST_ID}>
+  <CirclePattern size={size} {...props} testID={AVATAR_JAZZICON_TEST_ID}>
     <Jazzicon size={Number(size)} {...jazzIconProps} />
-  </AvatarBase>
+  </CirclePattern>
 );
 
 export default AvatarJazzIcon;

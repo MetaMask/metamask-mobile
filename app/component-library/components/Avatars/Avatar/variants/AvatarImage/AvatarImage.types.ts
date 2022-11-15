@@ -1,14 +1,14 @@
 // Third party dependencies.
 import { ImagePropsBase } from 'react-native';
+import { CirclePatternProps } from '../../../../../patterns/Circles/Circle';
 
 // External dependencies.
-import { AvatarBaseProps } from '../../foundation/AvatarBase';
 import { AvatarVariants } from '../../Avatar.types';
 
 /**
  * AvatarImage component props.
  */
-export type AvatarImageProps = AvatarBaseProps & {
+export type AvatarImageProps = CirclePatternProps & {
   /**
    * Avatar variants.
    */

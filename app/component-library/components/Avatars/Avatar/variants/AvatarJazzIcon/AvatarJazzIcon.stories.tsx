@@ -1,10 +1,12 @@
 // Third party dependencies.
 import React from 'react';
-import { select } from '@storybook/addon-knobs';
+import { boolean, select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../../component-library/constants/storybook.constants';
-import { AvatarSizes } from '../../../../../../component-library/components/Avatars/Avatar';
+import { getBadgeStoryProps } from '../../../../Badges/Badge/Badge.stories';
+import { AvatarSizes, AvatarBadgePositions } from '../../Avatar.types';
+import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import AvatarJazzIcon from './AvatarJazzIcon';
@@ -15,12 +17,26 @@ export const getAvatarJazzIconStoryProps = (): AvatarJazzIconProps => {
   const sizeSelector = select(
     'size',
     AvatarSizes,
-    AvatarSizes.Md,
+    DEFAULT_AVATAR_SIZE,
     storybookPropsGroupID,
   );
+  const includesBadge = boolean('includesBadge', false, storybookPropsGroupID);
+  let badgePosition, badgeProps;
+
+  if (includesBadge) {
+    badgePosition = select(
+      'badgePosition',
+      AvatarBadgePositions,
+      AvatarBadgePositions.TopRight,
+      storybookPropsGroupID,
+    );
+    badgeProps = getBadgeStoryProps();
+  }
 
   return {
     size: sizeSelector,
+    badgePosition,
+    badgeProps,
     jazzIconProps: SAMPLE_JAZZICON_PROPS,
   };
 };

@@ -25,7 +25,6 @@ const styleSheet = (params: {
     image: Object.assign({
       width: Number(size),
       height: Number(size),
-      borderRadius: Number(size) / 2,
     } as ImageStyle),
   });
 };

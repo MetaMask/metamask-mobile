@@ -5,7 +5,7 @@ import { Image } from 'react-native';
 // External dependencies.
 import { toDataUrl } from '../../../../../../util/blockies';
 import { useStyles } from '../../../../../hooks';
-import AvatarBase from '../../foundation/AvatarBase/AvatarBase';
+import CirclePattern from '../../../../../patterns/Circles/Circle/Circle';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
@@ -23,14 +23,14 @@ const AvatarBlockies = ({
 }: AvatarBlockiesProps) => {
   const { styles } = useStyles(styleSheet, { size });
   return (
-    <AvatarBase size={size} {...props} testID={AVATAR_BLOCKIES_TEST_ID}>
+    <CirclePattern size={size} {...props} testID={AVATAR_BLOCKIES_TEST_ID}>
       <Image
         resizeMode={'contain'}
         source={{ uri: toDataUrl(accountAddress) }}
         style={styles.image}
         testID={AVATAR_BLOCKIES_IMAGE_TEST_ID}
       />
-    </AvatarBase>
+    </CirclePattern>
   );
 };
 

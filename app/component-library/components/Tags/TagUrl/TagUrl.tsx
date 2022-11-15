@@ -5,7 +5,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSizes, AvatarVariants } from '../../Avatars/Avatar';
+import Favicon, { FaviconSizes } from '../../Favicons/Favicon';
 import Button, { ButtonVariants } from '../../Buttons/Button';
 import Text, { TextVariants } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
@@ -18,10 +18,11 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
     <View style={styles.base} {...props}>
-      <Avatar
-        variant={AvatarVariants.Image}
-        imageSource={imageSource}
-        size={AvatarSizes.Md}
+      <Favicon
+        imageProps={{
+          source: imageSource,
+        }}
+        size={FaviconSizes.Md}
       />
       <Text style={styles.label} variant={TextVariants.sBodyMD}>
         {label}

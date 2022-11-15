@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSizes, AvatarVariants } from '../Avatars/Avatar';
+import Network, { NetworkSizes } from '../Networks/Network';
 import Text, { TextVariants } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
@@ -128,7 +129,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         return (
           <Avatar
             variant={AvatarVariants.JazzIcon}
-            address={accountAddress}
+            jazzIconProps={{
+              address: accountAddress,
+            }}
             size={AvatarSizes.Md}
             style={styles.avatar}
           />
@@ -137,10 +140,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       case ToastVariants.Network: {
         const { networkImageSource } = toastOptions;
         return (
-          <Avatar
-            variant={AvatarVariants.Image}
-            imageSource={networkImageSource}
-            size={AvatarSizes.Md}
+          <Network
+            imageProps={{
+              source: networkImageSource,
+            }}
+            size={NetworkSizes.Md}
             style={styles.avatar}
           />
         );

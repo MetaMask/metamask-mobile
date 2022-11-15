@@ -4,7 +4,7 @@ import Text from '../../../../Texts/Text';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import AvatarBase from '../../foundation/AvatarBase';
+import CirclePattern from '../../../../../patterns/Circles/Circle/Circle';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
@@ -31,7 +31,7 @@ const AvatarInitial = ({
   const initialFirstLetter: string = initial?.[0];
 
   return (
-    <AvatarBase
+    <CirclePattern
       style={styles.base}
       size={size}
       {...props}
@@ -44,7 +44,7 @@ const AvatarInitial = ({
       >
         {initialFirstLetter}
       </Text>
-    </AvatarBase>
+    </CirclePattern>
   );
 };
 

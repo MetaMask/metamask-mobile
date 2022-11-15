@@ -50,9 +50,9 @@ Optional token name.
 
 Boolean value that activates halo effect (blurred image colors around).
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| boolean                                                | true                                                      |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                    | No                                                     | true                                        |
 
 ## Usage
 

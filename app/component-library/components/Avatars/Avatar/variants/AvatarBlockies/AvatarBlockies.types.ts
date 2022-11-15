@@ -1,11 +1,13 @@
+// Third party dependencies.
+import { CirclePatternProps } from '../../../../../patterns/Circles/Circle';
+
 // External dependencies.
 import { AvatarVariants } from '../../Avatar.types';
-import { AvatarBaseProps } from '../../foundation/AvatarBase';
 
 /**
  * AvatarBlockies component props.
  */
-export type AvatarBlockiesProps = AvatarBaseProps & {
+export type AvatarBlockiesProps = CirclePatternProps & {
   /**
    * Variant of Avatar
    */

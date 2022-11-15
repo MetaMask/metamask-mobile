@@ -1,14 +1,15 @@
+// Third party dependencies.
 import { ColorValue } from 'react-native';
+import { CirclePatternProps } from '../../../../../patterns/Circles/Circle';
 
 // External dependencies.
 import { TextVariants } from '../../../../Texts/Text';
 import { AvatarSizes, AvatarVariants } from '../../Avatar.types';
-import { AvatarBaseProps } from '../../foundation/AvatarBase';
 
 /**
  * AvatarInitial component props.
  */
-export type AvatarInitialProps = AvatarBaseProps & {
+export type AvatarInitialProps = CirclePatternProps & {
   /**
    * Avatar variants.
    */

@@ -7,7 +7,6 @@ function loadStories() {
   require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
   require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
   require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
-  require('../app/component-library/components/Avatars/Avatar/foundation/AvatarBase/AvatarBase.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarBlockies/AvatarBlockies.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories');
@@ -65,7 +64,6 @@ const stories = [
   '../app/component-library/components/Accordions/Accordion/Accordion.stories',
   '../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories',
   '../app/component-library/components/Avatars/Avatar/Avatar.stories',
-  '../app/component-library/components/Avatars/Avatar/foundation/AvatarBase/AvatarBase.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarBlockies/AvatarBlockies.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarImage/AvatarImage.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarInitial/AvatarInitial.stories',

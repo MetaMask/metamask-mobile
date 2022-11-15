@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AvatarImage - Snapshot should render AvatarImage with local imageSource correctly 1`] = `
-<AvatarBase
+<CirclePattern
   size="32"
   testID="avatar-image"
   variant="Image"
@@ -15,18 +15,17 @@ exports[`AvatarImage - Snapshot should render AvatarImage with local imageSource
     }
     style={
       Object {
-        "borderRadius": 16,
         "height": 32,
         "width": 32,
       }
     }
     testID="avatar-image-image"
   />
-</AvatarBase>
+</CirclePattern>
 `;
 
 exports[`AvatarImage - Snapshot should render AvatarImage with remote imageSource correctly 1`] = `
-<AvatarBase
+<CirclePattern
   size="32"
   testID="avatar-image"
   variant="Image"
@@ -40,12 +39,11 @@ exports[`AvatarImage - Snapshot should render AvatarImage with remote imageSourc
     }
     style={
       Object {
-        "borderRadius": 16,
         "height": 32,
         "width": 32,
       }
     }
     testID="avatar-image-image"
   />
-</AvatarBase>
+</CirclePattern>
 `;

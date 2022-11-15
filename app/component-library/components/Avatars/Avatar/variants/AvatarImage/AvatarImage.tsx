@@ -4,7 +4,7 @@ import { Image } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import AvatarBase from '../../foundation/AvatarBase';
+import CirclePattern from '../../../../../patterns/Circles/Circle/Circle';
 import { DEFAULT_AVATAR_SIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
@@ -23,14 +23,14 @@ const AvatarImage = ({
   const { styles } = useStyles(styleSheet, { size });
 
   return (
-    <AvatarBase size={size} {...props} testID={AVATAR_IMAGE_TEST_ID}>
+    <CirclePattern size={size} {...props} testID={AVATAR_IMAGE_TEST_ID}>
       <Image
         style={styles.image}
         resizeMode={'contain'}
         testID={AVATAR_IMAGE_IMAGE_TEST_ID}
         {...imageProps}
       />
-    </AvatarBase>
+    </CirclePattern>
   );
 };
 

@@ -43,7 +43,7 @@ const badgeProps = {
   }
 }
 <CirclePattern 
-  size={AvatarSizes.Md}
+  size={CirclePatternSizes.Md}
   badgeProps={badgeProps}
   badgePosition={CirclePatternBadgePositions.BottomRight}>
     <SAMPLE_COMPONENT />

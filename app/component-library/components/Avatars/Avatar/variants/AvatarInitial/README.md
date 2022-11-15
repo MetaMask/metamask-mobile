@@ -4,7 +4,7 @@ AvatarInitial is a component that renders an avatar with an initial letter as th
 
 ## Props
 
-This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts) from the [AvatarBase](../../foundation/AvatarBase/AvatarBase.tsx) component.
+This component extends [CirclePatternProps](../../../../../patterns/Circles/Circle/Circle.types.ts) from [CirclePattern](../../../../../patterns/Circles/Circle/Circle.tsx) component.
 
 ### `size`
 

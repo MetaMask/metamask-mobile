@@ -4,7 +4,7 @@ AvatarImage is a component that renders an avatar with an image as the content.
 
 ## Props
 
-This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts) from [AvatarBase](../../foundation/AvatarBase/AvatarBase.tsx) component.
+This component extends [CirclePatternProps](../../../../../patterns/Circles/Circle/Circle.types.ts) from [CirclePattern](../../../../../patterns/Circles/Circle/Circle.tsx) component.
 
 ### `size`
 
