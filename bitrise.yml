@@ -324,7 +324,9 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" | jq -j '.app_url' | envman add --key $BROWSERSTACK_APP_URL
+                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                echo "$APK_PATH"
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
   wdio_android_e2e_test:
     before_run:
       - build_android_qa
