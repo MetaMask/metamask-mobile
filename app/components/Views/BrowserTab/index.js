@@ -803,33 +803,17 @@ export const BrowserTab = (props) => {
     });
   }, []);
 
-  const knownProtocols = {
-    http: {
-      scheme: 'http:',
-    },
-    https: {
-      scheme: 'https:',
-    },
-    tel: {
-      alertMsg: strings('browser.protocol_alerts.tel'),
-      scheme: 'tel:',
-    },
-    mailto: {
-      alertMsg: strings('browser.protocol_alerts.mailto'),
-      scheme: 'mailto:',
-    },
-    ldap: {
-      alertMsg: strings('browser.protocol_alerts.ldap'),
-      scheme: 'ldap:',
-    },
-    telnet: {
-      alertMsg: strings('browser.protocol_alerts.telnet'),
-      scheme: 'telnet:',
-    },
-    ssh: {
-      alertMsg: strings('browser.protocol_alerts.ssh'),
-      scheme: 'ssh:',
-    },
+  const protocolWhitelist = ['about:', 'http:', 'https:'];
+
+  const getAlertMessage = (protocol) => {
+    switch (protocol) {
+      case 'tel:':
+        return strings('browser.protocol_alerts.tel');
+      case 'mailto:':
+        return strings('browser.protocol_alerts.mailto');
+      default:
+        return strings('browser.protocol_alerts.generic');
+    }
   };
 
   const allowLinkOpen = (url) =>
@@ -846,29 +830,29 @@ export const BrowserTab = (props) => {
       });
 
   const verifyKnownProtocols = (event) => {
-    const { url, isTopFrame } = event;
+    const { url } = event;
 
-    const [protocol] = url.split(':');
+    const { protocol } = new URL(url);
 
-    const { alertMsg } = knownProtocols[protocol];
+    const isProtocolWhitelisted = protocolWhitelist.includes(protocol);
+    if (isProtocolWhitelisted) return true;
 
-    if (!isTopFrame && Boolean(alertMsg)) {
-      Alert.alert(alertMsg, '', [
-        {
-          text: 'Ignore',
-          onPress: () => null,
-          style: 'cancel',
-        },
-        {
-          text: 'Allow',
-          onPress: () => allowLinkOpen(url),
-          style: 'allow',
-        },
-      ]);
-      return false;
-    }
+    const alertMsg = getAlertMessage(protocol);
 
-    return true;
+    Alert.alert(strings('onboarding.warning_title'), alertMsg, [
+      {
+        text: strings('browser.protocol_alert_options.ignore'),
+        onPress: () => null,
+        style: 'cancel',
+      },
+      {
+        text: strings('browser.protocol_alert_options.allow'),
+        onPress: () => allowLinkOpen(url),
+        style: 'default',
+      },
+    ]);
+
+    return false;
   };
 
   /**
@@ -1427,15 +1411,6 @@ export const BrowserTab = (props) => {
   /**
    * Main render
    */
-
-  const originWhitelist = Object.keys(knownProtocols).map((key) => {
-    const protocol = key.startsWith('http')
-      ? `${knownProtocols[key].scheme}//`
-      : knownProtocols[key].scheme;
-
-    return `${protocol}*`;
-  });
-
   return (
     <ErrorBoundary view="BrowserTab">
       <View
@@ -1445,7 +1420,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
-              originWhitelist={originWhitelist}
+              originWhitelist={['*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (

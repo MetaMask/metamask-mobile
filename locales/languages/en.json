@@ -1039,12 +1039,14 @@
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
     "yes": "Yes",
+    "protocol_alert_options": {
+      "ignore": "Ignore",
+      "allow": "Allow"
+    },
     "protocol_alerts": {
       "tel": "This website has been blocked from automatically making a phone call",
       "mailto": "This website has been blocked from automatically composing an email.",
-      "ldap": "This website has been blocked from automatically accessing an external directory",
-      "telnet": "This website has been blocked from automatically connecting to an external service",
-      "ssh": "This website has been blocked from automatically connecting to an external service"
+      "generic": "This website has been blocked from automatically opening an external application"
     }
   },
   "backup_alert": {
