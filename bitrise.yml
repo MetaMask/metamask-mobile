@@ -271,7 +271,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - upload_apk_to_browserstack
+      - _upload_apk_to_browserstack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -314,7 +314,7 @@ workflows:
           inputs:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
-  upload_apk_to_browserstack:
+  _upload_apk_to_browserstack:
     steps:
       - script@1:
           title: Upload APK to Browserstack
@@ -338,8 +338,8 @@ workflows:
                 #!/usr/bin/env bash
                 yarn test:wdio:android:browserstack
       - script@1:
-          inputs:
           title: Add tests reports to Bitrise
+          inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo $BITRISE_TEST_RESULT_DIR
