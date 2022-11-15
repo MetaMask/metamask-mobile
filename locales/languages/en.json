@@ -2270,7 +2270,7 @@
   },
   "terms_of_use_modal": {
     "title": "Our Terms of Use have updated",
-    "terms_of_use_check_description": "I aggree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+    "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
     "accept_helper_description": "Please scroll to read all sections"
   },
