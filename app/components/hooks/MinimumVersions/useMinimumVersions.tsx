@@ -4,6 +4,7 @@ import { useAppConfig } from '../AppConfig';
 import { createUpdateNeededNavDetails } from '../../UI/UpdateNeeded/UpdateNeeded';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { InteractionManager } from 'react-native';
 
 const useMinimumVersions = () => {
   const minimumValues = useAppConfig();
@@ -25,7 +26,9 @@ const useMinimumVersions = () => {
 
   useEffect(() => {
     if (shouldTriggerUpdateFlow) {
-      navigation.navigate(...createUpdateNeededNavDetails());
+      InteractionManager.runAfterInteractions(() => {
+        navigation.navigate(...createUpdateNeededNavDetails());
+      });
     }
   }, [navigation, shouldTriggerUpdateFlow]);
 };
