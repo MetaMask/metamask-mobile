@@ -829,9 +829,7 @@ export const BrowserTab = (props) => {
         console.warn(`Error opening URL: ${e}`);
       });
 
-  const verifyKnownProtocols = (event) => {
-    const { url } = event;
-
+  const verifyKnownProtocols = (url) => {
     const { protocol } = new URL(url);
 
     const isProtocolWhitelisted = protocolWhitelist.includes(protocol);
@@ -858,15 +856,13 @@ export const BrowserTab = (props) => {
   /**
    * Stops normal loading when it's ens, instead call go to be properly set up
    */
-  const onShouldStartLoadWithRequest = (event) => {
-    const { url } = event;
-
+  const onShouldStartLoadWithRequest = ({ url }) => {
     if (isENSUrl(url)) {
       go(url.replace(/^http:\/\//, 'https://'));
       return false;
     }
 
-    return verifyKnownProtocols(event);
+    return verifyKnownProtocols(url);
   };
 
   /**
