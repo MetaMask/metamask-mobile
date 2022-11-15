@@ -8,7 +8,7 @@ import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import { useStyles } from '../../../hooks';
 import CirclePattern from '../../../patterns/Circles/Circle/Circle';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import IconContainer from '../../Icons/IconContainer';
+import IconContainer from '../../Icons/IconInACircle';
 
 // Internal dependencies.
 import styleSheet from './Favicon.styles';

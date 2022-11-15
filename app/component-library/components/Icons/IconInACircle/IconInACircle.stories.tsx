@@ -8,14 +8,14 @@ import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 import { IconName } from '../Icon/Icon.types';
 
 // Internal dependencies.
-import IconContainer from './IconContainer';
-import { IconContainerProps, IconContainerSizes } from './IconContainer.types';
+import IconInACircle from './IconInACircle';
+import { IconInACircleProps, IconInACircleSizes } from './IconInACircle.types';
 
-export const getIconContainerStoryProps = (): IconContainerProps => {
+export const getIconInACircleStoryProps = (): IconInACircleProps => {
   const sizeSelector = select(
     'size',
-    IconContainerSizes,
-    IconContainerSizes.Md,
+    IconInACircleSizes,
+    IconInACircleSizes.Md,
     storybookPropsGroupID,
   );
   const nameSelector = select(
@@ -40,13 +40,13 @@ export const getIconContainerStoryProps = (): IconContainerProps => {
     backgroundColor: backgroundColorPicker,
   };
 };
-const IconContainerStory = () => (
-  <IconContainer {...getIconContainerStoryProps()} />
+const IconInACircleStory = () => (
+  <IconInACircle {...getIconInACircleStoryProps()} />
 );
 
 storiesOf('Component Library / Icons', module).add(
-  'IconContainer',
-  IconContainerStory,
+  'IconInACircle',
+  IconInACircleStory,
 );
 
-export default IconContainerStory;
+export default IconInACircleStory;

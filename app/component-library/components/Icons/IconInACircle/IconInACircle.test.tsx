@@ -6,18 +6,18 @@ import { shallow } from 'enzyme';
 import { SAMPLE_ICON_PROPS } from '../Icon/Icon.constants';
 
 // Internal dependencies.
-import IconContainer from './IconContainer';
+import IconInACircle from './IconInACircle';
 import {
   ICON_CONTAINER_TEST_ID,
   ICON_CONTAINER_ICON_TEST_ID,
-} from './IconContainer.constants';
-import { IconContainerSizes } from './IconContainer.types';
+} from './IconInACircle.constants';
+import { IconInACircleSizes } from './IconInACircle.types';
 
-describe('IconContainer - Snapshot', () => {
+describe('IconInACircle - Snapshot', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <IconContainer
-        size={IconContainerSizes.Md}
+      <IconInACircle
+        size={IconInACircleSizes.Md}
         iconProps={SAMPLE_ICON_PROPS}
       />,
     );
@@ -25,31 +25,31 @@ describe('IconContainer - Snapshot', () => {
   });
 });
 
-describe('IconContainer', () => {
-  it('should render IconContainer component', () => {
+describe('IconInACircle', () => {
+  it('should render IconInACircle component', () => {
     const wrapper = shallow(
-      <IconContainer
-        size={IconContainerSizes.Md}
+      <IconInACircle
+        size={IconInACircleSizes.Md}
         iconProps={SAMPLE_ICON_PROPS}
       />,
     );
-    const IconContainerComponent = wrapper.findWhere(
+    const IconInACircleComponent = wrapper.findWhere(
       (node) => node.prop('testID') === ICON_CONTAINER_TEST_ID,
     );
-    expect(IconContainerComponent.exists()).toBe(true);
+    expect(IconInACircleComponent.exists()).toBe(true);
   });
-  it('should render IconContainer with the right IconName', () => {
+  it('should render IconInACircle with the right IconName', () => {
     const iconName = SAMPLE_ICON_PROPS.name;
     const wrapper = shallow(
-      <IconContainer
-        size={IconContainerSizes.Md}
+      <IconInACircle
+        size={IconInACircleSizes.Md}
         iconProps={SAMPLE_ICON_PROPS}
       />,
     );
 
-    const IconContainerIconComponent = wrapper.findWhere(
+    const IconInACircleIconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === ICON_CONTAINER_ICON_TEST_ID,
     );
-    expect(IconContainerIconComponent.props().name).toBe(iconName);
+    expect(IconInACircleIconComponent.props().name).toBe(iconName);
   });
 });

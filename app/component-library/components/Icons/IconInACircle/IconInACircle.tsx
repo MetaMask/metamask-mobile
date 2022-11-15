@@ -4,25 +4,25 @@ import React from 'react';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import CirclePattern from '../../../patterns/Circles/Circle/Circle';
-import Icon from '../../Icons/Icon';
+import Icon from '../Icon';
 
 // Internal dependencies.
-import { IconContainerProps } from './IconContainer.types';
+import { IconInACircleProps } from './IconInACircle.types';
 import {
   DEFAULT_ICON_CONTAINER_SIZE,
   ICON_SIZE_BY_ICON_CONTAINER_SIZE,
   ICON_CONTAINER_TEST_ID,
   ICON_CONTAINER_ICON_TEST_ID,
-} from './IconContainer.constants';
-import styleSheet from './IconContainer.styles';
+} from './IconInACircle.constants';
+import styleSheet from './IconInACircle.styles';
 
-const IconContainer = ({
+const IconInACircle = ({
   size = DEFAULT_ICON_CONTAINER_SIZE,
   style,
   backgroundColor,
   iconProps,
   ...props
-}: IconContainerProps) => {
+}: IconInACircleProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     backgroundColor,
@@ -40,4 +40,4 @@ const IconContainer = ({
   );
 };
 
-export default IconContainer;
+export default IconInACircle;

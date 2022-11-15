@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { IconContainerStyleSheetVars } from './IconContainer.types';
+import { IconInACircleStyleSheetVars } from './IconInACircle.types';
 
 /**
  * Style sheet function for Badge component.
@@ -17,7 +17,7 @@ import { IconContainerStyleSheetVars } from './IconContainer.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: IconContainerStyleSheetVars;
+  vars: IconInACircleStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { style, backgroundColor } = vars;

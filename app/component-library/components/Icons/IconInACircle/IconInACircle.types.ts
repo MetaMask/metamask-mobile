@@ -3,17 +3,17 @@ import { ColorValue } from 'react-native';
 
 // External dependencies.
 import { CirclePatternProps } from '../../../patterns/Circles/Circle';
-import { IconProps } from '../../Icons/Icon';
+import { IconProps } from '../Icon';
 
 /**
- * IconContainer sizes.
+ * IconInACircle sizes.
  */
-export { CirclePatternSizes as IconContainerSizes } from '../../../patterns/Circles/Circle/Circle.types';
+export { CirclePatternSizes as IconInACircleSizes } from '../../../patterns/Circles/Circle/Circle.types';
 
 /**
- * IconContainer component props.
+ * IconInACircle component props.
  */
-export type IconContainerProps = CirclePatternProps & {
+export type IconInACircleProps = CirclePatternProps & {
   /**
    * Optional enum to add color to the background of the Avatar.
    * @default theme.colors.background.alternative
@@ -28,7 +28,7 @@ export type IconContainerProps = CirclePatternProps & {
 /**
  * Style sheet input parameters.
  */
-export type IconContainerStyleSheetVars = Pick<
-  IconContainerProps,
+export type IconInACircleStyleSheetVars = Pick<
+  IconInACircleProps,
   'style' | 'backgroundColor'
 >;

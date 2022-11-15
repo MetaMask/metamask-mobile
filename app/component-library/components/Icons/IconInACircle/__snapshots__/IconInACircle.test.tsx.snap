@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`IconContainer - Snapshot should render correctly 1`] = `
+exports[`IconInACircle - Snapshot should render correctly 1`] = `
 <CirclePattern
   size="32"
   style={
