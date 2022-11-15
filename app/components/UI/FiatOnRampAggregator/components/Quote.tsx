@@ -248,7 +248,11 @@ const Quote: React.FC<Props> = ({
                 label={strings('fiat_on_ramp_aggregator.pay_with')}
               />
             ) : (
-              <StyledButton type={'blue'} onPress={onPressBuy}>
+              <StyledButton
+                type={'blue'}
+                onPress={onPressBuy}
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <ActivityIndicator
                     size={'small'}
