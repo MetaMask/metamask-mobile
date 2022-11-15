@@ -332,16 +332,22 @@ workflows:
       - build_android_qa
     steps:
       - script@1:
+          title: Run Android E2E tests on Browserstack
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 yarn test:wdio:android:browserstack
       - script@1:
           inputs:
+          title: Add tests reports to Bitrise
             - content: |-
                 #!/usr/bin/env bash
+                echo $BITRISE_TEST_RESULT_DIR
                 cp -r $PROJECT_LOCATION/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
+                ls -la $BITRISE_TEST_RESULT_DIR
       - deploy-to-bitrise-io@1:
+          inputs:
+              - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
     before_run:
