@@ -58,6 +58,7 @@
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
+    "test:wdio:android:browserstack": "yarn wdio ./wdio/config/android.config.browserstack.js",
     "test:tgz-check": "./scripts/tgz-check.sh",
     "test:attribution-check": "./scripts/attributions-check.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
@@ -323,6 +324,7 @@
     "@wdio/browserstack-service": "^7.19.0",
     "@wdio/cli": "^7.19.1",
     "@wdio/cucumber-framework": "^7.19.1",
+    "@wdio/junit-reporter": "^7.25.4",
     "@wdio/local-runner": "^7.19.1",
     "@wdio/spec-reporter": "^7.19.1",
     "appium": "^1.22.3",
@@ -372,7 +374,8 @@
     "wdio-cucumber-reporter": "^0.0.2",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "wdio-image-comparison-service": "^3.1.0",
-    "wdio-vscode-service": "^0.1.5"
+    "wdio-vscode-service": "^0.1.5",
+    "xml2js": "^0.4.23"
   },
   "config": {
     "react-native-storybook-loader": {
