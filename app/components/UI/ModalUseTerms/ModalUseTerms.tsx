@@ -17,8 +17,6 @@ import ButtonPrimary from '../../../component-library/components/Buttons/Button/
 import Text from '../../../component-library/components/Texts/Text';
 import Checkbox from '../../../component-library/components/Checkbox';
 import { useStyles } from '../../../component-library/hooks';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
 import en from '../../../../locales/languages/en';
 import { TRUE, USE_TERMS } from '../../../constants/storage';
 import stylesheet from './ModalUseTerms.styles';
