@@ -26,7 +26,6 @@ import { connect } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
@@ -81,9 +80,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       width: Device.isIos() ? 90 : 45,
       height: Device.isIos() ? 90 : 45,
-    },
-    termsAndConditions: {
-      paddingBottom: 30,
     },
     title: {
       fontSize: 24,
@@ -543,9 +539,6 @@ class Onboarding extends PureComponent {
               </View>
             )}
           </ScrollView>
-          <View style={styles.termsAndConditions}>
-            <TermsAndConditions navigation={this.props.navigation} />
-          </View>
         </OnboardingScreenWithBg>
         <FadeOutOverlay />
 

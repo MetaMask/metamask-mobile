@@ -25,7 +25,6 @@ import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
@@ -149,9 +148,6 @@ const createStyles = (colors) =>
     biometrySwitch: {
       marginTop: 10,
       flex: 0,
-    },
-    termsAndConditions: {
-      paddingVertical: 10,
     },
     passwordStrengthLabel: {
       height: 20,
@@ -748,12 +744,6 @@ class ImportFromSeed extends PureComponent {
             </View>
           </View>
         </KeyboardAwareScrollView>
-        <View style={styles.termsAndConditions}>
-          <TermsAndConditions
-            navigation={this.props.navigation}
-            action={strings('import_from_seed.import_button')}
-          />
-        </View>
       </SafeAreaView>
     );
   }
