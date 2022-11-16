@@ -5,7 +5,7 @@ import {
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
-import { callbackBaseUrl, useFiatOnRampSDK } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
 import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../hooks/useInAppBrowser';
 import Logger from '../../../../util/Logger';
@@ -37,6 +37,7 @@ const CustomActionButton: React.FC<
     selectedAsset,
     selectedFiatCurrencyId,
     selectedChainId,
+    callbackBaseUrl,
     sdk,
   } = useFiatOnRampSDK();
 
@@ -106,6 +107,7 @@ const CustomActionButton: React.FC<
     }
   }, [
     amount,
+    callbackBaseUrl,
     customAction,
     fiatSymbol,
     navigation,
