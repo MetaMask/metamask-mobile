@@ -59,27 +59,26 @@ const CheckoutWebView = () => {
       state.engine.backgroundState.AccountTrackerController.accounts,
   );
 
-  const uri = params?.url;
-  const customOrderId = params?.customOrderId;
+  const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
       location: 'Provider Webview',
       chain_id_destination: selectedChainId,
-      provider_onramp: params?.provider.name,
+      provider_onramp: provider.name,
     });
-  }, [params?.provider.name, selectedChainId, trackEvent]);
+  }, [provider.name, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: params?.provider.name },
+        { title: provider.name },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params?.provider.name]);
+  }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
     if (!customOrderId) {
@@ -193,7 +192,7 @@ const CheckoutWebView = () => {
         }
         const orders = await SDK.orders();
         const orderId = await orders.getOrderIdFromCallback(
-          params?.provider.id,
+          provider.id,
           navState?.url,
         );
 
@@ -281,7 +280,7 @@ const CheckoutWebView = () => {
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
-          userAgent={params.provider?.features?.buy?.userAgent ?? undefined}
+          userAgent={provider?.features?.buy?.userAgent ?? undefined}
         />
       </View>
     );
