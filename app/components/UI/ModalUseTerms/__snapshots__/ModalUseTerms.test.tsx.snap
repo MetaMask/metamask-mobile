@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Use Terms Modal should render correctly 1`] = `
-<View
+<ElevatedView
+  elevation={0}
   style={
     Object {
       "alignItems": "center",
@@ -86,24 +87,24 @@ exports[`Use Terms Modal should render correctly 1`] = `
             1. The Offerings.
           </Text>
           <Text
-            key="section_1.1"
+            key="section_1_1"
           >
-            .
+            1.1 Generally. You may access and use the Offerings in accordance with this Agreement. You agree to comply with the terms of this Agreement and all laws, rules and regulations applicable to your use of the Offerings.
           </Text>
           <Text
-            key="section_1.2"
+            key="section_1_2"
           >
-             
+            1.2 Offerings and Access. ConsenSys offers a number of products and services, each an “Offering”, under the ConsenSys brand or brands owned by us. These include Codefi, Quorum, Infura, MetaMask and others. Offerings are generally accessed through the Site or through a third party provider of which we approved, such as the Google Play or Apple App Store, unless otherwise agreed in writing. Some Offerings may require you to create an account, enter a valid form of payment, and select a paid plan (a “Paid Plan”), or initiate an Order.
           </Text>
           <Text
-            key="section_1.3"
+            key="section_1_3"
           >
-            T
+            1.3 Third-Party Content. In certain Offerings, Third-Party Content may be used by you at your election. Third-Party Content is governed by this Agreement and, if applicable, separate terms and conditions accompanying such Third-Party Content, which terms and conditions may include separate fees and charges.
           </Text>
           <Text
-            key="section_1.4"
+            key="section_1_4"
           >
-            h
+            1.4 Third-Party Offerings. When you use our Offerings, you may also be using the products or services of one or more third parties. Your use of these third party offerings may be subject to the separate policies, terms of use, and fees of these third parties.
           </Text>
           <Text
             key="section_2"
@@ -574,7 +575,7 @@ ConsenSys Software Inc.
                 }
               }
             >
-              I aggree to the Terms of Use, which apply to my use of MetaMask and all of its features
+              I agree to the Terms of Use, which apply to my use of MetaMask and all of its features
             </Text>
           </View>
         </View>
@@ -640,5 +641,5 @@ ConsenSys Software Inc.
       </View>
     </View>
   </View>
-</View>
+</ElevatedView>
 `;

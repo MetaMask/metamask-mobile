@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Mandatory Modal should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#00000099",
+      "bottom": 0,
+      "justifyContent": "center",
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 10,
+        "marginHorizontal": 32,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "marginHorizontal": 16,
+          "marginTop": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
+          }
+        }
+      >
+        test
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "maxHeight": 1134,
+        }
+      }
+    >
+      <Text>
+        test
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+          }
+        }
+      >
+        <ButtonPrimary
+          disabled={true}
+          label="test"
+          onPress={[Function]}
+          style={
+            Object {
+              "backgroundColor": "#037DD619",
+              "marginTop": 16,
+              "width": "100%",
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
