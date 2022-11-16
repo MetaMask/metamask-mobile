@@ -23,10 +23,10 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
-  async isScreenTitleVisible() {
+  async waitForSplashScreen() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
-    await driver.pause(5000);
+    await driver.pause(6000);
   }
 
   async verifyCarouselTitle(key) {

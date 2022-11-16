@@ -18,10 +18,6 @@ import Selectors from '../../helpers/Selectors';
 class CreateNewWalletScren {
 
   // selectors ====================================
-  get title () {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
-  }
-
   get description() {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_DESCRIPTION_ID);
   }
@@ -59,46 +55,40 @@ class CreateNewWalletScren {
     return Selectors.getElementByPlatform(SUBMIT_BUTTON);
   }
 
-async inputPasswordInFirstField(firstPassword) {
-  await Gestures.typeText(this.newWalletPasswordField, firstPassword);
-}
+  async inputPasswordInFirstField(firstPassword) {
+    await Gestures.typeText(this.newWalletPasswordField, firstPassword);
+  }
 
-async inputConfirmPasswordField(secondPassword) {
-  await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
-  await Gestures.tap(this.termsAndConditionCheckBox);
-  await Gestures.tap(this.newWalletSubmitButton);
-}
+  async inputConfirmPasswordField(secondPassword) {
+    await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
+    await Gestures.tap(this.termsAndConditionCheckBox);
+    await Gestures.tap(this.newWalletSubmitButton);
+  }
 
-async selectRemindMeLater(){
-  await Gestures.tap(this.remindMeLaterButton);
-}
+  async selectRemindMeLater(){
+    await Gestures.tap(this.remindMeLaterButton);
+  }
 
-async isAccountCreated(){
-  await expect(this.remindMeLaterButton).toBeDisplayed();
-  await expect(this.secureWalletScreen).toBeDisplayed();
-}
+  async isAccountCreated(){
+    await expect(this.remindMeLaterButton).toBeDisplayed();
+    await expect(this.secureWalletScreen).toBeDisplayed();
+  }
 
-async isScreenTitleVisible() {
-  await expect(this.title).toBeDisplayed();
-}
+  async isScreenDescriptionVisible() {
+    await expect(this.description).toBeDisplayed();
+  }
 
-async isScreenDescriptionVisible() {
-  await expect(this.description).toBeDisplayed();
-}
+  async isTermsAndConditionsButtonVisible() {
+    await expect(this.termsAndConditionsButton).toBeDisplayed();
+  }
 
-async isTermsAndConditionsButtonVisible() {
-  await expect(this.termsAndConditionsButton).toBeDisplayed();
-}
+  async isNewAccountScreenFieldsVisible(){
+  await expect(this.newWalletPasswordField).toBeDisplayed();
+  }
 
-async isNewAccountScreenFieldsVisible(){
-await expect(this.newWalletPasswordField).toBeDisplayed();
-}
-
-async isNotVisible(){
-  await expect(this.SECURE_WALLET_SCREEN).not.toBeDisplayed();
-
-}
-
+  async isNotVisible(){
+    await expect(this.SECURE_WALLET_SCREEN).not.toBeDisplayed();
+  }
 }
 
 export default new CreateNewWalletScren();

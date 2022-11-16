@@ -112,18 +112,24 @@ class Gestures  {
     }
   }
 
-  static async typeText(element, text) {
+  static async typeText(element, text, hideKeyboard = true) {
     const elem = await element;
-    const platform = await driver.getPlatform();
-
-    if (platform === 'Android') {
-      await driver.hideKeyboard('tapOutside');
-    }
 
     await elem.waitForDisplayed();
     (await elem).touchAction(Actions.TAP);
+
     await elem.clearValue();
-    await elem.setValue(text, +'\n');
+    await elem.setValue(text);
+
+    if (!hideKeyboard) {
+      return;
+    }
+
+    const platform = await driver.getPlatform();
+    
+    if (platform === 'Android') {
+      await driver.hideKeyboard('tapOutside');
+    }
   }
 
   /**
