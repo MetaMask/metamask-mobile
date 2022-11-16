@@ -13,10 +13,10 @@ import { useStyles } from '../../../../component-library/hooks';
 import ButtonPrimary, {
   ButtonPrimaryVariants,
 } from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import ButtonSecondary, {
-  ButtonSecondaryVariants,
-} from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
-import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -25,6 +25,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 // Internal dependencies.
 import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
+import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -138,16 +139,18 @@ const AccountConnectMultiSelector = ({
 
     return (
       <View style={styles.ctaButtonsContainer}>
-        <ButtonSecondary
-          variant={ButtonSecondaryVariants.Normal}
+        <Button
+          variant={ButtonVariants.Secondary}
+          buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={() => onDismissSheetWithCallback()}
           size={ButtonSize.Lg}
           style={styles.button}
         />
         <View style={styles.buttonSeparator} />
-        <ButtonPrimary
-          variant={ButtonPrimaryVariants.Normal}
+        <Button
+          variant={ButtonVariants.Primary}
+          buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect_with_count', {
             countLabel: selectedAddresses.length
               ? ` (${selectedAddresses.length})`

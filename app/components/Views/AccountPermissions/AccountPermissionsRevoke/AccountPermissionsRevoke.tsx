@@ -9,10 +9,11 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import ButtonSecondary, {
-  ButtonSecondaryVariants,
-} from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
-import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
+import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { ButtonTertiaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
 import { removePermittedAccount } from '../../../../core/Permissions';
@@ -100,8 +101,9 @@ const AccountPermissionsRevoke = ({
       </View>
       <AccountSelectorList
         renderRightAccessory={(address, name) => (
-          <ButtonSecondary
-            variant={ButtonSecondaryVariants.Danger}
+          <Button
+            variant={ButtonVariants.Secondary}
+            buttonSecondaryVariants={ButtonSecondaryVariants.Danger}
             onPress={() => {
               if (permittedAddresses.length === 1) {
                 // Dismiss and show toast

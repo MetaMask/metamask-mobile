@@ -14,13 +14,12 @@ import Cell, {
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import ButtonPrimary, {
-  ButtonPrimaryVariants,
-} from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import ButtonSecondary, {
-  ButtonSecondaryVariants,
-} from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
-import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
+import { ButtonPrimaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
@@ -85,16 +84,18 @@ const AccountConnectSingle = ({
   const renderCtaButtons = useCallback(
     () => (
       <View style={[styles.ctaButtonsContainer, isLoading && styles.disabled]}>
-        <ButtonSecondary
-          variant={ButtonSecondaryVariants.Normal}
+        <Button
+          variant={ButtonVariants.Secondary}
+          buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={onDismissSheet}
           size={ButtonSize.Lg}
           style={styles.button}
         />
         <View style={styles.buttonSeparator} />
-        <ButtonPrimary
-          variant={ButtonPrimaryVariants.Normal}
+        <Button
+          variant={ButtonVariants.Primary}
+          buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect')}
           onPress={onConnect}
           size={ButtonSize.Lg}
