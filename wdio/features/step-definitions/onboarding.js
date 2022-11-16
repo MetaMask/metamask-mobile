@@ -21,7 +21,7 @@ When(/^I launch MetaMask mobile app/, async () => {
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
-      await WelcomeScreen.isScreenTitleVisible();
+      await WelcomeScreen.waitForSplashScreen();
       break;
     case 'Wallet setup':
       await OnboardingScreen.isScreenTitleVisible();
@@ -76,7 +76,6 @@ When(/^I swipe left on the carousel/, async () => {
 When(/^I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Get started':
-      await driver.pause(7000); //TODO: Needs a smarter set timeout
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':

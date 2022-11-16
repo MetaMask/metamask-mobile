@@ -4,6 +4,7 @@ Feature: Lock and Reset Wallet
     Scenario: Import wallet
         Given I just installed MetaMask on my device
         When I launch MetaMask mobile app
+        Then "METAMASK" is displayed
         And I tap "Get started"
         And I tap "Import using Secret Recovery Phrase"
         And I tap "I agree"
