@@ -344,7 +344,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo $BITRISE_TEST_RESULT_DIR
-                cp -r $PROJECT_LOCATION/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
+                echo $BITRISE_SOURCE_DIR
+                cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
                 ls -la $BITRISE_TEST_RESULT_DIR
       - deploy-to-bitrise-io@1:
           inputs:
