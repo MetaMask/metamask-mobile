@@ -285,6 +285,8 @@ const CheckoutWebView = () => {
       </View>
     );
   }
+
+  return null;
 };
 
 export default CheckoutWebView;
