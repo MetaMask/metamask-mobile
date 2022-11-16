@@ -83,7 +83,7 @@ index 0000000..f4a6af9
 +  }
 +}
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..f443f14 100644
+index f743bbc..8f48db9 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -576,15 +576,24 @@ index f743bbc..f443f14 100644
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -865,16 +1129,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -857,24 +1121,25 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     @Override
+     public void onPageFinished(WebView webView, String url) {
+       super.onPageFinished(webView, url);
++      // Only return the URL that the web view is currently showing.
++      String visibleUrl = webView.getUrl();
  
-         emitFinishEvent(webView, url);
+       if (!mLastLoadFailed) {
+         RNCWebView reactWebView = (RNCWebView) webView;
+ 
+         reactWebView.callInjectedJavaScript();
+ 
+-        emitFinishEvent(webView, url);
++        emitFinishEvent(webView, visibleUrl);
        }
 +      if(Objects.nonNull(mWebChromeClient)) mWebChromeClient.blockJsDuringLoading = false;
      }
  
-+
-+
      @Override
      public void onPageStarted(WebView webView, String url, Bitmap favicon) {
        super.onPageStarted(webView, url, favicon);
@@ -739,8 +748,7 @@ index f743bbc..f443f14 100644
 +      int code = error.getPrimaryError();
 +      String description = "";
 +      String descriptionPrefix = "SSL error: ";
- 
--        description = descriptionPrefix + description;
++
 +      // https://developer.android.com/reference/android/net/http/SslError.html
 +      switch (code) {
 +        case SslError.SSL_DATE_INVALID:
@@ -766,14 +774,15 @@ index f743bbc..f443f14 100644
 +          break;
 +      }
  
+-        description = descriptionPrefix + description;
++      description = descriptionPrefix + description;
+ 
 -        this.onReceivedError(
 -          webView,
 -          code,
 -          description,
 -          failingUrl
 -        );
-+      description = descriptionPrefix + description;
-+
 +      this.onReceivedError(
 +        webView,
 +        code,
