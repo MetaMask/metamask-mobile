@@ -114,6 +114,12 @@ class Gestures  {
 
   static async typeText(element, text) {
     const elem = await element;
+    const platform = await driver.getPlatform();
+
+    if (platform === 'Android') {
+      await driver.hideKeyboard('tapOutside');
+    }
+
     await elem.waitForDisplayed();
     (await elem).touchAction(Actions.TAP);
     await elem.clearValue();
