@@ -14,13 +14,13 @@ class MetaMetricsScreen {
   async tapIAgreeButton() {
     const elem = $(`~${OPTIN_METRICS_I_AGREE_BUTTON_ID}`);
     await Gestures.tap(elem);
-    await elem.waitForDisplayed({ reverse: true });
+    await driver.pause(2000);
   }
 
   async tapNoThanksButton() {
     const elem = $(`~${OPTIN_METRICS_NO_THANKS_BUTTON_ID}`);
     await Gestures.tap(elem);
-    await elem.waitForDisplayed({ reverse: true });
+    await driver.pause(2000);
   }
 }
 
