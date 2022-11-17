@@ -10,7 +10,7 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { util } from '@metamask/controllers';
+import { hexToBN } from '@metamask/controller-utils';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -64,8 +64,6 @@ import {
 } from '../../../../constants/error';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
-
-const { hexToBN } = util;
 
 const dummy = () => true;
 

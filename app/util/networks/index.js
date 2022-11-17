@@ -9,7 +9,7 @@ import {
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
@@ -244,7 +244,7 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await util.query(
+  const networkNonce = await query(
     TransactionController.ethQuery,
     'getTransactionCount',
     [from, 'pending'],

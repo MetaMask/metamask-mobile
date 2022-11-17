@@ -12,7 +12,7 @@ import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -127,7 +127,7 @@ class AddAsset extends PureComponent {
     } = this.props;
     const { dismissNftInfo } = this.state;
     const isTokenDetectionSupported =
-      controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
+      isTokenDetectionSupportedForNetwork(chainId);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 

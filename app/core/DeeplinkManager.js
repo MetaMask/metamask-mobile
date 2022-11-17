@@ -11,7 +11,7 @@ import { generateApproveData } from '../util/transactions';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
 import {
   ACTIONS,
   ETH_ACTIONS,

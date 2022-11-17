@@ -22,7 +22,7 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
 import AppConstants from '../../../core/AppConstants';
-import { Token as TokenType } from '@metamask/controllers';
+import { Token as TokenType } from '@metamask/assets-controllers';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,

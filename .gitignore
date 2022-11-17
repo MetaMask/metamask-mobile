@@ -85,3 +85,6 @@ tests
 
 # attributions
 licenseInfos.json
+
+# Allows access to preview versions of @metamask/* packages for testing
+.npmrc

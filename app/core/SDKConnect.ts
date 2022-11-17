@@ -7,7 +7,7 @@ import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from './Engine';
-import { WalletDevice } from '@metamask/controllers';
+import { WalletDevice } from '@metamask/transaction-controller';
 import DefaultPreference from 'react-native-default-preference';
 
 import {

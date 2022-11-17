@@ -26,7 +26,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { shallowEqual } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559Update';
 import EditGasFeeLegacy from '../EditGasFeeLegacyUpdate';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import {
   estimateGas,

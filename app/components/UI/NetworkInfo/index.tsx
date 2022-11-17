@@ -14,7 +14,7 @@ import {
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -132,7 +132,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
-    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
+    isTokenDetectionSupportedForNetwork(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {

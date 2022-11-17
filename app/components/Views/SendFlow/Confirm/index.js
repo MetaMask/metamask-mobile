@@ -28,12 +28,9 @@ import {
   getNormalizedTxState,
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import {
-  util,
-  WalletDevice,
-  NetworksChainId,
-  GAS_ESTIMATE_TYPES,
-} from '@metamask/controllers';
+import { WalletDevice } from '@metamask/transaction-controller';
+import { hexToBN, BNToHex, NetworksChainId } from '@metamask/controller-utils';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,
   resetTransaction,
@@ -95,8 +92,6 @@ const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
-
-const { hexToBN, BNToHex } = util;
 
 /**
  * View that wraps the wraps the "Send" screen

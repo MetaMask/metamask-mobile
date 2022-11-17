@@ -1,5 +1,6 @@
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
+/* eslint-disable-next-line import/no-namespace */
+import * as controllerUtilsModule from '@metamask/controller-utils';
 import { BNToHex } from '../number';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
@@ -19,6 +20,10 @@ import {
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn(),
+}));
 jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
@@ -37,14 +42,13 @@ const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const MOCK_CHAIN_ID = '1';
 
-const spyOnQueryMethod = (returnValue: string | undefined) => {
-  jest.spyOn(util, 'query').mockImplementation(
+const spyOnQueryMethod = (returnValue: string | undefined) =>
+  jest.spyOn(controllerUtilsModule, 'query').mockImplementation(
     () =>
       new Promise<string | undefined>((resolve) => {
         resolve(returnValue);
       }),
   );
-};
 
 describe('Transactions utils :: generateTransferData', () => {
   it('generateTransferData should throw if undefined values', () => {

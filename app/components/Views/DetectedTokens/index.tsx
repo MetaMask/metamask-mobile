@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import { Token as TokenType } from '@metamask/controllers';
+import { Token as TokenType } from '@metamask/assets-controllers';
 import Token from './components/Token';
 import Engine from '../../../core/Engine';
 import { useNavigation } from '@react-navigation/native';
