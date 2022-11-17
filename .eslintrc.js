@@ -162,5 +162,5 @@ module.exports = {
     radix: 0,
   },
 
-  ignorePatterns: ['wdio.conf.js'],
+  ignorePatterns: ['wdio.conf.js', 'snap_bundles/*.js'],
 };
