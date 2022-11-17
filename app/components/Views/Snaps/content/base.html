@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <script>
+        function killSnap(snapId) {
+            const frame = document.getElementById(snapId);
+            if (frame) {
+                frame.parentNode.removeChild(frame);
+            }
+        }
+
+        function createIframe(snapId, sourceCode) {
+            
+        }
+
+        window.addEventListener("message", message => {
+          const { method, snapId, args } = JSON.parse(message.data);
+          switch (method) {
+            case 'start_snap':
+                // create iframe
+                return;
+            case 'execute_snap':
+                const response = document.getElementById(snapId).contentWindow.snap.onRpcRequest(args);
+                sendDataToReactNativeApp(JSON.stringify(response))
+                return;
+            case 'kill_snap':
+                killSnap(snapId);
+                return;
+          }
+        });
+    </script>
+    <body
+      style="display: flex; justify-content: center; flex-direction: column; align-items: center;"
+    >
+        <button
+            onclick="sendDataToReactNativeApp()"
+            style="padding: 20; width: 200; font-size: 30; color: white; background-color: #6751ff;"
+        >
+        Send data to app
+        </button>
+        <div>
+            <p id="myContent">Basic HTML</p>
+            <iframe id="snap-1" name="snap-1" src="./iframe1.html"></iframe>
+            <iframe id="snap-2" name="snap-2" src="./iframe2.html"></iframe>
+        </div>
+    </body>
+
+</html>
