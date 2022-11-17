@@ -40,14 +40,14 @@ import {
 } from '../../../util/payment-link-generator';
 import Device from '../../../util/device';
 import currencySymbols from '../../../util/currency-symbols.json';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/controllers/dist/util';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>

@@ -41,7 +41,7 @@ import { isENS, isValidHexAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
 import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';

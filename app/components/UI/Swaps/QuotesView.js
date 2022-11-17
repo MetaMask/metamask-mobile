@@ -17,10 +17,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
   WalletDevice,
-  util,
-  GAS_ESTIMATE_TYPES,
   TransactionStatus,
-} from '@metamask/controllers/';
+} from '@metamask/transaction-controller';
+import { query } from '@metamask/controller-utils';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
   addHexPrefix,
@@ -759,12 +759,12 @@ function SwapsQuotesView({
       newSwapsTransactions,
     ) => {
       const { TransactionController } = Engine.context;
-      const blockNumber = await util.query(
+      const blockNumber = await query(
         TransactionController.ethQuery,
         'blockNumber',
         [],
       );
-      const currentBlock = await util.query(
+      const currentBlock = await query(
         TransactionController.ethQuery,
         'getBlockByNumber',
         [blockNumber, false],

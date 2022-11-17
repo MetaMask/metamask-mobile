@@ -17,7 +17,8 @@ import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
@@ -39,8 +40,6 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
-
-const { BNToHex, hexToBN } = util;
 
 const EDIT = 'edit';
 const REVIEW = 'review';

@@ -1,6 +1,6 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';

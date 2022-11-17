@@ -23,9 +23,12 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
-import { WalletDevice, util } from '@metamask/controllers/';
+import { weiHexToGweiDec } from '@metamask/controller-utils';
+import {
+  WalletDevice,
+  isEIP1559Transaction,
+} from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const createStyles = (colors) =>
   StyleSheet.create({
