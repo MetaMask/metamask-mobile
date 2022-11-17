@@ -125,6 +125,14 @@ const SnapsPOC: React.FC = () => {
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
+    // webviewRef.current.postMessage(
+    //   JSON.stringify({
+    //     method: 'start_snap',
+    //     snapId: 'snap-3',
+    //     sourceCode:
+    //       'https://raw.githubusercontent.com/MetaMask/metamask-mobile/snaps/exec-env/snap_bundles/helloWorld_snap.js',
+    //   }),
+    // );
   };
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -151,6 +159,9 @@ const SnapsPOC: React.FC = () => {
             injectedJavaScript={runFirst}
             mixedContentMode="compatibility"
             onMessage={onMessage}
+            applicationNameForUserAgent={
+              'WebView Snap Execution Environment MetaMask Mobile'
+            }
           />
         </View>
       </View>
