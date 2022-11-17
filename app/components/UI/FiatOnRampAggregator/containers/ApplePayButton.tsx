@@ -77,6 +77,7 @@ const ApplePayButton = ({
               .symbol,
             chain_id_destination: chainId,
             is_apple_pay: true,
+            order_type: fiatOrder.orderType,
             has_zero_native_balance: accounts[selectedAddress]?.balance
               ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
               : undefined,

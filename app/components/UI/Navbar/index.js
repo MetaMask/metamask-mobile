@@ -13,6 +13,7 @@ import {
   Image,
   Keyboard,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -29,8 +30,12 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
-import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { WALLET_VIEW_BURGER_ICON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import {
+  NAV_ANDROID_BACK_BUTTON,
+  NETWORK_BACK_ARROW_BUTTON_ID,
+} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = (event) => {
@@ -210,7 +215,7 @@ export function getNavigationOptionsTitle(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.backButton}
-          testID={BACK_ARROW_BUTTON_ID}
+          {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
         >
           <IonicIcon
             name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -867,7 +872,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.backButton}
-          testID={'nav-android-back'}
+          {...generateTestId(Platform, NAV_ANDROID_BACK_BUTTON)}
         >
           <IonicIcon
             name={'md-arrow-back'}
@@ -981,6 +986,7 @@ export function getWalletNavbarOptions(
         testID={'hamburger-menu-button-wallet'}
       >
         <IonicIcon
+          {...generateTestId(Platform, WALLET_VIEW_BURGER_ICON_ID)}
           name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}

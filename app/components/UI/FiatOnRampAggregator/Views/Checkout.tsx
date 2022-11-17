@@ -34,6 +34,7 @@ const CheckoutWebView = () => {
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
+  const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   // @ts-expect-error useRoute params error
@@ -102,7 +103,12 @@ const CheckoutWebView = () => {
   }, [dispatch]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
-    if (navState?.url.startsWith(callbackBaseUrl)) {
+    if (
+      !isRedirectionHandled &&
+      navState?.url.startsWith(callbackBaseUrl) &&
+      navState.loading === false
+    ) {
+      setIsRedirectionHandled(true);
       try {
         const parsedUrl = parseUrl(navState?.url);
         if (Object.keys(parsedUrl.query).length === 0) {
@@ -162,6 +168,7 @@ const CheckoutWebView = () => {
           currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
             ?.cryptoCurrency.symbol,
           chain_id_destination: selectedChainId,
+          order_type: (transformedOrder as FiatOrder)?.orderType,
           is_apple_pay: false,
           has_zero_native_balance: accounts[selectedAddress]?.balance
             ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
@@ -195,6 +202,7 @@ const CheckoutWebView = () => {
             ctaOnPress={() => {
               setKey((prevKey) => prevKey + 1);
               setError('');
+              setIsRedirectionHandled(false);
             }}
             location={'Provider Webview'}
           />

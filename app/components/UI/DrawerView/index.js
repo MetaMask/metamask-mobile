@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -75,6 +76,11 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  DRAWER_VIEW_LOCK_TEXT_ID,
+  DRAWER_VIEW_SETTINGS_TEXT_ID,
+} from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1018,6 +1024,7 @@ class DrawerView extends PureComponent {
           icon: this.getFeatherIcon('settings'),
           warning: strings('drawer.settings_warning_short'),
           action: this.showSettings,
+          testID: DRAWER_VIEW_SETTINGS_TEXT_ID,
         },
         {
           name: strings('drawer.help'),
@@ -1033,6 +1040,8 @@ class DrawerView extends PureComponent {
           name: strings('drawer.lock'),
           icon: this.getFeatherIcon('log-out'),
           action: this.logout,
+          // ...generateTestId(Platform, DRAWER_VIEW_LOCK_ICON_ID),
+          testID: DRAWER_VIEW_LOCK_TEXT_ID,
         },
       ],
     ];
@@ -1357,6 +1366,7 @@ class DrawerView extends PureComponent {
                                 ? styles.selectedName
                                 : null,
                             ]}
+                            {...generateTestId(Platform, item.testID)}
                             numberOfLines={1}
                           >
                             {item.name}
