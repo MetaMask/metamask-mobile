@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { Fragment, useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -6,13 +6,16 @@ import { WebView } from 'react-native-webview';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { useTheme, mockTheme } from '../../../util/theme';
+
+// Snaps
 import {
-  basicHTML,
-  mockIframe,
-  jsCode,
-  mockScript,
-  safeExecEnv,
-} from './basicHTML';
+  wrapSourceCodeInIframe,
+  generateBasicHTMLWithIframes,
+  wrapScriptInHTML,
+  wrapCodeInScriptTags,
+  generateSnapIframeId,
+} from './utils';
+import { snapMock } from './SnapsMock';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -64,9 +67,12 @@ const createStyles = (colors: any) =>
 
 const SnapsPOC: React.FC = () => {
   const [iframes, setIframes] = useState<string[]>([]);
-  const [source, setSource] = useState<string>(basicHTML(iframes));
+  const [source, setSource] = useState<string>(
+    generateBasicHTMLWithIframes(iframes),
+  );
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const webviewRef = useRef() as any;
   const styles = createStyles(colors);
 
   useEffect(() => {
@@ -81,22 +87,48 @@ const SnapsPOC: React.FC = () => {
     );
   }, [navigation]);
 
-  const addNewIframe = () => {
-    const newIframesArray = [...iframes, mockIframe];
-    setSource(basicHTML(newIframesArray));
-    setIframes(newIframesArray);
-  };
-
   const runFirst = `
-    const sendDataToReactNativeApp = async () => {
-      window.ReactNativeWebView.postMessage('Data from WebView / Website');
+    const sendDataToReactNativeApp = async (response) => {
+      window.ReactNativeWebView.postMessage(response);
     };
   `;
 
+  const addNewIframe = () => {
+    const snapMockScript = wrapCodeInScriptTags(snapMock.sourceCode);
+    const newSource = wrapScriptInHTML(snapMockScript);
+    const newIframe = wrapSourceCodeInIframe(
+      newSource,
+      generateSnapIframeId(snapMock.id.toString()),
+    );
+    const newIframesArray = [...iframes, newIframe];
+    setSource(generateBasicHTMLWithIframes(newIframesArray));
+    setIframes(newIframesArray);
+  };
+
   const onMessage = (data: any) => {
     // eslint-disable-next-line no-console
-    console.log(data.nativeEvent.data);
+    console.log(data.nativeEvent);
   };
+
+  const sendDataToWebView = () => {
+    webviewRef.current.postMessage(
+      JSON.stringify({
+        method: 'execute_snap',
+        snapId: 'snap-1',
+        args: { origin: 'origin', request: { method: 'hello' } },
+      }),
+    );
+    webviewRef.current.postMessage(
+      JSON.stringify({
+        method: 'execute_snap',
+        snapId: 'snap-2',
+        args: { origin: 'origin', request: { method: 'hello' } },
+      }),
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const baseHTML = require('./content/base.html');
 
   return (
     <Fragment>
@@ -111,10 +143,12 @@ const SnapsPOC: React.FC = () => {
         </View>
         <View style={styles.webViewContainer}>
           <WebView
+            originWhitelist={['*']}
+            ref={webviewRef}
             style={styles.webView}
-            source={{ html: source }}
-            injectedJavaScript={runFirst}
+            source={baseHTML}
             javaScriptEnabledAndroid
+            injectedJavaScript={runFirst}
             mixedContentMode="compatibility"
             onMessage={onMessage}
           />
@@ -131,7 +165,7 @@ const SnapsPOC: React.FC = () => {
         <StyledButton
           type="orange"
           containerStyle={styles.actionButton}
-          onPress={() => null}
+          onPress={sendDataToWebView}
         >
           Execute code
         </StyledButton>
