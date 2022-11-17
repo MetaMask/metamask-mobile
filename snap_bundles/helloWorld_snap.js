@@ -71,14 +71,8 @@
         }) => {
           switch (request.method) {
             case 'hello':
-              return wallet.request({
-                method: 'snap_confirm',
-                params: [{
-                  prompt: getMessage(origin),
-                  description: 'This custom confirmation is just for display purposes.',
-                  textAreaContent: 'You sure I can'
-                }]
-              });
+                console.log('hello from snap 2');
+                return 'hello from snap 2'
   
             default:
               throw new Error('Method not found.');
