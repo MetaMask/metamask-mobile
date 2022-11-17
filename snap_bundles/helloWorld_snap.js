@@ -59,8 +59,8 @@
         });
         exports.onRpcRequest = exports.getMessage = void 0;
   
-        const getMessage = originString => {
-          return `Hello ya cunt, ${originString}!`;
+        const getMessage = () => {
+          return 'Hello World';
         };
   
         exports.getMessage = getMessage;
@@ -71,8 +71,8 @@
         }) => {
           switch (request.method) {
             case 'hello':
-                console.log('hello from snap 2');
-                return 'hello from snap 2'
+                console.log('Hello World - From snap');
+                return 'Hello World - From snap'
   
             default:
               throw new Error('Method not found.');
