@@ -10,11 +10,11 @@ import { ModalMandatoryI } from './ModalMandatory.types';
 
 const ModalMandatory = ({
   headerTitle,
-  onConfirm,
   footerHelpText,
-  confirmDisabled,
+  buttonDisabled = false,
   buttonText,
   children,
+  onPress,
 }: ModalMandatoryI) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
@@ -34,16 +34,16 @@ const ModalMandatory = ({
           <View style={styles.confirmButtonContainer}>
             <ButtonPrimary
               label={buttonText}
-              disabled={confirmDisabled}
+              disabled={buttonDisabled}
               style={{
                 ...styles.confirmButton,
                 ...{
-                  backgroundColor: confirmDisabled
+                  backgroundColor: buttonDisabled
                     ? colors.primary.muted
                     : colors.primary.default,
                 },
               }}
-              onPress={onConfirm}
+              onPress={onPress}
             />
             {footerHelpText && (
               <Text style={styles.footerHelpText}>{footerHelpText}</Text>

@@ -79,9 +79,9 @@ const ModalUseTerms = ({ onDismiss }: ModalUseTermsI) => {
   return (
     <ModalMandatory
       buttonText={strings('terms_of_use_modal.accept_cta')}
-      confirmDisabled={!isTermsSelected}
+      buttonDisabled={!isTermsSelected}
       headerTitle={strings('terms_of_use_modal.title')}
-      onConfirm={onConfirmUseTerms}
+      onPress={onConfirmUseTerms}
       footerHelpText={strings('terms_of_use_modal.accept_helper_description')}
     >
       <ScrollView

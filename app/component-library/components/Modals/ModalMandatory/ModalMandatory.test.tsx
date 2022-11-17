@@ -8,7 +8,6 @@ describe('Mandatory Modal', () => {
     const wrapper = shallow(
       <ModalMandatory
         buttonText={'test'}
-        confirmDisabled={true}
         headerTitle={'test'}
         onConfirm={() => {}}
       >

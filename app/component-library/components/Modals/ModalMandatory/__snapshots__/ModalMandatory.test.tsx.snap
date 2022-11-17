@@ -69,12 +69,11 @@ exports[`Mandatory Modal should render correctly 1`] = `
         }
       >
         <ButtonPrimary
-          disabled={true}
           label="test"
           onPress={[Function]}
           style={
             Object {
-              "backgroundColor": "#037DD619",
+              "backgroundColor": "#037DD6",
               "marginTop": 16,
               "width": "100%",
             }

@@ -2,9 +2,9 @@ import React from 'react';
 
 export interface ModalMandatoryI {
   headerTitle: string;
-  onConfirm: () => void;
+  onPress: () => void;
   footerHelpText?: string;
-  confirmDisabled: boolean;
+  buttonDisabled?: boolean;
   buttonText: string;
   children: React.ReactNode;
 }
