@@ -10,9 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import ButtonPrimary, {
-  ButtonPrimaryVariants,
-} from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import { ButtonPrimaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import Button, {
   ButtonSize,
   ButtonVariants,
