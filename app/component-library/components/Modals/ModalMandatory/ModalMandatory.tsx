@@ -45,9 +45,9 @@ const ModalMandatory = ({
               }}
               onPress={onPress}
             />
-            {footerHelpText && (
+            {footerHelpText ? (
               <Text style={styles.footerHelpText}>{footerHelpText}</Text>
-            )}
+            ) : null}
           </View>
         </View>
       </View>
