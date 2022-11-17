@@ -10,5 +10,4 @@ const mockHTML = `
   </body>
 `;
 
-// eslint-disable-next-line import/prefer-default-export
 export { mockIframe, mockHTML };
