@@ -957,6 +957,7 @@ export function getWalletNavbarOptions(
           label={networkName}
           imageSource={networkImageSource}
           onPress={onPressTitle}
+          testID={'open-networks-button'}
         />
       </View>
     ),
