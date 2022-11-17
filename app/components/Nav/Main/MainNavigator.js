@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -198,6 +198,7 @@ export const DrawerContext = React.createContext({ drawerRef: null });
 
 const HomeTabs = () => {
   const drawerRef = useRef(null);
+  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const options = {
     home: {
@@ -208,18 +209,38 @@ const HomeTabs = () => {
     },
   };
 
+  useEffect(() => {
+    // Hide keyboard on Android when keyboard is visible.
+    // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
+    if (Platform.OS === 'android') {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+        setIsKeyboardHidden(false);
+      });
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+        setIsKeyboardHidden(true);
+      });
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }
+  }, []);
+
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
-          tabBar={({ state, descriptors, navigation }) => (
-            <TabBar
-              state={state}
-              descriptors={descriptors}
-              navigation={navigation}
-            />
-          )}
+          tabBar={({ state, descriptors, navigation }) =>
+            isKeyboardHidden ? (
+              <TabBar
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+              />
+            ) : null
+          }
         >
           <Tab.Screen
             name={Routes.WALLET.HOME}
