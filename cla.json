@@ -479,6 +479,14 @@
       "comment_id": 1303994675,
       "created_at": "2022-11-04T18:44:24Z",
       "repoId": 141427485
+    },
+    {
+      "id": 7371,
+      "name": "mcmire",
+      "pullRequestNo": 5270,
+      "comment_id": 1319395778,
+      "created_at": "2022-11-18T00:32:41Z",
+      "repoId": 141427485
     }
   ]
 }
