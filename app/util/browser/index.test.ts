@@ -1,4 +1,5 @@
-import onUrlSubmit, { isTLD } from '.';
+import onUrlSubmit, { isTLD, getAlertMessage, protocolWhitelist } from '.';
+import { strings } from '../../../locales/i18n';
 
 describe('Browser utils :: onUrlSubmit', () => {
   it('should sanitize url without protocol', () => {
@@ -98,5 +99,31 @@ describe('Browser utils :: isTLD', () => {
     const hostname = 'evan.eth';
     const error = '';
     expect(isTLD(hostname, error)).toBeFalsy();
+  });
+});
+
+describe('Browser utils :: getAlertMessage', () => {
+  it('should mailto alert message', () => {
+    const { protocol } = new URL('mailto:testtmail');
+    const matchingMessage =
+      getAlertMessage(protocol, strings) ===
+      strings('browser.protocol_alerts.mailto');
+
+    expect(matchingMessage).toBeTruthy();
+  });
+  it('should return tel alert message', () => {
+    const { protocol } = new URL('tel:1111');
+    const matchingMessage =
+      getAlertMessage(protocol, strings) ===
+      strings('browser.protocol_alerts.tel');
+
+    expect(matchingMessage).toBeTruthy();
+  });
+  it('should return generic alert message', () => {
+    const { protocol } = new URL('dapp://testdapp');
+    const matchingMessage =
+      getAlertMessage(protocol, strings) ===
+      strings('browser.protocol_alerts.generic');
+    expect(matchingMessage).toBeTruthy();
   });
 });

@@ -24,7 +24,14 @@ import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
+import onUrlSubmit, {
+  getHost,
+  getUrlObj,
+  isTLD,
+  protocolWhitelist,
+  getAlertMessage,
+  allowLinkOpen,
+} from '../../../util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
@@ -803,40 +810,25 @@ export const BrowserTab = (props) => {
     });
   }, []);
 
-  const protocolWhitelist = ['about:', 'http:', 'https:'];
-
-  const getAlertMessage = (protocol) => {
-    switch (protocol) {
-      case 'tel:':
-        return strings('browser.protocol_alerts.tel');
-      case 'mailto:':
-        return strings('browser.protocol_alerts.mailto');
-      default:
-        return strings('browser.protocol_alerts.generic');
+  /**
+   *  Function that allows custom handling of any web view requests.
+   *  Return `true` to continue loading the request and `false` to stop loading.
+   */
+  const onShouldStartLoadWithRequest = ({ url }) => {
+    // Stops normal loading when it's ens, instead call go to be properly set up
+    if (isENSUrl(url)) {
+      go(url.replace(/^http:\/\//, 'https://'));
+      return false;
     }
-  };
 
-  const allowLinkOpen = (url) =>
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          return Linking.openURL(url);
-        }
-        console.warn(`Can't open url: ${url}`);
-        return null;
-      })
-      .catch((e) => {
-        console.warn(`Error opening URL: ${e}`);
-      });
-
-  const verifyKnownProtocols = (url) => {
+    // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
+    if (protocolWhitelist.includes(protocol)) return true;
 
-    const isProtocolWhitelisted = protocolWhitelist.includes(protocol);
-    if (isProtocolWhitelisted) return true;
+    const alertMsg = getAlertMessage(protocol, strings);
 
-    const alertMsg = getAlertMessage(protocol);
-
+    // Pop up an alert dialog box to prompt the user for permission
+    // to execute the request
     Alert.alert(strings('onboarding.warning_title'), alertMsg, [
       {
         text: strings('browser.protocol_alert_options.ignore'),
@@ -851,18 +843,6 @@ export const BrowserTab = (props) => {
     ]);
 
     return false;
-  };
-
-  /**
-   * Stops normal loading when it's ens, instead call go to be properly set up
-   */
-  const onShouldStartLoadWithRequest = ({ url }) => {
-    if (isENSUrl(url)) {
-      go(url.replace(/^http:\/\//, 'https://'));
-      return false;
-    }
-
-    return verifyKnownProtocols(url);
   };
 
   /**
@@ -952,8 +932,8 @@ export const BrowserTab = (props) => {
       await go(sanitizedInput);
     },
     /* we do not want to depend on the props object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -973,8 +953,8 @@ export const BrowserTab = (props) => {
       );
     },
     /* we do not want to depend on the props.navigation object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [onUrlInputSubmit],
   );
@@ -1058,8 +1038,8 @@ export const BrowserTab = (props) => {
       });
     }
     /* we do not want to depend on the entire props object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, props.activeTab, props.id, toggleUrlModal]);
 
