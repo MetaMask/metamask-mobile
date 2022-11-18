@@ -263,7 +263,7 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.logout();
+      this.logout(false);
       console.log('newWalletAndKeyChain error');
       throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
     }
@@ -283,8 +283,8 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     try {
-      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.type);
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
@@ -312,6 +312,7 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
+      console.log('userEntryAuth', e);
       this.logout(false);
       throw new AuthenticationError(e, 'Failed to login', this.authData);
     }

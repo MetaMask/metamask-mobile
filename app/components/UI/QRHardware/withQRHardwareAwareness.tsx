@@ -24,17 +24,15 @@ const withQRHardwareAwareness = (
 
     useEffect(() => {
       const { KeyringController } = Engine.context as any;
-      if (KeyringController.isUnlocked()) {
-        KeyringController.getQRKeyringState().then((store: any) => {
-          keyringState.current = store;
-          keyringState.current.subscribe(subscribeKeyringState);
-        });
-        return () => {
-          if (keyringState.current) {
-            keyringState.current.unsubscribe(subscribeKeyringState);
-          }
-        };
-      }
+      KeyringController.getQRKeyringState().then((store: any) => {
+        keyringState.current = store;
+        keyringState.current.subscribe(subscribeKeyringState);
+      });
+      return () => {
+        if (keyringState.current) {
+          keyringState.current.unsubscribe(subscribeKeyringState);
+        }
+      };
     }, []);
 
     return (

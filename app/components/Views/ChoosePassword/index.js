@@ -449,21 +449,25 @@ class ChoosePassword extends PureComponent {
    * It resets the state and and prompts the user to both set the "Remember Me" state and to try again.
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
-  handleRejectedOsBiometricPrompt = async (error) => {
-    console.log('handleRejectedOsBiometricPrompt', error.toString());
+  handleRejectedOsBiometricPrompt = async () => {
     // const authData = await Authentication.getType();
     const newAuthData = await Authentication.componentAuthenticationType(
       false,
       false,
     );
-    console.log('handleRejectedOsBiometricPrompt type', newAuthData);
-    await Authentication.newWalletAndKeyChain(this.state.password, newAuthData);
+    try {
+      await Authentication.newWalletAndKeyChain(
+        this.state.password,
+        newAuthData,
+      );
+    } catch (err) {
+      throw Error(strings('choose_password.disable_biometric_error'));
+    }
     this.setState({
       biometryType: newAuthData.type,
       biometryChoice: true,
     });
     this.updateBiometryChoice();
-    // throw Error(strings('choose_password.disable_biometric_error'));
   };
 
   /**

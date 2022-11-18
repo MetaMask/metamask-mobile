@@ -315,6 +315,7 @@ class Login extends PureComponent {
       });
       field.setValue('');
     } catch (e) {
+      console.log('onLogin', e);
       const error = e.toString();
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||

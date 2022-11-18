@@ -1,10 +1,12 @@
 export function passwordSet() {
+  console.log('passwordSet called');
   return {
     type: 'PASSWORD_SET',
   };
 }
 
 export function passwordUnset() {
+  console.log('passwordUnset called');
   return {
     type: 'PASSWORD_UNSET',
   };
