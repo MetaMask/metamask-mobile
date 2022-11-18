@@ -1410,7 +1410,7 @@
     "before_continiuing": "Before continuing we need you to confirm your password",
     "confirm": "CONFIRM",
     "screenshot_warning_title": "Screenshot warning",
-    "screenshot_warning_desc": "If you are going to store your SRP, do it in a safe place, not as a screenshot that is likely to be automatically backed up online. Don’t share your SRP.",
+    "screenshot_warning_desc": "Screenshots aren't a safe way to keep track of your Secret Recovery Phrase. Store it somewhere that isn't backed up online to keep your account safe.",
     "got_it": "Got it",
     "learn_more": "Learn More"
   },
