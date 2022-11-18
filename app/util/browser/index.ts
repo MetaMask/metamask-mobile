@@ -1,7 +1,5 @@
-import { Alert, Linking } from 'react-native';
-import URL from 'url-parse';
+import { Linking } from 'react-native';
 import isUrl from 'is-url';
-import { strings } from '../../../locales/i18n';
 
 /**
  * Returns a sanitized url, which could be a search engine url if
