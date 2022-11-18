@@ -8,13 +8,19 @@
       }
     }
 
-    function createIframe(snapId, sourceCode) {
+    function createIframe(snapId, sourceCodeUri) {
+      const script = document.createElement('script');
+      script.setAttribute('src', sourceCodeUri);
+
       const iframe = document.createElement('iframe');
+
       iframe.id = snapId;
-      iframe.setAttribute('srcdoc', sourceCode);
+      iframe.setAttribute('srcdoc', sourceCodeUri);
       iframe.setAttribute('sandbox', 'allow-scripts');
 
+      iframe.appendChild(script);
       document.body.appendChild(iframe);
+      
     }
 
     window.addEventListener('message', message => {
