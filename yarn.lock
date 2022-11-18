@@ -3986,9 +3986,9 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/swaps-controller@git+https://github.com/MetaMask/swaps-controller.git#bbcddc257b5621c866016d72f4ec0172678def6f":
+"@metamask/swaps-controller@git+https://github.com/MetaMask/swaps-controller.git#81c0f63ba2b8cf93c055da05146f694fbf2066b1":
   version "6.6.0-1"
-  resolved "git+https://github.com/MetaMask/swaps-controller.git#bbcddc257b5621c866016d72f4ec0172678def6f"
+  resolved "git+https://github.com/MetaMask/swaps-controller.git#81c0f63ba2b8cf93c055da05146f694fbf2066b1"
   dependencies:
     "@metamask/controllers" "^26.0.0"
     abort-controller "^3.0.0"
