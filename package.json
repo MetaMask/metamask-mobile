@@ -337,7 +337,7 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@types/enzyme": "^3.10.9",
     "@types/jest": "^27.0.1",
-    "@types/react": "^17.0.11",
+    "@types/react": "^17.0.21",
     "@types/react-native": "^0.64.10",
     "@types/react-native-background-timer": "^2.0.0",
     "@types/react-native-material-textfield": "^0.16.5",
