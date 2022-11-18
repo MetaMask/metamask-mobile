@@ -7,16 +7,15 @@ import { text, select } from '@storybook/addon-knobs';
 
 // Internal dependencies.
 import ModalMandatory from './ModalMandatory';
-import { ModalMandatoryI } from './ModalMandatory.types';
 import Text from '../../Texts/Text';
 
 storiesOf('Component Library / ModalMandatory', module).add('Default', () => (
   <ModalMandatory
-    confirmDisabled
+    buttonDisabled
     buttonText={'Confirm'}
     headerTitle={'Title'}
     footerHelpText={'Help text'}
-    onConfirm={() => {}}
+    onPress={() => {}}
   >
     <Text>Lorem ispum</Text>
   </ModalMandatory>

@@ -2,10 +2,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
-
-const screenHeight = Device.getDeviceHeight();
-const maxItemHeight = screenHeight - 200;
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -20,7 +16,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    termsAndConditionsContainer: { marginLeft: 16, marginRight: 32 },
+    termsAndConditionsContainer: { marginRight: 16 },
     acceptTermsContainer: {
       flexDirection: 'row',
       alignItems: 'center',

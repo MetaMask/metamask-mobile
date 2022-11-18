@@ -37,6 +37,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     bodyContainer: {
       maxHeight: maxItemHeight,
+      marginHorizontal: 16,
+      marginTop: 16,
     },
     header: {
       flexDirection: 'row',

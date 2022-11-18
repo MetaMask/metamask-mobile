@@ -52,6 +52,8 @@ exports[`Use Terms Modal should render correctly 1`] = `
     <View
       style={
         Object {
+          "marginHorizontal": 16,
+          "marginTop": 16,
           "maxHeight": 1134,
         }
       }
@@ -63,8 +65,7 @@ exports[`Use Terms Modal should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginLeft": 16,
-              "marginRight": 32,
+              "marginRight": 16,
             }
           }
         >

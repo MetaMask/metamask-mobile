@@ -51,6 +51,8 @@ exports[`Mandatory Modal should render correctly 1`] = `
     <View
       style={
         Object {
+          "marginHorizontal": 16,
+          "marginTop": 16,
           "maxHeight": 1134,
         }
       }

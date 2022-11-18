@@ -30,6 +30,7 @@ function loadStories() {
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
+  require('../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
