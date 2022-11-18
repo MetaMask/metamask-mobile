@@ -327,7 +327,11 @@ export const getRpcMethodMiddleware = ({
         }
       },
       eth_coinbase: async () => {
-        res.result = await getPermittedAccounts(hostname);
+        if (isMMSDK || isWalletConnect) {
+          res.result = await getAccounts();
+        } else {
+          res.result = await getPermittedAccounts(hostname);
+        }
       },
       eth_sendTransaction: async () => {
         checkTabActive();
