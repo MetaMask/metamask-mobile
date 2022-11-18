@@ -92,6 +92,7 @@ class Engine {
       );
       const networkController = new NetworkController({
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+        // TODO: Check if providerConfig here is still necessary.
         providerConfig: {
           static: {
             eth_sendTransaction: async (
@@ -118,8 +119,8 @@ class Engine {
             end: (arg0: null, arg1: any[]) => void,
             payload: { hostname: string | number },
           ) => {
-            const { approvedHosts, privacyMode } = store.getState();
-            const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+            const { approvedHosts } = store.getState();
+            const isEnabled = approvedHosts[payload.hostname];
             const { KeyringController } = this.context;
             const isUnlocked = KeyringController.isUnlocked();
             const selectedAddress =
