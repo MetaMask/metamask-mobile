@@ -299,6 +299,7 @@ class AccountOverview extends PureComponent {
     });
   };
 
+
   doENSLookup = async () => {
     const { network, account } = this.props;
     try {
