@@ -127,3 +127,21 @@ describe('Browser utils :: getAlertMessage', () => {
     expect(matchingMessage).toBeTruthy();
   });
 });
+
+describe('Browser utils :: protocolWhitelist', () => {
+  it('should match about: protocol', () => {
+    const { protocol } = new URL('about:config');
+
+    expect(protocolWhitelist.includes(protocol)).toBeTruthy();
+  });
+  it('should match about: http:', () => {
+    const { protocol } = new URL('http://meta.io');
+
+    expect(protocolWhitelist.includes(protocol)).toBeTruthy();
+  });
+  it('should match about: https:', () => {
+    const { protocol } = new URL('https://meta.io');
+
+    expect(protocolWhitelist.includes(protocol)).toBeTruthy();
+  });
+});
