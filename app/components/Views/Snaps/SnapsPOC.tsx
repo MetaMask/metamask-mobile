@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect, useRef } from 'react';
+import React, { Fragment, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -6,16 +6,6 @@ import { WebView } from 'react-native-webview';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { useTheme, mockTheme } from '../../../util/theme';
-
-// Snaps
-import {
-  wrapSourceCodeInIframe,
-  generateBasicHTMLWithIframes,
-  wrapScriptInHTML,
-  wrapCodeInScriptTags,
-  generateSnapIframeId,
-} from './utils';
-import { snapMock } from './SnapsMock';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -66,10 +56,6 @@ const createStyles = (colors: any) =>
   });
 
 const SnapsPOC: React.FC = () => {
-  const [iframes, setIframes] = useState<string[]>([]);
-  const [source, setSource] = useState<string>(
-    generateBasicHTMLWithIframes(iframes),
-  );
   const navigation = useNavigation();
   const { colors } = useTheme();
   const webviewRef = useRef() as any;
@@ -93,18 +79,6 @@ const SnapsPOC: React.FC = () => {
     };
   `;
 
-  const addNewIframe = () => {
-    const snapMockScript = wrapCodeInScriptTags(snapMock.sourceCode);
-    const newSource = wrapScriptInHTML(snapMockScript);
-    const newIframe = wrapSourceCodeInIframe(
-      newSource,
-      generateSnapIframeId(snapMock.id.toString()),
-    );
-    const newIframesArray = [...iframes, newIframe];
-    setSource(generateBasicHTMLWithIframes(newIframesArray));
-    setIframes(newIframesArray);
-  };
-
   const onMessage = (data: any) => {
     // eslint-disable-next-line no-console
     console.log(data.nativeEvent);
@@ -125,14 +99,14 @@ const SnapsPOC: React.FC = () => {
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
-    // webviewRef.current.postMessage(
-    //   JSON.stringify({
-    //     method: 'start_snap',
-    //     snapId: 'snap-3',
-    //     sourceCode:
-    //       'https://raw.githubusercontent.com/MetaMask/metamask-mobile/snaps/exec-env/snap_bundles/helloWorld_snap.js',
-    //   }),
-    // );
+    webviewRef.current.postMessage(
+      JSON.stringify({
+        method: 'start_snap',
+        snapId: 'snap-3',
+        sourceCode:
+          'https://raw.githubusercontent.com/MetaMask/metamask-mobile/snaps/exec-env/snap_bundles/helloWorld_snap.js',
+      }),
+    );
   };
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -155,13 +129,13 @@ const SnapsPOC: React.FC = () => {
             ref={webviewRef}
             style={styles.webView}
             source={baseHTML}
-            javaScriptEnabledAndroid
             injectedJavaScript={runFirst}
-            mixedContentMode="compatibility"
+            mixedContentMode={'compatibility'}
             onMessage={onMessage}
             applicationNameForUserAgent={
               'WebView Snap Execution Environment MetaMask Mobile'
             }
+            javaScriptEnabledAndroid
           />
         </View>
       </View>
@@ -169,7 +143,7 @@ const SnapsPOC: React.FC = () => {
         <StyledButton
           type="normal"
           containerStyle={styles.actionButton}
-          onPress={addNewIframe}
+          onPress={() => null}
         >
           Add new iframe
         </StyledButton>
