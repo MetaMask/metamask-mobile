@@ -402,11 +402,6 @@ class TransactionReview extends PureComponent {
       gasSelected,
       chainId,
       transaction: { from },
-      updateTransactionState,
-      gasObject,
-      eip1559GasTransaction,
-      dappSuggestedGasPrice,
-      dappSuggestedEIP1559Gas,
     } = this.props;
     const {
       actionKey,

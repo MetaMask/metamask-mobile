@@ -264,14 +264,12 @@ export const getRpcMethodMiddleware = ({
         }
       },
       eth_requestAccounts: async () => {
-        console.log('REQUESTING ACCOUNTS!');
         const { params } = req;
         if (isWalletConnect) {
           let { selectedAddress } = Engine.context.PreferencesController.state;
           selectedAddress = selectedAddress?.toLowerCase();
           res.result = [selectedAddress];
         } else if (isMMSDK) {
-          console.log('METAMASK SDK!');
           try {
             let { selectedAddress } =
               Engine.context.PreferencesController.state;

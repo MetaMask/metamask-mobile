@@ -509,6 +509,22 @@ const RootRPCMethodsUI = (props) => {
       <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
     );
 
+  // Reject pending approval using MetaMask SDK.
+  const rejectPendingApproval = (id, error) => {
+    const { ApprovalController } = Engine.context;
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
+  };
+
+  // Accept pending approval using MetaMask SDK.
+  const acceptPendingApproval = (id, requestData) => {
+    const { ApprovalController } = Engine.context;
+    ApprovalController.accept(id, requestData);
+  };
+
   const onAddCustomNetworkReject = () => {
     setShowPendingApproval(false);
     rejectPendingApproval(
@@ -592,22 +608,6 @@ const RootRPCMethodsUI = (props) => {
       />
     </Modal>
   );
-
-  // Reject pending approval using MetaMask SDK.
-  const rejectPendingApproval = (id, error) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.reject(id, error);
-    } catch (error) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
-    }
-  };
-
-  // Accept pending approval using MetaMask SDK.
-  const acceptPendingApproval = (id, requestData) => {
-    const { ApprovalController } = Engine.context;
-    ApprovalController.accept(id, requestData);
-  };
 
   /**
    * When user clicks on approve to connect with a dapp using the MetaMask SDK.
