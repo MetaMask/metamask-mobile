@@ -8,6 +8,9 @@ export const RPC = 'rpc';
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
 
+/**
+ * @enum {string}
+ */
 export const NETWORKS_CHAIN_ID = {
   MAINNET: '1',
   OPTIMISM: '10',

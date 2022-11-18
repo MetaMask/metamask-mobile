@@ -9,8 +9,8 @@ import { renderNumber } from '../../../util/number';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-  NETWORKS_CHAIN_ID,
 } from '../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   getPendingOrders,
   updateFiatOrder,
