@@ -184,12 +184,12 @@ describe('Browser utils :: protocolWhitelist', () => {
 
     expect(protocolWhitelist.includes(protocol)).toBeTruthy();
   });
-  it('should match about: http:', () => {
+  it('should match http: protocol', () => {
     const { protocol } = new URL('http://meta.io');
 
     expect(protocolWhitelist.includes(protocol)).toBeTruthy();
   });
-  it('should match about: https:', () => {
+  it('should match https: protocol', () => {
     const { protocol } = new URL('https://meta.io');
 
     expect(protocolWhitelist.includes(protocol)).toBeTruthy();
