@@ -12,7 +12,7 @@ export const sanitizeUrl = (url: string, defaultProtocol = 'https://') => {
   const hasProtocol = /^[a-z]*:\/\//.test(url);
   const sanitizedURL = hasProtocol ? url : `${defaultProtocol}${url}`;
   return sanitizedURL;
-}
+};
 
 /**
  * Returns a sanitized url, which could be a search engine url if
@@ -89,9 +89,22 @@ export const isTLD = (hostname: string, error: any) =>
     error.toString().indexOf('is not standard') !== -1) ||
   hostname.slice(-4) === '.xyz' ||
   hostname.slice(-5) === '.test';
-
+/**
+ *
+ * List of all protocols that our webview load unconditionally
+ */
 export const protocolWhitelist = ['about:', 'http:', 'https:'];
 
+/**
+ * Returns translated warning message for the
+ * warning dialog box the user sees when the to be loaded
+ * website tries to automatically start an external
+ * service
+ *
+ * @param protocol - String containing the url protocol
+ * @param i18nService - translator function
+ * @returns - String corresponding to the warning message
+ */
 export const getAlertMessage = (
   protocol: string,
   i18nService: (id: string) => void,
@@ -106,6 +119,14 @@ export const getAlertMessage = (
   }
 };
 
+/**
+ * Promps the Operating System for its ability
+ * to open an URI outside the Webview
+ * Executes it when a positive response is received.
+ *
+ * @param url - String containing url
+ * @returns Promise<any>
+ */
 export const allowLinkOpen = (url: string) =>
   Linking.canOpenURL(url)
     .then((supported) => {
