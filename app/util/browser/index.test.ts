@@ -1,5 +1,29 @@
-import onUrlSubmit, { isTLD, getAlertMessage, protocolWhitelist } from '.';
+import onUrlSubmit, {
+  isTLD,
+  getAlertMessage,
+  protocolWhitelist,
+  sanitizeUrl,
+  getUrlObj,
+  getHost,
+} from '.';
 import { strings } from '../../../locales/i18n';
+
+describe('Browser utils :: sanitizeUrl', () => {
+  it('should sanitize url without protocol', () => {
+    const url = sanitizeUrl('test.com');
+    expect(url).toBe('https://test.com');
+  });
+
+  it('should respect the original protocol ', () => {
+    const url = sanitizeUrl('http://test.com');
+    expect(url).toBe('http://test.com');
+  });
+
+  it('should respect the default protocol ', () => {
+    const url = sanitizeUrl('test.com', 'http://');
+    expect(url).toBe('http://test.com');
+  });
+});
 
 describe('Browser utils :: onUrlSubmit', () => {
   it('should sanitize url without protocol', () => {
@@ -102,6 +126,33 @@ describe('Browser utils :: isTLD', () => {
   });
 });
 
+describe('Browser utils :: getUrlObj', () => {
+  it('should return an URL object', () => {
+    const url = 'http://metamask.io';
+    const { hostname, protocol } = getUrlObj(url);
+    expect(hostname).toBe('metamask.io');
+    expect(protocol).toBe('http:');
+  });
+});
+
+describe('Browser utils :: getHost', () => {
+  it('should return hostname', () => {
+    const url = 'http://metamask.io';
+    const hostname = getHost(url);
+    expect(hostname).toBe('metamask.io');
+  });
+  it('should return the complete url', () => {
+    const url = 'about:blank';
+    const hostname = getHost(url);
+    expect(hostname).toBe('about:blank');
+  });
+  it('should return the malformed url', () => {
+    const url = 'metamask';
+    const hostname = getHost(url);
+    expect(hostname).toBe('metamask');
+  });
+});
+
 describe('Browser utils :: getAlertMessage', () => {
   it('should mailto alert message', () => {
     const { protocol } = new URL('mailto:testtmail');
@@ -113,18 +164,17 @@ describe('Browser utils :: getAlertMessage', () => {
   });
   it('should return tel alert message', () => {
     const { protocol } = new URL('tel:1111');
-    const matchingMessage =
-      getAlertMessage(protocol, strings) ===
-      strings('browser.protocol_alerts.tel');
 
-    expect(matchingMessage).toBeTruthy();
+    expect(getAlertMessage(protocol, strings)).toBe(
+      strings('browser.protocol_alerts.tel'),
+    );
   });
   it('should return generic alert message', () => {
     const { protocol } = new URL('dapp://testdapp');
-    const matchingMessage =
-      getAlertMessage(protocol, strings) ===
-      strings('browser.protocol_alerts.generic');
-    expect(matchingMessage).toBeTruthy();
+
+    expect(getAlertMessage(protocol, strings)).toBe(
+      strings('browser.protocol_alerts.generic'),
+    );
   });
 });
 

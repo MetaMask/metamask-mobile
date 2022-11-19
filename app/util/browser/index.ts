@@ -2,6 +2,19 @@ import { Linking } from 'react-native';
 import isUrl from 'is-url';
 
 /**
+ * Returns a sanitized url
+ *
+ * @param url - String corresponding to url
+ * @param defaultProtocol - Protocol string to append to URLs that have none
+ * @returns - String corresponding to sanitized input depending if it's a search or url
+ */
+export const sanitizeUrl = (url: string, defaultProtocol = 'https://') => {
+  const hasProtocol = /^[a-z]*:\/\//.test(url);
+  const sanitizedURL = hasProtocol ? url : `${defaultProtocol}${url}`;
+  return sanitizedURL;
+}
+
+/**
  * Returns a sanitized url, which could be a search engine url if
  * a keyword is detected instead of a url
  *
@@ -33,23 +46,7 @@ export default function onUrlSubmit(
       return searchUrl;
     }
   }
-  const hasProtocol = /^[a-z]*:\/\//.test(input);
-  const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;
-  return sanitizedURL;
-}
-
-/**
- * Return host from url string
- *
- * @param url - String containing url
- * @param defaultProtocol - Protocol string to append to URLs that have none
- * @returns - String corresponding to host
- */
-export function getHost(url: string, defaultProtocol = 'https://') {
-  const hasProtocol = url?.match(/^[a-z]*:\/\//);
-  const urlObj = new URL(hasProtocol ? url : `${defaultProtocol}${url}`);
-  const { hostname } = urlObj;
-  return hostname;
+  return sanitizeUrl(input, defaultProtocol);
 }
 
 /**
@@ -59,8 +56,26 @@ export function getHost(url: string, defaultProtocol = 'https://') {
  * @returns - URL object
  */
 export function getUrlObj(url: string) {
-  const urlObj = new URL(url);
-  return urlObj;
+  return new URL(url);
+}
+
+/**
+ * Return host from url string
+ *
+ * @param url - String containing url
+ * @param defaultProtocol
+ * @returns - String corresponding to host
+ */
+export function getHost(url: string, defaultProtocol = 'https://') {
+  const isValidUrl = isUrl(url);
+  if (!isValidUrl) return url;
+
+  const sanitizedUrl = sanitizeUrl(url, defaultProtocol);
+  const { hostname } = getUrlObj(sanitizedUrl);
+
+  const result = hostname === '' ? url : hostname;
+
+  return result;
 }
 
 /**
