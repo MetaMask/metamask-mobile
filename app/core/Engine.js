@@ -26,6 +26,7 @@ import {
   ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+// import { SnapController } from '@metamask/snap-controllers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
@@ -44,6 +45,8 @@ import {
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+// import { EndowmentPermissions } from '../constants/permissions';
+// import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import AnalyticsV2 from '../util/analyticsV2';
 
@@ -207,6 +210,35 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      // const snapControllerMessenger = this.controllerMessenger.getRestricted({
+      //   name: 'SnapController',
+      //   allowedEvents: [
+      //     'ExecutionService:unhandledError',
+      //     'ExecutionService:outboundRequest',
+      //     'ExecutionService:outboundResponse',
+      //   ],
+      //   allowedActions: [
+      //     'ExecutionService:executeSnap',
+      //     'ExecutionService:getRpcRequestHandler',
+      //     'ExecutionService:terminateSnap',
+      //     'ExecutionService:terminateAllSnaps',
+      //     'ExecutionService:handleRpcRequest',
+      //   ],
+      // });
+
+      // const snapController = new SnapController({
+      //   environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      //   featureFlags: { dappsCanUpdateSnaps: true },
+      //   getAppKey: async () =>
+      //     new Promise((resolve, reject) => {
+      //       resolve('mockAppKey');
+      //     }),
+      //   checkBlockList: async (snapsToCheck) =>
+      //     checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
+      //   state: {},
+      //   messenger: snapControllerMessenger,
+      // });
+
       const additionalKeyrings = [QRHardwareKeyring];
 
       const controllers = [
@@ -350,7 +382,9 @@ class Engine {
           }),
           showApprovalRequest: () => null,
         }),
+        // snapController,
       ];
+
       // set initial state
       // TODO: Pass initial state into each controller constructor instead
       // This is being set post-construction for now to ensure it's functionally equivalent with
