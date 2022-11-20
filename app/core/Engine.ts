@@ -28,6 +28,7 @@ import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+// import { SnapController } from '@metamask/snap-controllers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
@@ -46,6 +47,8 @@ import {
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+// import { EndowmentPermissions } from '../constants/permissions';
+// import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
@@ -210,15 +213,34 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
-      });
+      // const snapControllerMessenger = this.controllerMessenger.getRestricted({
+      //   name: 'SnapController',
+      //   allowedEvents: [
+      //     'ExecutionService:unhandledError',
+      //     'ExecutionService:outboundRequest',
+      //     'ExecutionService:outboundResponse',
+      //   ],
+      //   allowedActions: [
+      //     'ExecutionService:executeSnap',
+      //     'ExecutionService:getRpcRequestHandler',
+      //     'ExecutionService:terminateSnap',
+      //     'ExecutionService:terminateAllSnaps',
+      //     'ExecutionService:handleRpcRequest',
+      //   ],
+      // });
 
-      const phishingController = new PhishingController();
-      phishingController.maybeUpdateState();
+      // const snapController = new SnapController({
+      //   environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      //   featureFlags: { dappsCanUpdateSnaps: true },
+      //   getAppKey: async () =>
+      //     new Promise((resolve, reject) => {
+      //       resolve('mockAppKey');
+      //     }),
+      //   checkBlockList: async (snapsToCheck) =>
+      //     checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
+      //   state: {},
+      //   messenger: snapControllerMessenger,
+      // });
 
       const additionalKeyrings = [QRHardwareKeyring];
 
@@ -410,6 +432,7 @@ class Engine {
           },
           unrestrictedMethods,
         }),
+        // snapController,
       ];
 
       // set initial state
