@@ -136,7 +136,9 @@
     "@metamask/design-tokens": "^1.9.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/sdk-communication-layer": "^0.0.1-beta.3",
+    "@metamask/snap-controllers": "^0.23.0",
     "@metamask/swaps-controller": "^6.6.0",
+    "@metamask/post-message-stream": "6.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
@@ -317,6 +319,7 @@
     "@types/react-native-vector-icons": "^6.4.8",
     "@types/react-native-video": "^5.0.13",
     "@types/redux-mock-store": "^1.0.3",
+    "@types/url-parse": "1.4.8",
     "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",
     "@wdio/appium-service": "^7.19.1",
@@ -364,6 +367,7 @@
     "react-test-renderer": "17.0.2",
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.0.1",
+    "semver": "^7.3.5",
     "stack-beautifier": "1.0.2",
     "typescript": "^4.4.2",
     "wdio-chromedriver-service": "^7.3.2",
@@ -459,7 +463,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^14.0.0",
+    "node": "^16.10.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
