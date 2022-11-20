@@ -2049,24 +2049,18 @@
 "@ethereumjs/common@^3.1.2":
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-3.1.2.tgz#c810301b78bcb7526bd690c6d7eb3f4a3c70839d"
-  integrity sha512-YV+bZfRlFhAXg+FfwC5r4UQKVj4OG7vDP5/JvvNXLLbYpNplH5Vca9jD0L+ab8y0YlTYJMQM1ALyHFu3AE3eBA==
   dependencies:
     "@ethereumjs/util" "^8.0.6"
     crc-32 "^1.2.0"
 
-"@ethereumjs/rlp@^4.0.0-beta.2":
+=======
   version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.0.tgz#66719891bd727251a7f233f9ca80212d1994f8c8"
-  integrity sha512-LM4jS5n33bJN60fM5EC8VeyhUgga6/DjCPBV2vWjnfVtobqtOiNC4SQ1MRFqyBSmJGGdB533JZWewyvlcdJtkQ==
 
 "@ethereumjs/rlp@^4.0.1":
   version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
 
 "@ethereumjs/tx@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.0.0.tgz#8dfd91ed6e91e63996e37b3ddc340821ebd48c81"
   integrity sha512-H9tfy6qgYxPXvt1TSObfVmVjlF43OoQqoPQ3PJsG2JiuqaMHj5ettV1pGFEC3FamENDBkl6vD6niQEvIlXv/VQ==
   dependencies:
     "@ethereumjs/common" "^2.0.0"
@@ -7161,6 +7155,11 @@
   version "0.8.6"
   resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.6.tgz#8a1524eb5bd5e965c1e3735476f0262469f71440"
   integrity sha512-uRjjusqpoqfmRkTaNuLJ2VohVr67Q5YwDATW3VU7PfzTj6IRaihGrYI7zckGZjxQPBIp63nfvJbM+Yu5ICh0Bg==
+
+"@xstate/fsm@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-2.0.0.tgz#221db16b606df3f4675f5be6058b633ec4b8b44a"
+  integrity sha512-p/zcvBMoU2ap5byMefLkR+AM+Eh99CU/SDEQeccgKlmFNOMDwphaRGqdk+emvel/SaGZ7Rf9sDvzAplLzLdEVQ==
 
 "@xstate/fsm@^2.0.0":
   version "2.0.0"
@@ -16704,7 +16703,7 @@ json-rpc-engine@^6.1.0:
     "@metamask/safe-event-emitter" "^2.0.0"
     eth-rpc-errors "^4.0.2"
 
-json-rpc-middleware-stream@3.0.0:
+json-rpc-middleware-stream@3.0.0, json-rpc-middleware-stream@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/json-rpc-middleware-stream/-/json-rpc-middleware-stream-3.0.0.tgz#8540331d884f36b9e0ad31054cc68ac6b5a89b52"
   integrity sha512-JmZmlehE0xF3swwORpLHny/GvW3MZxCsb2uFNBrn8TOqMqivzCfz232NSDLLOtIQlrPlgyEjiYpyzyOPFOzClw==
@@ -23872,6 +23871,11 @@ superstruct@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/superstruct/-/superstruct-1.0.3.tgz#de626a5b49c6641ff4d37da3c7598e7a87697046"
   integrity sha512-8iTn3oSS8nRGn+C2pgXSKPI3jmpm6FExNazNpjvqS6ZUJQCej3PUXEKM8NjHBOs54ExM+LPW/FBRhymrdcCiSg==
+
+superstruct@^0.16.7:
+  version "0.16.7"
+  resolved "https://registry.yarnpkg.com/superstruct/-/superstruct-0.16.7.tgz#78bb71209d71e6107a260afc166580b137bd243a"
+  integrity sha512-4ZZTrXlP4XzCrgh4vOfPDL6dL7zZm5aPl78eczwFSrwvxtsEnKRrSGID6Sbt0agycUoo4auRdWSNTX+oQ3KFyA==
 
 supports-color@8.1.1, supports-color@^8.0.0, supports-color@^8.1.1:
   version "8.1.1"

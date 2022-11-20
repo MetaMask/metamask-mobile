@@ -1,0 +1,19 @@
+Update @types/react
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Author:    Gustavo Antunes <17601467+gantunesr@users.noreply.github.com>
+#
+# interactive rebase in progress; onto c96634fd4
+# Last commands done (16 commands done):
+#    pick 0c3c9909f Update base html
+#    pick 831a33b10 Update @types/react
+# Next commands to do (123 remaining commands):
+#    pick 5c30f89ae Remove code
+#    pick 4aeed70f9 Add new file for communication
+# You are currently rebasing branch 'decompress-snap-tarball-android' on 'c96634fd4'.
+#
+# Changes to be committed:
+#	modified:   app/components/UI/AccountOverview/index.js
+#
