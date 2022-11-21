@@ -1,7 +1,7 @@
 {
   "security":{
     "minimumVersions": {
-      "appMinimumBuild": 1999,
+      "appMinimumBuild": 1a9f,
       "appleMinimumOS": 6,
       "androidMinimumAPIVersion": 21
     }
