@@ -62,7 +62,6 @@
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
-				<data android:host="metamask.io" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
