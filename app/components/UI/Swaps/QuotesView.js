@@ -1587,7 +1587,7 @@ function SwapsQuotesView({
   }, [error, handleQuotesErrorMetric, trackedError]);
 
   useEffect(() => {
-    if (!multiLayerFeeNetwork) {
+    if (!multiLayerFeeNetwork || !selectedQuote?.trade) {
       return;
     }
     const getEstimatedL1Fee = async () => {
@@ -1603,9 +1603,7 @@ function SwapsQuotesView({
         setMultiLayerL1FeeTotal(null);
       }
     };
-    if (selectedQuote?.trade) {
-      getEstimatedL1Fee();
-    }
+    getEstimatedL1Fee();
   }, [selectedQuote?.trade, multiLayerFeeNetwork, chainId]);
 
   const openLinkAboutGas = () =>
