@@ -13,7 +13,6 @@ export const createStyles = (colors: any) =>
     },
     content: {
       flex: 1,
-      justifyContent: 'center',
       paddingHorizontal: 16,
     },
     title: {
@@ -31,6 +30,8 @@ export const createStyles = (colors: any) =>
       padding: 16,
     },
     actionButton: {
+      height: undefined,
       marginVertical: 10,
+      padding: 8,
     },
   });
