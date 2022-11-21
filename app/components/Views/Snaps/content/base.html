@@ -8,27 +8,32 @@
       }
     }
 
-    function createIframe(snapId, sourceCodeUri) {
-      const script = document.createElement('script');
-      script.setAttribute('src', sourceCodeUri);
-
+    function createIframe(snapId, execEnvUri, snapSourceCode) {
+      const iframeContainer = document.getElementById('iframe-container');
       const iframe = document.createElement('iframe');
 
       iframe.id = snapId;
-      iframe.setAttribute('srcdoc', sourceCodeUri);
       iframe.setAttribute('sandbox', 'allow-scripts');
+      iframe.setAttribute('src', execEnvUri);
+      iframeContainer.appendChild(iframe);
 
-      iframe.appendChild(script);
-      document.body.appendChild(iframe);
-      
+      let doc;
+      if(iframe.contentDocument) { 
+        doc = iframe.contentDocument; 
+      } else {
+        doc = iframe.contentWindow.document; 
+      }
+
+      doc.head.innerHTML = snapSourceCode;
     }
 
     window.addEventListener('message', message => {
       console.log(message.data);
-      const { method, snapId, sourceCode, args } = JSON.parse(message.data);
+      const { method, snapId, execEnv, snapSourceCode, args } = JSON.parse(message.data);
+      const data = JSON.parse(message.data);
       switch (method) {
         case 'start_snap':
-          createIframe(snapId, sourceCode);
+          createIframe(snapId, execEnv, snapSourceCode);
           return;
         case 'execute_snap':
           const response = document.getElementById(snapId).contentWindow.snap.onRpcRequest(args);
@@ -45,16 +50,16 @@
   <body
     style="display: flex; justify-content: center; flex-direction: column; align-items: center;"
   >
+    <p id="myContent">Basic iframe POC</p>
     <button
       onclick="sendDataToReactNativeApp('Dummy data')"
       style="padding: 20; width: 200; font-size: 30; color: white; background-color: #6751ff;"
     >
       Send dummy data to app
     </button>
-    <div>
-      <p id="myContent">Basic HTML</p>
-      <iframe id="snap-1" name="snap-1" src="./iframe1.html"></iframe>
-      <iframe id="snap-2" name="snap-2" src="./iframe2.html"></iframe>
-    </div>
+      <div id="iframe-container">
+        <iframe id="snap-1" name="snap-1" src="./iframe1.html"></iframe>
+        <iframe id="snap-2" name="snap-2" src="./iframe2.html"></iframe>
+      </div>
   </body>
 </html>
