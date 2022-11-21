@@ -28,7 +28,7 @@ jobs:
       - name: Determine whether the current PR is a draft
         id: set-is-draft
         if: github.event_name == 'pull_request' && github.event.pull_request.number
-        run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' ${PR_NUMBER})" >> "$GITHUB_OUTPUT"
+        run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' "${PR_NUMBER}")" >> "$GITHUB_OUTPUT"
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
