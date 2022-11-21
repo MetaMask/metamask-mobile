@@ -7,6 +7,8 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { useTheme, mockTheme } from '../../../util/theme';
 
+import { mockSnapSourceCode } from './mocks';
+
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
@@ -84,6 +86,18 @@ const SnapsPOC: React.FC = () => {
     console.log(data.nativeEvent);
   };
 
+  const createNewIframe = () => {
+    webviewRef.current.postMessage(
+      JSON.stringify({
+        method: 'start_snap',
+        snapId: 'snap-3',
+        execEnv:
+          'https://metamask.github.io/iframe-execution-environment/0.10.0',
+        snapSourceCode: `<script>${mockSnapSourceCode}</script>`,
+      }),
+    );
+  };
+
   const sendDataToWebView = () => {
     webviewRef.current.postMessage(
       JSON.stringify({
@@ -99,14 +113,16 @@ const SnapsPOC: React.FC = () => {
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
-    webviewRef.current.postMessage(
-      JSON.stringify({
-        method: 'start_snap',
-        snapId: 'snap-3',
-        sourceCode:
-          'https://raw.githubusercontent.com/MetaMask/metamask-mobile/snaps/exec-env/snap_bundles/helloWorld_snap.js',
-      }),
-    );
+    // webviewRef.current.postMessage(
+    //   JSON.stringify({
+    //     method: 'start_snap',
+    //     snapId: 'snap-3',
+    //     execEnv:
+    //       'https://metamask.github.io/iframe-execution-environment/0.10.0',
+    //     snapSourceCode:
+    //       'https://raw.githubusercontent.com/MetaMask/metamask-mobile/snaps/exec-env/snap_bundles/helloWorld_snap.js',
+    //   }),
+    // );
   };
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -143,7 +159,7 @@ const SnapsPOC: React.FC = () => {
         <StyledButton
           type="normal"
           containerStyle={styles.actionButton}
-          onPress={() => null}
+          onPress={createNewIframe}
         >
           Add new iframe
         </StyledButton>

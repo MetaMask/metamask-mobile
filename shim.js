@@ -9,6 +9,8 @@ if (!global.atob) {
   global.atob = decode;
 }
 
+if (typeof BigInt === 'undefined') global.BigInt = require('big-integer');
+
 // Fix for https://github.com/facebook/react-native/issues/5667
 if (typeof global.self === 'undefined') {
   global.self = global;
