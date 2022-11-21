@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import Eth from 'ethjs';
 import {
   View,
   StyleSheet,
@@ -31,7 +32,11 @@ import {
   toWei,
   weiToFiat,
 } from '../../../util/number';
-import { isMainnetByChainId } from '../../../util/networks';
+import {
+  isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedL1Fee,
+} from '../../../util/networks';
 import {
   getErrorMessage,
   getFetchParams,
@@ -68,7 +73,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { decGWEIToHexWEI, hexWEIToDecETH } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -379,6 +384,7 @@ function SwapsQuotesView({
 
   /* State */
   const isMainnet = isMainnetByChainId(chainId);
+  const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
   const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
@@ -390,6 +396,7 @@ function SwapsQuotesView({
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [multiLayerL1FeeTotal, setMultiLayerL1FeeTotal] = useState(null);
 
   /* Selected quote, initially topAggId (see effects) */
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -464,15 +471,29 @@ function SwapsQuotesView({
     () => allQuotes.find((quote) => quote?.aggregator === selectedQuoteId),
     [allQuotes, selectedQuoteId],
   );
-  const selectedQuoteValue = useMemo(
-    () => quoteValues[selectedQuoteId],
-    [
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      quoteValues[selectedQuoteId],
-      quoteValues,
-      selectedQuoteId,
-    ],
-  );
+  const selectedQuoteValue = useMemo(() => {
+    if (!quoteValues[selectedQuoteId] || multiLayerL1FeeTotal === null) {
+      return quoteValues[selectedQuoteId];
+    }
+    const fees = {
+      ethFee: new BigNumber(hexWEIToDecETH(multiLayerL1FeeTotal))
+        .plus(new BigNumber(quoteValues[selectedQuoteId].ethFee))
+        .toString(10),
+      maxEthFee: new BigNumber(hexWEIToDecETH(multiLayerL1FeeTotal))
+        .plus(new BigNumber(quoteValues[selectedQuoteId].maxEthFee))
+        .toString(10),
+    };
+    return {
+      ...quoteValues[selectedQuoteId],
+      ...fees,
+    };
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    quoteValues[selectedQuoteId],
+    multiLayerL1FeeTotal,
+    quoteValues,
+    selectedQuoteId,
+  ]);
 
   const gasEstimates = useMemo(
     () => customGasEstimate || usedGasEstimate,
@@ -1564,6 +1585,26 @@ function SwapsQuotesView({
     setTrackedError(true);
     handleQuotesErrorMetric(error);
   }, [error, handleQuotesErrorMetric, trackedError]);
+
+  useEffect(() => {
+    if (!multiLayerFeeNetwork || !selectedQuote?.trade) {
+      return;
+    }
+    const getEstimatedL1Fee = async () => {
+      try {
+        const eth = new Eth(Engine.context.NetworkController.provider);
+        const result = await fetchEstimatedL1Fee(eth, {
+          txParams: selectedQuote.trade,
+          chainId,
+        });
+        setMultiLayerL1FeeTotal(result);
+      } catch (e) {
+        Logger.error(e, 'fetchEstimatedL1Fee call failed');
+        setMultiLayerL1FeeTotal(null);
+      }
+    };
+    getEstimatedL1Fee();
+  }, [selectedQuote?.trade, multiLayerFeeNetwork, chainId]);
 
   const openLinkAboutGas = () =>
     Linking.openURL(
