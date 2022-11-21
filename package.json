@@ -492,7 +492,8 @@
     "vm": "vm-browserify",
     "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
+    "fs": "react-native-level-fs",
+    "constants": "constants-browserify"
   },
   "browser": {
     "crypto": "react-native-crypto",
@@ -507,7 +508,8 @@
     "vm": "vm-browserify",
     "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
+    "fs": "react-native-level-fs",
+    "constants": "constants-browserify"
   },
   "engines": {
     "node": "^16.13.0",
