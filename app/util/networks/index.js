@@ -3,7 +3,7 @@ import { utils } from 'ethers';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import { omit } from 'lodash';
-import { BN, isHexPrefixed } from 'ethereumjs-util';
+import { BN } from 'ethereumjs-util';
 import Common, { Chain, Hardfork } from '@ethereumjs/common';
 import { TransactionFactory } from '@ethereumjs/tx';
 import { util } from '@metamask/controllers';
@@ -22,6 +22,7 @@ import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+import { stripHexPrefix } from '../../util/address';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
 export { handleNetworkSwitch };
@@ -287,13 +288,6 @@ const buildTxParams = (txMeta) => ({
   ...omit(txMeta.txParams, 'gas'),
   gasLimit: txMeta.txParams.gas,
 });
-
-export const stripHexPrefix = (str) => {
-  if (typeof str !== 'string') {
-    return str;
-  }
-  return isHexPrefixed(str) ? str.slice(2) : str;
-};
 
 const buildTransactionCommon = (txMeta) =>
   // This produces a transaction whose information does not completely match an
