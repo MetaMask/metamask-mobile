@@ -35,7 +35,7 @@ import {
 import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedL1Fee,
+  fetchEstimatedL1FeeOptimism,
 } from '../../../util/networks';
 import {
   getErrorMessage,
@@ -1593,13 +1593,13 @@ function SwapsQuotesView({
     const getEstimatedL1Fee = async () => {
       try {
         const eth = new Eth(Engine.context.NetworkController.provider);
-        const result = await fetchEstimatedL1Fee(eth, {
+        const result = await fetchEstimatedL1FeeOptimism(eth, {
           txParams: selectedQuote.trade,
           chainId,
         });
         setMultiLayerL1FeeTotal(result);
       } catch (e) {
-        Logger.error(e, 'fetchEstimatedL1Fee call failed');
+        Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
         setMultiLayerL1FeeTotal(null);
       }
     };

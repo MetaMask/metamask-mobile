@@ -2,10 +2,6 @@ import URL from 'url-parse';
 import { utils } from 'ethers';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
-import { omit } from 'lodash';
-import { BN } from 'ethereumjs-util';
-import Common, { Chain, Hardfork } from '@ethereumjs/common';
-import { TransactionFactory } from '@ethereumjs/tx';
 import { util } from '@metamask/controllers';
 
 import AppConstants from '../../core/AppConstants';
@@ -22,7 +18,7 @@ import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
-import { stripHexPrefix } from '../../util/address';
+import { buildUnserializedTransaction } from '../../util/transactions';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
 export { handleNetworkSwitch };
@@ -284,34 +280,7 @@ export function blockTagParamIndex(payload) {
   }
 }
 
-const buildTxParams = (txMeta) => ({
-  ...omit(txMeta.txParams, 'gas'),
-  gasLimit: txMeta.txParams.gas,
-});
-
-const buildTransactionCommon = (txMeta) =>
-  // This produces a transaction whose information does not completely match an
-  // Optimism transaction — for instance, DEFAULT_CHAIN is still 'mainnet' and
-  // genesis points to the mainnet genesis, not the Optimism genesis — but
-  // considering that all we want to do is serialize a transaction, this works
-  // fine for our use case.
-  Common.forCustomChain(Chain.Mainnet, {
-    chainId: new BN(stripHexPrefix(txMeta.chainId), 16),
-    networkId: new BN(txMeta.metamaskNetworkId, 10),
-    // Optimism only supports type-0 transactions; it does not support any of
-    // the newer EIPs since EIP-155. Source:
-    // <https://github.com/ethereum-optimism/optimism/blob/develop/specs/l2geth/transaction-types.md>
-    defaultHardfork: Hardfork.SpuriousDragon,
-  });
-
-const buildUnserializedTransaction = (txMeta) => {
-  const txParams = buildTxParams(txMeta);
-  const common = buildTransactionCommon(txMeta);
-  return TransactionFactory.fromTxData(txParams, { common });
-};
-
 // The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
-
 const buildOVMGasPriceOracleContract = (eth) => {
   const OVMGasPriceOracle = getContractFactory('OVM_GasPriceOracle').attach(
     predeploys.OVM_GasPriceOracle,
@@ -322,7 +291,14 @@ const buildOVMGasPriceOracleContract = (eth) => {
   return eth.contract(abi).at(OVMGasPriceOracle.address);
 };
 
-export const fetchEstimatedL1Fee = async (eth, txMeta) => {
+/**
+ * It returns an estimated L1 fee for the Optimism network.
+ *
+ * @param {Object} eth
+ * @param {Object} txMeta
+ * @returns {String}
+ */
+export const fetchEstimatedL1FeeOptimism = async (eth, txMeta) => {
   const contract = buildOVMGasPriceOracleContract(eth);
   const serializedTransaction =
     buildUnserializedTransaction(txMeta).serialize();

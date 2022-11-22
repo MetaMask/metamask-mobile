@@ -42,6 +42,7 @@ import {
 } from '../confirm-tx';
 
 import Logger from '../../util/Logger';
+export { buildUnserializedTransaction } from './optimismTransaction';
 
 const { SAI_ADDRESS } = AppConstants;
 
