@@ -31,6 +31,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import { FiatOrder } from '../../FiatOrders';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
+import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -278,14 +279,16 @@ const OrderDetails: React.FC<Props> = ({
             )}{' '}
             {cryptocurrency}
           </Text>
-          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
+          {state !== FIAT_ORDER_STATES.PENDING &&
+          orderData?.fiatCurrency?.decimals !== undefined &&
+          currencySymbol ? (
             <Text centered small grey>
               {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
             </Text>
           ) : (
-            <Text centered small>
-              ...
+            <Text centered small grey>
+              ... {currency}
             </Text>
           )}
         </Group>

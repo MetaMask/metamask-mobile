@@ -38,6 +38,9 @@ import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
+import useInAppBrowser from '../hooks/useInAppBrowser';
+import { ProviderBuyFeatureBrowserEnum } from '@consensys/on-ramp-sdk/dist/API';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -188,6 +191,8 @@ const GetQuotes = () => {
     sdkError,
   } = useFiatOnRampSDK();
 
+  const renderInAppBrowser = useInAppBrowser();
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -195,6 +200,7 @@ const GetQuotes = () => {
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const [isLoading, setIsLoading] = useState(true);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
   const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
   const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
   const [isInPolling, setIsInPolling] = useState(false);
@@ -235,11 +241,13 @@ const GetQuotes = () => {
     // @ts-expect-error useRoute params
     params?.amount,
     selectedAddress,
-    callbackBaseUrl,
   );
 
   const filteredQuotes: QuoteResponse[] = useMemo(
-    () => (quotes || []).filter(({ error }) => !error).sort(sortByAmountOut),
+    () =>
+      (quotes || [])
+        .filter((quote): quote is QuoteResponse => !quote.error)
+        .sort(sortByAmountOut),
     [quotes],
   );
 
@@ -328,8 +336,8 @@ const GetQuotes = () => {
       !isFetchingQuotes &&
       pollingCyclesLeft >= 0
     ) {
-      const quotesWithoutError: QuoteResponse[] = quotes
-        .filter(({ error }) => !error)
+      const quotesWithoutError = quotes
+        .filter((quote): quote is QuoteResponse => !quote.error)
         .sort(sortByAmountOut);
       if (quotesWithoutError.length > 0) {
         const totals = quotesWithoutError.reduce(
@@ -437,35 +445,71 @@ const GetQuotes = () => {
   );
 
   const handleOnPressBuy = useCallback(
-    (quote, index) => {
-      quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
-      const totalFee =
-        (quote.networkFee || 0) +
-        (quote.providerFee || 0) +
-        (quote.extraFee || 0);
-      trackEvent('ONRAMP_PROVIDER_SELECTED', {
-        provider_onramp: quote.provider.name,
-        refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
-        quote_position: index + 1,
-        results_count: filteredQuotes.length,
-        crypto_out: quote.amountOut || 0,
-        currency_source: (params as any)?.fiatCurrency?.symbol as string,
-        currency_destination: (params as any)?.asset?.symbol as string,
-        chain_id_destination: selectedChainId,
-        payment_method_id: selectedPaymentMethodId as string,
-        total_fee: totalFee,
-        gas_fee: quote.networkFee || 0,
-        processing_fee: quote.providerFee || 0,
-        exchange_rate:
-          ((quote.amountIn || 0) - totalFee) / (quote.amountOut || 0),
-      });
+    async (quote: QuoteResponse, index) => {
+      if (!quote?.buy) {
+        return;
+      }
+      try {
+        setIsQuoteLoading(true);
+
+        const totalFee =
+          (quote.networkFee || 0) +
+          (quote.providerFee || 0) +
+          (quote.extraFee || 0);
+
+        trackEvent('ONRAMP_PROVIDER_SELECTED', {
+          provider_onramp: quote.provider.name,
+          refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+          quote_position: index + 1,
+          results_count: filteredQuotes.length,
+          crypto_out: quote.amountOut || 0,
+          currency_source: (params as any)?.fiatCurrency?.symbol as string,
+          currency_destination: (params as any)?.asset?.symbol as string,
+          chain_id_destination: selectedChainId,
+          payment_method_id: selectedPaymentMethodId as string,
+          total_fee: totalFee,
+          gas_fee: quote.networkFee || 0,
+          processing_fee: quote.providerFee || 0,
+          exchange_rate:
+            ((quote.amountIn || 0) - totalFee) / (quote.amountOut || 0),
+        });
+
+        const buyAction = await quote.buy();
+        if (
+          buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
+        ) {
+          await renderInAppBrowser(
+            buyAction,
+            quote.provider,
+            quote.amountIn as number,
+            quote.fiat?.symbol,
+          );
+        } else if (
+          buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser
+        ) {
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
+          navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT, {
+            provider: quote.provider,
+            url,
+            customOrderId,
+          });
+        } else {
+          throw new Error('Unsupported browser type: ' + buyAction.browser);
+        }
+      } finally {
+        setIsQuoteLoading(false);
+      }
     },
     [
       appConfig.POLLING_CYCLES,
+      callbackBaseUrl,
       filteredQuotes.length,
       navigation,
       params,
       pollingCyclesLeft,
+      renderInAppBrowser,
       selectedChainId,
       selectedPaymentMethodId,
       trackEvent,
@@ -657,6 +701,7 @@ const GetQuotes = () => {
                   style={[styles.row, index === 0 && styles.withoutTopMargin]}
                 >
                   <Quote
+                    isLoading={isQuoteLoading}
                     quote={quote}
                     onPress={() => handleOnQuotePress(quote)}
                     onPressBuy={() => handleOnPressBuy(quote, index)}

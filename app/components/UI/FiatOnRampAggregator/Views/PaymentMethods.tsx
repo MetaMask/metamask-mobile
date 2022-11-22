@@ -9,7 +9,6 @@ import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import Device from '../../../../util/device';
 import SkeletonBox from '../components/SkeletonBox';
 import SkeletonText from '../components/SkeletonText';
 import BaseListItem from '../../../Base/ListItem';
@@ -66,35 +65,24 @@ const PaymentMethods = () => {
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
     useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
-  const filteredPaymentMethods = useMemo(() => {
-    if (paymentMethods) {
-      return paymentMethods.filter((paymentMethod) =>
-        Device.isAndroid() ? !paymentMethod.isApplePay : true,
-      );
-    }
-    return null;
-  }, [paymentMethods]);
-
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find(
-        (method) => method.id === selectedPaymentMethodId,
-      ),
-    [filteredPaymentMethods, selectedPaymentMethodId],
+      paymentMethods?.find((method) => method.id === selectedPaymentMethodId),
+    [paymentMethods, selectedPaymentMethodId],
   );
 
   useEffect(() => {
-    if (!isFetching && !error && filteredPaymentMethods) {
-      const paymentMethod = filteredPaymentMethods.find(
+    if (!isFetching && !error && paymentMethods) {
+      const paymentMethod = paymentMethods.find(
         (pm) => pm.id === selectedPaymentMethodId,
       );
       if (!paymentMethod) {
-        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
+        setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
       }
     }
   }, [
     error,
-    filteredPaymentMethods,
+    paymentMethods,
     isFetching,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
@@ -187,7 +175,7 @@ const PaymentMethods = () => {
     );
   }
 
-  if (!filteredPaymentMethods || isFetching) {
+  if (!paymentMethods || isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -201,7 +189,7 @@ const PaymentMethods = () => {
     );
   }
 
-  if (filteredPaymentMethods.length === 0) {
+  if (paymentMethods.length === 0) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -231,7 +219,7 @@ const PaymentMethods = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {filteredPaymentMethods.map((payment) => (
+            {paymentMethods.map((payment) => (
               <View key={payment.id} style={styles.row}>
                 <PaymentMethod
                   payment={payment}
