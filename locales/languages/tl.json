@@ -575,7 +575,26 @@
     "theme_os": "Sistema",
     "theme_light": "Maliwanag",
     "theme_dark": "Madilim",
-    "network_exists": "Naidagdag na ang network na ito."
+    "network_exists": "Naidagdag na ang network na ito.",
+    "delete_metrics_title": "Tanggalin ang datos ng MetaMetrics",
+    "delete_metrics_description_part_one": "Tatanggalin nito ang salaysay ng datos ng MetaMetrics na nauugnay sa iyong wallet.",
+    "delete_metrics_description_part_two": "Ang datos ng MetaMetrics ay hindi nakikilalang datos ng paggamit at dyagnostiko.",
+    "delete_metrics_description_part_three": "Ang iyong wallet at mga account ay mananatiling eksaktong katulad ng kung ano ang mga ito sa ngayon pagkatapos matanggal ang data na ito. Maaaring tumagal ng hanggang 60 araw ang prosesong ito. Tingnan ang",
+    "delete_metrics_description_part_four": "Sinimulan mo ang aksyong ito noong",
+    "delete_metrics_description_part_five": ". Maaaring tumagal ng hanggang 60 araw ang prosesong ito. Tingnan ang",
+    "consensys_privacy_policy": "Patakaran ng Pagkapribado ng ConsenSys.",
+    "delete_metrics_button": "Tanggalin ang datos ng MetaMetrics",
+    "check_status_button": "Tingnan ang Status",
+    "delete_metrics_confirm_modal_title": "Tanggalin ang datos ng MetaMetrics?",
+    "delete_metrics_confirm_modal_description": "Aalisin na namin ang lahat ng iyong datos ng MetaMetrics. Sigurado ka ba?",
+    "delete_wallet_data_title": "I-delete ang wallet",
+    "delete_wallet_data_description": "Aalisin nito ang lahat ng datos na nauugnay sa wallet mula sa iyong device. Ang iyong mga account ay umiiral sa blockchain at hindi nauugnay sa MetaMask. Maaari mong bawiin anumang oras ang iyong mga account gamit ang iyong Secret Recovery Phrase.",
+    "delete_wallet_data_button": "I-delete ang wallet",
+    "delete_data_status_title": "Status ng Ginawang Pag-delete",
+    "delete_data_status_description": "Ang kasalukuyang status ay",
+    "delete_metrics_error_title": "Hindi namin ma-delete ang data na ito sa ngayon.",
+    "delete_metrics_error_description": "Hindi makumpleto ang kahilingang ito sa ngayon dahil sa isang isyu sa server ng analytics system, pakisubukang muli mamaya.",
+    "ok": "OK"
   },
   "app_information": {
     "title": "Impormasyon",
@@ -2006,5 +2025,21 @@
     "placeholder": "Password",
     "description": "Kung in-off mo ang opsyong ito, kakailanganin mo ang iyong password upang i-unlock ang MetaMask mula ngayon.",
     "action": "I-off ang Tandaan ako"
+  },
+  "automatic_security_checks": {
+    "title": "Mga awtomatikong pagsusuri sa seguridad",
+    "description": "Ang awtomatikong pagtingin ng mga update ay maaaring ilantad ang iyong IP address sa mga GitHub server. Ipinapahiwatig lang nito na ginagamit ng iyong IP address ang MetaMask. Walang ibang impormasyon o mga address ng account ang nalalantad."
+  },
+  "update_needed": {
+    "title": "Kailangan ng mga update",
+    "description": "Pinataas namin ang seguridad para sa iyong wallet! Mangyaring maglaan ng ilang sandali upang protektahan ang iyong sarili at mag-update sa pinakabagong bersyon.",
+    "primary_action": "I-update sa pinakabagong bersyon",
+    "secondary_action": "Paalalahanan ako mamaya"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Awtomatikong suriin para sa mga update sa seguridad?",
+    "description": "Maaaring ilantad ng awtomatikong pagsuri para sa mga update ang iyong IP address sa mga server ng GitHub. Ipinapahiwatig lamang nito na ang iyong IP address ay gumagamit ng MetaMask. Walang ibang impormasyon o mga address ng account ang nakalantad.",
+    "primary_action": "Paganahin ang mga awtomatikong pagsusuri sa seguridad",
+    "secondary_action": "Salamat nalang"
   }
 }

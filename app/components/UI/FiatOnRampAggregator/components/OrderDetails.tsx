@@ -7,12 +7,7 @@ import {
   Linking,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import {
-  Order,
-  OrderStatusEnum,
-  Payment,
-  PaymentType,
-} from '@consensys/on-ramp-sdk';
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
@@ -72,8 +67,8 @@ const createStyles = (colors: any) =>
   });
 
 interface PropsStage {
-  stage: string;
-  paymentMethod?: Payment;
+  stage: FiatOrder['state'];
+  pendingDescription?: string;
   cryptocurrency?: string;
   providerName?: string;
 }
@@ -91,14 +86,14 @@ const Group: React.FC = (props) => {
 
 const Stage: React.FC<PropsStage> = ({
   stage,
-  paymentMethod,
+  pendingDescription,
   cryptocurrency,
   providerName,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   switch (stage) {
-    case OrderStatusEnum.Completed: {
+    case FIAT_ORDER_STATES.COMPLETED: {
       return (
         <View style={styles.stage}>
           <Feather
@@ -122,8 +117,8 @@ const Stage: React.FC<PropsStage> = ({
         </View>
       );
     }
-    case OrderStatusEnum.Cancelled:
-    case OrderStatusEnum.Failed: {
+    case FIAT_ORDER_STATES.CANCELLED:
+    case FIAT_ORDER_STATES.FAILED: {
       return (
         <View style={styles.stage}>
           <Image source={failedIcon} />
@@ -149,31 +144,22 @@ const Stage: React.FC<PropsStage> = ({
         </View>
       );
     }
-    case OrderStatusEnum.Pending:
-    case OrderStatusEnum.Unknown:
+    case FIAT_ORDER_STATES.PENDING:
     default: {
       return (
         <View style={styles.stage}>
           <Spinner />
           <Group>
             <Text bold big primary centered>
-              {stage === 'PENDING'
+              {stage === FIAT_ORDER_STATES.PENDING
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
-            {paymentMethod?.paymentType === PaymentType.BankTransfer ? (
+            {pendingDescription ? (
               <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.processing_bank_description',
-                )}
+                {pendingDescription}
               </Text>
-            ) : (
-              <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.processing_card_description',
-                )}
-              </Text>
-            )}
+            ) : null}
           </Group>
         </View>
       );
@@ -258,7 +244,7 @@ const OrderDetails: React.FC<Props> = ({
       <Group>
         <Stage
           stage={state}
-          paymentMethod={orderData?.paymentMethod}
+          pendingDescription={orderData?.timeDescriptionPending}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
         />
