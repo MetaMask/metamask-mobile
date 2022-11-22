@@ -1,6 +1,6 @@
 # Changelog
 
-## Current Main Branch
+## 5.11.0 - Nov 21, 2022
 - [#5088](https://github.com/MetaMask/metamask-mobile/pull/5088): Add no payment methods screen
 - [#5223](https://github.com/MetaMask/metamask-mobile/pull/5223): Add payment method icons support
 - [#5203](https://github.com/MetaMask/metamask-mobile/pull/5203): 5.10.0
