@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import AppConfig from './AppConfig';
 import { FetchState } from '../../../util/fetch/FetchState';
-import { MM_APP_CONFIG_TEST_URL } from '../../../constants/urls';
+import { MM_APP_CONFIG_URL } from '../../../constants/urls';
 
 type State = FetchState<AppConfig>;
 const initialState: Readonly<State> = {
@@ -13,7 +13,7 @@ const useAppConfig = (): State => {
 
   useEffect(() => {
     const fetchAppConfig = () => {
-      fetch(MM_APP_CONFIG_TEST_URL)
+      fetch(MM_APP_CONFIG_URL)
         .then((response) => response.json())
         .then((data) => {
           try {
