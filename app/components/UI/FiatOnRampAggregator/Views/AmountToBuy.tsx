@@ -831,7 +831,7 @@ const AmountToBuy = () => {
               <StyledButton
                 type="confirm"
                 onPress={handleGetQuotePress}
-                disabled={!amountIsValid || amountNumber <= 0}
+                disabled={amountNumber <= 0}
               >
                 {strings('fiat_on_ramp_aggregator.get_quotes')}
               </StyledButton>
