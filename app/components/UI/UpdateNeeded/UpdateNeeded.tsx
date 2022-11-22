@@ -18,6 +18,7 @@ import ButtonPrimary from '../../../component-library/components/Buttons/Button/
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { getBuildNumber, getVersion, getBrand } from 'react-native-device-info';
+import { ScrollView } from 'react-native-gesture-handler';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -87,7 +88,7 @@ const UpdateNeeded = () => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.images}>
           <Image source={onboardingDeviceImage} />
         </View>
@@ -97,7 +98,7 @@ const UpdateNeeded = () => {
         <Text variant={TextVariants.sBodyMD} style={styles.description}>
           {strings('update_needed.description')}
         </Text>
-      </View>
+      </ScrollView>
       <View style={styles.actionButtonWrapper}>
         <ButtonPrimary
           label={strings('update_needed.primary_action')}

@@ -66,7 +66,7 @@ const EnableAutomaticSecurityChecksModal = () => {
   }, [dispatch]);
 
   return (
-    <ReusableModal style={styles.screen}>
+    <ReusableModal ref={modalRef} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.images}>
           <Image source={onboardingDeviceImage} />
