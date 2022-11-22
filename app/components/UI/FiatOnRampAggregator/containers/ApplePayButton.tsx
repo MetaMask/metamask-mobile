@@ -186,6 +186,10 @@ const ApplePayButton = ({
   return (
     <>
       {authorizationResult?.authenticationUrl ? (
+        /*
+         * WebView is used to redirect to the authenticationUrl
+         * but is not visible to the user
+         * */
         <WebView
           source={{ uri: authorizationResult.authenticationUrl }}
           onNavigationStateChange={handleNavigationStateChange}

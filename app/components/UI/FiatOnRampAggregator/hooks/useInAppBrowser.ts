@@ -96,13 +96,17 @@ export default function useInAppBrowser() {
         deeplinkRedirectUrl,
       );
 
-      const customIdData = createCustomOrderIdData(
-        customOrderId,
-        selectedChainId,
-        selectedAddress,
-      );
+      let customIdData;
 
-      dispatch(addFiatCustomIdData(customIdData));
+      if (customOrderId) {
+        customIdData = createCustomOrderIdData(
+          customOrderId,
+          selectedChainId,
+          selectedAddress,
+        );
+        dispatch(addFiatCustomIdData(customIdData));
+      }
+
       if (!(await InAppBrowser.isAvailable())) {
         Linking.openURL(url);
       } else {
@@ -146,8 +150,9 @@ export default function useInAppBrowser() {
           if (order.status === OrderStatusEnum.Unknown) {
             return;
           }
-
-          dispatch(removeFiatCustomIdData(customIdData));
+          if (customIdData) {
+            dispatch(removeFiatCustomIdData(customIdData));
+          }
 
           if (
             order.status === OrderStatusEnum.Precreated ||
