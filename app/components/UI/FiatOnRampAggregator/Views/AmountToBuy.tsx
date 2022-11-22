@@ -251,15 +251,6 @@ const AmountToBuy = () => {
     selectedRegion,
   ]);
 
-  const filteredPaymentMethods = useMemo(() => {
-    if (paymentMethods) {
-      return paymentMethods.filter((paymentMethod) =>
-        Device.isAndroid() ? !paymentMethod.isApplePay : true,
-      );
-    }
-    return null;
-  }, [paymentMethods]);
-
   /**
    * Temporarily filter crypto currencies to match current chain id
    * TODO: Remove this filter when we go multi chain. Replace `tokens` with `sdkCryptoCurrencies`
@@ -345,23 +336,19 @@ const AmountToBuy = () => {
    * Select the default payment method if current selection is not available.
    */
   useEffect(() => {
-    if (
-      !isFetchingPaymentMethods &&
-      !errorPaymentMethods &&
-      filteredPaymentMethods
-    ) {
-      const foundPaymentMethod = filteredPaymentMethods?.find(
+    if (!isFetchingPaymentMethods && !errorPaymentMethods && paymentMethods) {
+      const foundPaymentMethod = paymentMethods?.find(
         (pm) => pm.id === selectedPaymentMethodId,
       );
       if (foundPaymentMethod) {
         setSelectedPaymentMethodId(foundPaymentMethod.id);
       } else {
-        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
+        setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
       }
     }
   }, [
     errorPaymentMethods,
-    filteredPaymentMethods,
+    paymentMethods,
     isFetchingPaymentMethods,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
@@ -390,10 +377,8 @@ const AmountToBuy = () => {
 
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find(
-        (method) => method.id === selectedPaymentMethodId,
-      ),
-    [filteredPaymentMethods, selectedPaymentMethodId],
+      paymentMethods?.find((method) => method.id === selectedPaymentMethodId),
+    [paymentMethods, selectedPaymentMethodId],
   );
 
   /**
@@ -747,7 +732,7 @@ const AmountToBuy = () => {
           isVisible={isPaymentMethodModalVisible}
           dismiss={hidePaymentMethodModal as () => void}
           title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-          paymentMethods={filteredPaymentMethods}
+          paymentMethods={paymentMethods}
           selectedPaymentMethodId={selectedPaymentMethodId}
           selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
@@ -902,7 +887,7 @@ const AmountToBuy = () => {
         isVisible={isPaymentMethodModalVisible}
         dismiss={hidePaymentMethodModal as () => void}
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-        paymentMethods={filteredPaymentMethods}
+        paymentMethods={paymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
         selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
