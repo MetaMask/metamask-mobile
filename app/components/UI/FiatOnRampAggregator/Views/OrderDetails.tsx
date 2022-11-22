@@ -61,6 +61,7 @@ const OrderDetails = () => {
         currency_destination: order.cryptocurrency,
         currency_source: order.currency,
         chain_id_destination: order.network,
+        order_type: order.orderType,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
