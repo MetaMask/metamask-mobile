@@ -168,6 +168,7 @@ const CheckoutWebView = () => {
           currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
             ?.cryptoCurrency.symbol,
           chain_id_destination: selectedChainId,
+          order_type: (transformedOrder as FiatOrder)?.orderType,
           is_apple_pay: false,
           has_zero_native_balance: accounts[selectedAddress]?.balance
             ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
