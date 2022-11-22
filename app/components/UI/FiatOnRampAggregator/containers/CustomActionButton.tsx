@@ -118,12 +118,9 @@ const CustomActionButton: React.FC<
           orders = await SDK.orders();
           orderId = await orders.getOrderIdFromCallback(providerId, result.url);
         } else {
-          trackEvent('ONRAMP_PURCHASE_CANCELLED', {
-            amount,
+          trackEvent('ONRAMP_CANCELED', {
+            location: 'Provider InApp Browser',
             chain_id_destination: selectedChainId,
-            currency_destination: selectedAsset?.symbol as string,
-            currency_source: fiatSymbol,
-            payment_method_id: selectedPaymentMethodId as string,
             provider_onramp: provider.provider.name,
           });
 
@@ -183,6 +180,7 @@ const CustomActionButton: React.FC<
             ?.cryptoCurrency.symbol,
           chain_id_destination: selectedChainId,
           is_apple_pay: false,
+          order_type: (transformedOrder as FiatOrder)?.orderType,
           has_zero_native_balance: accounts[selectedAddress]?.balance
             ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
             : undefined,
