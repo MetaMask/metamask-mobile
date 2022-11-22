@@ -132,11 +132,6 @@ export interface UseGasTransactionProps extends GasTransactionProps {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
-  dappSuggestedGasPrice: string;
-  dappSuggestedEIP1559Gas: {
-    maxFeePerGas: string;
-    maxPriorityFeePerGas: string;
-  };
 }
 
 export interface TransactionSharedProps {
