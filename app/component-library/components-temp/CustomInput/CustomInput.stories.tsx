@@ -1,22 +1,30 @@
+// Third party dependencies.
 import React from 'react';
-import { Keyboard } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
+
+// Internal dependencies.
 import CustomInput from './CustomInput';
-import { TICKER, MAX_VALUE } from './CustomInput.constants';
+import { TICKER, MAX_VALUE, DEFAULT_VALUE } from './CustomInput.constants';
 
-let maxOptionSelected = false;
-
-const showMaxValue = () => {
-  Keyboard.dismiss();
-  maxOptionSelected = true;
+const getUpdatedValue = (value: string) => {
+  // do something with the value
+  /* eslint-disable no-console */
+  console.log('value', value);
 };
 
-storiesOf('Component Library / CustomInput', module).add('Default', () => (
-  <CustomInput
-    isMaxValue
-    ticker={TICKER}
-    showMaxValue={showMaxValue}
-    maxAvailableValue={MAX_VALUE}
-    maxOptionSelected={maxOptionSelected}
-  />
-));
+storiesOf('Component Library / CustomInput', module)
+  .add('Default', () => (
+    <CustomInput
+      ticker={TICKER}
+      getUpdatedValue={getUpdatedValue}
+      maxAvailableValue={MAX_VALUE}
+    />
+  ))
+  .add('With default value', () => (
+    <CustomInput
+      ticker={TICKER}
+      getUpdatedValue={getUpdatedValue}
+      maxAvailableValue={MAX_VALUE}
+      defaultValue={DEFAULT_VALUE}
+    />
+  ));

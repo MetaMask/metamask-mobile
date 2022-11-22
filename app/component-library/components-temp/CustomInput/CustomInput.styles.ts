@@ -18,12 +18,11 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 10,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
     },
     body: {
       flexDirection: 'row',
       marginHorizontal: 5,
-      width: '80%',
+      width: '90%',
       alignItems: 'center',
     },
     input: {
@@ -36,6 +35,12 @@ const styleSheet = (params: { theme: Theme }) => {
     maxValueText: {
       fontSize: 14,
       color: theme.colors.text.alternative,
+    },
+    ticker: {
+      paddingLeft: 5,
+    },
+    warningValue: {
+      color: theme.colors.error.default,
     },
   });
 };
