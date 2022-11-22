@@ -12,14 +12,21 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { CryptoCurrency } from '@consensys/on-ramp-sdk';
+
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import usePaymentMethods from '../hooks/usePaymentMethods';
+import useAnalytics from '../hooks/useAnalytics';
+import { Region } from '../types';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import BaseText from '../../../Base/Text';
+import BaseListItem from '../../../Base/ListItem';
 import BaseSelectorButton from '../../../Base/SelectorButton';
 import StyledButton from '../../StyledButton';
 
 import ScreenLayout from '../components/ScreenLayout';
+import Box from '../components/Box';
 import AssetSelectorButton from '../components/AssetSelectorButton';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import AmountInput from '../components/AmountInput';
@@ -28,28 +35,22 @@ import QuickAmounts from '../components/QuickAmounts';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import CustomActionButton from '../containers/CustomActionButton';
-
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
 import PaymentMethodIcon from '../components/PaymentMethodIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import RegionModal from '../components/RegionModal';
+import SkeletonText from '../components/SkeletonText';
+import ErrorView from '../components/ErrorView';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-import SkeletonText from '../components/SkeletonText';
-import BaseListItem from '../../../Base/ListItem';
-import Box from '../components/Box';
-import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
-import ErrorView from '../components/ErrorView';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import { Colors } from '../../../../util/theme/models';
-import { CryptoCurrency } from '@consensys/on-ramp-sdk';
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
-import { Region } from '../types';
+import { Colors } from '../../../../util/theme/models';
+import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -198,14 +199,13 @@ const AmountToBuy = () => {
     selectedFiatCurrencyId,
   );
 
-  const [
-    {
-      data: paymentMethods,
-      error: errorPaymentMethods,
-      isFetching: isFetchingPaymentMethods,
-    },
-    queryGetPaymentMethods,
-  ] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
+  const {
+    data: paymentMethods,
+    error: errorPaymentMethods,
+    isFetching: isFetchingPaymentMethods,
+    query: queryGetPaymentMethods,
+    currentPaymentMethod,
+  } = usePaymentMethods();
 
   const [{ data: limits }] = useSDKMethod(
     'getLimits',
@@ -333,28 +333,6 @@ const AmountToBuy = () => {
   }, [sdkCryptoCurrencies, selectedAsset, setSelectedAsset, tokens]);
 
   /**
-   * Select the default payment method if current selection is not available.
-   */
-  useEffect(() => {
-    if (!isFetchingPaymentMethods && !errorPaymentMethods && paymentMethods) {
-      const foundPaymentMethod = paymentMethods?.find(
-        (pm) => pm.id === selectedPaymentMethodId,
-      );
-      if (foundPaymentMethod) {
-        setSelectedPaymentMethodId(foundPaymentMethod.id);
-      } else {
-        setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
-      }
-    }
-  }, [
-    errorPaymentMethods,
-    paymentMethods,
-    isFetchingPaymentMethods,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
-  ]);
-
-  /**
    * * Derived values
    */
 
@@ -374,12 +352,6 @@ const AmountToBuy = () => {
       defaultFiatCurrency;
     return currency;
   }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
-
-  const currentPaymentMethod = useMemo(
-    () =>
-      paymentMethods?.find((method) => method.id === selectedPaymentMethodId),
-    [paymentMethods, selectedPaymentMethodId],
-  );
 
   /**
    * Format the amount for display (iOS only)

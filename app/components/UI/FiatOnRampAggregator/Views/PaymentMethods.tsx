@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentMethod from '../components/PaymentMethod';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import { useTheme } from '../../../../util/theme';
@@ -17,6 +17,7 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
+import usePaymentMethods from '../hooks/usePaymentMethods';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -62,31 +63,13 @@ const PaymentMethods = () => {
     sdkError,
   } = useFiatOnRampSDK();
 
-  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
-    useSDKMethod('getPaymentMethods', selectedRegion?.id);
-
-  const currentPaymentMethod = useMemo(
-    () =>
-      paymentMethods?.find((method) => method.id === selectedPaymentMethodId),
-    [paymentMethods, selectedPaymentMethodId],
-  );
-
-  useEffect(() => {
-    if (!isFetching && !error && paymentMethods) {
-      const paymentMethod = paymentMethods.find(
-        (pm) => pm.id === selectedPaymentMethodId,
-      );
-      if (!paymentMethod) {
-        setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
-      }
-    }
-  }, [
-    error,
-    paymentMethods,
+  const {
+    data: paymentMethods,
     isFetching,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
-  ]);
+    error,
+    query: queryGetPaymentMethods,
+    currentPaymentMethod,
+  } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
