@@ -16,8 +16,8 @@ import {
   TOKEN_METHOD_TRANSFER,
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
-  buildUnserializedTransaction,
 } from '.';
+import { buildUnserializedTransaction } from './optimismTransaction';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 

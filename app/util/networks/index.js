@@ -18,7 +18,7 @@ import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
-import { buildUnserializedTransaction } from '../../util/transactions';
+import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
 export { handleNetworkSwitch };
