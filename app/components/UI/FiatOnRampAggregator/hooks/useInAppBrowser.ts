@@ -68,6 +68,7 @@ export default function useInAppBrowser() {
           ?.cryptoCurrency.symbol,
         chain_id_destination: selectedChainId,
         is_apple_pay: false,
+        order_type: (transformedOrder as FiatOrder)?.orderType,
         has_zero_native_balance: accounts[selectedAddress]?.balance
           ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
           : undefined,
