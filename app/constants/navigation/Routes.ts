@@ -21,6 +21,8 @@ const Routes = {
     MODAL_CONFIRMATION: 'ModalConfirmation',
     WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
+    UPDATE_NEEDED: 'UpdateNeededModal',
+    ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
