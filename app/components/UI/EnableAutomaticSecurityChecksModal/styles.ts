@@ -12,8 +12,9 @@ export const createStyles = (colors: any) =>
       backgroundColor: colors.background.default,
     },
     content: {
-      flex: 1,
+      justifyContent: 'center',
       paddingHorizontal: 16,
+      flexGrow: 1,
     },
     title: {
       textAlign: 'center',

@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { View, Image, Platform, ScrollView } from 'react-native';
+import { View, Image, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -20,7 +20,7 @@ import {
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
 import AnalyticsV2 from '../../../util/analyticsV2';
-// import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -67,10 +67,10 @@ const EnableAutomaticSecurityChecksModal = () => {
 
   return (
     <ReusableModal style={styles.screen}>
-      <View style={styles.images}>
-        <Image source={onboardingDeviceImage} />
-      </View>
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.images}>
+          <Image source={onboardingDeviceImage} />
+        </View>
         <Text variant={TextVariants.lHeadingLG} style={styles.title}>
           {strings('enable_automatic_security_check_modal.title')}
         </Text>
