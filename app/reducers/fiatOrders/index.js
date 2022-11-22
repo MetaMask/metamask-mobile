@@ -22,6 +22,8 @@ import {
  * @property {string} account <account wallet address>
  * @property {string} network <network>
  * @property {?string} txHash <transaction hash | null>
+ * @property {boolean} excludeFromPurchases
+ * @property {string} orderType
  * @property {object|import('@consensys/on-ramp-sdk').Order} data original provider data
  * @property {object} [data.order] : Wyre order response
  * @property {object} [data.transfer] : Wyre transfer response
