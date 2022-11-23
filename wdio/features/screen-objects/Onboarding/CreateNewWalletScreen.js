@@ -1,7 +1,6 @@
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../../testIDs/Components/TermsAndConditions.testIds';
 import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_TITLE_ID,
   CREATE_PASSWORD_INPUT_FIRST_FIELD,
   CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
   I_UNDERSTAND_BUTTON_ID,
@@ -9,9 +8,7 @@ import {
   REMIND_LATER_BUTTON_ID,
   PROTECT_YOUR_WALLET_CONTAINER_ID
 } from '../../testIDs/Screens/WalletSetupScreen.testIds';
-
-import {SKIP_BACKUP_TEXT,
-  SKIP_BUTTON,} from '../../testIDs/Components/SkipAccountSecurityModalTestIds';
+import { SKIP_BUTTON } from '../../testIDs/Components/SkipAccountSecurityModalTestIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
@@ -32,9 +29,7 @@ class CreateNewWalletScren {
   get skipButton() {
     return Selectors.getElementByPlatform(SKIP_BUTTON);
   }
-  get skipBackupText() {
-    return Selectors.getElementByPlatform(SKIP_BACKUP_TEXT);
-  }
+  
   get remindMeLaterButton() {
     return Selectors.getElementByPlatform(REMIND_LATER_BUTTON_ID);
   }
@@ -70,8 +65,8 @@ class CreateNewWalletScren {
   }
 
   async isAccountCreated(){
-    await expect(this.remindMeLaterButton).toBeDisplayed();
     await expect(this.secureWalletScreen).toBeDisplayed();
+    await expect(this.remindMeLaterButton).toBeDisplayed();
   }
 
   async isScreenDescriptionVisible() {

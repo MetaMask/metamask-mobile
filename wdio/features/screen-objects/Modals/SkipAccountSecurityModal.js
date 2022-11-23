@@ -7,22 +7,21 @@ import {
 
 class SkipAccountSecurityModal {
 
-      get skipBackupText() {
-        return Selectors.getElementByPlatform(SKIP_BACKUP_TEXT);
-      }
-      get skipButton() {
-        return Selectors.getElementByPlatform(SKIP_BUTTON);
-      }
+  get skipBackupText() {
+    return Selectors.getElementByPlatform(SKIP_BACKUP_TEXT);
+  }
+
+  get skipButton() {
+    return Selectors.getElementByPlatform(SKIP_BUTTON);
+  }
 
   async proceedWithoutWalletSecure(){
     await Gestures.tap(this.skipBackupText);
     await Gestures.tap(this.skipButton);
   }
 
-
   async isVisible(){
     await expect(this.skipBackupText).toBeDisplayed();
   }
-
 }
 export default new SkipAccountSecurityModal();
