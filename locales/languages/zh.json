@@ -575,7 +575,26 @@
     "theme_os": "系统",
     "theme_light": "浅色",
     "theme_dark": "深色",
-    "network_exists": "这个网络已经被添加。"
+    "network_exists": "这个网络已经被添加。",
+    "delete_metrics_title": "删除MetaMetrics数据",
+    "delete_metrics_description_part_one": "这将会删除与您的钱包关联的MetaMetrics历史数据。",
+    "delete_metrics_description_part_two": "MetaMetrics数据是匿名使用和诊断的数据。",
+    "delete_metrics_description_part_three": "删除此数据后，您的钱包和账户将保持原样。此过程最多可能需要60天。查看",
+    "delete_metrics_description_part_four": "您启用此操作的日期为",
+    "delete_metrics_description_part_five": ". 此过程最多可能需要60天。查看",
+    "consensys_privacy_policy": "ConsenSys隐私政策。",
+    "delete_metrics_button": "删除MetaMetrics数据",
+    "check_status_button": "检查状态",
+    "delete_metrics_confirm_modal_title": "要删除MetaMetrics数据吗？",
+    "delete_metrics_confirm_modal_description": "我们即将删除您所有的MetaMetrics数据。您确定吗？",
+    "delete_wallet_data_title": "删除钱包",
+    "delete_wallet_data_description": "这将会刪除您的设备中所有与钱包关联的数据。您的账户存在于区块链上，与 MetaMask无关。您可以随时使用您的助记词来恢复您的账户。",
+    "delete_wallet_data_button": "删除钱包",
+    "delete_data_status_title": "删除任务状态",
+    "delete_data_status_description": "当前状态为",
+    "delete_metrics_error_title": "我们现在无法删除此数据。",
+    "delete_metrics_error_description": "由于分析系统服务器问题，现在无法完成此请求，请稍后再试。",
+    "ok": "OK"
   },
   "app_information": {
     "title": "信息",
@@ -2006,5 +2025,21 @@
     "placeholder": "密码",
     "description": "如果关闭此选项，从现在起，您需要使用密码来解锁MetaMask。",
     "action": "关闭“记住我”"
+  },
+  "automatic_security_checks": {
+    "title": "自动安全检查",
+    "description": "自动检查更新可能会将您的IP地址暴露给GitHub服务器。这仅显示您的IP地址正在使用MetaMask。其他信息或账户地址不会暴露。"
+  },
+  "update_needed": {
+    "title": "需要更新",
+    "description": "我们增強了您钱包的安全！请花点时间保护自己，更新到最新版本。",
+    "primary_action": "更新到最新版本",
+    "secondary_action": "稍后提醒我"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "要自动检查安全更新吗？",
+    "description": "自动检查更新可能会将您的IP地址暴露给GitHub服务器。这仅显示您的IP地址正在使用MetaMask。其他信息或账户地址不会暴露。",
+    "primary_action": "启用自动安全检查",
+    "secondary_action": "不，谢谢"
   }
 }
