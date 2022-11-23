@@ -334,7 +334,7 @@ PODS:
     - React
   - react-native-viewpager (3.3.1):
     - React
-  - react-native-webrtc (1.106.1):
+  - react-native-webrtc (106.0.0-beta.7):
     - JitsiWebRTC (~> 106.0.0)
     - React-Core
   - react-native-webview (11.13.0):
@@ -828,7 +828,7 @@ SPEC CHECKSUMS:
   react-native-video: 0bb76b6d6b77da3009611586c7dbf817b947f30e
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-viewpager: f730c1d175a2c1ae789464855d4a2c14247d3109
-  react-native-webrtc: 4a4c31be61f88d1d3356526eebce72f462a6760e
+  react-native-webrtc: f73459325441d15812f86071bdbd0bf3376235d1
   react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9
   React-perflogger: 73732888d37d4f5065198727b167846743232882
   React-RCTActionSheet: 96c6d774fa89b1f7c59fc460adc3245ba2d7fd79
