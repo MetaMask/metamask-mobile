@@ -9,7 +9,6 @@ import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
-import { hexWEIToDecETH } from '../conversions';
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -751,7 +750,13 @@ export const calculateEthFeeForMultiLayer = ({
   if (!multiLayerL1FeeTotal) {
     return ethFee;
   }
-  return new BigNumber(hexWEIToDecETH(multiLayerL1FeeTotal))
+  const multiLayerL1FeeTotalDecEth = conversionUtil(multiLayerL1FeeTotal, {
+    fromNumericBase: 'hex',
+    toNumericBase: 'dec',
+    fromDenomination: 'WEI',
+    toDenomination: 'ETH',
+  });
+  return new BigNumber(multiLayerL1FeeTotalDecEth)
     .plus(new BigNumber(ethFee ?? 0))
     .toString(10);
 };
