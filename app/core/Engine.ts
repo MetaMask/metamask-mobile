@@ -37,6 +37,7 @@ import { SnapController } from '@metamask/snap-controllers';
 >>>>>>> ceeb00961 (Update code):app/core/Engine.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import { SnapExecutionService } from './SnapExecutionService';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -256,6 +257,16 @@ class Engine {
           'ExecutionService:terminateAllSnaps',
           'ExecutionService:handleRpcRequest',
         ],
+      });
+
+      this.snapExecutionService = new SnapExecutionService({
+        iframeUrl: new URL(
+          'https://metamask.github.io/iframe-execution-environment/0.10.0',
+        ),
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ExecutionService',
+        }),
+        setupSnapProvider: null,
       });
 
       const snapController = new SnapController({
