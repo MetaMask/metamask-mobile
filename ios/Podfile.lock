@@ -75,6 +75,7 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
+  - JitsiWebRTC (106.0.0)
   - libevent (2.1.12)
   - lottie-ios (2.5.3)
   - lottie-react-native (3.1.0):
@@ -333,7 +334,8 @@ PODS:
     - React
   - react-native-viewpager (3.3.1):
     - React
-  - react-native-webrtc (1.100.0):
+  - react-native-webrtc (1.106.1):
+    - JitsiWebRTC (~> 106.0.0)
     - React-Core
   - react-native-webview (11.13.0):
     - React-Core
@@ -610,6 +612,7 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - fmt
+    - JitsiWebRTC
     - libevent
     - lottie-ios
     - OpenSSL-Universal
@@ -791,6 +794,7 @@ SPEC CHECKSUMS:
   FlipperKit: aec2d931adeee48a07bab1ea8bcc8a6bb87dfce4
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 5337263514dd6f09803962437687240c5dc39aa4
+  JitsiWebRTC: f441eb0e2d67f0588bf24e21c5162e97342714fb
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
   lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
@@ -824,7 +828,7 @@ SPEC CHECKSUMS:
   react-native-video: 0bb76b6d6b77da3009611586c7dbf817b947f30e
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-viewpager: f730c1d175a2c1ae789464855d4a2c14247d3109
-  react-native-webrtc: b8f2769386d51a6a8c89778478618fe311226bc3
+  react-native-webrtc: 4a4c31be61f88d1d3356526eebce72f462a6760e
   react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9
   React-perflogger: 73732888d37d4f5065198727b167846743232882
   React-RCTActionSheet: 96c6d774fa89b1f7c59fc460adc3245ba2d7fd79
@@ -854,7 +858,7 @@ SPEC CHECKSUMS:
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNReanimated: 0a4de6844119f4f1c3a46e6e7958ee7425ab4d0f
+  RNReanimated: 2bbc71260f2eafedbc3ef05e33e3fdf2dd34d1ce
   RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce
@@ -868,6 +872,6 @@ SPEC CHECKSUMS:
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 7f7f2a91148820d72060690efb985d8d04e01f4b
+PODFILE CHECKSUM: 3d47c554eecd2750d8e3234919d8dff911bbd9d0
 
 COCOAPODS: 1.11.3
