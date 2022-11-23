@@ -2026,19 +2026,12 @@ function SwapsQuotesView({
                       </View>
                     </View>
                     <View style={styles.quotesFiatColumn}>
-                      <TouchableOpacity
-                        disabled={unableToSwap}
-                        onPress={
-                          unableToSwap ? undefined : onEditQuoteTransactionsGas
-                        }
-                      >
-                        <Text link={!unableToSwap} underline={!unableToSwap}>
-                          {renderFromWei(
-                            toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )}{' '}
-                          {getTicker(ticker)}
-                        </Text>
-                      </TouchableOpacity>
+                      <Text>
+                        {renderFromWei(
+                          toWei(selectedQuoteValue?.maxEthFee || '0x0'),
+                        )}{' '}
+                        {getTicker(ticker)}
+                      </Text>
                       <Text upper>
                         {`  ${
                           weiToFiat(
