@@ -5,8 +5,8 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
   MOONPAY_NETWORK_PARAMETERS,
-  NETWORKS_CHAIN_ID,
 } from '../../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
 
