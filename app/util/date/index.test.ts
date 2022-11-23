@@ -32,10 +32,23 @@ describe('Date', () => {
 
 describe('Date util :: msBetweenDates', () => {
   it('should return 1000', () => {
+    const DateReal = global.Date;
+
+    const mockDate = new Date();
+    const spy = jest
+      .spyOn(global, 'Date')
+      .mockImplementation(function (...args: any[]) {
+        if (args.length) {
+          return new DateReal(...args);
+        }
+        return mockDate;
+      } as any);
+
     const todayOneHourEarlier = new Date().getTime() - 1000;
     const dateOneHourEarlier = new Date(todayOneHourEarlier);
 
     expect(msBetweenDates(dateOneHourEarlier)).toEqual(1000);
+    spy.mockClear();
   });
 });
 

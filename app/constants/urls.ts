@@ -1,3 +1,5 @@
+import AppConstants from '../core/AppConstants';
+
 // Support
 export const SRP_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/4404722782107-User-guide-Secret-Recovery-Phrase-password-and-private-keys';
@@ -33,6 +35,13 @@ export const PHISHFORT_BLOCKLIST_ISSUE_URL =
 // https://github.com/MetaMask/metamask-mobile/tree/gh-pages
 export const MM_APP_CONFIG_URL =
   'https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json';
+export const MM_APP_CONFIG_TEST_URL =
+  'https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json';
 
 export const MM_DEPRECATED_NETWORKS =
   'https://blog.ethereum.org/2022/06/21/testnet-deprecation/';
+
+export const MM_APP_STORE_LINK =
+  'itms-apps://apps.apple.com/app/metamask-blockchain-wallet/id1438144202';
+
+export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
