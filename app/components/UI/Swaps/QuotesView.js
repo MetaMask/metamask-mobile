@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import Eth from 'ethjs';
+import Eth from 'ethjs-query';
 import {
   View,
   StyleSheet,

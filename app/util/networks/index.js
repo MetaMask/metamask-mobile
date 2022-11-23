@@ -1,5 +1,6 @@
 import URL from 'url-parse';
 import { utils } from 'ethers';
+import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import { util } from '@metamask/controllers';
@@ -288,7 +289,8 @@ const buildOVMGasPriceOracleContract = (eth) => {
   const abi = JSON.parse(
     OVMGasPriceOracle.interface.format(utils.FormatTypes.json),
   );
-  return eth.contract(abi).at(OVMGasPriceOracle.address);
+  const contract = new EthContract(eth);
+  return contract(abi).at(OVMGasPriceOracle.address);
 };
 
 /**

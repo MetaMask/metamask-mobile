@@ -12008,22 +12008,6 @@ ethjs@^0.3.0:
     js-sha3 "0.5.5"
     number-to-bn "1.7.0"
 
-ethjs@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/ethjs/-/ethjs-0.4.0.tgz#53e6312b6fe050620bd6c5813cb683191cfd6e4a"
-  integrity sha512-UnQeRMpQ+JETN2FviexEskUwByid+eO8rybjPnk2DNUzjUn0VKNrUbiCAud7Es6otDFwjUeOS58vMZwkZxIIog==
-  dependencies:
-    bn.js "4.11.6"
-    ethjs-abi "0.2.1"
-    ethjs-contract "0.2.3"
-    ethjs-filter "0.1.8"
-    ethjs-provider-http "0.1.6"
-    ethjs-query "0.3.8"
-    ethjs-unit "0.1.6"
-    ethjs-util "0.1.3"
-    js-sha3 "0.5.5"
-    number-to-bn "1.7.0"
-
 event-stream@=3.3.4:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/event-stream/-/event-stream-3.3.4.tgz#4ab4c9a0f5a54db9338b4c34d86bfce8f4b35571"
