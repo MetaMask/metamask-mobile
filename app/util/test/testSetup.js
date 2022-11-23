@@ -126,6 +126,19 @@ jest.mock(
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
+const mockReactNativeWebRTC = {
+  RTCPeerConnection: () => null,
+  RTCIceCandidate: () => null,
+  RTCSessionDescription: () => null,
+  RTCView: () => null,
+  MediaStream: () => null,
+  MediaStreamTrack: () => null,
+  mediaDevices: () => null,
+  registerGlobals: () => null,
+};
+
+jest.mock('react-native-webrtc', () => mockReactNativeWebRTC);
+
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),
   createGestureHandler: jest.fn(),
