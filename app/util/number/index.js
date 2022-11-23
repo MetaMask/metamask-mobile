@@ -6,8 +6,10 @@ import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
 import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
-import currencySymbols from '../currency-symbols.json';
 import BigNumber from 'bignumber.js';
+
+import currencySymbols from '../currency-symbols.json';
+import { hexWEIToDecETH } from '../conversions';
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -740,4 +742,16 @@ export const toHexadecimal = (decimal) => {
   }
   if (decimal.startsWith('0x')) return decimal;
   return toBigNumber.dec(decimal).toString(16);
+};
+
+export const calculateEthFeeForMultiLayer = ({
+  multiLayerL1FeeTotal,
+  ethFee = 0,
+}) => {
+  if (!multiLayerL1FeeTotal) {
+    return ethFee;
+  }
+  return new BigNumber(hexWEIToDecETH(multiLayerL1FeeTotal))
+    .plus(new BigNumber(ethFee ?? 0))
+    .toString(10);
 };

@@ -31,6 +31,7 @@ import {
   renderFromWei,
   toWei,
   weiToFiat,
+  calculateEthFeeForMultiLayer,
 } from '../../../util/number';
 import {
   isMainnetByChainId,
@@ -73,7 +74,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
-import { decGWEIToHexWEI, hexWEIToDecETH } from '../../../util/conversions';
+import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -476,12 +477,14 @@ function SwapsQuotesView({
       return quoteValues[selectedQuoteId];
     }
     const fees = {
-      ethFee: new BigNumber(hexWEIToDecETH(multiLayerL1FeeTotal))
-        .plus(new BigNumber(quoteValues[selectedQuoteId].ethFee))
-        .toString(10),
-      maxEthFee: new BigNumber(hexWEIToDecETH(multiLayerL1FeeTotal))
-        .plus(new BigNumber(quoteValues[selectedQuoteId].maxEthFee))
-        .toString(10),
+      ethFee: calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal,
+        ethFee: quoteValues[selectedQuoteId].ethFee,
+      }),
+      maxEthFee: calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal,
+        ethFee: quoteValues[selectedQuoteId].maxEthFee,
+      }),
     };
     return {
       ...quoteValues[selectedQuoteId],
@@ -2221,6 +2224,7 @@ function SwapsQuotesView({
         selectedQuote={selectedQuoteId}
         showOverallValue={hasConversionRate}
         ticker={getTicker(ticker)}
+        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
       />
 
       <ApprovalTransactionEditionModal
