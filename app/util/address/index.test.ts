@@ -4,6 +4,7 @@ import {
   formatAddress,
   isValidHexAddress,
   isValidAddressInputViaQRCode,
+  stripHexPrefix,
 } from '.';
 
 describe('isENS', () => {
@@ -120,5 +121,20 @@ describe('isValidAddressInputViaQRCode', () => {
   it('should be invalid to have an URL', () => {
     const mockInput = 'https://www.metamask.io';
     expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+});
+
+describe('stripHexPrefix', () => {
+  const str =
+    '0x4cfd3e90fc78b0f86bf7524722150bb8da9c60cd532564d7ff43f5716514f553';
+  const stripped =
+    '4cfd3e90fc78b0f86bf7524722150bb8da9c60cd532564d7ff43f5716514f553';
+
+  it('returns a string without a hex prefix', () => {
+    expect(stripHexPrefix(str)).toBe(stripped);
+  });
+
+  it('returns the same string since there is no hex prefix', () => {
+    expect(stripHexPrefix(stripped)).toBe(stripped);
   });
 });
