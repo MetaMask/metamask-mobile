@@ -87,6 +87,7 @@ const SnapsPOC: React.FC = () => {
   };
 
   const createNewIframe = () => {
+    if (!webviewRef?.current) return;
     webviewRef.current.postMessage(
       JSON.stringify({
         method: 'start_snap',
