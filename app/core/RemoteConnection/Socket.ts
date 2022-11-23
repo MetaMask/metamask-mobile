@@ -44,37 +44,6 @@ export default class Socket extends EventEmitter2 {
       options,
     );
 
-    const connectAgain = () => {
-      window.removeEventListener('focus', connectAgain);
-      this.reconnect = true;
-      this.socket.connect();
-      this.socket.emit('join_channel', this.channelId);
-    };
-
-    const checkFocus = () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      this.socket.disconnect();
-      if (document.hasFocus()) {
-        connectAgain();
-      } else {
-        window.addEventListener('focus', connectAgain);
-      }
-    };
-
-    this.socket.on('error', () => {
-      // #if _WEB
-      checkFocus();
-      // #endif
-    });
-
-    this.socket.on('disconnect', () => {
-      // #if _WEB
-      checkFocus();
-      // #endif
-    });
-
     const keyExchangeInitParameter = {
       CommLayer: this,
       otherPublicKey,
