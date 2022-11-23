@@ -168,6 +168,9 @@ export const ANALYTICS_EVENTS_V2 = {
   ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     'On-ramp Provider Details Viewed',
   ),
+  ONRAMP_DIRECT_PROVIDER_CLICKED: generateOpt(
+    'On-ramp Provider Custom Action Clicked',
+  ),
   ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
   ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
   ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
@@ -178,6 +181,33 @@ export const ANALYTICS_EVENTS_V2 = {
   ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
   ONRAMP_ERROR: generateOpt('On-ramp Error'),
+
+  // force upgrade/automatic security checks
+  FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED: generateOpt(
+    'Force Upgrade Update Needed Prompt Viewed',
+  ),
+  FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED: generateOpt(
+    'Force Upgrade Clicked Update to Latest Version',
+  ),
+  FORCE_UPGRADE_REMIND_ME_LATER_CLICKED: generateOpt(
+    'Force Upgrade Clicked Remind Me Later',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT: generateOpt(
+    'Automatic Security Checks Enabled From Prompt',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT: generateOpt(
+    'Automatic Security Checks Disabled From Prompt',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS: generateOpt(
+    'Automatic Security Checks Enabled From Settings',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS: generateOpt(
+    'Automatic Security Checks Disabled From Settings',
+  ),
 };
 
 /**
