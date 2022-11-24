@@ -1,17 +1,14 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
-import PaymentOption from '../components/PaymentOption';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import PaymentMethod from '../components/PaymentMethod';
+import { useFiatOnRampSDK } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { getPaymentMethodIcon } from '../utils';
-import Device from '../../../../util/device';
 import SkeletonBox from '../components/SkeletonBox';
 import SkeletonText from '../components/SkeletonText';
 import BaseListItem from '../../../Base/ListItem';
@@ -20,6 +17,7 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
+import usePaymentMethods from '../hooks/usePaymentMethods';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -50,7 +48,7 @@ const SkeletonPaymentOption = () => (
   </Box>
 );
 
-const PaymentMethod = () => {
+const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -58,48 +56,20 @@ const PaymentMethod = () => {
 
   const {
     selectedRegion,
+    setSelectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
   } = useFiatOnRampSDK();
 
-  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
-    useSDKMethod('getPaymentMethods', selectedRegion?.id);
-
-  const filteredPaymentMethods = useMemo(() => {
-    if (paymentMethods) {
-      return paymentMethods.filter((paymentMethod) =>
-        Device.isAndroid() ? !paymentMethod.isApplePay : true,
-      );
-    }
-    return null;
-  }, [paymentMethods]);
-
-  const currentPaymentMethod = useMemo(
-    () =>
-      filteredPaymentMethods?.find(
-        (method) => method.id === selectedPaymentMethodId,
-      ),
-    [filteredPaymentMethods, selectedPaymentMethodId],
-  );
-
-  useEffect(() => {
-    if (!isFetching && !error && filteredPaymentMethods) {
-      const paymentMethod = filteredPaymentMethods.find(
-        (pm) => pm.id === selectedPaymentMethodId,
-      );
-      if (!paymentMethod) {
-        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
-      }
-    }
-  }, [
-    error,
-    filteredPaymentMethods,
+  const {
+    data: paymentMethods,
     isFetching,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
-  ]);
+    error,
+    query: queryGetPaymentMethods,
+    currentPaymentMethod,
+  } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
@@ -118,6 +88,26 @@ const PaymentMethod = () => {
     },
     [setSelectedPaymentMethodId, trackEvent],
   );
+
+  const handleResetState = useCallback(() => {
+    setSelectedRegion(null);
+    setSelectedPaymentMethodId(null);
+    // @ts-expect-error navigation params error
+    const needsReset = params?.showBack === false;
+    if (needsReset) {
+      navigation.reset({
+        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [
+    // @ts-expect-error navigation params error
+    params?.showBack,
+    setSelectedPaymentMethodId,
+    setSelectedRegion,
+    navigation,
+  ]);
 
   const handleContinueToAmount = useCallback(() => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
@@ -168,7 +158,7 @@ const PaymentMethod = () => {
     );
   }
 
-  if (isFetching) {
+  if (!paymentMethods || isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -182,51 +172,61 @@ const PaymentMethod = () => {
     );
   }
 
+  if (paymentMethods.length === 0) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            title={strings(
+              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title',
+              { regionName: selectedRegion?.name },
+            )}
+            description={strings(
+              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description',
+              { regionName: selectedRegion?.name },
+            )}
+            ctaOnPress={handleResetState}
+            ctaLabel={strings(
+              'fiat_on_ramp_aggregator.payment_method.reset_region',
+            )}
+            location={'Payment Method Screen'}
+            icon="info"
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {filteredPaymentMethods?.map(
-              ({ id, name, delay, amountTier, paymentType, logo }) => (
-                <View key={id} style={styles.row}>
-                  <PaymentOption
-                    highlighted={id === selectedPaymentMethodId}
-                    title={name}
-                    time={delay}
-                    id={id}
-                    onPress={
-                      id === selectedPaymentMethodId
-                        ? undefined
-                        : () => handlePaymentMethodPress(id)
-                    }
-                    amountTier={amountTier}
-                    paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                    logo={logo}
-                  />
-                </View>
-              ),
-            )}
+            {paymentMethods.map((payment) => (
+              <View key={payment.id} style={styles.row}>
+                <PaymentMethod
+                  payment={payment}
+                  highlighted={payment.id === selectedPaymentMethodId}
+                  onPress={
+                    payment.id === selectedPaymentMethodId
+                      ? undefined
+                      : () => handlePaymentMethodPress(payment.id)
+                  }
+                />
+              </View>
+            ))}
           </ScreenLayout.Content>
         </ScrollView>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
-            currentPaymentMethod?.paymentType ===
-              PaymentType.DebitCreditCard) && (
+          {currentPaymentMethod?.disclaimer ? (
             <View style={styles.row}>
               <Text small grey centered>
-                {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
-                  strings(
-                    'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                  )}
-                {currentPaymentMethod?.paymentType ===
-                  PaymentType.DebitCreditCard &&
-                  strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
+                {currentPaymentMethod.disclaimer}
               </Text>
             </View>
-          )}
+          ) : null}
           <View style={styles.row}>
             <StyledButton
               type={'confirm'}
@@ -244,4 +244,4 @@ const PaymentMethod = () => {
   );
 };
 
-export default PaymentMethod;
+export default PaymentMethods;

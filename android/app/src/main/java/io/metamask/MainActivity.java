@@ -52,14 +52,22 @@ public class MainActivity extends ReactActivity {
 
 	@Override
 	public void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-		if (intent != null &&
-			intent.hasExtra("branch_force_new_session") && 
-			intent.getBooleanExtra("branch_force_new_session",false)) {
-				RNBranchModule.onNewIntent(intent);
-		}
+			super.onNewIntent(intent);
+				/*
+					if activity is in foreground (or in backstack but partially visible) launch the same
+					activity will skip onStart, handle this case with reInit
+					if reInit() is called without this flag, you will see the following message: 
+					BRANCH_SDK: Warning. Session initialization already happened. 
+					To force a new session, 
+					set intent extra, "branch_force_new_session", to true.
+			*/
+			if (intent != null && 
+				intent.hasExtra("branch_force_new_session") &&
+				intent.getBooleanExtra("branch_force_new_session", false)) {
+					RNBranchModule.onNewIntent(intent);
+				}
 	}
-
+	
 	@Override
 	protected ReactActivityDelegate createReactActivityDelegate() {
 		return new ReactActivityDelegate(this, getMainComponentName()) {

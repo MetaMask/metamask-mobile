@@ -18,6 +18,16 @@ class Selectors {
       return $(`-ios class chain:${id}`);
     }
   }
+
+  static async getXpathElementByText(text) {
+    const element = await $(`//android.widget.TextView[@text='${text}']`);
+    return await element;
+  }
+
+  static async getXpathElementByContentDecscription(text) {
+    const element = await $(`//android.view.ViewGroup[@content-desc='${text}']`);
+    return await element;
+  }
 }
 
 export default Selectors;

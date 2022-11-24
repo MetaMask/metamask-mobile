@@ -1,9 +1,10 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
+import { BN } from 'ethereumjs-util';
+
 import { BNToHex } from '../number';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
-
 import {
   generateTransferData,
   decodeApproveData,
@@ -16,6 +17,7 @@ import {
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
 } from '.';
+import { buildUnserializedTransaction } from './optimismTransaction';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 
@@ -377,5 +379,30 @@ describe('Transactions utils :: minimumTokenAllowance', () => {
     expect(() => {
       minimumTokenAllowance(-1);
     }).toThrow(NEGATIVE_TOKEN_DECIMALS);
+  });
+});
+
+describe('Transactions utils :: buildUnserializedTransaction', () => {
+  it('returns a transaction that can be serialized and fed to an Optimism smart contract', () => {
+    const unserializedTransaction = buildUnserializedTransaction({
+      txParams: {
+        nonce: '0x0',
+        gasPrice: `0x${new BN('100').toString(16)}`,
+        gas: `0x${new BN('21000').toString(16)}`,
+        to: '0x0000000000000000000000000000000000000000',
+        value: `0x${new BN('10000000000000').toString(16)}`,
+        data: '0x0',
+      },
+      chainId: '10',
+      metamaskNetworkId: '10',
+    });
+    expect(unserializedTransaction.toJSON()).toMatchObject({
+      nonce: '0x0',
+      gasPrice: '0x64',
+      gasLimit: '0x5208',
+      to: '0x0000000000000000000000000000000000000000',
+      value: '0x9184e72a000',
+      data: '0x00',
+    });
   });
 });

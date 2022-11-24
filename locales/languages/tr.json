@@ -575,7 +575,26 @@
     "theme_os": "Sistem",
     "theme_light": "Açık",
     "theme_dark": "Koyu",
-    "network_exists": "Bu ağ zaten eklenmiş."
+    "network_exists": "Bu ağ zaten eklenmiş.",
+    "delete_metrics_title": "MetaMetrics verilerini sil",
+    "delete_metrics_description_part_one": "Bu işlem cüzdanınızla ilişkili geçmiş MetaMetrics verilerini silecek.",
+    "delete_metrics_description_part_two": "MetaMetrics verileri anonim hale getirilmiş kullanım ve tanılama verileridir.",
+    "delete_metrics_description_part_three": "Bu veriler silindikten sonra cüzdanınız ve hesaplarınız tam olarak şimdi olduğu gibi kalacaktır. Bu süreç 60 gün kadar sürebilir. Şunu görüntüleyin:",
+    "delete_metrics_description_part_four": "Bu eylemi şurada başlattınız:",
+    "delete_metrics_description_part_five": ". Bu işlem 60 gün kadar sürebilir. Şunu görüntüleyin:",
+    "consensys_privacy_policy": "ConsenSys Gizlilik Politikası.",
+    "delete_metrics_button": "MetaMetrics verilerini sil",
+    "check_status_button": "Durumu Kontrol Et",
+    "delete_metrics_confirm_modal_title": "MetaMetrics verilerini sil?",
+    "delete_metrics_confirm_modal_description": "Tüm MetaMetrics verilerini kaldırmak üzeresiniz. Emin misiniz?",
+    "delete_wallet_data_title": "Cüzdanı sil",
+    "delete_wallet_data_description": "Bu işlem cüzdanla ilgili tüm verileri cihazınızdan silecek. Hesaplar blok zincirinde bulunur ve MetaMask ile ilgili değildir. Dilediğiniz zaman Gizli Kurtarma İfadenizi kullanarak hesaplarınızı kurtarabilirsiniz.",
+    "delete_wallet_data_button": "Cüzdanı sil",
+    "delete_data_status_title": "Silme İşleminin Durumu",
+    "delete_data_status_description": "Güncel durum ",
+    "delete_metrics_error_title": "Şu anda bu verileri silemiyoruz.",
+    "delete_metrics_error_description": "Bu talep analitik bir sistem sunucusu sorunundan dolayı şu anda tamamlanamıyor, lütfen daha sonra tekrar deneyin.",
+    "ok": "Tamam"
   },
   "app_information": {
     "title": "Bilgi",
@@ -2006,5 +2025,21 @@
     "placeholder": "Parola",
     "description": "Bu seçeneği kapatırsanız şu andan itibaren MetaMask'in kilidini açmak için şifrenizi girmeniz gerekecektir.",
     "action": "Beni Hatırla özelliğini kapat"
+  },
+  "automatic_security_checks": {
+    "title": "Otomatik güvenlik kontrolleri",
+    "description": "Güncellemelerin otomatik kontrolü IP adresini GitHub sunucularında açığa çıkarabilir. Bu durum sadece IP adresinin MetaMask kullandığını gösterir. Başka hiçbir bilgi ya da hesap adresi açığa çıkmaz."
+  },
+  "update_needed": {
+    "title": "Güncellemeler gerekli",
+    "description": "Cüzdanınızın güvenliğini artırdık! Kendinizi korumak ve en son sürüme güncellemek için lütfen bir dakikanızı ayırın.",
+    "primary_action": "En son sürüme güncelle",
+    "secondary_action": "Daha sonra hatırlat"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Güvenlik güncellemelerini otomatik kontrol et?",
+    "description": "Güncellemelerin otomatik kontrolü IP adresini GitHub sunucularında açığa çıkarabilir. Bu durum sadece IP adresinin MetaMask kullandığını gösterir. Başka hiçbir bilgi ya da hesap adresi açığa çıkmaz.",
+    "primary_action": "Otomatik güvenlik kontrollerini etkinleştir",
+    "secondary_action": "Hayır, teşekkürler"
   }
 }

@@ -20,6 +20,13 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>branch_universal_link_domains</key>
+    <array>
+			<string>metamask.app.link</string>
+			<string>metamask-alternate.app.link</string>
+			<string>metamask.test.app.link</string>
+			<string>metamask-alternate.test.app.link</string>
+    </array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -115,7 +122,12 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>branch_key</key>
-	<string>$(MM_BRANCH_KEY_LIVE)</string>
+		<dict>
+			<key>live</key>
+			<string>$(MM_BRANCH_KEY_LIVE)</string>
+			<key>test</key>
+			<string>$(MM_BRANCH_KEY_TEST)</string>
+		</dict>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
