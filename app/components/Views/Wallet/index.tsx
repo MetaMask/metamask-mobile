@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import React, {
   useEffect,
   useRef,
@@ -35,7 +37,11 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-
+import WebView from 'react-native-webview';
+import { Button } from 'react-native-share';
+import WebviewPostMessageStream from './WebviewPostMessageStream';
+import snapsState from '../../../core/SnapsState';
+let stream;
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -74,6 +80,8 @@ const Wallet = ({ navigation }: any) => {
   const accountOverviewRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const webviewRef = useRef();
   /**
    * Map of accounts to information objects including balances
    */
@@ -325,6 +333,29 @@ const Wallet = ({ navigation }: any) => {
     [navigation, wizardStep],
   );
 
+  const messageFromWebview = (data) => {
+    stream?._onMessage(data);
+  };
+
+  const setWebviewPostMessage = () => {
+    stream = new WebviewPostMessageStream({
+      name: 'rnside',
+      target: 'webview',
+      targetOrigin: '*',
+      targetWindow: webviewRef.current,
+    });
+
+    // eslint-disable-next-line no-console
+    stream.on('data', (data) => console.log('Message from webview ' + data));
+
+    snapsState.stream = stream;
+    snapsState.webview = webviewRef.current;
+  };
+
+  const sendMessageToWebview = () => {
+    stream.write('HELLO');
+  };
+
   return (
     <ErrorBoundary view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
@@ -341,6 +372,13 @@ const Wallet = ({ navigation }: any) => {
         >
           {selectedAddress ? renderContent() : renderLoader()}
         </ScrollView>
+        <Button onPress={sendMessageToWebview}>Send message to webview</Button>
+        <WebView
+          ref={webviewRef}
+          source={{ uri: 'http://localhost:3000/' }}
+          onMessage={messageFromWebview}
+          onLoadEnd={setWebviewPostMessage}
+        />
         {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
