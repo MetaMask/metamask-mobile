@@ -20,6 +20,7 @@ import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/Chan
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 const SECRET_RECOVERY_PHRASE =
   'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
@@ -49,7 +50,12 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
   });
-
+  it('Should dismiss Automatic Security checks screen', async () => {
+    // Check that we are on the Secure your wallet screen
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
+  });
   it('should tap on "Got it" to dimiss the whats new modal', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);

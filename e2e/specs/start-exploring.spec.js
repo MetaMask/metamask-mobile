@@ -9,6 +9,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import { Browser } from '../pages/Drawer/Browser';
 
@@ -61,6 +62,13 @@ describe('Start Exploring', () => {
     await CreatePasswordView.reEnterPassword(PASSWORD);
     await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.tapCreatePasswordButton();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    // Check that we are on the Secure your wallet screen
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('Should skip backup check', async () => {
