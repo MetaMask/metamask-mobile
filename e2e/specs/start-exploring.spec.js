@@ -64,6 +64,16 @@ describe('Start Exploring', () => {
     await CreatePasswordView.tapCreatePasswordButton();
   });
 
+  it('Should skip backup check', async () => {
+    // Check that we are on the Secure your wallet screen
+    await ProtectYourWalletView.isVisible();
+    await ProtectYourWalletView.tapOnRemindMeLaterButton();
+
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await WalletView.isVisible();
+  });
+
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
     await EnableAutomaticSecurityChecksView.isVisible();
