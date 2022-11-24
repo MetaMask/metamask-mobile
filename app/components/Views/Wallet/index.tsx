@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import React, {
   useEffect,
   useRef,
@@ -319,6 +321,29 @@ const Wallet = ({ navigation }: any) => {
       ),
     [navigation, wizardStep],
   );
+
+  const messageFromWebview = (data) => {
+    stream?._onMessage(data);
+  };
+
+  const setWebviewPostMessage = () => {
+    stream = new WebviewPostMessageStream({
+      name: 'rnside',
+      target: 'webview',
+      targetOrigin: '*',
+      targetWindow: webviewRef.current,
+    });
+
+    // eslint-disable-next-line no-console
+    stream.on('data', (data) => console.log('Message from webview ' + data));
+
+    snapsState.stream = stream;
+    snapsState.webview = webviewRef.current;
+  };
+
+  const sendMessageToWebview = () => {
+    stream.write('HELLO');
+  };
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
