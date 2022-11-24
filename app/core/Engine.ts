@@ -31,7 +31,6 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { SnapController } from '@metamask/snap-controllers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
-import { SnapExecutionService } from './SnapExecutionService';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -53,12 +52,7 @@ import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
-import {
-  getCaveatSpecifications,
-  getPermissionSpecifications,
-  unrestrictedMethods,
-} from './Permissions/specifications.js';
-import { backupVault } from './BackupVault';
+import WebviewExecutionService from '../components/Views/Wallet/WebviewExecutionService';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -214,6 +208,24 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      this.setupSnapProvider = (snapId, connectionStream) => {
+        this.setupUntrustedCommunication({
+          connectionStream,
+          sender: { snapId },
+          subjectType: 'snap',
+        });
+      };
+
+      this.snapExecutionService = new WebviewExecutionService({
+        iframeUrl: new URL(
+          'https://metamask.github.io/iframe-execution-environment/0.11.0',
+        ),
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ExecutionService',
+        }),
+        setupSnapProvider: this.setupSnapProvider.bind(this),
+      });
+
       const snapControllerMessenger = this.controllerMessenger.getRestricted({
         name: 'SnapController',
         allowedEvents: [
@@ -230,16 +242,6 @@ class Engine {
         ],
       });
 
-      this.snapExecutionService = new SnapExecutionService({
-        iframeUrl: new URL(
-          'https://metamask.github.io/iframe-execution-environment/0.10.0',
-        ),
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ExecutionService',
-        }),
-        setupSnapProvider: null,
-      });
-
       const snapController = new SnapController({
         environmentEndowmentPermissions: Object.values(EndowmentPermissions),
         featureFlags: { dappsCanUpdateSnaps: true },
@@ -253,6 +255,25 @@ class Engine {
         messenger: snapControllerMessenger,
       });
 
+      // execute snap
+      /*setTimeout(async () => {
+        const snapId = 'npm:@metamask/test-snap-bip44';
+        const origin = 'https://google.pt';
+
+        await snapController.installSnaps(origin, { [snapId]: {} });
+
+        const result = await snapController.handleRequest({
+          snapId,
+          origin,
+          handler: 'onRpcRequest',
+          request: { method: 'foo', params: { bar: 'qux' } },
+        });
+
+        // eslint-disable-next-line no-console
+        console.log(result);
+      }, 5000);*/
+
+      // eslint-disable-next-line no-console
       console.log(snapController);
 
       const additionalKeyrings = [QRHardwareKeyring];
@@ -416,8 +437,6 @@ class Engine {
               swapsUtils.SWAPS_TESTNET_CHAIN_ID,
               swapsUtils.POLYGON_CHAIN_ID,
               swapsUtils.AVALANCHE_CHAIN_ID,
-              swapsUtils.ARBITRUM_CHAIN_ID,
-              swapsUtils.OPTIMISM_CHAIN_ID,
             ],
           },
         ),
