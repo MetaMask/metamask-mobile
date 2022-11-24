@@ -76,11 +76,11 @@ describe('Import seedphrase flow', () => {
   });
 
   it('Should dismiss Automatic Security checks screen', async () => {
-    // Check that we are on the Secure your wallet screen
     await TestHelpers.delay(3500);
     await EnableAutomaticSecurityChecksView.isVisible();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
+
   it('should tap on the close button in the whats new modal', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);

@@ -55,7 +55,6 @@ describe('Request Token Flow', () => {
   });
 
   it('Should dismiss Automatic Security checks screen', async () => {
-    // Check that we are on the Secure your wallet screen
     await TestHelpers.delay(3500);
     await EnableAutomaticSecurityChecksView.isVisible();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
