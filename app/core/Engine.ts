@@ -29,15 +29,10 @@ import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-<<<<<<< HEAD:app/core/Engine.ts
 import { SnapController } from '@metamask/snaps-controllers';
 import { SubjectMetadataController } from '@metamask/subject-metadata-controller';
-=======
-import { SnapController } from '@metamask/snap-controllers';
->>>>>>> ceeb00961 (Update code):app/core/Engine.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
-import { SnapExecutionService } from './SnapExecutionService';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -229,7 +224,6 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
-<<<<<<< HEAD:app/core/Engine.ts
       const approvalController = new ApprovalController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'ApprovalController',
@@ -242,48 +236,6 @@ class Engine {
 
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
-=======
-      const snapControllerMessenger = this.controllerMessenger.getRestricted({
-        name: 'SnapController',
-        allowedEvents: [
-          'ExecutionService:unhandledError',
-          'ExecutionService:outboundRequest',
-          'ExecutionService:outboundResponse',
-        ],
-        allowedActions: [
-          'ExecutionService:executeSnap',
-          'ExecutionService:getRpcRequestHandler',
-          'ExecutionService:terminateSnap',
-          'ExecutionService:terminateAllSnaps',
-          'ExecutionService:handleRpcRequest',
-        ],
-      });
-
-      this.snapExecutionService = new SnapExecutionService({
-        iframeUrl: new URL(
-          'https://metamask.github.io/iframe-execution-environment/0.10.0',
-        ),
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ExecutionService',
-        }),
-        setupSnapProvider: null,
-      });
-
-      const snapController = new SnapController({
-        environmentEndowmentPermissions: Object.values(EndowmentPermissions),
-        featureFlags: { dappsCanUpdateSnaps: true },
-        getAppKey: async () =>
-          new Promise((resolve, reject) => {
-            resolve('mockAppKey');
-          }),
-        checkBlockList: async (snapsToCheck) =>
-          checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
-        state: {},
-        messenger: snapControllerMessenger,
-      });
-
-      console.log(snapController);
->>>>>>> ceeb00961 (Update code):app/core/Engine.js
 
       const additionalKeyrings = [QRHardwareKeyring];
 
