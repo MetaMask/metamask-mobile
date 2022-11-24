@@ -182,6 +182,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
         //Cancel auth if the existing user has not been set
         if (existingUser === null) setAuthCancelled(true);
       } catch (error) {
+        console.log('appTriggeredAuth');
         await Authentication.logout(false);
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -290,7 +291,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        await Authentication.logout(false);
+        console.log('startApp');
+        // await Authentication.logout(false);
         const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {

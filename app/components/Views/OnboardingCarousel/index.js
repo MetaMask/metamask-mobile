@@ -229,7 +229,7 @@ class OnboardingCarousel extends PureComponent {
                         )}
                       >
                         <Text style={styles.title}>
-                          {strings(`onboarding_carousel.title${key}`)}
+                         Hello there
                         </Text>
                         <Text style={styles.subtitle}>
                           {strings(`onboarding_carousel.subtitle${key}`)}

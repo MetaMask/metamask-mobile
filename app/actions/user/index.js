@@ -74,6 +74,7 @@ export function setNftDetectionDismissed() {
 }
 
 export function logIn() {
+  console.log('logIn()');
   return {
     type: 'LOGIN',
   };

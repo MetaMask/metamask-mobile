@@ -740,7 +740,7 @@ class DrawerView extends PureComponent {
 
   onPressLogout = async () => {
     const { passwordSet } = this.props;
-    await Authentication.logout();
+    await Authentication.logout(false);
     if (!passwordSet) {
       console.log('onPressLogout !passwordSet', !passwordSet);
       this.props.navigation.navigate('OnboardingRootNav', {

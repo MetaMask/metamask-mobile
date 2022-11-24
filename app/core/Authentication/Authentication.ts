@@ -49,11 +49,14 @@ class AuthenticationService {
 
   private dispatchLogin(): void {
     if (this.store) {
+      console.log('Authentication dispatchLogin');
       this.store.dispatch(logIn());
-    } else
+    } else {
+      console.log('Authentication dispatchLogin');
       Logger.log(
         'Attempted to dispatch logIn action but dispatch was not initialized',
       );
+    }
   }
 
   private dispatchLogout(): void {
@@ -162,7 +165,7 @@ class AuthenticationService {
             SecureKeychain.TYPES.REMEMBER_ME,
           );
           break;
-        default:
+          console.log('storePassword default case');
           await SecureKeychain.resetGenericPassword();
       }
     } catch (error) {
@@ -307,8 +310,9 @@ class AuthenticationService {
     selectedAddress: string,
   ): Promise<void> => {
     try {
+      console.log('userEntryAuth');
       await this.loginVaultCreation(password, selectedAddress);
-      await this.storePassword(password, authData.type);
+      // await this.storePassword(password, authData.type);
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
@@ -343,10 +347,12 @@ class AuthenticationService {
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   logout = async (reset = true): Promise<void> => {
+    console.log('Authentication logout called with reset = ', reset);
     const { KeyringController }: any = Engine.context;
     if (reset) await SecureKeychain.resetGenericPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
+      console.log('Authentication logout KeyringController.setLocked');
     }
     this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
