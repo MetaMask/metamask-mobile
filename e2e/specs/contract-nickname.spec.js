@@ -9,6 +9,8 @@ import SendView from '../pages/SendView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+import LoginView from '../pages/LoginView';
 
 import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
 import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
@@ -19,16 +21,17 @@ import NetworkListModal from '../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../helpers';
 
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
 const PASSWORD = `12345678`;
-const RINKEBY = 'Rinkeby Test Network';
 const APPROVAL_DEEPLINK_URL =
-  'https://metamask.app.link/send/0x01BE23585060835E02B77ef475b0Cc51aA1e0709@4/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
+  'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
 const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
+const GOERLI = 'Goerli Test Network';
 
 /* BROKEN. We need to revisit. Deep linking to a contract address does not work on a sim. */
 
@@ -51,11 +54,16 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    await ImportWalletView.toggleRememberMe();
     await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on "Got it" Button in the whats new modal', async () => {
@@ -81,11 +89,11 @@ describe('Adding Contract Nickname', () => {
     }
   });
 
-  it('should switch to rinkeby', async () => {
+  it('should switch to GOERLI', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetwork(RINKEBY);
+    await NetworkListModal.changeNetwork(GOERLI);
 
-    await WalletView.isNetworkNameVisible(RINKEBY);
+    await WalletView.isNetworkNameVisible(GOERLI);
     await TestHelpers.delay(1500);
   });
 
@@ -94,12 +102,41 @@ describe('Adding Contract Nickname', () => {
     await NetworkEducationModal.tapGotItButton();
     await NetworkEducationModal.isNotVisible();
   });
+  it('should go to the Privacy and settings view', async () => {
+    await WalletView.tapDrawerButton(); // tapping burger menu
 
+    await DrawerView.isVisible();
+    await DrawerView.tapSettings();
+
+    await SettingsView.tapSecurityAndPrivacy();
+
+    await SecurityAndPrivacy.scrollToTurnOnRememberMe();
+    TestHelpers.delay(3000);
+  });
+
+  it('should enable remember me', async () => {
+    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
+    await SecurityAndPrivacy.isRememberMeToggleOn();
+
+    TestHelpers.delay(1500);
+  });
+
+  it('should relaunch the app then enable remember me', async () => {
+    // Relaunch app
+    await TestHelpers.relaunchApp();
+    await LoginView.isVisible();
+    await LoginView.toggleRememberMe();
+
+    await LoginView.enterPassword(PASSWORD);
+    await WalletView.isVisible();
+  });
   it('should deep link to the approval modal', async () => {
     await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
     await TestHelpers.delay(3000);
     await ApprovalModal.isVisible();
   });
+
   it('should add a nickname to the contract', async () => {
     await ApprovalModal.tapAddNickName();
 
