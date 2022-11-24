@@ -80,16 +80,6 @@ describe('Start Exploring', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('Should skip backup check', async () => {
-    // Check that we are on the Secure your wallet screen
-    await ProtectYourWalletView.isVisible();
-    await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-    await WalletView.isVisible();
-  });
-
   it('should tap on the close button in the whats new modal', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
