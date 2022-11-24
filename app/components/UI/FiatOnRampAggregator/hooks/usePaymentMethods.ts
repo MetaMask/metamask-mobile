@@ -60,7 +60,13 @@ function usePaymentMethods() {
   ]);
 
   const availablePaymentMethods = useMemo(() => {
-    if (!isFetching && !isFilterLoading && !error && paymentMethods) {
+    if (
+      !isFetching &&
+      !isFilterLoading &&
+      !error &&
+      paymentMethods &&
+      allowedMethodIds.length
+    ) {
       return paymentMethods.filter((method) =>
         allowedMethodIds.includes(method.id),
       );
