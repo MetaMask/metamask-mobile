@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import React, {
   useEffect,
   useRef,
@@ -40,12 +42,12 @@ import {
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  selectProviderConfig,
-  selectTicker,
-} from '../../../selectors/networkController';
-
-const createStyles = ({ colors, typography }: Theme) =>
+import WebView from 'react-native-webview';
+import { Button } from 'react-native-share';
+import WebviewPostMessageStream from './WebviewPostMessageStream';
+import snapsState from '../../../core/SnapsState';
+let stream;
+const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
@@ -80,9 +82,10 @@ const createStyles = ({ colors, typography }: Theme) =>
 const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
   const accountOverviewRef = useRef(null);
-  const theme = useTheme();
-  const styles = createStyles(theme);
-  const { colors } = theme;
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
+  const webviewRef = useRef();
   /**
    * Map of accounts to information objects including balances
    */
@@ -340,11 +343,52 @@ const Wallet = ({ navigation }: any) => {
     [navigation, wizardStep],
   );
 
+  const messageFromWebview = (data) => {
+    stream?._onMessage(data);
+  };
+
+  const setWebviewPostMessage = () => {
+    stream = new WebviewPostMessageStream({
+      name: 'rnside',
+      target: 'webview',
+      targetOrigin: '*',
+      targetWindow: webviewRef.current,
+    });
+
+    // eslint-disable-next-line no-console
+    stream.on('data', (data) => console.log('Message from webview ' + data));
+
+    snapsState.stream = stream;
+    snapsState.webview = webviewRef.current;
+  };
+
+  const sendMessageToWebview = () => {
+    stream.write('HELLO');
+  };
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-        {selectedAddress ? renderContent() : renderLoader()}
-
+        <ScrollView
+          style={styles.wrapper}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+        >
+          {selectedAddress ? renderContent() : renderLoader()}
+        </ScrollView>
+        <Button onPress={sendMessageToWebview}>Send message to webview</Button>
+        <WebView
+          ref={webviewRef}
+          source={{ uri: 'http://localhost:3000/' }}
+          onMessage={messageFromWebview}
+          onLoadEnd={setWebviewPostMessage}
+        />
         {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
