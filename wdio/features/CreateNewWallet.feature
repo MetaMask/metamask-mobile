@@ -5,6 +5,8 @@ Feature: New wallet flow
     A user opens the app for first time and creates a new wallet.
 
     Given I just installed MetaMask on my device
+    When I launch MetaMask mobile app
+    Then "METAMASK" is displayed
     When I tap "Get started"
     Then "Wallet setup" is displayed
     When On Wallet Setup Screen I tap "Create a new wallet"
