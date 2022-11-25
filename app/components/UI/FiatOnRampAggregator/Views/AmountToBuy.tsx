@@ -46,11 +46,11 @@ import ErrorView from '../components/ErrorView';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
-import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { Colors } from '../../../../util/theme/models';
 import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
+import { formatAmount } from '../utils';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -352,18 +352,6 @@ const AmountToBuy = () => {
       defaultFiatCurrency;
     return currency;
   }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
-
-  /**
-   * Format the amount for display (iOS only)
-   */
-  const displayAmount = useMemo(() => {
-    if (Device.isIos() && Intl && Intl?.NumberFormat) {
-      return amountFocused
-        ? amount
-        : new Intl.NumberFormat().format(amountNumber);
-    }
-    return amount;
-  }, [amount, amountFocused, amountNumber]);
 
   const amountIsBelowMinimum = useMemo(
     () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
@@ -752,25 +740,25 @@ const AmountToBuy = () => {
                 highlighted={amountFocused}
                 label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
-                amount={displayAmount}
+                amount={amountFocused ? amount : formatAmount(amountNumber)}
                 highlightedError={!amountIsValid}
                 currencyCode={currentFiatCurrency?.symbol}
                 onPress={onAmountInputPress}
                 onCurrencyPress={handleFiatSelectorPress}
               />
             </View>
-            {amountIsBelowMinimum && (
+            {amountIsBelowMinimum && limits && (
               <Text red small>
                 {strings('fiat_on_ramp_aggregator.minimum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
-                {limits?.minAmount}
+                {formatAmount(limits.minAmount)}
               </Text>
             )}
-            {amountIsAboveMaximum && (
+            {amountIsAboveMaximum && limits && (
               <Text red small>
                 {strings('fiat_on_ramp_aggregator.maximum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
-                {limits?.maxAmount}
+                {formatAmount(limits.maxAmount)}
               </Text>
             )}
           </ScreenLayout.Content>
