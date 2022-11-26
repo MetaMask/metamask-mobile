@@ -342,7 +342,39 @@ const Wallet = ({ navigation }: any) => {
   };
 
   const sendMessageToWebview = () => {
-    stream.write('HELLO');
+    // eslint-disable-next-line no-console
+    console.log('LOG: sendMessageToWebview executed');
+    stream.write(
+      JSON.stringify({
+        method: 'hello',
+        snapId: 'jobId-1',
+        args: { origin: 'origin', request: { method: 'hello' } },
+      }),
+    );
+  };
+
+  const createJob = () => {
+    // eslint-disable-next-line no-console
+    console.log('LOG: createJob executed');
+    stream.write(
+      JSON.stringify({
+        method: 'start-snap',
+        snapId: 'jobId-1',
+        args: { origin: 'origin', request: { method: 'hello' } },
+      }),
+    );
+  };
+
+  const passDataToStream = () => {
+    // eslint-disable-next-line no-console
+    console.log('LOG: passDataToStream executed');
+    stream.write(
+      JSON.stringify({
+        method: 'stream-to-iframe',
+        snapId: 'jobId-0',
+        args: { origin: 'origin', request: { method: 'hello' } },
+      }),
+    );
   };
 
   return (
