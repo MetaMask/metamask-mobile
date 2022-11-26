@@ -24,21 +24,6 @@ import createStyles from './styles';
  * the backup seed phrase flow
  */
 class ManualBackupStep2 extends PureComponent {
-  static propTypes = {
-    /**
-    /* navigation object required to push and pop other views
-    */
-    navigation: PropTypes.object,
-    /**
-     * The action to update the seedphrase backed up flag
-     * in the redux store
-     */
-    seedphraseBackedUp: PropTypes.func,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-  };
 
   constructor(props) {
     super(props);
@@ -309,6 +294,22 @@ class ManualBackupStep2 extends PureComponent {
     );
   };
 }
+
+ManualBackupStep2.propTypes = {
+  /**
+  /* navigation object required to push and pop other views
+  */
+  navigation: PropTypes.object,
+  /**
+   * The action to update the seedphrase backed up flag
+   * in the redux store
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+};
 
 ManualBackupStep2.contextType = ThemeContext;
 
