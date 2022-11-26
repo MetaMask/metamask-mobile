@@ -32,6 +32,8 @@ import { SnapController } from '@metamask/snap-controllers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
+import { toChecksumAddress } from 'ethereumjs-util';
+import RNFetchBlob from 'rn-fetch-blob';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -253,28 +255,40 @@ class Engine {
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: {},
         messenger: snapControllerMessenger,
+        fetchFunction: RNFetchBlob.fetch.bind(RNFetchBlob),
       });
 
       // execute snap
-      /*setTimeout(async () => {
-        const snapId = 'npm:@metamask/test-snap-bip44';
-        const origin = 'https://google.pt';
+      // setTimeout(async () => {
+        // const snapId = 'npm:@metamask/test-snap-bip44';
+        // const origin = 'https://google.pt';
 
-        await snapController.installSnaps(origin, { [snapId]: {} });
+        // const res = await RNFetchBlob.fetch(
+        //   'GET',
+        //   'https://registry.npmjs.org/@metamask/test-snap-bip44/-/test-snap-bip44-4.1.2.tgz',
+        // );
+        // console.log('res->', res);
+        // const stream = await res.readStream();
+        // console.log(stream);
 
-        const result = await snapController.handleRequest({
-          snapId,
-          origin,
-          handler: 'onRpcRequest',
-          request: { method: 'foo', params: { bar: 'qux' } },
-        });
+        // const blobRes = await res.blob();
+        // console.log('blobRes1->', blobRes);
 
-        // eslint-disable-next-line no-console
-        console.log(result);
-      }, 5000);*/
+      //   await snapController.installSnaps(origin, { [snapId]: {} });
+
+      //   const result = await snapController.handleRequest({
+      //     snapId,
+      //     origin,
+      //     handler: 'onRpcRequest',
+      //     request: { method: 'foo', params: { bar: 'qux' } },
+      //   });
+
+      //   // eslint-disable-next-line no-console
+      //   console.log(result);
+      // }, 5000);
 
       // eslint-disable-next-line no-console
-      console.log(snapController);
+      // console.log(snapController);
 
       const additionalKeyrings = [QRHardwareKeyring];
 
