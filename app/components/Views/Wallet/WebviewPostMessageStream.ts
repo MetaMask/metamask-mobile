@@ -5,7 +5,7 @@ import {
   PostMessageEvent,
 } from '@metamask/post-message-stream';
 
-interface WindowPostMessageStreamArgs {
+interface WebViewPostMessageStreamArgs {
   name: string;
   target: string;
   targetOrigin?: string;
@@ -42,7 +42,7 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
     target,
     targetOrigin,
     targetWindow,
-  }: WindowPostMessageStreamArgs) {
+  }: WebViewPostMessageStreamArgs) {
     super();
 
     this._name = name;
