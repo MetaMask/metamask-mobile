@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { NativeModules, NativeEventEmitter } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Device from '../../util/device';
-
-// iOS specific hook
 
 const useScreenshotWarning = (warning: () => void) => {
   const [enabled, setEnabled] = useState<boolean>(false);
@@ -20,9 +19,7 @@ const useScreenshotWarning = (warning: () => void) => {
         () => listener(),
       );
 
-      return () => {
-        eventSubscription.remove();
-      };
+      return eventSubscription.remove;
     },
     [detectorEventEmitter],
   );
@@ -30,28 +27,29 @@ const useScreenshotWarning = (warning: () => void) => {
   const addScreenshotListener = useCallback(
     (listener: () => void): any => {
       const unsubscribe = commonAddScreenshotListener(listener);
-      return () => {
-        unsubscribe();
-      };
+      return unsubscribe;
     },
     [commonAddScreenshotListener],
   );
 
-  useEffect(() => {
-    if (Device.isAndroid()) {
-      return;
-    }
-
-    const userDidScreenshot = () => {
-      if (enabled) {
-        warning();
+  useFocusEffect(
+    useCallback(() => {
+      if (Device.isAndroid()) {
+        return;
       }
-    };
-    const unsubscribe = addScreenshotListener(userDidScreenshot);
-    return () => {
-      unsubscribe();
-    };
-  }, [addScreenshotListener, enabled, warning]);
+
+      const userDidScreenshot = () => {
+        if (enabled) {
+          warning();
+        }
+      };
+
+      const unsubscribe = addScreenshotListener(userDidScreenshot);
+      return () => {
+        unsubscribe();
+      };
+    }, [addScreenshotListener, enabled, warning]),
+  );
 
   return [setEnabled];
 };
