@@ -76,34 +76,6 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * using a seed phrase
  */
 class ImportFromSeed extends PureComponent {
-  static propTypes = {
-    /**
-     * The navigator object
-     */
-    navigation: PropTypes.object,
-    /**
-     * The action to update the password set flag
-     * in the redux store
-     */
-    passwordSet: PropTypes.func,
-    /**
-     * The action to set the locktime
-     * in the redux store
-     */
-    setLockTime: PropTypes.func,
-    /**
-     * The action to update the seedphrase backed up flag
-     * in the redux store
-     */
-    seedphraseBackedUp: PropTypes.func,
-    /**
-     * Action to set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    logIn: PropTypes.func,
-    route: PropTypes.object,
-  };
-
   state = {
     password: '',
     confirmPassword: '',
@@ -627,6 +599,34 @@ class ImportFromSeed extends PureComponent {
     );
   }
 }
+
+ImportFromSeed.propTypes = {
+  /**
+   * The navigator object
+   */
+  navigation: PropTypes.object,
+  /**
+   * The action to update the password set flag
+   * in the redux store
+   */
+  passwordSet: PropTypes.func,
+  /**
+   * The action to set the locktime
+   * in the redux store
+   */
+  setLockTime: PropTypes.func,
+  /**
+   * The action to update the seedphrase backed up flag
+   * in the redux store
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Action to set onboarding wizard step
+   */
+  setOnboardingWizardStep: PropTypes.func,
+  logIn: PropTypes.func,
+  route: PropTypes.object,
+};
 
 ImportFromSeed.contextType = ThemeContext;
 
