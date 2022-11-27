@@ -36,7 +36,6 @@ describe('SRP::onboarding::shuffle', () => {
       shuffle(mockSRPArrayOne).join(''),
     );
   });
-
 });
 
 describe('SRP::onboarding::compareSRPs', () => {
