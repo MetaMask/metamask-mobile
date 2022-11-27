@@ -15,6 +15,7 @@ import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { shuffle, compareSRPs } from '../../../util/SRP';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
@@ -31,9 +32,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const currentStep = 2;
   const words =
     process.env.JEST_WORKER_ID === undefined
-      ? [...route.params?.words.sort(() => 0.5 - Math.random())]
+      ? shuffle(route.params?.words)
       : route.params?.words;
-  const steps = route.params?.steps;
 
   const createWordsDictionary = () => {
     const dict = {};
@@ -63,29 +63,36 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     updateNavBar();
   }, [updateNavBar]);
 
-  const findNextAvailableIndex = () =>
-    confirmedWords.findIndex(({ word }) => !word);
+  const findNextAvailableIndex = useCallback(
+    () => confirmedWords.findIndex(({ word }) => !word),
+    [confirmedWords],
+  );
 
-  const selectWord = (word, i) => {
-    let tempCurrentIndex = currentIndex;
-    if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
-      tempCurrentIndex = wordsDict[`${word},${i}`].currentPosition;
-      wordsDict[`${word},${i}`].currentPosition = undefined;
-      confirmedWords[currentIndex] = {
-        word: undefined,
-        originalPosition: undefined,
-      };
-    } else {
-      wordsDict[`${word},${i}`].currentPosition = currentIndex;
-      confirmedWords[currentIndex] = { word, originalPosition: i };
-      tempCurrentIndex = findNextAvailableIndex();
-    }
+  const selectWord = useCallback(
+    (word, i) => {
+      let tempCurrentIndex = currentIndex;
+      const tempWordsDict = wordsDict;
+      const tempConfirmedWords = confirmedWords;
+      if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
+        tempCurrentIndex = wordsDict[`${word},${i}`].currentPosition;
+        tempWordsDict[`${word},${i}`].currentPosition = undefined;
+        tempConfirmedWords[currentIndex] = {
+          word: undefined,
+          originalPosition: undefined,
+        };
+      } else {
+        tempWordsDict[`${word},${i}`].currentPosition = currentIndex;
+        tempConfirmedWords[currentIndex] = { word, originalPosition: i };
+        tempCurrentIndex = findNextAvailableIndex();
+      }
 
-    setCurrentIndex(tempCurrentIndex);
-    setWordsDict(wordsDict);
-    setConfirmedWords(confirmedWords);
-    setSeedPhraseReady(findNextAvailableIndex() === -1);
-  };
+      setCurrentIndex(tempCurrentIndex);
+      setWordsDict(tempWordsDict);
+      setConfirmedWords(tempConfirmedWords);
+      setSeedPhraseReady(findNextAvailableIndex() === -1);
+    },
+    [confirmedWords, currentIndex, findNextAvailableIndex, wordsDict],
+  );
 
   const clearConfirmedWordAt = (i) => {
     const { word, originalPosition } = confirmedWords[i];
@@ -101,21 +108,24 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     setSeedPhraseReady(findNextAvailableIndex() === -1);
   };
 
-  const validateWords = () => {
-    const words = route.params?.words ?? [];
-    confirmedWords.map((confirmedWord) => confirmedWord.word);
-    if (words.join('') === confirmedWords.join('')) {
-      return true;
-    }
-    return false;
-  };
+  const validateWords = useCallback(() => {
+    const validWords = route.params?.words ?? [];
+    const proposedWords = confirmedWords.map(
+      (confirmedWord) => confirmedWord.word,
+    );
+
+    return compareSRPs(validWords, proposedWords);
+  }, [confirmedWords, route.params?.words]);
 
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(() => {
         const words = route.params?.words;
-        navigation.navigate('ManualBackupStep3', { steps, words });
+        navigation.navigate('ManualBackupStep3', {
+          steps: route.params?.steps,
+          words,
+        });
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_CONFIRMED,
         );
@@ -168,40 +178,51 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     );
   };
 
-  const renderWordSelectableBox = (key, i) => {
-    const [word] = key.split(',');
-    const selected = wordsDict[key].currentPosition !== undefined;
-    const styles = createStyles(colors);
+  const renderWordSelectableBox = useCallback(
+    (key, i) => {
+      const [word] = key.split(',');
+      const selected = wordsDict[key].currentPosition !== undefined;
+      const styles = createStyles(colors);
 
-    return (
-      <TouchableOpacity
-        // eslint-disable-next-line react/jsx-no-bind
-        onPress={() => selectWord(word, i)}
-        style={[styles.selectableWord, selected && styles.selectedWord]}
-        key={`selectableWord_${i}`}
-      >
-        <Text
-          style={[
-            styles.selectableWordText,
-            selected && styles.selectedWordText,
-          ]}
+      return (
+        <TouchableOpacity
+          // eslint-disable-next-line react/jsx-no-bind
+          onPress={() => selectWord(word, i)}
+          style={[styles.selectableWord, selected && styles.selectedWord]}
+          key={`selectableWord_${i}`}
         >
-          {word}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+          <Text
+            style={[
+              styles.selectableWordText,
+              selected && styles.selectedWordText,
+            ]}
+          >
+            {word}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
+    [colors, selectWord, wordsDict],
+  );
 
-  const renderWords = () => (
-    <View style={styles.words}>
-      {Object.keys(wordsDict).map((key, i) => renderWordSelectableBox(key, i))}
-    </View>
+  const renderWords = useCallback(
+    () => (
+      <View style={styles.words}>
+        {Object.keys(wordsDict).map((key, i) =>
+          renderWordSelectableBox(key, i),
+        )}
+      </View>
+    ),
+    [renderWordSelectableBox, styles.words, wordsDict],
   );
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
       <View style={styles.onBoardingWrapper}>
-        <OnboardingProgress currentStep={currentStep} steps={steps} />
+        <OnboardingProgress
+          currentStep={currentStep}
+          steps={route.params?.steps}
+        />
       </View>
       <ActionView
         confirmTestID={'manual-backup-step-2-continue-button'}
