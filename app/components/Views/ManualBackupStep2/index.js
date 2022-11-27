@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   InteractionManager,
   Alert,
@@ -6,242 +6,70 @@ import {
   TouchableOpacity,
   View,
   SafeAreaView,
-  StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import { fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
+import createStyles from './styles';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
-    mainWrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    wrapper: {
-      flex: 1,
-      paddingHorizontal: 32,
-    },
-    onBoardingWrapper: {
-      paddingHorizontal: 20,
-    },
-    action: {
-      fontSize: 18,
-      marginBottom: 16,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
-    infoWrapper: {
-      marginBottom: 16,
-      justifyContent: 'center',
-    },
-    info: {
-      fontSize: 16,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-      paddingHorizontal: 6,
-    },
-    seedPhraseWrapper: {
-      backgroundColor: colors.background.default,
-      borderRadius: 8,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      borderColor: colors.border.default,
-      borderWidth: 1,
-      marginBottom: 24,
-    },
-    seedPhraseWrapperComplete: {
-      borderColor: colors.success.default,
-    },
-    seedPhraseWrapperError: {
-      borderColor: colors.error.default,
-    },
-    colLeft: {
-      paddingTop: 18,
-      paddingLeft: 27,
-      paddingBottom: 4,
-      alignItems: 'flex-start',
-    },
-    colRight: {
-      paddingTop: 18,
-      paddingRight: 27,
-      paddingBottom: 4,
-      alignItems: 'flex-end',
-    },
-    wordBoxWrapper: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 14,
-    },
-    wordWrapper: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      width: Device.isMediumDevice() ? 75 : 95,
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
-      borderWidth: 1,
-      borderRadius: 34,
-      borderStyle: 'dashed',
-      marginLeft: 4,
-    },
-    word: {
-      fontSize: 14,
-      color: colors.text.default,
-      lineHeight: 14,
-      textAlign: 'center',
-    },
-    selectableWord: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      color: colors.text.default,
-      width: 95,
-      backgroundColor: colors.background.default,
-      borderColor: colors.primary.default,
-      borderWidth: 1,
-      marginBottom: 6,
-      borderRadius: 13,
-      textAlign: 'center',
-    },
-    selectableWordText: {
-      textAlign: 'center',
-      fontSize: 14,
-      lineHeight: 14,
-      color: colors.text.default,
-    },
-    words: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: Device.isMediumDevice()
-        ? 'space-around'
-        : 'space-between',
-    },
-    successRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    successText: {
-      fontSize: 12,
-      color: colors.success.default,
-      marginLeft: 4,
-    },
-    selectedWord: {
-      backgroundColor: colors.icon.muted,
-      borderWidth: 1,
-      borderColor: colors.icon.muted,
-    },
-    selectedWordText: {
-      color: colors.text.default,
-    },
-    currentWord: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-    },
-    confirmedWord: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-      borderStyle: 'solid',
-    },
-    wordBoxIndex: {
-      color: colors.text.default,
-    },
-  });
+const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
-/**
- * View that's shown during the fifth step of
- * the backup seed phrase flow
- */
-class ManualBackupStep2 extends PureComponent {
-  static propTypes = {
-    /**
-    /* navigation object required to push and pop other views
-    */
-    navigation: PropTypes.object,
-    /**
-     * The action to update the seedphrase backed up flag
-     * in the redux store
-     */
-    seedphraseBackedUp: PropTypes.func,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-  };
+  const [confirmedWords, setConfirmedWords] = useState([]);
+  const [wordsDict, setWordsDict] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [seedPhraseReady, setSeedPhraseReady] = useState(false);
 
-  constructor(props) {
-    super(props);
-    const words = props.route.params?.words;
-    if (process.env.JEST_WORKER_ID === undefined) {
-      this.words = [...words].sort(() => 0.5 - Math.random());
-    } else {
-      this.words = words;
-    }
-    this.steps = props.route.params?.steps;
-  }
+  const currentStep = 2;
+  const words =
+    process.env.JEST_WORKER_ID === undefined
+      ? [...route.params?.words.sort(() => 0.5 - Math.random())]
+      : route.params?.words;
+  const steps = route.params?.steps;
 
-  state = {
-    confirmedWords: [],
-    wordsDict: {},
-    currentIndex: 0,
-    seedPhraseReady: false,
-    currentStep: 2,
-  };
-
-  updateNavBar = () => {
-    const { route, navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
-  };
-
-  componentDidMount = () => {
-    const { route } = this.props;
-    const words = route.params?.words ?? [];
-    this.setState(
-      {
-        confirmedWords: Array(words.length).fill({
-          word: undefined,
-          originalPosition: undefined,
-        }),
-      },
-      this.createWordsDictionary,
-    );
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
-
-  createWordsDictionary = () => {
+  const createWordsDictionary = () => {
     const dict = {};
-    this.words.forEach((word, i) => {
+    words.forEach((word, i) => {
       dict[`${word},${i}`] = { currentPosition: undefined };
     });
-    this.setState({ wordsDict: dict });
+    setWordsDict(dict);
   };
 
-  findNextAvailableIndex = () => {
-    const { confirmedWords } = this.state;
-    return confirmedWords.findIndex(({ word }) => !word);
-  };
+  const updateNavBar = useCallback(() => {
+    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+  }, [colors, navigation, route]);
 
-  selectWord = (word, i) => {
-    const { wordsDict, confirmedWords } = this.state;
-    let currentIndex = this.state.currentIndex;
+  useEffect(() => {
+    const wordsFromRoute = route.params?.words ?? [];
+    setConfirmedWords(
+      new Array(wordsFromRoute.length).fill({
+        word: undefined,
+        originalPosition: undefined,
+      }),
+    );
+    createWordsDictionary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    updateNavBar();
+  }, [updateNavBar]);
+
+  const findNextAvailableIndex = () =>
+    confirmedWords.findIndex(({ word }) => !word);
+
+  const selectWord = (word, i) => {
+    let tempCurrentIndex = currentIndex;
     if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
-      currentIndex = wordsDict[`${word},${i}`].currentPosition;
+      tempCurrentIndex = wordsDict[`${word},${i}`].currentPosition;
       wordsDict[`${word},${i}`].currentPosition = undefined;
       confirmedWords[currentIndex] = {
         word: undefined,
@@ -250,43 +78,44 @@ class ManualBackupStep2 extends PureComponent {
     } else {
       wordsDict[`${word},${i}`].currentPosition = currentIndex;
       confirmedWords[currentIndex] = { word, originalPosition: i };
-      currentIndex = this.findNextAvailableIndex();
+      tempCurrentIndex = findNextAvailableIndex();
     }
-    this.setState({
-      currentIndex,
-      wordsDict,
-      confirmedWords,
-      seedPhraseReady: this.findNextAvailableIndex() === -1,
-    });
+
+    setCurrentIndex(tempCurrentIndex);
+    setWordsDict(wordsDict);
+    setConfirmedWords(confirmedWords);
+    setSeedPhraseReady(findNextAvailableIndex() === -1);
   };
 
-  clearConfirmedWordAt = (i) => {
-    const { confirmedWords, wordsDict } = this.state;
+  const clearConfirmedWordAt = (i) => {
     const { word, originalPosition } = confirmedWords[i];
     const currentIndex = i;
     if (word && (originalPosition || originalPosition === 0)) {
       wordsDict[[word, originalPosition]].currentPosition = undefined;
       confirmedWords[i] = { word: undefined, originalPosition: undefined };
     }
-    this.setState({
-      currentIndex,
-      wordsDict,
-      confirmedWords,
-      seedPhraseReady: this.findNextAvailableIndex() === -1,
-    });
+
+    setCurrentIndex(currentIndex);
+    setWordsDict(wordsDict);
+    setConfirmedWords(confirmedWords);
+    setSeedPhraseReady(findNextAvailableIndex() === -1);
   };
 
-  goBack = () => {
-    this.props.navigation.goBack();
+  const validateWords = () => {
+    const words = route.params?.words ?? [];
+    confirmedWords.map((confirmedWord) => confirmedWord.word);
+    if (words.join('') === confirmedWords.join('')) {
+      return true;
+    }
+    return false;
   };
 
-  goNext = () => {
-    const { seedphraseBackedUp, route, navigation } = this.props;
-    if (this.validateWords()) {
+  const goNext = () => {
+    if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(() => {
         const words = route.params?.words;
-        navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
+        navigation.navigate('ManualBackupStep3', { steps, words });
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_CONFIRMED,
         );
@@ -299,32 +128,7 @@ class ManualBackupStep2 extends PureComponent {
     }
   };
 
-  validateWords = () => {
-    const words = this.props.route.params?.words ?? [];
-    const { confirmedWords: wordMap } = this.state;
-    const confirmedWords = wordMap.map((confirmedWord) => confirmedWord.word);
-    if (words.join('') === confirmedWords.join('')) {
-      return true;
-    }
-    return false;
-  };
-
-  renderWords = () => {
-    const { wordsDict } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <View style={styles.words}>
-        {Object.keys(wordsDict).map((key, i) =>
-          this.renderWordSelectableBox(key, i),
-        )}
-      </View>
-    );
-  };
-
-  renderSuccess = () => {
-    const colors = this.context.colors || mockTheme.colors;
+  const renderSuccess = () => {
     const styles = createStyles(colors);
 
     return (
@@ -341,9 +145,7 @@ class ManualBackupStep2 extends PureComponent {
     );
   };
 
-  renderWordBox = (word, i) => {
-    const { currentIndex, confirmedWords } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
+  const renderWordBox = (word, i) => {
     const styles = createStyles(colors);
 
     return (
@@ -352,7 +154,7 @@ class ManualBackupStep2 extends PureComponent {
         <TouchableOpacity
           // eslint-disable-next-line react/jsx-no-bind
           onPress={() => {
-            this.clearConfirmedWordAt(i);
+            clearConfirmedWordAt(i);
           }}
           style={[
             styles.wordWrapper,
@@ -366,17 +168,15 @@ class ManualBackupStep2 extends PureComponent {
     );
   };
 
-  renderWordSelectableBox = (key, i) => {
-    const { wordsDict } = this.state;
+  const renderWordSelectableBox = (key, i) => {
     const [word] = key.split(',');
     const selected = wordsDict[key].currentPosition !== undefined;
-    const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (
       <TouchableOpacity
         // eslint-disable-next-line react/jsx-no-bind
-        onPress={() => this.selectWord(word, i)}
+        onPress={() => selectWord(word, i)}
         style={[styles.selectableWord, selected && styles.selectedWord]}
         key={`selectableWord_${i}`}
       >
@@ -392,66 +192,76 @@ class ManualBackupStep2 extends PureComponent {
     );
   };
 
-  render = () => {
-    const { confirmedWords, seedPhraseReady } = this.state;
-    const wordLength = confirmedWords.length;
-    const half = wordLength / 2;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+  const renderWords = () => (
+    <View style={styles.words}>
+      {Object.keys(wordsDict).map((key, i) => renderWordSelectableBox(key, i))}
+    </View>
+  );
 
-    return (
-      <SafeAreaView style={styles.mainWrapper}>
-        <View style={styles.onBoardingWrapper}>
-          <OnboardingProgress
-            currentStep={this.state.currentStep}
-            steps={this.steps}
-          />
-        </View>
-        <ActionView
-          confirmTestID={'manual-backup-step-2-continue-button'}
-          confirmText={strings('manual_backup_step_2.complete')}
-          onConfirmPress={this.goNext}
-          confirmDisabled={!seedPhraseReady || !this.validateWords()}
-          showCancelButton={false}
-          confirmButtonMode={'confirm'}
-        >
-          <View style={styles.wrapper} testID={'protect-your-account-screen'}>
-            <Text style={styles.action}>
-              {strings('manual_backup_step_2.action')}
+  return (
+    <SafeAreaView style={styles.mainWrapper}>
+      <View style={styles.onBoardingWrapper}>
+        <OnboardingProgress currentStep={currentStep} steps={steps} />
+      </View>
+      <ActionView
+        confirmTestID={'manual-backup-step-2-continue-button'}
+        confirmText={strings('manual_backup_step_2.complete')}
+        onConfirmPress={goNext}
+        confirmDisabled={!seedPhraseReady || !validateWords()}
+        showCancelButton={false}
+        confirmButtonMode={'confirm'}
+      >
+        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+          <Text style={styles.action}>
+            {strings('manual_backup_step_2.action')}
+          </Text>
+          <View style={styles.infoWrapper}>
+            <Text style={styles.info}>
+              {strings('manual_backup_step_2.info')}
             </Text>
-            <View style={styles.infoWrapper}>
-              <Text style={styles.info}>
-                {strings('manual_backup_step_2.info')}
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.seedPhraseWrapper,
-                seedPhraseReady && styles.seedPhraseWrapperError,
-                this.validateWords() && styles.seedPhraseWrapperComplete,
-              ]}
-            >
-              <View style={styles.colLeft}>
-                {confirmedWords
-                  .slice(0, half)
-                  .map(({ word }, i) => this.renderWordBox(word, i))}
-              </View>
-              <View style={styles.colRight}>
-                {confirmedWords
-                  .slice(-half)
-                  .map(({ word }, i) => this.renderWordBox(word, i + half))}
-              </View>
-            </View>
-            {this.validateWords() ? this.renderSuccess() : this.renderWords()}
           </View>
-        </ActionView>
-      </SafeAreaView>
-    );
-  };
-}
+          <View
+            style={[
+              styles.seedPhraseWrapper,
+              seedPhraseReady && styles.seedPhraseWrapperError,
+              validateWords() && styles.seedPhraseWrapperComplete,
+            ]}
+          >
+            <View style={styles.colLeft}>
+              {confirmedWords
+                .slice(0, confirmedWords.length / 2)
+                .map(({ word }, i) => renderWordBox(word, i))}
+            </View>
+            <View style={styles.colRight}>
+              {confirmedWords
+                .slice(-confirmedWords.length / 2)
+                .map(({ word }, i) =>
+                  renderWordBox(word, i + confirmedWords.length / 2),
+                )}
+            </View>
+          </View>
+          {validateWords() ? renderSuccess() : renderWords()}
+        </View>
+      </ActionView>
+    </SafeAreaView>
+  );
+};
 
-ManualBackupStep2.contextType = ThemeContext;
+ManualBackupStep2.propTypes = {
+  /**
+  /* navigation object required to push and pop other views
+  */
+  navigation: PropTypes.object,
+  /**
+   * The action to update the seedphrase backed up flag
+   * in the redux store
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+};
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
