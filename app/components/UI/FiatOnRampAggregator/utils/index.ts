@@ -91,3 +91,12 @@ export const formatId = (id: string) => {
 
   return id.startsWith('/') ? id : '/' + id;
 };
+
+export function formatAmount(amount: number) {
+  try {
+    if (Intl?.NumberFormat) return new Intl.NumberFormat().format(amount);
+    return String(amount);
+  } catch (e) {
+    return String(amount);
+  }
+}

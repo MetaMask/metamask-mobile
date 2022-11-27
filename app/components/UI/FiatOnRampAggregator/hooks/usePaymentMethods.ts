@@ -15,6 +15,8 @@ function usePaymentMethods() {
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
     useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
+  useEffect(() => setAllowedMethodIds([]), [selectedRegion]);
+
   useEffect(() => {
     if (!isFetching && !error && paymentMethods) {
       const getAllowedPaymentMethods = async () => {
@@ -44,17 +46,27 @@ function usePaymentMethods() {
       };
       getAllowedPaymentMethods();
     }
+    /** Dependency `selectedRegion?.id` is disabled because is causing an extra
+     * filter cycle, leading to a wrong default payment method selection.
+     */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     error,
     isFetching,
     paymentMethods,
     sdk,
     selectedChainId,
-    selectedRegion?.id,
+    // selectedRegion?.id,
   ]);
 
   const availablePaymentMethods = useMemo(() => {
-    if (!isFetching && !isFilterLoading && !error && paymentMethods) {
+    if (
+      !isFetching &&
+      !isFilterLoading &&
+      !error &&
+      paymentMethods &&
+      allowedMethodIds.length
+    ) {
       return paymentMethods.filter((method) =>
         allowedMethodIds.includes(method.id),
       );
