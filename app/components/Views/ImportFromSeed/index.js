@@ -574,7 +574,7 @@ const ImportFromSeed = ({
       </View>
     </SafeAreaView>
   );
-}
+};
 
 ImportFromSeed.propTypes = {
   /**
