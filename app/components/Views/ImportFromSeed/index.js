@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   InteractionManager,
   Platform,
+  Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,6 +39,7 @@ import {
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
+import useScreenshotWarning from '../../hooks/useScreenshotWarning';
 import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
@@ -54,6 +56,7 @@ import {
   EXISTING_USER,
   TRUE,
 } from '../../../constants/storage';
+import { SRP_GUIDE_URL } from '../../../constants/urls';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
@@ -108,8 +111,36 @@ const ImportFromSeed = ({
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   };
 
+  const openSRPGuide = () => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
+    Linking.openURL(SRP_GUIDE_URL);
+  };
+
+  const showScreenshotAlert = useCallback(() => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
+    Alert.alert(
+      strings('manual_backup_step_1.screenshot_warning_title'),
+      strings('manual_backup_step_1.screenshot_warning_desc'),
+      [
+        {
+          text: strings('reveal_credential.learn_more'),
+          onPress: openSRPGuide,
+          style: 'cancel',
+        },
+        {
+          text: strings('reveal_credential.got_it'),
+          onPress: () =>
+            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
+        },
+      ],
+    );
+  }, []);
+
+  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
+
   useEffect(() => {
     updateNavBar();
+    enableScreenshotWarning(true);
 
     const setBiometricsOption = async () => {
       const biometryType = await SecureKeychain.getSupportedBiometryType();
