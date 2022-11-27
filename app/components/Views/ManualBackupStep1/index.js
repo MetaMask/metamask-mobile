@@ -8,8 +8,6 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Appearance,
-  Alert,
-  Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -19,13 +17,13 @@ import { BlurView } from '@react-native-community/blur';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import useScreenshotWarning from '../../hooks/useScreenshotWarning';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
@@ -36,7 +34,6 @@ import { useTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
-import { SRP_GUIDE_URL } from '../../../constants/urls';
 
 import AnalyticsV2 from '../../../util/analyticsV2';
 
@@ -277,6 +274,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
                     </View>
                   ))}
                 </View>
+                <ScreenshotDeterrent enabled />
               </React.Fragment>
             )}
           </View>
@@ -284,37 +282,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       </ActionView>
     );
   };
-
-  const openSRPGuide = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
-    Linking.openURL(SRP_GUIDE_URL);
-  };
-
-  const showScreenshotAlert = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
-    Alert.alert(
-      strings('manual_backup_step_1.screenshot_warning_title'),
-      strings('manual_backup_step_1.screenshot_warning_desc'),
-      [
-        {
-          text: strings('reveal_credential.learn_more'),
-          onPress: openSRPGuide,
-          style: 'cancel',
-        },
-        {
-          text: strings('reveal_credential.got_it'),
-          onPress: () =>
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
-        },
-      ],
-    );
-  }, []);
-
-  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
-
-  useEffect(() => {
-    enableScreenshotWarning(view === SEED_PHRASE);
-  }, [enableScreenshotWarning, view]);
 
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
