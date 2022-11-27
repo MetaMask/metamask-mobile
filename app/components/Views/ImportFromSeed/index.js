@@ -8,26 +8,20 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  StyleSheet,
   InteractionManager,
   Platform,
 } from 'react-native';
+import { connect } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { connect } from 'react-redux';
-import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
-import StyledButton from '../../UI/StyledButton';
-import Engine from '../../../core/Engine';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
-import AppConstants from '../../../core/AppConstants';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { OutlinedTextField } from 'react-native-material-textfield';
+import DefaultPreference from 'react-native-default-preference';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Engine from '../../../core/Engine';
+import SecureKeychain from '../../../core/SecureKeychain';
+import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
@@ -35,15 +29,6 @@ import {
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
-import { OutlinedTextField } from 'react-native-material-textfield';
-import {
-  SEED_PHRASE_HINTS,
-  BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
-  ONBOARDING_WIZARD,
-  EXISTING_USER,
-  TRUE,
-} from '../../../constants/storage';
 import Logger from '../../../util/Logger';
 import {
   getPasswordStrengthWord,
@@ -52,10 +37,23 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
-import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { strings } from '../../../../locales/i18n';
+import TermsAndConditions from '../TermsAndConditions';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import {
+  SEED_PHRASE_HINTS,
+  BIOMETRY_CHOICE_DISABLED,
+  NEXT_MAKER_REMINDER,
+  ONBOARDING_WIZARD,
+  EXISTING_USER,
+  TRUE,
+} from '../../../constants/storage';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
@@ -67,6 +65,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
 } from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
 import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
+import createStyles from './styles';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
