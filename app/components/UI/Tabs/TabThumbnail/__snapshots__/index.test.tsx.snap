@@ -6,6 +6,7 @@ exports[`TabThumbnail should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "transparent",
+      "margin": 5,
       "overflow": "hidden",
     }
   }
@@ -19,11 +20,13 @@ exports[`TabThumbnail should render correctly 1`] = `
           "borderRadius": 10,
           "borderWidth": 1,
           "elevation": 8,
-          "height": 266.8,
           "justifyContent": "space-evenly",
           "marginBottom": 15,
           "overflow": "hidden",
-          "width": 720,
+        },
+        Object {
+          "height": 444.6666666666667,
+          "width": 345,
         },
         Object {
           "borderColor": "#037DD6",
@@ -132,17 +135,19 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
         style={
-          Object {
-            "bottom": 0,
-            "height": null,
-            "left": 0,
-            "paddingTop": 1079,
-            "position": "absolute",
-            "resizeMode": "cover",
-            "right": 0,
-            "top": 0,
-            "width": null,
-          }
+          Array [
+            Object {
+              "bottom": 0,
+              "height": null,
+              "left": 0,
+              "position": "absolute",
+              "resizeMode": "cover",
+              "right": 0,
+              "top": 0,
+              "width": null,
+            },
+            1079,
+          ]
         }
       />
     </View>

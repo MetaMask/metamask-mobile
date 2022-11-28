@@ -18,6 +18,9 @@ exports[`Tabs should render correctly 1`] = `
     contentContainerStyle={
       Object {
         "backgroundColor": "transparent",
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "justifyContent": "space-between",
         "padding": 15,
       }
     }
@@ -30,7 +33,7 @@ exports[`Tabs should render correctly 1`] = `
   >
     <TabThumbnail
       isActiveTab={false}
-      key="1"
+      key="1-0"
       onSwitch={[Function]}
       tab={
         Object {

@@ -43,10 +43,12 @@ exports[`ActionView should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignSelf": "center",
           "flex": 0,
           "flexDirection": "row",
           "paddingHorizontal": 24,
           "paddingVertical": 16,
+          "width": 420,
         }
       }
     >
