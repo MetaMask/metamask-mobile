@@ -1,11 +1,22 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Alert,
+  useWindowDimensions,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/device';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';
@@ -14,9 +25,6 @@ import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
-
-const DEVICE_WIDTH = Device.getDeviceWidth();
-const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -38,10 +46,6 @@ const createStyles = (colors) =>
       fontSize: 18,
       color: colors.text.default,
       ...fontStyles.normal,
-    },
-    collectibleIcon: {
-      width: COLLECTIBLE_WIDTH,
-      height: COLLECTIBLE_WIDTH,
     },
     collectibleInTheMiddle: {
       marginHorizontal: 8,
@@ -97,6 +101,16 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const collectibleIconDimensions = useMemo(() => {
+    const isPortrait = windowHeight > windowWidth;
+    const size = (windowWidth - 30 - 16) / (isPortrait ? 3 : 6);
+    return {
+      width: size,
+      height: size,
+    };
+  }, [windowWidth, windowHeight]);
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -172,7 +186,7 @@ function CollectibleContractElement({
           <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
             <View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
               <CollectibleMedia
-                style={styles.collectibleIcon}
+                style={collectibleIconDimensions}
                 collectible={{ ...collectible, name }}
               />
             </View>
@@ -186,6 +200,7 @@ function CollectibleContractElement({
       onPressCollectible,
       onLongPressCollectible,
       styles,
+      collectibleIconDimensions,
     ],
   );
 

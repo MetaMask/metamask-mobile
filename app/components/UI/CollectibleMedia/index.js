@@ -1,6 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ViewPropTypes,
+  useWindowDimensions,
+} from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import scaling from '../../../util/scaling';
@@ -74,6 +79,21 @@ export default function CollectibleMedia({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  const coverDimensions = useMemo(() => {
+    if (!cover || !Device.isIpad()) return null;
+    const isPortrait = windowHeight > windowWidth;
+
+    return {
+      height: isPortrait
+        ? scaling.scale(windowWidth - MEDIA_WIDTH_MARGIN, { baseModel: 2 })
+        : scaling.scale((windowHeight * 3) / 5 - MEDIA_WIDTH_MARGIN, {
+            baseModel: 2,
+          }),
+    };
+  }, [cover, windowHeight, windowWidth]);
+
   const fallback = () => setSourceUri(null);
 
   useEffect(() => {
@@ -95,7 +115,12 @@ export default function CollectibleMedia({
         <MediaPlayer
           onClose={onClose}
           uri={collectible.animation}
-          style={[styles.mediaPlayer, cover && styles.cover, style]}
+          style={[
+            styles.mediaPlayer,
+            cover && styles.cover,
+            cover && coverDimensions,
+            style,
+          ]}
         />
       );
     } else if (sourceUri) {
@@ -113,6 +138,7 @@ export default function CollectibleMedia({
             small && styles.smallImage,
             big && styles.bigImage,
             cover && styles.cover,
+            cover && coverDimensions,
             style,
           ]}
           onError={fallback}
@@ -152,6 +178,7 @@ export default function CollectibleMedia({
     big,
     cover,
     styles,
+    coverDimensions,
   ]);
 
   return (

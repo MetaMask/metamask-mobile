@@ -100,4 +100,6 @@ export default class Device {
     const apiLevel = await getApiLevel();
     return apiLevel;
   }
+
+  static maxWidth = 420;
 }
