@@ -40,7 +40,6 @@ import TransactionReviewData from './TransactionReviewData';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
-import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
@@ -49,6 +48,7 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -70,10 +70,10 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 230 : 415,
+      height: Device.isMediumDevice() ? 105 : 290,
     },
     actionViewChildren: {
-      height: 330,
+      height: 200,
     },
     accountTransactionWrapper: {
       flex: 1,
@@ -452,6 +452,8 @@ class TransactionReview extends PureComponent {
       multiLayerL1FeeTotal,
     } = this.state;
     const currentPageInformation = { url: this.getUrlFromBrowser() };
+    const { currentEnsName, spenderAddress, origin, url } =
+      currentPageInformation;
     const styles = this.getStyles();
 
     return (
@@ -462,7 +464,12 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          <TransactionHeader currentPageInformation={currentPageInformation} />
+          <ApproveTransactionHeader
+            currentEnsName={currentEnsName}
+            spenderAddress={spenderAddress}
+            origin={origin}
+            url={url}
+          />
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}
@@ -490,8 +497,6 @@ class TransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     <View style={styles.accountInfoCardWrapper}>
-                      <AccountInfoCard fromAddress={from} />
-                    </View>
                     <TransactionReviewInformation
                       navigation={navigation}
                       error={error}
@@ -515,6 +520,7 @@ class TransactionReview extends PureComponent {
                       isAnimating={isAnimating}
                       multiLayerL1FeeTotal={multiLayerL1FeeTotal}
                     />
+                    </View>
                   </View>
                 </ScrollView>
               </View>

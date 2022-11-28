@@ -71,6 +71,7 @@ import ButtonLink from '../../../component-library/components/Buttons/Button/var
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -663,13 +664,10 @@ class ApproveTransactionReview extends PureComponent {
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
-          <TransactionHeader
-            currentPageInformation={{
-              origin,
-              spenderAddress,
-              title: host,
-              url: activeTabUrl,
-            }}
+          <ApproveTransactionHeader
+            origin={origin}
+            spenderAddress={spenderAddress}
+            url={activeTabUrl}
           />
           <Text
             variant={TextVariant.HeadingMD}
@@ -782,7 +780,6 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View style={styles.paddingHorizontal}>
-                <AccountInfoCard fromAddress={from} />
                 <View style={styles.section}>
                   <TransactionReview
                     gasSelected={gasSelected}
