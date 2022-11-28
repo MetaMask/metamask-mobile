@@ -260,19 +260,19 @@ class Engine {
 
       // execute snap
       // setTimeout(async () => {
-        // const snapId = 'npm:@metamask/test-snap-bip44';
-        // const origin = 'https://google.pt';
+      //   const snapId = 'npm:@metamask/test-snap-bip44';
+      //   const origin = 'https://google.pt';
 
-        // const res = await RNFetchBlob.fetch(
-        //   'GET',
-        //   'https://registry.npmjs.org/@metamask/test-snap-bip44/-/test-snap-bip44-4.1.2.tgz',
-        // );
-        // console.log('res->', res);
-        // const stream = await res.readStream();
-        // console.log(stream);
+      //   const res = await RNFetchBlob.fetch(
+      //     'GET',
+      //     'https://registry.npmjs.org/@metamask/test-snap-bip44/-/test-snap-bip44-4.1.2.tgz',
+      //   );
+      //   console.log('res->', res);
+      //   const stream = await res.readStream();
+      //   console.log(stream);
 
-        // const blobRes = await res.blob();
-        // console.log('blobRes1->', blobRes);
+      //   const blobRes = await res.blob();
+      //   console.log('blobRes1->', blobRes);
 
       //   await snapController.installSnaps(origin, { [snapId]: {} });
 
