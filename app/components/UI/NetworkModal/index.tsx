@@ -154,7 +154,6 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (validUrl) {
       const url = new URLPARSE(rpcUrl);
-      const sanitizedUrl = sanitizeUrl(url.href);
       const decimalChainId = getDecimalChainId(chainId);
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       PreferencesController.addToFrequentRpcList(
@@ -168,7 +167,6 @@ const NetworkModals = (props: NetworkProps) => {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: sanitizedUrl,
         chain_id: decimalChainId,
         source: 'Popular network list',
         symbol: ticker,

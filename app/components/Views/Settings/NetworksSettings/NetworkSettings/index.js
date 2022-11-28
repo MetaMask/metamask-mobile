@@ -484,7 +484,6 @@ class NetworkSettings extends PureComponent {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: formattedHref,
         chain_id: decimalChainId,
         source: 'Custom network form',
         symbol: ticker,
