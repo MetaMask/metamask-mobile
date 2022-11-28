@@ -6,11 +6,11 @@ import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import Accounts from '../helpers/Accounts';
-import WalletMainScreen from '../screen-objects/WalletMainScreen'
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
-import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal'
+import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal';
 
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {

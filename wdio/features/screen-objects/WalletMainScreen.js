@@ -65,6 +65,10 @@ class WalletMainScreen {
     await Gestures.tap(this.drawerSettings);
   }
 
+  async tapSendIcon(text){
+    await Gestures.tapTextByXpath(text);
+  }
+
 }
 
 export default new WalletMainScreen();

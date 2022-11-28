@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
-import AssetActionButton from '../AssetActionButton';
-import AppConstants from '../../../core/AppConstants';
-import TokenImage from '../../UI/TokenImage';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import { toggleReceiveModal } from '../../../actions/modals';
+import AssetActionButton from '../../AssetActionButton';
+import AppConstants from '../../../../core/AppConstants';
+import TokenImage from '../../TokenImage';
+import { fontStyles } from '../../../../styles/common';
+import { strings } from '../../../../../locales/i18n';
+import { toggleReceiveModal } from '../../../../actions/modals';
 import { connect } from 'react-redux';
 import {
   renderFromTokenMinimalUnit,
@@ -21,26 +21,26 @@ import {
   renderFromWei,
   weiToFiat,
   hexToBN,
-} from '../../../util/number';
-import { safeToChecksumAddress } from '../../../util/address';
-import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { isSwapsAllowed } from '../Swaps/utils';
+} from '../../../../util/number';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { getEther } from '../../../../util/transactions';
+import { newAssetTransaction } from '../../../../actions/transaction';
+import { isSwapsAllowed } from '../../Swaps/utils';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
-} from '../../../reducers/swaps';
-import { getTokenList } from '../../../reducers/tokens';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { allowedToBuy } from '../FiatOrders';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
-import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import { isTestNet } from '../../../util/networks';
+} from '../../../../reducers/swaps';
+import { getTokenList } from '../../../../reducers/tokens';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import Analytics from '../../../../core/Analytics/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { allowedToBuy } from '../../FiatOrders';
+import AssetSwapButton from '../../Swaps/components/AssetSwapButton';
+import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
+import { isTestNet } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
