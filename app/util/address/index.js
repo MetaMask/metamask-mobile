@@ -4,6 +4,7 @@ import {
   isHexString,
   addHexPrefix,
   isValidChecksumAddress,
+  isHexPrefixed,
 } from 'ethereumjs-util';
 import URL from 'url-parse';
 import punycode from 'punycode/punycode';
@@ -424,3 +425,15 @@ export function isValidAddressInputViaQRCode(input) {
   }
   return isValidHexAddress(input);
 }
+
+/** Removes hex prefix from a string if it's there.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+export const stripHexPrefix = (str) => {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  return isHexPrefixed(str) ? str.slice(2) : str;
+};

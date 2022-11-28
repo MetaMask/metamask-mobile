@@ -178,6 +178,7 @@ class TransactionReview extends PureComponent {
      */
     over: PropTypes.bool,
     gasEstimateType: PropTypes.string,
+    EIP1559GasData: PropTypes.object,
     /**
      * Function to call when update animation starts
      */
@@ -214,17 +215,6 @@ class TransactionReview extends PureComponent {
      * @returns {string}
      */
     gasSelected: PropTypes.string,
-    /**
-     * gas object for calculating the gas transaction cost
-     */
-    gasObject: PropTypes.object,
-    /**
-     * update gas transaction state to parent
-     */
-    updateTransactionState: PropTypes.func,
-    eip1559GasTransaction: PropTypes.object,
-    dappSuggestedEIP1559Gas: PropTypes.object,
-    dappSuggestedGasPrice: PropTypes.string,
   };
 
   state = {
@@ -392,6 +382,7 @@ class TransactionReview extends PureComponent {
       customGasHeight,
       over,
       gasEstimateType,
+      EIP1559GasData,
       onUpdatingValuesStart,
       onUpdatingValuesEnd,
       animateOnChange,
@@ -401,11 +392,6 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      updateTransactionState,
-      gasObject,
-      eip1559GasTransaction,
-      dappSuggestedGasPrice,
-      dappSuggestedEIP1559Gas,
     } = this.props;
     const {
       actionKey,
@@ -467,20 +453,16 @@ class TransactionReview extends PureComponent {
                       over={over}
                       onCancelPress={this.props.onCancel}
                       gasEstimateType={gasEstimateType}
+                      EIP1559GasData={EIP1559GasData}
                       origin={
                         dappSuggestedGas ? currentPageInformation?.url : null
                       }
-                      dappSuggestedGasPrice={dappSuggestedGasPrice}
-                      dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
                       gasSelected={gasSelected}
                       originWarning={dappSuggestedGasWarning}
                       onUpdatingValuesStart={onUpdatingValuesStart}
                       onUpdatingValuesEnd={onUpdatingValuesEnd}
                       animateOnChange={animateOnChange}
                       isAnimating={isAnimating}
-                      updateTransactionState={updateTransactionState}
-                      gasObject={gasObject}
-                      eip1559GasTransaction={eip1559GasTransaction}
                     />
                   </View>
                 </ScrollView>

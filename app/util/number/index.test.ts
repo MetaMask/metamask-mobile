@@ -24,6 +24,7 @@ import {
   safeNumberToBN,
   fastSplit,
   isNumber,
+  calculateEthFeeForMultiLayer,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -662,5 +663,25 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('.01')).toBe(false);
     expect(isNumber(undefined)).toBe(false);
     expect(isNumber(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: calculateEthFeeForMultiLayer', () => {
+  it('returns ethFee if multiLayerL1FeeTotal is falsy', () => {
+    expect(
+      calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal: undefined,
+        ethFee: 0.000001,
+      }),
+    ).toBe(0.000001);
+  });
+
+  it('returns a new ETH fee which includes a multiLayerL1FeeTotal fee', () => {
+    expect(
+      calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal: 'ce37bdd0b8b8',
+        ethFee: 0.000001,
+      }),
+    ).toBe('0.000227739');
   });
 });

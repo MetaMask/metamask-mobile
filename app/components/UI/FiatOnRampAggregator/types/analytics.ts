@@ -4,6 +4,7 @@ export type ScreenLocation =
   | 'Region Screen'
   | 'Quotes Screen'
   | 'Provider Webview'
+  | 'Provider InApp Browser'
   | 'Get Started Screen'
   | 'Order Details Screen';
 
@@ -72,12 +73,21 @@ export interface AnalyticsEvents {
   ONRAMP_PROVIDER_DETAILS_VIEWED: {
     provider_onramp: string;
   };
+  ONRAMP_DIRECT_PROVIDER_CLICKED: {
+    region: string;
+    provider_onramp: string;
+    currency_source: string;
+    currency_destination: string;
+    chain_id_destination: string;
+    payment_method_id: string;
+  };
   ONRAMP_PURCHASE_SUBMITTED: {
     provider_onramp: string;
     payment_method_id: string;
     currency_source: string;
     currency_destination: string;
     chain_id_destination: string;
+    order_type: string;
     has_zero_native_balance?: boolean;
     is_apple_pay: boolean;
   };
@@ -87,6 +97,7 @@ export interface AnalyticsEvents {
     currency_source: string;
     currency_destination: string;
     chain_id_destination: string;
+    order_type: string;
     total_fee: number;
     exchange_rate: number;
     payment_method_id: string;
@@ -99,6 +110,7 @@ export interface AnalyticsEvents {
     amount: number;
     currency_destination: string;
     chain_id_destination: string;
+    order_type: string;
     payment_method_id: string;
     provider_onramp: string;
   };
@@ -107,6 +119,7 @@ export interface AnalyticsEvents {
     amount: number;
     currency_destination: string;
     chain_id_destination: string;
+    order_type?: string;
     payment_method_id: string;
     provider_onramp: string;
   };
@@ -116,6 +129,7 @@ export interface AnalyticsEvents {
     payment_method_id: string;
     currency_destination: string;
     chain_id_destination: string;
+    order_type: string;
     currency_source: string;
   };
   ONRAMP_EXTERNAL_LINK_CLICKED: {
