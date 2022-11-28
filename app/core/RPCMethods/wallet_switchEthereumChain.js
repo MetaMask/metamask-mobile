@@ -82,7 +82,6 @@ const wallet_switchEthereumChain = async ({
       analyticsParams = {
         ...analyticsParams,
         symbol: existingNetworkRPC?.ticker,
-        block_explorer_url: existingNetworkRPC?.blockExplorerUrl,
         network_name: 'rpc',
       };
     } else {
