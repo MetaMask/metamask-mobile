@@ -9,8 +9,8 @@ import { renderNumber } from '../../../util/number';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-  NETWORKS_CHAIN_ID,
 } from '../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   getPendingOrders,
   updateFiatOrder,
@@ -99,6 +99,7 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
     chain_id_destination: fiatOrder.network,
     payment_method_id: fiatOrder.data?.paymentMethod?.id,
     provider_onramp: fiatOrder.data?.provider?.name,
+    orderType: fiatOrder.orderType,
     amount: fiatOrder.amount,
   };
 
