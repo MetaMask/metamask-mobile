@@ -170,7 +170,6 @@ const NetworkModals = (props: NetworkProps) => {
         chain_id: decimalChainId,
         source: 'Popular network list',
         symbol: ticker,
-        block_explorer_url: blockExplorerUrl,
         network_name: nickname,
       };
 
