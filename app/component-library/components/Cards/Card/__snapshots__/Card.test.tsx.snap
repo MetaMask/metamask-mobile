@@ -6,7 +6,7 @@ exports[`Card - Snapshot should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
-      "borderRadius": 4,
+      "borderRadius": 8,
       "borderWidth": 1,
       "padding": 16,
     }
