@@ -15,10 +15,6 @@ const createStyles = (colors) =>
       left: 0,
       right: 0,
       position: 'absolute',
-      borderTopWidth: 0,
-      flex: 1,
-      width: null,
-      height: null,
     },
   });
 

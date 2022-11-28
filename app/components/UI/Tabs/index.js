@@ -95,6 +95,9 @@ const createStyles = (colors, shadows) =>
       backgroundColor: colors.background.alternative,
     },
     tabsContent: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
       padding: 15,
       backgroundColor: importedColors.transparent,
     },
@@ -238,11 +241,10 @@ export default class Tabs extends PureComponent {
         contentContainerStyle={styles.tabsContent}
         ref={this.scrollview}
       >
-        {tabs.map((tab) => (
-          // eslint-disable-next-line react/jsx-key
+        {tabs.map((tab, index) => (
           <TabThumbnail
             ref={this.thumbnails[tab.id]}
-            key={tab.id}
+            key={`${tab.id}-${index}`}
             tab={tab}
             isActiveTab={activeTab === tab.id}
             onClose={this.props.closeTab}

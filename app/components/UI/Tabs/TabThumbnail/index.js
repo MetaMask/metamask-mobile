@@ -1,11 +1,11 @@
-import React, { PureComponent } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Image,
   TouchableOpacity,
   StyleSheet,
   Text,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
@@ -19,19 +19,7 @@ import {
 import Device from '../../../../util/device';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-
-const margin = 15;
-const width = Dimensions.get('window').width - margin * 2;
-const height = Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5);
-let paddingTop = Dimensions.get('window').height - 190;
-if (Device.isIphoneX()) {
-  paddingTop -= 65;
-}
-
-if (Device.isAndroid()) {
-  paddingTop -= 10;
-}
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,12 +55,11 @@ const createStyles = (colors) =>
       overflow: 'hidden',
       borderColor: colors.border.default,
       borderWidth: 1,
-      width,
-      height,
     },
     checkWrapper: {
       backgroundColor: importedColors.transparent,
       overflow: 'hidden',
+      margin: Device.isIpad() ? 5 : undefined,
     },
     tab: {
       backgroundColor: colors.background.default,
@@ -82,7 +69,6 @@ const createStyles = (colors) =>
     },
     tabImage: {
       ...StyleSheet.absoluteFillObject,
-      paddingTop,
       width: null,
       height: null,
       resizeMode: 'cover',
@@ -121,76 +107,93 @@ const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-li
  * PureComponent that renders an a thumbnail
  * that represents an existing tab
  */
-export default class TabThumbnail extends PureComponent {
-  static propTypes = {
-    /**
-     * The tab info
-     */
-    tab: PropTypes.object,
-    /**
-     * Flag that determines if this is the active tab
-     */
-    isActiveTab: PropTypes.bool,
-    /**
-     * Closes a tab
-     */
-    onClose: PropTypes.func,
-    /**
-     * Switches to a specific tab
-     */
-    onSwitch: PropTypes.func,
-  };
+export default function TabThumbnail({ isActiveTab, tab, onClose, onSwitch }) {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const hostname = getHost(tab.url);
+  const isHomepage = hostname === getHost(HOMEPAGE_URL);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const margin = 15;
+  const width = windowWidth / (Device.isIpad() ? 2 : 1) - margin * 2;
+  const height =
+    windowHeight / (Device.isIpad() ? 3 : Device.isIphone5S() ? 4 : 5);
+  const paddingTop = useMemo(() => {
+    let paddingTop = windowHeight - 190;
+    if (Device.isIphoneX()) {
+      paddingTop -= 65;
+    }
 
-  getContainer = () => (Device.isAndroid() ? View : ElevatedView);
+    if (Device.isAndroid()) {
+      paddingTop -= 10;
+    }
+    return paddingTop;
+  }, [windowHeight]);
 
-  render() {
-    const { isActiveTab, tab, onClose, onSwitch } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-    const Container = this.getContainer();
-    const hostname = getHost(tab.url);
-    const isHomepage = hostname === getHost(HOMEPAGE_URL);
+  const Container = Device.isAndroid() ? View : ElevatedView;
 
-    return (
-      <Container style={styles.checkWrapper} elevation={8}>
-        <TouchableOpacity
-          onPress={() => onSwitch(tab)} // eslint-disable-line react/jsx-no-bind
-          style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
-        >
-          <View style={styles.tabHeader}>
-            <View style={styles.titleButton}>
-              {!isHomepage ? (
-                <WebsiteIcon
-                  transparent
-                  style={styles.tabFavicon}
-                  title={hostname}
-                  url={tab.url}
-                />
-              ) : (
-                <Image
-                  style={styles.tabFavicon}
-                  title={tab.url}
-                  source={METAMASK_FOX}
-                />
-              )}
-              <Text style={styles.tabSiteName} numberOfLines={1}>
-                {isHomepage ? strings('browser.new_tab') : hostname}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => onClose(tab)} // eslint-disable-line react/jsx-no-bind
-              style={styles.closeTabButton}
-            >
-              <IonIcon name="ios-close" style={styles.closeTabIcon} />
-            </TouchableOpacity>
+  return (
+    <Container style={styles.checkWrapper} elevation={8}>
+      <TouchableOpacity
+        onPress={() => onSwitch(tab)} // eslint-disable-line react/jsx-no-bind
+        style={[
+          styles.tabWrapper,
+          { width, height },
+          isActiveTab && styles.activeTab,
+        ]}
+      >
+        <View style={styles.tabHeader}>
+          <View style={styles.titleButton}>
+            {!isHomepage ? (
+              <WebsiteIcon
+                transparent
+                style={styles.tabFavicon}
+                title={hostname}
+                url={tab.url}
+              />
+            ) : (
+              <Image
+                style={styles.tabFavicon}
+                title={tab.url}
+                source={METAMASK_FOX}
+              />
+            )}
+            <Text style={styles.tabSiteName} numberOfLines={1}>
+              {isHomepage ? strings('browser.new_tab') : hostname}
+            </Text>
           </View>
-          <View style={styles.tab}>
-            <Image source={{ uri: tab.image }} style={styles.tabImage} />
-          </View>
-        </TouchableOpacity>
-      </Container>
-    );
-  }
+          <TouchableOpacity
+            onPress={() => onClose(tab)} // eslint-disable-line react/jsx-no-bind
+            style={styles.closeTabButton}
+          >
+            <IonIcon name="ios-close" style={styles.closeTabIcon} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.tab}>
+          <Image
+            source={{ uri: tab.image }}
+            style={[styles.tabImage, paddingTop]}
+          />
+        </View>
+      </TouchableOpacity>
+    </Container>
+  );
 }
 
-TabThumbnail.contextType = ThemeContext;
+TabThumbnail.propTypes = {
+  /**
+   * The tab info
+   */
+  tab: PropTypes.object,
+  /**
+   * Flag that determines if this is the active tab
+   */
+  isActiveTab: PropTypes.bool,
+  /**
+   * Closes a tab
+   */
+  onClose: PropTypes.func,
+  /**
+   * Switches to a specific tab
+   */
+  onSwitch: PropTypes.func,
+};

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, LayoutAnimation } from 'react-native';
 import PropTypes from 'prop-types';
 import {
   createNewTab,
@@ -172,6 +172,7 @@ const Browser = (props) => {
 
   const closeAllTabs = () => {
     if (tabs.length) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       triggerCloseAllTabs();
       navigation.setParams({
         ...route.params,
@@ -182,6 +183,7 @@ const Browser = (props) => {
   };
 
   const closeTab = (tab) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     // If the tab was selected we have to select
     // the next one, and if there's no next one,
     // we select the previous one.

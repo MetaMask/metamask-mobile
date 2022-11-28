@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Text,
@@ -6,10 +6,11 @@ import {
   ScrollView,
   StyleSheet,
   Image,
-  Dimensions,
   InteractionManager,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -23,7 +24,7 @@ import { connect } from 'react-redux';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
@@ -34,9 +35,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
-const DEVICE_WIDTH = Dimensions.get('window').width;
-
-const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -69,26 +67,16 @@ const createStyles = (colors) =>
       paddingHorizontal: 40,
       paddingBottom: Device.isIphoneX() ? 40 : 20,
       flexDirection: 'column',
+      alignItems: Device.isIpad() ? 'center' : undefined,
     },
     ctaWrapper: {
+      width: Device.isIpad() ? Device.maxWidth : undefined,
       justifyContent: 'flex-end',
     },
     carouselImage: {},
     // eslint-disable-next-line react-native/no-unused-styles
     carouselImage1: {
       marginTop: 30,
-      width: DEVICE_WIDTH - IMG_PADDING,
-      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    carouselImage2: {
-      width: DEVICE_WIDTH - IMG_PADDING,
-      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    carouselImage3: {
-      width: DEVICE_WIDTH - 60,
-      height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO,
     },
     carouselImageWrapper: {
       flex: 1,
@@ -130,156 +118,184 @@ const carousel_images = [
 /**
  * View that is displayed to first time (new) users
  */
-class OnboardingCarousel extends PureComponent {
-  static propTypes = {
-    /**
-     * The navigator object
-     */
-    navigation: PropTypes.object,
-    /**
-     * Save onboarding event to state
-     */
-    saveOnboardingEvent: PropTypes.func,
-  };
+function OnboardingCarousel({ saveOnboardingEvent }) {
+  const navigation = useNavigation();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const [currentTab, setCurrentTab] = useState(1);
+  const renderTabBar = useMemo(() => () => <View />, []);
+  const isPortrait = windowHeight > windowWidth;
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
-  state = {
-    currentTab: 1,
-  };
+  const imagesDimensions = useMemo(() => {
+    if (Device.isIpad()) {
+      const width = isPortrait ? windowWidth / 2 : windowWidth / 4;
+      return [
+        {
+          width,
+          height: width * IMAGE_1_RATIO,
+        },
 
-  trackEvent = (eventArgs) => {
-    InteractionManager.runAfterInteractions(async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
-        AnalyticsV2.trackEvent(eventArgs);
-      } else {
-        this.props.saveOnboardingEvent(eventArgs);
-      }
-    });
-  };
+        {
+          width,
+          height: width * IMAGE_2_RATIO,
+        },
+        {
+          width,
+          height: width * IMAGE_3_RATIO,
+        },
+      ];
+    }
+    const IMG_PADDING = Device.isIphoneX()
+      ? 100
+      : Device.isIphone5S()
+      ? 180
+      : 200;
 
-  onPressGetStarted = () => {
-    this.props.navigation.navigate('Onboarding');
-    this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_STARTED);
-  };
+    return [
+      {
+        width: windowWidth - IMG_PADDING,
+        height: (windowWidth - IMG_PADDING) * IMAGE_1_RATIO,
+      },
 
-  renderTabBar = () => <View />;
+      {
+        width: windowWidth - IMG_PADDING,
+        height: (windowWidth - IMG_PADDING) * IMAGE_2_RATIO,
+      },
+      {
+        width: windowWidth - 60,
+        height: (windowWidth - 60) * IMAGE_3_RATIO,
+      },
+    ];
+  }, [isPortrait, windowWidth]);
 
-  onChangeTab = (obj) => {
-    this.setState({ currentTab: obj.i + 1 });
-    this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
-      message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
-        locale: 'en',
-      }),
-    });
-  };
+  const trackEvent = useCallback(
+    (eventArgs) => {
+      InteractionManager.runAfterInteractions(async () => {
+        const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+        if (metricsOptIn) {
+          AnalyticsV2.trackEvent(eventArgs);
+        } else {
+          saveOnboardingEvent(eventArgs);
+        }
+      });
+    },
+    [saveOnboardingEvent],
+  );
 
-  updateNavBar = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    this.props.navigation.setOptions(
-      getTransparentOnboardingNavbarOptions(colors),
-    );
-  };
+  const onPressGetStarted = useCallback(() => {
+    navigation.navigate('Onboarding');
+    trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_STARTED);
+  }, [navigation, trackEvent]);
 
-  componentDidMount = () => {
-    this.updateNavBar();
-    this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
-  };
+  const onChangeTab = useCallback(
+    (obj) => {
+      setCurrentTab(obj.i + 1);
+      trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
+        message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
+          locale: 'en',
+        }),
+      });
+    },
+    [trackEvent],
+  );
 
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
+  useEffect(() => {
+    trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+  }, [colors, navigation, trackEvent]);
 
-  render() {
-    const { currentTab } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <View
-        style={baseStyles.flexGrow}
-        testID={'onboarding-carouselcarousel-screen--screen'}
-      >
-        <OnboardingScreenWithBg screen={'carousel'}>
-          <ScrollView
-            style={baseStyles.flexGrow}
-            contentContainerStyle={styles.scroll}
+  return (
+    <View
+      style={baseStyles.flexGrow}
+      testID={'onboarding-carouselcarousel-screen--screen'}
+    >
+      <OnboardingScreenWithBg screen={'carousel'}>
+        <ScrollView
+          style={baseStyles.flexGrow}
+          contentContainerStyle={styles.scroll}
+        >
+          <View
+            style={styles.wrapper}
+            {...generateTestId(Platform, WELCOME_SCREEN_CAROUSEL_CONTAINER_ID)}
           >
-            <View
-              style={styles.wrapper}
-              {...generateTestId(
-                Platform,
-                WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
-              )}
+            <ScrollableTabView
+              style={styles.scrollTabs}
+              renderTabBar={renderTabBar}
+              onChangeTab={onChangeTab}
             >
-              <ScrollableTabView
-                style={styles.scrollTabs}
-                renderTabBar={this.renderTabBar}
-                onChangeTab={this.onChangeTab}
-              >
-                {['one', 'two', 'three'].map((value, index) => {
-                  const key = index + 1;
-                  const imgStyleKey = `carouselImage${key}`;
-                  return (
-                    <View key={key} style={baseStyles.flexGrow}>
-                      <View
-                        style={styles.tab}
-                        {...generateTestId(
-                          Platform,
-                          WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
-                        )}
-                      >
-                        <Text style={styles.title}>
-                          {strings(`onboarding_carousel.title${key}`)}
-                        </Text>
-                        <Text style={styles.subtitle}>
-                          {strings(`onboarding_carousel.subtitle${key}`)}
-                        </Text>
-                      </View>
-                      <View style={styles.carouselImageWrapper}>
-                        <Image
-                          source={carousel_images[index]}
-                          style={[styles.carouselImage, styles[imgStyleKey]]}
-                          resizeMethod={'auto'}
-                          testID={`carousel-${value}-image`}
-                        />
-                      </View>
+              {['one', 'two', 'three'].map((value, index) => {
+                const key = index + 1;
+                const imgStyleKey = `carouselImage${key}`;
+                return (
+                  <View key={key} style={baseStyles.flexGrow}>
+                    <View
+                      style={styles.tab}
+                      {...generateTestId(
+                        Platform,
+                        WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
+                      )}
+                    >
+                      <Text style={styles.title}>
+                        {strings(`onboarding_carousel.title${key}`)}
+                      </Text>
+                      <Text style={styles.subtitle}>
+                        {strings(`onboarding_carousel.subtitle${key}`)}
+                      </Text>
                     </View>
-                  );
-                })}
-              </ScrollableTabView>
+                    <View style={styles.carouselImageWrapper}>
+                      <Image
+                        source={carousel_images[index]}
+                        style={[
+                          styles.carouselImage,
+                          styles[imgStyleKey],
+                          imagesDimensions[index],
+                        ]}
+                        resizeMethod={'auto'}
+                        testID={`carousel-${value}-image`}
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollableTabView>
 
-              <View style={styles.progessContainer}>
-                {[1, 2, 3].map((i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.circle,
-                      currentTab === i ? styles.solidCircle : {},
-                    ]}
-                  />
-                ))}
-              </View>
-            </View>
-          </ScrollView>
-          <View style={styles.ctas}>
-            <View style={styles.ctaWrapper}>
-              <StyledButton
-                type={'normal'}
-                onPress={this.onPressGetStarted}
-                testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
-              >
-                {strings('onboarding_carousel.get_started')}
-              </StyledButton>
+            <View style={styles.progessContainer}>
+              {[1, 2, 3].map((i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.circle,
+                    currentTab === i ? styles.solidCircle : {},
+                  ]}
+                />
+              ))}
             </View>
           </View>
-        </OnboardingScreenWithBg>
-        <FadeOutOverlay />
-      </View>
-    );
-  }
+        </ScrollView>
+        <View style={styles.ctas}>
+          <View style={styles.ctaWrapper}>
+            <StyledButton
+              type={'normal'}
+              onPress={onPressGetStarted}
+              testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
+            >
+              {strings('onboarding_carousel.get_started')}
+            </StyledButton>
+          </View>
+        </View>
+      </OnboardingScreenWithBg>
+      <FadeOutOverlay />
+    </View>
+  );
 }
 
-OnboardingCarousel.contextType = ThemeContext;
+OnboardingCarousel.propTypes = {
+  /**
+   * Save onboarding event to state
+   */
+  saveOnboardingEvent: PropTypes.func,
+};
 
 const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) =>

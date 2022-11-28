@@ -67,6 +67,11 @@ class Step3 extends PureComponent {
     viewTop: 0,
     coachmarkTopReady: false,
     viewTopReady: false,
+    screenWidth: Dimensions.get('window').width,
+  };
+
+  onDimensionsChange = () => {
+    this.setState({ screenWidth: Dimensions.get('window').width });
   };
 
   /**
@@ -75,7 +80,15 @@ class Step3 extends PureComponent {
   componentDidMount = () => {
     this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
     this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
+    this.dimensionsSubscription = Dimensions.addEventListener(
+      'change',
+      this.onDimensionsChange,
+    );
   };
+
+  componentWillUnmount() {
+    this.dimensionsSubscription?.remove();
+  }
 
   /**
    * Sets coachmark top position getting AccountOverview component ref from Wallet
@@ -177,7 +190,13 @@ class Step3 extends PureComponent {
 
     return (
       <View style={[styles.main, { top: this.state.viewTop }]}>
-        <View style={styles.accountLabelContainer} testID={'account-label'}>
+        <View
+          style={[
+            styles.accountLabelContainer,
+            { width: this.state.screenWidth },
+          ]}
+          testID={'account-label'}
+        >
           <AccountOverview
             account={account}
             currentCurrency={currentCurrency}

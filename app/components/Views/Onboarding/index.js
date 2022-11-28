@@ -112,7 +112,7 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: Device.isIpad() ? 'center' : 'flex-end',
       marginBottom: 24,
     },
     buttonWrapper: {

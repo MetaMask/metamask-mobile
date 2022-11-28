@@ -19,7 +19,7 @@ const createStyles = (colors) =>
     fallbackText: {
       ...fontStyles.normal,
       color: colors.text.default,
-      fontSize: 24,
+      fontSize: 16,
       textAlign: 'center',
       textTransform: 'uppercase',
     },

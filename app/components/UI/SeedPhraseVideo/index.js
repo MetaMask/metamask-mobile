@@ -6,8 +6,9 @@ import scaling from '../../../util/scaling';
 import { video_source_uri, getSubtitleUri } from '../../../util/video';
 import I18n from '../../../../locales/i18n';
 import { TextTrackType } from 'react-native-video';
+import Device from '../../../util/device';
 
-const HEIGHT = scaling.scale(240);
+const HEIGHT = scaling.scale(Device.isIpad() ? 480 : 240);
 
 const styles = StyleSheet.create({
   videoContainer: {
