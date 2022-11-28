@@ -1,5 +1,5 @@
 import React from 'react';
-import AssetOverview from './';
+import AssetOverview from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
