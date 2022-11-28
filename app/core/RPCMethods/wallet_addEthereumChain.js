@@ -125,7 +125,6 @@ const wallet_addEthereumChain = async ({
     }
 
     const analyticsParams = {
-      rpc_url: existingNetwork?.rpcUrl,
       chain_id: _chainId,
       source: 'Custom Network API',
       symbol: existingNetwork?.ticker,
@@ -263,7 +262,6 @@ const wallet_addEthereumChain = async ({
   requestData.alert = alert;
 
   const analyticsParamsAdd = {
-    rpc_url: firstValidRPCUrl,
     chain_id: chainIdDecimal,
     source: 'Custom Network API',
     symbol: ticker,
