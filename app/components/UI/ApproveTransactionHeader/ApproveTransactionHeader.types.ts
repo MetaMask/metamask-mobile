@@ -1,5 +1,3 @@
-import { ImageSourcePropType } from 'react-native';
-
 export interface ApproveTransactionHeaderI {
   spenderAddress: string;
   origin: string;
@@ -12,7 +10,6 @@ export interface AccountInfoI {
   currency: string;
   accountName: string;
   networkName: string;
-  networkImage: ImageSourcePropType | null;
 }
 
 export interface OriginsI {

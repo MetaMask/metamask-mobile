@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { getHost } from '../../../util/browser';
 import { useSelector } from 'react-redux';
-import networkList from '../../../util/networks';
+import networkList, { isMainnetByChainId } from '../../../util/networks';
 
 import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -13,10 +13,7 @@ import { getTicker } from '../../../util/transactions';
 import getImage from '../../../util/getImage';
 import { TEST_REMOTE_IMAGE_SOURCE } from '../../../component-library/components-temp/Accounts/AccountBalance/AccountBalance.constants';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import Avatar, {
-  AvatarVariants,
-} from '../../../component-library/components/Avatars/Avatar';
-import Text from '../../../component-library/components/Texts/Text';
+
 import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../../component-library/hooks';
@@ -33,6 +30,7 @@ import {
   OriginsI,
 } from './ApproveTransactionHeader.types';
 import images from 'images/image-icons';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
 const ApproveTransactionHeader = ({
   spenderAddress,
@@ -45,7 +43,6 @@ const ApproveTransactionHeader = ({
     currency: '',
     accountName: '',
     networkName: '',
-    networkImage: null,
   });
   const [origins, setOrigins] = useState<OriginsI>({
     isOriginDeepLink: false,
@@ -75,7 +72,7 @@ const ApproveTransactionHeader = ({
   );
 
   useEffect(() => {
-    const { ticker, type, chainId } = network;
+    const { ticker, type } = network;
     const weiBalance = selectedAddress
       ? hexToBN(accounts[selectedAddress].balance)
       : 0;
@@ -85,11 +82,6 @@ const ApproveTransactionHeader = ({
     const accountName = selectedAddress
       ? renderAccountName(selectedAddress, identities)
       : '';
-
-    const networkImageName = getImage(chainId);
-    const networkImage = networkImageName
-      ? images[networkImageName as keyof typeof images]
-      : undefined;
 
     const isOriginDeepLink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -104,7 +96,6 @@ const ApproveTransactionHeader = ({
       currency,
       accountName,
       networkName,
-      networkImage,
     });
     setOrigins({
       isOriginDeepLink,
@@ -112,6 +103,16 @@ const ApproveTransactionHeader = ({
       isOriginMMSDKRemoteConn,
     });
   }, [accounts, identities, origin, selectedAddress, network]);
+
+  const networkImage = useMemo(() => {
+    const { chainId } = network;
+    if (isMainnetByChainId(chainId)) return TEST_REMOTE_IMAGE_SOURCE;
+    const networkImageName = getImage(chainId);
+    if (networkImageName)
+      return images[networkImageName as keyof typeof images];
+
+    return null;
+  }, [network]);
 
   const domainTitle = useMemo(() => {
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
@@ -123,11 +124,6 @@ const ApproveTransactionHeader = ({
     else if (isOriginMMSDKRemoteConn) {
       title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
     } else title = getHost(currentEnsName || url || origin);
-
-    title =
-      title.length > MAX_DOMAIN_TITLE_LENGTH
-        ? `${title.substring(0, MAX_DOMAIN_TITLE_LENGTH - 3)}...`
-        : title;
 
     return title;
   }, [currentEnsName, origin, origins, spenderAddress, url]);
@@ -143,22 +139,13 @@ const ApproveTransactionHeader = ({
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, origins, url]);
 
-  const renderTitle = () => (
-    <View style={styles.domainUrlContainer}>
-      <View style={styles.iconContainer}>
-        <Avatar
-          imageSource={{ uri: favIconUrl }}
-          variant={AvatarVariants.Favicon}
-        />
-      </View>
-      <Text style={styles.domainUrl}>{domainTitle}</Text>
-    </View>
-  );
-
   return (
     <View style={styles.transactionHeader}>
-      {renderTitle()}
-
+      <TagUrl
+        imageSource={{ uri: favIconUrl }}
+        label={domainTitle}
+        style={styles.tagUrl}
+      />
       <AccountBalance
         accountAddress={selectedAddress}
         accountNativeCurrency={accountInfo.currency}
@@ -169,7 +156,7 @@ const ApproveTransactionHeader = ({
         badgeProps={{
           variant: BadgeVariants.Network,
           name: accountInfo.networkName,
-          imageSource: accountInfo.networkImage || TEST_REMOTE_IMAGE_SOURCE,
+          imageSource: networkImage,
         }}
       />
     </View>

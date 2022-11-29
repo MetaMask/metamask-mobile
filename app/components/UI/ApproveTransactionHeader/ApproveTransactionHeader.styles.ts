@@ -19,16 +19,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    domainUrlContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 222,
-      height: 44,
-      borderWidth: 1,
-      borderRadius: 222 / 2,
-      borderColor: colors.border.default,
-      marginHorizontal: 77,
+    tagUrl: {
       marginBottom: 24,
     },
     iconContainer: {
