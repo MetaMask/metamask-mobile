@@ -10,6 +10,7 @@ import RequestPaymentView from '../pages/RequestPaymentView';
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
@@ -51,6 +52,12 @@ describe('Request Token Flow', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on the close button in the whats new modal', async () => {
