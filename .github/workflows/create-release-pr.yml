@@ -15,7 +15,7 @@ on:
 
 jobs:
   create-release-pr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     permissions:
       contents: write
       pull-requests: write
@@ -30,7 +30,7 @@ jobs:
           ref: ${{ github.event.inputs.base-branch }}
       - name: Get Node.js version
         id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}

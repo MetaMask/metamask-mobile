@@ -69,6 +69,8 @@ jest.mock('../../core/NotificationManager', () => ({
   gotIncomingTransaction: () => null,
 }));
 
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+
 jest.mock('../../core/Engine', () => ({
   init: () => Engine.init({}),
   context: {
@@ -123,6 +125,19 @@ jest.mock(
   () => mockRNAsyncStorage,
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
+
+const mockReactNativeWebRTC = {
+  RTCPeerConnection: () => null,
+  RTCIceCandidate: () => null,
+  RTCSessionDescription: () => null,
+  RTCView: () => null,
+  MediaStream: () => null,
+  MediaStreamTrack: () => null,
+  mediaDevices: () => null,
+  registerGlobals: () => null,
+};
+
+jest.mock('react-native-webrtc', () => mockReactNativeWebRTC);
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),

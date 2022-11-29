@@ -17,7 +17,7 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect } from 'react-redux';
-import BackgroundBridge from '../../../core/BackgroundBridge';
+import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
@@ -27,7 +27,6 @@ import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
-  JS_WEBVIEW_URL,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
@@ -63,7 +62,7 @@ import {
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
-const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -229,7 +228,6 @@ export const BrowserTab = (props) => {
   const url = useRef('');
   const title = useRef('');
   const icon = useRef(null);
-  const webviewUrlPostMessagePromiseResolve = useRef(null);
   const backgroundBridges = useRef([]);
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
@@ -814,26 +812,19 @@ export const BrowserTab = (props) => {
    * When website finished loading
    */
   const onLoadEnd = ({ nativeEvent }) => {
-    if (nativeEvent.loading) return;
-    const { current } = webviewRef;
-
-    current && current.injectJavaScript(JS_WEBVIEW_URL);
-
-    const promiseResolver = (resolve) => {
-      webviewUrlPostMessagePromiseResolve.current = resolve;
-    };
-    const promise = current
-      ? new Promise(promiseResolver)
-      : Promise.resolve(url.current);
-
-    promise.then((info) => {
-      const { hostname: currentHostname } = new URL(url.current);
-      const { hostname } = new URL(nativeEvent.url);
-      if (info.url === nativeEvent.url && currentHostname === hostname) {
-        changeUrl({ ...nativeEvent, icon: info.icon });
-        changeAddressBar({ ...nativeEvent, icon: info.icon });
-      }
-    });
+    // Do not update URL unless website has successfully completed loading.
+    if (nativeEvent.loading) {
+      return;
+    }
+    // Use URL to produce real url. This should be the actual website that the user is viewing.
+    const urlObj = new URL(nativeEvent.url);
+    const { origin, pathname = '', query = '' } = urlObj;
+    const realUrl = `${origin}${pathname}${query}`;
+    // Generate favicon.
+    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/32`;
+    // Update navigation bar address with title of loaded url.
+    changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+    changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
   };
 
   /**
@@ -856,22 +847,6 @@ export const BrowserTab = (props) => {
           }
         });
         return;
-      }
-
-      switch (data.type) {
-        /**
-				* Disabling iframes for now
-				case 'FRAME_READY': {
-					const { url } = data.payload;
-					onFrameLoadStarted(url);
-					break;
-				}*/
-        case 'GET_WEBVIEW_URL': {
-          const { url } = data.payload;
-          if (url === nativeEvent.url)
-            webviewUrlPostMessagePromiseResolve.current &&
-              webviewUrlPostMessagePromiseResolve.current(data.payload);
-        }
       }
     } catch (e) {
       Logger.error(e, `Browser::onMessage on ${url.current}`);
@@ -981,7 +956,7 @@ export const BrowserTab = (props) => {
     if (!isAllowedUrl(hostname)) {
       return handleNotAllowedUrl(nativeEvent.url);
     }
-    webviewUrlPostMessagePromiseResolve.current = null;
+
     setError(false);
 
     changeUrl(nativeEvent);
@@ -1364,12 +1339,12 @@ export const BrowserTab = (props) => {
               onMessage={onMessage}
               onError={onError}
               onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-              userAgent={USER_AGENT}
               sendCookies
               javascriptEnabled
               allowsInlineMediaPlayback
               useWebkit
               testID={'browser-webview'}
+              applicationNameForUserAgent={'WebView MetaMaskMobile'}
               onFileDownload={handleOnFileDownload}
             />
           )}

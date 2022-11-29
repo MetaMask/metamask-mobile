@@ -510,7 +510,11 @@ const RootRPCMethodsUI = (props) => {
 
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
-    ApprovalController.reject(id, error);
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
   };
 
   const acceptPendingApproval = (id, requestData) => {

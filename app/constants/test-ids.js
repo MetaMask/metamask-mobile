@@ -24,8 +24,8 @@ export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID =
 export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID =
   'network-education-modal-network-name';
 
-export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
 export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
+export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
 export const CONFIRM_PASSWORD_INPUT_BOX_ID =
   'create-password-second-input-field';
 
@@ -43,7 +43,6 @@ export const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
 export const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
 
 export const IMPORT_PASSWORD_CONTAINER_ID = 'import-from-seed-screen';
-export const SECRET_RECOVERY_PHRASE_INPUT_BOX_ID = 'input-seed-phrase';
 
 export const BROWSER_URL_MODAL_ID = 'browser-url-modal';
 export const CLEAR_COOKIES_SECTION = 'clear-cookies-section';
@@ -68,7 +67,6 @@ export const WHATS_NEW_MODAL_CLOSE_BUTTON_ID = 'whats-new-modal-close-button';
 export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
 export const INPUT_NETWORK_NAME = 'input-network-name';
-
 export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
 
 // Design System test ids

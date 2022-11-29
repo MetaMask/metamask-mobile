@@ -2,6 +2,66 @@
 
 ## Current Main Branch
 
+## 5.11.0 - Nov 21, 2022
+- [#5088](https://github.com/MetaMask/metamask-mobile/pull/5088): [ENHANCEMENT] Add no payment methods screen
+- [#5223](https://github.com/MetaMask/metamask-mobile/pull/5223): [ENHANCEMENT] Add payment method icons support
+- [#5198](https://github.com/MetaMask/metamask-mobile/pull/5198): [ENHANCEMENT] Improve loading experience
+- [#5213](https://github.com/MetaMask/metamask-mobile/pull/5213): [ENHANCEMENT] On-ramp: add payment method detail and disclaimer
+- [#5214](https://github.com/MetaMask/metamask-mobile/pull/5214): [ENHANCEMENT] On-ramp: add payment method custom action analytics
+- [#5188](https://github.com/MetaMask/metamask-mobile/pull/5188): [ENHANCEMENT] Networks-flow appium feature file
+
+## 5.10.0 - Nov 10, 2022
+- [#5209](https://github.com/MetaMask/metamask-mobile/pull/5209): [FIX] On-ramp: multiple redirection handling
+- [#5217](https://github.com/MetaMask/metamask-mobile/pull/5217): [FIX] Send to the wrong address
+- [#5202](https://github.com/MetaMask/metamask-mobile/pull/5202): [FEAT] On-Ramp: allow Harmony ONE
+- [#5195](https://github.com/MetaMask/metamask-mobile/pull/5195): [FEAT] Onramp: Add exclude from purchases to onramp aggregator orders
+- [#5064](https://github.com/MetaMask/metamask-mobile/pull/5064): [UPDATE] Refactor Approve Component
+- [#5158](https://github.com/MetaMask/metamask-mobile/pull/5158): [FEAT] On-Ramp: Provider payment method custom action and custom order ids
+- [#5119](https://github.com/MetaMask/metamask-mobile/pull/5119): [FIX] Crash when reject two times connect wallet on in app browser
+- [#5173](https://github.com/MetaMask/metamask-mobile/pull/5173): [FIX] android build cMake
+- [#5167](https://github.com/MetaMask/metamask-mobile/pull/5167): [FIX] Fixed Button Base Size issue
+- [#4868](https://github.com/MetaMask/metamask-mobile/pull/4868): [UPDATE] Refactor ApprovalTransaction Component
+- [#5142](https://github.com/MetaMask/metamask-mobile/pull/5142): [FIX] Fix high severity audit issues
+- [#4235](https://github.com/MetaMask/metamask-mobile/pull/4235): [FIX] Delete contact on android fixed
+- [#5116](https://github.com/MetaMask/metamask-mobile/pull/5116): [FIX] Updated EditLegacy Component
+- [#4835](https://github.com/MetaMask/metamask-mobile/pull/4835): [UPDATE] Refactor SendTransaction Component
+- [#5113](https://github.com/MetaMask/metamask-mobile/pull/5113): [UPDATE] avoid using Rinkeby in wallet & import network test
+- [#4922](https://github.com/MetaMask/metamask-mobile/pull/4922): [FEAT] Segment Integration
+- [#5041](https://github.com/MetaMask/metamask-mobile/pull/5041): [FEAT] Add accordion component to Design System
+- [#5091](https://github.com/MetaMask/metamask-mobile/pull/5091): [UPDATE] Standardized Storybook Structure
+- [#4888](https://github.com/MetaMask/metamask-mobile/pull/4888): [FEAT] Extend popular network list
+- [#5096](https://github.com/MetaMask/metamask-mobile/pull/5096): [UPDATE] Update audit list
+- [#5067](https://github.com/MetaMask/metamask-mobile/pull/5067): [FEAT] Component: Contract Box component
+
+## 5.9.1 - Oct 28, 2022
+- [#5172](https://github.com/MetaMask/metamask-mobile/pull/5172): [HOTFIX] ENS name being resolved correctly
+
+## 5.9.0 - Oct 10, 2022
+ - [#5035](https://github.com/MetaMask/metamask-mobile/pull/5035): [FIX] On-Ramp: Fix autolock dispatch for apple pay
+ - [#4804](https://github.com/MetaMask/metamask-mobile/pull/4804): [UPDATE] GasPolling refactor UpdateEIP1559Transaction Component
+ - [#5079](https://github.com/MetaMask/metamask-mobile/pull/5079): [FIX] Network switch during QR scan in Send Flow
+ - [#5077](https://github.com/MetaMask/metamask-mobile/pull/5077): [FEATURE] translations for permission system
+ - [#5044](https://github.com/MetaMask/metamask-mobile/pull/5044): [FIX] evaluating ‘transaction.status’
+ - [#5040](https://github.com/MetaMask/metamask-mobile/pull/5040): [ADD] Component/4721-card
+ - [#5034](https://github.com/MetaMask/metamask-mobile/pull/5034): [FIX] Wallet Connect PR#4934 and PR#4861
+ - [#5065](https://github.com/MetaMask/metamask-mobile/pull/5065): [ENHANCEMENT] added shadows to useAppTheme
+ - [#5039](https://github.com/MetaMask/metamask-mobile/pull/5039): [UPDATE]  update shadow tokens
+ - [#5010](https://github.com/MetaMask/metamask-mobile/pull/5010): [ADD] InApp Browser package
+ - [#5058](https://github.com/MetaMask/metamask-mobile/pull/5058): [UPDATE] patch vm2 via resolution
+ - [#5042](https://github.com/MetaMask/metamask-mobile/pull/5042): [ADD] Component/4723-estimatedtext
+ - [#4999](https://github.com/MetaMask/metamask-mobile/pull/4999): [ADD] Component: Account and balance component
+ - [#5030](https://github.com/MetaMask/metamask-mobile/pull/5030): [ENHANCEMENT] PR template with working link for mobile coding standards
+ - [#5033](https://github.com/MetaMask/metamask-mobile/pull/5033): [UPDATE] default iOS simulator
+ - [#5028](https://github.com/MetaMask/metamask-mobile/pull/5028): [FIX] variable interpolation in build.sh
+ - [#5031](https://github.com/MetaMask/metamask-mobile/pull/5031): [ENHANCEMENT] Deprecate snake case from feature flags
+ - [#5025](https://github.com/MetaMask/metamask-mobile/pull/5025): [ENHANCEMENT] Remove all "Ooops" copies
+ - [#4404](https://github.com/MetaMask/metamask-mobile/pull/4404): [FIX] Fixed ERC20 token transfer from Dapps
+ - [#5024](https://github.com/MetaMask/metamask-mobile/pull/5024): [UPDATE] app name for release-to-store step
+ - [#5006](https://github.com/MetaMask/metamask-mobile/pull/5006): [UPDATE] Bump @keystonehq/ur-decoder from 0.3.0 to 0.6.1
+
+## 5.8.1 - Oct 5, 2022
+- [#4286](https://github.com/MetaMask/metamask-mobile/pull/4286): [ENHANCEMENT] Integrates MetaMask SDK support
+
 ## 5.8.0 - Sept 22, 2022
 - [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
 - [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): [FIX] Unable to Speedup/Cancel legacy transactions

@@ -11,6 +11,7 @@ const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
+  analytics,
 }) => {
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
@@ -69,6 +70,7 @@ const wallet_switchEthereumChain = async ({
     let analyticsParams = {
       chain_id: _chainId,
       source: 'Switch Network API',
+      ...analytics,
     };
     if (existingNetworkRPC) {
       requestData = {

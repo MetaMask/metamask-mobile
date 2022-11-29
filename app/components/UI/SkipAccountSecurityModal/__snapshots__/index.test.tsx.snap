@@ -9,11 +9,11 @@ exports[`HintModal should render correctly 1`] = `
   }
   cancelButtonDisabled={false}
   cancelButtonMode="normal"
-  cancelTestID=""
+  cancelTestID="Cancel-Skip"
   cancelText="Secure now"
   confirmButtonMode="confirm"
   confirmDisabled={true}
-  confirmTestID=""
+  confirmTestID="Skip-button"
   confirmText="Skip"
   displayCancelButton={true}
   displayConfirmButton={true}
@@ -68,7 +68,7 @@ exports[`HintModal should render correctly 1`] = `
           "color": "#D73A49",
         }
       }
-      testID="skip_backup_warning"
+      testID="skip-backup-warning"
     />
     <Text
       style={

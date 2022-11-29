@@ -25,6 +25,7 @@ import {
   fastSplit,
   isNumber,
   isNumberScientificNotationWhenString,
+  calculateEthFeeForMultiLayer,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -715,6 +716,7 @@ describe('Number utils :: isNumber', () => {
 });
 
 describe('Number utils :: isNumberScientificNotationWhenString', () => {
+
   it('isNumberScientificNotationWhenString passing number', () => {
     expect(isNumberScientificNotationWhenString(1.337e-6)).toEqual(false);
     expect(isNumberScientificNotationWhenString(1.337e-7)).toEqual(true);
@@ -730,6 +732,7 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
       isNumberScientificNotationWhenString(1337000000000000000000),
     ).toEqual(true);
   });
+
   it('isNumberScientificNotationWhenString should be false when non number is passed', () => {
     expect(isNumberScientificNotationWhenString('1.337e-6')).toEqual(false);
     expect(isNumberScientificNotationWhenString('1.337e-7')).toEqual(false);
@@ -737,3 +740,24 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
     expect(isNumberScientificNotationWhenString('1.337e21')).toEqual(false);
   });
 });
+
+describe('Number utils :: calculateEthFeeForMultiLayer', () => {
+  it('returns ethFee if multiLayerL1FeeTotal is falsy', () => {
+    expect(
+      calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal: undefined,
+        ethFee: 0.000001,
+      }),
+    ).toBe(0.000001);
+  });
+
+  it('returns a new ETH fee which includes a multiLayerL1FeeTotal fee', () => {
+    expect(
+      calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal: 'ce37bdd0b8b8',
+        ethFee: 0.000001,
+      }),
+    ).toBe('0.000227739');
+  });
+});
+

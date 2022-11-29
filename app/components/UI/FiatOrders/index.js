@@ -9,14 +9,20 @@ import { renderNumber } from '../../../util/number';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-  NETWORKS_CHAIN_ID,
 } from '../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   getPendingOrders,
   updateFiatOrder,
+  removeFiatCustomIdData,
+  updateFiatCustomIdData,
+  addFiatOrder,
+  getCustomOrderIds,
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
+import processCustomOrderIdData from '../FiatOnRampAggregator/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from '../FiatOnRampAggregator/orderProcessor/aggregator';
 import { trackEvent } from '../FiatOnRampAggregator/hooks/useAnalytics';
 
 /**
@@ -36,6 +42,7 @@ export const allowedToBuy = (chainId) =>
     NETWORKS_CHAIN_ID.ARBITRUM,
     NETWORKS_CHAIN_ID.CELO,
     NETWORKS_CHAIN_ID.AVAXCCHAIN,
+    NETWORKS_CHAIN_ID.HARMONY,
   ].includes(chainId);
 
 const baseNotificationDetails = {
@@ -92,6 +99,7 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
     chain_id_destination: fiatOrder.network,
     payment_method_id: fiatOrder.data?.paymentMethod?.id,
     provider_onramp: fiatOrder.data?.provider?.name,
+    orderType: fiatOrder.orderType,
     amount: fiatOrder.amount,
   };
 
@@ -206,7 +214,38 @@ export async function processFiatOrder(order, updateFiatOrder) {
   }
 }
 
-function FiatOrders({ pendingOrders, updateFiatOrder }) {
+async function processCustomOrderId(
+  customOrderIdData,
+  { updateFiatCustomIdData, removeFiatCustomIdData, addFiatOrder },
+) {
+  const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
+    customOrderIdData,
+  );
+
+  if (fiatOrderResponse) {
+    const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
+    addFiatOrder(fiatOrder);
+    InteractionManager.runAfterInteractions(() => {
+      NotificationManager.showSimpleNotification(
+        getNotificationDetails(fiatOrder),
+      );
+    });
+    removeFiatCustomIdData(customOrderIdData);
+  } else if (customOrderId.expired) {
+    removeFiatCustomIdData(customOrderId);
+  } else {
+    updateFiatCustomIdData(customOrderId);
+  }
+}
+
+function FiatOrders({
+  pendingOrders,
+  customOrderIds,
+  addFiatOrder,
+  updateFiatOrder,
+  updateFiatCustomIdData,
+  removeFiatCustomIdData,
+}) {
   useInterval(
     async () => {
       await Promise.all(
@@ -214,6 +253,21 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
       );
     },
     pendingOrders.length ? POLLING_FREQUENCY : null,
+  );
+
+  useInterval(
+    async () => {
+      await Promise.all(
+        customOrderIds.map((customOrderIdData) =>
+          processCustomOrderId(customOrderIdData, {
+            updateFiatCustomIdData,
+            removeFiatCustomIdData,
+            addFiatOrder,
+          }),
+        ),
+      );
+    },
+    customOrderIds.length ? POLLING_FREQUENCY : null,
   );
 
   return null;
@@ -228,10 +282,16 @@ FiatOrders.propTypes = {
 
 const mapStateToProps = (state) => ({
   pendingOrders: getPendingOrders(state),
+  customOrderIds: getCustomOrderIds(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
+  addFiatOrder: (order) => dispatch(addFiatOrder(order)),
   updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
+  updateFiatCustomIdData: (customIdData) =>
+    dispatch(updateFiatCustomIdData(customIdData)),
+  removeFiatCustomIdData: (customIdData) =>
+    dispatch(removeFiatCustomIdData(customIdData)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(FiatOrders);

@@ -575,7 +575,26 @@
     "theme_os": "시스템",
     "theme_light": "밝게",
     "theme_dark": "어둡게",
-    "network_exists": "이 네트워크는 이미 추가되었습니다."
+    "network_exists": "이 네트워크는 이미 추가되었습니다.",
+    "delete_metrics_title": "MetaMetrics 데이터 삭제",
+    "delete_metrics_description_part_one": "지갑에 연결된 MetaMetrics 데이터 기록이 삭제됩니다.",
+    "delete_metrics_description_part_two": "MetaMetrics는 익명 처리된 사용 데이터와 진단 데이터입니다.",
+    "delete_metrics_description_part_three": "이 데이터를 삭제해도 지갑과 계정에는 아무런 영향이 없습니다. 삭제에는 약 60일 정도 소요됩니다. 다음을 참조하십시오:",
+    "delete_metrics_description_part_four": "다음에서 이 행동을 시작했습니다:",
+    "delete_metrics_description_part_five": "이 과정에는 약 60일 정도 소요됩니다. 다음을 참조하십시오:",
+    "consensys_privacy_policy": "ConsenSys 개인정보 보호정책.",
+    "delete_metrics_button": "MetaMetrics 데이터 삭제",
+    "check_status_button": "상태 확인",
+    "delete_metrics_confirm_modal_title": "MetaMetrics 데이터를 삭제할까요?",
+    "delete_metrics_confirm_modal_description": "모든 MetaMetrics 데이터를 삭제하려고 합니다. 확실합니까?",
+    "delete_wallet_data_title": "지갑 삭제",
+    "delete_wallet_data_description": "장치에서 모든 지갑 관련 데이터가 삭제됩니다. 계정은 블록체인에 존재하므로 MetaMask와는 관련이 없습니다. 비밀 복구 구문을 사용하면 언제든지 계정을 복구할 수 있습니다.",
+    "delete_wallet_data_button": "지갑 삭제",
+    "delete_data_status_title": "삭제 작업 상태",
+    "delete_data_status_description": "현재 상태:",
+    "delete_metrics_error_title": "지금 데이터를 불러올 수 없습니다.",
+    "delete_metrics_error_description": "분석 시스템 서버 문제로 지금 요청을 처리할 수 없습니다. 나중에 다시 시도하세요.",
+    "ok": "확인"
   },
   "app_information": {
     "title": "정보",
@@ -2006,5 +2025,21 @@
     "placeholder": "비밀번호",
     "description": "이 기능을 끄면 지금부터 비밀번호를 사용하여 MetaMask를 잠금 해제해야 합니다.",
     "action": "로그인 정보 저장 끄기"
+  },
+  "automatic_security_checks": {
+    "title": "자동 보안 점검",
+    "description": "업데이트를 위한 자동 보안 점검의 경우 GitHub 서버에 IP 주소가 노출될 수 있습니다. 이때 노출되는 정보는 해당 IP 주소가 MetaMask를 사용한다는 사실뿐입니다. 다른 정보나 계정 주소는 노출되지 않습니다."
+  },
+  "update_needed": {
+    "title": "업데이트 필요",
+    "description": "지갑의 보안을 강화했습니다! 잠시 시간을 내어 지갑의 보안을 강화하고 최신 버전으로 업데이트하세요.",
+    "primary_action": "최신 버전으로 업데이트",
+    "secondary_action": "나중에 알림"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "보안 업데이트를 자동으로 확인할까요?",
+    "description": "업데이트를 위한 자동 보안 점검의 경우 GitHub 서버에 IP 주소가 노출될 수 있습니다. 이때 노출되는 정보는 해당 IP 주소가 MetaMask를 사용한다는 사실뿐입니다. 다른 정보나 계정 주소는 노출되지 않습니다.",
+    "primary_action": "자동 보안 확인 활성화",
+    "secondary_action": "괜찮습니다"
   }
 }

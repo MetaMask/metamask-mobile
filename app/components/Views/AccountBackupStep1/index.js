@@ -8,6 +8,7 @@ import {
   StyleSheet,
   BackHandler,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -29,7 +30,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  PROTECT_YOUR_WALLET_CONTAINER_ID,
+  REMIND_LATER_BUTTON_ID,
+} from '../../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -217,7 +222,10 @@ const AccountBackupStep1 = (props) => {
         style={styles.mainWrapper}
         testID={'account-backup-step-1-screen'}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View
+          style={styles.wrapper}
+          {...generateTestId(Platform, PROTECT_YOUR_WALLET_CONTAINER_ID)}
+        >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.title}>
@@ -244,7 +252,7 @@ const AccountBackupStep1 = (props) => {
                   style={styles.remindLaterButton}
                   onPress={showRemindLater}
                   hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                  testID={'remind-me-later-button'}
+                  {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
                 >
                   <Text style={styles.remindLaterText}>
                     {strings('account_backup_step_1.remind_me_later')}

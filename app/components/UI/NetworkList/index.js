@@ -30,6 +30,7 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../constants/test-ids';
 import ImageIcon from '../ImageIcon';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -409,7 +410,7 @@ export class NetworkList extends PureComponent {
             type="confirm"
             onPress={this.goToNetworkSettings}
             containerStyle={styles.footerButton}
-            testID={'add-network-button'}
+            testID={ADD_NETWORK_BUTTON}
           >
             {strings('app_settings.add_network_title')}
           </StyledButton>

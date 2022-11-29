@@ -123,6 +123,7 @@ class AccountApproval extends PureComponent {
         dapp_url: currentPageInformation?.url,
         network_name: networkType,
         chain_id: chainId,
+        ...currentPageInformation?.analytics,
       };
     } catch (error) {
       return {};

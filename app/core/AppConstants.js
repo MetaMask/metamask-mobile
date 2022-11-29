@@ -132,6 +132,16 @@ export default {
   LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
   ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',
   ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
+  REQUEST_SOURCES: {
+    SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
+    WC: 'WalletConnect',
+    IN_APP_BROWSER: 'In-App-Browser',
+  },
+  MM_SDK: {
+    SDK_CONNECTIONS: 'sdkConnections',
+    SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
+  },
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
+  ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
 };
