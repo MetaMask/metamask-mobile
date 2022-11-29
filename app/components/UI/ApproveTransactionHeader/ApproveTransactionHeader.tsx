@@ -8,10 +8,11 @@ import networkList from '../../../util/networks';
 import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
-import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import { renderFromWei, hexToBN } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
+import getImage from '../../../util/getImage';
 import { TEST_REMOTE_IMAGE_SOURCE } from '../../../component-library/components-temp/Accounts/AccountBalance/AccountBalance.constants';
+import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
@@ -31,6 +32,7 @@ import {
   ApproveTransactionHeaderI,
   OriginsI,
 } from './ApproveTransactionHeader.types';
+import images from 'images/image-icons';
 
 const ApproveTransactionHeader = ({
   spenderAddress,
@@ -43,6 +45,7 @@ const ApproveTransactionHeader = ({
     currency: '',
     accountName: '',
     networkName: '',
+    networkImage: null,
   });
   const [origins, setOrigins] = useState<OriginsI>({
     isOriginDeepLink: false,
@@ -67,22 +70,12 @@ const ApproveTransactionHeader = ({
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
 
-  const ticker = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.ticker,
-  );
-
-  const networkType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.type,
-  );
-
-  const nickname = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.nickname,
+  const network = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
   );
 
   useEffect(() => {
+    const { ticker, type, chainId } = network;
     const weiBalance = selectedAddress
       ? hexToBN(accounts[selectedAddress].balance)
       : 0;
@@ -93,21 +86,32 @@ const ApproveTransactionHeader = ({
       ? renderAccountName(selectedAddress, identities)
       : '';
 
+    const networkImageName = getImage(chainId);
+    const networkImage = networkImageName
+      ? images[networkImageName as keyof typeof images]
+      : undefined;
+
     const isOriginDeepLink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
     const isOriginWalletConnect = origin?.startsWith(WALLET_CONNECT_ORIGIN);
 
     const isOriginMMSDKRemoteConn = origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
-    const networkName = networkList[networkType].name;
+    const networkName = networkList[type as keyof typeof networkList].name;
 
-    setAccountInfo({ balance, currency, accountName, networkName });
+    setAccountInfo({
+      balance,
+      currency,
+      accountName,
+      networkName,
+      networkImage,
+    });
     setOrigins({
       isOriginDeepLink,
       isOriginWalletConnect,
       isOriginMMSDKRemoteConn,
     });
-  }, [accounts, identities, origin, selectedAddress, ticker, networkType]);
+  }, [accounts, identities, origin, selectedAddress, network]);
 
   const domainTitle = useMemo(() => {
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
@@ -161,11 +165,11 @@ const ApproveTransactionHeader = ({
         accountBalance={accountInfo.balance}
         accountName={accountInfo.accountName}
         accountBalanceLabel={strings('transaction.balance')}
-        accountNetwork={nickname || accountInfo.networkName}
+        accountNetwork={network.nickname || accountInfo.networkName}
         badgeProps={{
           variant: BadgeVariants.Network,
           name: accountInfo.networkName,
-          imageSource: TEST_REMOTE_IMAGE_SOURCE,
+          imageSource: accountInfo.networkImage || TEST_REMOTE_IMAGE_SOURCE,
         }}
       />
     </View>
