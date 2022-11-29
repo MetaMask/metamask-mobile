@@ -9,9 +9,7 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import ButtonTertiary, {
-  ButtonTertiaryVariants,
-} from '../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
+import ButtonTertiary from '../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
 import { ButtonSize } from '../../../component-library/components/Buttons/Button';
 import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { useDispatch } from 'react-redux';
@@ -92,7 +90,6 @@ const EnableAutomaticSecurityChecksModal = () => {
           )}
           size={ButtonSize.Md}
           onPress={triggerCloseAndDisableAutomaticSecurityChecks}
-          buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         />
       </View>
     </ReusableModal>

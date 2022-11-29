@@ -11,10 +11,7 @@ import { ButtonSize } from '../../Button.types';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';
-import {
-  ButtonSecondaryVariants,
-  ButtonSecondaryProps,
-} from './ButtonSecondary.types';
+import { ButtonSecondaryProps } from './ButtonSecondary.types';
 
 export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
   const sizeSelector = select(
@@ -24,18 +21,13 @@ export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
     storybookPropsGroupID,
   );
   const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const ButtonSecondaryVariantsSelector = select(
-    'ButtonSecondaryVariants',
-    ButtonSecondaryVariants,
-    ButtonSecondaryVariants.Normal,
-    storybookPropsGroupID,
-  );
+  const isDanger = boolean('isDanger', false, storybookPropsGroupID);
   const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
 
   const buttonSecondaryStoryProps: ButtonSecondaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    buttonSecondaryVariants: ButtonSecondaryVariantsSelector,
+    isDanger,
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {

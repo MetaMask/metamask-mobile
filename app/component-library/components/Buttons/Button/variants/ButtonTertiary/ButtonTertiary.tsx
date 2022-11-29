@@ -9,37 +9,23 @@ import Button from '../../foundation/ButtonBase';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
-import {
-  ButtonTertiaryProps,
-  ButtonTertiaryVariants,
-} from './ButtonTertiary.types';
+import { ButtonTertiaryProps } from './ButtonTertiary.types';
 import styleSheet from './ButtonTertiary.styles';
 
 const ButtonTertiary = ({
   style,
   onPressIn,
   onPressOut,
-  buttonTertiaryVariants = ButtonTertiaryVariants.Normal,
+  isDanger = false,
   ...props
 }: ButtonTertiaryProps) => {
   const [pressed, setPressed] = useState(false);
   const { styles, theme } = useStyles(styleSheet, { style });
   const labelColor = useMemo(() => {
-    let color: string;
-    switch (buttonTertiaryVariants) {
-      case ButtonTertiaryVariants.Normal:
-        color = pressed
-          ? theme.colors.primary.alternative
-          : theme.colors.primary.default;
-        break;
-      case ButtonTertiaryVariants.Danger:
-        color = pressed
-          ? theme.colors.error.alternative
-          : theme.colors.error.default;
-        break;
-    }
+    const colorObj = isDanger ? theme.colors.error : theme.colors.primary;
+    const color: string = pressed ? colorObj.alternative : colorObj.default;
     return color;
-  }, [theme, buttonTertiaryVariants, pressed]);
+  }, [theme, isDanger, pressed]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

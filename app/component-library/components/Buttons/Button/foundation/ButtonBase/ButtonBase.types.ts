@@ -33,6 +33,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Function to trigger when pressing the button.
    */
   onPress: () => void;
+  /**
+   * Optional boolean to show the danger state of the button.
+   */
+  isDanger?: boolean;
 }
 /**
  * Style sheet input parameters.

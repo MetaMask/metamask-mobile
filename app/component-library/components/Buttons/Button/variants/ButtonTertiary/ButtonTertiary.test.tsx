@@ -5,7 +5,6 @@ import { ButtonSize } from '../../Button.types';
 import { IconName } from '../../../../Icon';
 
 import ButtonTertiary from './ButtonTertiary';
-import { ButtonTertiaryVariants } from './ButtonTertiary.types';
 
 describe('ButtonTertiary', () => {
   it('should render correctly', () => {
@@ -15,7 +14,6 @@ describe('ButtonTertiary', () => {
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
-        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
       />,
     );
     expect(wrapper).toMatchSnapshot();

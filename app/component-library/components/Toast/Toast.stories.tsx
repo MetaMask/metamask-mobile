@@ -8,7 +8,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Button, { ButtonSize, ButtonVariants } from '../Buttons/Button';
-import { ButtonTertiaryVariants } from '../Buttons/Button/variants/ButtonTertiary';
 
 // Internal dependencies.
 import Toast from './Toast';
@@ -26,7 +25,6 @@ const ToastExample = () => {
     <>
       <Button
         variant={ButtonVariants.Tertiary}
-        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Account Toast'}
         onPress={() => {
@@ -42,7 +40,6 @@ const ToastExample = () => {
       />
       <Button
         variant={ButtonVariants.Tertiary}
-        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Network Toast'}
         onPress={() => {
@@ -65,7 +62,6 @@ const ToastExample = () => {
       />
       <Button
         variant={ButtonVariants.Tertiary}
-        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Plain Toast'}
         onPress={() => {

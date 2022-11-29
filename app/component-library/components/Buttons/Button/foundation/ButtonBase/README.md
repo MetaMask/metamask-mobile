@@ -46,6 +46,14 @@ Icon name of the icon that will be displayed.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [IconName](../Icon/Icon.types.ts#53)                | False                                                   |
 
+### `isDanger`
+
+Optional boolean to show the danger state of the button.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                   |
+
 ## Usage
 
 ```javascript
