@@ -20,7 +20,6 @@ import { useStyles } from '../../../component-library/hooks';
 import stylesheet from './ApproveTransactionHeader.styles';
 import {
   FAV_ICON_URL,
-  MAX_DOMAIN_TITLE_LENGTH,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
