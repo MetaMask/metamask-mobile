@@ -416,10 +416,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.11.0
+      VERSION_NAME: 5.12.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1018
+      VERSION_NUMBER: 1023
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

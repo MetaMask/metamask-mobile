@@ -1,6 +1,34 @@
 # Changelog
 
 ## Current Main Branch
+- [#5169](https://github.com/MetaMask/metamask-mobile/pull/5169): Fixes miscalculation on toWei func when passing valid numbers in scientific notation
+- [#5238](https://github.com/MetaMask/metamask-mobile/pull/5238): Improve browser experience
+- [#5318](https://github.com/MetaMask/metamask-mobile/pull/5318): [FIX] Estimated gas fee calculation on the transaction detail page
+- [#5294](https://github.com/MetaMask/metamask-mobile/pull/5294): On-ramp: allow amount formatting on android
+- [#5292](https://github.com/MetaMask/metamask-mobile/pull/5292): On-ramp: fix default payment method selection
+- [#5103](https://github.com/MetaMask/metamask-mobile/pull/5103): [FIX] Wallet connect signed typed and eth sign throwing error back to the dapp
+- [#5263](https://github.com/MetaMask/metamask-mobile/pull/5263): [UPDATE] Updates WebRTC and Socket.io client to the latest versions
+- [#5273](https://github.com/MetaMask/metamask-mobile/pull/5273): Enable new networks for Swaps
+- [#5244](https://github.com/MetaMask/metamask-mobile/pull/5244): Change SDK URL
+- [#5262](https://github.com/MetaMask/metamask-mobile/pull/5262): [BUGFIX] Fixes and configuration updates related to Branch.io Deep Links
+- [#5289](https://github.com/MetaMask/metamask-mobile/pull/5289): Add strings to feature "Screenshot Warning"
+- [#5288](https://github.com/MetaMask/metamask-mobile/pull/5288): [UPDATE] CHANGELOG Release 5.11.0
+- [#5243](https://github.com/MetaMask/metamask-mobile/pull/5243): Only trigger onLoadEnd when urls are equal
+- [#5287](https://github.com/MetaMask/metamask-mobile/pull/5287): [IMPROVEMENT] Add translations to feature "Easy Delete Data"
+- [#4917](https://github.com/MetaMask/metamask-mobile/pull/4917): Trigger UpdateNeeded screen
+- [#5280](https://github.com/MetaMask/metamask-mobile/pull/5280): On-ramp: Add usePaymentMethods hook with customAction filter by chainId
+- [#5265](https://github.com/MetaMask/metamask-mobile/pull/5265): On-ramp: Add order pending description in details view
+- [#5269](https://github.com/MetaMask/metamask-mobile/pull/5269): On-Ramp: Fix 1.3.1 creating undefined custom order ids
+- [#5267](https://github.com/MetaMask/metamask-mobile/pull/5267): On-ramp: Change 0 amount to a pending state in order details
+- [#5266](https://github.com/MetaMask/metamask-mobile/pull/5266): On-ramp: Remove disabled button in amount to buy screen
+- [#5268](https://github.com/MetaMask/metamask-mobile/pull/5268): On-Ramp: Fix typos from payment method icon and contact support
+- [#5220](https://github.com/MetaMask/metamask-mobile/pull/5220): Upgrade to on-ramp-sdk@1.3.1: Wyre Apple Pay auth support and inAppBrowser hook
+- [#5229](https://github.com/MetaMask/metamask-mobile/pull/5229): 5.11.0
+- [#5264](https://github.com/MetaMask/metamask-mobile/pull/5264): [FIX] Date msBetweenDates test
+- [#5240](https://github.com/MetaMask/metamask-mobile/pull/5240): Require clean working directory
+- [#5194](https://github.com/MetaMask/metamask-mobile/pull/5194): [FEATURE] add more granular killswitches for swaps
+- [#5239](https://github.com/MetaMask/metamask-mobile/pull/5239): remove terms of use translations
+- [#5237](https://github.com/MetaMask/metamask-mobile/pull/5237): [DEPENDENCIES] Update Segment dependencies
 
 ## 5.11.0 - Nov 21, 2022
 - [#5088](https://github.com/MetaMask/metamask-mobile/pull/5088): [ENHANCEMENT] Add no payment methods screen
