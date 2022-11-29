@@ -13,14 +13,14 @@ import { ButtonIconStyleSheetVars } from './ButtonIcon.types';
  */
 const styleSheet = (params: { vars: ButtonIconStyleSheetVars }) => {
   const { vars } = params;
-  const { style } = vars;
+  const { style, size } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
         alignItems: 'center',
         justifyContent: 'center',
-        height: 32,
-        width: 32,
+        height: Number(size),
+        width: Number(size),
       } as ViewStyle,
       style,
     ) as ViewStyle,

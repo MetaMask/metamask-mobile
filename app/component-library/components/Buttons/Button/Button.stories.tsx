@@ -7,9 +7,6 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import ButtonIconStory, {
-  getButtonIconStoryProps,
-} from './variants/ButtonIcon/ButtonIcon.stories';
 import ButtonLinkStory, {
   getButtonLinkStoryProps,
 } from './variants/ButtonLink/ButtonLink.stories';
@@ -30,17 +27,11 @@ export const getButtonStoryProps = (): ButtonProps => {
   const buttonVariantsSelector = select(
     'Button Variant',
     ButtonVariants,
-    ButtonVariants.Icon,
+    ButtonVariants.Primary,
     storybookPropsGroupID,
   );
 
   switch (buttonVariantsSelector) {
-    case ButtonVariants.Icon:
-      buttonProps = {
-        variant: ButtonVariants.Icon,
-        ...getButtonIconStoryProps(),
-      };
-      break;
     case ButtonVariants.Link:
       buttonProps = {
         variant: ButtonVariants.Link,
@@ -67,7 +58,6 @@ const ButtonStory = () => <Button {...getButtonStoryProps()} />;
 
 storiesOf('Component Library / Buttons', module)
   .add('Button', ButtonStory)
-  .add('Variants / ButtonIcon', ButtonIconStory)
   .add('Variants / ButtonLink', ButtonLinkStory)
   .add('Variants / ButtonPrimary', ButtonPrimaryStory)
   .add('Variants / ButtonSecondary', ButtonSecondaryStory);

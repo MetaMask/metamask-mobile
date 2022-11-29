@@ -32,7 +32,7 @@ const ButtonBase = ({
   });
   return (
     <TouchableOpacity
-      activeOpacity={1}
+      activeOpacity={0.5}
       onPress={onPress}
       style={styles.base}
       {...props}

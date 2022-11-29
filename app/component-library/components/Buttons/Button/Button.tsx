@@ -2,7 +2,6 @@
 import React from 'react';
 
 // External dependencies.
-import ButtonIcon from './variants/ButtonIcon';
 import ButtonLink from './variants/ButtonLink';
 import ButtonPrimary from './variants/ButtonPrimary';
 import ButtonSecondary from './variants/ButtonSecondary';
@@ -12,8 +11,6 @@ import { ButtonProps, ButtonVariants } from './Button.types';
 
 const Button = (buttonProps: ButtonProps) => {
   switch (buttonProps.variant) {
-    case ButtonVariants.Icon:
-      return <ButtonIcon {...buttonProps} />;
     case ButtonVariants.Link:
       return <ButtonLink {...buttonProps} />;
     case ButtonVariants.Primary:

@@ -2,7 +2,7 @@
 
 exports[`ButtonIcon should render correctly 1`] = `
 <TouchableOpacity
-  activeOpacity={1}
+  activeOpacity={0.5}
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}

@@ -3,10 +3,11 @@
 // Third party dependencies.
 import React from 'react';
 import { select, boolean } from '@storybook/addon-knobs';
+import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { IconName } from '../../../../Icon';
+import { storybookPropsGroupID } from '../../../constants/storybook.constants';
+import { IconName } from '../../Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
@@ -27,7 +28,7 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
   );
   const disabledSelector = boolean('disabled', false, storybookPropsGroupID);
   return {
-    buttonIconVariants: variantSelector,
+    variant: variantSelector,
     iconName: iconNameSelector,
     disabled: disabledSelector,
     onPress: () => console.log("I'm clicked!"),
@@ -35,5 +36,10 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
 };
 
 const ButtonIconStory = () => <ButtonIcon {...getButtonIconStoryProps()} />;
+
+storiesOf('Component Library / Buttons', module).add(
+  'ButtonIcon',
+  ButtonIconStory,
+);
 
 export default ButtonIconStory;
