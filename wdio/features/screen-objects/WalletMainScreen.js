@@ -44,7 +44,7 @@ class WalletMainScreen {
   }
 
   async tapBurgerIcon() {
-    await Gestures.waitAndTap(this.burgerIcon);
+    await Gestures.tap(this.burgerIcon);
   }
 
   async isVisible() {
