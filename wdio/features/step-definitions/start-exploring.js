@@ -5,9 +5,12 @@ import WelcomeScreen from "../screen-objects/Onboarding/OnboardingCarousel";
 import OnboardingScreen from "../screen-objects/Onboarding/OnboardingScreen";
 import MetaMetricsScreen from "../screen-objects/Onboarding/MetaMetricsScreen";
 import ImportFromSeedScreen from "../screen-objects/Onboarding/ImportFromSeedScreen";
+import Accounts from "../helpers/Accounts";
 
 
 Given(/^I am on the wallet view$/, async () => {
+  const validAccount = Accounts.getValidAccount();
+
   await WelcomeScreen.isScreenTitleVisible();
   await driver.pause(7000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
@@ -16,9 +19,9 @@ Given(/^I am on the wallet view$/, async () => {
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
-  await ImportFromSeedScreen.typeSecretRecoveryPhrase('fold media south add since false relax immense pause cloth just raven');
-  await ImportFromSeedScreen.typeNewPassword('metapass1');
-  await ImportFromSeedScreen.typeConfirmPassword('metapass1');
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
+  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
+  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
   await ImportFromSeedScreen.clickImportButton();
   await OnboardingWizardModal.isVisible();
 });
