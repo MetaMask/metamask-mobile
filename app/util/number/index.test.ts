@@ -716,7 +716,6 @@ describe('Number utils :: isNumber', () => {
 });
 
 describe('Number utils :: isNumberScientificNotationWhenString', () => {
-
   it('isNumberScientificNotationWhenString passing number', () => {
     expect(isNumberScientificNotationWhenString(1.337e-6)).toEqual(false);
     expect(isNumberScientificNotationWhenString(1.337e-7)).toEqual(true);
@@ -760,4 +759,3 @@ describe('Number utils :: calculateEthFeeForMultiLayer', () => {
     ).toBe('0.000227739');
   });
 });
-
