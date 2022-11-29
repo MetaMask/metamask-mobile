@@ -3,7 +3,11 @@ import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
 import { IconProps } from '../../../../Icon';
-import { ButtonSize, ButtonVariants } from '../../Button.types';
+import {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../Button.types';
 
 /**
  * ButtonBase component props.
@@ -37,11 +41,15 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Optional boolean to show the danger state of the button.
    */
   isDanger?: boolean;
+  /**
+   * Optional param to control buttonWidth.
+   */
+  buttonWidth?: ButtonWidthTypes | number;
 }
 /**
  * Style sheet input parameters.
  */
 export type ButtonBaseStyleSheetVars = Pick<
   ButtonBaseProps,
-  'style' | 'size' | 'labelColor'
+  'style' | 'size' | 'labelColor' | 'buttonWidth'
 >;

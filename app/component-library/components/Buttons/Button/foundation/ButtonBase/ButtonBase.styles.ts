@@ -3,7 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
-import { ButtonSize } from '../../Button.types';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 // Internal dependencies.
 import { ButtonBaseStyleSheetVars } from './ButtonBase.types';
@@ -20,8 +20,19 @@ const styleSheet = (params: {
   vars: ButtonBaseStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, size, labelColor } = vars;
+  const { style, size, labelColor, buttonWidth } = vars;
   const isAutoSize: boolean = size === ButtonSize.Auto;
+  let finalWidth;
+  switch (buttonWidth) {
+    case ButtonWidthTypes.Auto:
+      finalWidth = ButtonWidthTypes.Auto;
+      break;
+    case ButtonWidthTypes.Full:
+      finalWidth = '100%';
+      break;
+    default:
+      finalWidth = Number(buttonWidth);
+  }
 
   return StyleSheet.create({
     base: Object.assign(
@@ -29,6 +40,7 @@ const styleSheet = (params: {
         flexDirection: 'row',
         backgroundColor: theme.colors.background.alternative,
         height: isAutoSize ? size : Number(size),
+        width: finalWidth,
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: isAutoSize ? 0 : Number(size) / 2,

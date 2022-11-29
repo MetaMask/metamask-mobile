@@ -15,6 +15,14 @@ export enum ButtonSize {
 }
 
 /**
+ * Different types of button width.
+ */
+export enum ButtonWidthTypes {
+  Auto = 'auto',
+  Full = 'full',
+}
+
+/**
  * Button variants.
  */
 export enum ButtonVariants {
