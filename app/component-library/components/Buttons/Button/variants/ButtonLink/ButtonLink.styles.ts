@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -21,8 +21,8 @@ const styleSheet = (params: {
   const { theme, vars } = params;
   const { style } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      {},
+    base: Object.assign({ backgroundColor: 'transparent' }, style) as ViewStyle,
+    baseText: Object.assign(
       { color: theme.colors.primary.default } as TextStyle,
       style,
     ) as TextStyle,

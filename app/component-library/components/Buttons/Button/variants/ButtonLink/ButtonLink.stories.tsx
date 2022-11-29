@@ -19,14 +19,10 @@ export const getButtonLinkStoryProps = (): ButtonLinkProps => {
     TextVariants.lBodyMD,
     storybookPropsGroupID,
   );
-  const childrenText = text(
-    'textVariants',
-    'Sample Button Link Text',
-    storybookPropsGroupID,
-  );
+  const label = text('label', 'Sample Button Link Text', storybookPropsGroupID);
   return {
     textVariants: textVariantsSelector,
-    children: childrenText,
+    label,
     onPress: () => console.log("I'm clicked!"),
   };
 };

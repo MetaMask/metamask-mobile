@@ -43,15 +43,13 @@ const SheetHeader = ({
       <Text variant={TextVariants.sHeadingMD}>{title}</Text>
       <View style={styles.rightAccessory}>
         {actionButtonOptions && (
-          // TODO - Replace ButtonLink with ButtonTertiary once new variant is ready/
           <Button
             variant={ButtonVariants.Link}
             testID={SHEET_HEADER_ACTION_BUTTON_ID}
             onPress={actionButtonOptions.onPress}
             textVariants={TextVariants.sBodyMD}
-          >
-            {actionButtonOptions.label}
-          </Button>
+            label={actionButtonOptions.label}
+          />
         )}
       </View>
     </View>

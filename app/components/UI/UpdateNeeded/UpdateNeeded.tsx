@@ -10,9 +10,10 @@ import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Logger from '../../../util/Logger';
-import ButtonTertiary from '../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
-import { ButtonSize } from '../../../component-library/components/Buttons/Button';
-import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { getBuildNumber, getVersion, getBrand } from 'react-native-device-info';
@@ -98,12 +99,14 @@ const UpdateNeeded = () => {
         </Text>
       </ScrollView>
       <View style={styles.actionButtonWrapper}>
-        <ButtonPrimary
+        <Button
+          variant={ButtonVariants.Primary}
           label={strings('update_needed.primary_action')}
           onPress={onUpdatePressed}
           style={styles.actionButton}
         />
-        <ButtonTertiary
+        <Button
+          variant={ButtonVariants.Link}
           label={strings('update_needed.secondary_action')}
           size={ButtonSize.Md}
           onPress={triggerClose}

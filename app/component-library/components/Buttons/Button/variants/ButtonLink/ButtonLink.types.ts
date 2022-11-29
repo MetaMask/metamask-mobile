@@ -1,11 +1,12 @@
 // External dependencies.
-import { TextProps, TextVariants } from '../../../../Texts/Text/Text.types';
+import { TextVariants } from '../../../../Texts/Text/Text.types';
 import { ButtonVariants } from '../../Button.types';
+import { ButtonBaseProps } from '../../foundation/ButtonBase';
 
 /**
  * ButtonLink component props.
  */
-export interface ButtonLinkProps extends Omit<TextProps, 'variant'> {
+export interface ButtonLinkProps extends Omit<ButtonBaseProps, 'labelColor'> {
   /**
    * Function to trigger when pressing the link.
    */

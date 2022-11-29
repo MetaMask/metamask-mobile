@@ -19,9 +19,6 @@ import ButtonPrimaryStory, {
 import ButtonSecondaryStory, {
   getButtonSecondaryStoryProps,
 } from './variants/ButtonSecondary/ButtonSecondary.stories';
-import ButtonTertiaryStory, {
-  getButtonTertiaryStoryProps,
-} from './variants/ButtonTertiary/ButtonTertiary.stories';
 
 // Internal dependencies.
 import { ButtonVariants, ButtonProps } from './Button.types';
@@ -62,12 +59,6 @@ export const getButtonStoryProps = (): ButtonProps => {
         ...getButtonSecondaryStoryProps(),
       };
       break;
-    case ButtonVariants.Tertiary:
-      buttonProps = {
-        variant: ButtonVariants.Tertiary,
-        ...getButtonTertiaryStoryProps(),
-      };
-      break;
   }
 
   return buttonProps;
@@ -79,7 +70,6 @@ storiesOf('Component Library / Buttons', module)
   .add('Variants / ButtonIcon', ButtonIconStory)
   .add('Variants / ButtonLink', ButtonLinkStory)
   .add('Variants / ButtonPrimary', ButtonPrimaryStory)
-  .add('Variants / ButtonSecondary', ButtonSecondaryStory)
-  .add('Variants / ButtonTertiary', ButtonTertiaryStory);
+  .add('Variants / ButtonSecondary', ButtonSecondaryStory);
 
 export default ButtonStory;
