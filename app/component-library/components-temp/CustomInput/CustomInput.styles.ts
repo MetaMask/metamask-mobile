@@ -33,7 +33,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
     },
     maxValueText: {
-      fontSize: 14,
       color: theme.colors.text.alternative,
     },
     ticker: {

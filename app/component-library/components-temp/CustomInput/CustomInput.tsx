@@ -1,11 +1,12 @@
 // Third party dependencies.
 import React, { useEffect, useState } from 'react';
-import { TextInput, Text, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
 import formatNumber from '../../../util/formatNumber';
 import { strings } from '../../../../locales/i18n';
+import Text, { TextVariants } from '../../components/Texts/Text';
 
 // Internal dependencies.
 import { CustomInputProps } from './CustomInput.types';
@@ -19,6 +20,8 @@ const CustomInput = ({
 }: CustomInputProps) => {
   const [value, onChangeValue] = useState(defaultValue || '');
   const [isDefaultValuePassed, setIsDefaultValuePassed] = useState(false);
+  const [isMaxAvailableValuePressed, setIsMaxAvailableValuePressed] =
+    useState(false);
 
   useEffect(() => {
     getUpdatedValue(value);
@@ -33,6 +36,7 @@ const CustomInput = ({
 
   const showMaxValue = () => {
     onChangeValue(maxAvailableValue);
+    setIsMaxAvailableValuePressed(true);
   };
 
   const { styles } = useStyles(stylesheet, {});
@@ -41,14 +45,19 @@ const CustomInput = ({
     <View style={styles.container}>
       <View style={styles.body}>
         {isDefaultValuePassed ? (
-          <Text style={styles.warningValue}>
-            <Text>{`${formatNumber(value)} ${ticker}`}</Text>
-          </Text>
+          <Text
+            variant={TextVariants.lBodySM}
+            style={styles.warningValue}
+          >{`${formatNumber(value)} ${ticker}`}</Text>
+        ) : isMaxAvailableValuePressed ? (
+          <Text variant={TextVariants.lBodySM}>{`${formatNumber(
+            value,
+          )} ${ticker}`}</Text>
         ) : (
           <TextInput
             multiline
             onChangeText={onChangeValue}
-            value={formatNumber(value)}
+            value={value}
             placeholder={`Enter a number here (${ticker})`}
             keyboardType="numeric"
             style={[styles.input]}
@@ -56,7 +65,11 @@ const CustomInput = ({
         )}
       </View>
       {!isDefaultValuePassed && (
-        <Text style={styles.maxValueText} onPress={showMaxValue}>
+        <Text
+          variant={TextVariants.sBodySM}
+          style={styles.maxValueText}
+          onPress={showMaxValue}
+        >
           {strings('input.max_value')}
         </Text>
       )}
