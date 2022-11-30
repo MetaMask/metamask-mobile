@@ -4111,6 +4111,16 @@
     "@metamask/controller-utils" "^4.3.2"
     uuid "^8.3.2"
 
+"@metamask/lottie-react-native@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/lottie-react-native/-/lottie-react-native-3.1.0.tgz#59f64f77100738e7fa0786d7792c98e08ffb471a"
+  integrity sha512-jp5M7yP4PQc3DWLn/3jltGOov976N+Pd/26Jg1PsWu24ou/tb1XLMjczVuadAWux0HWlrzSlVlVWCFupd7A4DQ==
+  dependencies:
+    invariant "^2.2.2"
+    lottie-ios "2.5.0"
+    prop-types "^15.5.10"
+    react-native-safe-module "^1.1.0"
+
 "@metamask/message-manager@^7.3.2", "@metamask/message-manager@^7.3.9":
   version "7.3.9"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.9.tgz#4d416998bbdda30d80ebbb50b5efc7475b816ec9"
@@ -4380,6 +4390,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
   integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
 
+"@metamask/react-native-aes-crypto@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-aes-crypto/-/react-native-aes-crypto-1.2.1.tgz#9257bce2317573b51bdd9b584232ff1d423aa80a"
+  integrity sha512-sRgQafvzO/c8PoJ45A5ELDnYxzJuzC6FaIS7WXgghooI6+tG93Xo0SD2nolFCU/Ro0tGbi7qwojsSMejHsrl+A==
+
 "@metamask/react-native-animated-fox@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-animated-fox/-/react-native-animated-fox-2.1.0.tgz#504e1f68e13ad273fb193c6f6a3832f3a5242518"
@@ -4403,10 +4418,27 @@
     uuid "3.3.2"
     validator "^7.0.0"
 
+"@metamask/react-native-search-api@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
+  integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
+
 "@metamask/react-native-splash-screen@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
   integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
+
+"@metamask/react-native-tcp@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-tcp/-/react-native-tcp-4.0.0.tgz#5afd79eca397397e8927c3091bcbefcd637f1915"
+  integrity sha512-FkiL03Trc54IEYKiFSWZr+0x78BrFCOx51ridUfBV5Qj5+sGUrVIc+uBEu9eS0XsQxLcE/6jT9Xkrneo92tz0Q==
+  dependencies:
+    base64-js "1.3.1"
+    buffer "^5.4.3"
+    events "^3.0.0"
+    ip-regex "^4.1.0"
+    process "^0.11.9"
+    util "^0.12.1"
 
 "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.1.0", "@metamask/rpc-errors@^6.2.1":
   version "6.2.1"
@@ -20558,18 +20590,10 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.3.1, loose-envify@^1.4
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lottie-ios@3.4.1:
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-3.4.1.tgz#1c264066d1df04644f970cce4c2f82e27086c660"
-  integrity sha512-oZh9BcCMicLFeKC0KO5cfJ6Pzb+qfB7qZ4vqh5R+buXcCRZKnFhHkt9TZfd62ZJi2XC3kirXYVYyU7c+jqpo9g==
-
-lottie-react-native@5.1.5:
-  version "5.1.5"
-  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-5.1.5.tgz#6696fb95773639d04bbba332d753ab69669bccd0"
-  integrity sha512-xl6uEo50joQeIqso5SvPKt1uGBqMhgNgs+36S4725Nfigf4zAY23/I9QEEkJF+1BHq7wKCeYha2KafLTm20gqA==
-  dependencies:
-    invariant "^2.2.2"
-    react-native-safe-modules "^1.0.3"
+lottie-ios@2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-2.5.0.tgz#55c808e785d4a6933b0c10b395530b17098b05de"
+  integrity sha512-Ivdbod3XYJ7/HJe0bEAcZzUMAqVyl0mAI2pIBa1DP8rUew0epZKWK0j9fMURkKiuekXGyc/jY1dJubrRQ3ackw==
 
 loupe@^2.3.1:
   version "2.3.6"
@@ -23905,10 +23929,6 @@ react-mixin@^3.0.5:
     object-assign "^4.0.1"
     smart-mixin "^2.0.0"
 
-"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
-  version "1.2.1"
-  resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
-
 react-native-aes-crypto@1.3.9:
   version "1.3.9"
   resolved "https://registry.yarnpkg.com/react-native-aes-crypto/-/react-native-aes-crypto-1.3.9.tgz#6f068535462c1b7d7d70a4152d519ae9911c3e69"
@@ -24266,10 +24286,10 @@ react-native-safe-area-context@^3.1.9:
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-3.4.1.tgz#c967a52903d55fe010b2428e5368b42f1debc0a7"
   integrity sha512-xfpVd0CiZR7oBhuwJ2HcZMehg5bjha1Ohu1XHpcT+9ykula0TgovH2BNU0R5Krzf/jBR1LMjR6VabxdlUjqxcA==
 
-react-native-safe-modules@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/react-native-safe-modules/-/react-native-safe-modules-1.0.3.tgz#f5f29bb9d09d17581193843d4173ad3054f74890"
-  integrity sha512-DUxti4Z+AgJ/ZsO5U7p3uSCUBko8JT8GvFlCeOXk9bMd+4qjpoDvMYpfbixXKgL88M+HwmU/KI1YFN6gsQZyBA==
+react-native-safe-module@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-safe-module/-/react-native-safe-module-1.2.0.tgz#a23824ca24edc2901913694a76646475113d570d"
+  integrity sha512-qfoY3ciqG8YsuhTbknPcg0jcdv5Uxr7nvh9ujNjsIEi5d4gF0fTkO4hiymwJjK1Iq9rxsKwkDziGKQva1yIFbg==
   dependencies:
     dedent "^0.6.0"
 
@@ -24290,10 +24310,6 @@ react-native-scrollable-tab-view@^1.0.0:
     create-react-class "^15.6.2"
     prop-types "^15.6.0"
     react-timer-mixin "^0.13.3"
-
-react-native-search-api@ombori/react-native-search-api#8/head:
-  version "1.0.1"
-  resolved "https://codeload.github.com/ombori/react-native-search-api/tar.gz/08dbdf1ffd53801057662aa3207c11d2f78e8a94"
 
 react-native-sensors@5.3.0:
   version "5.3.0"
@@ -24386,17 +24402,6 @@ react-native-swipe-gestures@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/react-native-swipe-gestures/-/react-native-swipe-gestures-1.0.5.tgz#a172cb0f3e7478ccd681fd36b8bfbcdd098bde7c"
   integrity sha512-Ns7Bn9H/Tyw278+5SQx9oAblDZ7JixyzeOczcBK8dipQk2pD7Djkcfnf1nB/8RErAmMLL9iXgW0QHqiII8AhKw==
-
-react-native-tcp@aprock/react-native-tcp#11/head:
-  version "4.0.0"
-  resolved "https://codeload.github.com/aprock/react-native-tcp/tar.gz/98fbc801f0586297f16730b2f4c75eef15dfabcd"
-  dependencies:
-    base64-js "1.3.1"
-    buffer "^5.4.3"
-    events "^3.0.0"
-    ip-regex "^4.1.0"
-    process "^0.11.9"
-    util "^0.12.1"
 
 react-native-url-polyfill@^1.3.0:
   version "1.3.0"
