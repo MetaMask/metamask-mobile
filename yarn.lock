@@ -5166,6 +5166,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
   integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
 
+"@metamask/react-native-aes-crypto@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-aes-crypto/-/react-native-aes-crypto-1.2.1.tgz#9257bce2317573b51bdd9b584232ff1d423aa80a"
+  integrity sha512-sRgQafvzO/c8PoJ45A5ELDnYxzJuzC6FaIS7WXgghooI6+tG93Xo0SD2nolFCU/Ro0tGbi7qwojsSMejHsrl+A==
+
 "@metamask/react-native-button@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/react-native-button/-/react-native-button-3.0.0.tgz#4af8affd11e2b285cfc1b1752280797e1b33e62b"
@@ -25439,10 +25444,6 @@ react-mixin@^3.0.5:
   dependencies:
     object-assign "^4.0.1"
     smart-mixin "^2.0.0"
-
-"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
-  version "1.2.1"
-  resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
 
 react-native-aes-crypto@1.3.9:
   version "1.3.9"
