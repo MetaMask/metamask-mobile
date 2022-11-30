@@ -24,15 +24,15 @@ class OnboardingWizardModal {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
   }
 
-  get onBoardingWizardBackButton() {
+  get onBoardingWizardNoThanksButton() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID);
   }
 
-  get onBoardingWizardBack2Button() {
+  get onBoardingWizardBackButton() {
     return Selectors.getXpathElementByText(ONBOARDING_WIZARD_BACK_BUTTON)
   }
 
-  get onBoardingWizardNextButton() {
+  get onBoardingWizardTakeTourButton() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID);
   }
 
@@ -80,12 +80,12 @@ class OnboardingWizardModal {
     await expect(this.onBoardingWizardContainer).toBeDisplayed();
   }
 
-  async clickBackButton() {
-    await Gestures.tap(this.onBoardingWizardBackButton);
+  async tapNoThanksButton() {
+    await Gestures.tap(this.onBoardingWizardNoThanksButton);
   }
 
-  async clickNextButton() {
-    await Gestures.tap(this.onBoardingWizardNextButton);
+  async tapTakeTourButton() {
+    await Gestures.tap(this.onBoardingWizardTakeTourButton);
   }
 
   async isHeaderDisplayedByXPath(text) {
@@ -108,11 +108,11 @@ class OnboardingWizardModal {
     await expect(this.onBoardingWizardSkipTutorialButton).not.toBeDisplayed();
   }
 
-  async clickSkipTutorialButton() {
+  async tapSkipTutorialButton() {
     await Gestures.tap(this.onBoardingWizardSkipTutorialButton);
   }
 
-  async clickGotItButton() {
+  async tapGotItButton() {
     await Gestures.tap(this.onBoardingWizardGotItButton);
   }
 
@@ -120,8 +120,8 @@ class OnboardingWizardModal {
     await expect(this.onBoardingWizardGotItButton).not.toBeDisplayed();
   }
 
-  async clickBack2Button() {
-    await Gestures.tap(this.onBoardingWizardBack2Button);
+  async tapBackButton() {
+    await Gestures.tap(this.onBoardingWizardBackButton);
   }
 
   async isEditAccountNameDesc1Displayed() {

@@ -2,8 +2,8 @@
 Feature: Start Exploring
 
   Scenario: A user should be able to go through the start exploring tutorial
-    Given I am on the wallet view
-    And the onboarding wizard is visible
+    Given I have imported my wallet
+    And the onboarding wizard is visible on wallet view
     When I tap on "Take a Tour" button
     Then the tutorial modal heading should read "Your Accounts"
     And there should be an explanation of the accounts functionality.
@@ -14,7 +14,7 @@ Feature: Start Exploring
     And I should see the "Skip Tutorial" button
     When I tap and hold on the account Name
     Then I should be able to edit the account Name
-    When I enter "Big Bank"
+    When I enter "Big Bank" for account name
     Then the account nickname should read "Big Bank"
     When I tap on "Got it" button
     Then the tutorial modal heading should read "Main Navigation"

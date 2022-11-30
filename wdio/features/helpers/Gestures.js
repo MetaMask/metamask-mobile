@@ -66,11 +66,6 @@ const Actions = {
 };
 
 class Gestures {
-  static async getText(element) {
-    const elem = await element;
-    return await elem.getText();
-  }
-
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();

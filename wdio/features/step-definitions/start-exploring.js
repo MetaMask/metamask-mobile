@@ -8,9 +8,8 @@ import ImportFromSeedScreen from "../screen-objects/Onboarding/ImportFromSeedScr
 import Accounts from "../helpers/Accounts";
 
 
-Given(/^I am on the wallet view$/, async () => {
+Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-
   await WelcomeScreen.isScreenTitleVisible();
   await driver.pause(7000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
@@ -23,26 +22,25 @@ Given(/^I am on the wallet view$/, async () => {
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
   await ImportFromSeedScreen.clickImportButton();
-  await OnboardingWizardModal.isVisible();
 });
 
-Given(/^the onboarding wizard is visible$/, async () => {
+Given(/^the onboarding wizard is visible on wallet view$/, async () => {
   await OnboardingWizardModal.isVisible();
 });
 
 When(/^I tap on "([^"]*)" button$/, async (text) => {
   switch (text) {
     case 'Take a Tour':
-      await OnboardingWizardModal.clickNextButton();
+      await OnboardingWizardModal.tapTakeTourButton();
       break;
     case 'Got it':
-      await OnboardingWizardModal.clickGotItButton();
+      await OnboardingWizardModal.tapGotItButton();
       break;
     case 'Back':
-      await OnboardingWizardModal.clickBack2Button();
+      await OnboardingWizardModal.tapBackButton();
       break;
     case 'Skip':
-      await OnboardingWizardModal.clickSkipTutorialButton();
+      await OnboardingWizardModal.tapSkipTutorialButton();
       break;
     default:
       throw new Error('Button not found');
@@ -53,7 +51,7 @@ When(/^I tap and hold on the account Name$/, async () => {
   await WalletAccountModal.longPressAccountNameLabel();
 });
 
-When(/^I enter "([^"]*)"$/, async (text) => {
+When(/^I enter "([^"]*)" for account name$/, async (text) => {
   await WalletAccountModal.editAccountNameLabel(text);
 });
 
