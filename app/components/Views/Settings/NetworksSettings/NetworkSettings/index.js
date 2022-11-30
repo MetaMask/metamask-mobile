@@ -10,7 +10,10 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../../../styles/common';
+import {
+  fontStyles,
+  colors as staticColors,
+} from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, {
@@ -57,6 +60,10 @@ import {
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -74,6 +81,10 @@ const createStyles = (colors) =>
     scrollWrapper: {
       flex: 1,
       paddingVertical: 12,
+    },
+    onboardingInput: {
+      borderColor: staticColors.transparent,
+      padding: 0,
     },
     input: {
       ...fontStyles.normal,
@@ -164,6 +175,9 @@ const createStyles = (colors) =>
     button: {
       flex: 1,
     },
+    disabledButton: {
+      backgroundColor: colors.primary.muted,
+    },
     cancel: {
       marginRight: 8,
       backgroundColor: colors.white,
@@ -209,6 +223,10 @@ class NetworkSettings extends PureComponent {
      * Indicates whether third party API mode is enabled
      */
     thirdPartyApiMode: PropTypes.bool,
+    /**
+     * Checks if only RPC update is allowed
+     */
+    isRPCUpdate: PropTypes.bool,
   };
 
   state = {
@@ -711,6 +729,8 @@ class NetworkSettings extends PureComponent {
       enableAction,
       inputWidth,
     } = this.state;
+    const { route } = this.props;
+    const isRPCUpdate = route.params?.isRPCUpdate;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
       this.context.themeAppearance || themeAppearanceLight;
@@ -727,6 +747,17 @@ class NetworkSettings extends PureComponent {
         return hideKeyFromUrl(isNetworkPrePopulated.rpcUrl);
       }
     };
+    const inputStyle = [
+      styles.input,
+      inputWidth,
+      isRPCUpdate ? styles.onboardingInput : undefined,
+    ];
+    const isEditable = isRPCUpdate || editable;
+    const isRPCActionDisabled =
+      this.disabledByRpcUrl() || this.disabledByChainId();
+    const rpcActionStyle = isRPCActionDisabled
+      ? { ...styles.button, ...styles.disabledButton }
+      : styles.button;
 
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
@@ -742,7 +773,7 @@ class NetworkSettings extends PureComponent {
               {strings('app_settings.network_name_label')}
             </Text>
             <TextInput
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={nickname}
@@ -763,7 +794,7 @@ class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
-              editable={editable}
+              editable={isEditable}
               onChangeText={this.onRpcUrlChange}
               onBlur={this.validateRpcUrl}
               placeholder={strings('app_settings.network_rpc_placeholder')}
@@ -783,7 +814,7 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputChainId}
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={chainId}
@@ -808,7 +839,7 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputSymbol}
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={ticker}
@@ -826,7 +857,7 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputBlockExplorerURL}
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={blockExplorerUrl}
@@ -841,52 +872,66 @@ class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
           </View>
-          {(addMode || editable) && (
-            <View style={styles.buttonsWrapper}>
-              {editable ? (
-                <View style={styles.editableButtonsContainer}>
-                  <StyledButton
-                    type="danger"
-                    onPress={this.removeRpcUrl}
-                    testID={REMOVE_NETWORK_BUTTON}
-                    containerStyle={[styles.button, styles.cancel]}
-                  >
-                    <CustomText centered red>
-                      {strings('app_settings.delete')}
-                    </CustomText>
-                  </StyledButton>
-                  <StyledButton
-                    type="confirm"
-                    onPress={this.addRpcUrl}
-                    testID={ADD_NETWORKS_ID}
-                    containerStyle={[styles.button, styles.confirm]}
-                    disabled={
-                      !enableAction ||
-                      this.disabledByRpcUrl() ||
-                      this.disabledByChainId()
-                    }
-                  >
-                    {strings('app_settings.network_save')}
-                  </StyledButton>
-                </View>
-              ) : (
-                <View style={styles.buttonsContainer}>
-                  <StyledButton
-                    type="confirm"
-                    onPress={this.addRpcUrl}
-                    testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
-                    containerStyle={styles.syncConfirm}
-                    disabled={
-                      !enableAction ||
-                      this.disabledByRpcUrl() ||
-                      this.disabledByChainId()
-                    }
-                  >
-                    {strings('app_settings.network_add')}
-                  </StyledButton>
-                </View>
-              )}
-            </View>
+          {isRPCUpdate ? (
+            <Button
+              variant={ButtonVariants.Primary}
+              onPress={() => {
+                // TODO: Update RPC URL of Mainnet
+                // this.addRpcUrl();
+              }}
+              style={rpcActionStyle}
+              label={strings('app_settings.network_save')}
+              size={ButtonSize.Lg}
+              disabled={isRPCActionDisabled}
+            />
+          ) : (
+            (addMode || editable) && (
+              <View style={styles.buttonsWrapper}>
+                {editable ? (
+                  <View style={styles.editableButtonsContainer}>
+                    <StyledButton
+                      type="danger"
+                      onPress={this.removeRpcUrl}
+                      testID={REMOVE_NETWORK_BUTTON}
+                      containerStyle={[styles.button, styles.cancel]}
+                    >
+                      <CustomText centered red>
+                        {strings('app_settings.delete')}
+                      </CustomText>
+                    </StyledButton>
+                    <StyledButton
+                      type="confirm"
+                      onPress={this.addRpcUrl}
+                      testID={ADD_NETWORKS_ID}
+                      containerStyle={[styles.button, styles.confirm]}
+                      disabled={
+                        !enableAction ||
+                        this.disabledByRpcUrl() ||
+                        this.disabledByChainId()
+                      }
+                    >
+                      {strings('app_settings.network_save')}
+                    </StyledButton>
+                  </View>
+                ) : (
+                  <View style={styles.buttonsContainer}>
+                    <StyledButton
+                      type="confirm"
+                      onPress={this.addRpcUrl}
+                      testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
+                      containerStyle={styles.syncConfirm}
+                      disabled={
+                        !enableAction ||
+                        this.disabledByRpcUrl() ||
+                        this.disabledByChainId()
+                      }
+                    >
+                      {strings('app_settings.network_add')}
+                    </StyledButton>
+                  </View>
+                )}
+              </View>
+            )
           )}
         </KeyboardAwareScrollView>
       </SafeAreaView>

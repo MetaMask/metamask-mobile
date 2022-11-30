@@ -16,7 +16,6 @@ import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics/Analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import {
