@@ -30606,10 +30606,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^7.0.0":
-  version: 7.2.0
-  resolution: "validator@npm:7.2.0"
-  checksum: 382cdcf68e0b245b855969cc957fee45c2f9e779e35a218958e41d8a93e8a471714c7a59e4f9d71d2849c7f936be799c867dbbcdc30c1ae8fb636e660dfd7424
+"validator@npm:^13.7.0":
+  version: 13.7.0
+  resolution: "validator@npm:13.7.0"
+  checksum: 2b83283de1222ca549a7ef57f46e8d49c6669213348db78b7045bce36a3b5843ff1e9f709ebf74574e06223461ee1f264f8cc9a26a0060a79a27de079d8286ef
   languageName: node
   linkType: hard
 
