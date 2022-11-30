@@ -99,7 +99,14 @@ function AddressQRCode({
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.closeIcon, { width: contentStyle.size + 36 * 2 }]}
+        style={[
+          styles.closeIcon,
+          {
+            width:
+              contentStyle.size +
+              (styles.qrCode.padding + styles.qrCodeContainer.padding) * 2,
+          },
+        ]}
         onPress={closeModal}
         testID={'close-qr-modal'}
       >
