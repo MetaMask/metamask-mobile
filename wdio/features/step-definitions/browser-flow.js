@@ -1,14 +1,16 @@
 import {Given, When, Then} from '@wdio/cucumber-framework';
 import WalletMainScreen from "../screen-objects/WalletMainScreen";
 import DrawerViewScreen from "../screen-objects/DrawerViewScreen";
+import BrowserScreen from "../screen-objects/BrowserScreen";
 
 Given(/^I am on browser view$/, async () => {
   await WalletMainScreen.tapBurgerIcon();
   await DrawerViewScreen.tapBrowserButton();
+  await BrowserScreen.isScreenContentDisplayed();
 });
 
 Given(/^I am on "([^"]*)"$/, async () => {
-
+  await BrowserScreen.tapNavBar();
 });
 
 When(/^I input "([^"]*)" in the search field$/, async () => {
