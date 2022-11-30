@@ -25,11 +25,6 @@ workflows:
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
-            - command: setup:react-native-webrtc
-          title: Yarn Download WebRTC Bitcode
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
             - command: audit:ci
           title: Audit Dependencies
       - yarn@0:
@@ -48,11 +43,6 @@ workflows:
             - cache_local_deps: 'yes'
             - command: setup
           title: Yarn Setup
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: setup:react-native-webrtc
-          title: Yarn Download WebRTC Bitcode
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
@@ -426,10 +416,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.10.0
+      VERSION_NAME: 5.11.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1004
+      VERSION_NUMBER: 1018
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

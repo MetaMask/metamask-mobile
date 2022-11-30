@@ -114,9 +114,17 @@ class TypedSign extends PureComponent {
     );
   };
 
+  walletConnectNotificationTitle = (confirmation, isError) => {
+    if (isError) return strings('notifications.wc_signed_failed_title');
+    return confirmation
+      ? strings('notifications.wc_signed_title')
+      : strings('notifications.wc_signed_rejected_title');
+  };
+
   showWalletConnectNotification = (
     messageParams = {},
     confirmation = false,
+    isError = false,
   ) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
@@ -125,9 +133,7 @@ class TypedSign extends PureComponent {
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
-          title: confirmation
-            ? strings('notifications.wc_signed_title')
-            : strings('notifications.wc_signed_rejected_title'),
+          title: this.walletConnectNotificationTitle(confirmation, isError),
           description: strings('notifications.wc_description'),
         });
     });
@@ -138,15 +144,22 @@ class TypedSign extends PureComponent {
     const { KeyringController, TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
-    const cleanMessageParams = await TypedMessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signTypedMessage(
-      cleanMessageParams,
-      version,
-    );
-    TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+    let rawSig;
+    let cleanMessageParams;
+    try {
+      cleanMessageParams = await TypedMessageManager.approveMessage(
+        messageParams,
+      );
+      rawSig = await KeyringController.signTypedMessage(
+        cleanMessageParams,
+        version,
+      );
+      TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+      this.showWalletConnectNotification(messageParams, true);
+    } catch (error) {
+      TypedMessageManager.setMessageStatusSigned(messageId, error.message);
+      this.showWalletConnectNotification(messageParams, false, true);
+    }
   };
 
   rejectMessage = () => {

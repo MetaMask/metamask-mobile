@@ -2,6 +2,14 @@
 
 ## Current Main Branch
 
+## 5.11.0 - Nov 21, 2022
+- [#5088](https://github.com/MetaMask/metamask-mobile/pull/5088): [ENHANCEMENT] Add no payment methods screen
+- [#5223](https://github.com/MetaMask/metamask-mobile/pull/5223): [ENHANCEMENT] Add payment method icons support
+- [#5198](https://github.com/MetaMask/metamask-mobile/pull/5198): [ENHANCEMENT] Improve loading experience
+- [#5213](https://github.com/MetaMask/metamask-mobile/pull/5213): [ENHANCEMENT] On-ramp: add payment method detail and disclaimer
+- [#5214](https://github.com/MetaMask/metamask-mobile/pull/5214): [ENHANCEMENT] On-ramp: add payment method custom action analytics
+- [#5188](https://github.com/MetaMask/metamask-mobile/pull/5188): [ENHANCEMENT] Networks-flow appium feature file
+
 ## 5.10.0 - Nov 10, 2022
 - [#5209](https://github.com/MetaMask/metamask-mobile/pull/5209): [FIX] On-ramp: multiple redirection handling
 - [#5217](https://github.com/MetaMask/metamask-mobile/pull/5217): [FIX] Send to the wrong address
