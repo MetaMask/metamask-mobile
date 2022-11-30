@@ -93,6 +93,7 @@
     "shell-quote": "1.7.3",
     "@metamask/**/cross-fetch": "2.2.6",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
+    "yargs-parser": "21.1.1",
     "improved-yarn-audit@^3.0.0": "patch:improved-yarn-audit@npm%3A3.0.0#./.yarn/patches/improved-yarn-audit-npm-3.0.0-3e37ee431a.patch"
   },
   "dependencies": {
