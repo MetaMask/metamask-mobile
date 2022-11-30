@@ -18,6 +18,7 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
+import {Navigation} from 'react-navigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -30,6 +31,7 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
   private store: Store | undefined = undefined;
+  private navigation: Navigation | undefined = undefined;
   private static isInitialized = false;
 
   /**
@@ -51,6 +53,7 @@ class AuthenticationService {
     if (this.store) {
       console.log('Authentication dispatchLogin');
       this.store.dispatch(logIn());
+      navigation.replace('HomeNav');
     } else {
       console.log('Authentication dispatchLogin');
       Logger.log(
@@ -308,16 +311,18 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
     selectedAddress: string,
-  ): Promise<void> => {
+  ): Promise<boolean> => {
     try {
       console.log('userEntryAuth');
       await this.loginVaultCreation(password, selectedAddress);
-      // await this.storePassword(password, authData.type);
+      await this.storePassword(password, authData.type);
       this.dispatchLogin();
       this.authData = authData;
+      return true;
     } catch (e: any) {
       console.log('userEntryAuth', e);
       this.logout(false);
+      return false;
       throw new AuthenticationError(e, 'Failed to login', this.authData);
     }
   };

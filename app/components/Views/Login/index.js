@@ -288,27 +288,66 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
-    console.log('onLogin');
     const { password } = this.state;
-    console.log('onLogin password', password);
+    const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
-    console.log('onLogin password', locked);
+    if (locked) this.setState({ error: strings('login.invalid_password') });
+    if (this.state.loading || locked) return;
 
-    const authData = await Authentication.componentAuthenticationType(
+    const authType = await Authentication.componentAuthenticationType(
       this.state.biometryChoice,
       this.state.rememberMe,
     );
 
-    console.log('onLogin authData', authData);
-
     try {
-      await Authentication.userEntryAuth(
+      const isLoggedIn = await Authentication.userEntryAuth(
         password,
-        authData,
+        authType,
         this.props.selectedAddress,
       );
+      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+      if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
+      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+      this.setState({
+        loading: false,
+        password: '',
+        hasBiometricCredentials: false,
+      });
+      field.setValue('');
     } catch (e) {
-      console.log('onLogin catch error ', e);
+      console.log('onLogin', e);
+      const error = e.toString();
+      if (
+        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
+        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
+      ) {
+        this.setState({
+          loading: false,
+          error: strings('login.invalid_password'),
+        });
+
+        trackErrorAsAnalytics('Login: Invalid Password', error);
+
+        return;
+      } else if (error === PASSCODE_NOT_SET_ERROR) {
+        Alert.alert(
+          strings('login.security_alert_title'),
+          strings('login.security_alert_desc'),
+        );
+        this.setState({ loading: false });
+      } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
+        this.setState({
+          loading: false,
+          error: strings('login.clean_vault_error'),
+        });
+        Logger.error(
+          'Vault Corruption Error',
+          strings('login.clean_vault_error'),
+        );
+      } else {
+        this.setState({ loading: false, error });
+      }
+      Logger.error(error, 'Failed to unlock');
     }
   };
 
