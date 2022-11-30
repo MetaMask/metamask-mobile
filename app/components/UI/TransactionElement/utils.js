@@ -714,7 +714,10 @@ function decodeSwapsTx(args) {
     );
   const cryptoSummaryTotalAmount =
     sourceToken.symbol === 'ETH'
-      ? `${Number(totalEthGas) + Number(decimalSourceAmount)} ${ticker}`
+      ? `${
+          Number(!isNaN(totalEthGas) ? totalEthGas : 0) +
+          Number(decimalSourceAmount)
+        } ${ticker}`
       : decimalSourceAmount
       ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
       : `${totalEthGas} ${ticker}`;
