@@ -26,8 +26,8 @@ jobs:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
       - run: |
-          yarn setup
           yarn --frozen-lockfile
+          yarn setup
       - uses: actions/cache@v3
         id: restore-build
         with:
