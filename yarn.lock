@@ -2693,14 +2693,6 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@exodus/react-native-payments@git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5":
-  version "1.5.0"
-  resolved "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
-  dependencies:
-    es6-error "^4.0.2"
-    uuid "3.3.2"
-    validator "^7.0.0"
-
 "@hapi/hoek@^9.0.0":
   version "9.2.1"
   resolved "https://registry.yarnpkg.com/@hapi/hoek/-/hoek-9.2.1.tgz#9551142a1980503752536b5050fd99f4a7f13b17"
@@ -3953,6 +3945,16 @@
   resolved "https://registry.yarnpkg.com/@metamask/etherscan-link/-/etherscan-link-2.1.0.tgz#c0be8e68445b7b83cf85bcc03a56cdf8e256c973"
   integrity sha512-ADuWlTUkFfN2vXlz81Bg/0BA+XRor+CdK1055p6k7H6BLIPoDKn9SBOFld9haQFuR9cKh/JYHcnlSIv5R4fUEw==
 
+"@metamask/lottie-react-native@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/lottie-react-native/-/lottie-react-native-3.1.0.tgz#59f64f77100738e7fa0786d7792c98e08ffb471a"
+  integrity sha512-jp5M7yP4PQc3DWLn/3jltGOov976N+Pd/26Jg1PsWu24ou/tb1XLMjczVuadAWux0HWlrzSlVlVWCFupd7A4DQ==
+  dependencies:
+    invariant "^2.2.2"
+    lottie-ios "2.5.0"
+    prop-types "^15.5.10"
+    react-native-safe-module "^1.1.0"
+
 "@metamask/metamask-eth-abis@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.0.0.tgz#eccc0746b3ab1ab63000444403819c16e88b5272"
@@ -3970,6 +3972,66 @@
   dependencies:
     "@metamask/safe-event-emitter" "^2.0.0"
     through2 "^2.0.3"
+
+"@metamask/react-native-actionsheet@2.4.2":
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
+  integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
+
+"@metamask/react-native-aes-crypto@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-aes-crypto/-/react-native-aes-crypto-1.2.1.tgz#9257bce2317573b51bdd9b584232ff1d423aa80a"
+  integrity sha512-sRgQafvzO/c8PoJ45A5ELDnYxzJuzC6FaIS7WXgghooI6+tG93Xo0SD2nolFCU/Ro0tGbi7qwojsSMejHsrl+A==
+
+"@metamask/react-native-animated-fox@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-animated-fox/-/react-native-animated-fox-2.0.1.tgz#a67cdd6e52baf18fbd29dc69de34326e3ae98b9e"
+  integrity sha512-9F0RqpmAGYF3ftVBqBZF54yGqsxDDVuSYTpOECyqgLJe4MXNvKBbqgppFQkKNTn0LZfUiQwf4z2pqJOp0YYkjw==
+  dependencies:
+    prop-types "^15.5.10"
+
+"@metamask/react-native-button@2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-button/-/react-native-button-2.3.0.tgz#eae1477e7454344f90f3bd2812747e2aa1275c4e"
+  integrity sha512-/z1oDRvByUD3mdbS0wnb2vwgwsYwOKrusvKhqeuDBKdxRyJ/cyhUsrGAdgXEJQOO1JIF9RsPbX3icAPykZmQiA==
+  dependencies:
+    prop-types "^15.5.10"
+
+"@metamask/react-native-payments@1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-payments/-/react-native-payments-1.5.0.tgz#218a97720c1eb8da2ef62c83cdacd3f73dddf946"
+  integrity sha512-LSdqk6x3ILLVmhqG+dFlp0/SjrFzTUxz2L11eZgko645TYyvG686IJeUJO0k9wdWDEWkPkmRhZkCcgqjxj9XWA==
+  dependencies:
+    es6-error "^4.0.2"
+    uuid "3.3.2"
+    validator "^7.0.0"
+
+"@metamask/react-native-push-notification@3.1.3":
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-push-notification/-/react-native-push-notification-3.1.3.tgz#6cc327efc71f4f50fb9ea52ce4619d6c712280f5"
+  integrity sha512-VrPCfhsND+InVnlltTdk3lmohNxqUHMjjyPrmcofM0xcEnUrxQi8A5681rfQnw/SNx+tnztVbpXhlfaHIIdKVg==
+
+"@metamask/react-native-search-api@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
+  integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
+
+"@metamask/react-native-splash-screen@3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#06a6547c143b088e47af40eacea9ac6657ac937f"
+  integrity sha512-V8Cn0MXe9jdaUli/DK3PoJ71tx7k3IW2v2slqflvNstvHiO3MpCtdylsYIyu+tiPwI2JiyLRzLK8s02/3jxk6g==
+
+"@metamask/react-native-tcp@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-tcp/-/react-native-tcp-4.0.0.tgz#5afd79eca397397e8927c3091bcbefcd637f1915"
+  integrity sha512-FkiL03Trc54IEYKiFSWZr+0x78BrFCOx51ridUfBV5Qj5+sGUrVIc+uBEu9eS0XsQxLcE/6jT9Xkrneo92tz0Q==
+  dependencies:
+    base64-js "1.3.1"
+    buffer "^5.4.3"
+    events "^3.0.0"
+    ip-regex "^4.1.0"
+    process "^0.11.9"
+    util "^0.12.1"
 
 "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"
@@ -16043,15 +16105,6 @@ lottie-ios@2.5.0:
   resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-2.5.0.tgz#55c808e785d4a6933b0c10b395530b17098b05de"
   integrity sha1-VcgI54XUppM7DBCzlVMLFwmLBd4=
 
-"lottie-react-native@git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
-  version "3.1.0"
-  resolved "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
-  dependencies:
-    invariant "^2.2.2"
-    lottie-ios "2.5.0"
-    prop-types "^15.5.10"
-    react-native-safe-module "^1.1.0"
-
 loupe@^2.3.1:
   version "2.3.6"
   resolved "https://registry.yarnpkg.com/loupe/-/loupe-2.3.6.tgz#76e4af498103c532d1ecc9be102036a21f787b53"
@@ -19542,14 +19595,6 @@ react-mixin@^3.0.5:
     object-assign "^4.0.1"
     smart-mixin "^2.0.0"
 
-react-native-actionsheet@beefe/react-native-actionsheet#107/head:
-  version "2.4.2"
-  resolved "https://codeload.github.com/beefe/react-native-actionsheet/tar.gz/fb97d7c6a33bc3213b928a36257dd0c23b42fa6f"
-
-"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
-  version "1.2.1"
-  resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
-
 react-native-aes-crypto@1.3.9:
   version "1.3.9"
   resolved "https://registry.yarnpkg.com/react-native-aes-crypto/-/react-native-aes-crypto-1.3.9.tgz#6f068535462c1b7d7d70a4152d519ae9911c3e69"
@@ -19561,12 +19606,6 @@ react-native-animatable@1.3.3, react-native-animatable@^1.3.3:
   integrity sha512-2ckIxZQAsvWn25Ho+DK3d1mXIgj7tITkrS4pYDvx96WyOttSvzzFeQnM2od0+FUMzILbdHDsDEqZvnz1DYNQ1w==
   dependencies:
     prop-types "^15.7.2"
-
-"react-native-animated-fox@git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
-  version "2.0.1"
-  resolved "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
-  dependencies:
-    prop-types "^15.5.10"
 
 react-native-background-timer@2.1.1:
   version "2.1.1"
@@ -19582,12 +19621,6 @@ react-native-browser-polyfill@0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/react-native-browser-polyfill/-/react-native-browser-polyfill-0.1.2.tgz#d2c4e816e7a1d91bc314400a1b0a9795a91b8bcd"
   integrity sha1-0sToFueh2RvDFEAKGwqXlakbi80=
-
-"react-native-button@git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
-  version "2.3.0"
-  resolved "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
-  dependencies:
-    prop-types "^15.5.10"
 
 react-native-camera@^3.36.0:
   version "3.44.3"
@@ -19819,10 +19852,6 @@ react-native-progress@3.5.0:
   dependencies:
     prop-types "^15.5.8"
 
-"react-native-push-notification@git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c":
-  version "3.1.3"
-  resolved "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
-
 react-native-qrcode-svg@5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/react-native-qrcode-svg/-/react-native-qrcode-svg-5.1.2.tgz#1368a1142b7d4916c3d8b1903fd2046185340fd0"
@@ -19891,10 +19920,6 @@ react-native-scrollable-tab-view@^1.0.0:
     prop-types "^15.6.0"
     react-timer-mixin "^0.13.3"
 
-react-native-search-api@ombori/react-native-search-api#8/head:
-  version "1.0.1"
-  resolved "https://codeload.github.com/ombori/react-native-search-api/tar.gz/08dbdf1ffd53801057662aa3207c11d2f78e8a94"
-
 react-native-sensors@5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/react-native-sensors/-/react-native-sensors-5.3.0.tgz#8c89541f80a68c185ff2f7059c3078f4975c730c"
@@ -19911,10 +19936,6 @@ react-native-skeleton-placeholder@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/react-native-skeleton-placeholder/-/react-native-skeleton-placeholder-5.0.0.tgz#899fca447c2f0b81f98566e350e792157a3c9df9"
   integrity sha512-7sdG+Y2ENEVcxFC9XlpCgHy59XKkxaUyVqDwuAb66hvl7lwFr25uA5kHJ+JuDJ84ptVil5UEowW/2avwhsfoYg==
-
-"react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee":
-  version "3.2.0"
-  resolved "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
 
 react-native-step-indicator@^1.0.3:
   version "1.0.3"
@@ -19965,17 +19986,6 @@ react-native-swipe-gestures@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/react-native-swipe-gestures/-/react-native-swipe-gestures-1.0.5.tgz#a172cb0f3e7478ccd681fd36b8bfbcdd098bde7c"
   integrity sha512-Ns7Bn9H/Tyw278+5SQx9oAblDZ7JixyzeOczcBK8dipQk2pD7Djkcfnf1nB/8RErAmMLL9iXgW0QHqiII8AhKw==
-
-react-native-tcp@aprock/react-native-tcp#11/head:
-  version "4.0.0"
-  resolved "https://codeload.github.com/aprock/react-native-tcp/tar.gz/98fbc801f0586297f16730b2f4c75eef15dfabcd"
-  dependencies:
-    base64-js "1.3.1"
-    buffer "^5.4.3"
-    events "^3.0.0"
-    ip-regex "^4.1.0"
-    process "^0.11.9"
-    util "^0.12.1"
 
 react-native-url-polyfill@^1.3.0:
   version "1.3.0"
