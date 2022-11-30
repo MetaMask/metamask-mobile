@@ -56,7 +56,7 @@ function AddressQRCode({
   showAlert,
 }) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const colors = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const contentStyle = useMemo(() => {
     const isPortrait = windowHeight > windowWidth;
