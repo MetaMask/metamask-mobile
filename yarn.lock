@@ -3399,20 +3399,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@exodus/react-native-payments@git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5":
-  version: 1.5.0
-  resolution: "@exodus/react-native-payments@https://github.com/MetaMask/react-native-payments.git#commit=dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
-  dependencies:
-    es6-error: ^4.0.2
-    uuid: 3.3.2
-    validator: ^7.0.0
-  peerDependencies:
-    react: ">=15"
-    react-native: ">=0.41"
-  checksum: 95a7a499ace1bc5697c43af6a455575b0417bffba251570ad6a2271056217c4f8cfec152294fd5b5fb8fe280cc309a781a88eb52214051a81816565b91d562e5
-  languageName: node
-  linkType: hard
-
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -4974,6 +4960,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/lottie-react-native@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/lottie-react-native@npm:3.1.0"
+  dependencies:
+    invariant: ^2.2.2
+    lottie-ios: 2.5.0
+    prop-types: ^15.5.10
+    react-native-safe-module: ^1.1.0
+  peerDependencies:
+    react: "*"
+    react-native: ">=0.46"
+  checksum: 8345cdc6456333f1e8926b2afd64a3aa9b4d7efe8df0a7e3c9405134b169405d00bb0bf5b0c48197cbf55eaf1ab6f819bbc90d453cfaffde07b767b7427bedeb
+  languageName: node
+  linkType: hard
+
 "@metamask/metamask-eth-abis@npm:3.0.0":
   version: 3.0.0
   resolution: "@metamask/metamask-eth-abis@npm:3.0.0"
@@ -4995,6 +4996,104 @@ __metadata:
     "@metamask/safe-event-emitter": ^2.0.0
     through2: ^2.0.3
   checksum: e1497140384de0ac689adbe7286df43e843c5d73fd8ba7080af2faab3de73e823b46b8214be1c839d9e9e5f86fb40df50a26e93bae936329daeaedae5e523323
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-actionsheet@npm:2.4.2":
+  version: 2.4.2
+  resolution: "@metamask/react-native-actionsheet@npm:2.4.2"
+  peerDependencies:
+    prop-types: ">=15.4.0"
+    react: ">=15.4.0"
+    react-native: "*"
+  checksum: 5a43523c46d17f117d2408283750219fd158c5f31ead3da768b2a2a4072cffb3cdb1b95bb486321d553bc382510ff554f5eba34d3555978718983d73b381dc33
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-aes-crypto@npm:1.2.1":
+  version: 1.2.1
+  resolution: "@metamask/react-native-aes-crypto@npm:1.2.1"
+  checksum: 7eca9bfb7add2f4f2f681408c38416aae725692fda778c5b10143c2e817a89368ebcb62572ce216c34c96415db75de6eccd0b447f8c18d666016a856cea74175
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-animated-fox@npm:2.0.1":
+  version: 2.0.1
+  resolution: "@metamask/react-native-animated-fox@npm:2.0.1"
+  dependencies:
+    prop-types: ^15.5.10
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-sensors: "*"
+    react-native-webview: "*"
+  checksum: 64bad0b31a29d49ed39e7c6ece30a75e393682c05ff6bddb48cdc79ab47818030a3e7877834106b3ae25e67524c24e973935d31c0510218c9384afe6e0c53bd1
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-button@npm:2.3.0":
+  version: 2.3.0
+  resolution: "@metamask/react-native-button@npm:2.3.0"
+  dependencies:
+    prop-types: ^15.5.10
+  peerDependencies:
+    react-native: "*"
+  checksum: e0877a12b0c08821f2c1a4399dd38128600b5a8f6893d9b9ff9a90b65e3e2aaedc240b3f6807ae94c0490c088b09d2f604eb41473603423132d5d643f25398db
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-payments@npm:1.5.0":
+  version: 1.5.0
+  resolution: "@metamask/react-native-payments@npm:1.5.0"
+  dependencies:
+    es6-error: ^4.0.2
+    uuid: 3.3.2
+    validator: ^7.0.0
+  peerDependencies:
+    react: ">=15"
+    react-native: ">=0.41"
+  checksum: 3c03a87cf69707b6118c9d521c213de39c119af7af823c36b7ccf78185157f64942cd04dc33c257591dabb1c9d2ae06fb74736db0c1803242e5d69645e973b37
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-push-notification@npm:3.1.3":
+  version: 3.1.3
+  resolution: "@metamask/react-native-push-notification@npm:3.1.3"
+  peerDependencies:
+    react-native: ">=0.33"
+  checksum: f37ccc5ce9aed5d476945eabb35b89b6dc33d8153cc9299377b0d9a9bfba029cca927a2b2f285a22846daff78b6810c90538503f056ff5422c577d64f8d5a5fb
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-search-api@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@metamask/react-native-search-api@npm:1.0.1"
+  checksum: e47a20b1e05d93e08fa12484982b51ab33e81a56ca816ba39f35db37464539b3e1cb063bd263544cb79b780f837ecb8b646ce6554d93c4ab70f72bf726023668
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-splash-screen@npm:3.2.0":
+  version: 3.2.0
+  resolution: "@metamask/react-native-splash-screen@npm:3.2.0"
+  peerDependencies:
+    react-native: ">=0.57.0"
+  checksum: 6aee86ac50789420597a6b01fff89b9b483b90248aff8189aeeb2c93f5eb4aae0dc42c924c06f6d9367da93575da18c6523a93b8ffa547dcf5c1eb0e231e9ca9
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-tcp@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@metamask/react-native-tcp@npm:4.0.0"
+  dependencies:
+    base64-js: 1.3.1
+    buffer: ^5.4.3
+    events: ^3.0.0
+    ip-regex: ^4.1.0
+    process: ^0.11.9
+    util: ^0.12.1
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 28a7d7788f8a5c4b6b341ff8192c35d8dec0acccc64dc5689600e7497557c599b834d5bacef38399284d4a03c566fcc7abf28b8983c32d44fadd7a9bb63d1edc
   languageName: node
   linkType: hard
 
@@ -20630,21 +20729,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lottie-react-native@git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
-  version: 3.1.0
-  resolution: "lottie-react-native@https://github.com/MetaMask/lottie-react-native.git#commit=7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
-  dependencies:
-    invariant: ^2.2.2
-    lottie-ios: 2.5.0
-    prop-types: ^15.5.10
-    react-native-safe-module: ^1.1.0
-  peerDependencies:
-    react: "*"
-    react-native: ">=0.46"
-  checksum: c63a59d8d662ade7e2b097defe95f35bfe781a0ebca44e374a6b2210e8bc68cba7357cc7f345238b6d094841fa7bf0bdb979f5465d0a18b526fee20b1b984900
-  languageName: node
-  linkType: hard
-
 "lower-case@npm:^2.0.2":
   version: 2.0.2
   resolution: "lower-case@npm:2.0.2"
@@ -20992,7 +21076,6 @@ __metadata:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
     "@consensys/on-ramp-sdk": 1.3.0-beta.32
-    "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
     "@keystonehq/bc-ur-registry-eth": ^0.7.7
     "@keystonehq/metamask-airgapped-keyring": ^0.3.0
     "@keystonehq/ur-decoder": ^0.6.1
@@ -21004,7 +21087,17 @@ __metadata:
     "@metamask/eslint-config": ^7.0.0
     "@metamask/eslint-config-typescript": ^7.0.0
     "@metamask/etherscan-link": ^2.0.0
+    "@metamask/lottie-react-native": 3.1.0
     "@metamask/mobile-provider": ^2.1.0
+    "@metamask/react-native-actionsheet": 2.4.2
+    "@metamask/react-native-aes-crypto": 1.2.1
+    "@metamask/react-native-animated-fox": 2.0.1
+    "@metamask/react-native-button": 2.3.0
+    "@metamask/react-native-payments": 1.5.0
+    "@metamask/react-native-push-notification": 3.1.3
+    "@metamask/react-native-search-api": 1.0.1
+    "@metamask/react-native-splash-screen": 3.2.0
+    "@metamask/react-native-tcp": 4.0.0
     "@metamask/sdk-communication-layer": ^0.0.1-beta.3
     "@metamask/swaps-controller": ^6.6.0
     "@ngraveio/bc-ur": ^1.1.6
@@ -21116,7 +21209,6 @@ __metadata:
     json-rpc-engine: ^6.1.0
     json-rpc-middleware-stream: 3.0.0
     lint-staged: 10.5.4
-    lottie-react-native: "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
     metro: 0.72.3
     metro-config: ^0.71.1
     metro-react-native-babel-preset: 0.72.3
@@ -21140,15 +21232,11 @@ __metadata:
     react: 17.0.2
     react-dom: 16.8.4
     react-native: 0.66.3
-    react-native-actionsheet: "beefe/react-native-actionsheet#107/head"
     react-native-aes-crypto: 1.3.9
-    react-native-aes-crypto-forked: "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
     react-native-animatable: ^1.3.3
-    react-native-animated-fox: "git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9"
     react-native-background-timer: 2.1.1
     react-native-branch: 5.4.0
     react-native-browser-polyfill: 0.1.2
-    react-native-button: "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
     react-native-camera: ^3.36.0
     react-native-cli: 2.0.1
     react-native-confetti: ^0.1.0
@@ -21176,7 +21264,6 @@ __metadata:
     react-native-modal: ^12.1.0
     react-native-os: ^1.2.6
     react-native-progress: 3.5.0
-    react-native-push-notification: "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
     react-native-qrcode-svg: 5.1.2
     react-native-randombytes: ^3.5.3
     react-native-reanimated: 2.11.0
@@ -21184,18 +21271,15 @@ __metadata:
     react-native-safe-area-context: ^3.1.9
     react-native-screens: 3.13.1
     react-native-scrollable-tab-view: ^1.0.0
-    react-native-search-api: "ombori/react-native-search-api#8/head"
     react-native-sensors: 5.3.0
     react-native-share: 7.3.7
     react-native-skeleton-placeholder: ^5.0.0
-    react-native-splash-screen: "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee"
     react-native-step-indicator: ^1.0.3
     react-native-storybook-loader: ^2.0.4
     react-native-svg: 12.1.1
     react-native-svg-asset-plugin: ^0.5.0
     react-native-svg-transformer: ^1.0.0
     react-native-swipe-gestures: 1.0.3
-    react-native-tcp: "aprock/react-native-tcp#11/head"
     react-native-url-polyfill: ^1.3.0
     react-native-v8: ^0.62.2-patch.1
     react-native-vector-icons: 6.4.2
@@ -25441,24 +25525,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-actionsheet@beefe/react-native-actionsheet#107/head":
-  version: 2.4.2
-  resolution: "react-native-actionsheet@https://github.com/beefe/react-native-actionsheet.git#commit=fb97d7c6a33bc3213b928a36257dd0c23b42fa6f"
-  peerDependencies:
-    prop-types: ">=15.4.0"
-    react: ">=15.4.0"
-    react-native: "*"
-  checksum: b564ccd1218b403f9afc0519ab231cbec46e5e78b9de21504d3e771b089200e2c8022c1059060c17868984dc4ecec9f76a18117b7774017ee2acb5ff4b2c1b1a
-  languageName: node
-  linkType: hard
-
-"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
-  version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#commit=397d5db5250e8e7408294807965b5b9fd4ca6a25"
-  checksum: e299deeb08a56e99c4eaad620b42e68b81425da9180b9ef3c84b99ad50d65219ef7a48ba0ff4afce895b73bfa4a834fcdb649a6028d0ce3f9ec662a954374df6
-  languageName: node
-  linkType: hard
-
 "react-native-aes-crypto@npm:1.3.9":
   version: 1.3.9
   resolution: "react-native-aes-crypto@npm:1.3.9"
@@ -25472,20 +25538,6 @@ __metadata:
   dependencies:
     prop-types: ^15.7.2
   checksum: eb35821de36ae4eb00f97d99fc22ed79bd017248092ff1299f9d46a7ab946de16d2e6d6bfbf4cab5ef77d0d3bf47684aec761a7670ec7d36aae8d77ab8ddd171
-  languageName: node
-  linkType: hard
-
-"react-native-animated-fox@git+https://github.com/MetaMask/react-native-animated-fox.git#16e38d54d829709e497f196e31fa8ff00cdf2aa9":
-  version: 2.0.1
-  resolution: "react-native-animated-fox@https://github.com/MetaMask/react-native-animated-fox.git#commit=16e38d54d829709e497f196e31fa8ff00cdf2aa9"
-  dependencies:
-    prop-types: ^15.5.10
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-sensors: "*"
-    react-native-webview: "*"
-  checksum: 766f90f6a78fe6a85b6045ea8db2f3cd8b4d14944d91450eb1606e354bb8c34c71182de511408fdf9556b05b8356bb6e50cbb72feb3816b60add6aa0a41b0747
   languageName: node
   linkType: hard
 
@@ -25511,17 +25563,6 @@ __metadata:
   version: 0.1.2
   resolution: "react-native-browser-polyfill@npm:0.1.2"
   checksum: 2ebc2367f7c56ca7fcde7b0bffcd505c6ead680c4fb558ae841f0f75a397015b467c36d51bc040490c7f0fea2d94dfbff027764d37409f619f1d4e879e6d0895
-  languageName: node
-  linkType: hard
-
-"react-native-button@git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
-  version: 2.3.0
-  resolution: "react-native-button@https://github.com/MetaMask/react-native-button.git#commit=fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
-  dependencies:
-    prop-types: ^15.5.10
-  peerDependencies:
-    react-native: "*"
-  checksum: bad3be79ff832219152f235c813b3415a280c90191b2ad64b367b40ac3c920a232aa318ddd0bb4b5be7e808453e051709fe9e36a976724ff721263de59eeeaf9
   languageName: node
   linkType: hard
 
@@ -25862,15 +25903,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-push-notification@git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c":
-  version: 3.1.3
-  resolution: "react-native-push-notification@https://github.com/MetaMask/react-native-push-notification.git#commit=975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c"
-  peerDependencies:
-    react-native: ">=0.33"
-  checksum: f0614a4d264895b9b2e028b3ff2e4b697dae528b4bbcb205125b0e82e060686d9a2091765ec1b5d3a3437f1bea49865ea52289f46bccdb715d7da21c7daf8bef
-  languageName: node
-  linkType: hard
-
 "react-native-qrcode-svg@npm:5.1.2":
   version: 5.1.2
   resolution: "react-native-qrcode-svg@npm:5.1.2"
@@ -25978,13 +26010,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-search-api@ombori/react-native-search-api#8/head":
-  version: 1.0.1
-  resolution: "react-native-search-api@https://github.com/ombori/react-native-search-api.git#commit=08dbdf1ffd53801057662aa3207c11d2f78e8a94"
-  checksum: 84ac5251398b3b4b4c9b620862534ccd45e8810959c043e97511e71dee68ed97015a8b3adec1aa02d8fc41bccb9bf16689e31efa5079b2bb2ff0f837bc1820e6
-  languageName: node
-  linkType: hard
-
 "react-native-sensors@npm:5.3.0":
   version: 5.3.0
   resolution: "react-native-sensors@npm:5.3.0"
@@ -26013,15 +26038,6 @@ __metadata:
     react-native: ">=0.50.1"
     react-native-linear-gradient: ^2.5.6
   checksum: 8f711cf38e536fc68724fdf84814f944e7cab788769c689632f1ddac9d44cacf8eee46351ec4a04da9e824041eee96addb3d8b18f006549f63025cd76399a90d
-  languageName: node
-  linkType: hard
-
-"react-native-splash-screen@git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee":
-  version: 3.2.0
-  resolution: "react-native-splash-screen@https://github.com/MetaMask/react-native-splash-screen.git#commit=1f45c08c0824cd94fdc6fb699529688a73614fee"
-  peerDependencies:
-    react-native: ">=0.57.0"
-  checksum: d114a9f087f9a62cc8688ad02822be3fc56eb03b0bb104a590ce56e38f2db945809e0c8218296e6bf7aa602f8f2271de2e266a5400dfd5c0ee9c70c475393634
   languageName: node
   linkType: hard
 
@@ -26099,22 +26115,6 @@ __metadata:
   version: 1.0.5
   resolution: "react-native-swipe-gestures@npm:1.0.5"
   checksum: d637bc40baa50fa0ce3b6cf2b494efeceaea03cc3875cb7cf7d76922914a21d5e6b098d4a084fb291ce61bfbb0a241c03cff24b15bebf0cfae1c146f4ad10d92
-  languageName: node
-  linkType: hard
-
-"react-native-tcp@aprock/react-native-tcp#11/head":
-  version: 4.0.0
-  resolution: "react-native-tcp@https://github.com/aprock/react-native-tcp.git#commit=98fbc801f0586297f16730b2f4c75eef15dfabcd"
-  dependencies:
-    base64-js: 1.3.1
-    buffer: ^5.4.3
-    events: ^3.0.0
-    ip-regex: ^4.1.0
-    process: ^0.11.9
-    util: ^0.12.1
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: e62913a5cd29d6bf448eca28072e6cf791a49dac4101044bd8f8ed266ae32cc704059d1d3d7484f736f859c96eb9cb3a7fa9a357828f98306521e3118312a077
   languageName: node
   linkType: hard
 
@@ -30606,10 +30606,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.7.0":
-  version: 13.7.0
-  resolution: "validator@npm:13.7.0"
-  checksum: 2b83283de1222ca549a7ef57f46e8d49c6669213348db78b7045bce36a3b5843ff1e9f709ebf74574e06223461ee1f264f8cc9a26a0060a79a27de079d8286ef
+"validator@npm:^7.0.0":
+  version: 7.2.0
+  resolution: "validator@npm:7.2.0"
+  checksum: 382cdcf68e0b245b855969cc957fee45c2f9e779e35a218958e41d8a93e8a471714c7a59e4f9d71d2849c7f936be799c867dbbcdc30c1ae8fb636e660dfd7424
   languageName: node
   linkType: hard
 
