@@ -341,22 +341,6 @@
     "description": "Wenn Sie fortfahren, stimmen Sie den",
     "terms": "Nutzungsbedingungen zu"
   },
-  "privacy_policy": {
-    "title": "Datenschutzerklärung",
-    "description": "Diese Daten sind aggregiert und daher nach dem allgemeinen Datenschutz (EU) 2016/679 anonymisiert. Für mehr Informationen in Hinsicht auf unsere Datenschutzpraktiken lesen Sie bitte unsere Datenschutzerklärung ",
-    "here": "hier",
-    "agree": "Zustimmen",
-    "decline": "Nein Danke",
-    "description_title": "Helfen Sie uns dabei, MetaMask zu verbessern",
-    "description_content_1": "MetaMask möchte grundlegende Nutzungsdaten sammeln um besser zu verstehen, wie unsere Benutzer mit der mobilen App interagieren. Diese Daten werden verwendet, um die Benutzerfreundlichkeit und Benutzererfahrung unseres Produktes zu verbessern.",
-    "description_content_2": "MetaMask wird ...",
-    "action_description_1": "Ihnen immer erlauben, sich über die Einstellungen davon abzumelden",
-    "action_description_2": "Anonymisierte Klick- und Seitenansicht-Events senden",
-    "action_description_3": "Daten über Land, Region und Stadt senden (nicht den genauen Standort)",
-    "action_description_4": "Niemals Keys, Adressen, Transaktionen, Guthaben, Hashes oder andere persönlichen Daten sammeln",
-    "action_description_5": "Niemals Ihre IP-Adresse sammeln",
-    "action_description_6": "Daten niemals für Profit verkaufen. Niemals!"
-  },
   "token": {
     "token_symbol": "Token-Symbol",
     "token_address": "Token-Adresse",

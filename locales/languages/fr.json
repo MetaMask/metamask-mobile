@@ -341,22 +341,6 @@
     "description": "En continuant, vous acceptez les présentes",
     "terms": "Conditions générales"
   },
-  "privacy_policy": {
-    "title": "Politique de confidentialité",
-    "description": "Ces données sont agrégées et restent donc anonymes aux fins du Règlement général sur la protection des données (UE) 2016/679. Pour plus d’informations concernant nos pratiques en matière de confidentialité, veuillez consulter notre politique de confidentialité",
-    "here": "ici",
-    "agree": "J’accepte",
-    "decline": "Non, merci.",
-    "description_title": "Aidez-nous à améliorer MetaMask",
-    "description_content_1": "MetaMask souhaite recueillir des données d’utilisation de base afin de mieux comprendre comment ses utilisateurs interagissent avec l’application mobile. Ces données seront utilisées pour améliorer en permanence la convivialité et l’expérience utilisateur de notre produit.",
-    "description_content_2": "MetaMask…",
-    "action_description_1": "Vous permettra toujours de vous désengager via les Paramètres",
-    "action_description_2": "Enverra des événements de clics et de pages vues anonymisés",
-    "action_description_3": "Enverra des données sur le pays, la région, la ville (sans localisation spécifique)",
-    "action_description_4": "Ne collectera jamais vos clés, adresses, transactions, soldes, hachages ou toute autre information personnelle",
-    "action_description_5": "Ne collectera jamais votre adresse IP",
-    "action_description_6": "Ne vendra jamais de données à des fins lucratives. Jamais !"
-  },
   "token": {
     "token_symbol": "Symbole du jeton",
     "token_address": "Adresse du jeton",

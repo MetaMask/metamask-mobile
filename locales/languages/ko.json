@@ -341,22 +341,6 @@
     "description": "계속 진행할 경우 다음 사항에 동의하게 됩니다",
     "terms": "이용 약관"
   },
-  "privacy_policy": {
-    "title": "개인정보 보호 정책",
-    "description": "이 데이터는 일반 데이터 보호 규정 (EU) 2016/679의 목적에 부합하도록 집계 과정을 거쳐 익명으로 제공됩니다. 당사의 개인정보 보호 정책과 관련된 자세한 내용은 개인정보 보호 정책을 참조하세요",
-    "here": "여기에서 확인하세요",
-    "agree": "동의합니다",
-    "decline": "동의하지 않습니다",
-    "description_title": "MetaMask 개선에 도움을 주세요",
-    "description_content_1": "MetaMask는 사용자가 모바일 앱을 어떻게 사용하는지 이해하기 위해 기본적인 사용 데이터를 수집하고자 합니다. 이 데이터는 당사 제품의 사용 편의성과 사용자 경험을 지속적으로 개선하기 위해 사용됩니다.",
-    "description_content_2": "MetaMask는...",
-    "action_description_1": "설정을 통해 수신 거부를 설정할 수 있도록 허용합니다",
-    "action_description_2": "익명화된 클릭 및 페이지 뷰 이벤트를 전송합니다",
-    "action_description_3": "국가, 지역, 도시(특정 위치 아님) 데이터를 전송합니다",
-    "action_description_4": "키, 주소, 거래, 잔고, 해시 또는 개인 정보를 수집하지 않습니다",
-    "action_description_5": "사용자의 IP 주소를 수집하지 않습니다",
-    "action_description_6": "수익을 위해 데이터를 절대 팔지 않습니다!"
-  },
   "token": {
     "token_symbol": "토큰 기호",
     "token_address": "토큰 주소",

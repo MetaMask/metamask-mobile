@@ -302,21 +302,6 @@
     "description": "继续即表示您同意这些",
     "terms": "条款和条件"
   },
-  "privacy_policy": {
-    "title": "隐私政策",
-    "description": "为满足欧盟第 2016/679 号条例《通用数据保护条例》的要求，此数据经过了聚合处理，因而成为匿名数据。有关我们的隐私保护操作的详细信息，请参阅我们的隐私政策",
-    "here": "此处",
-    "agree": "我同意",
-    "decline": "不，谢谢",
-    "description_title": "帮助我们改进 MetaMask",
-    "description_content_1": "MetaMask 希望收集基本的使用数据，以便更好地了解我们的用户如何与移动应用交互。这些数据将用于持续改进我们产品的可用性和用户体验。",
-    "description_content_2": "MetaMask...",
-    "action_description_1": "始终允许您通过“设置”选择退出",
-    "action_description_2": "发送匿名化点击和页面浏览事件",
-    "action_description_4": "决不收集密钥、地址、交易、余额、哈希或任何个人信息",
-    "action_description_5": "决不收集您的 IP 地址",
-    "action_description_6": "决不出售数据牟利。绝对不会！"
-  },
   "token": {
     "token_symbol": "代币符号",
     "token_address": "代币地址",

@@ -341,22 +341,6 @@
     "description": "Sa pagpapatuloy, sumasang-ayon ka sa mga ito ",
     "terms": "Mga Tuntunin at Kundisyon"
   },
-  "privacy_policy": {
-    "title": "Patakaran sa Pagkapribado",
-    "description": "Ang datos na ito ay pinagsama-sama at samakatuwid ay anonimo para sa mga layunin ng General Data Protection Regulation (EU) 2016/679. Para sa higit pang impormasyon kaugnay ng aming mga kasanayan sa pagkapribado, pakitingnan ang aming Patakaran sa Pagkapribado",
-    "here": "dito",
-    "agree": "Sang-ayon ako",
-    "decline": "Huwag na lang",
-    "description_title": "Tulungan kaming mapahusay ang MetaMask",
-    "description_content_1": "Gustong kunin ng MetaMask ang pangunahing data ng paggamit para mas maunawaan kung paano ginagamit ng mga user ang mobile app. Gagamitin ang data na ito para patuloy na mapahusay ang kakayahang magamit at karanasan ng user sa paggamit ng produkto namin.",
-    "description_content_2": "Gagawin ng MetaMask ang sumusunod...",
-    "action_description_1": "Palagi kang papayagang mag-opt out sa pamamagitan ng Mga Setting",
-    "action_description_2": "Magpapadala ng mga anonymous na kaganapang pag-click at pagtingin sa page",
-    "action_description_3": "Magpapadala ng data ng bansa, rehiyon, lungsod (hindi partikular na lokasyon)",
-    "action_description_4": "Huwag kailanman mangolekta ng mga key, address, transaksyon, balanse, hash, o anumang personal na impormasyon",
-    "action_description_5": "Huwag kailanman kolektahin ang iyong IP address",
-    "action_description_6": "Huwag kailanman magbenta ng data para pagkakitaan. Kahit kailan!"
-  },
   "token": {
     "token_symbol": "Simbolo ng Token",
     "token_address": "Address ng Token",

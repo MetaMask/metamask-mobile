@@ -341,22 +341,6 @@
     "description": "Ao prosseguir, você concorda com estes ",
     "terms": "Termos e condições"
   },
-  "privacy_policy": {
-    "title": "Política de privacidade",
-    "description": "Estes dados são agregados e, portanto, anônimos no que diz respeito ao Regulamento Geral de Proteção de Dados (UE) 2016/679. Para mais informações sobre nossas práticas de privacidade, consulte nossa política de privacidade",
-    "here": "aqui",
-    "agree": "Concordo",
-    "decline": "Não, obrigado",
-    "description_title": "Ajude a melhorar a MetaMask",
-    "description_content_1": "A MetaMask gostaria de coletar dados básicos de utilização para entender melhor como os usuários interagem com o aplicativo móvel. Esses dados serão usados para aprimorar continuamente a usabilidade e a experiência do usuário com o nosso produto.",
-    "description_content_2": "A MetaMask...",
-    "action_description_1": "Sempre permitirá que você revogue a permissão nas configurações",
-    "action_description_2": "Enviará eventos anonimizados de cliques e visualizações de páginas",
-    "action_description_3": "Enviará dados de país, região e cidade (localização não específica)",
-    "action_description_4": "Nunca coletará chaves, endereços, transações, saldos, códigos hash ou qualquer informação pessoal",
-    "action_description_5": "Nunca coletará seu endereço IP",
-    "action_description_6": "Nunca venderá dados com o intuito de lucrar. Jamais!"
-  },
   "token": {
     "token_symbol": "Símbolo do token",
     "token_address": "Endereço do token",

@@ -341,22 +341,6 @@
     "description": "İlerleyerek şu bölümleri kabul edersiniz: ",
     "terms": "Şart ve Koşullar"
   },
-  "privacy_policy": {
-    "title": "Gizlilik Politikası",
-    "description": "Bu veriler birleştirilmiştir, bu nedenle Genel Veri Koruma Yönetmeliği (AB) 2016/679 maksatlarıyla isimsizdir. Gizlilik uygulamalarımızla ilgili daha fazla bilgi için lütfen Gizlilik Politikası bölümümüze buradan",
-    "here": "bakın:",
-    "agree": "Kabul Ediyorum",
-    "decline": "Hayır, teşekkürler",
-    "description_title": "MetaMask'ı iyileştirmemize yardımcı olun",
-    "description_content_1": "MetaMask olarak kullanıcılarımızın mobil uygulama ile nasıl etkileşimde bulunduğunu daha iyi anlamak amacıyla temel kullanım verileri toplamak isteriz. Bu veriler ürünümüze ilişkin kullanılabilirliği ve kullanıcı deneyimini devamlı iyileştirmek amacıyla kullanılacaktır.",
-    "description_content_2": "MetaMask...",
-    "action_description_1": "Her zaman Ayarlar kısmından vazgeçebilmenize izin verir",
-    "action_description_2": "İsimsiz tıklama ve sayfa görüntüleme etkinlikleri gönderir",
-    "action_description_3": "Ülke, bölge, şehir (belirli bir konum değil) verileri gönderir",
-    "action_description_4": "Hiçbir zaman anahtar, adres, işlem, bakiye, hash veya kişisel bilgi toplamaz",
-    "action_description_5": "Hiçbir zaman IP adresinizi almaz",
-    "action_description_6": "Hiçbir zaman verileri kâr için satmaz. Asla!"
-  },
   "token": {
     "token_symbol": "Token Sembolü",
     "token_address": "Token Adresi",

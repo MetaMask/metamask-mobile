@@ -341,22 +341,6 @@
     "description": "Bằng cách tiếp tục, bạn đồng ý với ",
     "terms": "Điều khoản và Điều kiện"
   },
-  "privacy_policy": {
-    "title": "Chính sách Quyền riêng tư",
-    "description": "Dữ liệu này được tổng hợp và do đó được ẩn danh nhằm mục đích tuân thủ Quy định chung về Bảo vệ dữ liệu (EU) 2016/679. Để biết thêm thông tin liên quan đến phương pháp thực tiễn để bảo vệ quyền riêng tư của chúng tôi, vui lòng xem Chính sách Quyền riêng tư",
-    "here": "tại đây",
-    "agree": "Tôi đồng ý",
-    "decline": "Không, cảm ơn",
-    "description_title": "Giúp chúng tôi cải thiện MetaMask",
-    "description_content_1": "MetaMask muốn thu thập dữ liệu sử dụng cơ bản để hiểu rõ hơn cách người dùng tương tác với ứng dụng dành cho thiết bị di động. Dữ liệu này sẽ được dùng để liên tục cải thiện khả năng sử dụng và trải nghiệm người dùng đối với sản phẩm của chúng tôi.",
-    "description_content_2": "MetaMask sẽ...",
-    "action_description_1": "Luôn cho phép bạn chọn không tham gia thông qua phần Cài đặt",
-    "action_description_2": "Gửi các sự kiện nhấp chuột & lượt xem trang ẩn danh",
-    "action_description_3": "Gửi dữ liệu quốc gia, khu vực, thành phố (không phải vị trí cụ thể)",
-    "action_description_4": "Không bao giờ thu thập khóa, địa chỉ, giao dịch, số dư, mã băm hoặc bất kỳ thông tin cá nhân nào",
-    "action_description_5": "Không bao giờ thu thập địa chỉ IP của bạn",
-    "action_description_6": "Không bao giờ bán dữ liệu để kiếm lời. Không bao giờ!"
-  },
   "token": {
     "token_symbol": "Biểu tượng Token",
     "token_address": "Địa chỉ Token",
