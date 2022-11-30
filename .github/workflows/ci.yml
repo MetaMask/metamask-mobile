@@ -13,8 +13,6 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
       - run: yarn --immutable
-        # env:
-        #   YARN_CHECKSUM_BEHAVIOR: update
       - run: yarn setup
       - uses: actions/cache@v3
         id: restore-build
