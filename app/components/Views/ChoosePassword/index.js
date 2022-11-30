@@ -52,7 +52,7 @@ import {
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '@metamask/react-native-animated-fox';
 
 import {
   CREATE_PASSWORD_CONTAINER_ID,

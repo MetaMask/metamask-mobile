@@ -46,7 +46,7 @@ import {
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '@metamask/react-native-animated-fox';
 import {
   CREATE_PASSWORD_CONTAINER_ID,
   CREATE_PASSWORD_INPUT_BOX_ID,

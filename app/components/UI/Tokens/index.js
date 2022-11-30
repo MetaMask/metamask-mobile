@@ -9,7 +9,7 @@ import {
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,

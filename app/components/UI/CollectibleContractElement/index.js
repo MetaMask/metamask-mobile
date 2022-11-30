@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';

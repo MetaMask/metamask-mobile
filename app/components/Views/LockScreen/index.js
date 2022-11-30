@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import LottieView from 'lottie-react-native';
+import LottieView from '@metamask/lottie-react-native';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';

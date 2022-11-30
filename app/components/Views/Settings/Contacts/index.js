@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import AddressList from '../../SendFlow/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>

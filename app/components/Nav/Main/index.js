@@ -16,7 +16,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import PushNotification from 'react-native-push-notification';
+import PushNotification from '@metamask/react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';

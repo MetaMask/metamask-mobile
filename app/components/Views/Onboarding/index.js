@@ -21,7 +21,7 @@ import {
 } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
@@ -45,7 +45,7 @@ import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '@metamask/react-native-animated-fox';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {

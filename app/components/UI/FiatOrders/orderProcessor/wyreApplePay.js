@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import { PaymentRequest } from '@exodus/react-native-payments';
+import { PaymentRequest } from '@metamask/react-native-payments';
 import axios from 'axios';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';

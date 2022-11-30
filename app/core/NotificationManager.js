@@ -1,6 +1,6 @@
 'use strict';
 
-import PushNotification from 'react-native-push-notification';
+import PushNotification from '@metamask/react-native-push-notification';
 import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
 import { hexToBN, renderFromWei } from '../util/number';

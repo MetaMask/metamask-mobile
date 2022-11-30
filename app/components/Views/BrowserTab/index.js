@@ -39,7 +39,7 @@ import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
-import SearchApi from 'react-native-search-api';
+import SearchApi from '@metamask/react-native-search-api';
 import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';

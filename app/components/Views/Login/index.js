@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
@@ -45,7 +45,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '@metamask/react-native-animated-fox';
 import {
   LOGIN_PASSWORD_ERROR,
   RESET_WALLET_ID,
