@@ -310,6 +310,12 @@ function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
               .suggestedMaxPriorityFeePerGas,
         ),
       ),
+      estimatedBaseFee: addHexPrefix(
+        decGWEIToHexWEI(
+          estimates.estimatedBaseFee ||
+            estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET].estimatedBaseFee,
+        ),
+      ),
     };
   }
 
