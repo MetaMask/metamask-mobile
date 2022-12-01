@@ -336,7 +336,7 @@ class AuthenticationService {
       if (!password) await this.storePassword(password, this.authData.type);
       this.dispatchLogin();
     } catch (e: any) {
-      this.logout(false);
+      // this.logout(false);
       throw new AuthenticationError(
         e,
         'appTriggeredAuth failed to login',

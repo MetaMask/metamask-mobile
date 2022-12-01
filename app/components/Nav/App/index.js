@@ -160,7 +160,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
-  const [authCancelled, setAuthCancelled] = useState(false);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -173,23 +172,23 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
+      console.log('appTriggeredAuth');
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      console.log('appTriggeredAuth existingUser', existingUser);
       try {
         if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
         }
 
         //Cancel auth if the existing user has not been set
-        if (existingUser === null) setAuthCancelled(true);
       } catch (error) {
-        console.log('appTriggeredAuth');
+        console.log('appTriggeredAuth error  calling logout', error);
         await Authentication.logout(false);
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
           error?.message,
           `Unlock attempts: 1`,
         );
-        setAuthCancelled(true);
       } finally {
         authOnLoadAuthLock.current = true;
       }
@@ -279,20 +278,20 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   useEffect(() => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      console.log('Nav/App checkExisting existingUser', existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
     checkExisting();
-  }, [userLoggedIn, authCancelled]);
+  }, [userLoggedIn]);
 
   useEffect(() => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         console.log('startApp');
-        // await Authentication.logout(false);
         const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
@@ -405,6 +404,11 @@ const App = ({ selectedAddress, userLoggedIn }) => {
               animationEnabled: false,
             }}
           >
+            <Stack.Screen
+              name="OnboardingRootNav"
+              component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
             {userLoggedIn ? (
               <Stack.Screen
                 name="HomeNav"
@@ -418,11 +422,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
                 options={{ headerShown: false }}
               />
             )}
-            <Stack.Screen
-              name="OnboardingRootNav"
-              component={OnboardingRootNav}
-              options={{ headerShown: false }}
-            />
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
