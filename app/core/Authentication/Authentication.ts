@@ -53,7 +53,6 @@ class AuthenticationService {
     if (this.store) {
       console.log('Authentication dispatchLogin');
       this.store.dispatch(logIn());
-      navigation.replace('HomeNav');
     } else {
       console.log('Authentication dispatchLogin');
       Logger.log(
@@ -311,18 +310,16 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
     selectedAddress: string,
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     try {
       console.log('userEntryAuth');
       await this.loginVaultCreation(password, selectedAddress);
       await this.storePassword(password, authData.type);
       this.dispatchLogin();
       this.authData = authData;
-      return true;
     } catch (e: any) {
       console.log('userEntryAuth', e);
       this.logout(false);
-      return false;
       throw new AuthenticationError(e, 'Failed to login', this.authData);
     }
   };

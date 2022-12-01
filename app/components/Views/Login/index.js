@@ -294,19 +294,28 @@ class Login extends PureComponent {
     if (locked) this.setState({ error: strings('login.invalid_password') });
     if (this.state.loading || locked) return;
 
+    this.setState({ loading: true, error: null });
     const authType = await Authentication.componentAuthenticationType(
       this.state.biometryChoice,
       this.state.rememberMe,
     );
 
     try {
-      const isLoggedIn = await Authentication.userEntryAuth(
+      await Authentication.userEntryAuth(
         password,
         authType,
         this.props.selectedAddress,
       );
+      // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-      if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
+      if (onboardingWizard) {
+        console.log('onLogin onboardingWizard');
+        this.props.navigation.replace('HomeNav');
+      } else {
+        console.log('onLogin onboardingWizard setOnboardingWizardStep(1)');
+        this.props.setOnboardingWizardStep(1);
+        this.props.navigation.replace('HomeNav');
+      }
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       this.setState({
         loading: false,
@@ -352,7 +361,6 @@ class Login extends PureComponent {
   };
 
   tryBiometric = async (e) => {
-    console.log('tryBiometric', e);
     if (e) e.preventDefault();
     const { current: field } = this.fieldRef;
     field?.blur();

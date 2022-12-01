@@ -405,11 +405,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
               animationEnabled: false,
             }}
           >
-            <Stack.Screen
-              name="OnboardingRootNav"
-              component={OnboardingRootNav}
-              options={{ headerShown: false }}
-            />
             {userLoggedIn ? (
               <Stack.Screen
                 name="HomeNav"
@@ -423,6 +418,11 @@ const App = ({ selectedAddress, userLoggedIn }) => {
                 options={{ headerShown: false }}
               />
             )}
+            <Stack.Screen
+              name="OnboardingRootNav"
+              component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
