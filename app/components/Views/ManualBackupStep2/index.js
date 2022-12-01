@@ -19,6 +19,10 @@ import { shuffle, compareSRPs } from '../../../util/SRP';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
+import {
+  MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON,
+  PROTECT_YOUR_ACCOUNT_SCREEN,
+} from './../../../constants/test-ids';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -225,14 +229,14 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         />
       </View>
       <ActionView
-        confirmTestID={'manual-backup-step-2-continue-button'}
+        confirmTestID={MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_2.complete')}
         onConfirmPress={goNext}
         confirmDisabled={!seedPhraseReady || !validateWords()}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View style={styles.wrapper} testID={PROTECT_YOUR_ACCOUNT_SCREEN}>
           <Text style={styles.action}>
             {strings('manual_backup_step_2.action')}
           </Text>
