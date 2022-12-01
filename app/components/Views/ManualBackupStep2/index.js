@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   InteractionManager,
   Alert,
@@ -108,7 +108,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     setSeedPhraseReady(findNextAvailableIndex() === -1);
   };
 
-  const validateWords = useCallback(() => {
+  const validateWords = useMemo(() => {
     const validWords = route.params?.words ?? [];
     const proposedWords = confirmedWords.map(
       (confirmedWord) => confirmedWord.word,
