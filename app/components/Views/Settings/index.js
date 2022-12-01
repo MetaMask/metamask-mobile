@@ -98,6 +98,9 @@ class Settings extends PureComponent {
   onPressContacts = () => {
     this.props.navigation.navigate('ContactsSettings');
   };
+  onPressAdvancedPrivacySettings = () => {
+    this.props.navigation.navigate('AdvancedPrivacySettings');
+  };
 
   render = () => {
     const { seedphraseBackedUp } = this.props;
@@ -140,6 +143,10 @@ class Settings extends PureComponent {
         <SettingsDrawer
           title={strings('app_settings.info_title')}
           onPress={this.onPressInfo}
+        />
+        <SettingsDrawer
+          title={'advanced privacy settings'}
+          onPress={this.onPressAdvancedPrivacySettings}
         />
       </ScrollView>
     );

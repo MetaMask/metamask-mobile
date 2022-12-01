@@ -2219,5 +2219,12 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.",
     "primary_action": "Enable automatic security checks",
     "secondary_action": "No thanks"
+  },
+  "advanced_privacy_settings":{
+    "third_party_services": "MetaMask uses third-party services to enhance product usability and safety. Learn more about privacy best practices.",
+    "rpc_provider_description": "We use Infura as our remote procedure call (RPC) provider, a node used to access the blockchain. We work with Infura to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our Privacy Policy to learn more about how Infura handles data.",
+    "ipfs_gateway_title": "Custom IPFS gateway",
+    "ipfs_gateway_description": "The IPFS gateway makes it possible for users to access and view data hosted by third parties. You can add a custom IPFS Gateway.",
+    "invalid_url": "Please insert a valid url"
   }
 }

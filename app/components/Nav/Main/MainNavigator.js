@@ -69,6 +69,7 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
+import AdvancedPrivacySettings from '../../Views/AdvancedPrivacySettings';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -311,6 +312,10 @@ const SettingsFlow = () => (
       name="ContactsSettings"
       component={Contacts}
       options={Contacts.navigationOptions}
+    />
+    <Stack.Screen
+      name="AdvancedPrivacySettings"
+      component={AdvancedPrivacySettings}
     />
     <Stack.Screen
       name="ContactForm"

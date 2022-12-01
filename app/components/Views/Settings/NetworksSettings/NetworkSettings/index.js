@@ -255,6 +255,9 @@ class NetworkSettings extends PureComponent {
     this.updateNavBar();
     const { route, frequentRpcList } = this.props;
     const network = route.params?.network;
+    const initialPage = route.params?.initialPage;
+    initialPage && this.tabView.goToPage(initialPage);
+
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
     // If no navigation param, user clicked on add network
