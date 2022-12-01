@@ -115,11 +115,10 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       marginVertical: 15,
     },
-    nickname: {
-      ...fontStyles.normal,
+    verifyContractLink: {
       textAlign: 'center',
       color: colors.primary.default,
-      marginBottom: 10,
+      marginVertical: 10,
     },
     actionIcon: {
       color: colors.primary.default,

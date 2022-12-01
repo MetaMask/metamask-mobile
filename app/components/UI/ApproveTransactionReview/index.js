@@ -54,6 +54,7 @@ import {
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -71,11 +72,11 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../selectors/networkController';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails'
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -241,6 +242,7 @@ class ApproveTransactionReview extends PureComponent {
     spendLimitCustomValue: undefined,
     ticker: getTicker(this.props.ticker),
     viewDetails: false,
+    showContractDetails: false,
     spenderAddress: '0x...',
     transaction: this.props.transaction,
     token: {},
@@ -441,6 +443,12 @@ class ApproveTransactionReview extends PureComponent {
     trackLegacyEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
     this.setState({ viewDetails: !viewDetails });
   };
+
+  showVerifyContractDetails = () => {
+    const { showContractDetails } = this.state;
+    // Analytics
+    this.setState({ showContractDetails: !showContractDetails });
+  }
 
   toggleEditPermission = () => {
     const { editPermissionVisible } = this.state;
@@ -667,6 +675,90 @@ class ApproveTransactionReview extends PureComponent {
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
+          <TransactionHeader
+            currentPageInformation={{
+              origin,
+              spenderAddress,
+              title: host,
+              url: activeTabUrl,
+            }}
+          />
+          <Text
+            variant={TextVariant.HeadingMD}
+            style={styles.title}
+            testID={'allow-access'}
+          >
+            {strings(
+              `spend_limit_edition.${
+                originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
+              }`,
+            )}{' '}
+            {!fetchingUpdateDone && (
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('spend_limit_edition.token')}
+              </Text>
+            )}
+            {tokenStandard === ERC20 && (
+              <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
+            )}
+            {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
+              <ButtonLink
+                onPress={showBlockExplorer}
+                label={
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    style={styles.buttonColor}
+                  >
+                    {tokenName ||
+                      tokenSymbol ||
+                      strings(`spend_limit_edition.nft`)}{' '}
+                    (#{tokenValue})
+                  </Text>
+                }
+              />
+            )}
+          </Text>
+
+          {tokenStandard !== ERC721 &&
+            tokenStandard !== ERC1155 &&
+            originalApproveAmount && (
+              <View style={styles.tokenAccess}>
+                <Text bold style={styles.tokenKey}>
+                  {` ${strings('spend_limit_edition.access_up_to')} `}
+                </Text>
+                <Text numberOfLines={4} style={styles.tokenValue}>
+                  {` ${
+                    customSpendAmount
+                      ? formatNumber(customSpendAmount)
+                      : originalApproveAmount &&
+                        formatNumber(originalApproveAmount)
+                  } ${tokenSymbol}`}
+                </Text>
+              </View>
+            )}
+
+          {fetchingUpdateDone &&
+            tokenStandard !== ERC721 &&
+            tokenStandard !== ERC1155 && (
+              <TouchableOpacity
+                style={styles.actionTouchable}
+                onPress={this.toggleEditPermission}
+              >
+                <Text reset style={styles.editPermissionText}>
+                  {strings('spend_limit_edition.edit_permission')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          <Text reset style={styles.explanation}>
+            {`${strings(
+              `spend_limit_edition.${
+                originIsDeeplink
+                  ? 'you_trust_this_address'
+                  : 'you_trust_this_site'
+              }`,
+            )}`}
+          </Text>
+          <ButtonLink variant={TextVariants.sBodyMD} onPress={this.showVerifyContractDetails} style={styles.verifyContractLink}>{strings('confirmation.token_allowance.verify_contract_details')}</ButtonLink>
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -896,6 +988,21 @@ class ApproveTransactionReview extends PureComponent {
     );
   };
 
+  renderVerifyContractDetails = () => {
+    const { transaction, providerType } = this.props;
+    const { transaction: {to} } = this.state;
+    
+    return (
+      <VerifyContractDetails
+        toggleViewDetails={this.showVerifyContractDetails}
+        address={this.state.transaction.to}
+        copyContractAddress={this.copyContractAddress}
+        providerType={providerType}
+        contractName={this.props.nicknameExists}
+      />
+    );
+  };
+
   buyEth = () => {
     const { navigation } = this.props;
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
@@ -961,12 +1068,14 @@ class ApproveTransactionReview extends PureComponent {
   }
 
   render = () => {
-    const { viewDetails, editPermissionVisible } = this.state;
+    const { viewDetails, editPermissionVisible, showContractDetails } = this.state;
     const { isSigningQRObject } = this.props;
     return (
       <View>
         {viewDetails
           ? this.renderTransactionReview()
+          : showContractDetails
+          ? this.renderVerifyContractDetails()
           : editPermissionVisible
           ? this.renderEditPermission()
           : isSigningQRObject

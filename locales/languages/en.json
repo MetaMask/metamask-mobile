@@ -2276,6 +2276,13 @@
       "set_spend_cap": "Set a spending cap",
       "be_careful": "Be careful",
       "error_enter_number": "Error: Enter only numbers"
+    },
+    "token_allowance": {
+      "verify_contract_details": "Verify contract details",
+      "contract_requesting_title": "Contract requesting spending cap",
+      "token_contract": "Token contract",
+      "protect_from_scams": "To protect yourself against scammers, take a moment to verify contract details.",
+      "learn_to_verify": "Learn how to verify contract details"
     }
   },
   "restore_wallet": {

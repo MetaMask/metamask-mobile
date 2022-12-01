@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
 import WebviewProgressBar from '../../../UI/WebviewProgressBar';
 import {
   getEtherscanAddressUrl,
@@ -58,7 +58,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   );
 
   return (
-    <>
+    <SafeAreaView style={{backgroundColor: 'red',}}>
       <View style={headerWrapperStyle}>
         <Text bold style={headerTextStyle}>
           {etherscan_url}
@@ -72,7 +72,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
       </View>
       <WebView source={{ uri: url }} onLoadProgress={onLoadProgress} />
       {renderProgressBar()}
-    </>
+    </SafeAreaView>
   );
 };
 

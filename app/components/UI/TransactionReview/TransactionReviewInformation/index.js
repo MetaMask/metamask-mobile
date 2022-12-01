@@ -644,6 +644,8 @@ class TransactionReviewInformation extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
+      console.log('called', this.props.transaction)
+
     return (
       <React.Fragment>
         {nonceModalVisible && this.renderCustomNonceModal()}

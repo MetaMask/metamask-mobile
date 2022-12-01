@@ -134,6 +134,8 @@ const AddNickname = (props: AddNicknameProps) => {
     },
   } = props;
 
+  // console.log(props.networkState.provider);
+
   const [newNickname, setNewNickname] = useState(nickname);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
@@ -175,6 +177,7 @@ const AddNickname = (props: AddNicknameProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
+
       {isBlockExplorerVisible ? (
         <ShowBlockExplorer
           setIsBlockExplorerVisible={setIsBlockExplorerVisible}
