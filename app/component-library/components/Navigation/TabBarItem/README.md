@@ -20,7 +20,7 @@ Icon of the tab item.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icon/Icon.types.ts#L53)               | Yes                                                     |
+| [IconNames](../Icon/Icon.types.ts#L53)               | Yes                                                     |
 
 ### `isSelected`
 

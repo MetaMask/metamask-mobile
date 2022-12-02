@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../Icon';
+import { IconNames } from '../Icons/Icon';
 
 // Internal dependencies.
 import Checkbox from './Checkbox';
@@ -20,8 +20,8 @@ describe('Checkbox', () => {
     const iconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
-    const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconName.CheckBoxOnFilled);
+    const IconNames = iconComponent.props().name;
+    expect(IconNames).toBe(IconNames.CheckBoxOn);
   });
 
   it('should render correct icon when not selected', () => {
@@ -29,7 +29,7 @@ describe('Checkbox', () => {
     const iconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
-    const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconName.CheckBoxOffOutline);
+    const IconNames = iconComponent.props().name;
+    expect(IconNames).toBe(IconNames.CheckBoxOff);
   });
 });

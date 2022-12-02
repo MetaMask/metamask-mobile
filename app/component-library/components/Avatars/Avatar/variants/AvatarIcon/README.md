@@ -12,7 +12,7 @@ Name of icon to use.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icon/Icon.types.ts#L53)               | Yes                                                     |
+| [IconNames](../Icon/Icon.types.ts#L53)               | Yes                                                     |
 
 ## Usage
 
@@ -22,7 +22,7 @@ import AvatarIcon, {
   AvatarIcon,
 } from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconNames } from 'app/component-library/components/Icon';
 
-<AvatarIcon size={AvatarSize.Md} name={IconName.BankFilled} />;
+<AvatarIcon size={AvatarSize.Md} name={IconNames.Bank} />;
 ```

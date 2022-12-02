@@ -20,7 +20,7 @@ Icon to use.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](./Icon.types.ts#L53)                     | Yes                                                     |
+| [IconNames](./Icon.types.ts#L53)                     | Yes                                                     |
 
 ### `color`
 
@@ -34,8 +34,8 @@ Color to apply to the icon. Defaults to `icon.default` from theme.
 // Replace import with relative path.
 import Icon, {
   IconSize,
-  IconName,
+  IconNames,
 } from 'app/component-library/components/Icon';
 
-<Icon name={IconName.BankFilled} size={IconSize.Md} color={ICON_COLOR} />;
+<Icon name={IconNames.Bank} size={IconSize.Md} color={ICON_COLOR} />;
 ```

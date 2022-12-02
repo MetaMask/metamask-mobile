@@ -93,7 +93,7 @@ const main = async () => {
     TYPES_CONTENT_TO_DETECT +
     `\n///////////////////////////////////////////////////////`;
 
-  typesContentToWrite += '\n\n/**\n * Icon names\n */\nexport enum IconName {';
+  typesContentToWrite += '\n\n/**\n * Icon names\n */\nexport enum IconNames {';
 
   assetFileList.forEach((fileName) => {
     const iconName = path

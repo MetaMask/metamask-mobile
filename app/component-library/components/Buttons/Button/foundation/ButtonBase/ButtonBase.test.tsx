@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../../../Icon';
+import { IconNames } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonBase from './ButtonBase';
@@ -13,7 +13,7 @@ describe('ButtonBase', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonBase
-        iconName={IconName.BankFilled}
+        IconNames={IconNames.Bank}
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}

@@ -2,7 +2,7 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../../../Icon/Icon.types';
+import { IconProps } from '../../../../Icons/Icon/Icon.types';
 import { ButtonVariants } from '../../Button.types';
 
 export enum ButtonIconVariants {
@@ -17,7 +17,7 @@ export interface ButtonIconProps extends TouchableOpacityProps {
   /**
    * Icon name of the icon that will be displayed.
    */
-  iconName: IconProps['name'];
+  IconNames: IconProps['name'];
   /**
    * Function to trigger when pressed.
    */

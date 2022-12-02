@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Icon, { IconSize } from '../../../../Icon';
+import Icon, { IconSize } from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -13,7 +13,7 @@ import { ButtonIconProps, ButtonIconVariants } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
 
 const ButtonIcon = ({
-  iconName,
+  IconNames,
   buttonIconVariants = ButtonIconVariants.Primary,
   disabled,
   onPressIn,
@@ -67,7 +67,7 @@ const ButtonIcon = ({
       activeOpacity={1}
       {...props}
     >
-      <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
+      <Icon name={IconNames} size={IconSize.Lg} color={iconColor} />
     </TouchableOpacity>
   );
 };

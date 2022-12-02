@@ -2,7 +2,7 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../../../Icon';
+import { IconProps } from '../../../../Icons/Icon';
 import { ButtonSize, ButtonVariants } from '../../Button.types';
 
 /**
@@ -24,7 +24,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   /**
    * Icon name of the icon that will be displayed.
    */
-  iconName?: IconProps['name'];
+  IconNames?: IconProps['name'];
   /**
    * Size of the button.
    */

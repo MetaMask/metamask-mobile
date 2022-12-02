@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Text, { TextVariants } from '../../../../Texts/Text';
-import Icon, { IconSize } from '../../../../Icon';
+import Icon, { IconSize } from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -16,7 +16,7 @@ import styleSheet from './ButtonBase.styles';
 
 const ButtonBase = ({
   label,
-  iconName,
+  IconNames,
   size = ButtonSize.Md,
   onPress,
   style,
@@ -31,10 +31,10 @@ const ButtonBase = ({
       style={styles.base}
       {...props}
     >
-      {iconName && (
+      {IconNames && (
         <Icon
           color={labelColor}
-          name={iconName}
+          name={IconNames}
           size={IconSize.Sm}
           style={styles.icon}
         />

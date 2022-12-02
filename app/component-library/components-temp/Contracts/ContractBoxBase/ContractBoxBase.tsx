@@ -9,7 +9,7 @@ import Avatar, {
 } from '../../../components/Avatars/Avatar';
 import Text, { TextVariants } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName, IconSize } from '../../../components/Icon';
+import Icon, { IconNames, IconSize } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -64,13 +64,13 @@ const ContractBoxBase = ({
       <View style={styles.iconContainer}>
         <IconView
           onPress={onCopyAddress}
-          name={IconName.CopyFilled}
+          name={IconNames.Copy}
           size={IconSize.Lg}
           testID={COPY_ICON_TEST_ID}
         />
         <IconView
           onPress={onExportAddress}
-          name={IconName.ExportOutline}
+          name={IconNames.Export}
           size={IconSize.Md}
           testID={EXPORT_ICON_TEST_ID}
         />

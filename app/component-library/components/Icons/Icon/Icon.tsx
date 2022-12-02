@@ -4,12 +4,12 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../hooks/useStyles';
+import { useStyles } from '../../../hooks/useStyles';
 
 // Internal dependencies.
 import { IconProps, IconSize } from './Icon.types';
 import styleSheet from './Icon.styles';
-import { assetByIconName } from './Icon.assets';
+import { assetByIconNames } from './Icon.assets';
 
 const Icon = ({
   size = IconSize.Md,
@@ -23,7 +23,7 @@ const Icon = ({
     style,
   });
   const iconColor = color || theme.colors.icon.default;
-  const SVG = assetByIconName[name];
+  const SVG = assetByIconNames[name];
   const sizeAsNum = Number(size);
 
   return (

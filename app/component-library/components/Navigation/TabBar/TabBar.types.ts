@@ -5,7 +5,7 @@ import {
 } from '@react-navigation/bottom-tabs';
 
 // External dependencies.
-import { IconName } from '../../Icon';
+import { IconNames } from '../../Icons/Icon';
 
 /**
  * Enum for supported tab bar labels.
@@ -19,7 +19,7 @@ export enum TabBarLabel {
  * Mapping of icon name by tab bar label.
  */
 export type IconByTabBarLabel = {
-  [key in TabBarLabel]: IconName;
+  [key in TabBarLabel]: IconNames;
 };
 
 /**
