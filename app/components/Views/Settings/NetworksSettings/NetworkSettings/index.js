@@ -39,7 +39,12 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { MAINNET, PRIVATENETWORK, RPC } from '../../../../../constants/network';
+import {
+  DEFAULT_MAINNET_NAME,
+  MAINNET,
+  PRIVATENETWORK,
+  RPC,
+} from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl from '../../../../../util/sanitizeUrl';
@@ -258,10 +263,13 @@ class NetworkSettings extends PureComponent {
 
   updateNavBar = () => {
     const { navigation, route } = this.props;
+    const isRPCUpdate = route.params?.isRPCUpdate;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getNavigationOptionsTitle(
-        strings('app_settings.networks_title'),
+        isRPCUpdate
+          ? strings('app_settings.networks_default_title')
+          : strings('app_settings.networks_title'),
         navigation,
         route?.params?.isFullScreenModal,
         colors,
@@ -272,6 +280,7 @@ class NetworkSettings extends PureComponent {
   componentDidMount = () => {
     this.updateNavBar();
     const { route, frequentRpcList } = this.props;
+    const isRPCUpdate = route.params?.isRPCUpdate;
     const network = route.params?.network;
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
@@ -297,6 +306,11 @@ class NetworkSettings extends PureComponent {
         ticker = networkInformation.ticker;
         editable = true;
         rpcUrl = network;
+      }
+      // Override values if UI is
+      if (isRPCUpdate) {
+        nickname = DEFAULT_MAINNET_NAME;
+        rpcUrl = '';
       }
       const initialState =
         rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
@@ -442,7 +456,9 @@ class NetworkSettings extends PureComponent {
       enableAction,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState } = this.props;
+    const { navigation, networkOnboardedState, route } = this.props;
+    const isRPCUpdate = route.params?.isRPCUpdate;
+
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
@@ -464,7 +480,8 @@ class NetworkSettings extends PureComponent {
     const nativeToken = ticker || PRIVATENETWORK;
     const networkType = nickname || rpcUrl;
     const networkUrl = sanitizeUrl(rpcUrl);
-    const showNetworkOnboarding = isOnboarded;
+    // Prevent the network switch modal from showing post onboarding.
+    const showNetworkOnboarding = isRPCUpdate ? false : isOnboarded;
 
     const formChainId = stateChainId.trim().toLowerCase();
 
@@ -519,7 +536,9 @@ class NetworkSettings extends PureComponent {
         nativeToken,
         showNetworkOnboarding,
       });
-      navigation.navigate('WalletView');
+      isRPCUpdate
+        ? navigation.navigate('OptinMetrics')
+        : navigation.navigate('WalletView');
     }
   };
 
@@ -656,7 +675,12 @@ class NetworkSettings extends PureComponent {
   };
 
   onRpcUrlChange = async (url) => {
-    await this.setState({ rpcUrl: url, validatedRpcURL: false });
+    await this.setState({
+      rpcUrl: url,
+      validatedRpcURL: false,
+      warningRpcUrl: undefined,
+      warningChainId: undefined,
+    });
     this.getCurrentState();
   };
 
@@ -752,10 +776,10 @@ class NetworkSettings extends PureComponent {
       inputWidth,
       isRPCUpdate ? styles.onboardingInput : undefined,
     ];
-    const isEditable = isRPCUpdate || editable;
-    const isRPCActionDisabled =
-      this.disabledByRpcUrl() || this.disabledByChainId();
-    const rpcActionStyle = isRPCActionDisabled
+    const isRPCEditable = isRPCUpdate || editable;
+    const isActionDisabled =
+      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+    const rpcActionStyle = isActionDisabled
       ? { ...styles.button, ...styles.disabledButton }
       : styles.button;
 
@@ -794,7 +818,7 @@ class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
-              editable={isEditable}
+              editable={isRPCEditable}
               onChangeText={this.onRpcUrlChange}
               onBlur={this.validateRpcUrl}
               placeholder={strings('app_settings.network_rpc_placeholder')}
@@ -875,14 +899,11 @@ class NetworkSettings extends PureComponent {
           {isRPCUpdate ? (
             <Button
               variant={ButtonVariants.Primary}
-              onPress={() => {
-                // TODO: Update RPC URL of Mainnet
-                // this.addRpcUrl();
-              }}
+              onPress={this.addRpcUrl}
               style={rpcActionStyle}
-              label={strings('app_settings.network_save')}
+              label={strings('app_settings.networks_default_cta')}
               size={ButtonSize.Lg}
-              disabled={isRPCActionDisabled}
+              disabled={isActionDisabled}
             />
           ) : (
             (addMode || editable) && (
@@ -904,11 +925,7 @@ class NetworkSettings extends PureComponent {
                       onPress={this.addRpcUrl}
                       testID={ADD_NETWORKS_ID}
                       containerStyle={[styles.button, styles.confirm]}
-                      disabled={
-                        !enableAction ||
-                        this.disabledByRpcUrl() ||
-                        this.disabledByChainId()
-                      }
+                      disabled={isActionDisabled}
                     >
                       {strings('app_settings.network_save')}
                     </StyledButton>
@@ -920,11 +937,7 @@ class NetworkSettings extends PureComponent {
                       onPress={this.addRpcUrl}
                       testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
                       containerStyle={styles.syncConfirm}
-                      disabled={
-                        !enableAction ||
-                        this.disabledByRpcUrl() ||
-                        this.disabledByChainId()
-                      }
+                      disabled={isActionDisabled}
                     >
                       {strings('app_settings.network_add')}
                     </StyledButton>

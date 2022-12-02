@@ -568,6 +568,8 @@
     "back": "Back",
     "security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",
     "networks_title": "Networks",
+    "networks_default_title": "Default Network",
+    "networks_default_cta": "Use this network",
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",

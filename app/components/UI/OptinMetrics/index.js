@@ -45,6 +45,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import { MAINNET } from '../../../constants/network';
 
 const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
@@ -147,7 +148,7 @@ class OptinMetrics extends PureComponent {
     const { navigation } = this.props;
     // TODO: Need network
     navigation.navigate('NetworkSettings', {
-      network: 'mainnet',
+      network: MAINNET,
       isRPCUpdate: true,
     });
   };
