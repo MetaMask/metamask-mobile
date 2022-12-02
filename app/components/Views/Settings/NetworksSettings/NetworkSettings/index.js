@@ -40,7 +40,7 @@ import PopularList from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
-  DEFAULT_MAINNET_NAME,
+  DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
   PRIVATENETWORK,
   RPC,
@@ -309,7 +309,7 @@ class NetworkSettings extends PureComponent {
       }
       // Override values if UI is
       if (isRPCUpdate) {
-        nickname = DEFAULT_MAINNET_NAME;
+        nickname = DEFAULT_MAINNET_CUSTOM_NAME;
         rpcUrl = '';
       }
       const initialState =
