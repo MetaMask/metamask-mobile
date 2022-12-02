@@ -36,7 +36,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { MAINNET, PRIVATENETWORK, RPC } from '../../../../../constants/network';
+import { MAINNET, PRIVATENETWORK } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl from '../../../../../util/sanitizeUrl';
@@ -487,7 +487,6 @@ class NetworkSettings extends PureComponent {
         chain_id: decimalChainId,
         source: 'Custom network form',
         symbol: ticker,
-        network_name: nickname || RPC,
       };
       AnalyticsV2.trackEvent(
         AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,

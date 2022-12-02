@@ -200,7 +200,6 @@ export class NetworkList extends PureComponent {
       }, 1000);
 
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
-      network_name: type,
       chain_id: String(Networks[type].chainId),
       source: 'Settings',
     });
@@ -234,7 +233,6 @@ export class NetworkList extends PureComponent {
       chain_id: chainId,
       source: 'Settings',
       symbol: ticker,
-      network_name: 'rpc',
     });
   };
 
