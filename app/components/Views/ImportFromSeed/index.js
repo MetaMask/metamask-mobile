@@ -54,6 +54,7 @@ import {
   EXISTING_USER,
   TRUE,
 } from '../../../constants/storage';
+import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
@@ -215,10 +216,12 @@ const ImportFromSeed = ({
           );
         });
         if (onboardingWizard) {
-          navigation.replace('ManualBackupStep3');
+          navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
         } else {
           setOnboardingWizardStep(1);
-          navigation.replace('HomeNav', { screen: 'WalletView' });
+          navigation.replace(Routes.ONBOARDING.HOME_NAV, {
+            screen: Routes.WALLET_VIEW,
+          });
         }
         await importAdditionalAccounts();
       } catch (error) {
@@ -328,7 +331,7 @@ const ImportFromSeed = ({
 
   const onQrCodePress = () => {
     setTimeout(toggleHideSeedPhraseInput, 100);
-    navigation.navigate('QRScanner', {
+    navigation.navigate(Routes.QR_SCANNER, {
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           setSeed(seed);
