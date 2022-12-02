@@ -419,7 +419,7 @@ app:
       VERSION_NAME: 5.12.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1023
+      VERSION_NUMBER: 1024
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
