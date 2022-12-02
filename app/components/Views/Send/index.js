@@ -272,12 +272,14 @@ class Send extends PureComponent {
     if (isENS(recipient)) {
       ensRecipient = recipient;
       to = await doENSLookup(ensRecipient, this.props.network);
-    } else if (
+    }
+    if (
       recipient &&
       isValidHexAddress(recipient, { mixedCaseUseChecksum: true })
     ) {
       to = recipient;
-    } else {
+    }
+    if (!to) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
         duration: 5000,
