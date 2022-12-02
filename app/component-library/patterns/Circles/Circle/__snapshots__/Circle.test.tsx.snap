@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CirclePattern - Snapshot should render CirclePattern correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "borderRadius": 16,
+      "height": 32,
+      "justifyContent": "center",
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
+  testID="circle"
+>
+  <View />
+</View>
+`;
