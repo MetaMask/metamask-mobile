@@ -23,7 +23,11 @@ import CardPos from './assets/card-pos.svg';
 import CardToken from './assets/card-token.svg';
 import Card from './assets/card.svg';
 import Category from './assets/category.svg';
+import Chart2 from './assets/chart-2.svg';
 import Chart from './assets/chart.svg';
+import CheckBoxOff from './assets/check-box-off.svg';
+import CheckBoxOn from './assets/check-box-on.svg';
+import CheckCircleOff from './assets/check-circle-off.svg';
 import Check from './assets/check.svg';
 import Clock from './assets/clock.svg';
 import Close from './assets/close.svg';
@@ -33,6 +37,7 @@ import Confirmation from './assets/confirmation.svg';
 import Connect from './assets/connect.svg';
 import CopySuccess from './assets/copy-success.svg';
 import Copy from './assets/copy.svg';
+import Customize from './assets/customize.svg';
 import Danger from './assets/danger.svg';
 import Dark from './assets/dark.svg';
 import Data from './assets/data.svg';
@@ -54,6 +59,7 @@ import Gas from './assets/gas.svg';
 import GlobalSearch from './assets/global-search.svg';
 import Global from './assets/global.svg';
 import Graph from './assets/graph.svg';
+import Hardware from './assets/hardware.svg';
 import Heart from './assets/heart.svg';
 import Hierarchy from './assets/hierarchy.svg';
 import Home from './assets/home.svg';
@@ -61,6 +67,7 @@ import Import from './assets/import.svg';
 import Info from './assets/info.svg';
 import Key from './assets/key.svg';
 import Light from './assets/light.svg';
+import Link2 from './assets/link-2.svg';
 import Link from './assets/link.svg';
 import Loading from './assets/loading.svg';
 import LockCircle from './assets/lock-circle.svg';
@@ -119,8 +126,13 @@ import Timer from './assets/timer.svg';
 import Trash from './assets/trash.svg';
 import TrendDown from './assets/trend-down.svg';
 import TrendUp from './assets/trend-up.svg';
+import UserAdd from './assets/user-add.svg';
 import UserCircleAdd from './assets/user-circle-add.svg';
 import UserCircle from './assets/user-circle.svg';
+import UserMinus from './assets/user-minus.svg';
+import UserRemove from './assets/user-remove.svg';
+import UserSearch from './assets/user-search.svg';
+import UserTick from './assets/user-tick.svg';
 import User from './assets/user.svg';
 import WalletCard from './assets/wallet-card.svg';
 import WalletMoney from './assets/wallet-money.svg';
@@ -150,7 +162,11 @@ export const assetByIconName: AssetByIconName = {
   [IconName.CardToken]: CardToken,
   [IconName.Card]: Card,
   [IconName.Category]: Category,
+  [IconName.Chart2]: Chart2,
   [IconName.Chart]: Chart,
+  [IconName.CheckBoxOff]: CheckBoxOff,
+  [IconName.CheckBoxOn]: CheckBoxOn,
+  [IconName.CheckCircleOff]: CheckCircleOff,
   [IconName.Check]: Check,
   [IconName.Clock]: Clock,
   [IconName.Close]: Close,
@@ -160,6 +176,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Connect]: Connect,
   [IconName.CopySuccess]: CopySuccess,
   [IconName.Copy]: Copy,
+  [IconName.Customize]: Customize,
   [IconName.Danger]: Danger,
   [IconName.Dark]: Dark,
   [IconName.Data]: Data,
@@ -181,6 +198,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.GlobalSearch]: GlobalSearch,
   [IconName.Global]: Global,
   [IconName.Graph]: Graph,
+  [IconName.Hardware]: Hardware,
   [IconName.Heart]: Heart,
   [IconName.Hierarchy]: Hierarchy,
   [IconName.Home]: Home,
@@ -188,6 +206,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Info]: Info,
   [IconName.Key]: Key,
   [IconName.Light]: Light,
+  [IconName.Link2]: Link2,
   [IconName.Link]: Link,
   [IconName.Loading]: Loading,
   [IconName.LockCircle]: LockCircle,
@@ -246,8 +265,13 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Trash]: Trash,
   [IconName.TrendDown]: TrendDown,
   [IconName.TrendUp]: TrendUp,
+  [IconName.UserAdd]: UserAdd,
   [IconName.UserCircleAdd]: UserCircleAdd,
   [IconName.UserCircle]: UserCircle,
+  [IconName.UserMinus]: UserMinus,
+  [IconName.UserRemove]: UserRemove,
+  [IconName.UserSearch]: UserSearch,
+  [IconName.UserTick]: UserTick,
   [IconName.User]: User,
   [IconName.WalletCard]: WalletCard,
   [IconName.WalletMoney]: WalletMoney,
