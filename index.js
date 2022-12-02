@@ -10,7 +10,7 @@ import { setupSentry } from './app/util/sentryUtils';
 setupSentry();
 
 import { AppRegistry, LogBox } from 'react-native';
-import Root from './app/components/Views/Root';
+
 import { name } from './app.json';
 
 // List of warnings that we're ignoring
@@ -62,10 +62,10 @@ LogBox.ignoreLogs([
 ]);
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
+import Storybook from './storybook';
+AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Root);
+// AppRegistry.registerComponent(name, () => Root);

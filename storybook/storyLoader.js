@@ -55,6 +55,7 @@ function loadStories() {
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
+  require('../app/component-library/components-temp/ModalContactRequest/ModalContactRequest.stories');
 }
 
 const stories = [
@@ -109,6 +110,7 @@ const stories = [
   '../app/components/UI/WarningAlert/WarningAlert.stories',
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
+  '../app/component-library/components-temp/ModalContactRequest/ModalContactRequest.stories',
 ];
 
 module.exports = {
