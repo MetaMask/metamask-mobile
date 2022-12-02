@@ -103,6 +103,9 @@ const createStyles = ({ colors, typography }) =>
       flexDirection: 'row',
       padding: 16,
     },
+    disabledActionContainer: {
+      opacity: 0.3,
+    },
     button: {
       flex: 1,
     },
@@ -143,6 +146,24 @@ class OptinMetrics extends PureComponent {
      */
     route: PropTypes.object,
   };
+
+  state = {
+    /**
+     * Used to control the action buttons state.
+     */
+    isActionEnabled: false,
+  };
+
+  /**
+   * Tracks when scroll view has scrolled to end.
+   * Needed to prevent scroll event from setting state multiple times.
+   */
+  isEndReached = false;
+
+  /**
+   * Tracks the scroll view's content height.
+   */
+  scrollViewContentHeight = undefined;
 
   openRPCSettings = () => {
     const { navigation } = this.props;
@@ -365,10 +386,16 @@ class OptinMetrics extends PureComponent {
   };
 
   renderActionButtons = () => {
+    const { isActionEnabled } = this.state;
     const styles = this.getStyles();
+    // Once buttons are refactored, it should auto handle disabled colors.
+    const buttonContainerStyle = [
+      styles.actionContainer,
+      isActionEnabled ? undefined : styles.disabledActionContainer,
+    ];
 
     return (
-      <View style={styles.actionContainer}>
+      <View style={buttonContainerStyle}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -376,6 +403,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.dont_share_data')}
           size={ButtonSize.Lg}
+          disabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -383,11 +411,58 @@ class OptinMetrics extends PureComponent {
           onPress={this.onConfirm}
           testID={OPTIN_METRICS_I_AGREE_BUTTON_ID}
           style={styles.button}
-          label={strings('privacy_policy.dont_share_data')}
+          label={strings('privacy_policy.share_data')}
           size={ButtonSize.Lg}
+          disabled={!isActionEnabled}
         />
       </View>
     );
+  };
+
+  /**
+   * Triggered when scroll view has reached end of content.
+   */
+  onScrollEndReached = () => {
+    this.isEndReached = true;
+    this.setState({ isActionEnabled: true });
+  };
+
+  /**
+   * Content size change event for the ScrollView.
+   *
+   * @param {number} _
+   * @param {number} height
+   */
+  onContentSizeChange = (_, height) => (this.scrollViewContentHeight = height);
+
+  /**
+   * Layout event for the ScrollView.
+   *
+   * @param {Object} event
+   */
+  onLayout = ({ nativeEvent }) => {
+    if (this.scrollViewContentHeight === undefined || this.isEndReached) return;
+    const scrollViewHeight = nativeEvent.layout.height;
+    // Check if content fits view port of scroll view.
+    if (scrollViewHeight >= this.scrollViewContentHeight)
+      this.onScrollEndReached();
+  };
+
+  /**
+   * Scroll event for the ScrollView.
+   *
+   * @param {Object} event
+   */
+  onScroll = ({ nativeEvent }) => {
+    if (this.isEndReached) return;
+    const currentYOffset = nativeEvent.contentOffset.y;
+    const paddingAllowance = 16;
+    const endThreshold =
+      nativeEvent.contentSize.height -
+      nativeEvent.layoutMeasurement.height -
+      paddingAllowance;
+    // Check when scroll has reached the end.
+    if (currentYOffset >= endThreshold) this.onScrollEndReached();
   };
 
   render() {
@@ -395,7 +470,13 @@ class OptinMetrics extends PureComponent {
 
     return (
       <SafeAreaView style={styles.root} testID={'metaMetrics-OptIn'}>
-        <ScrollView style={styles.root}>
+        <ScrollView
+          style={styles.root}
+          scrollEventThrottle={150}
+          onContentSizeChange={this.onContentSizeChange}
+          onLayout={this.onLayout}
+          onScroll={this.onScroll}
+        >
           <View style={styles.wrapper}>
             <Text
               style={styles.title}

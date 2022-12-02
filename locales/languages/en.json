@@ -389,7 +389,7 @@
     "action_title_1": "Anonymous",
     "action_description_1": "We only collect relevant data like your country, but not your specific location. Your clicks and page views are anonymous.",
     "action_title_2": "Private",
-    "action_description_2a": "MetaMask never collects keys, transactions, your full IP address, or any personal information. However, we link to third-party service providers who might collect this information. For example, RPC providers collect your IP address when you send a transaction. Infura is the default RPC for MetaMask. You can change this to another provider in",
+    "action_description_2a": "MetaMask never collects keys, transaction hashes, your full IP address, or any personal information. However, we link to third-party service providers who might collect this information. For example, RPC providers collect your IP address when you send a transaction. Infura is the default RPC for MetaMask. You can change this to another provider in",
     "action_description_2b": "settings",
     "action_description_2c": "We will never sell your data for profit. Ever!",
     "action_title_3": "Optional",
