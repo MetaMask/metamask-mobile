@@ -65,8 +65,9 @@ function usePaymentMethods() {
       !isFilterLoading &&
       !error &&
       paymentMethods &&
-      allowedMethodIds.length
+      allowedMethodIds
     ) {
+      if (allowedMethodIds.length === 0) return [];
       return paymentMethods.filter((method) =>
         allowedMethodIds.includes(method.id),
       );
