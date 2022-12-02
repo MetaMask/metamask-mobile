@@ -50,7 +50,7 @@ const main = async () => {
   );
   fs.appendFileSync(
     assetsModulePath,
-    `\nimport { AssetByIconName, IconName } from './Icon.types';`,
+    `\nimport { AssetByIconName, IconNames } from './Icon.types';`,
   );
 
   assetFileList.forEach((fileName) => {
@@ -75,7 +75,7 @@ const main = async () => {
     const iconName = getIconNameInTitleCase(fileName);
     fs.appendFileSync(
       assetsModulePath,
-      `\n  [IconName.${iconName}]: ${iconName},`,
+      `\n  [IconNames.${iconName}]: ${iconName},`,
     );
   });
 

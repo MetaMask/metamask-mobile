@@ -17,7 +17,7 @@ const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
     styles,
     theme: { colors },
   } = useStyles(styleSheet, { style, isSelected });
-  const IconNames = useMemo(
+  const iconName = useMemo(
     () => (isSelected ? IconNames.CheckBoxOn : IconNames.CheckBoxOff),
     [isSelected],
   );
@@ -29,7 +29,7 @@ const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
   return (
     <Icon
       testID={CHECKBOX_ICON_ID}
-      name={IconNames}
+      name={iconName}
       size={IconSize.Lg}
       color={iconColor}
       style={styles.base}

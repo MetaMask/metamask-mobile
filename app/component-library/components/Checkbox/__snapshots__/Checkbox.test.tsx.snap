@@ -3,7 +3,7 @@
 exports[`Checkbox should render correctly 1`] = `
 <Icon
   color="#037DD6"
-  name="CheckBoxOnFilled"
+  name="CheckBoxOn"
   size="24"
   style={Object {}}
   testID="checkbox-icon"

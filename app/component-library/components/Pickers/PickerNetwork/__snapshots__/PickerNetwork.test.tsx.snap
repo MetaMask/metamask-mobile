@@ -35,7 +35,7 @@ exports[`PickerNetwork should render correctly 1`] = `
     Ethereum Mainnet
   </Text>
   <Icon
-    name="ArrowDownOutline"
+    name="ArrowDown"
     size="12"
   />
 </TouchableOpacity>

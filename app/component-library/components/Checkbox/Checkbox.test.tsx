@@ -20,8 +20,8 @@ describe('Checkbox', () => {
     const iconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
-    const IconNames = iconComponent.props().name;
-    expect(IconNames).toBe(IconNames.CheckBoxOn);
+    const iconName = iconComponent.props().name;
+    expect(iconName).toBe(IconNames.CheckBoxOn);
   });
 
   it('should render correct icon when not selected', () => {
@@ -29,7 +29,7 @@ describe('Checkbox', () => {
     const iconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
-    const IconNames = iconComponent.props().name;
-    expect(IconNames).toBe(IconNames.CheckBoxOff);
+    const iconName = iconComponent.props().name;
+    expect(iconName).toBe(IconNames.CheckBoxOff);
   });
 });

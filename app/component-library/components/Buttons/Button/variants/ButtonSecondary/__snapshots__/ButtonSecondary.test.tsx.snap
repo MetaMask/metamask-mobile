@@ -2,7 +2,7 @@
 
 exports[`ButtonSecondary should render correctly 1`] = `
 <ButtonBase
-  IconNames="BankFilled"
+  IconNames="Bank"
   label="Click me!"
   labelColor="#037DD6"
   onPress={[Function]}

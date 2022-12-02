@@ -16,7 +16,7 @@ exports[`ButtonBase should render correctly 1`] = `
   }
 >
   <Icon
-    name="BankFilled"
+    name="Bank"
     size="16"
     style={
       Object {
