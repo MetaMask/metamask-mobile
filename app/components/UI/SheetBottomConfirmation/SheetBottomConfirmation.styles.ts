@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -9,19 +8,23 @@ import { Theme } from '../../../util/theme/models';
  * @param params.theme App theme from ThemeContext.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
+const styleSheet = () =>
+  StyleSheet.create({
+    contentContainer: {
+      marginVertical: 16,
+      marginHorizontal: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  return StyleSheet.create({
-    BottomSheet: {
-      height: 100,
-      width: '100%',
-      position: 'absolute',
-      bottom: 0,
-      backgroundColor: colors.background.default,
+    description: { marginTop: 12, marginBottom: 24 },
+    actionContainer: { flexDirection: 'row' },
+    buttonDivider: {
+      width: 16,
+    },
+    button: {
+      flex: 1,
     },
   });
-};
 
 export default styleSheet;

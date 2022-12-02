@@ -164,6 +164,16 @@ const Wallet = ({ navigation }: any) => {
         CollectibleDetectionController.detectCollectibles();
         AccountTrackerController.refresh();
       });
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: 'bottomSheet',
+        params: {
+          title: 'Advanced privacy settings',
+          description:
+            'MetaMask uses third-party services to enhance product usability and safety. Learn more about privacy best practices.',
+          onConfirm: () => navigation.navigate('AdvancedPrivacySettings'),
+        },
+      });
     },
     /* eslint-disable-next-line */
     [navigation],

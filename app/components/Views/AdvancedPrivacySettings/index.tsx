@@ -111,35 +111,16 @@ const AdvancedPrivacySettings = () => {
 
   return (
     <ScrollView style={styles.scrollViewContainer}>
-      <Text style={styles.thirdPartyText}>
+      {/*  <Text style={styles.thirdPartyText}>
         {strings('advanced_privacy_settings.third_party_services')}
-      </Text>
+      </Text> */}
       <Text variant={TextVariants.lHeadingSM} style={styles.customEthTitle}>
         Custom Ethereum access
       </Text>
       <Text variant={TextVariants.lBodySM}>
         {strings('advanced_privacy_settings.rpc_provider_description')}
       </Text>
-      {/*  <Pressable style={styles.selectInput} onPress={() => console.log('')}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Avatar
-            variant={AvatarVariants.Network}
-            size={AvatarSize.Xs}
-            name={'teste'}
-            imageSource={{ uri: TEST_NETWORK_IMAGE_URL }}
-          />
-          <Text style={styles.label} variant={TextVariants.sBodyMD}>
-            {NetworkList[provider.type].name}
-          </Text>
-        </View>
-        <Icon name={IconName.ArrowDownOutline} color={colors.icon.default} />
-      </Pressable> */}
+
       <Button
         variant={ButtonVariants.Secondary}
         buttonSecondaryVariants={ButtonSecondaryVariants.Normal}

@@ -58,6 +58,7 @@ import Toast, {
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import SheetBottomConfirmation from '../../../components/UI/SheetBottomConfirmation';
 
 const Stack = createStackNavigator();
 /**
@@ -362,6 +363,7 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.MODAL_CONFIRMATION}
         component={ModalConfirmation}
       />
+
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
@@ -375,6 +377,7 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
         component={EnableAutomaticSecurityChecksModal}
       />
+      <Stack.Screen name={'bottomSheet'} component={SheetBottomConfirmation} />
     </Stack.Navigator>
   );
 
@@ -410,6 +413,7 @@ const App = ({ userLoggedIn }) => {
               component={Login}
               options={{ headerShown: false }}
             />
+
             <Stack.Screen
               name="OnboardingRootNav"
               component={OnboardingRootNav}

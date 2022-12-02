@@ -244,6 +244,7 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
