@@ -1152,7 +1152,7 @@ class Settings extends PureComponent {
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
-          {__DEV__ ? <AutomaticSecurityChecks /> : null}
+          <AutomaticSecurityChecks />
           {this.renderHint()}
         </View>
       </ScrollView>
