@@ -164,6 +164,37 @@ class Analytics {
   }
 
   /**
+   * Method to create a new deletion request in case there isn't one already in the deletion queue at MXP.
+   *
+   * @param {string} compliance - CCPA or GDPR compliance. Default is GDPR.
+   * @returns Object with the response of the request
+   * {
+   *    status: ResponseStatus,
+   *    error?: string,
+   *    DataDeleteStatus?: DataDeleteStatus
+   *  }
+   */
+  async _requestDataDeletion(compliance) {
+    if (this.dataDeletionTaskId) {
+      const requestStatus = await this._requestStatusDataDeletionTask();
+
+      if (requestStatus.status === DataDeleteResponseStatus.error) {
+        return { status: DataDeleteResponseStatus.error };
+      }
+
+      if (
+        requestStatus.status === DataDeleteResponseStatus.ok &&
+        (requestStatus.dataDeleteStatus === DataDeleteStatus.started ||
+          requestStatus.dataDeleteStatus === DataDeleteStatus.pending)
+      ) {
+        return requestStatus;
+      }
+    }
+
+    return await this._createDataDeletionTask(compliance);
+  }
+
+  /**
    * Creates a Deletion Task using MixPanel GDPR API
    * Reference https://developer.mixpanel.com/docs/privacy-security#create-a-deletion-task
    *
@@ -186,6 +217,7 @@ class Analytics {
         DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
+
     const distinctId = await this.getDistinctId();
     const action = 'data-deletions';
     const token = process.env.MM_MIXPANEL_TOKEN;
@@ -256,19 +288,12 @@ class Analytics {
    *    dataDeleteStatus?: DataDeleteStatus
    *  }
    */
-  async _checkStatusDataDeletionTask() {
+  async _requestStatusDataDeletionTask() {
     if (__DEV__) {
       // Mock response for DEV env
       return {
         status: DataDeleteResponseStatus.ok,
-        DataDeleteStatus: DataDeleteStatus.pending,
-      };
-    }
-
-    if (!this.dataDeletionTaskId) {
-      return {
-        status: DataDeleteResponseStatus.error,
-        dataDeleteStatus: DataDeleteStatus.unknown,
+        dataDeleteStatus: DataDeleteStatus.pending,
       };
     }
 
@@ -297,7 +322,7 @@ class Analytics {
 
     return {
       status,
-      DataDeleteStatus: results.status || DataDeleteStatus.unknown,
+      dataDeleteStatus: results.status || DataDeleteStatus.unknown,
     };
   }
 
@@ -515,8 +540,8 @@ class Analytics {
    *
    * @param {string} compliance - CCPA or GDPR compliance
    */
-  createDataDeletionTask(compliance = 'GDPR') {
-    return this._createDataDeletionTask(compliance);
+  requestDataDeletion(compliance = 'GDPR') {
+    return this._requestDataDeletion(compliance);
   }
 
   checkStatusDataDeletionTask() {
@@ -605,8 +630,8 @@ export default {
       // Do nothing
     }
   },
-  createDataDeletionTask(compliance) {
-    return instance && instance.createDataDeletionTask(compliance);
+  requestDataDeletion(compliance) {
+    return instance && instance.requestDataDeletion(compliance);
   },
   checkStatusDataDeletionTask() {
     return instance && instance.checkStatusDataDeletionTask();
