@@ -87,7 +87,7 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
-      const response = await Analytics.createDataDeletionTask();
+      const response = await Analytics.requestDataDeletion();
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
@@ -105,7 +105,7 @@ const DeleteMetaMetricsData = () => {
   const checkDataDeleteStatus = useCallback(async () => {
     try {
       const response = await Analytics.checkStatusDataDeletionTask();
-      setDataDeleteStatus(response.DataDeleteStatus);
+      setDataDeleteStatus(response.dataDeleteStatus);
     } catch (error: any) {
       Logger.log('Error checkDataDeleteStatus -', error);
     }
