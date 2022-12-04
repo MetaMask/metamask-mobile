@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-console */
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -34,6 +34,10 @@ import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airga
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import RNFetchBlob from 'rn-fetch-blob';
+import {
+  fetchNPMPackage,
+  fetchNPMPackageAlternative,
+} from './SnapExecutionService/fetchNPMPackage';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -255,37 +259,30 @@ class Engine {
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: {},
         messenger: snapControllerMessenger,
-        fetchFunction: RNFetchBlob.fetch.bind(RNFetchBlob),
+        fetchFunction: RNFetchBlob.config({ fileCache: true }).fetch.bind(
+          RNFetchBlob,
+        ),
       });
 
-      // execute snap
-      // setTimeout(async () => {
-      //   const snapId = 'npm:@metamask/test-snap-bip44';
-      //   const origin = 'https://google.pt';
+      setTimeout(async () => {
+        await fetchNPMPackage();
+        // await fetchNPMPackageAlternative();
 
-      //   const res = await RNFetchBlob.fetch(
-      //     'GET',
-      //     'https://registry.npmjs.org/@metamask/test-snap-bip44/-/test-snap-bip44-4.1.2.tgz',
-      //   );
-      //   console.log('res->', res);
-      //   const stream = await res.readStream();
-      //   console.log(stream);
+        // const snapId = 'npm:@metamask/test-snap-bip44';
+        // const origin = 'origin';
 
-      //   const blobRes = await res.blob();
-      //   console.log('blobRes1->', blobRes);
+        // await snapController.installSnaps(origin, { [snapId]: {} });
 
-      //   await snapController.installSnaps(origin, { [snapId]: {} });
+        // const result = await snapController.handleRequest({
+        //   snapId,
+        //   origin,
+        //   handler: 'onRpcRequest',
+        //   request: { method: 'foo', params: { bar: 'qux' } },
+        // });
 
-      //   const result = await snapController.handleRequest({
-      //     snapId,
-      //     origin,
-      //     handler: 'onRpcRequest',
-      //     request: { method: 'foo', params: { bar: 'qux' } },
-      //   });
-
-      //   // eslint-disable-next-line no-console
-      //   console.log(result);
-      // }, 5000);
+        // // eslint-disable-next-line no-console
+        // console.log(result);
+      }, 5000);
 
       // eslint-disable-next-line no-console
       // console.log(snapController);
