@@ -38,9 +38,6 @@ const DeleteMetaMetricsData = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [hasCollectedData, setHasCollectedData] = useState<boolean>(
-    Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
-  );
   const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
     DataDeleteStatus.unknown,
   );
@@ -90,7 +87,6 @@ const DeleteMetaMetricsData = () => {
       const response = await Analytics.requestDataDeletion();
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
-        setHasCollectedData(false);
         setDeletionTaskDate(Analytics.getDeletionTaskDate());
         await trackDataDeletionRequest();
       } else {
@@ -120,8 +116,6 @@ const DeleteMetaMetricsData = () => {
       }
     };
 
-    setHasCollectedData(Analytics.getIsDataRecorded() || enableDeleteData());
-
     checkStatus();
   }, [checkDataDeleteStatus, enableDeleteData, dataDeleteStatus]);
 
@@ -133,7 +127,10 @@ const DeleteMetaMetricsData = () => {
       sectionTitle={strings('app_settings.delete_metrics_title')}
       sectionButtonText={strings('app_settings.delete_metrics_button')}
       descriptionText={
-        hasCollectedData ? (
+        !(
+          dataDeleteStatus === DataDeleteStatus.pending ||
+          dataDeleteStatus === DataDeleteStatus.started
+        ) ? (
           <>
             <Text>
               {strings('app_settings.delete_metrics_description_part_one')}
@@ -163,7 +160,10 @@ const DeleteMetaMetricsData = () => {
           </>
         )
       }
-      buttonDisabled={!hasCollectedData}
+      buttonDisabled={
+        dataDeleteStatus === DataDeleteStatus.pending ||
+        dataDeleteStatus === DataDeleteStatus.started
+      }
       modalTitleText={strings(
         'app_settings.delete_metrics_confirm_modal_title',
       )}

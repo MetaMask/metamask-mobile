@@ -175,6 +175,10 @@ class Analytics {
    *  }
    */
   async _requestDataDeletion(compliance) {
+    if (this.enabled) {
+      this.disable();
+    }
+
     if (this.dataDeletionTaskId) {
       const requestStatus = await this._requestStatusDataDeletionTask();
 
@@ -294,6 +298,13 @@ class Analytics {
       return {
         status: DataDeleteResponseStatus.ok,
         dataDeleteStatus: DataDeleteStatus.pending,
+      };
+    }
+
+    if (!this.dataDeletionTaskId) {
+      return {
+        status: DataDeleteResponseStatus.ok,
+        dataDeleteStatus: DataDeleteStatus.unknown,
       };
     }
 
