@@ -41,7 +41,9 @@ import WebView from 'react-native-webview';
 import { Button } from 'react-native-share';
 import WebviewPostMessageStream from './WebviewPostMessageStream';
 import snapsState from '../../../core/SnapsState';
+
 let stream;
+
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -358,7 +360,7 @@ const Wallet = ({ navigation }: any) => {
     stream.write(
       JSON.stringify({
         method: 'hello',
-        snapId: 'jobId-1',
+        snapId: 'jobId',
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
@@ -370,7 +372,7 @@ const Wallet = ({ navigation }: any) => {
     stream.write(
       JSON.stringify({
         method: 'start-snap',
-        snapId: 'jobId-1',
+        snapId: 'jobId',
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
