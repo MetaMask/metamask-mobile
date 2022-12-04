@@ -347,7 +347,7 @@ const Wallet = ({ navigation }: any) => {
     stream.write(
       JSON.stringify({
         method: 'hello',
-        snapId: 'jobId-1',
+        snapId: 'jobId',
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
@@ -359,7 +359,7 @@ const Wallet = ({ navigation }: any) => {
     stream.write(
       JSON.stringify({
         method: 'start-snap',
-        snapId: 'jobId-1',
+        snapId: 'jobId',
         args: { origin: 'origin', request: { method: 'hello' } },
       }),
     );
