@@ -411,6 +411,20 @@ class Settings extends PureComponent {
 
   componentDidUpdate = async () => {
     this.updateNavBar();
+    const analyticsEnabled = Analytics.checkEnabled();
+    if (analyticsEnabled !== this.state.analyticsEnabled) {
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState({
+        analyticsEnabled,
+      });
+
+      if (!Analytics.enabled) {
+        Alert.alert(
+          strings('app_settings.metametrics_opt_out'),
+          strings('app_settings.metametrics_restart_required'),
+        );
+      }
+    }
   };
 
   onSingInWithBiometrics = async (enabled) => {
