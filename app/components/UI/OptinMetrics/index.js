@@ -33,6 +33,8 @@ import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
   OPTIN_METRICS_NO_THANKS_BUTTON_ID,
   OPTIN_METRICS_TITLE_ID,
+  METAMETRICS_OPT_IN_CONTAINER_ID,
+  OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
 } from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
 import Text, {
   TextVariants,
@@ -399,7 +401,7 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
-          testID={OPTIN_METRICS_NO_THANKS_BUTTON_ID}
+          {...generateTestId(Platform, OPTIN_METRICS_NO_THANKS_BUTTON_ID)}
           style={styles.button}
           label={strings('privacy_policy.dont_share_data')}
           size={ButtonSize.Lg}
@@ -409,7 +411,7 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
-          testID={OPTIN_METRICS_I_AGREE_BUTTON_ID}
+          {...generateTestId(Platform, OPTIN_METRICS_I_AGREE_BUTTON_ID)}
           style={styles.button}
           label={strings('privacy_policy.share_data')}
           size={ButtonSize.Lg}
@@ -469,7 +471,10 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaView style={styles.root} testID={'metaMetrics-OptIn'}>
+      <SafeAreaView
+        style={styles.root}
+        {...generateTestId(Platform, METAMETRICS_OPT_IN_CONTAINER_ID)}
+      >
         <ScrollView
           style={styles.root}
           scrollEventThrottle={150}
@@ -484,7 +489,13 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
-            <Text style={styles.content}>
+            <Text
+              style={styles.content}
+              {...generateTestId(
+                Platform,
+                OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
+              )}
+            >
               {strings('privacy_policy.description_content_1')}
             </Text>
             <Text style={styles.content}>
