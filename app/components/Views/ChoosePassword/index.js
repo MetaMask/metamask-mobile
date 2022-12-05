@@ -229,8 +229,6 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const IOS_DENY_BIOMETRIC_ERROR =
-  'The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -296,12 +294,6 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
-    //Setup UI to handle Biometric
-    console.log(
-      'Auth/ ChoosePassword componentDidMount biometryType',
-      this.state.biometryType,
-    );
-
     const { type } = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -341,10 +333,6 @@ class ChoosePassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
-    console.log(
-      'Auth/ ChoosePassword componentDidUpdate biometryType',
-      this.state.biometryType,
-    );
   }
 
   componentWillUnmount() {
@@ -392,28 +380,16 @@ class ChoosePassword extends PureComponent {
           // retry faceID if the user cancels the
           if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
         }
-        console.log(
-          'Auth/ ChoosePassword onPressCreate exits handleRejectedOsBiometricPrompt',
-        );
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
         await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
       } else {
-        console.log(
-          'Auth/ ChoosePassword onPressCreate calling recreateVault',
-          password,
-          authType,
-        );
         await this.recreateVault(password, authType);
       }
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      console.log(
-        'Auth/ ChoosePassword onPressCreate setState',
-        this.state.loading,
-      );
       this.props.navigation.replace('AccountBackupStep1');
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
@@ -427,9 +403,7 @@ class ChoosePassword extends PureComponent {
           },
         );
       });
-      console.log('Auth/ ChoosePassword onPressCreate try');
     } catch (error) {
-      console.log('Auth/ ChoosePassword onPressCreate catch', error);
       await this.recreateVault('');
       // Set state in app as it was with no password
       await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
@@ -491,10 +465,8 @@ class ChoosePassword extends PureComponent {
    * @param password - Password to recreate and set the vault with
    */
   recreateVault = async (password, authType) => {
-    console.log('Auth/ ChoosePassword recreateVault', password, authType);
     const { KeyringController, PreferencesController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
-    console.log('Auth/ ChoosePassword recreateVault seedPhrase', seedPhrase);
     let importedAccounts = [];
     try {
       const keychainPassword = this.keyringControllerPasswordSet
@@ -589,7 +561,6 @@ class ChoosePassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    console.log('Auth/ ChoosePassword updateBiometryChoice', biometryChoice);
     if (!biometryChoice) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else {

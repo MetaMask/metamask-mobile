@@ -171,14 +171,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   );
 
   useEffect(() => {
-    console.log('Auth/App userLoggedIn', userLoggedIn);
-  }, [userLoggedIn]);
-
-  useEffect(() => {
     const appTriggeredAuth = async () => {
-      console.log('Auth/App appTriggeredAuth');
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      console.log('Auth/appTriggeredAuth existingUser', existingUser);
       try {
         if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
@@ -186,7 +180,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
         //Cancel auth if the existing user has not been set
       } catch (error) {
-        console.log('Auth/App appTriggeredAuth error  calling logout', error);
         await Authentication.logout(false);
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -282,11 +275,9 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   useEffect(() => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      console.log('Auth/App checkExisting existingUser', existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
-      console.log('Auth/checkExisting route', route);
       setRoute(route);
     }
     checkExisting();
@@ -296,7 +287,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        console.log('Auth/startApp');
         const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {

@@ -1,12 +1,10 @@
 export function passwordSet() {
-  console.log('Auth/passwordSet called');
   return {
     type: 'PASSWORD_SET',
   };
 }
 
 export function passwordUnset() {
-  console.log('Auth/passwordUnset called');
   return {
     type: 'PASSWORD_UNSET',
   };
@@ -74,7 +72,6 @@ export function setNftDetectionDismissed() {
 }
 
 export function logIn() {
-  console.log('Auth/logIn()');
   return {
     type: 'LOGIN',
   };

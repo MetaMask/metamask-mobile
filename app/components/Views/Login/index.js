@@ -188,13 +188,11 @@ const createStyles = (colors) =>
     },
   });
 
-const DELETE = 'delete';
 const PASSCODE_NOT_SET_ERROR = 'Error: Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Error: Cannot unlock without a previous vault.';
-const isTextDelete = (text) => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -243,7 +241,6 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    console.log('Auth/ Login Rendered');
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     //Setup UI to handle Biometric
@@ -310,12 +307,8 @@ class Login extends PureComponent {
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
-        console.log('Auth/ Login onLogin onboardingWizard');
         this.props.navigation.replace('HomeNav');
       } else {
-        console.log(
-          'Auth/ Login onLogin onboardingWizard setOnboardingWizardStep(1)',
-        );
         this.props.setOnboardingWizardStep(1);
         this.props.navigation.replace('HomeNav');
       }
@@ -327,7 +320,6 @@ class Login extends PureComponent {
       });
       field.setValue('');
     } catch (e) {
-      console.log('Auth/ Login onLogin', e);
       const error = e.toString();
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||

@@ -837,7 +837,6 @@ export default {
     return instance.refreshTransactionHistory(forceCheck);
   },
   init(state: {} | undefined) {
-    console.log('Engine init');
     instance = new Engine(state);
     Object.freeze(instance);
     return instance;
