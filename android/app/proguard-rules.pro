@@ -27,6 +27,7 @@
 -keep public class com.horcrux.svg.** {*;}
 
 # react-native-reanimated https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
+-keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Hermes
