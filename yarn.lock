@@ -3986,10 +3986,10 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/swaps-controller@^6.7.0":
-  version "6.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.7.0.tgz#bcd231e034a30a95c9c89aff4f24c8c1cae1e5f6"
-  integrity sha512-ZgdueQn8fcD5pYl8UuNSWdnXqWMhPsLGC3VobwsRSF1cj3ACSZNwS4Q9lbY46B2lhkvy7Tu6dOt4k0BjgrPDEw==
+"@metamask/swaps-controller@^6.7.2":
+  version "6.7.2"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.7.2.tgz#c999e55d449d36f8e948409c21d5362db93cc4cf"
+  integrity sha512-p3Czoqx7YANZX2GjW8apTio5rs3RkAGaIvoRd97fVza72R6VKXcRZ/pw9XB1o2z9beYdXqEn7+Q3v69yTUOu7A==
   dependencies:
     "@metamask/controllers" "^26.0.0"
     abort-controller "^3.0.0"

@@ -18,6 +18,7 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
 import usePaymentMethods from '../hooks/usePaymentMethods';
+import useRegions from '../hooks/useRegions';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -55,13 +56,14 @@ const PaymentMethods = () => {
   const { params } = useRoute();
 
   const {
-    selectedRegion,
     setSelectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
   } = useFiatOnRampSDK();
+
+  const { selectedRegion } = useRegions();
 
   const {
     data: paymentMethods,

@@ -24,6 +24,7 @@ import {
   safeNumberToBN,
   fastSplit,
   isNumber,
+  isNumberScientificNotationWhenString,
   calculateEthFeeForMultiLayer,
 } from '.';
 
@@ -44,6 +45,54 @@ describe('Number utils :: fromWei', () => {
 
   it('fromWei using BN number', () => {
     expect(fromWei(new BN('1337'))).toEqual('0.000000000000001337');
+  });
+});
+
+describe('Number utils :: toWei', () => {
+  it('toWei using number', () => {
+    expect(toWei(1337).toString()).toEqual('1337000000000000000000');
+    //wei representation of 0.000000000000001337 ether
+    expect(toWei(1.337e-15).toString()).toEqual('1337');
+    expect(toWei(0.000000000000001337).toString()).toEqual('1337');
+    //wei representation of 1337000000000000000 ether
+    expect(toWei(1.337e18).toString()).toEqual(
+      '1337000000000000000000000000000000000',
+    );
+    expect(toWei(1337000000000000000).toString()).toEqual(
+      '1337000000000000000000000000000000000',
+    );
+  });
+
+  it('toWei using string', () => {
+    expect(toWei('1337').toString()).toEqual('1337000000000000000000');
+    //wei representation of 0.000000000000001337 ether
+    expect(toWei('0.000000000000001337').toString()).toEqual('1337');
+    //wei representation of 1337000000000000000 ether
+    expect(toWei('1337000000000000000').toString()).toEqual(
+      '1337000000000000000000000000000000000',
+    );
+
+    // expect errors when passing numbers as strings in scientific notation
+    // since `ethjs-unit` doesn't support it
+    expect(() => toWei('1.337e18')).toThrow(Error);
+    expect(() => toWei('1.337e-15')).toThrow(Error);
+  });
+
+  // bn.js do not support decimals, so tests here only cover integers
+  it('toWei using BN number', () => {
+    expect(toWei(new BN(1337)).toString()).toEqual('1337000000000000000000');
+
+    // Tests for expected limitations of BN.js
+
+    // BN.js do not support decimals
+    expect(toWei(new BN(1.337e-15)).toString()).toEqual('0');
+    // BN.js do not support such big numbers
+    expect(() => toWei(new BN(1.337e18))).toThrow(Error);
+    expect(() => toWei(new BN(1337000000000000000))).toThrow(Error);
+    // For some reason this returns 8338418000000000000000000 wei
+    expect(toWei(new BN('1.337e18'))).not.toEqual(
+      '1337000000000000000000000000000000000',
+    );
   });
 });
 
@@ -663,6 +712,31 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('.01')).toBe(false);
     expect(isNumber(undefined)).toBe(false);
     expect(isNumber(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: isNumberScientificNotationWhenString', () => {
+  it('isNumberScientificNotationWhenString passing number', () => {
+    expect(isNumberScientificNotationWhenString(1.337e-6)).toEqual(false);
+    expect(isNumberScientificNotationWhenString(1.337e-7)).toEqual(true);
+    expect(isNumberScientificNotationWhenString(1.337e20)).toEqual(false);
+    expect(isNumberScientificNotationWhenString(1.337e21)).toEqual(true);
+
+    expect(isNumberScientificNotationWhenString(0.000001337)).toEqual(false);
+    expect(isNumberScientificNotationWhenString(0.0000001337)).toEqual(true);
+    expect(isNumberScientificNotationWhenString(133700000000000000000)).toEqual(
+      false,
+    );
+    expect(
+      isNumberScientificNotationWhenString(1337000000000000000000),
+    ).toEqual(true);
+  });
+
+  it('isNumberScientificNotationWhenString should be false when non number is passed', () => {
+    expect(isNumberScientificNotationWhenString('1.337e-6')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e-7')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e20')).toEqual(false);
+    expect(isNumberScientificNotationWhenString('1.337e21')).toEqual(false);
   });
 });
 
