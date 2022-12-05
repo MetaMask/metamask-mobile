@@ -11,7 +11,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { setLockTime } from '../../../../actions/settings';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { FiatOrder, getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
 import { hexToBN } from '../../../../util/number';
 import WebView, { WebViewNavigation } from 'react-native-webview';

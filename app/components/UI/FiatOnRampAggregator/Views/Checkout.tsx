@@ -13,6 +13,7 @@ import { useFiatOnRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
   addFiatOrder,
+  FiatOrder,
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
@@ -25,7 +26,7 @@ import {
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';

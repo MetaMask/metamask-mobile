@@ -1,15 +1,11 @@
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
-import {
-  FIAT_ORDER_PROVIDERS,
-  FIAT_ORDER_STATES,
-} from '../../../constants/on-ramp';
+import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   getPendingOrders,
@@ -18,12 +14,17 @@ import {
   updateFiatCustomIdData,
   addFiatOrder,
   getCustomOrderIds,
+  FiatOrder,
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
-import processOrder from '../FiatOnRampAggregator/orderProcessor';
-import processCustomOrderIdData from '../FiatOnRampAggregator/orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from '../FiatOnRampAggregator/orderProcessor/aggregator';
-import { trackEvent } from '../FiatOnRampAggregator/hooks/useAnalytics';
+import processOrder from './orderProcessor';
+import processCustomOrderIdData from './orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
+import { trackEvent } from './hooks/useAnalytics';
+import { Order } from '@consensys/on-ramp-sdk';
+import { AnalyticsEvents } from './types';
+import { CustomIdData } from '../../../reducers/fiatOrders/types';
+import { useCallback } from 'react';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -32,7 +33,7 @@ import { trackEvent } from '../FiatOnRampAggregator/hooks/useAnalytics';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = (chainId) =>
+export const allowedToBuy = (chainId: string) =>
   [
     NETWORKS_CHAIN_ID.MAINNET,
     NETWORKS_CHAIN_ID.OPTIMISM,
@@ -52,7 +53,7 @@ const baseNotificationDetails = {
 /**
  * @param {FiatOrder} fiatOrder
  */
-export const getAnalyticsPayload = (fiatOrder) => {
+export const getAnalyticsPayload = (fiatOrder: FiatOrder) => {
   const payload = {
     fiat_amount: { value: fiatOrder.amount, anonymous: true },
     fiat_currency: { value: fiatOrder.currency, anonymous: true },
@@ -92,15 +93,31 @@ export const getAnalyticsPayload = (fiatOrder) => {
 /**
  * @param {FiatOrder} fiatOrder
  */
-export const getAggregatorAnalyticsPayload = (fiatOrder) => {
+export const getAggregatorAnalyticsPayload = (
+  fiatOrder: FiatOrder,
+): [
+  (
+    | 'ONRAMP_PURCHASE_FAILED'
+    | 'ONRAMP_PURCHASE_CANCELLED'
+    | 'ONRAMP_PURCHASE_COMPLETED'
+    | null
+  ),
+  (
+    | AnalyticsEvents[
+        | 'ONRAMP_PURCHASE_FAILED'
+        | 'ONRAMP_PURCHASE_CANCELLED'
+        | 'ONRAMP_PURCHASE_COMPLETED']
+    | null
+  ),
+] => {
   const failedOrCancelledParams = {
     currency_source: fiatOrder.currency,
     currency_destination: fiatOrder.cryptocurrency,
     chain_id_destination: fiatOrder.network,
-    payment_method_id: fiatOrder.data?.paymentMethod?.id,
-    provider_onramp: fiatOrder.data?.provider?.name,
+    payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
+    provider_onramp: (fiatOrder.data as Order)?.provider?.name,
     orderType: fiatOrder.orderType,
-    amount: fiatOrder.amount,
+    amount: fiatOrder.amount as number,
   };
 
   const completedPayload = {
@@ -124,7 +141,7 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
     }
     case FIAT_ORDER_STATES.PENDING:
     default: {
-      return [null];
+      return [null, null];
     }
   }
 };
@@ -132,7 +149,7 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
 /**
  * @param {FiatOrder} fiatOrder
  */
-export const getNotificationDetails = (fiatOrder) => {
+export const getNotificationDetails = (fiatOrder: FiatOrder) => {
   switch (fiatOrder.state) {
     case FIAT_ORDER_STATES.FAILED: {
       return {
@@ -188,24 +205,18 @@ export const getNotificationDetails = (fiatOrder) => {
   }
 };
 
-export async function processFiatOrder(order, updateFiatOrder) {
+export async function processFiatOrder(
+  order: FiatOrder,
+  dispatchUpdateFiatOrder: (updatedOrder: FiatOrder) => void,
+) {
   const updatedOrder = await processOrder(order);
-  updateFiatOrder(updatedOrder);
+  dispatchUpdateFiatOrder(updatedOrder);
   if (updatedOrder.state !== order.state) {
-    if (updatedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
-      const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
-      if (event) {
-        trackEvent(event, params);
-      }
-    } else {
-      InteractionManager.runAfterInteractions(() => {
-        const [analyticsEvent, analyticsPayload] =
-          getAnalyticsPayload(updatedOrder);
-        if (analyticsEvent) {
-          AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
-        }
-      });
+    const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
+    if (event && params) {
+      trackEvent(event, params);
     }
+
     InteractionManager.runAfterInteractions(() => {
       NotificationManager.showSimpleNotification(
         getNotificationDetails(updatedOrder),
@@ -215,8 +226,16 @@ export async function processFiatOrder(order, updateFiatOrder) {
 }
 
 async function processCustomOrderId(
-  customOrderIdData,
-  { updateFiatCustomIdData, removeFiatCustomIdData, addFiatOrder },
+  customOrderIdData: CustomIdData,
+  {
+    dispatchUpdateFiatCustomIdData,
+    dispatchRemoveFiatCustomIdData,
+    dispatchAddFiatOrder,
+  }: {
+    dispatchUpdateFiatCustomIdData: (updatedCustomIdData: CustomIdData) => void;
+    dispatchRemoveFiatCustomIdData: (customOrderIdData: CustomIdData) => void;
+    dispatchAddFiatOrder: (fiatOrder: FiatOrder) => void;
+  },
 ) {
   const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
     customOrderIdData,
@@ -224,32 +243,50 @@ async function processCustomOrderId(
 
   if (fiatOrderResponse) {
     const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
-    addFiatOrder(fiatOrder);
+    dispatchAddFiatOrder(fiatOrder);
     InteractionManager.runAfterInteractions(() => {
       NotificationManager.showSimpleNotification(
         getNotificationDetails(fiatOrder),
       );
     });
-    removeFiatCustomIdData(customOrderIdData);
+    dispatchRemoveFiatCustomIdData(customOrderIdData);
   } else if (customOrderId.expired) {
-    removeFiatCustomIdData(customOrderId);
+    dispatchRemoveFiatCustomIdData(customOrderId);
   } else {
-    updateFiatCustomIdData(customOrderId);
+    dispatchUpdateFiatCustomIdData(customOrderId);
   }
 }
 
-function FiatOrders({
-  pendingOrders,
-  customOrderIds,
-  addFiatOrder,
-  updateFiatOrder,
-  updateFiatCustomIdData,
-  removeFiatCustomIdData,
-}) {
+function FiatOrders() {
+  const dispatch = useDispatch();
+  const pendingOrders = useSelector(getPendingOrders);
+  const customOrderIds = useSelector(getCustomOrderIds);
+
+  const dispatchAddFiatOrder = useCallback(
+    (order: FiatOrder) => dispatch(addFiatOrder(order)),
+    [dispatch],
+  );
+  const dispatchUpdateFiatOrder = useCallback(
+    (order: FiatOrder) => dispatch(updateFiatOrder(order)),
+    [dispatch],
+  );
+  const dispatchUpdateFiatCustomIdData = useCallback(
+    (customIdData: CustomIdData) =>
+      dispatch(updateFiatCustomIdData(customIdData)),
+    [dispatch],
+  );
+  const dispatchRemoveFiatCustomIdData = useCallback(
+    (customIdData: CustomIdData) =>
+      dispatch(removeFiatCustomIdData(customIdData)),
+    [dispatch],
+  );
+
   useInterval(
     async () => {
       await Promise.all(
-        pendingOrders.map((order) => processFiatOrder(order, updateFiatOrder)),
+        pendingOrders.map((order: FiatOrder) =>
+          processFiatOrder(order, dispatchUpdateFiatOrder),
+        ),
       );
     },
     pendingOrders.length ? POLLING_FREQUENCY : null,
@@ -258,11 +295,11 @@ function FiatOrders({
   useInterval(
     async () => {
       await Promise.all(
-        customOrderIds.map((customOrderIdData) =>
+        customOrderIds.map((customOrderIdData: CustomIdData) =>
           processCustomOrderId(customOrderIdData, {
-            updateFiatCustomIdData,
-            removeFiatCustomIdData,
-            addFiatOrder,
+            dispatchUpdateFiatCustomIdData,
+            dispatchRemoveFiatCustomIdData,
+            dispatchAddFiatOrder,
           }),
         ),
       );
@@ -273,25 +310,4 @@ function FiatOrders({
   return null;
 }
 
-FiatOrders.propTypes = {
-  orders: PropTypes.array,
-  selectedAddress: PropTypes.string,
-  network: PropTypes.string,
-  updateFiatOrder: PropTypes.func,
-};
-
-const mapStateToProps = (state) => ({
-  pendingOrders: getPendingOrders(state),
-  customOrderIds: getCustomOrderIds(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  addFiatOrder: (order) => dispatch(addFiatOrder(order)),
-  updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
-  updateFiatCustomIdData: (customIdData) =>
-    dispatch(updateFiatCustomIdData(customIdData)),
-  removeFiatCustomIdData: (customIdData) =>
-    dispatch(removeFiatCustomIdData(customIdData)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(FiatOrders);
+export default FiatOrders;

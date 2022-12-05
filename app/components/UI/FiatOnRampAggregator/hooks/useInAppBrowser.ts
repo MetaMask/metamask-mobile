@@ -15,7 +15,7 @@ import {
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { FiatOrder, getNotificationDetails } from '..';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import NotificationManager from '../../../../core/NotificationManager';
 import { hexToBN } from '../../../../util/number';

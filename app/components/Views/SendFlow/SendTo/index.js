@@ -25,7 +25,7 @@ import { getSendFlowTitle } from '../../../UI/Navbar';
 import AccountList from '../../../UI/AccountList';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
-import { allowedToBuy } from '../../../UI/FiatOrders';
+import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
