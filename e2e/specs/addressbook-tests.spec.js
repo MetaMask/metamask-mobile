@@ -61,7 +61,7 @@ describe('Addressbook Tests', () => {
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
   });
-  it('Should dismiss automatic security checks screen', async () => {
+  it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
     await EnableAutomaticSecurityChecksView.isVisible();
     await EnableAutomaticSecurityChecksView.tapNoThanks();

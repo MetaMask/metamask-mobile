@@ -214,13 +214,7 @@ export class NetworkList extends PureComponent {
     const { frequentRpcList } = this.props;
     const { NetworkController, CurrencyRateController } = Engine.context;
     const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
-    const {
-      rpcUrl,
-      chainId,
-      ticker,
-      nickname,
-      rpcPrefs: { blockExplorerUrl },
-    } = rpc;
+    const { rpcUrl, chainId, ticker, nickname } = rpc;
     const useRpcName = nickname || sanitizeUrl(rpcUrl);
     const useTicker = ticker || PRIVATENETWORK;
     this.handleNetworkSelected(useRpcName, useTicker, sanitizeUrl(rpcUrl));
@@ -237,11 +231,9 @@ export class NetworkList extends PureComponent {
     NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
-      rpc_url: rpcUrl,
       chain_id: chainId,
       source: 'Settings',
       symbol: ticker,
-      block_explorer_url: blockExplorerUrl,
       network_name: 'rpc',
     });
   };
