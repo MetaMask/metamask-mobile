@@ -212,6 +212,10 @@ const Main = (props) => {
   }, [removeNotVisibleNotifications]);
 
   useEffect(() => {
+    console.log('Auth/ Nav Main Rendered');
+  }, []);
+
+  useEffect(() => {
     AppState.addEventListener('change', handleAppStateChange);
     lockManager.current = new LockManager(props.navigation, props.lockTime);
     PushNotification.configure({

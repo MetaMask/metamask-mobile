@@ -243,6 +243,7 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
+    console.log('Auth/ Login Rendered');
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     //Setup UI to handle Biometric
@@ -309,10 +310,12 @@ class Login extends PureComponent {
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
-        console.log('onLogin onboardingWizard');
+        console.log('Auth/ Login onLogin onboardingWizard');
         this.props.navigation.replace('HomeNav');
       } else {
-        console.log('onLogin onboardingWizard setOnboardingWizardStep(1)');
+        console.log(
+          'Auth/ Login onLogin onboardingWizard setOnboardingWizardStep(1)',
+        );
         this.props.setOnboardingWizardStep(1);
         this.props.navigation.replace('HomeNav');
       }
@@ -324,7 +327,7 @@ class Login extends PureComponent {
       });
       field.setValue('');
     } catch (e) {
-      console.log('onLogin', e);
+      console.log('Auth/ Login onLogin', e);
       const error = e.toString();
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||

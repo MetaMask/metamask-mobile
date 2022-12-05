@@ -171,10 +171,14 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   );
 
   useEffect(() => {
+    console.log('Auth/App userLoggedIn', userLoggedIn);
+  }, [userLoggedIn]);
+
+  useEffect(() => {
     const appTriggeredAuth = async () => {
-      console.log('appTriggeredAuth');
+      console.log('Auth/App appTriggeredAuth');
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      console.log('appTriggeredAuth existingUser', existingUser);
+      console.log('Auth/appTriggeredAuth existingUser', existingUser);
       try {
         if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
@@ -182,7 +186,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
         //Cancel auth if the existing user has not been set
       } catch (error) {
-        console.log('appTriggeredAuth error  calling logout', error);
+        console.log('Auth/App appTriggeredAuth error  calling logout', error);
         await Authentication.logout(false);
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -278,10 +282,11 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   useEffect(() => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      console.log('Nav/App checkExisting existingUser', existingUser);
+      console.log('Auth/App checkExisting existingUser', existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
+      console.log('Auth/checkExisting route', route);
       setRoute(route);
     }
     checkExisting();
@@ -291,7 +296,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        console.log('startApp');
+        console.log('Auth/startApp');
         const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
@@ -405,20 +410,19 @@ const App = ({ selectedAddress, userLoggedIn }) => {
             }}
           >
             <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="OnboardingRootNav"
               component={OnboardingRootNav}
               options={{ headerShown: false }}
             />
-            {userLoggedIn ? (
+            {userLoggedIn && (
               <Stack.Screen
                 name="HomeNav"
                 component={Main}
-                options={{ headerShown: false }}
-              />
-            ) : (
-              <Stack.Screen
-                name="Login"
-                component={Login}
                 options={{ headerShown: false }}
               />
             )}

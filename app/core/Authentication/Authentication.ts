@@ -51,10 +51,10 @@ class AuthenticationService {
 
   private dispatchLogin(): void {
     if (this.store) {
-      console.log('Authentication dispatchLogin');
+      console.log('Auth/ Authentication dispatchLogin');
       this.store.dispatch(logIn());
     } else {
-      console.log('Authentication dispatchLogin');
+      console.log('Auth/ Authentication dispatchLogin');
       Logger.log(
         'Attempted to dispatch logIn action but dispatch was not initialized',
       );
@@ -167,12 +167,12 @@ class AuthenticationService {
             SecureKeychain.TYPES.REMEMBER_ME,
           );
           break;
-          console.log('storePassword default case');
+          console.log('Auth/ storePassword default case');
           await SecureKeychain.resetGenericPassword();
       }
     } catch (error) {
       // await SecureKeychain.resetGenericPassword();
-      console.log('storePassword', error);
+      console.log('Auth/ storePassword', error);
       throw new AuthenticationError(
         (error as Error).message,
         'Authentication.storePassword failed',
@@ -269,7 +269,7 @@ class AuthenticationService {
       this.authData = authData;
     } catch (e: any) {
       this.logout(false);
-      console.log('newWalletAndKeyChain error');
+      console.log('Auth/ newWalletAndKeyChain error');
       throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
     }
   };
@@ -312,13 +312,13 @@ class AuthenticationService {
     selectedAddress: string,
   ): Promise<void> => {
     try {
-      console.log('userEntryAuth');
+      console.log('Auth/ Authentication userEntryAuth');
       await this.loginVaultCreation(password, selectedAddress);
       await this.storePassword(password, authData.type);
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      console.log('userEntryAuth', e);
+      console.log('Auth/ Authentication userEntryAuth', e);
       this.logout(false);
       throw new AuthenticationError(e, 'Failed to login', this.authData);
     }
@@ -336,7 +336,7 @@ class AuthenticationService {
       if (!password) await this.storePassword(password, this.authData.type);
       this.dispatchLogin();
     } catch (e: any) {
-      // this.logout(false);
+      this.logout(false);
       throw new AuthenticationError(
         e,
         'appTriggeredAuth failed to login',
@@ -349,12 +349,12 @@ class AuthenticationService {
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   logout = async (reset = true): Promise<void> => {
-    console.log('Authentication logout called with reset = ', reset);
+    console.log('Auth/ Authentication logout called with reset = ', reset);
     const { KeyringController }: any = Engine.context;
     if (reset) await SecureKeychain.resetGenericPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
-      console.log('Authentication logout KeyringController.setLocked');
+      console.log('Auth/ Authentication logout KeyringController.setLocked');
     }
     this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();

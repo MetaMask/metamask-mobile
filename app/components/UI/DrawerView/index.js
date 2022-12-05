@@ -739,16 +739,20 @@ class DrawerView extends PureComponent {
   };
 
   onPressLogout = async () => {
+    console.log('Auth/ DrawerView onPressLogout');
     const { passwordSet } = this.props;
     await Authentication.logout();
     if (!passwordSet) {
-      console.log('onPressLogout !passwordSet', !passwordSet);
+      console.log('Auth/ DrawerView onPressLogout !passwordSet', !passwordSet);
       this.props.navigation.navigate('OnboardingRootNav', {
         screen: Routes.ONBOARDING.NAV,
         params: { screen: 'Onboarding' },
       });
     } else {
-      console.log('onPressLogout !passwordSet else', !passwordSet);
+      console.log(
+        'Auth/ DrawerView onPressLogout !passwordSet navigating to login',
+        !passwordSet,
+      );
       // This param is used to hide the biometric buttons in the login textbox
       this.props.navigation.navigate('Login', { params: { logout: true } });
     }
