@@ -319,15 +319,16 @@ export class NetworkList extends PureComponent {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getImage(chainId);
       const isCustomRpc = true;
-      const rpcTargetURL = new URL(provider.rpcTarget);
+      const rpcTargetHref =
+        provider.rpcTarget && new URL(provider.rpcTarget)?.href;
       const rpcURL = new URL(rpcUrl);
-      const isSameRPC = rpcTargetURL.href === rpcURL.href;
-      const selected =
+      const isSameRPC = rpcTargetHref === rpcURL.href;
+      const selectedIcon =
         isSameRPC && provider.type === RPC ? (
           <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
-        selected,
+        selectedIcon,
         this.onSetRpcTarget,
         name,
         image,
