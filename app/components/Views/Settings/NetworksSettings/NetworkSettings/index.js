@@ -458,6 +458,7 @@ class NetworkSettings extends PureComponent {
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
     const { navigation, networkOnboardedState, route } = this.props;
     const isRPCUpdate = route.params?.isRPCUpdate;
+    const prevRPCUrl = route.params?.network;
 
     // Check if CTA is disabled
     const isCtaDisabled =
@@ -511,6 +512,9 @@ class NetworkSettings extends PureComponent {
           blockExplorerUrl,
         },
       );
+      // TODO: PreferencesController.addToFrequentRpcList only compares RPC urls to determine if a network should be updated or added.
+      // Temporary solution is to manually remove the existing network using the old RPC URL.
+      editable && PreferencesController.removeFromFrequentRpcList(prevRPCUrl);
       NetworkController.setRpcTarget(
         formattedHref,
         decimalChainId,
