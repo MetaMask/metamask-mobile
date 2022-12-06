@@ -29,8 +29,6 @@ function getProtocolFromURL(url) {
 }
 
 function rewriteBreadcrumb(breadcrumb) {
-  /** @todo check URL allowlist, exclude URLs not in allowlist */
-
   if (breadcrumb.data?.url) {
     breadcrumb.data.url = getProtocolFromURL(breadcrumb.data.url);
   }
