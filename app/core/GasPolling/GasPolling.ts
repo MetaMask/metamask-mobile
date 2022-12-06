@@ -177,8 +177,6 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasObject,
-  dappSuggestedEIP1559Gas,
-  dappSuggestedGasPrice,
   swapsParams,
   initialGasLimitSwaps,
   recommended,
@@ -209,30 +207,6 @@ export const useGasTransaction = ({
 
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
-
-  let initialGas;
-  if (dappSuggestedEIP1559Gas) {
-    initialGas = {
-      suggestedMaxFeePerGas: fromWei(
-        dappSuggestedEIP1559Gas.maxFeePerGas,
-        'gwei',
-      ),
-      suggestedMaxPriorityFeePerGas: fromWei(
-        dappSuggestedEIP1559Gas.maxPriorityFeePerGas,
-        'gwei',
-      ),
-    };
-  } else if (dappSuggestedGasPrice) {
-    initialGas = {
-      suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-      suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-    };
-  } else {
-    initialGas = {
-      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
-      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
-    };
-  }
 
   const suggestedGasLimitValue =
     initialGasLimitSwaps || gasObject?.legacyGasLimit || suggestedGasLimit;

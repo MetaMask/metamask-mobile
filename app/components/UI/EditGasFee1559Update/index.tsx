@@ -38,7 +38,6 @@ const EditGasFee1559Update = ({
   chainId,
   onChange,
   onCancel,
-  onChange,
   onSave,
   error,
   dappSuggestedGas,
