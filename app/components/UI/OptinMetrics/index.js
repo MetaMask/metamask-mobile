@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import {
   View,
   SafeAreaView,
+  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
+import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
@@ -27,7 +29,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
@@ -36,48 +38,32 @@ import {
   METAMETRICS_OPT_IN_CONTAINER_ID,
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
 } from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
-import Text, {
-  TextVariants,
-} from '../../../component-library/components/Texts/Text';
-import AvatarIcon from '../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { IconName } from '../../../component-library/components/Icon';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { MAINNET } from '../../../constants/network';
 
-const createStyles = ({ colors, typography }) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
     },
+    checkIcon: {
+      color: colors.success.default,
+    },
+    crossIcon: {
+      color: colors.error.default,
+    },
+    icon: {
+      marginRight: 5,
+    },
     action: {
+      flex: 0,
       flexDirection: 'row',
-      marginTop: 32,
-    },
-    actionLabelsContainer: {
-      marginLeft: 16,
-      flex: 1,
-    },
-    actionTitle: {
-      ...typography.sBodyLGMedium,
-      color: colors.text.default,
-    },
-    actionDescription: {
-      ...typography.sBodyMD,
-      color: colors.text.alternative,
-    },
-    actionDescriptionBold: {
-      ...typography.sBodyMDBold,
-      color: colors.text.alternative,
+      paddingVertical: 10,
+      alignItems: 'center',
     },
     title: {
-      ...typography.sHeadingMD,
+      ...fontStyles.bold,
       color: colors.text.default,
+      fontSize: 22,
     },
     description: {
       ...fontStyles.normal,
@@ -88,28 +74,29 @@ const createStyles = ({ colors, typography }) =>
       ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
-      paddingTop: 10,
+      paddingVertical: 10,
     },
     wrapper: {
       marginHorizontal: 20,
     },
     privacyPolicy: {
-      ...typography.sBodyMD,
+      ...fontStyles.normal,
+      fontSize: 14,
       color: colors.text.muted,
-      marginTop: 16,
+      marginTop: 10,
     },
     link: {
       textDecorationLine: 'underline',
     },
     actionContainer: {
+      marginTop: 10,
+      flex: 0,
       flexDirection: 'row',
       padding: 16,
+      bottom: 0,
     },
     button: {
       flex: 1,
-    },
-    buttonDivider: {
-      width: 16,
     },
     cancel: {
       marginRight: 8,
@@ -148,50 +135,20 @@ class OptinMetrics extends PureComponent {
 
   openRPCSettings = () => {
     const { navigation } = this.props;
-    // TODO: Need network
     navigation.navigate('NetworkSettings', {
       network: MAINNET,
       isCustomMainnet: true,
     });
   };
 
-  actionsList = [
-    {
-      icon: IconName.EyeSlashFilled,
-      title: strings(`privacy_policy.action_title_1`),
-      description: [{ text: strings(`privacy_policy.action_description_1`) }],
-    },
-    {
-      icon: IconName.SecurityKeyFilled,
-      title: strings(`privacy_policy.action_title_2`),
-      description: [
-        { text: `${strings(`privacy_policy.action_description_2a`)} ` },
-        {
-          text: strings(`privacy_policy.action_description_2b`),
-          onPress: this.openRPCSettings,
-        },
-        { text: strings('unit.point') },
-        {
-          text: ` ${strings(`privacy_policy.action_description_2c`)}`,
-          isBold: true,
-        },
-      ],
-    },
-    {
-      icon: IconName.SettingFilled,
-      title: strings(`privacy_policy.action_title_3`),
-      description: [{ text: strings(`privacy_policy.action_description_3`) }],
-    },
-  ];
-
-  getStyles = () => {
-    const { colors, typography } = this.context;
-    return createStyles({ colors, typography });
-  };
+  actionsList = [1, 2, 3, 4, 5, 6].map((value) => ({
+    action: value <= 3 ? 0 : 1,
+    description: strings(`privacy_policy.action_description_${value}`),
+  }));
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors;
+    const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(getOptinMetricsNavbarOptions(colors));
   };
 
@@ -243,39 +200,26 @@ class OptinMetrics extends PureComponent {
    * @param {object} - Object containing action and description to be rendered
    * @param {number} i - Index key
    */
-  renderAction = ({ icon, title, description }, i) => {
-    const styles = this.getStyles();
+  renderAction = ({ action, description }, i) => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <View style={styles.action} key={i}>
-        <AvatarIcon size={AvatarSize.Sm} name={icon} />
-        <View style={styles.actionLabelsContainer}>
-          <Text style={styles.actionTitle}>{title}</Text>
-          <Text>
-            {description.map(({ text, isBold, onPress }, index) =>
-              onPress ? (
-                <ButtonLink
-                  variant={TextVariants.sBodyMD}
-                  key={`toast-label-${index}`}
-                  onPress={onPress}
-                >
-                  {text}
-                </ButtonLink>
-              ) : (
-                <Text
-                  key={`toast-label-${index}`}
-                  style={
-                    isBold
-                      ? styles.actionDescriptionBold
-                      : styles.actionDescription
-                  }
-                >
-                  {text}
-                </Text>
-              ),
-            )}
-          </Text>
-        </View>
+        {action === 0 ? (
+          <Entypo
+            name="check"
+            size={20}
+            style={[styles.icon, styles.checkIcon]}
+          />
+        ) : (
+          <Entypo
+            name="cross"
+            size={24}
+            style={[styles.icon, styles.crossIcon]}
+          />
+        )}
+        <Text style={styles.description}>{description}</Text>
       </View>
     );
   };
@@ -351,49 +295,23 @@ class OptinMetrics extends PureComponent {
    * @returns - Touchable opacity object to render with privacy policy information
    */
   renderPrivacyPolicy = () => {
-    const styles = this.getStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <TouchableOpacity onPress={this.onPressPolicy}>
         <Text style={styles.privacyPolicy}>
-          {strings('privacy_policy.description_a') + ' '}
-          <ButtonLink variant={TextVariants.sBodyMD}>
-            {strings('privacy_policy.description_b')}
-          </ButtonLink>
+          {strings('privacy_policy.description') + ' '}
+          <Text style={styles.link}>{strings('privacy_policy.here')}</Text>
           {strings('unit.point')}
         </Text>
       </TouchableOpacity>
     );
   };
 
-  renderActionButtons = () => {
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.actionContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          onPress={this.onCancel}
-          {...generateTestId(Platform, OPTIN_METRICS_NO_THANKS_BUTTON_ID)}
-          style={styles.button}
-          label={strings('privacy_policy.dont_share_data')}
-          size={ButtonSize.Lg}
-        />
-        <View style={styles.buttonDivider} />
-        <Button
-          variant={ButtonVariants.Primary}
-          onPress={this.onConfirm}
-          {...generateTestId(Platform, OPTIN_METRICS_I_AGREE_BUTTON_ID)}
-          style={styles.button}
-          label={strings('privacy_policy.dont_share_data')}
-          size={ButtonSize.Lg}
-        />
-      </View>
-    );
-  };
-
   render() {
-    const styles = this.getStyles();
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <SafeAreaView
@@ -420,11 +338,29 @@ class OptinMetrics extends PureComponent {
             <Text style={styles.content}>
               {strings('privacy_policy.description_content_2')}
             </Text>
-            {this.actionsList.map(this.renderAction)}
+            {this.actionsList.map((action, i) => this.renderAction(action, i))}
             {this.renderPrivacyPolicy()}
           </View>
+
+          <View style={styles.actionContainer}>
+            <StyledButton
+              containerStyle={[styles.button, styles.cancel]}
+              type={'cancel'}
+              onPress={this.onCancel}
+              testID={OPTIN_METRICS_NO_THANKS_BUTTON_ID}
+            >
+              {strings('privacy_policy.decline')}
+            </StyledButton>
+            <StyledButton
+              containerStyle={[styles.button, styles.confirm]}
+              type={'confirm'}
+              onPress={this.onConfirm}
+              testID={OPTIN_METRICS_I_AGREE_BUTTON_ID}
+            >
+              {strings('privacy_policy.agree')}
+            </StyledButton>
+          </View>
         </ScrollView>
-        {this.renderActionButtons()}
       </SafeAreaView>
     );
   }
