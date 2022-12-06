@@ -10,12 +10,12 @@ function usePaymentMethods() {
     sdk,
   } = useFiatOnRampSDK();
   const [isFilterLoading, setIsFilterLoading] = useState(true);
-  const [allowedMethodIds, setAllowedMethodIds] = useState<string[]>([]);
+  const [allowedMethodIds, setAllowedMethodIds] = useState<string[]>();
 
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
     useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
-  useEffect(() => setAllowedMethodIds([]), [selectedRegion]);
+  useEffect(() => setAllowedMethodIds(undefined), [selectedRegion]);
 
   useEffect(() => {
     if (!isFetching && !error && paymentMethods) {
@@ -65,8 +65,9 @@ function usePaymentMethods() {
       !isFilterLoading &&
       !error &&
       paymentMethods &&
-      allowedMethodIds.length
+      allowedMethodIds
     ) {
+      if (allowedMethodIds.length === 0) return [];
       return paymentMethods.filter((method) =>
         allowedMethodIds.includes(method.id),
       );
