@@ -321,6 +321,22 @@
     "description": "By proceeding, you agree to these ",
     "terms": "Điều khoản và điều kiện"
   },
+  "privacy_policy": {
+    "title": "Chính sách quyền riêng tư",
+    "description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+    "here": "tại đây",
+    "agree": "Tôi đồng ý",
+    "decline": "Không, cảm ơn",
+    "description_title": "Giúp chúng tôi cải thiện MetaMask",
+    "description_content_1": "MetaMask muốn thu thập dữ liệu sử dụng cơ bản để hiểu rõ hơn về cách người dùng tương tác với ứng dụng di động. Chúng tôi sẽ dùng dữ liệu này để liên tục cải thiện độ hữu ích và trải nghiệm người dùng trên sản phẩm của mình.",
+    "description_content_2": "MetaMask sẽ...",
+    "action_description_1": "Luôn cho phép bạn chọn không tham gia thông qua phần Cài đặt",
+    "action_description_2": "Gửi các lượt nhấp và xem trang đã được ẩn danh",
+    "action_description_3": "Gửi dữ liệu về quốc gia, khu vực, thành phố (không phải vị trí cụ thể)",
+    "action_description_4": "Không bao giờ thu thập mã khóa, địa chỉ, giao dịch, số dư, mã băm hoặc bất kỳ thông tin cá nhân nào",
+    "action_description_5": "Không bao giờ thu thập địa chỉ IP của bạn",
+    "action_description_6": "Không bao giờ bán dữ liệu để thu lợi. Tuyệt đối không bao giờ!"
+  },
   "token": {
     "token_symbol": "Ký hiệu token",
     "token_address": "Địa chỉ token",

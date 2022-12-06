@@ -321,6 +321,22 @@
     "description": "By proceeding, you agree to these ",
     "terms": "नियम और शर्तें"
   },
+  "privacy_policy": {
+    "title": "गोपनीयता नीति",
+    "description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+    "here": "देखें",
+    "agree": "मैं सहमत हूँ",
+    "decline": "जी नहीं, धन्यवाद",
+    "description_title": "MetaMask को बेहतर बनाने में हमारी मदद करें",
+    "description_content_1": "MetaMask इस बात की बेहतर समझ प्राप्त करने के लिए मूलभूत उपयोग डेटा एकत्र करना चाहता है कि हमारे उपयोगकर्ता मोबाइल ऐप के साथ कैसे सहभागिता करते हैं। इस डेटा का उपयोग हमारे उत्पाद की उपयोगिता और उपयोगकर्ता अनुभव को लगातार सुधारने के लिए किया जाएगा।",
+    "description_content_2": "MetaMask निम्न चीज़ें करेगा...",
+    "action_description_1": "हमेशा आपको सेटिंग्स के माध्यम से ऑप्ट-आउट करने की अनुमति देगा",
+    "action_description_2": "बेनाम क्लिक और पेजव्यू ईवेंट भेजेगा",
+    "action_description_3": "देश, क्षेत्र, शहर डेटा भेजें (विशिष्ट स्थान नहीं)",
+    "action_description_4": "कुंजी, पते, लेनदेन, शेषराशि, हैश या कोई भी व्यक्तिगत जानकारी कभी एकत्र नहीं करेगा",
+    "action_description_5": "आपका IP पता एकत्र नहीं करेगा",
+    "action_description_6": "लाभ के लिए डेटा कभी नहीं बेचेगा। हमेशा!"
+  },
   "token": {
     "token_symbol": "टोकन का प्रतीक",
     "token_address": "टोकन का पता",

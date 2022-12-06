@@ -341,6 +341,22 @@
     "description": "続行することで、次の規約に同意したものとみなされます:",
     "terms": "利用規約"
   },
+  "privacy_policy": {
+    "title": "プライバシーポリシー",
+    "description": "このデータは集約されるため、一般データ保護規則 (EU) 2016/679 の目的上匿名となります。当社のプライバシーポリシーに関する詳細は、",
+    "here": "こちらのプライバシーポリシーをご覧ください",
+    "agree": "同意する",
+    "decline": "同意しない",
+    "description_title": "MetaMaskの改善にご協力ください",
+    "description_content_1": "MetaMaskは、ユーザーがモバイルアプリをどのように利用しているのかをより詳しく把握するため、基本的な使用状況データを収集したいと考えています。このデータは、製品の使いやすさとユーザーエクスペリエンスを引き続き改善するために使用されます。",
+    "description_content_2": "MetaMaskは...",
+    "action_description_1": "ユーザーが設定でいつでもオプトアウトできるようにしています",
+    "action_description_2": "匿名のクリック・ページ閲覧情報を送信します",
+    "action_description_3": "国、地域、市区町村データ (具体的な場所を除く) のデータを送信します",
+    "action_description_4": "キー、アドレス、トランザクション、残高、ハッシュ、個人情報を一切収集しません",
+    "action_description_5": "ユーザーのIPアドレスを一切収集しません",
+    "action_description_6": "データを販売して利益を得ることは決してありません。"
+  },
   "token": {
     "token_symbol": "トークンシンボル",
     "token_address": "トークンアドレス",

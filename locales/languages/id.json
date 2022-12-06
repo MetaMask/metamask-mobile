@@ -341,6 +341,22 @@
     "description": "Dengan melanjutkan, Anda menyetujui",
     "terms": "Syarat dan Ketentuan"
   },
+  "privacy_policy": {
+    "title": "Kebijakan Privasi",
+    "description": "Data ini dikumpulkan dan oleh karena itu bersifat anonim untuk tujuan Regulasi Perlindungan Data (UE) 2016/679. Untuk informasi selengkapnya terkait praktik privasi kami, lihat Kebijakan Privasi kami",
+    "here": "di sini",
+    "agree": "Saya Setuju",
+    "decline": "Tidak, terima kasih",
+    "description_title": "Bantu kami meningkatkan MetaMask",
+    "description_content_1": "MetaMask ingin mengumpulkan data penggunaan dasar untuk lebih memahami cara pengguna kami berinteraksi dengan aplikasi seluler. Data ini akan digunakan untuk terus meningkatkan kegunaan dan pengalaman pengguna produk kami.",
+    "description_content_2": "MetaMask...",
+    "action_description_1": "Akan selalu mengizinkan Anda untuk memilih keluar melalui Pengaturan",
+    "action_description_2": "Akan mengirimkan klik anonim & acara tampilan laman",
+    "action_description_3": "Akan mengirimkan data negara, wilayah, kota (bukan lokasi spesifik)",
+    "action_description_4": "Tidak akan pernah mengumpulkan kunci, alamat, transaksi, saldo, hash, atau informasi pribadi apa pun",
+    "action_description_5": "Tidak akan pernah mengumpulkan alamat IP Anda",
+    "action_description_6": "Tidak akan pernah menjual data untuk mendapatkan keuntungan. Selamanya!"
+  },
   "token": {
     "token_symbol": "Simbol Token",
     "token_address": "Alamat Token",
