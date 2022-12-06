@@ -22,7 +22,7 @@ const initialState = {
       },
       NetworkController: {
         provider: {
-          type: 'mainnet',
+          chainId: '1',
         },
       },
     },

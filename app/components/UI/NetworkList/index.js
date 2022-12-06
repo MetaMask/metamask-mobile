@@ -343,7 +343,8 @@ export class NetworkList extends PureComponent {
     const { provider } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
-    const isMainnet =
+    // Do not check using chainId. This check needs to specifically use `mainnet`.
+    const checkIcon =
       provider.type === MAINNET ? (
         <Icon name="check" size={15} color={colors.icon.default} />
       ) : null;
@@ -359,7 +360,7 @@ export class NetworkList extends PureComponent {
         >
           <View style={styles.networkWrapper}>
             <View style={[styles.selected, styles.mainnetSelected]}>
-              {isMainnet}
+              {checkIcon}
             </View>
             <ImageIcon image="ETHEREUM" style={styles.networkIcon} />
             <View style={styles.networkInfo}>

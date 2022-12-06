@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
   InteractionManager,
   ActivityIndicator,
-  Alert,
   StyleSheet,
   View,
 } from 'react-native';
@@ -26,25 +25,17 @@ import {
   setTransactionObject,
 } from '../../../actions/transaction';
 import { toggleDappTransactionModal } from '../../../actions/modals';
-import NotificationManager from '../../../core/NotificationManager';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
   getTransactionReviewActionKey,
-  decodeTransferData,
   getTransactionToName,
   generateTransferData,
 } from '../../../util/transactions';
-import Logger from '../../../util/Logger';
 import { isENS } from '../../../util/address';
-import TransactionTypes from '../../../core/TransactionTypes';
-import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
-import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const REVIEW = 'review';
@@ -422,33 +413,6 @@ class Send extends PureComponent {
   };
 
   /**
-   * Returns transaction object with gas, gasPrice and value in hex format
-   *
-   * @param {object} transaction - Transaction object
-   */
-  prepareTransaction = (transaction) => ({
-    ...transaction,
-    gas: BNToHex(transaction.gas),
-    gasPrice: BNToHex(transaction.gasPrice),
-    value: BNToHex(transaction.value),
-  });
-
-  /**
-   * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
-   * and to set to selectedAsset address
-   *
-   * @param {object} transaction - Transaction object
-   * @param {object} selectedAsset - Asset object
-   */
-  prepareAssetTransaction = (transaction, selectedAsset) => ({
-    ...transaction,
-    gas: BNToHex(transaction.gas),
-    gasPrice: BNToHex(transaction.gasPrice),
-    value: '0x0',
-    to: selectedAsset.address,
-  });
-
-  /**
    * Returns transaction object with gas and gasPrice in hex format
    *
    * @param transaction - Transaction object
@@ -460,20 +424,6 @@ class Send extends PureComponent {
   });
 
   /**
-   * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
-   */
-  removeCollectible = () => {
-    const { selectedAsset, assetType, providerType } = this.props.transaction;
-    if (assetType === 'ERC721' && providerType !== MAINNET) {
-      const { CollectiblesController } = Engine.context;
-      CollectiblesController.removeCollectible(
-        selectedAsset.address,
-        selectedAsset.tokenId,
-      );
-    }
-  };
-
-  /**
    * Cancels transaction and close send screen before clear transaction state
    *
    * @param if - Transaction id
@@ -483,112 +433,6 @@ class Send extends PureComponent {
     this.props.navigation.pop();
     this.unmountHandled = true;
     this.state.mode === REVIEW && this.trackOnCancel();
-  };
-
-  /**
-   * Confirms transaction. In case of selectedAsset handles a token transfer transaction,
-   * if not, and Ether transaction.
-   * If success, transaction state is cleared, if not transaction is reset alert about the error
-   * and returns to edit transaction
-   */
-  onConfirm = async () => {
-    const { TransactionController, AddressBookController, KeyringController } =
-      Engine.context;
-    this.setState({ transactionConfirmed: true });
-    const {
-      transaction: { selectedAsset, assetType },
-      network,
-      addressBook,
-    } = this.props;
-    let { transaction } = this.props;
-    try {
-      if (assetType === 'ETH') {
-        transaction = this.prepareTransaction(transaction);
-      } else {
-        transaction = this.prepareAssetTransaction(transaction, selectedAsset);
-      }
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
-      await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
-
-      // Add to the AddressBook if it's an unkonwn address
-      let checksummedAddress = null;
-
-      if (assetType === 'ETH') {
-        checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-      } else if (assetType === 'ERC20') {
-        try {
-          const [addressTo] = decodeTransferData(
-            'transfer',
-            transactionMeta.transaction.data,
-          );
-          if (addressTo) {
-            checksummedAddress = toChecksumAddress(addressTo);
-          }
-        } catch (e) {
-          Logger.log('Error decoding transfer data', transactionMeta.data);
-        }
-      } else if (assetType === 'ERC721') {
-        try {
-          const data = decodeTransferData(
-            'transferFrom',
-            transactionMeta.transaction.data,
-          );
-          const addressTo = data[1];
-          if (addressTo) {
-            checksummedAddress = toChecksumAddress(addressTo);
-          }
-        } catch (e) {
-          Logger.log('Error decoding transfer data', transactionMeta.data);
-        }
-      }
-      const existingContact =
-        addressBook[network] && addressBook[network][checksummedAddress];
-      if (!existingContact) {
-        AddressBookController.set(checksummedAddress, '', network);
-      }
-      await new Promise((resolve) => {
-        resolve(result);
-      });
-      if (transactionMeta.error) {
-        throw transactionMeta.error;
-      }
-      this.setState({
-        transactionConfirmed: false,
-        transactionSubmitted: true,
-      });
-      this.props.navigation.pop();
-      InteractionManager.runAfterInteractions(() => {
-        NotificationManager.watchSubmittedTransaction({
-          ...transactionMeta,
-          assetType: transaction.assetType,
-        });
-        this.removeCollectible();
-      });
-    } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        Alert.alert(
-          strings('transactions.transaction_error'),
-          error && error.message,
-          [{ text: strings('navigation.ok') }],
-        );
-        Logger.error(error, 'error while trying to send transaction (Send)');
-      } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
-      }
-      this.setState({ transactionConfirmed: false });
-      await this.reset();
-    }
-    InteractionManager.runAfterInteractions(() => {
-      this.trackOnConfirm();
-    });
   };
 
   /**
@@ -622,16 +466,6 @@ class Send extends PureComponent {
   trackOnCancel = () => {
     Analytics.trackEventWithParameters(
       ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
-      this.getTrackingParams(),
-    );
-  };
-
-  /**
-   * Call Analytics to track confirm pressed
-   */
-  trackOnConfirm = () => {
-    Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );
   };
