@@ -28,7 +28,7 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.isVisible();
-  await OnboardingWizardModal.clickBackButton();
+  await OnboardingWizardModal.tapNoThanksButton();
 });
 
 Then(/^I tap on the navbar network title button/, async () => {

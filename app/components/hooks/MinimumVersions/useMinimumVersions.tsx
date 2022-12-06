@@ -7,12 +7,12 @@ import { useNavigation } from '@react-navigation/native';
 import { InteractionManager } from 'react-native';
 
 const useMinimumVersions = () => {
-  const minimumValues = useAppConfig();
-  const currentBuildNumber = Number(getBuildNumber());
-  const navigation = useNavigation();
   const allowAutomaticSecurityChecks = useSelector(
     (state: any) => state.security.automaticSecurityChecksEnabled,
   );
+  const minimumValues = useAppConfig(allowAutomaticSecurityChecks);
+  const currentBuildNumber = Number(getBuildNumber());
+  const navigation = useNavigation();
   const shouldTriggerUpdateFlow = useMemo(
     () =>
       !!(
