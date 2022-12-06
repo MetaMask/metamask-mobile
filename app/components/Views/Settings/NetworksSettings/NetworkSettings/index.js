@@ -69,6 +69,7 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import NetworkList from '../../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -229,9 +230,9 @@ class NetworkSettings extends PureComponent {
      */
     thirdPartyApiMode: PropTypes.bool,
     /**
-     * Checks if only RPC update is allowed
+     * Checks if adding custom mainnet.
      */
-    isRPCUpdate: PropTypes.bool,
+    isCustomMainnet: PropTypes.bool,
   };
 
   state = {
@@ -263,11 +264,11 @@ class NetworkSettings extends PureComponent {
 
   updateNavBar = () => {
     const { navigation, route } = this.props;
-    const isRPCUpdate = route.params?.isRPCUpdate;
+    const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getNavigationOptionsTitle(
-        isRPCUpdate
+        isCustomMainnet
           ? strings('app_settings.networks_default_title')
           : strings('app_settings.networks_title'),
         navigation,
@@ -277,10 +278,23 @@ class NetworkSettings extends PureComponent {
     );
   };
 
+  /**
+   * Gets the custom mainnet RPC URL from the frequent RPC list.
+   *
+   * @returns Custom mainnet RPC URL.
+   */
+  getCustomMainnetRPCURL = () => {
+    const { frequentRpcList } = this.props;
+    const networkInformation = frequentRpcList.find(
+      ({ chainId: id }) => String(id) === String(NetworkList.mainnet.chainId),
+    );
+    return networkInformation?.rpcUrl || '';
+  };
+
   componentDidMount = () => {
     this.updateNavBar();
     const { route, frequentRpcList } = this.props;
-    const isRPCUpdate = route.params?.isRPCUpdate;
+    const isCustomMainnet = route.params?.isCustomMainnet;
     const network = route.params?.network;
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
@@ -294,6 +308,11 @@ class NetworkSettings extends PureComponent {
         editable = false;
         rpcUrl = allNetworksblockExplorerUrl + network;
         ticker = strings('unit.eth');
+        // Override values if UI is updating custom mainnet RPC URL.
+        if (isCustomMainnet) {
+          nickname = DEFAULT_MAINNET_CUSTOM_NAME;
+          rpcUrl = this.getCustomMainnetRPCURL();
+        }
       } else {
         const networkInformation = frequentRpcList.find(
           ({ rpcUrl }) => rpcUrl === network,
@@ -306,11 +325,6 @@ class NetworkSettings extends PureComponent {
         ticker = networkInformation.ticker;
         editable = true;
         rpcUrl = network;
-      }
-      // Override values if UI is
-      if (isRPCUpdate) {
-        nickname = DEFAULT_MAINNET_CUSTOM_NAME;
-        rpcUrl = '';
       }
       const initialState =
         rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
@@ -457,8 +471,11 @@ class NetworkSettings extends PureComponent {
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
     const { navigation, networkOnboardedState, route } = this.props;
-    const isRPCUpdate = route.params?.isRPCUpdate;
-    const prevRPCUrl = route.params?.network;
+    const isCustomMainnet = route.params?.isCustomMainnet;
+    // This must be defined before PreferencesController.addToFrequentRpcList.
+    const prevRPCURL = isCustomMainnet
+      ? this.getCustomMainnetRPCURL()
+      : route.params?.network;
 
     // Check if CTA is disabled
     const isCtaDisabled =
@@ -482,7 +499,7 @@ class NetworkSettings extends PureComponent {
     const networkType = nickname || rpcUrl;
     const networkUrl = sanitizeUrl(rpcUrl);
     // Prevent the network switch modal from showing post onboarding.
-    const showNetworkOnboarding = isRPCUpdate ? false : isOnboarded;
+    const showNetworkOnboarding = isCustomMainnet ? false : isOnboarded;
 
     const formChainId = stateChainId.trim().toLowerCase();
 
@@ -514,7 +531,11 @@ class NetworkSettings extends PureComponent {
       );
       // TODO: PreferencesController.addToFrequentRpcList only compares RPC urls to determine if a network should be updated or added.
       // Temporary solution is to manually remove the existing network using the old RPC URL.
-      editable && PreferencesController.removeFromFrequentRpcList(prevRPCUrl);
+      const isRPCDifferent = url.href !== prevRPCURL;
+      if ((editable || isCustomMainnet) && isRPCDifferent) {
+        // Only remove from frequent list if RPC URL is different.
+        PreferencesController.removeFromFrequentRpcList(prevRPCURL);
+      }
       NetworkController.setRpcTarget(
         formattedHref,
         decimalChainId,
@@ -540,7 +561,7 @@ class NetworkSettings extends PureComponent {
         nativeToken,
         showNetworkOnboarding,
       });
-      isRPCUpdate
+      isCustomMainnet
         ? navigation.navigate('OptinMetrics')
         : navigation.navigate('WalletView');
     }
@@ -758,7 +779,7 @@ class NetworkSettings extends PureComponent {
       inputWidth,
     } = this.state;
     const { route } = this.props;
-    const isRPCUpdate = route.params?.isRPCUpdate;
+    const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
       this.context.themeAppearance || themeAppearanceLight;
@@ -778,9 +799,9 @@ class NetworkSettings extends PureComponent {
     const inputStyle = [
       styles.input,
       inputWidth,
-      isRPCUpdate ? styles.onboardingInput : undefined,
+      isCustomMainnet ? styles.onboardingInput : undefined,
     ];
-    const isRPCEditable = isRPCUpdate || editable;
+    const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
     const rpcActionStyle = isActionDisabled
@@ -900,7 +921,7 @@ class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
           </View>
-          {isRPCUpdate ? (
+          {isCustomMainnet ? (
             <Button
               variant={ButtonVariants.Primary}
               onPress={this.addRpcUrl}

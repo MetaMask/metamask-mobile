@@ -172,7 +172,7 @@ class OptinMetrics extends PureComponent {
     // TODO: Need network
     navigation.navigate('NetworkSettings', {
       network: MAINNET,
-      isRPCUpdate: true,
+      isCustomMainnet: true,
     });
   };
 
