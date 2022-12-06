@@ -2,6 +2,8 @@
 import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 import extractEthJsErrorMessage from './extractEthJsErrorMessage';
+import DefaultPreference from 'react-native-default-preference';
+import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 const SENTRY_DSN_PROD =
@@ -153,24 +155,34 @@ function sanitizeAddressesFromErrorMessages(report) {
 
 // Setup sentry remote error reporting
 export function setupSentry() {
-  const environment =
-    __DEV__ || !METAMASK_ENVIRONMENT ? 'development' : METAMASK_ENVIRONMENT;
-  const dsn = environment === 'production' ? SENTRY_DSN_PROD : SENTRY_DSN_DEV;
-  Sentry.init({
-    dsn,
-    debug: __DEV__,
-    environment,
-    integrations: [
-      new Dedupe(),
-      new ExtraErrorData(),
-      new Sentry.ReactNativeTracing({
-        routingInstrumentation,
-      }),
-    ],
-    tracesSampleRate: 0.2,
-    beforeSend: (report) => rewriteReport(report),
-    beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
-  });
+  const init = async () => {
+    const environment =
+      __DEV__ || !METAMASK_ENVIRONMENT ? 'development' : METAMASK_ENVIRONMENT;
+    const dsn = environment === 'production' ? SENTRY_DSN_PROD : SENTRY_DSN_DEV;
+
+    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+
+    const integrations = [new Dedupe(), new ExtraErrorData()];
+
+    Sentry.init({
+      dsn,
+      debug: __DEV__,
+      environment,
+      integrations:
+        metricsOptIn === AGREED
+          ? [
+              ...integrations,
+              new Sentry.ReactNativeTracing({
+                routingInstrumentation,
+              }),
+            ]
+          : integrations,
+      tracesSampleRate: 0.2,
+      beforeSend: (report) => rewriteReport(report),
+      beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
+    });
+  };
+  init();
 }
 
 // eslint-disable-next-line no-empty-function
