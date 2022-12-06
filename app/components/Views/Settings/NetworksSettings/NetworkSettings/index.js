@@ -7,6 +7,7 @@ import {
   TextInput,
   SafeAreaView,
   Linking,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../../../styles/common';
@@ -40,15 +41,22 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl from '../../../../../util/sanitizeUrl';
 import {
-  REMOVE_NETWORK_ID,
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
-  INPUT_NETWORK_NAME,
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  INPUT_CHAIN_ID_FIELD,
+  INPUT_RPC_URL_FIELD,
+  INPUT_NETWORK_NAME,
+  NETWORKS_SYMBOL_INPUT_FIELD,
+  BLOCK_EXPLORER_FIELD,
+  REMOVE_NETWORK_BUTTON,
+} from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -476,11 +484,9 @@ class NetworkSettings extends PureComponent {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: formattedHref,
         chain_id: decimalChainId,
         source: 'Custom network form',
         symbol: ticker,
-        block_explorer_url: blockExplorerUrl,
         network_name: nickname || RPC,
       };
       AnalyticsV2.trackEvent(
@@ -743,7 +749,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToRpcURL}
-              testID={INPUT_NETWORK_NAME}
+              {...generateTestId(Platform, INPUT_NETWORK_NAME)}
               keyboardAppearance={themeAppearance}
             />
             <Text style={styles.label}>
@@ -761,7 +767,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_rpc_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToChainId}
-              testID={'input-rpc-url'}
+              {...generateTestId(Platform, INPUT_RPC_URL_FIELD)}
               keyboardAppearance={themeAppearance}
             />
             {warningRpcUrl && (
@@ -786,7 +792,7 @@ class NetworkSettings extends PureComponent {
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToSymbol}
               keyboardType={'numbers-and-punctuation'}
-              testID={'input-chain-id'}
+              {...generateTestId(Platform, INPUT_CHAIN_ID_FIELD)}
               keyboardAppearance={themeAppearance}
             />
             {warningChainId ? (
@@ -809,7 +815,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_symbol_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
-              testID={'input-network-symbol'}
+              {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
 
@@ -827,6 +833,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings(
                 'app_settings.network_block_explorer_placeholder',
               )}
+              {...generateTestId(Platform, BLOCK_EXPLORER_FIELD)}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.addRpcUrl}
               keyboardAppearance={themeAppearance}
@@ -839,7 +846,7 @@ class NetworkSettings extends PureComponent {
                   <StyledButton
                     type="danger"
                     onPress={this.removeRpcUrl}
-                    testID={REMOVE_NETWORK_ID}
+                    testID={REMOVE_NETWORK_BUTTON}
                     containerStyle={[styles.button, styles.cancel]}
                   >
                     <CustomText centered red>

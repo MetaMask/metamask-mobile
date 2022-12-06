@@ -8,7 +8,10 @@ interface Props {
   logosByTheme: Payment['logo'];
 }
 
-const PaymentTypeIcon: React.FC<Props> = ({ logosByTheme, style }: Props) => {
+const PaymentMethodBadges: React.FC<Props> = ({
+  logosByTheme,
+  style,
+}: Props) => {
   const theme: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
   const logos = logosByTheme[theme];
@@ -22,4 +25,4 @@ const PaymentTypeIcon: React.FC<Props> = ({ logosByTheme, style }: Props) => {
   );
 };
 
-export default PaymentTypeIcon;
+export default PaymentMethodBadges;

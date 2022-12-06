@@ -1,3 +1,5 @@
+import Selectors from '../helpers/Selectors';
+
 /* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
@@ -61,19 +63,62 @@ const Actions = {
   MOVETO: 'moveTo',
   WAIT: 'wait',
   RELEASE: 'release',
-}
+};
 
-class Gestures  {
+class Gestures {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
     (await elem).touchAction(Actions.TAP);
   }
 
-  static async tap(element) {
+  static async tap(element, tapType = 'TAP') {
     // simple touch action on element
     const elem = await element;
-    (await elem).touchAction(Actions.TAP);
+    switch (tapType) {
+      case 'TAP':
+        (await elem).touchAction(Actions.TAP);
+        break;
+      case 'LONGPRESS':
+        (await elem).touchAction(Actions.LONGPRESS);
+        break;
+      case 'RELEASE':
+        (await elem).touchAction(Actions.RELEASE);
+        break;
+      case 'WAIT':
+        (await elem).touchAction(Actions.WAIT);
+        break;
+      case 'MOVETO':
+        (await elem).touchAction(Actions.MOVETO);
+          break;
+      default:
+        throw new Error('Tap type not found');
+  }
+}
+
+  static async tapTextByXpath(text, tapType = 'TAP') {
+    switch (tapType) {
+      case 'TAP':
+        (await Selectors.getXpathElementByText(text)).touchAction(Actions.TAP);
+        break;
+      case 'LONGPRESS':
+        (await Selectors.getXpathElementByText(text)).touchAction(Actions.LONGPRESS);
+        break;
+      case 'RELEASE':
+        (await Selectors.getXpathElementByText(text)).touchAction(Actions.RELEASE);
+        break;
+      default:
+        throw new Error('Tap type not found');
+    }
+  }
+
+  static async longPress(element, waitTime) {
+    const elem = await element;
+    (await elem).touchAction([
+      Actions.PRESS,
+      {action: Actions.WAIT, ms: waitTime},
+      Actions.RELEASE
+    ])
   }
 
   static async typeText(element, text) {
@@ -169,7 +214,7 @@ class Gestures  {
     const endPercentage = 0;
     const anchorPercentage = 50;
 
-    const { width, height } = await driver.getWindowSize();
+    const {width, height} = await driver.getWindowSize();
     const anchor = height * anchorPercentage / 100;
     const startPoint = width * startPercentage / 100;
     const endPoint = width * endPercentage / 100;
