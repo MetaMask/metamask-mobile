@@ -11,7 +11,6 @@ import {
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -64,16 +63,13 @@ class Step3 extends PureComponent {
 
   state = {
     coachmarkTop: 0,
-    viewTop: 0,
     coachmarkTopReady: false,
-    viewTopReady: false,
   };
 
   /**
    * Sets corresponding account label
    */
   componentDidMount = () => {
-    this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
     this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
   };
 
@@ -87,22 +83,6 @@ class Step3 extends PureComponent {
         this.setState({
           coachmarkTop: 2 * height,
           coachmarkTopReady: true,
-        });
-      });
-  };
-
-  /**
-   * Sets view top position getting accountOverview component ref from Wallet
-   */
-  getViewPosition = (ref) => {
-    ref &&
-      ref.current &&
-      ref.current.measure((fx, fy, width, height, px, py) => {
-        // Adding one for android
-        const viewTop = Device.isIos() ? py : py + 1;
-        this.setState({
-          viewTop,
-          viewTopReady: true,
         });
       });
   };
@@ -171,12 +151,12 @@ class Step3 extends PureComponent {
       ...identities[selectedAddress],
       ...accounts[selectedAddress],
     };
-    const { coachmarkTopReady, viewTopReady } = this.state;
+    const { coachmarkTopReady } = this.state;
     const dynamicOnboardingStyles = this.getOnboardingStyles();
-    if (!coachmarkTopReady || !viewTopReady) return null;
+    if (!coachmarkTopReady) return null;
 
     return (
-      <View style={[styles.main, { top: this.state.viewTop }]}>
+      <View style={styles.main}>
         <View style={styles.accountLabelContainer} testID={'account-label'}>
           <AccountOverview
             account={account}
