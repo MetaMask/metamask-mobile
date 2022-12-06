@@ -93,7 +93,7 @@ const EditGasFee1559Update = ({
     legacy: false,
     gasObject,
     swapsParams,
-    recommended,
+    recommended: recommended?.name,
   });
 
   const {

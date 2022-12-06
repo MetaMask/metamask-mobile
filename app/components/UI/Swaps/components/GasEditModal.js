@@ -416,10 +416,7 @@ GasEditModal.propTypes = {
   /**
    * Initial swap state
    */
-  initialSwapState: {
-    renderableGasFeeMinNative: PropTypes.string,
-    renderableGasFeeMaxNative: PropTypes.string,
-  },
+  initialSwapState: PropTypes.object,
 };
 const mapStateToProps = (state) => ({
   currentCurrency:
