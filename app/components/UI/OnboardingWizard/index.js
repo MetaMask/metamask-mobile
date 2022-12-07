@@ -84,6 +84,7 @@ const OnboardingWizard = (props) => {
     navigation,
     wizard: { step },
     coachmarkRef,
+    hasUserSelectedAutomaticSecurityCheckOption,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
@@ -164,7 +165,7 @@ const OnboardingWizard = (props) => {
       transparent
       onBackButtonPress={getBackButtonBehavior}
       style={styles.root}
-      coverScreen={false}
+      coverScreen={hasUserSelectedAutomaticSecurityCheckOption}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (
@@ -197,6 +198,8 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   wizard: state.wizard,
+  hasUserSelectedAutomaticSecurityCheckOption:
+    state.security.hasUserSelectedAutomaticSecurityCheckOption,
 });
 
 OnboardingWizard.propTypes = {
@@ -216,6 +219,10 @@ OnboardingWizard.propTypes = {
    * Coachmark ref to get position
    */
   coachmarkRef: PropTypes.object,
+  /**
+   * Boolean that determines if the user has selected the automatic security check option
+   */
+  hasUserSelectedAutomaticSecurityCheckOption: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);
