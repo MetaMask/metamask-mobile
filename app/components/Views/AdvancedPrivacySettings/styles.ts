@@ -15,7 +15,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    scrollViewContainer: { marginHorizontal: 16, marginVertical: 8 },
+    scrollViewContainer: {
+      width: '100%',
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
     thirdPartyText: { textAlign: 'center' },
     customEthTitle: { marginTop: 16 },
     /*   selectInput: {

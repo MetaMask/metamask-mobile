@@ -39,8 +39,10 @@ const SheetBottomConfirmation = ({ route }: SheetBottomConfirmationProps) => {
     navigation.goBack();
   };
   const onPressConfirm = () => {
-    if (onConfirm) onConfirm();
     navigation.goBack();
+    if (onConfirm) onConfirm();
+
+    console.log('ENTER HERE');
   };
 
   const onDismiss = () => {

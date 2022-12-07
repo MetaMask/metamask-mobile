@@ -11,20 +11,12 @@ import { isWebUri } from 'valid-url';
 import Text, {
   TextVariants,
 } from '../../../component-library/components/Texts/Text';
-import SelectComponent from '../../UI/SelectComponent';
 import Engine from '../../../core/Engine';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './styles';
-import Icon, { IconName } from '../../../component-library/components/Icon';
-import Avatar, {
-  AvatarSize,
-  AvatarVariants,
-} from '../../../component-library/components/Avatars/Avatar';
-import { TEST_NETWORK_IMAGE_URL } from '../../../component-library/components/Toast/Toast.constants';
-import NetworkList from '../../../util/networks';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -52,12 +44,12 @@ function getAdvancedPrivacyNavbarOptions(
 
   return {
     headerStyle: innerStyles.headerStyle,
-    headerTitle: () => (
-      <Text variant={TextVariants.lHeadingSM}>Avanced Privacy Settings</Text>
+    headerTitle: (
+      <Text variant={TextVariants.lHeadingSM}>Advanced Privacy Settings</Text>
     ),
     headerBackTitle: strings('navigation.back'),
     // headerRight: () => <View />,
-    headerLeft: headerLeftHide,
+    // headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
   };
 }
@@ -111,9 +103,9 @@ const AdvancedPrivacySettings = () => {
 
   return (
     <ScrollView style={styles.scrollViewContainer}>
-      {/*  <Text style={styles.thirdPartyText}>
+      <Text style={styles.thirdPartyText}>
         {strings('advanced_privacy_settings.third_party_services')}
-      </Text> */}
+      </Text>
       <Text variant={TextVariants.lHeadingSM} style={styles.customEthTitle}>
         Custom Ethereum access
       </Text>
