@@ -66,6 +66,7 @@ import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
 import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
+import BiometricOption from './Sections/BiometricOption';
 
 const isIos = Device.isIos();
 
@@ -787,32 +788,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderBiometricOptionsSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'biometrics-option'}>
-        <Text style={styles.title}>
-          {strings(
-            `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-          )}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={this.state.biometryChoice}
-            onValueChange={this.onSingInWithBiometrics}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
   renderDevicePasscodeSection = () => {
     const { styles, colors } = this.getStyles();
     return (
@@ -1138,7 +1113,7 @@ class Settings extends PureComponent {
           {this.renderProtectYourWalletSection()}
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
-          {biometryType && this.renderBiometricOptionsSection()}
+          <BiometricOption onOptionUpdated={this.onSingInWithBiometrics} />
           <RememberMeOptionSection />
           {biometryType &&
             !biometryChoice &&
