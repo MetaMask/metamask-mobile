@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   BackHandler,
   Alert,
@@ -29,7 +28,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
@@ -38,8 +37,14 @@ import {
   METAMETRICS_OPT_IN_CONTAINER_ID,
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
 } from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
+import { MAINNET } from '../../../constants/network';
 
-const createStyles = (colors) =>
+const createStyles = ({ colors }) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
@@ -70,6 +75,9 @@ const createStyles = (colors) =>
       color: colors.text.default,
       flex: 1,
     },
+    descriptionBold: {
+      ...fontStyles.bold,
+    },
     content: {
       ...fontStyles.normal,
       fontSize: 14,
@@ -89,14 +97,17 @@ const createStyles = (colors) =>
       textDecorationLine: 'underline',
     },
     actionContainer: {
-      marginTop: 10,
-      flex: 0,
       flexDirection: 'row',
       padding: 16,
-      bottom: 0,
+    },
+    disabledActionContainer: {
+      opacity: 0.3,
     },
     button: {
       flex: 1,
+    },
+    buttonDivider: {
+      width: 16,
     },
     cancel: {
       marginRight: 8,
@@ -133,22 +144,43 @@ class OptinMetrics extends PureComponent {
     route: PropTypes.object,
   };
 
-  openRPCSettings = () => {
-    const { navigation } = this.props;
-    navigation.navigate('NetworkSettings', {
-      network: MAINNET,
-      isCustomMainnet: true,
-    });
+  state = {
+    /**
+     * Used to control the action buttons state.
+     */
+    isActionEnabled: false,
   };
 
-  actionsList = [1, 2, 3, 4, 5, 6].map((value) => ({
-    action: value <= 3 ? 0 : 1,
-    description: strings(`privacy_policy.action_description_${value}`),
-  }));
+  /**
+   * Tracks when scroll view has scrolled to end.
+   * Needed to prevent scroll event from setting state multiple times.
+   */
+  isEndReached = false;
+
+  /**
+   * Tracks the scroll view's content height.
+   */
+  scrollViewContentHeight = undefined;
+
+  getStyles = () => {
+    const { colors, typography } = this.context;
+    return createStyles({ colors, typography });
+  };
+
+  actionsList = [1, 2, 3, 4, 5].map((value) => {
+    const actionVal = value <= 2 ? 0 : 1;
+    return {
+      action: actionVal,
+      prefix: actionVal
+        ? `${strings('privacy_policy.action_description_never')} `
+        : '',
+      description: strings(`privacy_policy.action_description_${value}`),
+    };
+  });
 
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.context.colors;
     navigation.setOptions(getOptinMetricsNavbarOptions(colors));
   };
 
@@ -200,9 +232,8 @@ class OptinMetrics extends PureComponent {
    * @param {object} - Object containing action and description to be rendered
    * @param {number} i - Index key
    */
-  renderAction = ({ action, description }, i) => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+  renderAction = ({ action, description, prefix }, i) => {
+    const styles = this.getStyles();
 
     return (
       <View style={styles.action} key={i}>
@@ -219,7 +250,10 @@ class OptinMetrics extends PureComponent {
             style={[styles.icon, styles.crossIcon]}
           />
         )}
-        <Text style={styles.description}>{description}</Text>
+        <Text style={styles.description}>
+          <Text style={styles.descriptionBold}>{prefix}</Text>
+          {description}
+        </Text>
       </View>
     );
   };
@@ -277,15 +311,26 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Callback on press policy
+   * Open RPC settings.
    */
-  onPressPolicy = () => {
+  openRPCSettings = () => {
+    this.props.navigation.navigate('NetworkSettings', {
+      network: MAINNET,
+      isCustomMainnet: true,
+    });
+  };
+
+  /**
+   * Opens link when provided link params.
+   *
+   * @param {Object} linkParams
+   * @param {string} linkParams.url
+   * @param {string} linkParams.title
+   */
+  onPressLink = (linkParams) => {
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.PRIVACY_POLICY,
-        title: strings('privacy_policy.title'),
-      },
+      params: linkParams,
     });
   };
 
@@ -295,30 +340,142 @@ class OptinMetrics extends PureComponent {
    * @returns - Touchable opacity object to render with privacy policy information
    */
   renderPrivacyPolicy = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = this.getStyles();
 
     return (
-      <TouchableOpacity onPress={this.onPressPolicy}>
+      <View>
         <Text style={styles.privacyPolicy}>
-          {strings('privacy_policy.description') + ' '}
-          <Text style={styles.link}>{strings('privacy_policy.here')}</Text>
+          <Text>{strings('privacy_policy.fine_print_1')}</Text>
+          {'\n\n'}
+          {strings('privacy_policy.fine_print_2a') + ' '}
+          <ButtonLink onPress={this.openRPCSettings}>
+            {strings('privacy_policy.fine_print_2b')}
+          </ButtonLink>
+          {strings('unit.point') + ' '}
+          {strings('privacy_policy.fine_print_2c') + ' '}
+          <ButtonLink
+            onPress={() =>
+              this.onPressLink({
+                url: AppConstants.URLS.DATA_RETENTION_UPDATE,
+                title: '',
+              })
+            }
+          >
+            {strings('privacy_policy.here')}
+          </ButtonLink>
+          {strings('unit.point') + ' '}
+          {strings('privacy_policy.fine_print_2d') + ' '}
+          <ButtonLink
+            onPress={() =>
+              this.onPressLink({
+                url: AppConstants.URLS.PRIVACY_POLICY,
+                title: strings('privacy_policy.title'),
+              })
+            }
+          >
+            {strings('privacy_policy.fine_print_2e')}
+          </ButtonLink>
           {strings('unit.point')}
         </Text>
-      </TouchableOpacity>
+      </View>
     );
   };
 
+  renderActionButtons = () => {
+    const { isActionEnabled } = this.state;
+    const styles = this.getStyles();
+    // Once buttons are refactored, it should auto handle disabled colors.
+    const buttonContainerStyle = [
+      styles.actionContainer,
+      isActionEnabled ? undefined : styles.disabledActionContainer,
+    ];
+
+    return (
+      <View style={buttonContainerStyle}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          onPress={this.onCancel}
+          {...generateTestId(Platform, OPTIN_METRICS_NO_THANKS_BUTTON_ID)}
+          style={styles.button}
+          label={strings('privacy_policy.cta_no_thanks')}
+          size={ButtonSize.Lg}
+          disabled={!isActionEnabled}
+        />
+        <View style={styles.buttonDivider} />
+        <Button
+          variant={ButtonVariants.Primary}
+          onPress={this.onConfirm}
+          {...generateTestId(Platform, OPTIN_METRICS_I_AGREE_BUTTON_ID)}
+          style={styles.button}
+          label={strings('privacy_policy.cta_i_agree')}
+          size={ButtonSize.Lg}
+          disabled={!isActionEnabled}
+        />
+      </View>
+    );
+  };
+
+  /**
+   * Triggered when scroll view has reached end of content.
+   */
+  onScrollEndReached = () => {
+    this.isEndReached = true;
+    this.setState({ isActionEnabled: true });
+  };
+
+  /**
+   * Content size change event for the ScrollView.
+   *
+   * @param {number} _
+   * @param {number} height
+   */
+  onContentSizeChange = (_, height) => (this.scrollViewContentHeight = height);
+
+  /**
+   * Layout event for the ScrollView.
+   *
+   * @param {Object} event
+   */
+  onLayout = ({ nativeEvent }) => {
+    if (this.scrollViewContentHeight === undefined || this.isEndReached) return;
+    const scrollViewHeight = nativeEvent.layout.height;
+    // Check if content fits view port of scroll view.
+    if (scrollViewHeight >= this.scrollViewContentHeight)
+      this.onScrollEndReached();
+  };
+
+  /**
+   * Scroll event for the ScrollView.
+   *
+   * @param {Object} event
+   */
+  onScroll = ({ nativeEvent }) => {
+    if (this.isEndReached) return;
+    const currentYOffset = nativeEvent.contentOffset.y;
+    const paddingAllowance = 16;
+    const endThreshold =
+      nativeEvent.contentSize.height -
+      nativeEvent.layoutMeasurement.height -
+      paddingAllowance;
+    // Check when scroll has reached the end.
+    if (currentYOffset >= endThreshold) this.onScrollEndReached();
+  };
+
   render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = this.getStyles();
 
     return (
       <SafeAreaView
         style={styles.root}
         {...generateTestId(Platform, METAMETRICS_OPT_IN_CONTAINER_ID)}
       >
-        <ScrollView style={styles.root}>
+        <ScrollView
+          style={styles.root}
+          scrollEventThrottle={150}
+          onContentSizeChange={this.onContentSizeChange}
+          onLayout={this.onLayout}
+          onScroll={this.onScroll}
+        >
           <View style={styles.wrapper}>
             <Text
               style={styles.title}
@@ -341,26 +498,8 @@ class OptinMetrics extends PureComponent {
             {this.actionsList.map((action, i) => this.renderAction(action, i))}
             {this.renderPrivacyPolicy()}
           </View>
-
-          <View style={styles.actionContainer}>
-            <StyledButton
-              containerStyle={[styles.button, styles.cancel]}
-              type={'cancel'}
-              onPress={this.onCancel}
-              testID={OPTIN_METRICS_NO_THANKS_BUTTON_ID}
-            >
-              {strings('privacy_policy.decline')}
-            </StyledButton>
-            <StyledButton
-              containerStyle={[styles.button, styles.confirm]}
-              type={'confirm'}
-              onPress={this.onConfirm}
-              testID={OPTIN_METRICS_I_AGREE_BUTTON_ID}
-            >
-              {strings('privacy_policy.agree')}
-            </StyledButton>
-          </View>
         </ScrollView>
+        {this.renderActionButtons()}
       </SafeAreaView>
     );
   }

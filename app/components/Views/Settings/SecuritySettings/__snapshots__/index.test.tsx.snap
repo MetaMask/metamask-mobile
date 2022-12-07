@@ -5,7 +5,6 @@ exports[`SecuritySettings should render correctly 1`] = `
   accounts={Object {}}
   approvedHosts={Object {}}
   browserHistory={Array []}
-  chainId="1"
   clearBrowserHistory={[Function]}
   clearHosts={[Function]}
   identities={
@@ -33,5 +32,6 @@ exports[`SecuritySettings should render correctly 1`] = `
   setLockTime={[Function]}
   setPrivacyMode={[Function]}
   setThirdPartyApiMode={[Function]}
+  type="mainnet"
 />
 `;

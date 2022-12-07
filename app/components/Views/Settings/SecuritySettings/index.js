@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
+import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -66,7 +67,6 @@ import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
 import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
-import { isMainnetByChainId } from '../../../../util/networks';
 
 const isIos = Device.isIos();
 
@@ -295,9 +295,9 @@ class Settings extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Network chainId.
+     * Type of network
      */
-    chainId: PropTypes.string,
+    type: PropTypes.string,
   };
 
   state = {
@@ -433,7 +433,7 @@ class Settings extends PureComponent {
     });
   };
 
-  isMainnet = () => isMainnetByChainId(this.props.chainId);
+  isMainnet = () => this.props.type === MAINNET;
 
   onSignInWithPasscode = async (enabled) => {
     this.setState({ loading: true }, async () => {
@@ -1179,7 +1179,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.useCollectibleDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  type: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 const mapDispatchToProps = (dispatch) => ({
