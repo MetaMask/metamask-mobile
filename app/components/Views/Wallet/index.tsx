@@ -166,12 +166,14 @@ const Wallet = ({ navigation }: any) => {
       });
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: 'bottomSheet',
+        screen: Routes.BOTTOM_SHEET.CONFIRMATION,
         params: {
           title: 'Advanced privacy settings',
           description:
             'MetaMask uses third-party services to enhance product usability and safety. Learn more about privacy best practices.',
           onConfirm: () => navigation.navigate('AdvancedPrivacySettings'),
+          confirmLabel: 'Customize settings',
+          cancelLabel: 'Use default',
         },
       });
     },

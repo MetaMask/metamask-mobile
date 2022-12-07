@@ -24,6 +24,9 @@ const Routes = {
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
   },
+  BOTTOM_SHEET: {
+    CONFIRMATION: 'BottomSheetConfirmation',
+  },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     HOME_NAV: 'HomeNav',

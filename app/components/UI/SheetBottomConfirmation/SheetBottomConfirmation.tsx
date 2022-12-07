@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
 import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
@@ -26,26 +28,29 @@ const SheetBottomConfirmation = ({ route }: SheetBottomConfirmationProps) => {
     confirmLabel,
     cancelLabel,
     onCancel,
-    isInteractable = true,
+    onDismissed,
   } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<SheetBottomRef | null>(null);
+  const navigation = useNavigation();
 
   const onPressCancel = () => {
     if (onCancel) onCancel();
-    bottomSheetRef.current.hide();
+    navigation.goBack();
   };
   const onPressConfirm = () => {
     if (onConfirm) onConfirm();
-    bottomSheetRef.current.hide();
+    navigation.goBack();
+  };
+
+  const onDismiss = () => {
+    if (onDismissed) onDismissed();
   };
 
   return (
-    <SheetBottom ref={bottomSheetRef} isInteractive={isInteractable}>
+    <SheetBottom ref={bottomSheetRef} onDismissed={onDismiss}>
       <View style={styles.contentContainer}>
-        <Text variant={TextVariants.sHeadingMD} style={styles.title}>
-          {title}
-        </Text>
+        <Text variant={TextVariants.sHeadingMD}>{title}</Text>
         <Text variant={TextVariants.sBodyMD} style={styles.description}>
           {description}
         </Text>

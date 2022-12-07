@@ -377,7 +377,10 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
         component={EnableAutomaticSecurityChecksModal}
       />
-      <Stack.Screen name={'bottomSheet'} component={SheetBottomConfirmation} />
+      <Stack.Screen
+        name={Routes.BOTTOM_SHEET.CONFIRMATION}
+        component={SheetBottomConfirmation}
+      />
     </Stack.Navigator>
   );
 

@@ -28,10 +28,9 @@ export interface SheetBottomConfirmationRoute {
      */
     confirmLabel?: string;
     /**
-     * Boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
-     * @default true
+     * Optional label to set on the confirm button.
      */
-    isInteractable?: boolean;
+    onDismissed?: () => void;
   };
 }
 
