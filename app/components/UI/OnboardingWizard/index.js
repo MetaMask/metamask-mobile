@@ -84,7 +84,7 @@ const OnboardingWizard = (props) => {
     navigation,
     wizard: { step },
     coachmarkRef,
-    hasUserSelectedAutomaticSecurityCheckOption,
+    isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
@@ -155,6 +155,10 @@ const OnboardingWizard = (props) => {
     return setOnboardingWizardStep(step - 1);
   };
 
+  if (isAutomaticSecurityChecksModalOpen) {
+    return null;
+  }
+
   return (
     <Modal
       animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
@@ -165,7 +169,6 @@ const OnboardingWizard = (props) => {
       transparent
       onBackButtonPress={getBackButtonBehavior}
       style={styles.root}
-      coverScreen={hasUserSelectedAutomaticSecurityCheckOption}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (
@@ -198,8 +201,8 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   wizard: state.wizard,
-  hasUserSelectedAutomaticSecurityCheckOption:
-    state.security.hasUserSelectedAutomaticSecurityCheckOption,
+  isAutomaticSecurityChecksModalOpen:
+    state.security.isAutomaticSecurityChecksModalOpen,
 });
 
 OnboardingWizard.propTypes = {
@@ -222,7 +225,7 @@ OnboardingWizard.propTypes = {
   /**
    * Boolean that determines if the user has selected the automatic security check option
    */
-  hasUserSelectedAutomaticSecurityCheckOption: PropTypes.bool,
+  isAutomaticSecurityChecksModalOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);
