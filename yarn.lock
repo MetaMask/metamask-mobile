@@ -3986,10 +3986,10 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/swaps-controller@^6.7.0":
-  version "6.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.7.0.tgz#bcd231e034a30a95c9c89aff4f24c8c1cae1e5f6"
-  integrity sha512-ZgdueQn8fcD5pYl8UuNSWdnXqWMhPsLGC3VobwsRSF1cj3ACSZNwS4Q9lbY46B2lhkvy7Tu6dOt4k0BjgrPDEw==
+"@metamask/swaps-controller@^6.7.2":
+  version "6.7.2"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.7.2.tgz#c999e55d449d36f8e948409c21d5362db93cc4cf"
+  integrity sha512-p3Czoqx7YANZX2GjW8apTio5rs3RkAGaIvoRd97fVza72R6VKXcRZ/pw9XB1o2z9beYdXqEn7+Q3v69yTUOu7A==
   dependencies:
     "@metamask/controllers" "^26.0.0"
     abort-controller "^3.0.0"
@@ -19255,36 +19255,17 @@ qrcode@^1.2.0:
     pngjs "^3.3.0"
     yargs "^13.2.4"
 
-qs@6.11.0:
-  version "6.11.0"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.0.tgz#fd0d963446f7a65e1367e01abd85429453f0c37a"
-  integrity sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==
-  dependencies:
-    side-channel "^1.0.4"
-
-qs@6.7.0:
-  version "6.7.0"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
-  integrity sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ==
-
-qs@^6.5.1, qs@^6.5.2:
-  version "6.10.1"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.10.1.tgz#4931482fa8d647a5aab799c5271d2133b981fb6a"
-  integrity sha512-M528Hph6wsSVOBiYUnGf+K/7w0hNshs/duGsNXPUCLH5XAqjEtiPGwNONLV0tBH8NoGb0mvD5JubnUTrujKDTg==
-  dependencies:
-    side-channel "^1.0.4"
-
-qs@^6.6.0:
+qs@6.10.3, qs@6.11.0, qs@^6.5.1, qs@^6.5.2, qs@^6.6.0, qs@~6.5.2:
   version "6.10.3"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.10.3.tgz#d6cde1b2ffca87b5aa57889816c5f81535e22e8e"
   integrity sha512-wr7M2E0OFRfIfJZjKGieI8lBKb7fRCH4Fv5KNPEs7gJ8jadvotdsS08PzOKR7opXhZ/Xkjtt3WF9g38drmyRqQ==
   dependencies:
     side-channel "^1.0.4"
 
-qs@~6.5.2:
-  version "6.5.2"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
-  integrity sha512-N5ZAX4/LxJmF+7wN74pUD6qAh9/wnvdQcjq9TZjevvXzSUo7bfmw91saqMjzGS2xq91/odN2dW/WOl7qQHNDGA==
+qs@6.7.3:
+  version "6.7.3"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.7.3.tgz#67634d715101aa950601f58dbef353b7e1696b95"
+  integrity sha512-WBoQWf5L/UOLqUj8Mvr4Om7J+ZTCqPbYPHyeLNRS9t9Q3M3/o/9ctpWnlo8yyETPclx7FhH5LidjKKJa9kdSRQ==
 
 query-selector-shadow-dom@^1.0.0:
   version "1.0.0"
