@@ -335,6 +335,24 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
+   * Open privacy policy in webview.
+   */
+  openPrivacyPolicy = () =>
+    this.onPressLink({
+      url: AppConstants.URLS.PRIVACY_POLICY,
+      title: strings('privacy_policy.title'),
+    });
+
+  /**
+   * Open data retention post in webview.
+   */
+  openDataRetentionPost = () =>
+    this.onPressLink({
+      url: AppConstants.URLS.DATA_RETENTION_UPDATE,
+      title: '',
+    });
+
+  /**
    * Render privacy policy description
    *
    * @returns - Touchable opacity object to render with privacy policy information
@@ -349,31 +367,15 @@ class OptinMetrics extends PureComponent {
           {'\n\n'}
           {strings('privacy_policy.fine_print_2a') + ' '}
           <ButtonLink onPress={this.openRPCSettings}>
-            {strings('privacy_policy.fine_print_2b')}
-          </ButtonLink>
-          {strings('unit.point') + ' '}
-          {strings('privacy_policy.fine_print_2c') + ' '}
-          <ButtonLink
-            onPress={() =>
-              this.onPressLink({
-                url: AppConstants.URLS.DATA_RETENTION_UPDATE,
-                title: '',
-              })
-            }
-          >
             {strings('privacy_policy.here')}
           </ButtonLink>
-          {strings('unit.point') + ' '}
-          {strings('privacy_policy.fine_print_2d') + ' '}
-          <ButtonLink
-            onPress={() =>
-              this.onPressLink({
-                url: AppConstants.URLS.PRIVACY_POLICY,
-                title: strings('privacy_policy.title'),
-              })
-            }
-          >
-            {strings('privacy_policy.fine_print_2e')}
+          {' ' + strings('privacy_policy.fine_print_2b') + ' '}
+          <ButtonLink onPress={this.openDataRetentionPost}>
+            {strings('privacy_policy.here')}
+          </ButtonLink>
+          {strings('privacy_policy.fine_print_2c') + ' '}
+          <ButtonLink onPress={this.openPrivacyPolicy}>
+            {strings('privacy_policy.here')}
           </ButtonLink>
           {strings('unit.point')}
         </Text>
