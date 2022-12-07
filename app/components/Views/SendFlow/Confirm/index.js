@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
+import Eth from 'ethjs-query';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -60,6 +61,8 @@ import {
   isTestNet,
   getNetworkNonce,
   isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedL1FeeOptimism,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -242,6 +245,8 @@ class Confirm extends PureComponent {
     EIP1559GasObject: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
+    multiLayerFeeNetwork: false,
+    multiLayerL1FeeTotal: '0x0',
   };
 
   setNetworkNonce = async () => {
@@ -313,12 +318,39 @@ class Confirm extends PureComponent {
     await stopGasPolling(this.state.pollToken);
   };
 
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    const { multiLayerFeeNetwork } = this.state;
+    if (!multiLayerFeeNetwork || !transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedL1FeeOptimism(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
+  };
+
   componentDidMount = async () => {
+    const { chainId } = this.props;
     this.updateNavBar();
     this.getGasLimit();
 
     const pollToken = await startGasPolling(this.state.pollToken);
-    this.setState({ pollToken });
+    this.setState({
+      pollToken,
+      multiLayerFeeNetwork: isMultiLayerFeeNetwork(chainId),
+    });
     // For analytics
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED,
@@ -331,6 +363,7 @@ class Confirm extends PureComponent {
     navigation.setParams({ providerType, isPaymentRequest });
     this.handleConfusables();
     this.parseTransactionDataHeader();
+    this.fetchEstimatedL1Fee();
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -370,6 +403,7 @@ class Confirm extends PureComponent {
       (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
         gas !== prevProps?.transactionState?.transaction?.gas)
     ) {
+      this.fetchEstimatedL1Fee();
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
@@ -1142,6 +1176,7 @@ class Confirm extends PureComponent {
       warningModalVisible,
       isAnimating,
       animateOnChange,
+      multiLayerL1FeeTotal,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1270,6 +1305,7 @@ class Confirm extends PureComponent {
             updateTransactionState={this.updateTransactionState}
             legacy={!showFeeMarket}
             onlyGas={false}
+            multiLayerL1FeeTotal={multiLayerL1FeeTotal}
           />
           {showCustomNonce && (
             <CustomNonce
