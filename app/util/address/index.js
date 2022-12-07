@@ -13,7 +13,7 @@ import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
 import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
-import NetworkList from '../../util/networks';
+import { isMainnetByChainId } from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
@@ -305,7 +305,7 @@ function checkIfAddressAlreadySaved(params) {
  *
  */
 export async function validateAddressOrENS(params) {
-  const { toAccount, network, addressBook, identities, providerType } = params;
+  const { toAccount, network, addressBook, identities, chainId } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -342,10 +342,10 @@ export async function validateAddressOrENS(params) {
       addToAddressToAddressBook = true;
     }
 
-    if (providerType) {
+    if (chainId !== undefined) {
+      const isMainnet = isMainnetByChainId(chainId);
       // Check if it's token contract address on mainnet
-      const networkId = NetworkList[providerType].networkId;
-      if (networkId === NetworkList.mainnet.chainId) {
+      if (isMainnet) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
             checksummedAddress,
