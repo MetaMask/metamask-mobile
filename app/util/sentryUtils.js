@@ -91,11 +91,13 @@ function rewriteReportUrls(report) {
 }
 
 function removeDeviceTimezone(report) {
-  report.contexts.device.timezone = null;
+  if (report.contexts && report.contexts.device)
+    report.contexts.device.timezone = null;
 }
 
 function removeDeviceName(report) {
-  report.contexts.device.name = null;
+  if (report.contexts && report.contexts.device)
+    report.contexts.device.name = null;
 }
 
 function toMetamaskUrl() {
