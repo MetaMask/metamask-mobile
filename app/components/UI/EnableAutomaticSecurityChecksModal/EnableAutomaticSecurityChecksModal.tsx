@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View, Image, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
@@ -17,6 +17,7 @@ import ButtonPrimary from '../../../component-library/components/Buttons/Button/
 import { useDispatch } from 'react-redux';
 import {
   setAutomaticSecurityChecks,
+  setAutomaticSecurityChecksModalOpen,
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -45,6 +46,14 @@ const EnableAutomaticSecurityChecksModal = () => {
 
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.dismissModal(cb);
+
+  useEffect(() => {
+    dispatch(setAutomaticSecurityChecksModalOpen(true));
+
+    return () => {
+      dispatch(setAutomaticSecurityChecksModalOpen(false));
+    };
+  }, [dispatch]);
 
   const triggerCloseAndDisableAutomaticSecurityChecks = useCallback(
     () =>
