@@ -296,7 +296,7 @@ class Approval extends PureComponent {
     const { transaction } = this.props;
     InteractionManager.runAfterInteractions(() => {
       transaction.origin &&
-        transaction.origin.includes(WALLET_CONNECT_ORIGIN) &&
+        transaction.origin.startsWith(WALLET_CONNECT_ORIGIN) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,

@@ -339,6 +339,8 @@ class Engine {
               swapsUtils.SWAPS_TESTNET_CHAIN_ID,
               swapsUtils.POLYGON_CHAIN_ID,
               swapsUtils.AVALANCHE_CHAIN_ID,
+              swapsUtils.ARBITRUM_CHAIN_ID,
+              swapsUtils.OPTIMISM_CHAIN_ID,
             ],
           },
         ),

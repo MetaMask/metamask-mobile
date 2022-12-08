@@ -7,91 +7,67 @@ jobs:
   setup:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Get Yarn cache directory
-        run: |
-          YARN_CACHE_DIR=$(yarn cache dir)
-          echo "::set-output name=YARN_CACHE_DIR::$YARN_CACHE_DIR"
+        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
         id: yarn-cache-dir
       - name: Get Yarn version
-        run: |
-          YARN_VERSION=$(yarn --version)
-          echo "::set-output name=YARN_VERSION::$YARN_VERSION"
+        run: echo "YARN_VERSION=$(yarn --version)" >> "$GITHUB_OUTPUT"
         id: yarn-version
       - name: Cache yarn dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
       - run: yarn setup
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: restore-build
         with:
           path: ./*
           key: ${{ github.sha }}
-  lint:
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  scripts:
     runs-on: ubuntu-20.04
     needs: setup
+    strategy:
+      matrix:
+        scripts:
+          - lint
+          - audit:ci
+          - test:tgz-check
     steps:
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: restore-build
         with:
           path: ./*
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn lint
-  audit:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
+      - run: yarn ${{ matrix['scripts'] }}
+      - name: Require clean working directory
+        shell: bash
         run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn audit:ci
-  tgz-check:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn test:tgz-check
-  test:
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  tests:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -102,25 +78,42 @@ jobs:
           - components-remaining
     needs: setup
     steps:
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: restore-build
         with:
           path: ./*
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - run: yarn test:unit:${{ matrix['units'] }} --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  check-workflows:
+    name: Check workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download actionlint
+        id: download-actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash) 1.6.22
+        shell: bash
+      - name: Check workflow files
+        run: ${{ steps.download-actionlint.outputs.executable }} -color
+        shell: bash
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, lint, audit, tgz-check, test]
+    needs: [setup, scripts, tests, check-workflows]
     steps:
       - run: echo "Great success!"

@@ -1,0 +1,56 @@
+diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
+index da7ee71..8bd51ed 100644
+--- a/node_modules/@segment/analytics-react-native/src/analytics.ts
++++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
+@@ -505,10 +505,12 @@ export class SegmentClient {
+     this.logger.info('SCREEN event saved', event);
+   }
+ 
+-  async track(eventName: string, options?: JsonMap) {
++  async track(eventName: string, options?: JsonMap, userId?: string, anonymousId?: string) {
+     const event = createTrackEvent({
+       event: eventName,
+       properties: options,
++      userId: userId,
++      anonymousId: anonymousId,
+     });
+ 
+     await this.process(event);
+@@ -657,12 +659,7 @@ export class SegmentClient {
+     this.appState = nextAppState;
+   }
+ 
+-  reset(resetAnonymousId: boolean = true) {
+-    const anonymousId =
+-      resetAnonymousId === true
+-        ? getUUID()
+-        : this.store.userInfo.get().anonymousId;
+-
++  reset(anonymousId: string): void {
+     this.store.userInfo.set({
+       anonymousId,
+       userId: undefined,
+diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
+index fe1a369..81d39f1 100644
+--- a/node_modules/@segment/analytics-react-native/src/events.ts
++++ b/node_modules/@segment/analytics-react-native/src/events.ts
+@@ -16,13 +16,19 @@ import {
+ export const createTrackEvent = ({
+   event,
+   properties = {},
++  userId,
++  anonymousId,
+ }: {
+   event: string;
+   properties?: JsonMap;
++  userId?: string;
++  anonymousId?: string;
+ }): TrackEventType => ({
+   type: EventType.TrackEvent,
+   event,
+   properties,
++  userId,
++  anonymousId,
+ });
+ 
+ export const createScreenEvent = ({

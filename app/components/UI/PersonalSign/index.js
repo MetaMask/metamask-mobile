@@ -19,6 +19,7 @@ import {
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,6 +97,7 @@ class PersonalSign extends PureComponent {
         network_name: type,
         chain_id: chainId,
         sign_type: 'personal',
+        ...currentPageInformation?.analytics,
       };
     } catch (error) {
       return {};
@@ -115,7 +117,8 @@ class PersonalSign extends PureComponent {
   ) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
-        messageParams.origin.includes(WALLET_CONNECT_ORIGIN) &&
+        (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
+          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,

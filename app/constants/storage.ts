@@ -13,7 +13,9 @@ export const ONBOARDING_WIZARD = `${prefix}onboardingWizard`;
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
+export const METAMETRICS_SEGMENT_REGULATION_ID = `${prefix}MetaMetricsSegmentRegulationId`;
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
+export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;

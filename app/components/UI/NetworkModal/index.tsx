@@ -1,6 +1,6 @@
 import Modal from 'react-native-modal';
 import React from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet, Linking, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -18,16 +18,18 @@ import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import sanitizeUrl from '../../../util/sanitizeUrl';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 import {
   APPROVE_NETWORK_DISPLAY_NAME_ID,
-  APPROVE_NETWORK_MODAL_ID,
   APPROVE_NETWORK_CANCEL_BUTTON_ID,
-  APPROVE_NETWORK_APPROVE_BUTTON_ID,
 } from '../../../constants/test-ids';
+import {
+  APPROVE_NETWORK_APPROVE_BUTTON,
+  APPROVE_NETWORK_MODAL,
+} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -151,7 +153,6 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (validUrl) {
       const url = new URLPARSE(rpcUrl);
-      const sanitizedUrl = sanitizeUrl(url.href);
       const decimalChainId = getDecimalChainId(chainId);
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       PreferencesController.addToFrequentRpcList(
@@ -165,11 +166,9 @@ const NetworkModals = (props: NetworkProps) => {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: sanitizedUrl,
         chain_id: decimalChainId,
         source: 'Popular network list',
         symbol: ticker,
-        block_explorer_url: blockExplorerUrl,
         network_name: nickname,
       };
 
@@ -239,7 +238,10 @@ const NetworkModals = (props: NetworkProps) => {
                 message={strings('networks.provider')}
               />
             )}
-            <View style={styles.nameWrapper} testID={APPROVE_NETWORK_MODAL_ID}>
+            <View
+              style={styles.nameWrapper}
+              {...generateTestId(Platform, APPROVE_NETWORK_MODAL)}
+            >
               <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
               <Text black>{nickname}</Text>
             </View>
@@ -302,7 +304,7 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'confirm'}
                 onPress={addNetwork}
                 containerStyle={[styles.button, styles.confirm]}
-                testID={APPROVE_NETWORK_APPROVE_BUTTON_ID}
+                testID={APPROVE_NETWORK_APPROVE_BUTTON}
                 disabled={!validateRpcUrl(rpcUrl)}
               >
                 {strings('networks.approve')}

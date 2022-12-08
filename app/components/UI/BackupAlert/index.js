@@ -116,6 +116,11 @@ class BackupAlert extends PureComponent {
      * currently used to toggle the backup reminder modal (a second time)
      */
     onDismiss: PropTypes.func,
+    /**
+     * Used to determine if onboarding has been completed
+     * we only want to render the backup alert after onboarding
+     */
+    onboardingWizardStep: PropTypes.number,
   };
 
   state = {
@@ -172,13 +177,22 @@ class BackupAlert extends PureComponent {
   };
 
   render() {
-    const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
+    const {
+      seedphraseBackedUp,
+      backUpSeedphraseVisible,
+      onboardingWizardStep,
+    } = this.props;
     const { inBrowserView, blockedView } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible)
-      return null;
+    const shouldNotRenderAlert =
+      seedphraseBackedUp ||
+      blockedView ||
+      !backUpSeedphraseVisible ||
+      onboardingWizardStep !== 0;
+
+    if (shouldNotRenderAlert) return null;
     return (
       <ElevatedView
         elevation={99}
@@ -227,6 +241,7 @@ class BackupAlert extends PureComponent {
 const mapStateToProps = (state) => ({
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  onboardingWizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({

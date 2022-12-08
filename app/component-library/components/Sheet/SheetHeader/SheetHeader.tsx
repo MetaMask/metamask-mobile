@@ -5,9 +5,9 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import ButtonLink from '../../Buttons/ButtonLink';
-import Text, { TextVariant } from '../../Texts/Text';
-import ButtonIcon, { ButtonIconVariant } from '../../Buttons/ButtonIcon';
+import Text, { TextVariants } from '../../Texts/Text';
+import Button, { ButtonVariants } from '../../Buttons/Button';
+import { ButtonIconVariants } from '../../Buttons/Button/variants/ButtonIcon';
 import { IconName } from '../../Icon';
 import { useStyles } from '../../../hooks';
 
@@ -31,25 +31,27 @@ const SheetHeader = ({
     <View style={styles.base} {...props}>
       <View style={styles.leftAccessory}>
         {onBack && (
-          <ButtonIcon
+          <Button
+            variant={ButtonVariants.Icon}
             testID={SHEET_HEADER_BACK_BUTTON_ID}
-            variant={ButtonIconVariant.Secondary}
+            buttonIconVariants={ButtonIconVariants.Secondary}
             onPress={onBack}
-            icon={IconName.ArrowLeftOutline}
+            iconName={IconName.ArrowLeftOutline}
           />
         )}
       </View>
-      <Text variant={TextVariant.sHeadingMD}>{title}</Text>
+      <Text variant={TextVariants.sHeadingMD}>{title}</Text>
       <View style={styles.rightAccessory}>
         {actionButtonOptions && (
           // TODO - Replace ButtonLink with ButtonTertiary once new variant is ready/
-          <ButtonLink
+          <Button
+            variant={ButtonVariants.Link}
             testID={SHEET_HEADER_ACTION_BUTTON_ID}
             onPress={actionButtonOptions.onPress}
-            variant={TextVariant.sBodyMD}
+            textVariants={TextVariants.sBodyMD}
           >
             {actionButtonOptions.label}
-          </ButtonLink>
+          </Button>
         )}
       </View>
     </View>

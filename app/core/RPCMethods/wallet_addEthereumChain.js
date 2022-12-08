@@ -18,7 +18,12 @@ const waitForInteraction = async () =>
     });
   });
 
-const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
+const wallet_addEthereumChain = async ({
+  req,
+  res,
+  requestUserApproval,
+  analytics,
+}) => {
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
 
@@ -120,12 +125,11 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
     }
 
     const analyticsParams = {
-      rpc_url: existingNetwork?.rpcUrl,
       chain_id: _chainId,
       source: 'Custom Network API',
       symbol: existingNetwork?.ticker,
-      block_explorer_url: existingNetwork?.blockExplorerUrl,
       network_name: 'rpc',
+      ...analytics,
     };
 
     try {
@@ -257,12 +261,11 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
   requestData.alert = alert;
 
   const analyticsParamsAdd = {
-    rpc_url: firstValidRPCUrl,
     chain_id: chainIdDecimal,
     source: 'Custom Network API',
     symbol: ticker,
-    block_explorer_url: firstValidBlockExplorerUrl,
     network_name: 'rpc',
+    ...analytics,
   };
 
   AnalyticsV2.trackEvent(

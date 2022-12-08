@@ -48,6 +48,7 @@ import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import SDKConnect from '../../../core/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -55,6 +56,8 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 
 const Stack = createStackNavigator();
 /**
@@ -251,6 +254,10 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
+    SDKConnect.init();
+  }, []);
+
+  useEffect(() => {
     async function checkExsiting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
@@ -359,6 +366,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
         component={TurnOffRememberMeModal}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.UPDATE_NEEDED}
+        component={UpdateNeeded}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+        component={EnableAutomaticSecurityChecksModal}
       />
     </Stack.Navigator>
   );

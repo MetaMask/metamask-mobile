@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Texts/Text';
+import Text, { TextVariants } from '../../Texts/Text';
 import Icon, { IconSize } from '../../Icon';
 import { useStyles } from '../../../hooks';
 
@@ -30,7 +30,7 @@ const TabBarItem = ({
   return (
     <TouchableOpacity {...props} style={styles.base}>
       <Icon size={IconSize.Lg} name={icon} color={tabColor} />
-      <Text variant={TextVariant.sBodyMD} style={styles.label}>
+      <Text variant={TextVariants.sBodyMD} style={styles.label}>
         {label}
       </Text>
     </TouchableOpacity>

@@ -1,11 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import AvatarAccount from '../../../../component-library/components/Avatars/AvatarAccount';
+import Text, { TextVariants } from '../../../components/Texts/Text';
+import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
+import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
   ACCOUNT_BASE_TEST_ID,
@@ -24,21 +22,22 @@ const AccountBase = ({
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
       <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
-        <AvatarAccount
+        <Avatar
+          variant={AvatarVariants.Account}
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
           accountAddress={accountAddress}
         />
       </BadgeWrapper>
       <View>
-        <Text variant={TextVariant.sBodySM}>{accountNetwork}</Text>
-        <Text variant={TextVariant.lBodySMBold}>{accountName}</Text>
+        <Text variant={TextVariants.sBodySM}>{accountNetwork}</Text>
+        <Text variant={TextVariants.lBodySMBold}>{accountName}</Text>
       </View>
     </View>
     <View>
-      <Text variant={TextVariant.sBodySM} style={styles.label}>
+      <Text variant={TextVariants.sBodySM} style={styles.label}>
         {accountBalanceLabel}
       </Text>
-      <Text variant={TextVariant.lBodySMBold}>
+      <Text variant={TextVariants.lBodySMBold}>
         {accountBalance} {accountNativeCurrency}
       </Text>
     </View>

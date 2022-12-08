@@ -7,7 +7,7 @@ import { BadgeVariants } from './Badge.types';
 import {
   TEST_NETWORK_NAME,
   TEST_REMOTE_IMAGE_SOURCE,
-} from '../../Avatars/AvatarNetwork/AvatarNetwork.constants';
+} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
 import Badge from './Badge';

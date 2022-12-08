@@ -5,10 +5,9 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../Avatars/AvatarBase';
-import AvatarFavicon from '../../Avatars/AvatarFavicon';
-import ButtonLink from '../../Buttons/ButtonLink';
-import Text, { TextVariant } from '../../Texts/Text';
+import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Button, { ButtonVariants } from '../../Buttons/Button';
+import Text, { TextVariants } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -19,14 +18,22 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
     <View style={styles.base} {...props}>
-      <AvatarFavicon imageSource={imageSource} size={AvatarBaseSize.Md} />
-      <Text style={styles.label} variant={TextVariant.sBodyMD}>
+      <Avatar
+        variant={AvatarVariants.Favicon}
+        imageSource={imageSource}
+        size={AvatarSize.Md}
+      />
+      <Text style={styles.label} variant={TextVariants.sBodyMD}>
         {label}
       </Text>
       {cta && (
-        <ButtonLink style={styles.cta} onPress={cta.onPress}>
+        <Button
+          variant={ButtonVariants.Link}
+          style={styles.cta}
+          onPress={cta.onPress}
+        >
           {cta.label}
-        </ButtonLink>
+        </Button>
       )}
     </View>
   );

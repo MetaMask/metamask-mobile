@@ -7,17 +7,12 @@ import { boolean, text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { AvatarAccountType } from '../../Avatars/AvatarAccount';
-import { AvatarProps, AvatarVariants } from '../../Avatars/Avatar.types';
-import {
-  TEST_LOCAL_IMAGE_SOURCE,
-  TEST_NETWORK_NAME,
-} from '../../Avatars/AvatarNetwork/AvatarNetwork.constants';
+import { AvatarProps } from '../../Avatars/Avatar/Avatar.types';
+import { getAvatarStoryProps } from '../../Avatars/Avatar/Avatar.stories';
 
 // Internal dependencies.
 import Cell from './Cell';
 import {
-  TEST_ACCOUNT_ADDRESS,
   TEST_CELL_TITLE,
   TEST_CELL_SECONDARY_TEXT,
   TEST_CELL_TERTIARY_TEXT,
@@ -33,42 +28,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
     CellVariants.Display,
     groupId,
   );
-  const avatarVariantsSelector = select(
-    'Avatar Variant',
-    AvatarVariants,
-    AvatarVariants.Account,
-    groupId,
-  );
-  let avatarProps: AvatarProps;
-  switch (avatarVariantsSelector) {
-    case AvatarVariants.Account:
-      avatarProps = {
-        variant: AvatarVariants.Account,
-        accountAddress: TEST_ACCOUNT_ADDRESS,
-        type: AvatarAccountType.JazzIcon,
-      };
-      break;
-    case AvatarVariants.Favicon:
-      avatarProps = {
-        variant: AvatarVariants.Favicon,
-        imageSource: TEST_LOCAL_IMAGE_SOURCE,
-      };
-      break;
-    case AvatarVariants.Network:
-      avatarProps = {
-        variant: AvatarVariants.Network,
-        name: TEST_NETWORK_NAME,
-        imageSource: TEST_LOCAL_IMAGE_SOURCE,
-      };
-      break;
-    case AvatarVariants.Token:
-      avatarProps = {
-        variant: AvatarVariants.Token,
-        name: TEST_NETWORK_NAME,
-        imageSource: TEST_LOCAL_IMAGE_SOURCE,
-      };
-      break;
-  }
+  const avatarProps: AvatarProps = getAvatarStoryProps();
   const titleText = text('title', TEST_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',

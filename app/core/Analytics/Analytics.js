@@ -17,7 +17,10 @@ import {
   ANALYTICS_DATA_RECORDED,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
-import { ResponseStatus, DeletionTaskStatus } from './constants';
+import {
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
+} from './MetaMetrics.types';
 
 const RCTAnalytics = NativeModules.Analytics;
 
@@ -169,7 +172,7 @@ class Analytics {
    *  {
    *    status: ResponseStatus,
    *    error?: string,
-   *    deletionTaskStatus?: DeletionTaskStatus
+   *    DataDeleteStatus?: DataDeleteStatus
    *  }
    */
   async _createDataDeletionTask(compliance) {
@@ -179,8 +182,8 @@ class Analytics {
         `Analytics Deletion Task Created for following ${compliance} compliance`,
       );
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.pending,
+        status: DataDeleteResponseStatus.ok,
+        DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
     const distinctId = await this.getDistinctId();
@@ -204,7 +207,7 @@ class Analytics {
 
       const result = response.data;
 
-      if (result.status === ResponseStatus.ok) {
+      if (result.status === DataDeleteResponseStatus.ok) {
         this.dataDeletionTaskId = result.results.task_id;
 
         await DefaultPreference.set(
@@ -231,14 +234,14 @@ class Analytics {
 
         return {
           status: result.status,
-          deletionTaskStatus: ResponseStatus.pending,
+          DataDeleteStatus: DataDeleteResponseStatus.pending,
         };
       }
       Logger.log(`Analytics Deletion Task Error - ${result.error}`);
       return { status: response.status, error: result.error };
     } catch (error) {
       Logger.log(`Analytics Deletion Task Error - ${error}`);
-      return { status: ResponseStatus.error, error };
+      return { status: DataDeleteResponseStatus.error, error };
     }
   }
 
@@ -250,22 +253,22 @@ class Analytics {
    * @returns Object with the response of the request
    *  {
    *    status: ResponseStatus,
-   *    deletionTaskStatus?: DeletionTaskStatus
+   *    dataDeleteStatus?: DataDeleteStatus
    *  }
    */
   async _checkStatusDataDeletionTask() {
     if (__DEV__) {
       // Mock response for DEV env
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.pending,
+        status: DataDeleteResponseStatus.ok,
+        DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
 
     if (!this.dataDeletionTaskId) {
       return {
-        status: ResponseStatus.error,
-        deletionTaskStatus: DeletionTaskStatus.unknown,
+        status: DataDeleteResponseStatus.error,
+        dataDeleteStatus: DataDeleteStatus.unknown,
       };
     }
 
@@ -284,17 +287,17 @@ class Analytics {
 
     const { status, results } = response.data;
 
-    if (results.status === ResponseStatus.success) {
+    if (results.status === DataDeleteResponseStatus.success) {
       this.dataDeletionTaskId = undefined;
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.success,
+        status: DataDeleteResponseStatus.ok,
+        dataDeleteStatus: DataDeleteStatus.success,
       };
     }
 
     return {
       status,
-      deletionTaskStatus: results.status || DeletionTaskStatus.unknown,
+      DataDeleteStatus: results.status || DataDeleteStatus.unknown,
     };
   }
 

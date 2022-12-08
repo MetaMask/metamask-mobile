@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
+import { TextVariants } from '../../../component-library/components/Texts/Text/Text.types';
 
 // Internal dependencies.
 import TextEstimated from './TextEstimated';
@@ -15,7 +15,7 @@ import {
 describe('TextEstimated - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
-      <TextEstimated variant={TextVariant.lBodyMD}>
+      <TextEstimated variant={TextVariants.lBodyMD}>
         {TEST_SAMPLE_TEXT}
       </TextEstimated>,
     );
@@ -26,7 +26,7 @@ describe('TextEstimated - Snapshot', () => {
 describe('TextEstimated', () => {
   it('should render TextEstimated', () => {
     const wrapper = shallow(
-      <TextEstimated variant={TextVariant.lBodyMD}>
+      <TextEstimated variant={TextVariants.lBodyMD}>
         {TEST_SAMPLE_TEXT}
       </TextEstimated>,
     );

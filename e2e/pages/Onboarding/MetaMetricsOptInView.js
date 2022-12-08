@@ -1,15 +1,17 @@
+import {
+  OPTIN_METRICS_I_AGREE_BUTTON_ID,
+  OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+} from '../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
 import TestHelpers from '../../helpers';
 
 const METAMETRICS_OPT_IN_CONTAINER_ID = 'metaMetrics-OptIn';
-const AGREE_BUTTON_ID = 'agree-button';
-const NO_THANKS_BUTTON_ID = 'cancel-button';
 export default class MetaMetricsOptIn {
   static async tapAgreeButton() {
-    await TestHelpers.waitAndTap(AGREE_BUTTON_ID);
+    await TestHelpers.waitAndTap(OPTIN_METRICS_I_AGREE_BUTTON_ID);
   }
 
   static async tapNoThanksButton() {
-    await TestHelpers.waitAndTap(NO_THANKS_BUTTON_ID);
+    await TestHelpers.waitAndTap(OPTIN_METRICS_NO_THANKS_BUTTON_ID);
   }
 
   static async isVisible() {

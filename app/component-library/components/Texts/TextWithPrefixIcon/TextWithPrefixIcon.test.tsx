@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { IconName, IconProps, IconSize } from '../../Icon';
-import { TextVariant } from '../Text/Text.types';
+import { TextVariants } from '../Text/Text.types';
 
 // Internal dependencies.
 import TextWithPrefixIcon from './TextWithPrefixIcon';
@@ -23,7 +23,7 @@ describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariant.lBodyMD}
+        variant={TextVariants.lBodyMD}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -37,7 +37,7 @@ describe('TextWithPrefixIcon', () => {
   it('should render TextWithPrefixIcon', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariant.lBodyMD}
+        variant={TextVariants.lBodyMD}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -55,7 +55,7 @@ describe('TextWithPrefixIcon', () => {
     sampleIconProps.size = testIconSize;
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariant.lBodyMD}
+        variant={TextVariants.lBodyMD}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -68,9 +68,12 @@ describe('TextWithPrefixIcon', () => {
     expect(iconElement.props().size).toBe(testIconSize);
   });
   it('should render the given text with the appropriate variant', () => {
-    const testTextVariant = TextVariant.lBodyXS;
+    const testTextVariants = TextVariants.lBodyXS;
     const wrapper = shallow(
-      <TextWithPrefixIcon variant={testTextVariant} iconProps={sampleIconProps}>
+      <TextWithPrefixIcon
+        variant={testTextVariants}
+        iconProps={sampleIconProps}
+      >
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
@@ -78,6 +81,6 @@ describe('TextWithPrefixIcon', () => {
       (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID,
     );
     expect(titleElement.props().children).toBe(TEST_SAMPLE_TEXT);
-    expect(titleElement.props().variant).toBe(testTextVariant);
+    expect(titleElement.props().variant).toBe(testTextVariants);
   });
 });

@@ -40,11 +40,11 @@ const badgeProps: BadgeProps = {
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };
 
-const unknownBadgeProps = {
+const unknownBadgeProps: BadgeProps = {
   variant: BadgeVariants.Network,
 };
 
-storiesOf('Component Library / AccountBalance', module)
+storiesOf('Components Temp / AccountBalance', module)
   .add('Default', () => (
     <AccountBalance
       accountNetwork={accountNetwork}

@@ -56,7 +56,8 @@ exports[`ModalConfirmation should render correctly 1`] = `
         }
       }
     >
-      <ButtonSecondary
+      <Button
+        buttonSecondaryVariants="Normal"
         label="Cancel"
         onPress={[Function]}
         size="48"
@@ -65,7 +66,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
             "flex": 1,
           }
         }
-        variant="Normal"
+        variant="Secondary"
       />
       <View
         style={
@@ -74,7 +75,8 @@ exports[`ModalConfirmation should render correctly 1`] = `
           }
         }
       />
-      <ButtonPrimary
+      <Button
+        buttonPrimaryVariants="Normal"
         label="Confirm"
         onPress={[Function]}
         size="48"
@@ -84,7 +86,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
           }
         }
         testID="modal-confirmation-normal-button"
-        variant="Normal"
+        variant="Primary"
       />
     </View>
   </View>

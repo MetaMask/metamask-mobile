@@ -10,12 +10,11 @@ import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
-  NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
 import { util as controllerUtils } from '@metamask/controllers';
-
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
 const createStyles = (colors: {
   background: { default: string };
   text: { default: string };
@@ -235,7 +234,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           type="confirm"
           onPress={onClose}
           containerStyle={styles.closeButton}
-          testID={NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID}
+          testID={NETWORK_EDUCATION_MODAL_CLOSE_BUTTON}
         >
           {strings('network_information.got_it')}
         </StyledButton>
