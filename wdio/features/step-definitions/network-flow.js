@@ -191,6 +191,8 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
+  const wait = 1500;
+  await driver.pause(wait);
   await NetworkSwitchModal.confirmNetworkSwitch();
 });
 
