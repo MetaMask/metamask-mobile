@@ -96,7 +96,9 @@ When(/^I should see the added network name "([^"]*)?" in the top navigation bar/
 });
 
 Then(/^I tap on the burger menu/, async () => {
-  await WalletMainScreen.tapBurgerIcon();
+  const wait = 1000;
+  await driver.pause(wait);
+  await WalletMainScreen.tapBurgerButton();
 });
 
 Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
@@ -111,7 +113,7 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  const wait = 6000;
+  const wait = 2000;
   await driver.pause(wait);
 });
 
@@ -247,7 +249,7 @@ Then(/^I navigate back to the main wallet view/, async () => {
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  const wait = 1000;
+  const wait = 2000;
   await driver.pause(wait);
   await NetworksScreen.tapBackButtonInNewScreen();
   await driver.pause(wait);
