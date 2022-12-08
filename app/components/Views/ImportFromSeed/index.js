@@ -265,7 +265,7 @@ const ImportFromSeed = ({
     }
   };
 
-  const onSeedWordsChange = async (seed) => {
+  const onSeedWordsChange = useCallback(async (seed) => {
     setSeed(seed);
     // Only clear on android since iOS will notify users when we getString()
     if (Device.isAndroid()) {
@@ -275,7 +275,7 @@ const ImportFromSeed = ({
         await clearSecretRecoveryPhrase(seed);
       }
     }
-  };
+  }, []);
 
   const onPasswordChange = (value) => {
     const passInfo = zxcvbn(value);
@@ -288,10 +288,10 @@ const ImportFromSeed = ({
     setConfirmPassword(value);
   };
 
-  const jumpToPassword = () => {
+  const jumpToPassword = useCallback(() => {
     const { current } = passwordInput;
     current && current.focus();
-  };
+  }, [passwordInput]);
 
   const jumpToConfirmPassword = () => {
     const { current } = confirmPasswordInput;
@@ -330,6 +330,11 @@ const ImportFromSeed = ({
   }, [hideSeedPhraseInput]);
 
   const onQrCodePress = useCallback(() => {
+    let shouldHideSRP = true;
+    if (!hideSeedPhraseInput) {
+      shouldHideSRP = false;
+    }
+
     setHideSeedPhraseInput(false);
     navigation.navigate(Routes.QR_SCANNER, {
       onScanSuccess: ({ seed = undefined }) => {
@@ -341,15 +346,53 @@ const ImportFromSeed = ({
             strings('import_from_seed.invalid_qr_code_message'),
           );
         }
-        setHideSeedPhraseInput(true);
+        setHideSeedPhraseInput(shouldHideSRP);
       },
       onScanError: (error) => {
-        setHideSeedPhraseInput(true);
+        setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [navigation]);
+  }, [hideSeedPhraseInput, navigation]);
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
+
+  const hiddenSRPInput = useCallback(
+    () => (
+      <OutlinedTextField
+        style={styles.input}
+        containerStyle={inputWidth}
+        inputContainerStyle={styles.padding}
+        placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+        {...generateTestId(
+          Platform,
+          IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+        )}
+        placeholderTextColor={colors.text.muted}
+        returnKeyType="next"
+        autoCapitalize="none"
+        secureTextEntry={hideSeedPhraseInput}
+        onChangeText={onSeedWordsChange}
+        value={seed}
+        baseColor={colors.border.default}
+        tintColor={colors.primary.default}
+        onSubmitEditing={jumpToPassword}
+        keyboardAppearance={themeAppearance || 'light'}
+      />
+    ),
+    [
+      colors.border.default,
+      colors.primary.default,
+      colors.text.muted,
+      hideSeedPhraseInput,
+      inputWidth,
+      jumpToPassword,
+      onSeedWordsChange,
+      seed,
+      styles.input,
+      styles.padding,
+      themeAppearance,
+    ],
+  );
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
@@ -381,26 +424,7 @@ const ImportFromSeed = ({
             </View>
           </View>
           {hideSeedPhraseInput ? (
-            <OutlinedTextField
-              style={styles.input}
-              containerStyle={inputWidth}
-              inputContainerStyle={styles.padding}
-              placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-              {...generateTestId(
-                Platform,
-                IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-              )}
-              placeholderTextColor={colors.text.muted}
-              returnKeyType="next"
-              autoCapitalize="none"
-              secureTextEntry={hideSeedPhraseInput}
-              onChangeText={onSeedWordsChange}
-              value={seed}
-              baseColor={colors.border.default}
-              tintColor={colors.primary.default}
-              onSubmitEditing={jumpToPassword}
-              keyboardAppearance={themeAppearance || 'light'}
-            />
+            hiddenSRPInput()
           ) : (
             <TextInput
               value={seed}
