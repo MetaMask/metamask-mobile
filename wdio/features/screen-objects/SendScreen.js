@@ -53,7 +53,6 @@ class SendScreen{
 
     async tapAddAddressButton(){
         await Gestures.tapTextByXpath(this.addAddressButton);
-
      }
 
      async tapCancelButton(){
