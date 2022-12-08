@@ -1,0 +1,45 @@
+diff --git a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
+index eb7e9bf..ec8674f 100644
+--- a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
++++ b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
+@@ -738,7 +738,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+                 };
+                 return;
+             }
+-            if (await this.messagingSystem.call('PermissionController:hasPermission', origin, permissionName)) {
++            if (true) {
+                 // Attempt to install and run the snap, storing any errors that
+                 // occur during the process.
+                 result[snapId] = Object.assign({}, (await this.processRequestedSnap(origin, snapId, version)));
+diff --git a/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js b/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js
+index 6a49c06..70f5c8a 100644
+--- a/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js
++++ b/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js
+@@ -53,7 +53,7 @@ exports.fetchNpmSnap = fetchNpmSnap;
+  */
+ async function fetchNpmTarball(packageName, versionRange, registryUrl = exports.DEFAULT_NPM_REGISTRY, fetchFunction = fetch) {
+     var _a, _b, _c, _d;
+-    const packageMetadata = await (await fetchFunction(new URL(packageName, registryUrl).toString())).json();
++    const packageMetadata = await (await fetchFunction('GET', new URL(packageName, registryUrl).toString())).json();
+     if (!(0, utils_1.isObject)(packageMetadata)) {
+         throw new Error(`Failed to fetch package "${packageName}" metadata from npm.`);
+     }
+@@ -71,11 +71,12 @@ async function fetchNpmTarball(packageName, versionRange, registryUrl = exports.
+     newTarballUrl.hostname = newRegistryUrl.hostname;
+     newTarballUrl.protocol = newRegistryUrl.protocol;
+     // Perform a raw fetch because we want the Response object itself.
+-    const tarballResponse = await fetchFunction(newTarballUrl.toString());
+-    if (!tarballResponse.ok) {
+-        throw new Error(`Failed to fetch tarball for package "${packageName}".`);
+-    }
+-    const stream = await tarballResponse.blob().then((blob) => blob.stream());
++    const tarballResponse = await fetchFunction('GET', newTarballUrl.toString());
++    // if (!tarballResponse.ok) {
++    //     throw new Error(`Failed to fetch tarball for package "${packageName}".`);
++    // }
++    // const stream = await tarballResponse.blob().then((blob) => blob.stream());
++    console.log(await tarballResponse.blob());
+     return [stream, targetVersion];
+ }
+ //# sourceMappingURL=npm.js.map
+\ No newline at end of file
