@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
@@ -325,12 +325,12 @@ const ImportFromSeed = ({
     setSecureTextEntry(!secureTextEntry);
   };
 
-  const toggleHideSeedPhraseInput = () => {
+  const toggleHideSeedPhraseInput = useCallback(() => {
     setHideSeedPhraseInput(!hideSeedPhraseInput);
-  };
+  }, [hideSeedPhraseInput]);
 
-  const onQrCodePress = () => {
-    setTimeout(toggleHideSeedPhraseInput, 100);
+  const onQrCodePress = useCallback(() => {
+    setHideSeedPhraseInput(false);
     navigation.navigate(Routes.QR_SCANNER, {
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
@@ -341,13 +341,13 @@ const ImportFromSeed = ({
             strings('import_from_seed.invalid_qr_code_message'),
           );
         }
-        toggleHideSeedPhraseInput();
+        setHideSeedPhraseInput(true);
       },
       onScanError: (error) => {
-        toggleHideSeedPhraseInput();
+        setHideSeedPhraseInput(true);
       },
     });
-  };
+  }, [navigation]);
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
