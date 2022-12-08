@@ -68,7 +68,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import NetworkList from '../../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -285,7 +284,7 @@ class NetworkSettings extends PureComponent {
   getCustomMainnetRPCURL = () => {
     const { frequentRpcList } = this.props;
     const networkInformation = frequentRpcList.find(
-      ({ chainId: id }) => String(id) === String(NetworkList.mainnet.chainId),
+      ({ chainId: id }) => String(id) === String(Networks.mainnet.chainId),
     );
     return networkInformation?.rpcUrl || '';
   };
