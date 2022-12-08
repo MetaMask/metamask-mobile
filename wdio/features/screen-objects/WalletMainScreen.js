@@ -1,10 +1,12 @@
-import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORK } from '../testIDs/Screens/WalletScreen-testIds.js';
+/* global driver */
+import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS2 } from '../testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
 } from '../testIDs/Components/OnboardingWizard.testIds';
 import Selectors from '../helpers/Selectors';
-import { WALLET_VIEW_BURGER_ICON_ID } from '../testIDs/Screens/WalletView.testIds';
+import { WALLET_VIEW_BURGER_ICON_ID,
+        HAMBURGER_MENU_BUTTON } from '../testIDs/Screens/WalletView.testIds';
 import Gestures from '../helpers/Gestures.js';
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
 
@@ -23,12 +25,16 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(WALLET_VIEW_BURGER_ICON_ID);
   }
 
+  get HamburgerButton() {
+    return Selectors.getElementByPlatform(HAMBURGER_MENU_BUTTON);
+  }
+
   get WalletScreenContainer() {
     return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
   }
 
   get networkNavBarWalletTitle() {
-    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORK);
+    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORKS2);
   }
 
   get drawerSettings() {
@@ -47,11 +53,21 @@ class WalletMainScreen {
     await Gestures.waitAndTap(this.burgerIcon);
   }
 
+  async tapBurgerButton() {
+    await Gestures.tap(this.HamburgerButton);
+  }
+
+  async tapBurgerButtonByXpath() {
+    await Gestures.tap(await Selectors.getXpathElementByContentDescription(this.HamburgerButton));
+  }
+
   async isVisible() {
     await expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
   async tapNetworkNavBar() {
+    const wait = 500;
+    await driver.pause(wait);
     await Gestures.tap(this.networkNavBarWalletTitle);
   }
 

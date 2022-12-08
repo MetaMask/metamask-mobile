@@ -6,6 +6,7 @@ import {
   InteractionManager,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -54,7 +55,6 @@ import { strings } from '../../../../../locales/i18n';
 import {
   ADDRESS_BOOK_NEXT_BUTTON,
   ADD_ADDRESS_MODAL_CONTAINER_ID,
-  ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -64,6 +64,9 @@ import {
 } from '../../../../constants/error';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
+import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/features/testIDs/Screens/AddressBook.testids';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const { hexToBN } = util;
 
@@ -524,7 +527,7 @@ class SendFlow extends PureComponent {
                     onSubmitEditing={this.onFocus}
                     value={alias}
                     keyboardAppearance={themeAppearance}
-                    testID={ENTER_ALIAS_INPUT_BOX_ID}
+                    {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
                   />
                 </View>
               </View>
@@ -751,7 +754,10 @@ class SendFlow extends PureComponent {
                   onPress={this.toggleAddToAddressBookModal}
                   testID={'add-address-button'}
                 >
-                  <Text style={styles.myAccountsText}>
+                  <Text
+                    style={styles.myAccountsText}
+                    {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
+                  >
                     {strings('address_book.add_this_address')}
                   </Text>
                 </TouchableOpacity>

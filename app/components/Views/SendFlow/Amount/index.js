@@ -10,6 +10,7 @@ import {
   FlatList,
   InteractionManager,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -72,6 +73,8 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { AMOUNT_SCREEN } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const { hexToBN, BNToHex } = util;
 
@@ -1209,7 +1212,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={'amount-screen'}
+        {...generateTestId(Platform, AMOUNT_SCREEN)}
       >
         <ScrollView style={styles.scrollWrapper}>
           <View style={styles.inputWrapper}>
