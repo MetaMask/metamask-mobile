@@ -139,8 +139,6 @@ class NavbarTitle extends PureComponent {
           <Text
             numberOfLines={1}
             style={styles.networkName}
-            //testID={'navbar-title-networks'}
-            //accessibilityLabel={'navbar-title-networks'}
             {...generateTestId(Platform, NAVBAR_TITLE_NETWORKS2)}
           >
             {name}
