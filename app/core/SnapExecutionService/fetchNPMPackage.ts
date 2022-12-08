@@ -2,6 +2,7 @@
 import RNFetchBlob, { Encoding, FetchBlobResponse } from 'rn-fetch-blob';
 import { Readable } from 'readable-stream';
 import { Buffer } from 'buffer';
+import tar from 'tar-stream';
 
 // https://github.com/nodeca/pako
 import pako from 'pako';
@@ -109,7 +110,9 @@ const fetchNPMPackage = async () => {
   // The variable unzipBase64 contains a string with all the source code of the snap
   // Including the manifest and package.json
   const path = unzip(base64, 'mock-snap-id');
-  readStream(path, 'utf8');
+  const extractStream = tar.extract();
+  console.log(extractStream);
+  // readStream(path, 'utf8');
 };
 
 const getUnvalidatedSnapFiles = (): UnvalidatedSnapFiles => {};
