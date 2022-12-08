@@ -743,6 +743,7 @@ class Confirm extends PureComponent {
           AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
+        stopGasPolling();
         resetTransaction();
         navigation && navigation.dangerouslyGetParent()?.pop();
       });
