@@ -85,6 +85,8 @@ export default {
   URLS: {
     TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
     PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
+    DATA_RETENTION_UPDATE:
+      'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
       'https://metamask.zendesk.com/hc/en-us/articles/360059386712',
     NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
