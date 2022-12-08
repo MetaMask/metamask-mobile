@@ -31,7 +31,6 @@ import {
   colors as importedColors,
 } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
-import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -66,9 +65,7 @@ import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
 import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
-import BiometricOption from './Sections/BiometricOption';
-
-const isIos = Device.isIos();
+import LoginOptionsSettings from './Sections/LoginOptionsSettings';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -305,11 +302,8 @@ class Settings extends PureComponent {
 
   state = {
     approvalModalVisible: false,
-    biometryChoice: null,
-    biometryType: false,
     browserHistoryModalVisible: false,
     analyticsEnabled: false,
-    passcodeChoice: false,
     showHint: false,
     hintText: '',
   };
@@ -382,41 +376,10 @@ class Settings extends PureComponent {
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
-
-    const authType = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
-      PASSCODE_DISABLED,
-    );
-
-    if (
-      authType.type === AUTHENTICATION_TYPE.BIOMETRIC ||
-      authType.type === AUTHENTICATION_TYPE.PASSCODE
-    )
-      this.setState({
-        biometryType: Device.isAndroid()
-          ? AUTHENTICATION_TYPE.BIOMETRIC
-          : authType.biometryType,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-        passcodeChoice: !(
-          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
-        ),
-        analyticsEnabled,
-        hintText: manualBackup,
-      });
-    else {
-      this.setState({
-        biometryType:
-          Device.isAndroid() && authType.biometryType
-            ? AUTHENTICATION_TYPE.BIOMETRIC
-            : authType.biometryType,
-        analyticsEnabled,
-        hintText: manualBackup,
-      });
-    }
-
+    this.setState({
+      analyticsEnabled,
+      hintText: manualBackup,
+    });
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
   };
@@ -788,32 +751,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderDevicePasscodeSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting}>
-        <Text style={styles.title}>
-          {isIos
-            ? strings(`biometrics.enable_device_passcode_ios`)
-            : strings(`biometrics.enable_device_passcode_android`)}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            onValueChange={this.onSignInWithPasscode}
-            value={this.state.passcodeChoice}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
   renderPrivateKeySection = () => {
     const { accounts, identities, selectedAddress } = this.props;
     const account = {
@@ -1090,7 +1027,7 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const { biometryType, biometryChoice, loading } = this.state;
+    const { loading } = this.state;
     const { styles } = this.getStyles();
 
     if (loading)
@@ -1113,11 +1050,11 @@ class Settings extends PureComponent {
           {this.renderProtectYourWalletSection()}
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
-          <BiometricOption onOptionUpdated={this.onSingInWithBiometrics} />
+          <LoginOptionsSettings
+            onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
+            onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
+          />
           <RememberMeOptionSection />
-          {biometryType &&
-            !biometryChoice &&
-            this.renderDevicePasscodeSection()}
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderClearPrivacySection()}
