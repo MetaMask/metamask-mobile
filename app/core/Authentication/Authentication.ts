@@ -163,10 +163,8 @@ class AuthenticationService {
             SecureKeychain.TYPES.REMEMBER_ME,
           );
           break;
-          await SecureKeychain.resetGenericPassword();
       }
     } catch (error) {
-      // await SecureKeychain.resetGenericPassword();
       throw new AuthenticationError(
         (error as Error).message,
         'Authentication.storePassword failed',
