@@ -265,23 +265,23 @@ class Engine {
       });
 
       setTimeout(async () => {
-        await fetchNPMPackage();
+        // await fetchNPMPackage();
         // await fetchNPMPackageAlternative();
 
-        // const snapId = 'npm:@metamask/test-snap-bip44';
-        // const origin = 'origin';
+        const snapId = 'npm:@metamask/test-snap-bip44';
+        const origin = 'origin';
 
-        // await snapController.installSnaps(origin, { [snapId]: {} });
+        await snapController.installSnaps(origin, { [snapId]: {} });
 
-        // const result = await snapController.handleRequest({
-        //   snapId,
-        //   origin,
-        //   handler: 'onRpcRequest',
-        //   request: { method: 'foo', params: { bar: 'qux' } },
-        // });
+        const result = await snapController.handleRequest({
+          snapId,
+          origin,
+          handler: 'onRpcRequest',
+          request: { method: 'foo', params: { bar: 'qux' } },
+        });
 
-        // // eslint-disable-next-line no-console
-        // console.log(result);
+        // eslint-disable-next-line no-console
+        console.log(result);
       }, 5000);
 
       // eslint-disable-next-line no-console
