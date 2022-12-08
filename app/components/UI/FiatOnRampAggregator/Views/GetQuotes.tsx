@@ -59,7 +59,7 @@ const createStyles = (colors: Colors) =>
     timerWrapper: {
       backgroundColor: colors.background.alternative,
       borderRadius: 20,
-      marginVertical: 12,
+      marginBottom: 8,
       paddingVertical: 4,
       paddingHorizontal: 15,
       flexDirection: 'row',
@@ -541,32 +541,46 @@ const GetQuotes = () => {
     trackEvent,
   ]);
 
-  const QuotesPolling = () => (
-    <View style={styles.timerWrapper}>
-      {isFetchingQuotes ? (
-        <>
-          <ActivityIndicator size="small" />
-          <Text> {strings('fiat_on_ramp_aggregator.fetching_new_quotes')}</Text>
-        </>
-      ) : (
-        <Text primary centered>
-          {pollingCyclesLeft > 0
-            ? strings('fiat_on_ramp_aggregator.new_quotes_in')
-            : strings('fiat_on_ramp_aggregator.quotes_expire_in')}{' '}
-          <Text
-            bold
-            primary
-            style={[
-              styles.timer,
-              remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT &&
-                styles.timerHiglight,
-            ]}
-          >
-            {new Date(remainingTime).toISOString().substring(15, 19)}
+  const QuotesPolling = useMemo(
+    () => (
+      <View style={styles.timerWrapper}>
+        {isFetchingQuotes ? (
+          <>
+            <ActivityIndicator size="small" />
+            <Text>
+              {' '}
+              {strings('fiat_on_ramp_aggregator.fetching_new_quotes')}
+            </Text>
+          </>
+        ) : (
+          <Text primary centered>
+            {pollingCyclesLeft > 0
+              ? strings('fiat_on_ramp_aggregator.new_quotes_in')
+              : strings('fiat_on_ramp_aggregator.quotes_expire_in')}{' '}
+            <Text
+              bold
+              primary
+              style={[
+                styles.timer,
+                remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT &&
+                  styles.timerHiglight,
+              ]}
+            >
+              {new Date(remainingTime).toISOString().substring(15, 19)}
+            </Text>
           </Text>
-        </Text>
-      )}
-    </View>
+        )}
+      </View>
+    ),
+    [
+      appConfig.POLLING_INTERVAL_HIGHLIGHT,
+      isFetchingQuotes,
+      pollingCyclesLeft,
+      remainingTime,
+      styles.timer,
+      styles.timerHiglight,
+      styles.timerWrapper,
+    ],
   );
 
   if (sdkError) {
@@ -651,7 +665,7 @@ const GetQuotes = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Header>
-        {isInPolling && <QuotesPolling />}
+        {isInPolling && QuotesPolling}
         <ScreenLayout.Content style={styles.withoutVerticalPadding}>
           <Text centered grey>
             {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
