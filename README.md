@@ -52,6 +52,9 @@ if (appConfig.data) {
 
 ## Contributing
 
+### Opening an issue/pull request
+- **Always add the label** [minimum-versions](https://github.com/MetaMask/metamask-mobile/issues?q=label%3Aminimum-versions+) when modifying the minimum secure versions.
+
 ### Changing existing values
 This is a relatively simple change. All that is needed is to change the values in the [AppConfig.json](https://github.com/MetaMask/metamask-mobile/blob/gh-pages/AppConfig/v1/AppConfig.json) file to your desired values. There is no need for a new version of the API or any code changes in the mobile repo.
 ### Changing the schema 
