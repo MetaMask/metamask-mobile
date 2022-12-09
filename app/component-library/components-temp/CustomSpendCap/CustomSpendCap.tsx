@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import BigNumber from 'bignumber.js';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
@@ -9,11 +10,13 @@ import ButtonLink from '../../components/Buttons/Button/variants/ButtonLink';
 import Text, { TextVariants } from '../../components/Texts/Text';
 import formatNumber from '../../../util/formatNumber';
 import CustomInput from './CustomInput';
+import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 
 // Internal dependencies.
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 import customSpendCapStyles from './CustomSpendCap.styles';
+import Icon, { IconName, IconSize } from '../../components/Icon';
 
 const CustomSpendCap = ({
   ticker,
@@ -31,6 +34,7 @@ const CustomSpendCap = ({
     inputValueHigherThanAccountBalance,
     setInputValueHigherThanAccountBalance,
   ] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handlePress = () => {
     setMaxSelected(false);
@@ -43,8 +47,11 @@ const CustomSpendCap = ({
     if (maxSelected) setValue(accountBalance);
   }, [maxSelected, accountBalance]);
 
-  const dappValue = Number(dappProposedValue) - Number(accountBalance);
-  const difference = Number(value) - Number(accountBalance);
+  const editedDefaultValue = new BigNumber(dappProposedValue);
+  const newValue = new BigNumber(value);
+
+  const dappValue = editedDefaultValue.minus(accountBalance).toFixed();
+  const difference = newValue.minus(accountBalance).toFixed();
 
   useEffect(() => {
     if (Number(value) > Number(accountBalance)) {
@@ -79,10 +86,61 @@ const CustomSpendCap = ({
     },
   );
 
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
+  };
+
+  const infoModalTitle = defaultValueSelected ? (
+    <>
+      <Icon size={IconSize.Sm} name={IconName.DangerFilled} color={'red'} />
+      <Text variant={TextVariants.sBodyMDBold}>
+        {strings('contract_allowance.custom_spend_cap.be_careful')}
+      </Text>{' '}
+    </>
+  ) : (
+    <Text variant={TextVariants.sBodyMDBold}>
+      {strings('contract_allowance.custom_spend_cap.set_spend_cap')}
+    </Text>
+  );
+
   return (
     <View style={styles.container} testID={CUSTOM_SPEND_CAP_TEST_ID}>
+      {isModalVisible ? (
+        <InfoModal
+          isVisible={isModalVisible}
+          title={infoModalTitle}
+          body={
+            <Text>
+              {defaultValueSelected
+                ? strings(
+                    'contract_allowance.custom_spend_cap.info_modal_description_default',
+                  )
+                : strings(
+                    'contract_allowance.custom_spend_cap.no_value_selected',
+                    { domain },
+                  )}
+            </Text>
+          }
+          toggleModal={toggleModal}
+        />
+      ) : null}
       <View style={styles.header}>
-        <Text variant={TextVariants.sBodyMDBold}>Custom spending cap</Text>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariants.sBodyMDBold}>
+            {strings('contract_allowance.custom_spend_cap.title')}
+          </Text>
+          <Pressable onPress={toggleModal}>
+            <Icon
+              size={IconSize.Xs}
+              name={
+                defaultValueSelected
+                  ? IconName.DangerFilled
+                  : IconName.QuestionFilled
+              }
+              color="lightgray"
+            />
+          </Pressable>
+        </View>
         {defaultValueSelected ? (
           <ButtonLink onPress={handlePress} textVariants={TextVariants.sBodyMD}>
             {strings('contract_allowance.custom_spend_cap.edit')}

@@ -21,6 +21,10 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     description: {
       color: theme.colors.text.alternative,
       marginHorizontal: 8,
