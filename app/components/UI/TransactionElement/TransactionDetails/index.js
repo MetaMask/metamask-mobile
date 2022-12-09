@@ -15,11 +15,6 @@ import {
   isMultiLayerFeeNetwork,
 } from '../../../../util/networks';
 import {
-  renderFromWei,
-  hexToBN,
-  calculateEthFeeForMultiLayer,
-} from '../../../../util/number';
-import {
   getEtherscanTransactionUrl,
   getEtherscanBaseUrl,
 } from '../../../../util/etherscan';
@@ -35,6 +30,7 @@ import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
+import decodeTransaction from '../../TransactionElement/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -108,6 +104,17 @@ class TransactionDetails extends PureComponent {
      */
     showSpeedUpModal: PropTypes.func,
     showCancelModal: PropTypes.func,
+    transaction: PropTypes.object,
+    selectedAddress: PropTypes.string,
+    transactions: PropTypes.array,
+    ticker: PropTypes.string,
+    tokens: PropTypes.object,
+    contractExchangeRates: PropTypes.object,
+    conversionRate: PropTypes.number,
+    currentCurrency: PropTypes.string,
+    swapsTransactions: PropTypes.object,
+    swapsTokens: PropTypes.array,
+    primaryCurrency: PropTypes.string,
   };
 
   state = {
@@ -116,7 +123,7 @@ class TransactionDetails extends PureComponent {
     updatedTransactionDetails: undefined,
   };
 
-  fetchTxReceipt = async ({ transactionHash }) => {
+  fetchTxReceipt = async (transactionHash) => {
     const { TransactionController } = Engine.context;
     return await util.query(
       TransactionController.ethQuery,
@@ -125,47 +132,56 @@ class TransactionDetails extends PureComponent {
     );
   };
 
+  /**
+   * Updates transactionDetails for multilayer fee networks (e.g. for Optimism).
+   */
   updateTransactionDetails = async () => {
-    const { chainId, transactionDetails } = this.props;
+    const {
+      transactionObject,
+      transactionDetails,
+      selectedAddress,
+      ticker,
+      chainId,
+      conversionRate,
+      currentCurrency,
+      contractExchangeRates,
+      tokens,
+      primaryCurrency,
+      swapsTransactions,
+      swapsTokens,
+      transactions,
+    } = this.props;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
-    if (!multiLayerFeeNetwork || !transactionDetails?.transactionHash) {
+    const transactionHash = transactionDetails?.transactionHash;
+    if (
+      !multiLayerFeeNetwork ||
+      !transactionHash ||
+      !transactionObject.transaction
+    ) {
       this.setState({ updatedTransactionDetails: transactionDetails });
       return;
     }
     try {
-      const { l1Fee: l1HexGasTotal } = await this.fetchTxReceipt({
-        transactionHash: transactionDetails.transactionHash,
+      let { l1Fee: l1HexGasTotal } = await this.fetchTxReceipt(transactionHash);
+      if (!l1HexGasTotal) {
+        l1HexGasTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
+      }
+      transactionObject.transaction.l1HexGasTotal = l1HexGasTotal;
+      const decodedTx = await decodeTransaction({
+        tx: transactionObject,
+        selectedAddress,
+        ticker,
+        chainId,
+        conversionRate,
+        currentCurrency,
+        transactions,
+        contractExchangeRates,
+        tokens,
+        primaryCurrency,
+        swapsTransactions,
+        swapsTokens,
       });
-      let updatedTotalAmountInEth;
-      let updatedFeeInEth;
-      const totalAmountSplitted =
-        transactionDetails.summaryTotalAmount.split(' ');
-      const feeSplitted = transactionDetails.summaryFee.split(' ');
-      if (transactionDetails.summaryTotalAmount.includes('<')) {
-        updatedTotalAmountInEth = renderFromWei(hexToBN(l1HexGasTotal));
-      } else {
-        updatedTotalAmountInEth = calculateEthFeeForMultiLayer({
-          multiLayerL1FeeTotal: l1HexGasTotal,
-          ethFee: totalAmountSplitted[0],
-        });
-      }
-      if (transactionDetails.summaryFee.includes('<')) {
-        updatedFeeInEth = renderFromWei(hexToBN(l1HexGasTotal));
-      } else {
-        updatedFeeInEth = calculateEthFeeForMultiLayer({
-          multiLayerL1FeeTotal: l1HexGasTotal,
-          ethFee: feeSplitted[0],
-        });
-      }
-      const ticker = totalAmountSplitted[totalAmountSplitted.length - 1];
-      const newFee = `${updatedFeeInEth} ${ticker}`;
-      const newTotalAmount = `${updatedTotalAmountInEth} ${ticker}`;
-      const updatedTransactionDetails = {
-        ...transactionDetails,
-        summaryFee: newFee,
-        summaryTotalAmount: newTotalAmount,
-      };
-      this.setState({ updatedTransactionDetails });
+      this.setState({ updatedTransactionDetails: decodedTx[1] });
     } catch (e) {
       Logger.error(e);
       this.setState({ updatedTransactionDetails: transactionDetails });
@@ -406,6 +422,27 @@ const mapStateToProps = (state) => ({
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  transactions: state.engine.backgroundState.TransactionController.transactions,
+  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
+    (tokens, token) => {
+      tokens[token.address] = token;
+      return tokens;
+    },
+    {},
+  ),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  conversionRate:
+    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  currentCurrency:
+    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  primaryCurrency: state.settings.primaryCurrency,
+  swapsTransactions:
+    state.engine.backgroundState.TransactionController.swapsTransactions || {},
+  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 });
 
 TransactionDetails.contextType = ThemeContext;

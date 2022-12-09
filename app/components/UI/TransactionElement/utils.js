@@ -11,12 +11,14 @@ import {
   weiToFiatNumber,
   addCurrencySymbol,
   toBN,
+  BNToHex,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFullAddress,
   safeToChecksumAddress,
 } from '../../../util/address';
+import { sumHexWEIs } from '../../../util/conversions';
 import {
   decodeTransferData,
   isCollectibleAddress,
@@ -43,8 +45,8 @@ function calculateTotalGas(transaction) {
     estimatedBaseFee,
     maxPriorityFeePerGas,
     maxFeePerGas,
+    l1HexGasTotal,
   } = transaction;
-
   if (isEIP1559Transaction(transaction)) {
     const eip1559GasHex = calculateEIP1559GasFeeHexes({
       gasLimitHex: gasUsed || gas,
@@ -57,16 +59,17 @@ function calculateTotalGas(transaction) {
   const gasBN = hexToBN(gas);
   const gasPriceBN = hexToBN(gasPrice);
   const gasUsedBN = gasUsed ? hexToBN(gasUsed) : null;
-
+  let totalGas = hexToBN('0x0');
   if (gasUsedBN && isBN(gasUsedBN) && isBN(gasPriceBN)) {
-    return gasUsedBN.mul(gasPriceBN);
+    totalGas = gasUsedBN.mul(gasPriceBN);
   }
-
   if (isBN(gasBN) && isBN(gasPriceBN)) {
-    return gasBN.mul(gasPriceBN);
+    totalGas = gasBN.mul(gasPriceBN);
   }
-
-  return hexToBN('0x0');
+  if (l1HexGasTotal) {
+    totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), l1HexGasTotal]));
+  }
+  return totalGas;
 }
 
 function renderGwei(transaction) {
