@@ -575,7 +575,26 @@
     "theme_os": "Sistema",
     "theme_light": "Claro",
     "theme_dark": "Escuro",
-    "network_exists": "Essa rede já foi adicionada."
+    "network_exists": "Essa rede já foi adicionada.",
+    "delete_metrics_title": "Excluir dados do MetaMetrics",
+    "delete_metrics_description_part_one": "Isso excluirá os dados históricos do MetaMetrics associados à sua carteira.",
+    "delete_metrics_description_part_two": "Os dados do MetaMetrics compreendem utilização anonimizada e dados de diagnóstico.",
+    "delete_metrics_description_part_three": "Após a exclusão desses dados, sua carteira e contas permanecerão exatamente como estão agora. Esse processo pode levar até 60 dias. Veja o",
+    "delete_metrics_description_part_four": "Você iniciou essa ação em",
+    "delete_metrics_description_part_five": ". Esse processo pode levar até 60 dias. Veja o",
+    "consensys_privacy_policy": "Política de Privacidade da ConsenSys.",
+    "delete_metrics_button": "Excluir dados do MetaMetrics",
+    "check_status_button": "Verificar status",
+    "delete_metrics_confirm_modal_title": "Excluir dados do MetaMetrics?",
+    "delete_metrics_confirm_modal_description": "Estamos prestes a remover todos os seus dados do MetaMetrics. Tem certeza?",
+    "delete_wallet_data_title": "Excluir carteira",
+    "delete_wallet_data_description": "Isso removerá do seu dispositivo todos os dados relacionados à carteira. Suas contas existem na blockchain e não são relacionadas à MetaMask. Você pode recuperar suas contas a qualquer momento usando sua Frase de Recuperação Secreta.",
+    "delete_wallet_data_button": "Excluir carteira",
+    "delete_data_status_title": "Status da tarefa de exclusão",
+    "delete_data_status_description": "O status atual é",
+    "delete_metrics_error_title": "Não podemos excluir esses dados no momento.",
+    "delete_metrics_error_description": "Essa solicitação não pode ser concluída no momento devido a um problema no servidor do sistema de análise. Por favor, tente novamente mais tarde.",
+    "ok": "OK"
   },
   "app_information": {
     "title": "Informações",
@@ -2006,5 +2025,21 @@
     "placeholder": "Senha",
     "description": "Se desativar essa opção, você precisará de sua senha para desbloquear a MetaMask a partir de agora.",
     "action": "Desativar \"Lembrar de mim\""
+  },
+  "automatic_security_checks": {
+    "title": "Verificações automáticas de segurança",
+    "description": "Verificar atualizações automaticamente pode expor seu endereço IP aos servidores do GitHub. Isso apenas indica que o seu endereço IP está usando a MetaMask. Nenhuma outra informação ou endereços de conta são expostos."
+  },
+  "update_needed": {
+    "title": "Atualizações necessárias",
+    "description": "Aumentamos a segurança da sua carteira! Por favor, reserve um momento para se proteger e atualizar para a versão mais recente.",
+    "primary_action": "Atualizar para a versão mais recente",
+    "secondary_action": "Lembre-me depois"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Verificar se há atualizações de segurança automaticamente?",
+    "description": "Verificar atualizações automaticamente pode expor seu endereço IP aos servidores do GitHub. Isso apenas indica que o seu endereço IP está usando a MetaMask. Nenhuma outra informação ou endereços de conta são expostos.",
+    "primary_action": "Ativar verificações automáticas de segurança",
+    "secondary_action": "Não, obrigado"
   }
 }

@@ -65,7 +65,7 @@ const Actions = {
   RELEASE: 'release',
 };
 
-class Gestures  {
+class Gestures {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
@@ -112,24 +112,21 @@ class Gestures  {
     }
   }
 
-  static async typeText(element, text, hideKeyboard = true) {
+  static async longPress(element, waitTime) {
     const elem = await element;
+    (await elem).touchAction([
+      Actions.PRESS,
+      {action: Actions.WAIT, ms: waitTime},
+      Actions.RELEASE
+    ])
+  }
 
+  static async typeText(element, text) {
+    const elem = await element;
     await elem.waitForDisplayed();
     (await elem).touchAction(Actions.TAP);
-
     await elem.clearValue();
-    await elem.setValue(text);
-
-    if (!hideKeyboard) {
-      return;
-    }
-
-    const platform = await driver.getPlatform();
-    
-    if (platform === 'Android') {
-      await driver.hideKeyboard('tapOutside');
-    }
+    await elem.setValue(text, +'\n');
   }
 
   /**
@@ -217,7 +214,7 @@ class Gestures  {
     const endPercentage = 0;
     const anchorPercentage = 50;
 
-    const { width, height } = await driver.getWindowSize();
+    const {width, height} = await driver.getWindowSize();
     const anchor = height * anchorPercentage / 100;
     const startPoint = width * startPercentage / 100;
     const endPoint = width * endPercentage / 100;

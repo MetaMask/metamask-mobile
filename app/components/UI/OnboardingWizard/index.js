@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   Text,
-  Dimensions,
   InteractionManager,
 } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
@@ -28,7 +27,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 
-const MIN_HEIGHT = Dimensions.get('window').height;
 const createStyles = (colors) =>
   StyleSheet.create({
     root: {
@@ -165,7 +163,8 @@ const OnboardingWizard = (props) => {
       disableAnimation
       transparent
       onBackButtonPress={getBackButtonBehavior}
-      style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
+      style={styles.root}
+      coverScreen={false}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (

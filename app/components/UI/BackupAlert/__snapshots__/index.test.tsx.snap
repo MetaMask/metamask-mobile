@@ -3,6 +3,7 @@
 exports[`BackupAlert should render correctly 1`] = `
 <BackupAlert
   backUpSeedphraseAlertNotVisible={[Function]}
+  onboardingWizardStep={0}
   seedphraseBackedUp={false}
 />
 `;
