@@ -51,6 +51,8 @@ import { colors as importedColors } from '../../../styles/common';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
 const Stack = createStackNavigator();
 
@@ -84,6 +86,9 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   const prevLockTime = usePrevious(props.lockTime);
+
+  useEnableAutomaticSecurityChecks();
+  useMinimumVersions();
 
   const pollForIncomingTransactions = useCallback(async () => {
     props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());

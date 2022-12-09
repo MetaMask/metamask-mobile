@@ -8,46 +8,53 @@ const initialState: Readonly<State> = {
   type: 'Loading',
 };
 
-const useAppConfig = (): State => {
+const useAppConfig = (hasGithubPermissions: boolean): State => {
   const [state, setState] = useState<State>(initialState);
 
   useEffect(() => {
     const fetchAppConfig = () => {
-      fetch(MM_APP_CONFIG_URL)
-        .then((response) => response.json())
-        .then((data) => {
-          try {
-            const minimumVersions = data.security.minimumVersions;
-            const appConfig: AppConfig = {
-              security: {
-                minimumVersions: {
-                  appMinimumBuild: minimumVersions.appMinimumBuild,
-                  appleMinimumOS: minimumVersions.appleMinimumOS,
-                  androidMinimumAPIVersion:
-                    minimumVersions.androidMinimumAPIVersion,
+      if (hasGithubPermissions) {
+        fetch(MM_APP_CONFIG_URL)
+          .then((response) => response.json())
+          .then((data) => {
+            try {
+              const minimumVersions = data.security.minimumVersions;
+              const appConfig: AppConfig = {
+                security: {
+                  minimumVersions: {
+                    appMinimumBuild: minimumVersions.appMinimumBuild,
+                    appleMinimumOS: minimumVersions.appleMinimumOS,
+                    androidMinimumAPIVersion:
+                      minimumVersions.androidMinimumAPIVersion,
+                  },
                 },
-              },
-            };
-            setState({ type: 'Success', data: appConfig });
-          } catch (e: any) {
+              };
+              setState({ type: 'Success', data: appConfig });
+            } catch (e: any) {
+              setState({
+                type: 'Error',
+                error: e,
+                message: `error parsing AppConfig ${e.message}`,
+              });
+            }
+          })
+          .catch((e: any) => {
             setState({
               type: 'Error',
               error: e,
-              message: `error parsing AppConfig ${e.message}`,
+              message: `error fetching AppConfig ${e.message}`,
             });
-          }
-        })
-        .catch((e: any) => {
-          setState({
-            type: 'Error',
-            error: e,
-            message: `error fetching AppConfig ${e.message}`,
           });
+      } else {
+        setState({
+          type: 'Error',
+          message: `GitHub request permissions not granted by user. See hasUserSelectedAutomaticSecurityCheckOption global state`,
         });
+      }
     };
 
     fetchAppConfig();
-  }, []);
+  }, [hasGithubPermissions]);
 
   return state;
 };
