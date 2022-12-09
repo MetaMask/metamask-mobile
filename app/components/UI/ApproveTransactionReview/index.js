@@ -778,65 +778,143 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
-              <View style={styles.paddingHorizontal}>
-                <View style={styles.section}>
-                  <TransactionReview
-                    gasSelected={gasSelected}
-                    primaryCurrency={primaryCurrency}
-                    hideTotal
-                    noMargin
-                    onEdit={this.edit}
-                    chainId={this.props.chainId}
-                    onUpdatingValuesStart={onUpdatingValuesStart}
-                    onUpdatingValuesEnd={onUpdatingValuesEnd}
-                    animateOnChange={animateOnChange}
-                    isAnimating={isAnimating}
-                    gasEstimationReady={gasEstimationReady}
-                    legacy={!showFeeMarket}
-                    gasObject={
-                      !showFeeMarket ? legacyGasObject : eip1559GasObject
-                    }
-                    updateTransactionState={updateTransactionState}
-                    onlyGas
-                    multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                  />
+              <View>
+                <ApproveTransactionHeader
+                  origin={origin}
+                  spenderAddress={spenderAddress}
+                  url={activeTabUrl}
+                />
+                <Text reset style={styles.title} testID={'allow-access'}>
+                  {strings(
+                    `spend_limit_edition.${
+                      originIsDeeplink
+                        ? 'allow_to_address_access'
+                        : 'allow_to_access'
+                    }`,
+                    { tokenSymbol },
+                  )}
+                </Text>
+                {originalApproveAmount && (
+                  <View style={styles.tokenAccess}>
+                    <Text bold style={styles.tokenKey}>
+                      {` ${strings('spend_limit_edition.access_up_to')} `}
+                    </Text>
+                    <Text numberOfLines={4} style={styles.tokenValue}>
+                      {` ${
+                        customSpendAmount
+                          ? formatNumber(customSpendAmount)
+                          : originalApproveAmount &&
+                            formatNumber(originalApproveAmount)
+                      } ${tokenSymbol}`}
+                    </Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  style={styles.actionTouchable}
+                  onPress={this.toggleEditPermission}
+                >
+                  <Text reset style={styles.editPermissionText}>
+                    {strings('spend_limit_edition.edit_permission')}
+                  </Text>
+                </TouchableOpacity>
+                <Text reset style={styles.explanation}>
+                  {`${strings(
+                    `spend_limit_edition.${
+                      originIsDeeplink
+                        ? 'you_trust_this_address'
+                        : 'you_trust_this_site'
+                    }`,
+                  )}`}
+                </Text>
+                <View style={styles.contactWrapper}>
+                  <Text>{strings('nickname.contract')}: </Text>
+                  <TouchableOpacity
+                    style={styles.addressWrapper}
+                    onPress={this.copyContractAddress}
+                    testID={'contract-address'}
+                  >
+                    <Identicon
+                      address={this.state.transaction.to}
+                      diameter={20}
+                    />
+                    {this.props.nicknameExists ? (
+                      <Text numberOfLines={1} style={styles.address}>
+                        {this.props.nickname}
+                      </Text>
+                    ) : (
+                      <EthereumAddress
+                        address={this.state.transaction.to}
+                        style={styles.address}
+                        type={'short'}
+                      />
+                    )}
+                    <Feather name="copy" size={18} style={styles.actionIcon} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.nickname} onPress={this.toggleDisplay}>
+                  {this.props.nicknameExists ? 'Edit' : 'Add'}{' '}
+                  {strings('nickname.nickname')}
+                </Text>
+                <View style={styles.paddingHorizontal}>
+                  <View style={styles.section}>
+                    <TransactionReview
+                      gasSelected={gasSelected}
+                      primaryCurrency={primaryCurrency}
+                      hideTotal
+                      noMargin
+                      onEdit={this.edit}
+                      chainId={this.props.chainId}
+                      onUpdatingValuesStart={onUpdatingValuesStart}
+                      onUpdatingValuesEnd={onUpdatingValuesEnd}
+                      animateOnChange={animateOnChange}
+                      isAnimating={isAnimating}
+                      gasEstimationReady={gasEstimationReady}
+                      legacy={!showFeeMarket}
+                      gasObject={
+                        !showFeeMarket ? legacyGasObject : eip1559GasObject
+                      }
+                      updateTransactionState={updateTransactionState}
+                      onlyGas
+                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                    />
 
-                  {gasError && (
-                    <View style={styles.errorWrapper}>
-                      {isTestNetwork || allowedToBuy(network) ? (
-                        <TouchableOpacity onPress={errorPress}>
+                    {gasError && (
+                      <View style={styles.errorWrapper}>
+                        {isTestNetwork || allowedToBuy(network) ? (
+                          <TouchableOpacity onPress={errorPress}>
+                            <Text reset style={styles.error}>
+                              {gasError}
+                            </Text>
+
+                            {over && (
+                              <Text
+                                reset
+                                style={[styles.error, styles.underline]}
+                              >
+                                {errorLinkText}
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        ) : (
                           <Text reset style={styles.error}>
                             {gasError}
                           </Text>
-
-                          {over && (
-                            <Text
-                              reset
-                              style={[styles.error, styles.underline]}
-                            >
-                              {errorLinkText}
-                            </Text>
-                          )}
-                        </TouchableOpacity>
-                      ) : (
-                        <Text reset style={styles.error}>
-                          {gasError}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                  {!gasError && (
-                    <TouchableOpacity
-                      style={styles.actionTouchable}
-                      onPress={this.toggleViewDetails}
-                    >
-                      <View>
-                        <Text reset style={styles.viewDetailsText}>
-                          {strings('spend_limit_edition.view_details')}
-                        </Text>
+                        )}
                       </View>
-                    </TouchableOpacity>
-                  )}
+                    )}
+                    {!gasError && (
+                      <TouchableOpacity
+                        style={styles.actionTouchable}
+                        onPress={this.toggleViewDetails}
+                      >
+                        <View>
+                          <Text reset style={styles.viewDetailsText}>
+                            {strings('spend_limit_edition.view_details')}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </View>
             </ActionView>
