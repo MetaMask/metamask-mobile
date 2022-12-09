@@ -1,8 +1,13 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// External dependencies.
+import { TICKER } from '../CustomSpendCap.constants';
+
+// Internal dependencies.
 import CustomInput from './CustomInput';
 import { CustomInputProps } from './CustomInput.types';
-import { TICKER, MAX_VALUE, DEFAULT_VALUE } from './CustomInput.constants';
 
 describe('CustomInput', () => {
   let props: CustomInputProps;
@@ -10,21 +15,17 @@ describe('CustomInput', () => {
   beforeEach(() => {
     props = {
       ticker: TICKER,
-      getUpdatedValue: jest.fn(),
-      maxAvailableValue: MAX_VALUE,
-      defaultValue: DEFAULT_VALUE,
+      value: '123',
+      inputDisabled: true,
+      setMaxSelected: jest.fn(),
+      defaultValueSelected: true,
+      setValue: jest.fn(),
     };
   });
 
   const renderComponent = () => shallow(<CustomInput {...props} />);
 
   it('should render correctly', () => {
-    const component = renderComponent();
-    expect(component).toMatchSnapshot();
-  });
-
-  it('should render correctly when defaultValue is not provided', () => {
-    props.defaultValue = undefined;
     const component = renderComponent();
     expect(component).toMatchSnapshot();
   });

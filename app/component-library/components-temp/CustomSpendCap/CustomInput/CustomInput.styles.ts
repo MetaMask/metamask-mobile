@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 /**
  * Style sheet for Custom Input component.
  *
@@ -34,9 +34,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     maxValueText: {
       color: theme.colors.text.alternative,
-    },
-    ticker: {
-      paddingLeft: 5,
     },
     warningValue: {
       color: theme.colors.error.default,

@@ -2220,7 +2220,15 @@
     "primary_action": "Enable automatic security checks",
     "secondary_action": "No thanks"
   },
-  "input": {
-    "max_value": "Max"
+  "contract_allowance": {
+    "custom_spend_cap": {
+      "max": "Max",
+      "edit": "Edit",
+      "use_default": "Use default",
+      "max_value_selected": "This contract allows the site to spend {{accountBalance}} {{ticker}} from your current balance.",
+      "no_value_selected": "Only enter a number that you're comfortable with {{domain}} accessing now or in the future. You can always increase the token limit later.",
+      "dapp_proposed_value_greater_than_account_balance": "This contract allows the site to spend  {{accountBalance}} from your current balance plus {{dappValue}} {{ticker}} you might have in the future. Your tokens may be at risk.",
+      "input_value_greater_than_account_balance": "This contract allows the site to spend {{accountBalance}} {{ticker}} from your current balance plus {{difference}} {{ticker}} you might have in the future.  Your tokens may be at risk."
+    }
   }
-}
+} 
