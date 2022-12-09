@@ -162,11 +162,13 @@ class TransactionDetails extends PureComponent {
       return;
     }
     try {
-      let { l1Fee: l1HexGasTotal } = await this.fetchTxReceipt(transactionHash);
-      if (!l1HexGasTotal) {
-        l1HexGasTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
+      let { l1Fee: multiLayerL1FeeTotal } = await this.fetchTxReceipt(
+        transactionHash,
+      );
+      if (!multiLayerL1FeeTotal) {
+        multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
       }
-      transactionObject.transaction.l1HexGasTotal = l1HexGasTotal;
+      transactionObject.transaction.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
       const decodedTx = await decodeTransaction({
         tx: transactionObject,
         selectedAddress,

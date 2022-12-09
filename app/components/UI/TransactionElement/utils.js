@@ -45,7 +45,7 @@ function calculateTotalGas(transaction) {
     estimatedBaseFee,
     maxPriorityFeePerGas,
     maxFeePerGas,
-    l1HexGasTotal,
+    multiLayerL1FeeTotal,
   } = transaction;
   if (isEIP1559Transaction(transaction)) {
     const eip1559GasHex = calculateEIP1559GasFeeHexes({
@@ -66,8 +66,8 @@ function calculateTotalGas(transaction) {
   if (isBN(gasBN) && isBN(gasPriceBN)) {
     totalGas = gasBN.mul(gasPriceBN);
   }
-  if (l1HexGasTotal) {
-    totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), l1HexGasTotal]));
+  if (multiLayerL1FeeTotal) {
+    totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
   }
   return totalGas;
 }
