@@ -98,8 +98,11 @@ const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 const { hexToBN, BNToHex } = util;
+
+let intervalIdForEstimatedL1Fee;
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -316,6 +319,7 @@ class Confirm extends PureComponent {
 
   componentWillUnmount = async () => {
     await stopGasPolling(this.state.pollToken);
+    clearInterval(intervalIdForEstimatedL1Fee);
   };
 
   fetchEstimatedL1Fee = async () => {
@@ -363,7 +367,12 @@ class Confirm extends PureComponent {
     navigation.setParams({ providerType, isPaymentRequest });
     this.handleConfusables();
     this.parseTransactionDataHeader();
-    this.fetchEstimatedL1Fee();
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(() => {
+        this.fetchEstimatedL1Fee();
+      }, POLLING_INTERVAL_ESTIMATED_L1_FEE);
+    }
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -376,7 +385,6 @@ class Confirm extends PureComponent {
       selectedAsset,
     } = this.props;
     this.updateNavBar();
-
     const { errorMessage, fromSelectedAddress } = this.state;
     const valueChanged = prevProps.transactionState.transaction.value !== value;
     const fromAddressChanged =
@@ -403,7 +411,6 @@ class Confirm extends PureComponent {
       (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
         gas !== prevProps?.transactionState?.transaction?.gas)
     ) {
-      this.fetchEstimatedL1Fee();
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
