@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Device from 'app/util/device';
+import Device from '../../../util/device';
 
 const createStyles = (colors) =>
   StyleSheet.create({
