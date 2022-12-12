@@ -145,6 +145,7 @@ class LockScreen extends PureComponent {
           params: { screen: 'Onboarding' },
         });
       }
+      this.props.navigation.navigate('HomeNav');
     } catch (error) {
       if (this.unlockAttempts <= 3) {
         this.unlockKeychain();
