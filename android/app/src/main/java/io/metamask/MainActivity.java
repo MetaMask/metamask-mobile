@@ -13,6 +13,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 
@@ -48,6 +49,8 @@ public class MainActivity extends ReactActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		SplashScreen.show(this);
 		super.onCreate(null);
+		View v = findViewById(android.R.id.content);
+		v.setFilterTouchesWhenObscured(true);
 	}
 
 	@Override
