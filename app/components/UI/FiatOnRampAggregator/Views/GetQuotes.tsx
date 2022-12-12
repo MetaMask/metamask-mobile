@@ -6,7 +6,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Animated, {
   Extrapolate,
   interpolate,
@@ -16,6 +16,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { QuoteResponse, Provider } from '@consensys/on-ramp-sdk';
+import {
+  CryptoCurrency,
+  FiatCurrency,
+  ProviderBuyFeatureBrowserEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import ScreenLayout from '../components/ScreenLayout';
 import ScreenView from '../../FiatOrders/components/ScreenView';
@@ -39,8 +44,9 @@ import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../hooks/useInAppBrowser';
-import { ProviderBuyFeatureBrowserEnum } from '@consensys/on-ramp-sdk/dist/API';
+
 import Routes from '../../../../constants/navigation/Routes';
+import { useParams } from '../../../../util/navigation/navUtils';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -196,7 +202,11 @@ const GetQuotes = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const { params } = useRoute();
+  const params = useParams<{
+    amount: number;
+    asset: CryptoCurrency;
+    fiatCurrency: FiatCurrency;
+  }>();
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const [isLoading, setIsLoading] = useState(true);
@@ -238,8 +248,7 @@ const GetQuotes = () => {
     selectedPaymentMethodId,
     selectedAsset?.id,
     selectedFiatCurrencyId,
-    // @ts-expect-error useRoute params
-    params?.amount,
+    params.amount,
     selectedAddress,
   );
 
@@ -366,10 +375,10 @@ const GetQuotes = () => {
           },
         );
         trackEvent('ONRAMP_QUOTES_RECEIVED', {
-          currency_source: (params as any)?.fiatCurrency?.symbol as string,
-          currency_destination: (params as any)?.asset?.symbol as string,
+          currency_source: params.fiatCurrency?.symbol,
+          currency_destination: params.asset?.symbol,
           chain_id_destination: selectedChainId,
-          amount: (params as any)?.amount as number,
+          amount: params.amount,
           payment_method_id: selectedPaymentMethodId as string,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           results_count: quotesWithoutError.length,
@@ -398,12 +407,12 @@ const GetQuotes = () => {
           .forEach((quote) =>
             trackEvent('ONRAMP_QUOTE_ERROR', {
               provider_onramp: quote.provider.name,
-              currency_source: (params as any)?.fiatCurrency?.symbol as string,
-              currency_destination: (params as any)?.asset?.symbol as string,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
               payment_method_id: selectedPaymentMethodId as string,
               chain_id_destination: selectedChainId,
               error_message: quote.message,
-              amount: (params as any)?.amount as number,
+              amount: params.amount as number,
             }),
           );
       }
@@ -463,8 +472,8 @@ const GetQuotes = () => {
           quote_position: index + 1,
           results_count: filteredQuotes.length,
           crypto_out: quote.amountOut || 0,
-          currency_source: (params as any)?.fiatCurrency?.symbol as string,
-          currency_destination: (params as any)?.asset?.symbol as string,
+          currency_source: params.fiatCurrency?.symbol,
+          currency_destination: params.asset?.symbol,
           chain_id_destination: selectedChainId,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
@@ -524,11 +533,11 @@ const GetQuotes = () => {
     setRemainingTime(appConfig.POLLING_INTERVAL);
     fetchQuotes();
     trackEvent('ONRAMP_QUOTES_REQUESTED', {
-      currency_source: (params as any)?.fiatCurrency?.symbol as string,
-      currency_destination: (params as any)?.asset?.symbol as string,
+      currency_source: params.fiatCurrency?.symbol,
+      currency_destination: params.asset?.symbol,
       payment_method_id: selectedPaymentMethodId as string,
       chain_id_destination: selectedChainId,
-      amount: (params as any)?.amount as number,
+      amount: params.amount as number,
       location: 'Quotes Screen',
     });
   }, [
@@ -655,8 +664,7 @@ const GetQuotes = () => {
         <ScreenLayout.Content style={styles.withoutVerticalPadding}>
           <Text centered grey>
             {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
-              // @ts-expect-error params useRute type
-              ticker: params?.asset?.symbol || '',
+              ticker: params.asset?.symbol || '',
             })}
           </Text>
         </ScreenLayout.Content>

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentMethod from '../components/PaymentMethod';
@@ -19,6 +19,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
 import usePaymentMethods from '../hooks/usePaymentMethods';
 import useRegions from '../hooks/useRegions';
+import { useParams } from '../../../../util/navigation/navUtils';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -53,7 +54,7 @@ const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const { params } = useRoute();
+  const params = useParams<{ showBack?: boolean }>();
 
   const {
     setSelectedRegion,
@@ -94,8 +95,7 @@ const PaymentMethods = () => {
   const handleResetState = useCallback(() => {
     setSelectedRegion(null);
     setSelectedPaymentMethodId(null);
-    // @ts-expect-error navigation params error
-    const needsReset = params?.showBack === false;
+    const needsReset = params.showBack === false;
     if (needsReset) {
       navigation.reset({
         routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
@@ -104,8 +104,7 @@ const PaymentMethods = () => {
       navigation.goBack();
     }
   }, [
-    // @ts-expect-error navigation params error
-    params?.showBack,
+    params.showBack,
     setSelectedPaymentMethodId,
     setSelectedRegion,
     navigation,
@@ -123,15 +122,13 @@ const PaymentMethods = () => {
           title: strings(
             'fiat_on_ramp_aggregator.payment_method.payment_method',
           ),
-          // @ts-expect-error navigation params error
-          showBack: params?.showBack,
+          showBack: params.showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-    // @ts-expect-error navigation params error
-  }, [navigation, colors, handleCancelPress, params?.showBack]);
+  }, [navigation, colors, handleCancelPress, params.showBack]);
 
   if (sdkError) {
     return (

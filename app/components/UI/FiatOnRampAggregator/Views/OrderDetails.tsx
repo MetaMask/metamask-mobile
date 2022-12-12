@@ -1,22 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshControl } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { Order } from '@consensys/on-ramp-sdk';
+import { ScrollView } from 'react-native-gesture-handler';
+import { FiatOrder, processFiatOrder } from '../../FiatOrders';
+
+import useAnalytics from '../hooks/useAnalytics';
 import ScreenLayout from '../components/ScreenLayout';
-import StyledButton from '../../StyledButton';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import OrderDetail from '../components/OrderDetails';
-import { strings } from '../../../../../locales/i18n';
+import StyledButton from '../../StyledButton';
 import {
   makeOrderIdSelector,
   updateFiatOrder,
 } from '../../../../reducers/fiatOrders';
-import { useDispatch, useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useTheme } from '../../../../util/theme';
-import { ScrollView } from 'react-native-gesture-handler';
 import Routes from '../../../../constants/navigation/Routes';
-import { FiatOrder, processFiatOrder } from '../../FiatOrders';
-import useAnalytics from '../hooks/useAnalytics';
-import { Order } from '@consensys/on-ramp-sdk';
+import { useParams } from '../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
 
 const OrderDetails = () => {
@@ -28,11 +30,8 @@ const OrderDetails = () => {
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
-  const routes = useRoute();
-  const order: FiatOrder = useSelector(
-    // @ts-expect-error expect params error
-    makeOrderIdSelector(routes?.params?.orderId),
-  );
+  const params = useParams<{ orderId?: string }>();
+  const order: FiatOrder = useSelector(makeOrderIdSelector(params.orderId));
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();

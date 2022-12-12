@@ -11,7 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
@@ -47,6 +47,7 @@ import ErrorView from '../components/ErrorView';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { useParams } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { Colors } from '../../../../util/theme/models';
 import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
@@ -95,7 +96,7 @@ const createStyles = (colors: Colors) =>
 
 const AmountToBuy = () => {
   const navigation = useNavigation();
-  const { params } = useRoute();
+  const params = useParams<{ showBack?: boolean }>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
@@ -348,15 +349,13 @@ const AmountToBuy = () => {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
-          // @ts-expect-error navigation params error
-          showBack: params?.showBack,
+          showBack: params.showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-    // @ts-expect-error navigation params error
-  }, [navigation, colors, handleCancelPress, params?.showBack]);
+  }, [navigation, colors, handleCancelPress, params.showBack]);
 
   /**
    * * Keypad style, handlers and effects
