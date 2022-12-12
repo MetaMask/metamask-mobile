@@ -2,6 +2,7 @@
 
 exports[`OnboardingWizard should render correctly 1`] = `
 <OnboardingWizard
+  isAutomaticSecurityChecksModalOpen={false}
   setOnboardingWizardStep={[Function]}
   wizard={
     Object {
