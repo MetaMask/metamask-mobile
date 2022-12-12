@@ -82,7 +82,6 @@ const wallet_switchEthereumChain = async ({
       analyticsParams = {
         ...analyticsParams,
         symbol: existingNetworkRPC?.ticker,
-        network_name: 'rpc',
       };
     } else {
       requestData = {
@@ -93,7 +92,6 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        network_name: existingNetworkDefault?.shortName,
       };
     }
 

@@ -118,17 +118,7 @@ interface AddNicknameProps {
   type: string;
 }
 
-const getAnalyticsParams = () => {
-  try {
-    const { NetworkController } = Engine.context as any;
-    const { type } = NetworkController?.state?.provider || {};
-    return {
-      network_name: type,
-    };
-  } catch (error) {
-    return {};
-  }
-};
+const getAnalyticsParams = () => ({});
 
 const AddNickname = (props: AddNicknameProps) => {
   const {

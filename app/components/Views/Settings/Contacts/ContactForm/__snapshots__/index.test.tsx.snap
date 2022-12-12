@@ -13,6 +13,7 @@ exports[`ContactForm should render correctly 1`] = `
       },
     }
   }
+  chainId="1"
   dispatch={[Function]}
   identities={
     Object {
@@ -23,6 +24,5 @@ exports[`ContactForm should render correctly 1`] = `
     }
   }
   network="1"
-  providerType="mainnet"
 />
 `;

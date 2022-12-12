@@ -87,10 +87,7 @@ const AddCustomCollectible = ({
 
   const getAnalyticsParams = () => {
     try {
-      const { NetworkController } = Engine.context as any;
-      const { type } = NetworkController?.state?.provider || {};
       return {
-        network_name: type,
         chain_id: chainId,
       };
     } catch (error) {
