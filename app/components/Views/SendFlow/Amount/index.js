@@ -1021,7 +1021,8 @@ class Amount extends PureComponent {
     if (!asset.tokenId) {
       return this.renderToken(asset, index);
     }
-    return this.renderCollectible(asset, index);
+
+    if (Device.isAndroid()) return this.renderCollectible(asset, index);
   };
 
   processCollectibles = () => {

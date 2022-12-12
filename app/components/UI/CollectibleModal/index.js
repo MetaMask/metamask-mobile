@@ -46,6 +46,7 @@ const CollectibleModal = (props) => {
   }, [contractName, collectible, newAssetTransaction, navigation]);
 
   const isTradable = useCallback(() => {
+    if (Device.isIos()) return false;
     // This might be deprecated
     const lowerAddress = collectible.address.toLowerCase();
     const tradable =
