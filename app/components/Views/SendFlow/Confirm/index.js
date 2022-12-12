@@ -212,10 +212,6 @@ class Confirm extends PureComponent {
      */
     isPaymentRequest: PropTypes.bool,
     /**
-     * A string representing the network type
-     */
-    networkType: PropTypes.string,
-    /**
      * Triggers global alert
      */
     showAlert: PropTypes.func,
@@ -257,14 +253,12 @@ class Confirm extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { selectedAsset, gasEstimateType, chainId, networkType } =
-        this.props;
+      const { selectedAsset, gasEstimateType, chainId } = this.props;
       const { gasSelected, fromSelectedAddress } = this.state;
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         account_type: getAddressAccountType(fromSelectedAddress),
-        network_name: networkType,
         chain_id: chainId,
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
@@ -277,11 +271,10 @@ class Confirm extends PureComponent {
 
   getGasAnalyticsParams = () => {
     try {
-      const { selectedAsset, gasEstimateType, networkType } = this.props;
+      const { selectedAsset, gasEstimateType } = this.props;
       return {
         active_currency: { value: selectedAsset.symbol, anonymous: true },
         gas_estimate_type: gasEstimateType,
-        network_name: networkType,
       };
     } catch (error) {
       return {};
@@ -1387,7 +1380,6 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 const mapDispatchToProps = (dispatch) => ({
