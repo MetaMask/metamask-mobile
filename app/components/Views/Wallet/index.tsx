@@ -44,8 +44,10 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import WebView from 'react-native-webview';
 import { Button } from 'react-native-share';
+
 import WebviewPostMessageStream from './WebviewPostMessageStream';
 import snapsState from '../../../core/SnapsState';
+import { installTestSnapFromLocalHost } from './snaps/utils';
 
 let stream;
 
@@ -376,28 +378,29 @@ const Wallet = ({ navigation }: any) => {
     );
   };
 
-  const createJob = () => {
+  const installSnap = async () => {
     // eslint-disable-next-line no-console
-    console.log('LOG: createJob executed');
-    stream.write(
-      JSON.stringify({
-        method: 'start-snap',
-        snapId: 'jobId',
-        args: { origin: 'origin', request: { method: 'hello' } },
-      }),
-    );
+    console.log('LOG: install snap');
+    const { SnapController } = Engine.context as any;
+    await installTestSnapFromLocalHost(SnapController);
+    // eslint-disable-next-line no-console
+    console.log('Current snaps', SnapController.internalState.snaps);
   };
 
-  const passDataToStream = () => {
+  const executeTestSnap = async () => {
     // eslint-disable-next-line no-console
-    console.log('LOG: passDataToStream executed');
-    stream.write(
-      JSON.stringify({
-        method: 'stream-to-iframe',
-        snapId: 'jobId-0',
-        args: { origin: 'origin', request: { method: 'hello' } },
-      }),
-    );
+    console.log('LOG: executeTestSnap');
+    const localSnap = 'local:http://localhost:3000/snap/';
+    const origin = 'origin';
+    const { SnapController } = Engine.context as any;
+    const result = await SnapController.handleRequest({
+      snapId: localSnap,
+      origin,
+      handler: 'onRpcRequest',
+      request: { method: 'foo', params: { bar: 'qux' } },
+    });
+    // eslint-disable-next-line no-console
+    console.log(result);
   };
 
   return (
@@ -417,11 +420,11 @@ const Wallet = ({ navigation }: any) => {
           {selectedAddress ? renderContent() : renderLoader()}
         </ScrollView>
         <Button onPress={sendMessageToWebview}>Test stream to WebView</Button>
-        <Button onPress={createJob}>Create new job with iframe+stream</Button>
-        <Button onPress={passDataToStream}>Pass data to job stream</Button>
+        <Button onPress={installSnap}>Install test snap</Button>
+        <Button onPress={executeTestSnap}>Execute Test Snap</Button>
         <WebView
           ref={webviewRef}
-          source={{ uri: 'http://localhost:3000/' }}
+          source={{ uri: 'http://localhost:3001/' }}
           onMessage={messageFromWebview}
           onLoadEnd={setWebviewPostMessage}
           originWhitelist={['*']}
