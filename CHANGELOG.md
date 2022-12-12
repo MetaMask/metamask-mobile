@@ -2,6 +2,13 @@
 
 ## Current Main Branch
 
+## 5.12.1 - Dec 6, 2022
+- [#5366](https://github.com/MetaMask/metamask-mobile/pull/5366): [UPDATE] On-ramp Refactor wyre authentication url approach
+- [#5362](https://github.com/MetaMask/metamask-mobile/pull/5362): [UPDATE] copy for Opt in metrics screen and enable custom mainnet RPC
+- [#5360](https://github.com/MetaMask/metamask-mobile/pull/5360): [FIX] onboarding wizard automatic update modal
+- [#5307](https://github.com/MetaMask/metamask-mobile/pull/5307): [IMPROVEMENT] Remove RPC URL, Block Explorer URL, Network Name from metrics
+- [#5355](https://github.com/MetaMask/metamask-mobile/pull/5355): [IMPROVEMENT] Sanitize privacy settings before sending to Sentry 
+
 ## 5.12.0 - Dec 5, 2022
 - [#5335](https://github.com/MetaMask/metamask-mobile/pull/5335): [IMPROVEMENT] On-ramp: Add useRegions hook and fix availablePaymentMethods
 - [#5337](https://github.com/MetaMask/metamask-mobile/pull/5337): [FIX] Sending ERC-20 tokens on legacy networks

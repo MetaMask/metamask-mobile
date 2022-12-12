@@ -26,8 +26,8 @@ import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
-import { isMainNet } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
+import { MAINNET } from '../../../constants/network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -89,6 +89,7 @@ const createStyles = (colors) =>
 const CollectibleContracts = ({
   selectedAddress,
   chainId,
+  networkType,
   navigation,
   collectibleContracts,
   collectibles,
@@ -253,7 +254,7 @@ const CollectibleContracts = ({
 
   return (
     <View style={styles.wrapper} testID={'collectible-contracts'}>
-      {isMainNet(chainId) &&
+      {networkType === MAINNET &&
         !nftDetectionDismissed &&
         !useCollectibleDetection && (
           <View style={styles.emptyView}>
@@ -270,6 +271,10 @@ const CollectibleContracts = ({
 };
 
 CollectibleContracts.propTypes = {
+  /**
+   * Network type
+   */
+  networkType: PropTypes.string,
   /**
    * Chain id
    */
@@ -314,6 +319,7 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
+  networkType: state.engine.backgroundState.NetworkController.provider.type,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
