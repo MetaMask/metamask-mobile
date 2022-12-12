@@ -248,7 +248,6 @@ class Confirm extends PureComponent {
     EIP1559GasObject: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
-    multiLayerFeeNetwork: false,
     multiLayerL1FeeTotal: '0x0',
   };
 
@@ -324,8 +323,7 @@ class Confirm extends PureComponent {
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
-    const { multiLayerFeeNetwork } = this.state;
-    if (!multiLayerFeeNetwork || !transaction?.transaction) {
+    if (!transaction?.transaction) {
       return;
     }
     try {
@@ -353,7 +351,6 @@ class Confirm extends PureComponent {
     const pollToken = await startGasPolling(this.state.pollToken);
     this.setState({
       pollToken,
-      multiLayerFeeNetwork: isMultiLayerFeeNetwork(chainId),
     });
     // For analytics
     AnalyticsV2.trackEvent(
@@ -369,9 +366,10 @@ class Confirm extends PureComponent {
     this.parseTransactionDataHeader();
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
-      intervalIdForEstimatedL1Fee = setInterval(() => {
-        this.fetchEstimatedL1Fee();
-      }, POLLING_INTERVAL_ESTIMATED_L1_FEE);
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
     }
   };
 
