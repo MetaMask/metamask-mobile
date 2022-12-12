@@ -34,12 +34,12 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     //document.getElementById(jobWrapper.id)?.remove();
   }
 
-  protected async initEnvStream(jobId: string): Promise<{
+  protected async _initEnvStream(jobId: string): Promise<{
     worker;
     stream: BasePostMessageStream;
   }> {
     // eslint-disable-next-line no-console
-    console.log('------------INIT ENV STREAM----', jobId);
+    console.log('------------ [INIT ENV STREAM] ------------. Data:', jobId);
     const iframeWindow = snapsState.webview;
     const stream = snapsState.stream;
 
