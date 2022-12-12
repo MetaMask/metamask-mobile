@@ -9,6 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import ButtonLink from '../../components/Buttons/Button/variants/ButtonLink';
 import Text, { TextVariants } from '../../components/Texts/Text';
 import formatNumber from '../../../util/formatNumber';
+import { isNumber } from '../../../util/number';
 import CustomInput from './CustomInput';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 
@@ -35,6 +36,12 @@ const CustomSpendCap = ({
     setInputValueHigherThanAccountBalance,
   ] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [inputHasError, setInputHasError] = useState(false);
+
+  useEffect(() => {
+    if (isNumber(value)) return setInputHasError(false);
+    return setInputHasError(true);
+  }, [value]);
 
   const handlePress = () => {
     setMaxSelected(false);
@@ -54,36 +61,52 @@ const CustomSpendCap = ({
   const difference = newValue.minus(accountBalance).toFixed();
 
   useEffect(() => {
-    if (Number(value) > Number(accountBalance)) {
-      setInputValueHigherThanAccountBalance(true);
-    } else {
-      setInputValueHigherThanAccountBalance(false);
-    }
+    if (Number(value) > Number(accountBalance))
+      return setInputValueHigherThanAccountBalance(true);
+    return setInputValueHigherThanAccountBalance(false);
   }, [value, accountBalance]);
 
-  const MAX_VALUE_SELECTED = strings(
-    'contract_allowance.custom_spend_cap.max_value_selected',
-    { accountBalance: formatNumber(accountBalance), ticker },
+  const MAX_VALUE_SELECTED = (
+    <>
+      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
+      <Text variant={TextVariants.sBodyMDBold}>
+        {` ${formatNumber(accountBalance)} ${ticker} `}
+      </Text>
+      {strings('contract_allowance.custom_spend_cap.from_your_balance')}
+    </>
   );
+
   const NO_SELECTED = strings(
     'contract_allowance.custom_spend_cap.no_value_selected',
     { domain },
   );
-  const DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE = strings(
-    'contract_allowance.custom_spend_cap.dapp_proposed_value_greater_than_account_balance',
-    {
-      accountBalance: formatNumber(accountBalance),
-      dappValue: formatNumber(dappValue),
-      ticker,
-    },
+
+  const DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
+    <>
+      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
+      <Text variant={TextVariants.sBodyMDBold}>
+        {` ${formatNumber(accountBalance)} ${ticker} `}
+      </Text>
+      {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
+      <Text variant={TextVariants.sBodyMDBold}>
+        {` ${formatNumber(dappValue)} ${ticker} `}
+      </Text>
+      {strings('contract_allowance.custom_spend_cap.future_tokens')}
+    </>
   );
-  const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = strings(
-    'contract_allowance.custom_spend_cap.input_value_greater_than_account_balance',
-    {
-      accountBalance: formatNumber(accountBalance),
-      difference: formatNumber(difference),
-      ticker,
-    },
+
+  const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
+    <>
+      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
+      <Text variant={TextVariants.sBodyMDBold}>
+        {` ${formatNumber(accountBalance)} ${ticker} `}
+      </Text>
+      {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
+      <Text variant={TextVariants.sBodyMDBold}>
+        {` ${formatNumber(difference)} ${ticker} `}
+      </Text>
+      {strings('contract_allowance.custom_spend_cap.future_tokens')}
+    </>
   );
 
   const toggleModal = () => {
@@ -159,6 +182,11 @@ const CustomSpendCap = ({
         inputDisabled={inputDisabled}
         value={value}
       />
+      {value.length > 0 && inputHasError && (
+        <Text variant={TextVariants.sBodyMD} style={styles.errorValue}>
+          {strings('contract_allowance.custom_spend_cap.error_enter_number')}
+        </Text>
+      )}
       <Text variant={TextVariants.sBodyMD} style={styles.description}>
         {defaultValueSelected
           ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE

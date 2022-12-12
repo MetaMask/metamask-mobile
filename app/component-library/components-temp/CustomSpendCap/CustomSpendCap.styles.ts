@@ -29,6 +29,11 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.alternative,
       marginHorizontal: 8,
     },
+    errorValue: {
+      color: theme.colors.error.default,
+      marginHorizontal: 8,
+      marginBottom: 8,
+    },
   });
 };
 

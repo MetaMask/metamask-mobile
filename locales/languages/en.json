@@ -2226,13 +2226,15 @@
       "edit": "Edit",
       "title": "Custom spending cap",
       "use_default": "Use default",
-      "max_value_selected": "This contract allows the site to spend {{accountBalance}} {{ticker}} from your current balance.",
+      "from_your_balance": "from your current balance.",
       "no_value_selected": "Only enter a number that you're comfortable with {{domain}} accessing now or in the future. You can always increase the token limit later.",
-      "dapp_proposed_value_greater_than_account_balance": "This contract allows the site to spend  {{accountBalance}} from your current balance plus {{dappValue}} {{ticker}} you might have in the future. Your tokens may be at risk.",
-      "input_value_greater_than_account_balance": "This contract allows the site to spend {{accountBalance}} {{ticker}} from your current balance plus {{difference}} {{ticker}} you might have in the future. Your tokens may be at risk.",
+      "this_contract_allows": "This contract allows the site to spend",
+      "from_your_current_balance": "from your current balance plus",
+      "future_tokens": "you might have in the future. Your tokens may be at risk.",
       "info_modal_description_default": "The contract could spend your entire token balance without further notice or consent. Protect yourself by setting a lower spending cap.",
       "set_spend_cap": "Set a spending cap",
-      "be_careful": "Be careful"
+      "be_careful": "Be careful",
+      "error_enter_number": "Error: Enter only numbers"
     }
   }
 } 
