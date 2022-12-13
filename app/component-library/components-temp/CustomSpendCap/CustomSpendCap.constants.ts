@@ -6,5 +6,6 @@ export const DAPP_DOMAIN = 'Uniswap.org';
 export const CUSTOM_SPEND_CAP_TEST_ID = 'custom-spend-cap';
 export const INPUT_VALUE_CHANGED = (value: string) => {
   /* eslint-disable no-console */
+  // do something with value
   console.log(value);
 };
