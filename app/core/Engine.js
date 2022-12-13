@@ -53,6 +53,8 @@ import { isZero } from '../util/lodash';
 import AnalyticsV2 from '../util/analyticsV2';
 import WebviewExecutionService from '../components/Views/Wallet/WebviewExecutionService';
 import { SnapBridge } from './SnapExecutionService';
+import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -215,10 +217,32 @@ class Engine {
       });
 
       this.setupSnapProvider = (snapId, connectionStream) => {
+        console.log('method setupSnapProvider', !!connectionStream, snapId);
         const bridge = new SnapBridge({
           snapId,
           connectionStream,
-          getRPCMethodMiddleware: (args) => null,
+          getRPCMethodMiddleware: ({ hostname, getProviderState }) =>
+            getRpcMethodMiddleware({
+              hostname,
+              getProviderState,
+              navigation: null,
+              getApprovedHosts: () => null,
+              setApprovedHosts: () => null,
+              approveHost: () => null,
+              // Website info
+              url: 'https://www.google.com',
+              title: 'Snap',
+              icon: null,
+              // Bookmarks
+              isHomepage: false,
+              // Show autocomplete
+              fromHomepage: false,
+              toggleUrlModal: () => null,
+              // Wizard
+              wizardScrollAdjusted: () => null,
+              tabId: false,
+              isWalletConnect: true,
+            }),
         });
 
         bridge.setupProviderConnection();
@@ -919,5 +943,8 @@ export default {
     instance = new Engine(state);
     Object.freeze(instance);
     return instance;
+  },
+  get snapExecutionService() {
+    return instance.snapExecutionService;
   },
 };
