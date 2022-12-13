@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Device from '../../../util/device';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -94,10 +95,12 @@ class CollectibleView extends PureComponent {
     const styles = createStyles(colors);
 
     const lowerAddress = collectible.address.toLowerCase();
-    const tradable =
-      lowerAddress in collectiblesTransferInformation
+    const isTradable = () => {
+      if (Device.isIos) return false;
+      return lowerAddress in collectiblesTransferInformation
         ? collectiblesTransferInformation[lowerAddress].tradable
         : true;
+    };
 
     return (
       <SafeAreaView style={styles.root}>
@@ -109,7 +112,7 @@ class CollectibleView extends PureComponent {
             />
           </View>
         </ScrollView>
-        {tradable && (
+        {isTradable() && (
           <View style={styles.buttons}>
             <StyledButton
               type={'confirm'}
