@@ -1,4 +1,4 @@
-jmport URL from 'url-parse';
+import URL from 'url-parse';
 import { utils } from 'ethers';
 import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
