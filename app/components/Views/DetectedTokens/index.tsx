@@ -128,7 +128,6 @@ const DetectedTokens = () => {
                   {
                     token_address: address,
                     token_symbol: symbol,
-                    network_name: NetworkController?.state?.provider?.type,
                     chain_id: getDecimalChainId(
                       NetworkController?.state?.provider?.chainId,
                     ),
