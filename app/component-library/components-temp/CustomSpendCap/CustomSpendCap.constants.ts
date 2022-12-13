@@ -4,3 +4,7 @@ export const DAPP_PROPOSED_VALUE =
 export const ACCOUNT_BALANCE = '200.12';
 export const DAPP_DOMAIN = 'Uniswap.org';
 export const CUSTOM_SPEND_CAP_TEST_ID = 'custom-spend-cap';
+export const INPUT_VALUE_CHANGED = (value: string) => {
+  /* eslint-disable no-console */
+  console.log(value);
+};

@@ -24,6 +24,7 @@ const CustomSpendCap = ({
   dappProposedValue,
   accountBalance,
   domain,
+  onInputChanged,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -42,9 +43,12 @@ const CustomSpendCap = ({
   const [inputHasError, setInputHasError] = useState(false);
 
   useEffect(() => {
-    if (isNumber(value)) return setInputHasError(false);
+    if (isNumber(value)) {
+      setInputHasError(false);
+      return onInputChanged(value);
+    }
     return setInputHasError(true);
-  }, [value]);
+  }, [value, onInputChanged]);
 
   const handlePress = () => {
     setMaxSelected(false);

@@ -8,6 +8,7 @@ import {
   ACCOUNT_BALANCE,
   DAPP_PROPOSED_VALUE,
   DAPP_DOMAIN,
+  INPUT_VALUE_CHANGED,
 } from './CustomSpendCap.constants';
 import CustomSpendCap from './CustomSpendCap';
 
@@ -17,5 +18,6 @@ storiesOf('Component Library / CustomSpendCap', module).add('Default', () => (
     accountBalance={ACCOUNT_BALANCE}
     dappProposedValue={DAPP_PROPOSED_VALUE}
     domain={DAPP_DOMAIN}
+    onInputChanged={INPUT_VALUE_CHANGED}
   />
 ));

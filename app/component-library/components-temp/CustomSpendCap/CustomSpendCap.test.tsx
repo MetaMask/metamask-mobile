@@ -10,6 +10,7 @@ import {
   ACCOUNT_BALANCE,
   DAPP_PROPOSED_VALUE,
   DAPP_DOMAIN,
+  INPUT_VALUE_CHANGED,
 } from './CustomSpendCap.constants';
 
 describe('CustomSpendCap', () => {
@@ -20,6 +21,7 @@ describe('CustomSpendCap', () => {
         accountBalance={ACCOUNT_BALANCE}
         dappProposedValue={DAPP_PROPOSED_VALUE}
         domain={DAPP_DOMAIN}
+        onInputChanged={INPUT_VALUE_CHANGED}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(
