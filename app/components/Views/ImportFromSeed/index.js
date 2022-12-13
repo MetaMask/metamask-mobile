@@ -186,9 +186,9 @@ const ImportFromSeed = ({
           true,
         );
         // Get onboarding wizard state
-        // Get onboarding wizard state
         const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
         setLoading(false);
+        passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
         InteractionManager.runAfterInteractions(() => {

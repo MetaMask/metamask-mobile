@@ -187,7 +187,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
-  const authOnLoadAuthLock = useRef(false);
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
@@ -215,7 +214,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
     const appTriggeredAuth = async () => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
+        if (existingUser && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
           navigator.replace('HomeNav');
         }
@@ -229,11 +228,10 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       } finally {
         animationRef?.current?.play();
         animationNameRef?.current?.play();
-        authOnLoadAuthLock.current = true;
       }
     };
     appTriggeredAuth();
-  }, [authOnLoadAuthLock, navigator, selectedAddress]);
+  }, [navigator, selectedAddress]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {

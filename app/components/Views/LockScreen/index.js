@@ -121,8 +121,8 @@ class LockScreen extends PureComponent {
     AppState.removeEventListener('change', this.handleAppStateChange);
   }
 
-  logOut = async () => {
-    await Authentication.logout();
+  lock = async () => {
+    await Authentication.lockApp();
     this.props.navigation.navigate('Login');
   };
 
@@ -155,7 +155,7 @@ class LockScreen extends PureComponent {
           error?.message,
           `Unlock attempts: ${this.unlockAttempts}`,
         );
-        this.logOut();
+        this.lock();
       }
     }
   }

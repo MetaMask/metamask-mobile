@@ -337,7 +337,7 @@ class AuthenticationService {
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  logout = async (reset = true): Promise<void> => {
+  lockApp = async (reset = true): Promise<void> => {
     const { KeyringController }: any = Engine.context;
     if (reset) await SecureKeychain.resetGenericPassword();
     if (KeyringController.isUnlocked()) {
