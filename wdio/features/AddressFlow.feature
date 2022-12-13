@@ -26,12 +26,12 @@ Feature: Address
   Scenario: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
     Given I am on the wallet view
     And On the Main Wallet view I tap "Send"
-    And I enter a contract address "<Address>" in the sender's input box
-    When I tap on button with text "Add this address to your address book"
+    When I enter a contract address "<Address>" in the sender's input box
+    And I tap on button with text "Add this address to your address book"
     Then On the Address book modal Cancel button is enabled
     When I enter in a contact name "<ContactName>"
     Then the Save button becomes enabled
-    And I tap the Save button
+    When I tap the Save button
     And the contact name "<ContactName>" appears in the senders input box above the contact address
     And I navigate to the main wallet screen
     And I tap on the burger menu
