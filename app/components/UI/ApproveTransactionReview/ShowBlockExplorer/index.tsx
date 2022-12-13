@@ -19,6 +19,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 999999,
   },
+  container: {
+    height: '100%',
+  },
 });
 
 interface ShowBlockExplorerProps {
@@ -58,7 +61,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   );
 
   return (
-    <SafeAreaView style={{backgroundColor: 'red',}}>
+    <SafeAreaView style={styles.container}>
       <View style={headerWrapperStyle}>
         <Text bold style={headerTextStyle}>
           {etherscan_url}

@@ -126,6 +126,26 @@ const createStyles = (colors: any) =>
     buttonColor: {
       color: colors.primary.default,
     },
+    headerWrapper: {
+      position: 'relative',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: 15,
+      marginVertical: 5,
+      paddingVertical: 10,
+    },
+    icon: {
+      position: 'absolute',
+      right: 0,
+      padding: 10,
+      color: colors.icon.default,
+    },
+    headerText: {
+      color: colors.text.default,
+      textAlign: 'center',
+      fontSize: 15,
+    },
   });
 
 export default createStyles;
