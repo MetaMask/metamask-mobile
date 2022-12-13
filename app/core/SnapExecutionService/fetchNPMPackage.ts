@@ -1,8 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
-import RNFetchBlob, { Encoding, FetchBlobResponse } from 'rn-fetch-blob';
+import RNFetchBlob, {
+  Encoding,
+  FetchBlobResponse,
+  RNFetchBlobReadStream,
+} from 'rn-fetch-blob';
 import { Readable } from 'readable-stream';
 import { Buffer } from 'buffer';
-import tar from 'tar-stream';
+import { extract as tarExtract } from 'tar-stream';
 
 // https://github.com/nodeca/pako
 import pako from 'pako';
@@ -46,75 +50,78 @@ const downloadBlobIntoFile = async (
   }
 };
 
-const unzip = (base64: string, snapId: string): string => {
-  const filePath = RNFetchBlob.fs.dirs.DocumentDir + `/snap-${snapId}`;
-  const unzipped = Buffer.from(
-    pako.inflate(new Uint8Array(Buffer.from(base64, 'base64')), false),
+const unzipData = (base64Data: string): string =>
+  Buffer.from(
+    pako.inflate(new Uint8Array(Buffer.from(base64Data, 'base64')), false),
     'binary',
   ).toString('binary');
 
-  // for (let i = 0; i < unzipped.length - 400000; i += 1000) {
-  //   console.log(unzipped.substring(i, i + 1000));
-  // }
+const unzip = (base64: string, snapId: string): string => {
+  const filePath = RNFetchBlob.fs.dirs.DocumentDir + `/snap-${snapId}`;
+  const unzipped = unzipData(base64);
 
-  // console.log(
-  //   unzipped.substring(
-  //     unzipped.indexOf(`package/${NpmSnapFileNames.Bundle}`),
-  //     unzipped.indexOf(`package/${NpmSnapFileNames.Bundle}`) + 1000,
-  //   ),
-  // );
-
+  // == [Working Code] ==
   RNFetchBlob.fs.writeFile(filePath, unzipped, 'utf8');
   return filePath;
 };
 
-const readStream = (filePath: string, encoding: Encoding) => {
-  RNFetchBlob.fs.readStream(filePath, encoding).then((streamReader) => {
-    streamReader.open();
-    streamReader.onData((chunk) => {
-      console.log(chunk);
-    });
+const readStream = async (
+  filePath: string,
+  encoding: Encoding,
+): Promise<RNFetchBlobReadStream> =>
+  await RNFetchBlob.fs.readStream(filePath, encoding);
 
-    streamReader.onError((err) => {
-      console.log(err);
-    });
+// EXPORT METHODS
 
-    streamReader.onEnd(() => {
-      console.log('End stream');
-    });
+export const fetchNPMPackage = async () => {
+  // == [Begin - Working Code] ==
+
+  // We get the tarball from the NPM url
+  const tarballResponse = await downloadBlobIntoFile(MOCK_URL);
+
+  // Obtain data as base64
+  const base64 = await tarballResponse.base64();
+
+  // Unzip and write output in a file
+  // The variable path points to a file with all the source code
+  // of the snap. Including the manifest and package.json
+  const snapId = 'mock-snap-id';
+  const path = unzip(base64, snapId);
+
+  // eslint-disable-next-line no-console
+  console.log(path);
+
+  // == [End - Working Code] ==
+};
+
+// The SnapController, the tarballResponse must provide a ReadableStream
+// https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream
+export const fetchNPMPackageAlternativeOne = async () => {
+  const tarballResponse = await downloadBlobIntoFile(MOCK_URL);
+  const readableStream = await readStream(tarballResponse.path(), 'base64');
+
+  readableStream.open();
+
+  readableStream.onData((chunk: string | number[]) => {
+    // eslint-disable-next-line no-console
+    // console.log({ type: typeof chunk, data: chunk });
+    // eslint-disable-next-line no-console
+    console.log(chunk as string);
+  });
+
+  readableStream.onError((err: string) => {
+    // eslint-disable-next-line no-console
+    console.log(err);
+  });
+
+  readableStream.onEnd(() => {
+    // eslint-disable-next-line no-console
+    console.log('End stream');
   });
 };
 
-const fetchNPMPackageAlternative = async () => {
+export const fetchNPMPackageAlternativeTwo = async () => {
   const tarballResponse = await downloadBlobIntoFile(MOCK_URL);
-
-  // log(tarballResponse);
-
-  const response = {
-    array: await tarballResponse.array(),
-    base64: await tarballResponse.base64(),
-    blob: await tarballResponse.blob(),
-    readFile: await tarballResponse.readFile(),
-    readStream: await tarballResponse.readStream(),
-  };
-
-  // In the SnapController, the tarballResponse must provide a ReadableStream
-  // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream
+  const path = unzip(tarballResponse.path(), 'snap-id-mock-2');
+  const readableStream = await readStream(path, 'utf8');
 };
-
-const fetchNPMPackage = async () => {
-  const tarballResponse = await downloadBlobIntoFile(MOCK_URL);
-  // readStream(tarballResponse.path(), 'base64', 4028);
-
-  const base64 = await tarballResponse.base64();
-  // The variable unzipBase64 contains a string with all the source code of the snap
-  // Including the manifest and package.json
-  const path = unzip(base64, 'mock-snap-id');
-  const extractStream = tar.extract();
-  console.log(extractStream);
-  // readStream(path, 'utf8');
-};
-
-const getUnvalidatedSnapFiles = (): UnvalidatedSnapFiles => {};
-
-export { fetchNPMPackage, fetchNPMPackageAlternative };
