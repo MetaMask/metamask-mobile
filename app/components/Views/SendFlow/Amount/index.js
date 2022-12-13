@@ -72,6 +72,7 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { isIOSNftTradable } from '../../../../util/featureFlag';
 
 const { hexToBN, BNToHex } = util;
 
@@ -1031,6 +1032,7 @@ class Amount extends PureComponent {
       .sort((a, b) => a.address < b.address)
       .forEach((collectible) => {
         const address = collectible.address.toLowerCase();
+        if (!isIOSNftTradable()) return;
         const isTradable =
           !collectiblesTransferInformation[address] ||
           collectiblesTransferInformation[address].tradable;
