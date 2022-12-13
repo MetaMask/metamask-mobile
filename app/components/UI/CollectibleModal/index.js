@@ -9,6 +9,7 @@ import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
+import { isIOSNftTradable } from '../../../util/featureFlag';
 
 const styles = StyleSheet.create({
   bottomModal: {
@@ -46,7 +47,7 @@ const CollectibleModal = (props) => {
   }, [contractName, collectible, newAssetTransaction, navigation]);
 
   const isTradable = useCallback(() => {
-    if (Device.isIos()) return false;
+    if (!isIOSNftTradable()) return false;
     // This might be deprecated
     const lowerAddress = collectible.address.toLowerCase();
     const tradable =

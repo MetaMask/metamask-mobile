@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Device from '../../../util/device';
+import { isIOSNftTradable } from '../../../util/featureFlag';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,7 +96,7 @@ class CollectibleView extends PureComponent {
 
     const lowerAddress = collectible.address.toLowerCase();
     const isTradable = () => {
-      if (Device.isIos) return false;
+      if (!isIOSNftTradable()) return false;
       return lowerAddress in collectiblesTransferInformation
         ? collectiblesTransferInformation[lowerAddress].tradable
         : true;
