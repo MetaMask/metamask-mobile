@@ -25,7 +25,10 @@ const CustomSpendCap = ({
   accountBalance,
   domain,
 }: CustomSpendCapProps) => {
-  const { styles } = useStyles(customSpendCapStyles, {});
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(customSpendCapStyles, {});
 
   const [value, setValue] = useState('');
   const [inputDisabled, setInputDisabled] = useState(true);
@@ -69,7 +72,7 @@ const CustomSpendCap = ({
   const MAX_VALUE_SELECTED = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariants.sBodyMDBold}>
+      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_balance')}
@@ -84,11 +87,11 @@ const CustomSpendCap = ({
   const DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariants.sBodyMDBold}>
+      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariants.sBodyMDBold}>
+      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
         {` ${formatNumber(dappValue)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
@@ -98,11 +101,11 @@ const CustomSpendCap = ({
   const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariants.sBodyMDBold}>
+      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariants.sBodyMDBold}>
+      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
         {` ${formatNumber(difference)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
@@ -115,13 +118,17 @@ const CustomSpendCap = ({
 
   const infoModalTitle = defaultValueSelected ? (
     <>
-      <Icon size={IconSize.Sm} name={IconName.DangerFilled} color={'red'} />
-      <Text variant={TextVariants.sBodyMDBold}>
-        {strings('contract_allowance.custom_spend_cap.be_careful')}
+      <Icon
+        size={IconSize.Sm}
+        name={IconName.DangerFilled}
+        color={colors.error.default}
+      />
+      <Text variant={TextVariants.sBodyMDBold} style={styles.modalTitleDanger}>
+        {' ' + strings('contract_allowance.custom_spend_cap.be_careful')}
       </Text>{' '}
     </>
   ) : (
-    <Text variant={TextVariants.sBodyMDBold}>
+    <Text variant={TextVariants.sBodyMDBold} style={styles.modalTitle}>
       {strings('contract_allowance.custom_spend_cap.set_spend_cap')}
     </Text>
   );
@@ -149,53 +156,56 @@ const CustomSpendCap = ({
       ) : null}
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text variant={TextVariants.sBodyMDBold}>
+          <Text variant={TextVariants.sBodyMDBold} style={styles.title}>
             {strings('contract_allowance.custom_spend_cap.title')}
           </Text>
           <Pressable onPress={toggleModal}>
             <Icon
-              size={IconSize.Xs}
+              size={IconSize.Sm}
               name={
                 defaultValueSelected
                   ? IconName.DangerFilled
                   : IconName.QuestionFilled
               }
-              color="lightgray"
+              color={
+                defaultValueSelected ? colors.error.default : colors.icon.muted
+              }
             />
           </Pressable>
         </View>
-        {defaultValueSelected ? (
-          <ButtonLink onPress={handlePress} textVariants={TextVariants.sBodyMD}>
-            {strings('contract_allowance.custom_spend_cap.edit')}
-          </ButtonLink>
-        ) : (
-          <ButtonLink onPress={handlePress} textVariants={TextVariants.sBodyMD}>
-            {strings('contract_allowance.custom_spend_cap.use_default')}
-          </ButtonLink>
-        )}
+
+        <ButtonLink onPress={handlePress} textVariants={TextVariants.sBodyMD}>
+          {defaultValueSelected
+            ? strings('contract_allowance.custom_spend_cap.edit')
+            : strings('contract_allowance.custom_spend_cap.use_default')}
+        </ButtonLink>
       </View>
-      <CustomInput
-        ticker={ticker}
-        setValue={setValue}
-        defaultValueSelected={defaultValueSelected}
-        setMaxSelected={setMaxSelected}
-        inputDisabled={inputDisabled}
-        value={value}
-      />
+      <View style={styles.inputContainer}>
+        <CustomInput
+          ticker={ticker}
+          setValue={setValue}
+          defaultValueSelected={defaultValueSelected}
+          setMaxSelected={setMaxSelected}
+          inputDisabled={inputDisabled}
+          value={value}
+        />
+      </View>
       {value.length > 0 && inputHasError && (
-        <Text variant={TextVariants.sBodyMD} style={styles.errorValue}>
+        <Text variant={TextVariants.sBodyMD} style={styles.errorDescription}>
           {strings('contract_allowance.custom_spend_cap.error_enter_number')}
         </Text>
       )}
-      <Text variant={TextVariants.sBodyMD} style={styles.description}>
-        {defaultValueSelected
-          ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-          : maxSelected
-          ? MAX_VALUE_SELECTED
-          : inputValueHigherThanAccountBalance
-          ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-          : NO_SELECTED}
-      </Text>
+      <View style={styles.descriptionContainer}>
+        <Text variant={TextVariants.sBodyMD} style={styles.description}>
+          {defaultValueSelected
+            ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
+            : maxSelected
+            ? MAX_VALUE_SELECTED
+            : inputValueHigherThanAccountBalance
+            ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
+            : NO_SELECTED}
+        </Text>
+      </View>
     </View>
   );
 };
