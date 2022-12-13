@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.12.1",
+  "version": "5.12.2",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
