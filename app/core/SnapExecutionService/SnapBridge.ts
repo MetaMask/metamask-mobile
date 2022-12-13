@@ -28,7 +28,7 @@ const pump = require('pump');
 
 interface ISnapBridgeProps {
   snapId: string;
-  stream: Duplex;
+  connectionStream: Duplex;
   getRPCMethodMiddleware: (args: any) => any;
 }
 
@@ -43,9 +43,14 @@ export default class SnapBridge {
   #providerProxy: any;
   #blockTrackerProxy: any;
 
-  constructor({ snapId, stream, getRPCMethodMiddleware }: ISnapBridgeProps) {
+  constructor({
+    snapId,
+    connectionStream,
+    getRPCMethodMiddleware,
+  }: ISnapBridgeProps) {
+    console.log('SnapBridge constructor', snapId, !!connectionStream);
     this.snapId = snapId;
-    this.stream = stream;
+    this.stream = connectionStream;
     this.getRPCMethodMiddleware = getRPCMethodMiddleware;
 
     const { NetworkController, PreferencesController } = Engine.context as any;
@@ -125,8 +130,8 @@ export default class SnapBridge {
       engine.emit('notification', message),
     );
 
-    engine.push(createOriginMiddleware({ origin: this.snapId }));
-    engine.push(createLoggerMiddleware({ origin: this.snapId }));
+    // engine.push(createOriginMiddleware({ origin: this.snapId }));
+    // engine.push(createLoggerMiddleware({ origin: this.snapId }));
 
     // Filter and subscription polyfills
     engine.push(filterMiddleware);
@@ -188,4 +193,30 @@ export default class SnapBridge {
       selectedAddress,
     };
   };
+
+  getProviderNetworkState({ network }: { network: string }) {
+    const { NetworkController } = Engine.context as any;
+    const networkType = NetworkController.state.provider.type;
+    const networkProvider = NetworkController.state.provider;
+
+    const isInitialNetwork =
+      networkType && getAllNetworks().includes(networkType);
+    let chainId;
+
+    if (isInitialNetwork) {
+      chainId = NetworksChainId[networkType];
+    } else if (networkType === 'rpc') {
+      chainId = networkProvider.chainId;
+    }
+    if (chainId && !chainId.startsWith('0x')) {
+      // Convert to hex
+      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    }
+
+    const result = {
+      networkVersion: network,
+      chainId,
+    };
+    return result;
+  }
 }
