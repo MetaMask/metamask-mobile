@@ -30,10 +30,6 @@ import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from '../FiatOnRampAggregator/sdk';
 
-/**
- * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
- */
-
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 

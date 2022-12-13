@@ -6,6 +6,7 @@ import { protectWalletModalNotVisible } from '../../../../actions/user';
 import {
   addAuthenticationUrl,
   addFiatOrder,
+  FiatOrder,
 } from '../../../../reducers/fiatOrders';
 import ApplePayButtonComponent from '../components/ApplePayButton';
 import useApplePay, { ABORTED } from '../hooks/applePay';
@@ -14,7 +15,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { setLockTime } from '../../../../actions/settings';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
-import { FiatOrder, getNotificationDetails } from '..';
+import { getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
 import { hexToBN } from '../../../../util/number';
 import { useFiatOnRampSDK } from '../sdk';

@@ -19,11 +19,10 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../util/number';
-import { getProviderName } from '../../../../reducers/fiatOrders';
+import { FiatOrder, getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';
-import { FiatOrder } from '..';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
