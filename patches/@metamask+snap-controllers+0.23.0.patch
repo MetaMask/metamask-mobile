@@ -1,8 +1,16 @@
 diff --git a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
-index eb7e9bf..ec8674f 100644
+index eb7e9bf..7a98722 100644
 --- a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
-@@ -738,7 +738,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -378,6 +378,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+      * @param snapId - The id of the Snap to start.
+      */
+     async startSnap(snapId) {
++        console.log('method - startSnap');
+         const runtime = this.getRuntimeExpect(snapId);
+         if (this.state.snaps[snapId].enabled === false) {
+             throw new Error(`Snap "${snapId}" is disabled.`);
+@@ -738,7 +739,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
                  };
                  return;
              }
@@ -11,6 +19,160 @@ index eb7e9bf..ec8674f 100644
                  // Attempt to install and run the snap, storing any errors that
                  // occur during the process.
                  result[snapId] = Object.assign({}, (await this.processRequestedSnap(origin, snapId, version)));
+@@ -806,12 +807,20 @@ class SnapController extends controllers_1.BaseControllerV2 {
+                 id: snapId,
+                 versionRange,
+             });
+-            await this.authorize(origin, snapId);
++
++            console.log('method processRequestedSnap - _add executed');
++
++            // await this.authorize(origin, snapId);
++
+             await this._startSnap({
+                 snapId,
+                 sourceCode,
+             });
++
++            console.log('method processRequestedSnap - _startSnap executed');
+             const truncated = this.getTruncatedExpect(snapId);
++
++            console.log('method processRequestedSnap', { truncated });
+             this.messagingSystem.publish(`SnapController:snapInstalled`, truncated);
+             return truncated;
+         }
+@@ -846,6 +855,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+             throw new Error(`Received invalid snap version range: "${newVersionRange}".`);
+         }
+         const newSnap = await this._fetchSnap(snapId, newVersionRange);
++        console.log('method updateSnap - _fetchSnap executed', { newSnap });
+         const newVersion = newSnap.manifest.version;
+         if (!(0, snap_utils_1.gtVersion)(newVersion, snap.version)) {
+             console.warn(`Tried updating snap "${snapId}" within "${newVersionRange}" version range, but newer version "${snap.version}" is already installed`);
+@@ -954,10 +964,19 @@ class SnapController extends controllers_1.BaseControllerV2 {
+         if (this.isRunning(snapId)) {
+             throw new Error(`Snap "${snapId}" is already started.`);
+         }
++
+         try {
+-            const result = await this._executeWithTimeout(snapId, this.messagingSystem.call('ExecutionService:executeSnap', Object.assign(Object.assign({}, snapData), { endowments: await this._getEndowments(snapId) })));
+-            this.transition(snapId, snap_utils_1.SnapStatusEvents.Start);
+-            return result;
++            // const result = await this._executeWithTimeout(snapId, this.messagingSystem.call('ExecutionService:executeSnap', Object.assign(Object.assign({}, snapData), { endowments: await this._getEndowments(snapId) })));
++            // console.log('result', result);
++            // this.transition(snapId, snap_utils_1.SnapStatusEvents.Start);
++            const result = {
++                sourceCode: snapData.sourceCode,
++                id: snapData.snapId,
++                enabled: true,
++            }
++
++            const resolvePromise = () => Promise.resolves(result)
++            return await resolvePromise;
+         }
+         catch (err) {
+             await this.terminateSnap(snapId);
+@@ -978,8 +997,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
+     async _getEndowments(snapId) {
+         let allEndowments = [];
+         for (const permissionName of this._environmentEndowmentPermissions) {
+-            if (await this.messagingSystem.call('PermissionController:hasPermission', snapId, permissionName)) {
+-                const endowments = await this.messagingSystem.call('PermissionController:getEndowments', snapId, permissionName);
++            if (true) {
++                console.log('execute method _getEndowments');
++                const dummyPromise = () => Promise.resolve([]);
++                const endowments = await dummyPromise();
+                 if (endowments) {
+                     // We don't have any guarantees about the type of the endowments
+                     // value, so we have to guard at runtime.
+@@ -991,6 +1012,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+                 }
+             }
+         }
++
+         const dedupedEndowments = [
+             ...new Set([...snap_utils_1.DEFAULT_ENDOWMENTS, ...allEndowments]),
+         ];
+@@ -998,6 +1020,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+             snap_utils_1.DEFAULT_ENDOWMENTS.length + allEndowments.length) {
+             console.error('Duplicate endowments found. Default endowments should not be requested.', allEndowments);
+         }
++        console.log('method _getEndowments result ->', { dedupedEndowments });
+         return dedupedEndowments;
+     }
+     /**
+@@ -1073,8 +1096,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
+             const snapPrefix = (0, snap_utils_1.getSnapPrefix)(snapId);
+             switch (snapPrefix) {
+                 case snap_utils_1.SnapIdPrefixes.local:
++                    console.log('Install local snap');
+                     return this._fetchLocalSnap(snapId.replace(snap_utils_1.SnapIdPrefixes.local, ''));
+                 case snap_utils_1.SnapIdPrefixes.npm:
++                    console.log('Install npm snap');
+                     return this._fetchNpmSnap(snapId.replace(snap_utils_1.SnapIdPrefixes.npm, ''), versionRange);
+                 /* istanbul ignore next */
+                 default:
+@@ -1108,16 +1133,19 @@ class SnapController extends controllers_1.BaseControllerV2 {
+         if (!snap_utils_1.LOCALHOST_HOSTNAMES.has(manifestUrl.hostname)) {
+             throw new Error(`Invalid URL: Locally hosted Snaps must be hosted on localhost. Received URL: "${manifestUrl.toString()}"`);
+         }
+-        const manifest = await (await this._fetchFunction(manifestUrl.toString(), fetchOptions)).json();
++
++        const manifest = await (await this._fetchFunction('GET', manifestUrl.toString(), fetchOptions)).json();
++        console.log('method _fetchLocalSnap -', { manifest });
+         (0, snap_utils_1.assertIsSnapManifest)(manifest);
+         const { source: { location: { npm: { filePath, iconPath }, }, }, } = manifest;
++        console.log('method _fetchLocalSnap -', { sourceCodePath: new URL(filePath, localhostUrl).toString(), icon: new URL(iconPath, localhostUrl).toString() })
+         const [sourceCode, svgIcon] = await Promise.all([
+-            (await this._fetchFunction(new URL(filePath, localhostUrl).toString(), fetchOptions)).text(),
++            (await this._fetchFunction('GET', new URL(filePath, localhostUrl).toString(), fetchOptions)).text(),
+             iconPath
+-                ? (await this._fetchFunction(new URL(iconPath, localhostUrl).toString(), fetchOptions)).text()
++                ? (await this._fetchFunction('GET', new URL(iconPath, localhostUrl).toString(), fetchOptions)).text()
+                 : undefined,
+         ]);
+-        (0, snap_utils_1.validateSnapShasum)(manifest, sourceCode);
++        // (0, snap_utils_1.validateSnapShasum)(manifest, sourceCode);
+         return { manifest, sourceCode, svgIcon };
+     }
+     /**
+@@ -1232,9 +1260,9 @@ class SnapController extends controllers_1.BaseControllerV2 {
+             if (this.state.snaps[snapId].enabled === false) {
+                 throw new Error(`Snap "${snapId}" is disabled.`);
+             }
+-            if (this.state.snaps[snapId].status === snap_utils_1.SnapStatus.Installing) {
+-                throw new Error(`Snap "${snapId}" is currently being installed. Please try again later.`);
+-            }
++            // if (this.state.snaps[snapId].status === snap_utils_1.SnapStatus.Installing) {
++            //     throw new Error(`Snap "${snapId}" is currently being installed. Please try again later.`);
++            // }
+             if (this.isRunning(snapId) === false) {
+                 let localStartPromise = startPromises.get(snapId);
+                 if (!localStartPromise) {
+@@ -1271,8 +1299,11 @@ class SnapController extends controllers_1.BaseControllerV2 {
+             const handleRpcRequestPromise = this.messagingSystem.call('ExecutionService:handleRpcRequest', snapId, { origin, handler: handlerType, request: _request });
+             // This will either get the result or reject due to the timeout.
+             try {
++                console.log(1);
+                 const result = await this._executeWithTimeout(snapId, handleRpcRequestPromise, timer);
++                console.log(2);
+                 this._recordSnapRpcRequestFinish(snapId, request.id);
++                console.log(3);
+                 return result;
+             }
+             catch (err) {
+@@ -1294,9 +1325,9 @@ class SnapController extends controllers_1.BaseControllerV2 {
+      * @template PromiseValue - The value of the Promise.
+      */
+     async _executeWithTimeout(snapId, promise, timer) {
+-        const isLongRunning = await this.messagingSystem.call('PermissionController:hasPermission', snapId, endowments_1.SnapEndowments.LongRunning);
++        // const isLongRunning = await this.messagingSystem.call('PermissionController:hasPermission', snapId, endowments_1.SnapEndowments.LongRunning);
+         // Long running snaps have timeouts disabled
+-        if (isLongRunning) {
++        if (true) {
+             return promise;
+         }
+         const result = await (0, utils_2.withTimeout)(promise, timer !== null && timer !== void 0 ? timer : this._maxRequestTime);
 diff --git a/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js b/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js
 index 6a49c06..70f5c8a 100644
 --- a/node_modules/@metamask/snap-controllers/dist/snaps/utils/npm.js
