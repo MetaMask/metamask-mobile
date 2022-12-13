@@ -75,7 +75,6 @@ class Gestures {
   static async tap(element, tapType = 'TAP') {
     // simple touch action on element
     const elem = await element;
-    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
         (await elem).touchAction(Actions.TAP);
@@ -99,7 +98,6 @@ class Gestures {
 
   static async tapTextByXpath(text, tapType = 'TAP') {
     const elem = (await Selectors.getXpathElementByText(text));
-    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
         await elem.touchAction(Actions.TAP);

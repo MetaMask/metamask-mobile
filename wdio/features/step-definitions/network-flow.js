@@ -28,6 +28,8 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.isVisible();
+  const wait = 1000;
+  await driver.pause(wait);
   await OnboardingWizardModal.tapNoThanksButton();
 });
 
