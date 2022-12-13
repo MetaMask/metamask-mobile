@@ -295,7 +295,7 @@ class SendFlow extends PureComponent {
    * @param {*} toSelectedAddress - The address or the ens writted on the destination input
    */
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { network, addressBook, identities, providerType } = this.props;
+    const { network, addressBook, identities, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -311,7 +311,7 @@ class SendFlow extends PureComponent {
       network,
       addressBook,
       identities,
-      providerType,
+      chainId,
     });
 
     this.setState({

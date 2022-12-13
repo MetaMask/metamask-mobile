@@ -6,6 +6,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import OrderDetail from '../components/OrderDetails';
 import { strings } from '../../../../../locales/i18n';
 import {
+  FiatOrder,
   makeOrderIdSelector,
   updateFiatOrder,
 } from '../../../../reducers/fiatOrders';
@@ -14,7 +15,7 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { ScrollView } from 'react-native-gesture-handler';
 import Routes from '../../../../constants/navigation/Routes';
-import { FiatOrder, processFiatOrder } from '..';
+import { processFiatOrder } from '..';
 import useAnalytics from '../hooks/useAnalytics';
 import { Order } from '@consensys/on-ramp-sdk';
 import Logger from '../../../../util/Logger';
