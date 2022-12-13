@@ -196,43 +196,44 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
     return (
       <View key={`network-${network}`}>
-        {network === MAINNET ? (
-          this.renderMainnet()
-        ) : (
-          <TouchableOpacity
-            key={`network-${i}`}
-            onPress={() => this.onNetworkPress(network)}
-            onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
-            testID={'select-network'}
-          >
-            <View style={styles.network}>
-              {isCustomRPC &&
-                (image ? (
-                  <ImageIcons image={image} style={styles.networkIcon} />
-                ) : (
-                  <AvatarNetwork
-                    name={name}
-                    size={AvatarBaseSize.Sm}
-                    style={styles.networkIcon}
+        {
+          // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
+          network === MAINNET ? (
+            this.renderMainnet()
+          ) : (
+            <TouchableOpacity
+              key={`network-${i}`}
+              onPress={() => this.onNetworkPress(network)}
+              onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
+              testID={'select-network'}
+            >
+              <View style={styles.network}>
+                {isCustomRPC &&
+                  (image ? (
+                    <ImageIcons image={image} style={styles.networkIcon} />
+                  ) : (
+                    <View style={styles.networkIcon} />
+                  ))}
+                {!isCustomRPC && (
+                  <View
+                    style={[styles.networkIcon, { backgroundColor: image }]}
+                  >
+                    <Text style={styles.text}>{name[0]}</Text>
+                  </View>
+                )}
+                <Text style={styles.networkLabel}>{name}</Text>
+                {!isCustomRPC && (
+                  <FontAwesome
+                    name="lock"
+                    size={20}
+                    color={colors.icon.default}
+                    style={styles.icon}
                   />
-                ))}
-              {!isCustomRPC && (
-                <View style={[styles.networkIcon, { backgroundColor: image }]}>
-                  <Text style={styles.text}>{name[0]}</Text>
-                </View>
-              )}
-              <Text style={styles.networkLabel}>{name}</Text>
-              {!isCustomRPC && (
-                <FontAwesome
-                  name="lock"
-                  size={20}
-                  color={colors.icon.default}
-                  style={styles.icon}
-                />
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
+                )}
+              </View>
+            </TouchableOpacity>
+          )
+        }
       </View>
     );
   }

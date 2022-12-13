@@ -76,6 +76,9 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -135,6 +138,7 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -410,6 +414,14 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
       <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen
+        name={Routes.MODAL.UPDATE_NEEDED}
+        component={UpdateNeeded}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+        component={EnableAutomaticSecurityChecksModal}
+      />
     </Stack.Navigator>
   );
 

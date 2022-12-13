@@ -377,19 +377,24 @@
   },
   "privacy_policy": {
     "title": "Privacy Policy",
-    "description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+    "fine_print_1": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",
+    "fine_print_2a": "*When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider",
+    "fine_print_2b": "before proceeding.\nFor more information on how MetaMask and Infura interact from a data collection perspective, see our update",
+    "fine_print_2c": ". For more information on our privacy practices in general, see our Privacy Policy",
     "here": "here",
     "agree": "I Agree",
     "decline": "No Thanks",
     "description_title": "Help us improve MetaMask",
-    "description_content_1": "MetaMask would like to gather basic usage data to better understand how our users interact with the mobile app. This data will be used to continually improve the usability and user experience of our product.",
+    "description_content_1": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
     "description_content_2": "MetaMask will...",
     "action_description_1": "Always allow you to opt-out via Settings",
     "action_description_2": "Send anonymized click & pageview events",
-    "action_description_3": "Send country, region, city data (not specific location)",
-    "action_description_4": "Never collect keys, addresses, transactions, balances, hashes, or any personal information",
-    "action_description_5": "Never collect your IP address",
-    "action_description_6": "Never sell data for profit. Ever!"
+    "action_description_3": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
+    "action_description_4": "collect your full IP address*",
+    "action_description_5": "sell data. Ever!",
+    "action_description_never": "Never",
+    "cta_no_thanks": "No thanks",
+    "cta_i_agree": "I agree"
   },
   "token": {
     "token_symbol": "Token Symbol",
@@ -565,6 +570,8 @@
     "back": "Back",
     "security_desc": "Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase",
     "networks_title": "Networks",
+    "networks_default_title": "Default Network",
+    "networks_default_cta": "Use this network",
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
@@ -725,7 +732,11 @@
     "keep_credential_safe": "Keep your {{credentialName}} safe",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "private_key_text": "Private Key",
+    "screenshot_warning_title": "Safety alert",
+    "screenshot_warning_desc": "Screenshots aren't a safe way to keep track of your {{credentialName}}. Store it somewhere that isn't backed up online to keep your account safe.",
+    "got_it": "Got it",
+    "learn_more": "Learn More"
   },
   "password_reset": {
     "password_title": "Password",
@@ -1403,7 +1414,11 @@
     "view": "View",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM"
+    "confirm": "CONFIRM",
+    "screenshot_warning_title": "Screenshot warning",
+    "screenshot_warning_desc": "Screenshots aren't a safe way to keep track of your Secret Recovery Phrase. Store it somewhere that isn't backed up online to keep your account safe.",
+    "got_it": "Got it",
+    "learn_more": "Learn More"
   },
   "manual_backup_step_2": {
     "action": "Confirm Secret Recovery Phrase",
@@ -1471,6 +1486,7 @@
     "wc_sent_tx_title": "Sent transaction",
     "wc_connected_rejected_title": "You've rejected the connect request",
     "wc_signed_rejected_title": "You've rejected the sign request",
+    "wc_signed_failed_title": "This sign request failed",
     "wc_sent_tx_rejected_title": "You've rejected the transaction request",
     "wc_description": "Please check the application"
   },
@@ -1775,7 +1791,7 @@
       "etherscan": "View full details on",
       "another_purchase": "Make another purchase",
       "questions": "Questions?",
-      "contact_support": "Contact support",
+      "contact_support": "Contact Support",
       "support": "Support",
       "view_order_status": "View order status on {{provider}}",
       "id": "Order ID",

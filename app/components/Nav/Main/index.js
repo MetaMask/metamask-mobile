@@ -65,6 +65,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
 const Stack = createStackNavigator();
 
@@ -98,6 +100,9 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   const prevLockTime = usePrevious(props.lockTime);
+
+  useEnableAutomaticSecurityChecks();
+  useMinimumVersions();
 
   const pollForIncomingTransactions = useCallback(async () => {
     props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());

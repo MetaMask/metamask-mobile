@@ -51,13 +51,7 @@ function getIconComponent(icon: PaymentIcon) {
     case PaymentIconType.FontAwesome: {
       return FontAwesomeIcon;
     }
-    case PaymentIconType.FontAwseome5: {
-      return FontAwesome5Icon;
-    }
-    //TODO: Fix typo when upgrading to latest on-ramp-sdk
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - 'fontAwesome5' is not a valid case
-    case 'fontAwesome5': {
+    case PaymentIconType.FontAwesome5: {
       return FontAwesome5Icon;
     }
     case PaymentIconType.Fontisto: {

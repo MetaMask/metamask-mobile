@@ -1,7 +1,11 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
-import { colors as importedColors } from '../../../styles/common';
+import {
+  View,
+  StyleSheet,
+  InteractionManager,
+} from 'react-native';
+import { colors as importedColors, } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -12,13 +16,11 @@ import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import DefaultPreference from 'react-native-default-preference';
 import Modal from 'react-native-modal';
-import Device from '../../../util/device';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 
-const MIN_HEIGHT = Dimensions.get('window').height;
 const createStyles = () =>
   StyleSheet.create({
     root: {
@@ -43,6 +45,7 @@ const OnboardingWizard = (props) => {
     navigation,
     wizard: { step },
     coachmarkRef,
+    isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
   const styles = createStyles();
@@ -106,6 +109,10 @@ const OnboardingWizard = (props) => {
     return setOnboardingWizardStep(step - 1);
   };
 
+  if (isAutomaticSecurityChecksModalOpen) {
+    return null;
+  }
+
   return (
     <Modal
       animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
@@ -115,7 +122,7 @@ const OnboardingWizard = (props) => {
       disableAnimation
       transparent
       onBackButtonPress={getBackButtonBehavior}
-      style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
+      style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
     </Modal>
@@ -128,6 +135,8 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   wizard: state.wizard,
+  isAutomaticSecurityChecksModalOpen:
+    state.security.isAutomaticSecurityChecksModalOpen,
 });
 
 OnboardingWizard.propTypes = {
@@ -147,6 +156,10 @@ OnboardingWizard.propTypes = {
    * Coachmark ref to get position
    */
   coachmarkRef: PropTypes.object,
+  /**
+   * Boolean that determines if the user has selected the automatic security check option
+   */
+  isAutomaticSecurityChecksModalOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);

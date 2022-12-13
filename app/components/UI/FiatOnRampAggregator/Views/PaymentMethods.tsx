@@ -1,15 +1,14 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentMethod from '../components/PaymentMethod';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import Device from '../../../../util/device';
 import SkeletonBox from '../components/SkeletonBox';
 import SkeletonText from '../components/SkeletonText';
 import BaseListItem from '../../../Base/ListItem';
@@ -18,6 +17,8 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
+import usePaymentMethods from '../hooks/usePaymentMethods';
+import useRegions from '../hooks/useRegions';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -55,7 +56,6 @@ const PaymentMethods = () => {
   const { params } = useRoute();
 
   const {
-    selectedRegion,
     setSelectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
@@ -63,42 +63,15 @@ const PaymentMethods = () => {
     sdkError,
   } = useFiatOnRampSDK();
 
-  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
-    useSDKMethod('getPaymentMethods', selectedRegion?.id);
+  const { selectedRegion } = useRegions();
 
-  const filteredPaymentMethods = useMemo(() => {
-    if (paymentMethods) {
-      return paymentMethods.filter((paymentMethod) =>
-        Device.isAndroid() ? !paymentMethod.isApplePay : true,
-      );
-    }
-    return null;
-  }, [paymentMethods]);
-
-  const currentPaymentMethod = useMemo(
-    () =>
-      filteredPaymentMethods?.find(
-        (method) => method.id === selectedPaymentMethodId,
-      ),
-    [filteredPaymentMethods, selectedPaymentMethodId],
-  );
-
-  useEffect(() => {
-    if (!isFetching && !error && filteredPaymentMethods) {
-      const paymentMethod = filteredPaymentMethods.find(
-        (pm) => pm.id === selectedPaymentMethodId,
-      );
-      if (!paymentMethod) {
-        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
-      }
-    }
-  }, [
-    error,
-    filteredPaymentMethods,
+  const {
+    data: paymentMethods,
     isFetching,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
-  ]);
+    error,
+    query: queryGetPaymentMethods,
+    currentPaymentMethod,
+  } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
@@ -187,7 +160,7 @@ const PaymentMethods = () => {
     );
   }
 
-  if (!filteredPaymentMethods || isFetching) {
+  if (!paymentMethods || isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -201,7 +174,7 @@ const PaymentMethods = () => {
     );
   }
 
-  if (filteredPaymentMethods.length === 0) {
+  if (paymentMethods.length === 0) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -231,7 +204,7 @@ const PaymentMethods = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {filteredPaymentMethods.map((payment) => (
+            {paymentMethods.map((payment) => (
               <View key={payment.id} style={styles.row}>
                 <PaymentMethod
                   payment={payment}

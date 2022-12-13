@@ -4,6 +4,7 @@ import {
   isHexString,
   addHexPrefix,
   isValidChecksumAddress,
+  isHexPrefixed,
 } from 'ethereumjs-util';
 import URL from 'url-parse';
 import punycode from 'punycode/punycode';
@@ -17,7 +18,7 @@ import {
   ENSCache,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
-import NetworkList from '../../util/networks';
+import { isMainnetByChainId } from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
@@ -315,7 +316,7 @@ function checkIfAddressAlreadySaved(params) {
  *
  */
 export async function validateAddressOrENS(params) {
-  const { toAccount, network, addressBook, identities, providerType } = params;
+  const { toAccount, network, addressBook, identities, chainId } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -352,10 +353,10 @@ export async function validateAddressOrENS(params) {
       addToAddressToAddressBook = true;
     }
 
-    if (providerType) {
+    if (chainId !== undefined) {
+      const isMainnet = isMainnetByChainId(chainId);
       // Check if it's token contract address on mainnet
-      const networkId = NetworkList[providerType].networkId;
-      if (networkId === NetworkList.mainnet.chainId) {
+      if (isMainnet) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
             checksummedAddress,
@@ -435,3 +436,15 @@ export function isValidAddressInputViaQRCode(input) {
   }
   return isValidHexAddress(input);
 }
+
+/** Removes hex prefix from a string if it's there.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+export const stripHexPrefix = (str) => {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  return isHexPrefixed(str) ? str.slice(2) : str;
+};

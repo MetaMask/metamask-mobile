@@ -25,7 +25,8 @@ const styles = StyleSheet.create({
     backgroundColor: importedColors.transparent,
   },
   some: {
-    marginHorizontal: 40,
+    marginLeft: 16,
+    width: WIDTH - 32,
   },
   coachmarkContainer: {
     flex: 1,
