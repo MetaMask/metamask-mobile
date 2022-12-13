@@ -433,7 +433,6 @@ class ChoosePassword extends PureComponent {
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
   handleRejectedOsBiometricPrompt = async () => {
-    // const authData = await Authentication.getType();
     const newAuthData = await Authentication.componentAuthenticationType(
       false,
       false,

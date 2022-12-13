@@ -277,10 +277,10 @@ class Onboarding extends PureComponent {
     const { passwordSet } = this.props;
     if (!passwordSet) {
       await Authentication.resetVault();
-      this.props.navigation.navigate('HomeNav');
+      this.props.navigation.replace('HomeNav');
     } else {
       await Authentication.logout();
-      this.props.navigation.navigate('Login');
+      this.props.navigation.replace('Login');
     }
   };
 

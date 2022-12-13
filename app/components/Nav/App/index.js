@@ -217,6 +217,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       try {
         if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
+          navigator.replace('HomeNav');
         }
       } catch (error) {
         await Authentication.logout(false);
