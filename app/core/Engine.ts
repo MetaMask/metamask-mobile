@@ -34,10 +34,6 @@ import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airga
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import RNFetchBlob from 'rn-fetch-blob';
-import {
-  fetchNPMPackage,
-  fetchNPMPackageAlternative,
-} from './SnapExecutionService/fetchNPMPackage';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -59,6 +55,7 @@ import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
 import WebviewExecutionService from '../components/Views/Wallet/WebviewExecutionService';
+import { SnapBridge } from './SnapExecutionService';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -215,11 +212,13 @@ class Engine {
       });
 
       this.setupSnapProvider = (snapId, connectionStream) => {
-        this.setupUntrustedCommunication({
+        const bridge = new SnapBridge({
+          snapId,
           connectionStream,
-          sender: { snapId },
-          subjectType: 'snap',
+          getRPCMethodMiddleware: (args) => null,
         });
+
+        bridge.setupProviderConnection();
       };
 
       this.snapExecutionService = new WebviewExecutionService({
@@ -265,23 +264,18 @@ class Engine {
       });
 
       setTimeout(async () => {
-        // await fetchNPMPackage();
-        // await fetchNPMPackageAlternative();
-
-        const snapId = 'npm:@metamask/test-snap-bip44';
-        const origin = 'origin';
-
-        await snapController.installSnaps(origin, { [snapId]: {} });
-
-        const result = await snapController.handleRequest({
-          snapId,
-          origin,
-          handler: 'onRpcRequest',
-          request: { method: 'foo', params: { bar: 'qux' } },
-        });
-
-        // eslint-disable-next-line no-console
-        console.log(result);
+        // const snapId = 'npm:@metamask/test-snap-bip44';
+        // const localSnap = 'local:http://localhost:3000/snap/';
+        // const origin = 'origin';
+        // await snapController.installSnaps(origin, { [localSnap]: {} });
+        // const result = await snapController.handleRequest({
+        //   localSnap,
+        //   origin,
+        //   handler: 'onRpcRequest',
+        //   request: { method: 'foo', params: { bar: 'qux' } },
+        // });
+        // // eslint-disable-next-line no-console
+        // console.log(result);
       }, 5000);
 
       // eslint-disable-next-line no-console
@@ -475,7 +469,7 @@ class Engine {
           },
           unrestrictedMethods,
         }),
-        // snapController,
+        snapController,
       ];
 
       // set initial state
