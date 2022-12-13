@@ -10,12 +10,12 @@ import { Theme } from '../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+  const { colors } = theme;
   return StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 5,
-      marginHorizontal: 8,
-      padding: 12,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 16,
     },
     header: {
       flexDirection: 'row',
@@ -25,14 +25,28 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    title: {
+      color: colors.text.default,
+      marginRight: 4,
+    },
+    descriptionContainer: {
+      marginTop: 16,
+    },
     description: {
       color: theme.colors.text.alternative,
-      marginHorizontal: 8,
     },
-    errorValue: {
-      color: theme.colors.error.default,
-      marginHorizontal: 8,
-      marginBottom: 8,
+    errorDescription: {
+      color: colors.error.default,
+      marginTop: 8,
+    },
+    inputContainer: {
+      marginTop: 8,
+    },
+    modalTitle: {
+      color: colors.text.default,
+    },
+    modalTitleDanger: {
+      color: colors.error.default,
     },
   });
 };

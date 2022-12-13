@@ -46,11 +46,11 @@ const CustomInput = ({
             value={value}
             placeholder={`Enter a number here (${ticker})`}
             keyboardType="numeric"
-            style={[styles.input]}
+            style={styles.input}
           />
         ) : defaultValueSelected ? (
           <Text
-            variant={TextVariants.lBodySM}
+            variant={TextVariants.sBodyMD}
             style={styles.warningValue}
           >{`${formatNumber(value)} ${ticker}`}</Text>
         ) : null}

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 
 import { Theme } from '../../../../util/theme/models';
 /**
@@ -10,28 +10,29 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+  const { colors, typography } = theme;
+
   return StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.background.default,
-      margin: 10,
-      borderRadius: 5,
-      padding: 10,
+      backgroundColor: colors.background.default,
+      borderRadius: 8,
+      padding: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
     body: {
       flexDirection: 'row',
-      marginHorizontal: 5,
-      width: '90%',
+      flex: 1,
       alignItems: 'center',
     },
     input: {
-      marginHorizontal: 3,
-      marginVertical: 5,
       paddingTop: 0,
       paddingBottom: 0,
-      flexDirection: 'row',
-    },
+      flexGrow: 1,
+      marginRight: 16,
+      color: colors.text.default,
+      ...typography.sBodyMD,
+    } as TextStyle,
     maxValueText: {
       color: theme.colors.text.alternative,
     },
