@@ -74,7 +74,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { decGWEIToHexWEI, sumHexWEIs } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -1602,18 +1602,34 @@ function SwapsQuotesView({
     const getEstimatedL1Fee = async () => {
       try {
         const eth = new Eth(Engine.context.NetworkController.provider);
-        const result = await fetchEstimatedL1FeeOptimism(eth, {
+        const l1TradeFeeTotal = await fetchEstimatedL1FeeOptimism(eth, {
           txParams: selectedQuote.trade,
           chainId,
         });
-        setMultiLayerL1FeeTotal(result);
+        let l1ApprovalFeeTotal = '0x0';
+        if (approvalTransaction) {
+          l1ApprovalFeeTotal = await fetchEstimatedL1FeeOptimism(eth, {
+            txParams: {
+              ...approvalTransaction,
+              value: '0x0', // For approval txs we need to use "0x0" here.
+            },
+            chainId,
+          });
+        }
+        const l1FeeTotal = sumHexWEIs([l1TradeFeeTotal, l1ApprovalFeeTotal]);
+        setMultiLayerL1FeeTotal(l1FeeTotal);
       } catch (e) {
         Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
         setMultiLayerL1FeeTotal(null);
       }
     };
     getEstimatedL1Fee();
-  }, [selectedQuote?.trade, multiLayerFeeNetwork, chainId]);
+  }, [
+    selectedQuote?.trade,
+    multiLayerFeeNetwork,
+    approvalTransaction,
+    chainId,
+  ]);
 
   const openLinkAboutGas = () =>
     Linking.openURL(
