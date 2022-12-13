@@ -26,7 +26,7 @@ import {
   ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -340,6 +340,8 @@ class Engine {
               swapsUtils.SWAPS_TESTNET_CHAIN_ID,
               swapsUtils.POLYGON_CHAIN_ID,
               swapsUtils.AVALANCHE_CHAIN_ID,
+              swapsUtils.ARBITRUM_CHAIN_ID,
+              swapsUtils.OPTIMISM_CHAIN_ID,
             ],
           },
         ),

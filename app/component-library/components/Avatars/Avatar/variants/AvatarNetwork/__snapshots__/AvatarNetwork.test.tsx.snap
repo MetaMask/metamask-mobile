@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarNetwork should render correctly 1`] = `
+<AvatarBase
+  size="48"
+  style={Object {}}
+>
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      Object {
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="network-avatar-image"
+  />
+</AvatarBase>
+`;

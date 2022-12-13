@@ -8,7 +8,7 @@ import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
 
 import Device from '../../../../util/device';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
 const styles = StyleSheet.create({
   title: {

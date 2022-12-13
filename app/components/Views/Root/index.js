@@ -10,6 +10,8 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
 import ErrorBoundary from '../ErrorBoundary';
 import { useAppTheme, ThemeContext } from '../../../util/theme';
+import { ToastContextWrapper } from '../../../component-library/components/Toast';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 /**
  * Top level of the component hierarchy
@@ -52,10 +54,14 @@ const ConnectedRoot = () => {
   const theme = useAppTheme();
 
   return (
-    <ThemeContext.Provider value={theme}>
-      <ErrorBoundary onError={this.errorHandler} view="Root">
-        <App />
-      </ErrorBoundary>
-    </ThemeContext.Provider>
+    <SafeAreaProvider>
+      <ThemeContext.Provider value={theme}>
+        <ToastContextWrapper>
+          <ErrorBoundary onError={this.errorHandler} view="Root">
+            <App />
+          </ErrorBoundary>
+        </ToastContextWrapper>
+      </ThemeContext.Provider>
+    </SafeAreaProvider>
   );
 };

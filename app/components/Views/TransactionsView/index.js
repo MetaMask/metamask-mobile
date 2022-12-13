@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
-import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
@@ -42,88 +41,98 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
+  const network = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.network,
+  );
 
-  const filterTransactions = useCallback(() => {
-    const network = Engine.context.NetworkController.state.network;
-    if (network === 'loading') return;
+  const filterTransactions = useCallback(
+    (network) => {
+      if (network === 'loading') return;
 
-    let accountAddedTimeInsertPointFound = false;
-    const addedAccountTime = identities[selectedAddress]?.importTime;
+      let accountAddedTimeInsertPointFound = false;
+      const addedAccountTime = identities[selectedAddress]?.importTime;
 
-    const submittedTxs = [];
-    const newPendingTxs = [];
-    const confirmedTxs = [];
-    const submittedNonces = [];
+      const submittedTxs = [];
+      const newPendingTxs = [];
+      const confirmedTxs = [];
+      const submittedNonces = [];
 
-    const allTransactionsSorted = sortTransactions(transactions).filter(
-      (tx, index, self) => self.findIndex((_tx) => _tx.id === tx.id) === index,
-    );
-    const allTransactions = allTransactionsSorted.filter((tx) => {
-      const filter = filterByAddressAndNetwork(
-        tx,
-        tokens,
-        selectedAddress,
-        chainId,
-        network,
+      const allTransactionsSorted = sortTransactions(transactions).filter(
+        (tx, index, self) =>
+          self.findIndex((_tx) => _tx.id === tx.id) === index,
       );
-      if (!filter) return false;
 
-      tx.insertImportTime = addAccountTimeFlagFilter(
-        tx,
-        addedAccountTime,
-        accountAddedTimeInsertPointFound,
-      );
-      if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+      const allTransactions = allTransactionsSorted.filter((tx) => {
+        const filter = filterByAddressAndNetwork(
+          tx,
+          tokens,
+          selectedAddress,
+          chainId,
+          network,
+        );
 
-      switch (tx.status) {
-        case TX_SUBMITTED:
-        case TX_SIGNED:
-        case TX_UNAPPROVED:
-          submittedTxs.push(tx);
+        if (!filter) return false;
+
+        tx.insertImportTime = addAccountTimeFlagFilter(
+          tx,
+          addedAccountTime,
+          accountAddedTimeInsertPointFound,
+        );
+        if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
+        switch (tx.status) {
+          case TX_SUBMITTED:
+          case TX_SIGNED:
+          case TX_UNAPPROVED:
+            submittedTxs.push(tx);
+            return false;
+          case TX_PENDING:
+            newPendingTxs.push(tx);
+            break;
+          case TX_CONFIRMED:
+            confirmedTxs.push(tx);
+            break;
+        }
+
+        return filter;
+      });
+
+      const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
+        const { from, nonce } = transaction;
+        if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
-        case TX_PENDING:
-          newPendingTxs.push(tx);
-          break;
-        case TX_CONFIRMED:
-          confirmedTxs.push(tx);
-          break;
-      }
-      return filter;
-    });
+        }
+        const alreadySubmitted = submittedNonces.includes(nonce);
+        const alreadyConfirmed = confirmedTxs.find(
+          (tx) =>
+            toLowerCaseEquals(
+              safeToChecksumAddress(tx.transaction.from),
+              selectedAddress,
+            ) && tx.transaction.nonce === nonce,
+        );
+        if (alreadyConfirmed) {
+          return false;
+        }
+        submittedNonces.push(nonce);
+        return !alreadySubmitted;
+      });
 
-    const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
-      const { from, nonce } = transaction;
-      if (!toLowerCaseEquals(from, selectedAddress)) {
-        return false;
+      //if the account added insertpoint is not found add it to the last transaction
+      if (
+        !accountAddedTimeInsertPointFound &&
+        allTransactions &&
+        allTransactions.length
+      ) {
+        allTransactions[allTransactions.length - 1].insertImportTime = true;
       }
-      const alreadySubmitted = submittedNonces.includes(nonce);
-      const alreadyConfirmed = confirmedTxs.find(
-        (tx) =>
-          toLowerCaseEquals(
-            safeToChecksumAddress(tx.transaction.from),
-            selectedAddress,
-          ) && tx.transaction.nonce === nonce,
-      );
-      if (alreadyConfirmed) {
-        return false;
-      }
-      submittedNonces.push(nonce);
-      return !alreadySubmitted;
-    });
 
-    //if the account added insertpoint is not found add it to the last transaction
-    if (
-      !accountAddedTimeInsertPointFound &&
-      allTransactions &&
-      allTransactions.length
-    ) {
-      allTransactions[allTransactions.length - 1].insertImportTime = true;
-    }
-    setAllTransactions(allTransactions);
-    setSubmittedTxs(submittedTxsFiltered);
-    setConfirmedTxs(confirmedTxs);
-    setLoading(false);
-  }, [transactions, identities, selectedAddress, tokens, chainId]);
+      setAllTransactions(allTransactions);
+      setSubmittedTxs(submittedTxsFiltered);
+      setConfirmedTxs(confirmedTxs);
+      setLoading(false);
+    },
+    [transactions, identities, selectedAddress, tokens, chainId],
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -134,9 +143,9 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      filterTransactions();
+      filterTransactions(network);
     });
-  }, [filterTransactions]);
+  }, [filterTransactions, network]);
 
   return (
     <View style={styles.wrapper} testID={'wallet-screen'}>

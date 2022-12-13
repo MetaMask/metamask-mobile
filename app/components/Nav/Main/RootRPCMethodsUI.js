@@ -24,11 +24,11 @@ import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
   APPROVE_FUNCTION_SIGNATURE,
-  decodeApproveData,
   getTokenValueParam,
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
+  isSwapTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -53,7 +53,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
 });
 const RootRPCMethodsUI = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [signMessageParams, setSignMessageParams] = useState({ data: '' });
   const [signType, setSignType] = useState(false);
@@ -111,11 +111,14 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const initializeWalletConnect = () => {
+    WalletConnect.init();
+  };
+
+  const onWalletConnectSessionRequest = () => {
     WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
       setWalletConnectRequest(true);
       setWalletConnectRequestInfo(peerInfo);
     });
-    WalletConnect.init();
   };
 
   const trackSwaps = useCallback(
@@ -277,17 +280,7 @@ const RootRPCMethodsUI = (props) => {
       const to = transactionMeta.transaction.to?.toLowerCase();
       const { data } = transactionMeta.transaction;
 
-      // if approval data includes metaswap contract
-      // if destination address is metaswap contract
-      if (
-        transactionMeta.origin === process.env.MM_FOX_CODE &&
-        to &&
-        (swapsUtils.isValidContractAddress(props.chainId, to) ||
-          (data &&
-            data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-            decodeApproveData(data).spenderAddress?.toLowerCase() ===
-              swapsUtils.getSwapsContractAddress(props.chainId)))
-      ) {
+      if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
         autoSign(transactionMeta);
       } else {
         const {
@@ -517,7 +510,11 @@ const RootRPCMethodsUI = (props) => {
 
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
-    ApprovalController.reject(id, error);
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
   };
 
   const acceptPendingApproval = (id, requestData) => {
@@ -740,6 +737,7 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
+    onWalletConnectSessionRequest();
 
     Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
       onUnapprovedMessage(messageParams, 'eth'),

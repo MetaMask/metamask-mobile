@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 
 const createStyles = (colors) =>
@@ -95,7 +95,7 @@ const WatchAssetRequest = ({
   const { asset } = suggestedAssetMeta;
   let [balance] = useTokenBalance(asset.address, selectedAddress);
   balance = renderFromTokenMinimalUnit(balance, asset.decimals);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(
@@ -110,7 +110,7 @@ const WatchAssetRequest = ({
   const getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -118,7 +118,6 @@ const WatchAssetRequest = ({
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         source: 'Dapp suggested (watchAsset)',
       };

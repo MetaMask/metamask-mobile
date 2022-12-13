@@ -43,7 +43,7 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -147,7 +147,7 @@ function TokenSelectModal({
   const explorer = useBlockExplorer(provider, frequentRpcList);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const excludedAddresses = useMemo(

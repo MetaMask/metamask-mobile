@@ -8,7 +8,7 @@ import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
 import { getTokenList } from '../../../../reducers/tokens';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -72,7 +72,7 @@ const AssetList = ({
   emptyMessage,
 }: Props) => {
   const tokenList = useSelector(getTokenList);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   /**
@@ -100,7 +100,7 @@ const AssetList = ({
 
   return (
     <View testID={'add-searched-token-screen'}>
-      {searchResults.slice(0, 6).map((_: any, i: number) => {
+      {searchResults.map((_: any, i: number) => {
         const { symbol, name } = searchResults[i] || {};
         return (
           <StyledButton

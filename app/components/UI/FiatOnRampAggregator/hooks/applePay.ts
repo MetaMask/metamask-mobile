@@ -5,6 +5,7 @@ import { PaymentRequest } from '@exodus/react-native-payments';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { CryptoCurrency, QuoteResponse } from '@consensys/on-ramp-sdk';
+import { ApplePayPurchaseStatus } from '@consensys/on-ramp-sdk/dist/ApplePay';
 
 //* Payment Request */
 
@@ -52,15 +53,23 @@ function useApplePay(quote: QuoteResponse) {
         paymentResponse.details,
       );
 
-      if (purchaseResult.success) {
-        paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
-        return purchaseResult.order;
-      }
-      paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
-      if (purchaseResult.error?.message) {
-        throw purchaseResult.error;
-      } else {
-        throw new Error(purchaseResult.error);
+      switch (purchaseResult.status) {
+        case ApplePayPurchaseStatus.FAILURE: {
+          paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.FAIL);
+          if (purchaseResult.error?.message) {
+            throw purchaseResult.error;
+          } else {
+            throw new Error(purchaseResult.error);
+          }
+        }
+        case ApplePayPurchaseStatus.SUCCESS:
+        case ApplePayPurchaseStatus.PENDING: {
+          paymentResponse.complete(PAYMENT_REQUEST_COMPLETE.SUCCESS);
+          return {
+            order: purchaseResult.order,
+            authenticationUrl: purchaseResult.authenticationUrl,
+          };
+        }
       }
     } catch (error) {
       if ((error as Error).message.includes('AbortError')) {
@@ -76,7 +85,7 @@ function useApplePay(quote: QuoteResponse) {
     }
   }, [quote]);
 
-  return [showRequest, ABORTED];
+  return [showRequest];
 }
 
 export default useApplePay;

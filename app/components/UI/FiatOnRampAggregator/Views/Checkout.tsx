@@ -1,32 +1,37 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { parseUrl } from 'query-string';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from 'react-native-webview';
-import { QuoteResponse, CryptoCurrency, Order } from '@consensys/on-ramp-sdk';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useFiatOnRampSDK, SDK } from '../sdk';
 import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
-
-import { addFiatOrder } from '../../../../reducers/fiatOrders';
+import { useFiatOnRampSDK, SDK } from '../sdk';
+import {
+  addFiatCustomIdData,
+  addFiatOrder,
+  removeFiatCustomIdData,
+} from '../../../../reducers/fiatOrders';
+import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
+import { hexToBN } from '../../../../util/number';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import {
   processAggregatorOrder,
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
-import NotificationManager from '../../../../core/NotificationManager';
+import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import NotificationManager from '../../../../core/NotificationManager';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import { strings } from '../../../../../locales/i18n';
 import useAnalytics from '../hooks/useAnalytics';
-import { hexToBN } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 
 const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
@@ -34,61 +39,87 @@ const CheckoutWebView = () => {
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
+  const [customIdData, setCustomIdData] = useState<CustomIdData>();
+  const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   // @ts-expect-error useRoute params error
-  const { params }: { params: QuoteResponse } = useRoute();
+  const {
+    params,
+  }: {
+    params: {
+      url: string;
+      customOrderId?: string;
+      provider: Provider;
+    };
+  } = useRoute();
   const { colors } = useTheme();
   const accounts = useSelector(
     (state: any) =>
       state.engine.backgroundState.AccountTrackerController.accounts,
   );
 
-  const uri = params?.buyURL;
+  const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
       location: 'Provider Webview',
       chain_id_destination: selectedChainId,
-      provider_onramp: params.provider.name,
+      provider_onramp: provider.name,
     });
-  }, [params.provider.name, selectedChainId, trackEvent]);
+  }, [provider.name, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: params.provider.name },
+        { title: provider.name },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, params.provider.name, handleCancelPress]);
+  }, [navigation, colors, handleCancelPress, provider.name]);
 
-  const addTokenToTokensController = async (token: CryptoCurrency) => {
-    if (!token) return;
-
-    const { address, symbol, decimals, network } = token;
-    const chainId = network?.chainId;
-
-    if (
-      Number(chainId) !== Number(selectedChainId) ||
-      NETWORK_NATIVE_SYMBOL[chainId] === symbol
-    ) {
+  useEffect(() => {
+    if (!customOrderId) {
       return;
     }
+    const customOrderIdData = createCustomOrderIdData(
+      customOrderId,
+      selectedChainId,
+      selectedAddress,
+    );
+    setCustomIdData(customOrderIdData);
+    dispatch(addFiatCustomIdData(customOrderIdData));
+  }, [customOrderId, dispatch, selectedAddress, selectedChainId]);
 
-    // @ts-expect-error Engine context typing
-    const { TokensController } = Engine.context;
+  const addTokenToTokensController = useCallback(
+    async (token: CryptoCurrency) => {
+      if (!token) return;
 
-    if (
-      !TokensController.state.tokens.includes((t: any) =>
-        toLowerCaseEquals(t.address, address),
-      )
-    ) {
-      await TokensController.addToken(address, symbol, decimals);
-    }
-  };
+      const { address, symbol, decimals, network } = token;
+      const chainId = network?.chainId;
+
+      if (
+        Number(chainId) !== Number(selectedChainId) ||
+        NETWORK_NATIVE_SYMBOL[chainId] === symbol
+      ) {
+        return;
+      }
+
+      // @ts-expect-error Engine context typing
+      const { TokensController } = Engine.context;
+
+      if (
+        !TokensController.state.tokens.includes((t: any) =>
+          toLowerCaseEquals(t.address, address),
+        )
+      ) {
+        await TokensController.addToken(address, symbol, decimals);
+      }
+    },
+    [selectedChainId],
+  );
 
   const handleAddFiatOrder = useCallback(
     (order) => {
@@ -101,8 +132,56 @@ const CheckoutWebView = () => {
     dispatch(protectWalletModalVisible());
   }, [dispatch]);
 
+  const handleSuccessfulOrder = useCallback(
+    async (order) => {
+      // add the order to the redux global store
+      handleAddFiatOrder(order);
+      // register the token automatically
+      await addTokenToTokensController((order as any)?.data?.cryptoCurrency);
+
+      // prompt user to protect his/her wallet
+      handleDispatchUserWalletProtection();
+      // close the checkout webview
+      // @ts-expect-error navigation prop mismatch
+      navigation.dangerouslyGetParent()?.pop();
+      NotificationManager.showSimpleNotification(
+        getNotificationDetails(order as any),
+      );
+      trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
+        provider_onramp: ((order as FiatOrder)?.data as Order)?.provider?.name,
+        payment_method_id: ((order as FiatOrder)?.data as Order)?.paymentMethod
+          ?.id,
+        currency_source: ((order as FiatOrder)?.data as Order)?.fiatCurrency
+          .symbol,
+        currency_destination: ((order as FiatOrder)?.data as Order)
+          ?.cryptoCurrency.symbol,
+        chain_id_destination: selectedChainId,
+        order_type: (order as FiatOrder)?.orderType,
+        is_apple_pay: false,
+        has_zero_native_balance: accounts[selectedAddress]?.balance
+          ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
+          : undefined,
+      });
+    },
+    [
+      accounts,
+      addTokenToTokensController,
+      handleAddFiatOrder,
+      handleDispatchUserWalletProtection,
+      navigation,
+      selectedAddress,
+      selectedChainId,
+      trackEvent,
+    ],
+  );
+
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
-    if (navState?.url.startsWith(callbackBaseUrl)) {
+    if (
+      !isRedirectionHandled &&
+      navState?.url.startsWith(callbackBaseUrl) &&
+      navState.loading === false
+    ) {
+      setIsRedirectionHandled(true);
       try {
         const parsedUrl = parseUrl(navState?.url);
         if (Object.keys(parsedUrl.query).length === 0) {
@@ -114,7 +193,7 @@ const CheckoutWebView = () => {
         }
         const orders = await SDK.orders();
         const orderId = await orders.getOrderIdFromCallback(
-          params?.provider.id,
+          provider.id,
           navState?.url,
         );
 
@@ -122,6 +201,10 @@ const CheckoutWebView = () => {
           throw new Error(
             `Order ID could not be retrieved. Callback was ${navState?.url}`,
           );
+        }
+
+        if (customIdData) {
+          dispatch(removeFiatCustomIdData(customIdData));
         }
 
         const transformedOrder = {
@@ -137,38 +220,7 @@ const CheckoutWebView = () => {
           network: selectedChainId,
         };
 
-        // add the order to the redux global store
-        handleAddFiatOrder(transformedOrder);
-        // register the token automatically
-        await addTokenToTokensController(
-          (transformedOrder as any)?.data?.cryptoCurrency,
-        );
-
-        // prompt user to protect his/her wallet
-        handleDispatchUserWalletProtection();
-        // close the checkout webview
-        // @ts-expect-error navigation prop mismatch
-        navigation.dangerouslyGetParent()?.pop();
-        NotificationManager.showSimpleNotification(
-          getNotificationDetails(transformedOrder as any),
-        );
-        trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
-          provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.provider?.name,
-          payment_method_id: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.paymentMethod?.id,
-          currency_source: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.fiatCurrency.symbol,
-          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.cryptoCurrency.symbol,
-          chain_id_destination: selectedChainId,
-          is_apple_pay: false,
-          has_zero_native_balance: accounts[selectedAddress]?.balance
-            ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
-            : undefined,
-          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.cryptoCurrency.symbol,
-        });
+        handleSuccessfulOrder(transformedOrder);
       } catch (navStateError) {
         setError((navStateError as Error)?.message);
       }
@@ -179,7 +231,10 @@ const CheckoutWebView = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Provider Webview'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -194,7 +249,9 @@ const CheckoutWebView = () => {
             ctaOnPress={() => {
               setKey((prevKey) => prevKey + 1);
               setError('');
+              setIsRedirectionHandled(false);
             }}
+            location={'Provider Webview'}
           />
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -220,14 +277,17 @@ const CheckoutWebView = () => {
               setError(webviewHttpError);
             }
           }}
-          allowInlineMediaPlayback
+          allowsInlineMediaPlayback
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          userAgent={provider?.features?.buy?.userAgent ?? undefined}
         />
       </View>
     );
   }
+
+  return null;
 };
 
 export default CheckoutWebView;

@@ -10,6 +10,7 @@ import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import ConnectModal from '../pages/modals/ConnectModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
@@ -19,7 +20,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
-const UNISWAP = 'https://uniswap.exchange';
+const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const PASSWORD = '12345678';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -54,6 +55,12 @@ describe('Browser Tests', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on the close button to dismiss the whats new modal', async () => {
@@ -116,18 +123,18 @@ describe('Browser Tests', () => {
     }
   });
 
-  it('should go to uniswap', async () => {
+  it('should go to sushi swap', async () => {
     await TestHelpers.delay(3000);
     // Tap on search in bottom navbar
     await Browser.tapBrowser();
-    await Browser.navigateToURL(UNISWAP);
+    await Browser.navigateToURL(SUSHI_SWAP);
 
     // Wait for page to load
     await Browser.waitForBrowserPageToLoad();
 
     if (device.getPlatform() === 'android') {
       // Check that the dapp title is correct
-      await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
+      await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
     }
     await TestHelpers.delay(5000);
     await ConnectModal.tapCancelButton();
@@ -140,7 +147,7 @@ describe('Browser Tests', () => {
     await Browser.isVisible();
   });
 
-  it('should add uniswap to favorites', async () => {
+  it('should add sushi swap to favorites', async () => {
     // Check that we are still on the browser screen
     await Browser.isVisible();
     // Tap on options
@@ -160,7 +167,7 @@ describe('Browser Tests', () => {
     await Browser.isVisible();
   });
 
-  it('should tap on Uniswap in favorites', async () => {
+  it('should tap on sushi swap in favorites', async () => {
     if (device.getPlatform() === 'ios') {
       // Tapping on favourite tap
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
@@ -174,6 +181,9 @@ describe('Browser Tests', () => {
     // Wait for connect prompt to display
     await TestHelpers.delay(5000);
     await ConnectModal.tapConnectButton();
+
+    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 20, y: 130 }); // tapping to dismiss keyboard
+
     await Browser.isVisible();
   });
 

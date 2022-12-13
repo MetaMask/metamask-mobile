@@ -1,6 +1,8 @@
 import { InteractionManager } from 'react-native';
+import DefaultPreference from 'react-native-default-preference';
 import Analytics from '../core/Analytics/Analytics';
 import Logger from './Logger';
+import { DENIED, METRICS_OPT_IN } from '../constants/storage';
 
 const generateOpt = (name) => ({ category: name });
 
@@ -110,11 +112,27 @@ export const ANALYTICS_EVENTS_V2 = {
   BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
   BROWSER_RELOAD: generateOpt('Reload Browser'),
   BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
-  // Settings
-  // Reveal Credentials
+  // Security & Privacy Settings
+  VIEW_SECURITY_SETTINGS: generateOpt('Views Security & Privacy'),
+  // Reveal SRP
+  REVEAL_SRP_CTA: generateOpt('Clicks Reveal Secret Recovery Phrase'),
+  REVEAL_SRP_SCREEN: generateOpt('Views Reveal Secret Recovery Phrase'),
+  GO_BACK_SRP_SCREEN: generateOpt('Clicked Back on Reveal SRP Password Page'),
+  CANCEL_REVEAL_SRP_CTA: generateOpt(
+    'Clicks Cancel on Reveal Secret Recovery Phrase Page',
+  ),
+  NEXT_REVEAL_SRP_CTA: generateOpt(
+    'Clicks Next on Reveal Secret Recovery Phrase',
+  ),
+  VIEW_SRP: generateOpt('Views SRP'),
+  SRP_DISMISS_HOLD_TO_REVEAL_DIALOG: generateOpt('Closes Hold To Reveal SRP'),
+  VIEW_SRP_QR: generateOpt('Views SRP QR code'),
+  COPY_SRP: generateOpt('Copies SRP to clipboard'),
+  SRP_DONE_CTA: generateOpt('Clicks Done with SRP'),
   REVEAL_SRP_INITIATED: generateOpt('Reveal SRP Initiated'),
   REVEAL_SRP_CANCELLED: generateOpt('Reveal SRP Cancelled'),
   REVEAL_SRP_COMPLETED: generateOpt('Reveal SRP Completed'),
+  // Reveal Private Key
   REVEAL_PRIVATE_KEY_INITIATED: generateOpt('Reveal Private Key Initiated'),
   REVEAL_PRIVATE_KEY_CANCELLED: generateOpt('Reveal Private Key Cancelled'),
   REVEAL_PRIVATE_KEY_COMPLETED: generateOpt('Reveal Private Key Completed'),
@@ -152,6 +170,9 @@ export const ANALYTICS_EVENTS_V2 = {
   ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     'On-ramp Provider Details Viewed',
   ),
+  ONRAMP_DIRECT_PROVIDER_CLICKED: generateOpt(
+    'On-ramp Provider Custom Action Clicked',
+  ),
   ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
   ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
   ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
@@ -161,6 +182,34 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
+  ONRAMP_ERROR: generateOpt('On-ramp Error'),
+
+  // force upgrade/automatic security checks
+  FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED: generateOpt(
+    'Force Upgrade Update Needed Prompt Viewed',
+  ),
+  FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED: generateOpt(
+    'Force Upgrade Clicked Update to Latest Version',
+  ),
+  FORCE_UPGRADE_REMIND_ME_LATER_CLICKED: generateOpt(
+    'Force Upgrade Clicked Remind Me Later',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT: generateOpt(
+    'Automatic Security Checks Enabled From Prompt',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT: generateOpt(
+    'Automatic Security Checks Disabled From Prompt',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS: generateOpt(
+    'Automatic Security Checks Enabled From Settings',
+  ),
+
+  AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS: generateOpt(
+    'Automatic Security Checks Disabled From Settings',
+  ),
 };
 
 /**
@@ -170,49 +219,59 @@ export const ANALYTICS_EVENTS_V2 = {
  * @param {Object} params
  */
 export const trackEventV2 = (eventName, params) => {
-  InteractionManager.runAfterInteractions(() => {
-    let anonymousEvent = false;
-    try {
-      if (!params) {
-        Analytics.trackEvent(eventName);
-      }
+  const init = async () => {
+    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    if (metricsOptIn === DENIED) return;
 
-      const userParams = {};
-      const anonymousParams = {};
-
-      for (const key in params) {
-        const property = params[key];
-
-        if (property && typeof property === 'object') {
-          if (property.anonymous) {
-            anonymousEvent = true;
-            // Anonymous property - add only to anonymous params
-            anonymousParams[key] = property.value;
-          } else {
-            // Non-anonymous property - add to both
-            userParams[key] = property.value;
-            anonymousParams[key] = property.value;
-          }
-        } else {
-          // Non-anonymous properties - add to both
-          userParams[key] = property;
-          anonymousParams[key] = property;
+    InteractionManager.runAfterInteractions(() => {
+      let anonymousEvent = false;
+      try {
+        if (!params) {
+          Analytics.trackEvent(eventName);
         }
-      }
 
-      // Log all non-anonymous properties
-      if (Object.keys(userParams).length) {
-        Analytics.trackEventWithParameters(eventName, userParams);
-      }
+        const userParams = {};
+        const anonymousParams = {};
 
-      // Log all anonymous properties
-      if (anonymousEvent && Object.keys(anonymousParams).length) {
-        Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        for (const key in params) {
+          const property = params[key];
+
+          if (
+            property &&
+            typeof property === 'object' &&
+            !Array.isArray(property)
+          ) {
+            if (property.anonymous) {
+              anonymousEvent = true;
+              // Anonymous property - add only to anonymous params
+              anonymousParams[key] = property.value;
+            } else {
+              // Non-anonymous property - add to both
+              userParams[key] = property.value;
+              anonymousParams[key] = property.value;
+            }
+          } else {
+            // Non-anonymous properties - add to both
+            userParams[key] = property;
+            anonymousParams[key] = property;
+          }
+        }
+
+        // Log all non-anonymous properties
+        if (Object.keys(userParams).length) {
+          Analytics.trackEventWithParameters(eventName, userParams);
+        }
+
+        // Log all anonymous properties
+        if (anonymousEvent && Object.keys(anonymousParams).length) {
+          Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        }
+      } catch (error) {
+        Logger.error(error, 'Error logging analytics');
       }
-    } catch (error) {
-      Logger.error(error, 'Error logging analytics');
-    }
-  });
+    });
+  };
+  init();
 };
 
 /**

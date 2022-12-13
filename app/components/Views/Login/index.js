@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Switch,
   Alert,
   ActivityIndicator,
   Text,
@@ -11,18 +10,20 @@ import {
   Image,
   InteractionManager,
   BackHandler,
+  Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { logIn, logOut, checkedAuth } from '../../../actions/user';
+import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -49,6 +50,8 @@ import {
   LOGIN_PASSWORD_ERROR,
   RESET_WALLET_ID,
 } from '../../../constants/test-ids';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -221,6 +224,11 @@ class Login extends PureComponent {
      * TEMPORARY state for animation control on Nav/App/index.js
      */
     checkedAuth: PropTypes.func,
+
+    /**
+     * Action to set if the user is using remember me
+     */
+    setAllowLoginWithRememberMe: PropTypes.func,
   };
 
   state = {
@@ -297,36 +305,46 @@ class Login extends PureComponent {
    * into the application if it is enabled.
    */
   checkIfRememberMeEnabled = async () => {
-    const credentials = await SecureKeychain.getGenericPassword();
-    if (credentials) {
-      this.setState({ rememberMe: true });
-      // Restore vault with existing credentials
-      const { KeyringController } = Engine.context;
-      try {
-        await KeyringController.submitPassword(credentials.password);
-        const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-        if (encryptionLib !== ORIGINAL) {
-          await recreateVaultWithSamePassword(
-            credentials.password,
-            this.props.selectedAddress,
+    try {
+      const credentials = await SecureKeychain.getGenericPassword();
+      if (credentials) {
+        this.setState({ rememberMe: true });
+        this.props.setAllowLoginWithRememberMe(true);
+        // Restore vault with existing credentials
+        const { KeyringController } = Engine.context;
+        try {
+          await KeyringController.submitPassword(credentials.password);
+          const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+          if (encryptionLib !== ORIGINAL) {
+            await recreateVaultWithSamePassword(
+              credentials.password,
+              this.props.selectedAddress,
+            );
+            await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+          }
+          // Get onboarding wizard state
+          const onboardingWizard = await DefaultPreference.get(
+            ONBOARDING_WIZARD,
           );
-          await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-        }
-        // Get onboarding wizard state
-        const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-        if (!onboardingWizard) {
-          this.props.setOnboardingWizardStep(1);
-        }
+          if (!onboardingWizard) {
+            this.props.setOnboardingWizardStep(1);
+          }
 
-        // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-        this.setState({ hasBiometricCredentials: false });
-        delete credentials.password;
-        this.props.logIn();
-        this.props.navigation.replace('HomeNav');
-      } catch (error) {
-        this.setState({ rememberMe: false });
-        Logger.error(error, 'Failed to login using Remember Me');
+          // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+          this.setState({ hasBiometricCredentials: false });
+          delete credentials.password;
+          this.props.logIn();
+          this.props.navigation.replace('HomeNav');
+        } catch (error) {
+          this.setState({ rememberMe: false });
+          Logger.error(error, 'Failed to login using Remember Me');
+        }
       }
+    } catch (error) {
+      if (error.message === 'User canceled the operation.') {
+        return;
+      }
+      Logger.error(error, 'Failed to access SecureKeychain');
     }
   };
 
@@ -406,6 +424,8 @@ class Login extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
+        const vaultCorruptionError = new Error('Vault Corruption Error');
+        Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
         this.setState({
           loading: false,
           error: strings('login.clean_vault_error'),
@@ -413,7 +433,7 @@ class Login extends PureComponent {
       } else {
         this.setState({ loading: false, error });
       }
-      Logger.error(error, 'Failed to login');
+      Logger.error(error, 'Failed to unlock');
     }
   };
 
@@ -438,51 +458,20 @@ class Login extends PureComponent {
   };
 
   renderSwitch = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    if (this.state.biometryType && !this.state.biometryPreviouslyDisabled) {
-      return (
-        <View style={styles.biometrics}>
-          <Text style={styles.biometryLabel}>
-            {strings(
-              `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-            )}
-          </Text>
-          <Switch
-            onValueChange={(biometryChoice) =>
-              this.updateBiometryChoice(biometryChoice)
-            } // eslint-disable-line react/jsx-no-bind
-            value={this.state.biometryChoice}
-            style={styles.biometrySwitch}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      );
-    }
-
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
+    const shouldRenderBiometricLogin =
+      this.state.biometryType && !this.state.biometryPreviouslyDisabled
+        ? this.state.biometryType
+        : null;
     return (
-      <View style={styles.biometrics}>
-        <Text style={styles.biometryLabel}>
-          {strings(`choose_password.remember_me`)}
-        </Text>
-        <Switch
-          onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-          value={this.state.rememberMe}
-          style={styles.biometrySwitch}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={shouldRenderBiometricLogin}
+        biometryChoiceState={this.state.biometryChoice}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 
@@ -527,7 +516,7 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View testID={'login'}>
+            <View testID={'login'} {...generateTestId(Platform, 'login')}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
@@ -599,6 +588,7 @@ class Login extends PureComponent {
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
                   testID={RESET_WALLET_ID}
+                  {...generateTestId(Platform, RESET_WALLET_ID)}
                 >
                   {strings('login.reset_wallet')}
                 </Button>
@@ -625,6 +615,8 @@ const mapDispatchToProps = (dispatch) => ({
   logIn: () => dispatch(logIn()),
   logOut: () => dispatch(logOut()),
   checkedAuth: () => dispatch(checkedAuth('login')),
+  setAllowLoginWithRememberMe: (enabled) =>
+    dispatch(setAllowLoginWithRememberMe(enabled)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

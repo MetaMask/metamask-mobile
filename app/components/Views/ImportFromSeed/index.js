@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Switch,
   ActivityIndicator,
   Alert,
   TouchableOpacity,
@@ -13,7 +12,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -21,7 +20,7 @@ import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
@@ -56,12 +55,18 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
-  CREATE_PASSWORD_INPUT_BOX_ID,
-  CONFIRM_PASSWORD_INPUT_BOX_ID,
-  IMPORT_PASSWORD_CONTAINER_ID,
-  SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
+  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+} from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
+import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -394,10 +399,6 @@ class ImportFromSeed extends PureComponent {
     }
   };
 
-  onBiometryChoiceChange = (value) => {
-    this.setState({ biometryChoice: value });
-  };
-
   clearSecretRecoveryPhrase = async (seed) => {
     // get clipboard contents
     const clipboardContents = await Clipboard.getString();
@@ -455,50 +456,16 @@ class ImportFromSeed extends PureComponent {
   };
 
   renderSwitch = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    if (this.state.biometryType) {
-      return (
-        <View style={styles.biometrics}>
-          <Text style={styles.biometryLabel}>
-            {strings(
-              `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-            )}
-          </Text>
-          <Switch
-            onValueChange={this.updateBiometryChoice}
-            value={this.state.biometryChoice}
-            style={styles.biometrySwitch}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      );
-    }
-
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
     return (
-      <View style={styles.biometrics}>
-        <Text style={styles.biometryLabel}>
-          {strings(`choose_password.remember_me`)}
-        </Text>
-        <Switch
-          onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-          value={this.state.rememberMe}
-          style={styles.biometrySwitch}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          ios_backgroundColor={colors.border.muted}
-          testID={'remember-me-toggle'}
-        />
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={this.state.biometryType}
+        biometryChoiceState={this.state.biometryChoice}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 
@@ -563,7 +530,10 @@ class ImportFromSeed extends PureComponent {
           resetScrollToCoords={{ x: 0, y: 0 }}
         >
           <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
-            <Text style={styles.title}>
+            <Text
+              style={styles.title}
+              {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}
+            >
               {strings('import_from_seed.title')}
             </Text>
             <View style={styles.fieldRow}>
@@ -592,8 +562,11 @@ class ImportFromSeed extends PureComponent {
                 placeholder={strings(
                   'import_from_seed.seed_phrase_placeholder',
                 )}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+                )}
                 placeholderTextColor={colors.text.muted}
-                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
                 returnKeyType="next"
                 autoCapitalize="none"
                 secureTextEntry={hideSeedPhraseInput}
@@ -620,7 +593,6 @@ class ImportFromSeed extends PureComponent {
                 )}
                 placeholderTextColor={colors.text.muted}
                 onChangeText={this.onSeedWordsChange}
-                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
                 blurOnSubmit
                 onSubmitEditing={this.jumpToPassword}
                 returnKeyType="next"
@@ -667,10 +639,13 @@ class ImportFromSeed extends PureComponent {
               <OutlinedTextField
                 style={styles.input}
                 containerStyle={inputWidth}
-                // ref={this.passwordInput}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+                )}
+                testID={'create-password-first-input-field'}
                 placeholder={strings('import_from_seed.new_password')}
                 placeholderTextColor={colors.text.muted}
-                testID={CREATE_PASSWORD_INPUT_BOX_ID}
                 returnKeyType={'next'}
                 autoCapitalize="none"
                 secureTextEntry={secureTextEntry}
@@ -683,7 +658,13 @@ class ImportFromSeed extends PureComponent {
               />
 
               {(password !== '' && (
-                <Text style={styles.passwordStrengthLabel}>
+                <Text
+                  style={styles.passwordStrengthLabel}
+                  {...generateTestId(
+                    Platform,
+                    IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+                  )}
+                >
                   {strings('choose_password.password_strength')}
                   <Text style={styles[`strength_${passwordStrengthWord}`]}>
                     {' '}
@@ -702,8 +683,11 @@ class ImportFromSeed extends PureComponent {
               <OutlinedTextField
                 style={styles.input}
                 containerStyle={inputWidth}
-                // ref={this.confirmPasswordInput}
-                testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+                )}
+                testID={'create-password-second-input-field'}
                 onChangeText={this.onPasswordConfirmChange}
                 returnKeyType={'next'}
                 autoCapitalize="none"
@@ -719,7 +703,15 @@ class ImportFromSeed extends PureComponent {
 
               <View style={styles.showMatchingPasswords}>
                 {password !== '' && password === confirmPassword ? (
-                  <Icon name="check" size={12} color={colors.success.default} />
+                  <Icon
+                    name="check"
+                    size={12}
+                    color={colors.success.default}
+                    {...generateTestId(
+                      Platform,
+                      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+                    )}
+                  />
                 ) : null}
               </View>
               <Text style={styles.passwordStrengthLabel}>
@@ -741,7 +733,7 @@ class ImportFromSeed extends PureComponent {
               <StyledButton
                 type={'blue'}
                 onPress={this.onPressImport}
-                testID={'submit'}
+                testID={IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID}
                 disabled={!(password !== '' && password === confirmPassword)}
               >
                 {loading ? (

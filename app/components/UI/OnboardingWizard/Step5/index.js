@@ -11,11 +11,10 @@ import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 
 const INDICATOR_HEIGHT = 10;
-const DRAWER_WIDTH = 315;
 const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   main: {
@@ -23,8 +22,8 @@ const styles = StyleSheet.create({
     backgroundColor: importedColors.transparent,
   },
   some: {
-    marginLeft: 24,
-    marginRight: WIDTH - DRAWER_WIDTH + 24,
+    marginLeft: 16,
+    width: WIDTH - 32,
   },
   coachmarkContainer: {
     flex: 1,
@@ -39,7 +38,7 @@ const Step5 = (props) => {
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const [coachmarkBottom, setCoachmarkBottom] = useState(0);
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
 
   /**

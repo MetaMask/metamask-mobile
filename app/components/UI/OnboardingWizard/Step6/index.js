@@ -10,7 +10,7 @@ import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
   main: {
@@ -29,7 +29,7 @@ const Step6 = (props) => {
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
 
   /**

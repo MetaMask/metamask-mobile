@@ -21,6 +21,19 @@ index edadad2..2cadd4f 100644
          versionCode(1)
          versionName("1.0")
  
+diff --git a/node_modules/react-native/ReactAndroid/gradle.properties b/node_modules/react-native/ReactAndroid/gradle.properties
+index 857a818..c465984 100644
+--- a/node_modules/react-native/ReactAndroid/gradle.properties
++++ b/node_modules/react-native/ReactAndroid/gradle.properties
+@@ -13,7 +13,7 @@ JUNIT_VERSION=4.12
+ ANDROIDX_TEST_VERSION=1.1.0
+ FRESCO_VERSION=2.5.0
+ OKHTTP_VERSION=4.9.1
+-SO_LOADER_VERSION=0.10.1
++SO_LOADER_VERSION=0.10.4
+ 
+ BOOST_VERSION=1_63_0
+ DOUBLE_CONVERSION_VERSION=1.1.6
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 index 84d5942..a850092 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java

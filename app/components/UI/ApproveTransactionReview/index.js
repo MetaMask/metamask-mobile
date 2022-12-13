@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import {
-  StyleSheet,
   View,
   TouchableOpacity,
   InteractionManager,
@@ -9,7 +8,6 @@ import {
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
-import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
@@ -41,19 +39,17 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
-import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
 import { isTestNet, isMainnetByChainId } from '../../../util/networks';
-import scaling from '../../../util/scaling';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
-import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
+import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -61,135 +57,10 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOrders';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import createStyles from './styles';
 
 const { hexToBN } = util;
-const createStyles = (colors) =>
-  StyleSheet.create({
-    section: {
-      minWidth: '100%',
-      width: '100%',
-      paddingVertical: 10,
-    },
-    title: {
-      ...fontStyles.bold,
-      fontSize: scaling.scale(24),
-      textAlign: 'center',
-      color: colors.text.default,
-      lineHeight: 34,
-      marginVertical: 8,
-      paddingHorizontal: 16,
-    },
-    tokenKey: {
-      fontSize: 12,
-      marginRight: 5,
-    },
-    tokenValue: {
-      fontSize: 12,
-      width: '75%',
-    },
-    explanation: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      textAlign: 'center',
-      color: colors.text.default,
-      lineHeight: 20,
-      paddingHorizontal: 16,
-    },
-    tokenAccess: {
-      alignItems: 'center',
-      marginHorizontal: 14,
-      flexDirection: 'row',
-    },
-    editPermissionText: {
-      ...fontStyles.bold,
-      color: colors.primary.default,
-      fontSize: 12,
-      lineHeight: 20,
-      textAlign: 'center',
-      marginVertical: 10,
-      borderWidth: 1,
-      borderRadius: 20,
-      borderColor: colors.primary.default,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-    },
-    viewDetailsText: {
-      ...fontStyles.normal,
-      color: colors.primary.default,
-      fontSize: 12,
-      lineHeight: 16,
-      marginTop: 8,
-      textAlign: 'center',
-    },
-    actionTouchable: {
-      flexDirection: 'column',
-      alignItems: 'center',
-    },
-    addressWrapper: {
-      backgroundColor: colors.primary.muted,
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderRadius: 40,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-    },
-    address: {
-      fontSize: 13,
-      marginHorizontal: 8,
-      color: colors.text.default,
-      ...fontStyles.normal,
-      maxWidth: 120,
-    },
-    errorWrapper: {
-      marginTop: 12,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      backgroundColor: colors.error.muted,
-      borderColor: colors.error.default,
-      borderRadius: 8,
-      borderWidth: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    error: {
-      color: colors.text.default,
-      fontSize: 12,
-      lineHeight: 16,
-      ...fontStyles.normal,
-      textAlign: 'center',
-    },
-    underline: {
-      textDecorationLine: 'underline',
-      ...fontStyles.bold,
-    },
-    actionViewWrapper: {
-      height: Device.isMediumDevice() ? 200 : 280,
-    },
-    actionViewChildren: {
-      height: 300,
-    },
-    actionViewQRObject: {
-      height: 648,
-    },
-    paddingHorizontal: {
-      paddingHorizontal: 16,
-    },
-    contactWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginVertical: 15,
-    },
-    nickname: {
-      ...fontStyles.normal,
-      textAlign: 'center',
-      color: colors.primary.default,
-      marginBottom: 10,
-    },
-    actionIcon: {
-      color: colors.primary.default,
-    },
-  });
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -274,14 +145,6 @@ class ApproveTransactionReview extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * Object that represents eip1559 gas
-     */
-    EIP1559GasData: PropTypes.object,
-    /**
-     * Object that represents legacy gas
-     */
-    LegacyGasData: PropTypes.object,
-    /**
      * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
      */
     gasEstimateType: PropTypes.string,
@@ -331,6 +194,22 @@ class ApproveTransactionReview extends PureComponent {
     nicknameExists: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    /**
+     * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
+     */
+    gasSelected: PropTypes.string,
+    /**
+     * update gas transaction state to parent
+     */
+    updateTransactionState: PropTypes.func,
+    /**
+     * legacy gas object for calculating the legacy transaction
+     */
+    legacyGasObject: PropTypes.object,
+    /**
+     * eip1559 gas object for calculating eip1559 transaction
+     */
+    eip1559GasObject: PropTypes.object,
   };
 
   state = {
@@ -348,12 +227,16 @@ class ApproveTransactionReview extends PureComponent {
     transaction: this.props.transaction,
     token: {},
     showGasTooltip: false,
+    gasTransactionObject: {},
   };
 
   customSpendLimitInput = React.createRef();
-  originIsWalletConnect = this.props.transaction.origin?.includes(
+  originIsWalletConnect = this.props.transaction.origin?.startsWith(
     WALLET_CONNECT_ORIGIN,
   );
+
+  originIsMMSDKRemoteConn =
+    this.props.transaction.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
   componentDidMount = async () => {
     const {
@@ -361,11 +244,17 @@ class ApproveTransactionReview extends PureComponent {
       tokenList,
     } = this.props;
     const { AssetsContractController } = Engine.context;
-    const host = getHost(
-      this.originIsWalletConnect
-        ? origin.split(WALLET_CONNECT_ORIGIN)[1]
-        : origin,
-    );
+
+    let host;
+
+    if (this.originIsWalletConnect) {
+      host = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
+    } else if (this.originIsMMSDKRemoteConn) {
+      host = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+    } else {
+      host = getHost(origin);
+    }
+
     let tokenSymbol, tokenDecimals;
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
@@ -420,7 +309,7 @@ class ApproveTransactionReview extends PureComponent {
       } = this.props;
       const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
@@ -429,7 +318,6 @@ class ApproveTransactionReview extends PureComponent {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
         dapp_url: isDapp ? activeTabUrl : undefined,
-        network_name: type,
         chain_id: chainId,
         active_currency: { value: tokenSymbol, anonymous: true },
         number_tokens_requested: {
@@ -438,6 +326,11 @@ class ApproveTransactionReview extends PureComponent {
         },
         unlimited_permission_requested: unlimited,
         referral_type: isDapp ? 'dapp' : transaction?.origin,
+        request_source: this.originIsMMSDKRemoteConn
+          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+          : this.originIsWalletConnect
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
@@ -664,8 +557,6 @@ class ApproveTransactionReview extends PureComponent {
       transaction: { origin },
       network,
       over,
-      EIP1559GasData,
-      LegacyGasData,
       gasEstimateType,
       onUpdatingValuesStart,
       onUpdatingValuesEnd,
@@ -673,6 +564,10 @@ class ApproveTransactionReview extends PureComponent {
       isAnimating,
       gasEstimationReady,
       transactionConfirmed,
+      gasSelected,
+      legacyGasObject,
+      eip1559GasObject,
+      updateTransactionState,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -778,53 +673,25 @@ class ApproveTransactionReview extends PureComponent {
               <View style={styles.paddingHorizontal}>
                 <AccountInfoCard />
                 <View style={styles.section}>
-                  {showFeeMarket ? (
-                    <TransactionReviewEIP1559
-                      totalNative={EIP1559GasData.renderableTotalMinNative}
-                      totalConversion={
-                        EIP1559GasData.renderableTotalMinConversion
-                      }
-                      totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
-                      gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-                      gasFeeConversion={
-                        EIP1559GasData.renderableGasFeeMinConversion
-                      }
-                      gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-                      gasFeeMaxConversion={
-                        EIP1559GasData.renderableGasFeeMaxConversion
-                      }
-                      primaryCurrency={primaryCurrency}
-                      timeEstimate={EIP1559GasData.timeEstimate}
-                      timeEstimateColor={EIP1559GasData.timeEstimateColor}
-                      timeEstimateId={EIP1559GasData.timeEstimateId}
-                      hideTotal
-                      noMargin
-                      onEdit={this.edit}
-                      onUpdatingValuesStart={onUpdatingValuesStart}
-                      onUpdatingValuesEnd={onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      gasEstimationReady={gasEstimationReady}
-                    />
-                  ) : (
-                    <TransactionReviewEIP1559
-                      totalNative={LegacyGasData.transactionTotalAmount}
-                      totalConversion={LegacyGasData.transactionTotalAmountFiat}
-                      gasFeeNative={LegacyGasData.transactionFee}
-                      gasFeeConversion={LegacyGasData.transactionFeeFiat}
-                      primaryCurrency={primaryCurrency}
-                      hideTotal
-                      noMargin
-                      onEdit={this.edit}
-                      over={Boolean(LegacyGasData.error)}
-                      onUpdatingValuesStart={this.onUpdatingValuesStart}
-                      onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      gasEstimationReady={gasEstimationReady}
-                      legacy
-                    />
-                  )}
+                  <TransactionReview
+                    gasSelected={gasSelected}
+                    primaryCurrency={primaryCurrency}
+                    hideTotal
+                    noMargin
+                    onEdit={this.edit}
+                    chainId={this.props.chainId}
+                    onUpdatingValuesStart={onUpdatingValuesStart}
+                    onUpdatingValuesEnd={onUpdatingValuesEnd}
+                    animateOnChange={animateOnChange}
+                    isAnimating={isAnimating}
+                    gasEstimationReady={gasEstimationReady}
+                    legacy={!showFeeMarket}
+                    gasObject={
+                      !showFeeMarket ? legacyGasObject : eip1559GasObject
+                    }
+                    updateTransactionState={updateTransactionState}
+                    onlyGas
+                  />
 
                   {gasError && (
                     <View style={styles.errorWrapper}>
@@ -993,8 +860,6 @@ const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(

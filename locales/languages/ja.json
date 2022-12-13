@@ -575,7 +575,26 @@
     "theme_os": "システム",
     "theme_light": "ライト",
     "theme_dark": "ダーク",
-    "network_exists": "このネットワークはすでに追加されています。"
+    "network_exists": "このネットワークはすでに追加されています。",
+    "delete_metrics_title": "MetaMetrics データを削除",
+    "delete_metrics_description_part_one": "これにより、ウォレットに関連付けられた過去の MetaMetrics データが削除されます。",
+    "delete_metrics_description_part_two": "MetaMetrics データは、匿名化された使用および診断データです。",
+    "delete_metrics_description_part_three": "このデータが削除されてもウォレットとアカウントに変化はありません。このプロセスには最長 60 日かかる場合があります。こちらをご覧ください:",
+    "delete_metrics_description_part_four": "このアクションは次の日に開始されました:",
+    "delete_metrics_description_part_five": "。このプロセスには最長 60 日かかる場合があります。こちらをご覧ください:",
+    "consensys_privacy_policy": "ConsenSys プライバシーポリシー",
+    "delete_metrics_button": "MetaMetrics データを削除",
+    "check_status_button": "ステータスを確認",
+    "delete_metrics_confirm_modal_title": "MetaMetrics データを削除しますか？",
+    "delete_metrics_confirm_modal_description": "すべての MetaMetrics データを削除しようとしています。よろしいですか？",
+    "delete_wallet_data_title": "ウォレットを削除",
+    "delete_wallet_data_description": "これにより、デバイスからウォレット関連のデータがすべて削除されます。アカウントはブロックチェーン上に存在し、MetaMask とは関係ありません。秘密のリカバリーフレーズを使用すればいつでもアカウントを復元できます。",
+    "delete_wallet_data_button": "ウォレットを削除",
+    "delete_data_status_title": "削除タスクステータス",
+    "delete_data_status_description": "現在のステータス:",
+    "delete_metrics_error_title": "現在このデータを削除できません。",
+    "delete_metrics_error_description": "アナリティクスシステムサーバーの問題により、現在このリクエストを完了させることができません。後ほど再度お試しください。",
+    "ok": "OK"
   },
   "app_information": {
     "title": "情報",
@@ -1996,5 +2015,31 @@
     "token_detection_mainnet_title": "トークン検出が有効になっているため、多くのトークンが自動的にウォレットに表示されます。",
     "token_detection_mainnet_link": "手動でトークンを追加することもできます。",
     "or": "または"
+  },
+  "remember_me": {
+    "enable_remember_me": "認証情報の保存を有効にする",
+    "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でも MetaMask アカウントにアクセスできるようになります。"
+  },
+  "turn_off_remember_me": {
+    "title": "認証情報の保存を無効にするには、パスワードを入力してください",
+    "placeholder": "パスワード",
+    "description": "このオプションを無効にすると、今後 MetaMask のロックを解除するのにパスワードが必要になります。",
+    "action": "認証情報の保存を無効にする"
+  },
+  "automatic_security_checks": {
+    "title": "自動セキュリティチェック",
+    "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。"
+  },
+  "update_needed": {
+    "title": "アップデートが必要です",
+    "description": "ウォレットのセキュリティが強化されました！自分の身を守るために、最新バージョンにアップデートしてください。",
+    "primary_action": "最新バージョンにアップデート",
+    "secondary_action": "後で通知する"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "セキュリティアップデートを自動的に確認しますか？",
+    "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。",
+    "primary_action": "自動セキュリティチェックを有効にする",
+    "secondary_action": "結構です"
   }
 }

@@ -18,7 +18,7 @@ import {
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
 
@@ -83,7 +83,7 @@ function GasEditModal({
     hideGasFeeRecommendation,
   ] = useModalHandler(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   useEffect(() => {
     setGasSelected(customGasFee?.selected);

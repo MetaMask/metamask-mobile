@@ -46,7 +46,7 @@ export default class WalletView {
 
   static async removeTokenFromWallet(token) {
     await element(by.text(token)).longPress();
-    await TestHelpers.tapByText('Remove');
+    await TestHelpers.tapByText('Hide');
   }
 
   static async editAccountName(accountName) {

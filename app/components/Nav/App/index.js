@@ -1,8 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -40,10 +46,19 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import SDKConnect from '../../../core/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
+import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
+import Toast, {
+  ToastContext,
+} from '../../../component-library/components/Toast';
+import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -103,6 +118,7 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -131,7 +147,11 @@ const OnboardingRootNav = () => (
       name="SyncWithExtensionSuccess"
       component={SyncWithExtensionSuccess}
     />
-    <Stack.Screen name="QRScanner" component={QRScanner} header={null} />
+    <Stack.Screen
+      name={Routes.QR_SCANNER}
+      component={QRScanner}
+      header={null}
+    />
     <Stack.Screen
       name="Webview"
       header={null}
@@ -148,7 +168,8 @@ const App = ({ userLoggedIn }) => {
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const [animationPlayed, setAnimationPlayed] = useState();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
@@ -232,6 +253,10 @@ const App = ({ userLoggedIn }) => {
     };
 
     initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    SDKConnect.init();
   }, []);
 
   useEffect(() => {
@@ -335,7 +360,23 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
       />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_CONFIRMATION}
+        component={ModalConfirmation}
+      />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
+      <Stack.Screen
+        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+        component={TurnOffRememberMeModal}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.UPDATE_NEEDED}
+        component={UpdateNeeded}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+        component={EnableAutomaticSecurityChecksModal}
+      />
     </Stack.Navigator>
   );
 
@@ -345,7 +386,11 @@ const App = ({ userLoggedIn }) => {
       <>
         <NavigationContainer
           // Prevents artifacts when navigating between screens
-          theme={{ colors: { background: colors.background.default } }}
+          theme={{
+            colors: {
+              background: colors.background.default,
+            },
+          }}
           ref={setNavigatorRef}
           onStateChange={(state) => {
             // Updates redux with latest route. Used by DrawerView component.
@@ -386,6 +431,7 @@ const App = ({ userLoggedIn }) => {
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}
+        <Toast ref={toastRef} />
       </>
     )) ||
     null

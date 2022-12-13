@@ -1,19 +1,17 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
-import { Payment } from '@consensys/on-ramp-sdk';
+import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 
 import BaseText from '../../../Base/Text';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
-import PaymentOption from './PaymentOption';
+import PaymentMethod from './PaymentMethod';
 
 import useAnalytics from '../hooks/useAnalytics';
-import { getPaymentMethodIcon } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { ScreenLocation } from '../types';
-import { strings } from '../../../../../locales/i18n';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -49,6 +47,7 @@ interface Props {
   onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
   selectedPaymentMethodId: Payment['id'] | null;
+  selectedPaymentMethodType: PaymentType | undefined;
   location?: ScreenLocation;
 }
 
@@ -80,6 +79,10 @@ function PaymentMethodModal({
     [location, onItemPress, selectedPaymentMethodId, trackEvent],
   );
 
+  const selectedPaymentMethod = paymentMethods?.find(
+    ({ id }) => id === selectedPaymentMethodId,
+  );
+
   return (
     <Modal
       isVisible={isVisible}
@@ -102,31 +105,22 @@ function PaymentMethodModal({
             <ScrollView>
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
-                  {paymentMethods?.map(({ id, name, delay, amountTier }) => (
-                    <View key={id} style={styles.row}>
-                      <PaymentOption
-                        highlighted={id === selectedPaymentMethodId}
-                        title={name}
-                        time={delay}
-                        id={id}
-                        onPress={() => handleOnPressItemCallback(id)}
-                        amountTier={amountTier}
-                        paymentType={getPaymentMethodIcon(id)}
+                  {paymentMethods?.map((payment) => (
+                    <View key={payment.id} style={styles.row}>
+                      <PaymentMethod
+                        payment={payment}
+                        highlighted={payment.id === selectedPaymentMethodId}
+                        onPress={() => handleOnPressItemCallback(payment.id)}
+                        compact
                       />
                     </View>
                   ))}
 
-                  <Text small grey centered>
-                    {selectedPaymentMethodId === '/payments/apple-pay' &&
-                      strings(
-                        'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                      )}
-                    {selectedPaymentMethodId ===
-                      '/payments/debit-credit-card' &&
-                      strings(
-                        'fiat_on_ramp_aggregator.payment_method.card_fees',
-                      )}
-                  </Text>
+                  {selectedPaymentMethod?.disclaimer ? (
+                    <Text small grey centered>
+                      {selectedPaymentMethod?.disclaimer}
+                    </Text>
+                  ) : null}
                 </ScreenLayout.Content>
               </View>
             </ScrollView>

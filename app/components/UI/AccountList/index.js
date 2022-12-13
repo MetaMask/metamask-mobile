@@ -25,6 +25,7 @@ import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -130,7 +131,6 @@ class AccountList extends PureComponent {
   };
 
   state = {
-    selectedAccountIndex: 0,
     loading: false,
     orderedAccounts: {},
     accountsENS: {},
@@ -140,23 +140,15 @@ class AccountList extends PureComponent {
   lastPosition = 0;
   updating = false;
 
-  getInitialSelectedAccountIndex = () => {
-    const { identities, selectedAddress } = this.props;
-    Object.keys(identities).forEach((address, i) => {
-      if (selectedAddress === address) {
-        this.mounted && this.setState({ selectedAccountIndex: i });
-      }
-    });
-  };
-
   componentDidMount() {
     this.mounted = true;
-    this.getInitialSelectedAccountIndex();
     const orderedAccounts = this.getAccounts();
     InteractionManager.runAfterInteractions(() => {
       this.assignENSToAccounts(orderedAccounts);
       if (orderedAccounts.length > 4) {
-        this.scrollToCurrentAccount();
+        const selectedAccountIndex =
+          orderedAccounts.findIndex((account) => account.isSelected) || 0;
+        this.scrollToCurrentAccount(selectedAccountIndex);
       }
     });
     this.mounted && this.setState({ orderedAccounts });
@@ -166,41 +158,29 @@ class AccountList extends PureComponent {
     this.mounted = false;
   };
 
-  scrollToCurrentAccount() {
+  scrollToCurrentAccount(selectedAccountIndex) {
     // eslint-disable-next-line no-unused-expressions
     this.flatList?.current?.scrollToIndex({
-      index: this.state.selectedAccountIndex,
+      index: selectedAccountIndex,
       animated: true,
     });
   }
 
-  onAccountChange = async (newIndex) => {
-    const previousIndex = this.state.selectedAccountIndex;
+  onAccountChange = async (newAddress) => {
     const { PreferencesController } = Engine.context;
-    const { keyrings, accounts } = this.props;
+    const { accounts } = this.props;
 
     requestAnimationFrame(async () => {
       try {
-        this.mounted && this.setState({ selectedAccountIndex: newIndex });
-
-        const allKeyrings =
-          keyrings && keyrings.length
-            ? keyrings
-            : Engine.context.KeyringController.state.keyrings;
-        const accountsOrdered = allKeyrings.reduce(
-          (list, keyring) => list.concat(keyring.accounts),
-          [],
-        );
-
         // If not enabled is used from address book so we don't change accounts
         if (!this.props.enableAccountsAddition) {
-          this.props.onAccountChange(accountsOrdered[newIndex]);
+          this.props.onAccountChange(newAddress);
           const orderedAccounts = this.getAccounts();
           this.mounted && this.setState({ orderedAccounts });
           return;
         }
 
-        PreferencesController.setSelectedAddress(accountsOrdered[newIndex]);
+        PreferencesController.setSelectedAddress(newAddress);
 
         this.props.onAccountChange();
 
@@ -211,8 +191,6 @@ class AccountList extends PureComponent {
             }, 1000);
           });
       } catch (e) {
-        // Restore to the previous index in case anything goes wrong
-        this.mounted && this.setState({ selectedAccountIndex: previousIndex });
         Logger.error(e, 'error while trying change the selected account'); // eslint-disable-line
       }
       InteractionManager.runAfterInteractions(() => {
@@ -248,24 +226,23 @@ class AccountList extends PureComponent {
   addAccount = async () => {
     if (this.state.loading) return;
     this.mounted && this.setState({ loading: true });
-    const { KeyringController } = Engine.context;
+    const { KeyringController, PreferencesController } = Engine.context;
     requestAnimationFrame(async () => {
       try {
-        await KeyringController.addNewAccount();
-        const { PreferencesController } = Engine.context;
-        const newIndex = Object.keys(this.props.identities).length - 1;
-        PreferencesController.setSelectedAddress(
-          Object.keys(this.props.identities)[newIndex],
-        );
-        this.mounted && this.setState({ selectedAccountIndex: newIndex });
+        const { addedAccountAddress } = await KeyringController.addNewAccount();
+        const checksummedAddress = safeToChecksumAddress(addedAccountAddress);
+        PreferencesController.setSelectedAddress(checksummedAddress);
         setTimeout(() => {
           this.flatList &&
             this.flatList.current &&
             this.flatList.current.scrollToEnd();
           this.mounted && this.setState({ loading: false });
         }, 500);
-        const orderedAccounts = this.getAccounts();
-        this.mounted && this.setState({ orderedAccounts });
+        // Use setTimeout to ensure latest accounts are reflected in the next frame
+        setTimeout(() => {
+          const orderedAccounts = this.getAccounts();
+          this.mounted && this.setState({ orderedAccounts });
+        }, 0);
       } catch (e) {
         // Restore to the previous index in case anything goes wrong
         Logger.error(e, 'error while trying to add a new account'); // eslint-disable-line
@@ -315,9 +292,24 @@ class AccountList extends PureComponent {
         {
           text: strings('accounts.yes_remove_it'),
           onPress: async () => {
+            const { PreferencesController } = Engine.context;
+            const { selectedAddress } = this.props;
+            const isRemovingCurrentAddress = selectedAddress === address;
+            const fallbackAccountIndex = index - 1;
+            const fallbackAccountAddress =
+              this.state.orderedAccounts[fallbackAccountIndex].address;
+
+            // TODO - Refactor logic. onAccountChange is only used for refreshing latest orderedAccounts after account removal. Duplicate call for PreferencesController.setSelectedAddress exists.
+            // Set fallback address before removing account if removing current account
+            isRemovingCurrentAddress &&
+              PreferencesController.setSelectedAddress(fallbackAccountAddress);
             await Engine.context.KeyringController.removeAccount(address);
-            // Default to the previous account in the list
-            this.onAccountChange(index - 1);
+            // Default to the previous account in the list if removing current account
+            this.onAccountChange(
+              isRemovingCurrentAddress
+                ? fallbackAccountAddress
+                : selectedAddress,
+            );
           },
         },
       ],

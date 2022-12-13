@@ -26,7 +26,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -142,6 +142,10 @@ const createStyles = (colors) =>
     },
   });
 
+/**
+ * The EditGasFee1559 component will be deprecated in favor of EditGasFee1559Update as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFee1559Update will be renamed EditGasFee1559 and this component will be removed. The EditGasFee1559Update is currently being used in the Update Transaction(Speed Up/Cancel) flow.
+ */
+
 const EditGasFee1559 = ({
   selected,
   gasFee,
@@ -191,7 +195,7 @@ const EditGasFee1559 = ({
     showTimeEstimateInfoModal,
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const getAnalyticsParams = useCallback(() => {

@@ -28,7 +28,7 @@ const customStyle = `
     }
   }
 `;
-storiesOf('UI / Fox', module)
+storiesOf('Components / UI / Fox', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const customContentKnob = boolean('customContent', false);

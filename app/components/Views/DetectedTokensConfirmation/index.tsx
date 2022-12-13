@@ -4,7 +4,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -50,15 +50,16 @@ const createStyles = (colors: any) =>
 interface Props {
   route: {
     params: {
+      isHidingAll?: boolean;
       onConfirm: () => void;
     };
   };
 }
 
 const DetectedTokensConfirmation = ({ route }: Props) => {
-  const { onConfirm } = route.params;
+  const { onConfirm, isHidingAll } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const triggerCancel = () => modalRef.current?.dismissModal();
@@ -69,13 +70,19 @@ const DetectedTokensConfirmation = ({ route }: Props) => {
 
   const renderHeader = () => (
     <Text style={styles.headerLabel}>
-      {strings('detected_tokens.confirm.title')}
+      {strings(
+        `detected_tokens.confirm.${
+          isHidingAll ? 'hide.title' : 'import.title'
+        }`,
+      )}
     </Text>
   );
 
   const renderDescription = () => (
     <Text style={styles.description}>
-      {strings('detected_tokens.confirm.desc')}
+      {strings(
+        `detected_tokens.confirm.${isHidingAll ? 'hide.desc' : 'import.desc'}`,
+      )}
     </Text>
   );
 

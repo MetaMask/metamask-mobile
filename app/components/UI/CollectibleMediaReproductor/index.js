@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
 import MediaPlayer from '../../Views/MediaPlayer';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
   listWrapper: {
@@ -39,7 +39,7 @@ export default function CollectibleMediaPlayer({
   containerStyle,
   iconStyle,
 }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const [fallbackImage, setFallbackImage] = useState(null);
 
   const fallback = () => {

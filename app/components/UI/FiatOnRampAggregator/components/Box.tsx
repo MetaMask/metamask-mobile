@@ -38,6 +38,8 @@ interface Props {
   thin?: boolean;
   activeOpacity?: number;
   onPress?: () => any;
+  accessible?: boolean;
+  accessibilityLabel?: string;
 }
 
 const Box: React.FC<Props> = ({
@@ -47,6 +49,8 @@ const Box: React.FC<Props> = ({
   thin,
   onPress,
   activeOpacity,
+  accessible,
+  accessibilityLabel,
   ...props
 }: Props) => {
   const { colors } = useTheme();
@@ -62,6 +66,8 @@ const Box: React.FC<Props> = ({
         disabled={!onPress}
         onPress={onPress}
         activeOpacity={activeOpacity}
+        accessible={accessible}
+        accessibilityLabel={accessibilityLabel}
       >
         <View
           style={[

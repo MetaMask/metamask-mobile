@@ -9,7 +9,7 @@ import {
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
 import Text from '../Text';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -43,7 +43,7 @@ const createStyles = (colors) =>
   });
 
 const KeypadContainer = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return <View style={[styles.keypad, style]} {...props} />;
@@ -57,13 +57,13 @@ KeypadContainer.propTypes = {
 };
 
 const KeypadRow = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return <View style={styles.keypadRow} {...props} />;
 };
 const KeypadButton = ({ style, textStyle, children, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -86,7 +86,7 @@ KeypadButton.propTypes = {
 };
 
 const KeypadDeleteButton = ({ style, icon, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

@@ -340,6 +340,11 @@ class TransactionReviewInformation extends PureComponent {
     return totals[assetType] || totals.default;
   };
 
+  isTestNetwork = () => {
+    const { network } = this.props;
+    return isTestNet(network);
+  };
+
   getRenderTotalsEIP1559 = ({
     gasFeeMinNative,
     gasFeeMinConversion,
@@ -352,6 +357,7 @@ class TransactionReviewInformation extends PureComponent {
       currentCurrency,
       conversionRate,
       contractExchangeRates,
+      ticker,
     } = this.props;
 
     let renderableTotalMinNative,
@@ -383,7 +389,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency,
+          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -469,7 +475,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency,
+          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -607,18 +613,17 @@ class TransactionReviewInformation extends PureComponent {
       transaction: { warningGasPriceHigh },
       error,
       over,
-      network,
       showCustomNonce,
       gasEstimateType,
       gasSelected,
+      network,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const isTestNetwork = isTestNet(network);
-    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
-    const errorLinkText = isTestNetwork
+    const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
+    const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 
@@ -656,7 +661,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {isTestNetwork || allowedToBuy(network) ? (
+            {this.isTestNetwork() || allowedToBuy(network) ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (

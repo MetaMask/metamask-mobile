@@ -12,17 +12,15 @@ const styles = StyleSheet.create({
     bottom: Device.isIphoneX() ? 70 : 60,
   },
   elevatedView: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingBottom: Device.isIphoneX() ? 20 : 10,
     backgroundColor: importedColors.transparent,
   },
   notificationContainer: {
-    flex: 0.1,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    position: 'absolute',
+    bottom: 0,
+    paddingBottom: Device.isIphoneX() ? 20 : 10,
+    left: 0,
+    right: 0,
+    backgroundColor: importedColors.transparent,
   },
 });
 

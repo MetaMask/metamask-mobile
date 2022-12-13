@@ -40,7 +40,12 @@ const AmountInput: React.FC<Props> = ({
   onPress,
   onCurrencyPress,
 }: Props) => (
-  <Box label={label} onPress={onPress} highlighted={highlighted}>
+  <Box
+    label={label}
+    onPress={onPress}
+    highlighted={highlighted}
+    accessible={false}
+  >
     <ListItem.Content>
       <ListItem.Body>
         <Text

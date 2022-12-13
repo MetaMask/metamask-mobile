@@ -3,7 +3,7 @@ import Modal from 'react-native-modal';
 import { IQRState } from '../types';
 import { StyleSheet, View } from 'react-native';
 import QRSigningDetails from '../QRSigningDetails';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 interface IQRSigningModalProps {
   isVisible: boolean;
@@ -36,7 +36,7 @@ const QRSigningModal = ({
   onCancel,
   onFailure,
 }: IQRSigningModalProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
   return (

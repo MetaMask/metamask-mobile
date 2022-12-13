@@ -1,4 +1,4 @@
-import { toDateFormat } from '.';
+import { msBetweenDates, msToHours, toDateFormat } from '.';
 
 const TZ = 'America/Toronto';
 
@@ -27,5 +27,33 @@ describe('Date', () => {
       expect(toDateFormat(1592879146000)).toBe('Jun 22 at 10:25 pm');
       expect(toDateFormat(1592878450000)).toBe('Jun 22 at 10:14 pm');
     });
+  });
+});
+
+describe('Date util :: msBetweenDates', () => {
+  it('should return 1000', () => {
+    const DateReal = global.Date;
+
+    const mockDate = new Date();
+    const spy = jest
+      .spyOn(global, 'Date')
+      .mockImplementation(function (...args: any[]) {
+        if (args.length) {
+          return new DateReal(...args);
+        }
+        return mockDate;
+      } as any);
+
+    const todayOneHourEarlier = new Date().getTime() - 1000;
+    const dateOneHourEarlier = new Date(todayOneHourEarlier);
+
+    expect(msBetweenDates(dateOneHourEarlier)).toEqual(1000);
+    spy.mockClear();
+  });
+});
+
+describe('Date util :: msToHours', () => {
+  it('should return 1', () => {
+    expect(msToHours(1000 * 60 * 60)).toEqual(1);
   });
 });

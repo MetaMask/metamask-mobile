@@ -309,6 +309,7 @@ class TransactionDetails extends PureComponent {
             }
             gasEstimationReady
             transactionType={transactionDetails.transactionType}
+            chainId={chainId}
           />
         </View>
 
