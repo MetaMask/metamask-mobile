@@ -47,7 +47,7 @@ class SendScreen{
         await expect(await (Selectors.getXpathElementByText(message))).toBeDisplayed();
     }
 
-     async isContinueTextVisivle(){
+     async isContinueTextVisible(){
         await expect(this.understandWarningcontinue).toBeDisplayed();
     }
 
