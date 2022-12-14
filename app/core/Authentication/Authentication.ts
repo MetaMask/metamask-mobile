@@ -91,6 +91,8 @@ class AuthenticationService {
         );
       }
     }
+    password = this.wipeSensitiveData();
+    selectedAddress = this.wipeSensitiveData();
   };
 
   /**
@@ -108,6 +110,8 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    password = this.wipeSensitiveData();
+    parsedSeed = this.wipeSensitiveData();
   };
 
   /**
@@ -120,7 +124,18 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+    password = this.wipeSensitiveData();
   };
+
+  /**
+   * This method is used for password memory obfuscation
+   * It simply returns an empty string so we can reset all the sensitive params like passwords and SRPs.
+   * Since we cannot control memory in JS the best we can do is remove the pointer to sensitive information in memory
+   *    - see this thread for more details: https://security.stackexchange.com/questions/192387/how-to-securely-erase-javascript-parameters-after-use
+   * [Future improvement] to fully remove these values from memory we can convert these params to Buffers or UInt8Array as is done in extension
+   *    - see: https://github.com/MetaMask/metamask-extension/commit/98f187c301176152a7f697e62e2ba6d78b018b68
+   */
+  private wipeSensitiveData = () => '';
 
   /**
    * Reset vault will empty password used to clear/reset vault upon errors during login/creation
@@ -169,6 +184,7 @@ class AuthenticationService {
         this.authData,
       );
     }
+    password = this.wipeSensitiveData();
   };
 
   /**
@@ -258,9 +274,10 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.logout(false);
+      this.lockApp(false);
       throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
     }
+    password = this.wipeSensitiveData();
   };
 
   /**
@@ -284,9 +301,11 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.logout(false);
+      this.lockApp(false);
       throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
     }
+    password = this.wipeSensitiveData();
+    parsedSeed = this.wipeSensitiveData();
   };
 
   /**
@@ -306,9 +325,10 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
-      this.logout(false);
+      this.lockApp(false);
       throw new AuthenticationError(e, 'Failed to login', this.authData);
     }
+    password = this.wipeSensitiveData();
   };
 
   /**
@@ -323,13 +343,14 @@ class AuthenticationService {
       if (!password) await this.storePassword(password, this.authData.type);
       this.dispatchLogin();
     } catch (e: any) {
-      this.logout(false);
+      this.lockApp(false);
       throw new AuthenticationError(
         e,
         'appTriggeredAuth failed to login',
         this.authData,
       );
     }
+    selectedAddress = this.wipeSensitiveData();
   };
 
   /**
