@@ -561,8 +561,8 @@ class NetworkSettings extends PureComponent {
       isCustomMainnet
         ? navigation.navigate('OptinMetrics')
         : shouldNetworkSwitchPopToWallet
-          ? navigation.navigate('WalletView')
-          : navigation.goBack();
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
     }
   };
 

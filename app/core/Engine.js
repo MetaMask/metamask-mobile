@@ -99,7 +99,6 @@ class Engine {
           name: 'NetworkController',
           allowedEvents: [],
           allowedActions: [],
-        // TODO: Check if providerConfig here is still necessary.
         }),
       };
 

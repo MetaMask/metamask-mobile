@@ -1,11 +1,7 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import {
-  View,
-  StyleSheet,
-  InteractionManager,
-} from 'react-native';
-import { colors as importedColors, } from '../../../styles/common';
+import { View, StyleSheet, InteractionManager } from 'react-native';
+import { colors as importedColors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
