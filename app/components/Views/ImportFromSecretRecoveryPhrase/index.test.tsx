@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import ImportFromSeed from './';
+import ImportFromSeed from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 

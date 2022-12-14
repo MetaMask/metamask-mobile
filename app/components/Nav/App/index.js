@@ -20,7 +20,7 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import ImportFromSeed from '../../Views/ImportFromSeed';
+import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
@@ -136,9 +136,9 @@ const OnboardingNav = () => (
       options={ManualBackupStep3.navigationOptions}
     />
     <Stack.Screen
-      name="ImportFromSeed"
-      component={ImportFromSeed}
-      options={ImportFromSeed.navigationOptions}
+      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+      component={ImportFromSecretRecoveryPhrase}
+      options={ImportFromSecretRecoveryPhrase.navigationOptions}
     />
     <Stack.Screen
       name="OptinMetrics"

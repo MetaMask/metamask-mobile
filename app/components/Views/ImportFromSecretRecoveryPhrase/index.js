@@ -76,9 +76,10 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
 /**
  * View where users can set restore their account
- * using a seed phrase
+ * using a secret recovery phrase (SRP)
+ * The SRP was formally called the seed phrase
  */
-const ImportFromSeed = ({
+const ImportFromSecretRecoveryPhrase = ({
   navigation,
   passwordSet,
   setLockTime,
@@ -586,7 +587,7 @@ const ImportFromSeed = ({
   );
 };
 
-ImportFromSeed.propTypes = {
+ImportFromSecretRecoveryPhrase.propTypes = {
   /**
    * The navigator object
    */
@@ -620,4 +621,7 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
 });
 
-export default connect(null, mapDispatchToProps)(ImportFromSeed);
+export default connect(
+  null,
+  mapDispatchToProps,
+)(ImportFromSecretRecoveryPhrase);

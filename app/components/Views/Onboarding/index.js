@@ -54,6 +54,7 @@ import {
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -348,12 +349,17 @@ class Onboarding extends PureComponent {
     const action = async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
-        this.props.navigation.push('ImportFromSeed');
+        this.props.navigation.push(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        );
         this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
-            this.props.navigation.replace('ImportFromSeed');
+            this.props.navigation.replace(
+              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+            );
+            this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
             this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
           },
         });
