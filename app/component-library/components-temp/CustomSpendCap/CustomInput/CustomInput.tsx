@@ -61,7 +61,7 @@ const CustomInput = ({
           style={styles.maxValueText}
           onPress={handleMaxPress}
         >
-          {strings('contract_allowance.custom_spend_cap.max')}
+          {strings('confirmation.custom_spend_cap.max')}
         </Text>
       )}
     </View>

@@ -79,12 +79,12 @@ const CustomSpendCap = ({
       <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
-      {strings('contract_allowance.custom_spend_cap.from_your_balance')}
+      {strings('confirmation.custom_spend_cap.from_your_balance')}
     </>
   );
 
   const NO_SELECTED = strings(
-    'contract_allowance.custom_spend_cap.no_value_selected',
+    'confirmation.custom_spend_cap.no_value_selected',
     { domain },
   );
 
@@ -98,7 +98,7 @@ const CustomSpendCap = ({
       <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(dappValue)} ${ticker} `}
       </Text>
-      {strings('contract_allowance.custom_spend_cap.future_tokens')}
+      {strings('confirmation.custom_spend_cap.future_tokens')}
     </>
   );
 
@@ -112,7 +112,7 @@ const CustomSpendCap = ({
       <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(difference)} ${ticker} `}
       </Text>
-      {strings('contract_allowance.custom_spend_cap.future_tokens')}
+      {strings('confirmation.custom_spend_cap.future_tokens')}
     </>
   );
 
@@ -147,12 +147,11 @@ const CustomSpendCap = ({
             <Text>
               {defaultValueSelected
                 ? strings(
-                    'contract_allowance.custom_spend_cap.info_modal_description_default',
+                    'confirmation.custom_spend_cap.info_modal_description_default',
                   )
-                : strings(
-                    'contract_allowance.custom_spend_cap.no_value_selected',
-                    { domain },
-                  )}
+                : strings('confirmation.custom_spend_cap.no_value_selected', {
+                    domain,
+                  })}
             </Text>
           }
           toggleModal={toggleModal}
@@ -161,7 +160,7 @@ const CustomSpendCap = ({
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyMDBold} style={styles.title}>
-            {strings('contract_allowance.custom_spend_cap.title')}
+            {strings('confirmation.custom_spend_cap.title')}
           </Text>
           <Pressable onPress={toggleModal}>
             <Icon
