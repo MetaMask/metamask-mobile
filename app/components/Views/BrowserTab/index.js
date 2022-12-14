@@ -239,8 +239,8 @@ export const BrowserTab = (props) => {
    * Is the current tab the active tab
    */
   const isTabActive = useCallback(
-    () => props.activeTab === props.id,
-    [props.activeTab, props.id],
+    () => props.isAlwaysActive || props.activeTab === props.id,
+    [props.activeTab, props.id, props.isAlwaysActive],
   );
 
   /**
@@ -942,6 +942,7 @@ export const BrowserTab = (props) => {
           wizardScrollAdjusted,
           tabId: props.id,
           injectHomePageScripts,
+          isWalletConnect: props.accountsAlwaysConnected,
         }),
       isMainFrame,
     });
@@ -1362,7 +1363,7 @@ export const BrowserTab = (props) => {
         {renderProgressBar()}
         {isTabActive() && renderPhishingModal()}
         {isTabActive() && renderOptions()}
-        {isTabActive() && renderBottomBar()}
+        {!props.hideControls && isTabActive() && renderBottomBar()}
         {isTabActive() && renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
@@ -1475,6 +1476,9 @@ BrowserTab.propTypes = {
    * the current version of the app
    */
   app_version: PropTypes.string,
+  hideControls: PropTypes.bool,
+  isAlwaysActive: PropTypes.bool,
+  accountsAlwaysConnected: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {

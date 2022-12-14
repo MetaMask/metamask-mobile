@@ -52,6 +52,7 @@ interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
+  accountsAlwaysConnected: boolean;
 }
 
 export const checkActiveAccountAndChainId = ({
@@ -135,6 +136,7 @@ export const getRpcMethodMiddleware = ({
   injectHomePageScripts,
   // For analytics
   analytics,
+  accountsAlwaysConnected,
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -147,7 +149,10 @@ export const getRpcMethodMiddleware = ({
         Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 
       const isEnabled =
-        isWalletConnect || !privacyMode || getApprovedHosts()[hostname];
+        accountsAlwaysConnected ||
+        isWalletConnect ||
+        !privacyMode ||
+        getApprovedHosts()[hostname];
 
       return isEnabled && selectedAddress ? [selectedAddress] : [];
     };
@@ -251,6 +256,7 @@ export const getRpcMethodMiddleware = ({
         selectedAddress = selectedAddress?.toLowerCase();
 
         if (
+          accountsAlwaysConnected ||
           isWalletConnect ||
           !privacyMode ||
           ((!params || !params.force) && getApprovedHosts()[hostname])
