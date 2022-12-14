@@ -728,6 +728,8 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
+        // eslint-disable-next-line no-console
+        console.log('[RpcMethodMiddleware LOG] metamask_getProviderState');
         res.result = {
           ...getProviderState(),
           accounts: isMMSDK
