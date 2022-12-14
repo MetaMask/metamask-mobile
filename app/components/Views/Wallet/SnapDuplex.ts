@@ -26,7 +26,13 @@ export abstract class SnapDuplex extends Duplex {
   }
 
   protected _onData(data: StreamData): void {
-    console.log('MESSAGE FROM', this._jobId, data);
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SNAP DUPLEX LOG] SnapDuplex+_onData: Job',
+      this._jobId,
+      'read data',
+      data,
+    );
     if (data.jobId !== this._jobId) {
       return;
     }
@@ -44,14 +50,22 @@ export abstract class SnapDuplex extends Duplex {
   }
 
   _write(data: StreamData, _encoding: string | null, cb: () => void): void {
-    console.log('MESSAGE TO', this._jobId, Object.keys(data.data));
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SNAP DUPLEX LOG] SnapDuplex+_write: Job',
+      this._jobId,
+      'write data (keys)',
+      Object.keys(data.data),
+    );
     this._stream.write({ data, jobId: this._jobId });
     cb();
   }
 
   destroy() {
-    console.log('Destroy SnapDuplex');
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SNAP DUPLEX LOG] SnapDuplex+destroy: Destroy stream from SnapDuplex',
+    );
     this._stream.destroy();
-    console.log(!!this._stream);
   }
 }
