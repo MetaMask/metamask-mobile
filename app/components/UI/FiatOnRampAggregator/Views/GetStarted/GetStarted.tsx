@@ -1,54 +1,23 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Image, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import TextJS from '../../../Base/Text';
-import StyledButton from '../../StyledButton';
-import ScreenLayout from '../components/ScreenLayout';
-import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { useFiatOnRampSDK } from '../sdk';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
+import TextJS from '../../../../Base/Text';
+import StyledButton from '../../../StyledButton';
+import ScreenLayout from '../../components/ScreenLayout';
+import { getFiatOnRampAggNavbar } from '../../../Navbar';
+import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
+import { useFiatOnRampSDK } from '../../sdk';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import Routes from '../../../../../constants/navigation/Routes';
+import useAnalytics from '../../hooks/useAnalytics';
+import styles from './GetStarted.styles';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const getStartedIcon = require('../components/images/WalletInfo.png');
+const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
-
-const styles = StyleSheet.create({
-  listItem: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 14,
-  },
-  description: {
-    marginVertical: 5,
-  },
-  icon: {
-    alignSelf: 'flex-start',
-    fontSize: 28,
-    marginTop: 1,
-    textAlign: 'center',
-  },
-  getStartedImageWrapper: { flexDirection: 'row', justifyContent: 'center' },
-  getStartedImage: {
-    marginTop: 80,
-  },
-  ctaWrapper: {
-    marginBottom: 30,
-    marginTop: 20,
-  },
-  marginTop: {
-    marginTop: 15,
-  },
-  caption: {
-    marginVertical: 22,
-  },
-});
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();

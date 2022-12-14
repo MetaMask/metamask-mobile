@@ -1,0 +1,130 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GetStarted should render correctly 1`] = `
+<ScreenLayout>
+  <Body>
+    <Content>
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "justifyContent": "center",
+          }
+        }
+      >
+        <Image
+          resizeMethod="auto"
+          source={
+            Object {
+              "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
+            }
+          }
+          style={
+            Object {
+              "marginTop": 80,
+            }
+          }
+        />
+      </View>
+    </Content>
+    <Content>
+      <Text
+        bigger={false}
+        black={false}
+        blue={false}
+        bold={true}
+        centered={true}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        muted={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={
+          Object {
+            "marginTop": 15,
+          }
+        }
+        underline={false}
+        upper={false}
+      >
+        Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.
+      </Text>
+      <Text
+        bigger={false}
+        black={false}
+        blue={false}
+        bold={true}
+        centered={true}
+        disclaimer={false}
+        green={false}
+        link={false}
+        modal={false}
+        muted={false}
+        primary={false}
+        red={false}
+        reset={false}
+        right={false}
+        small={false}
+        strikethrough={false}
+        style={
+          Object {
+            "marginVertical": 22,
+          }
+        }
+        underline={false}
+        upper={false}
+      >
+        Less gas fees to pay, and numerous networks, tokens, and payment methods supported
+      </Text>
+    </Content>
+  </Body>
+  <Footer>
+    <Content>
+      <View
+        style={
+          Object {
+            "marginBottom": 30,
+            "marginTop": 20,
+          }
+        }
+      >
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="confirm"
+        >
+          Get started
+        </StyledButton>
+      </View>
+    </Content>
+  </Footer>
+</ScreenLayout>
+`;
+
+exports[`GetStarted should render correctly when getStarted is true 1`] = `<ScreenLayout />`;
+
+exports[`GetStarted should render correctly when sdkError is present 1`] = `
+<ScreenLayout>
+  <Body>
+    <ErrorViewWithReporting
+      error={[Error: sdkError]}
+      location="Get Started Screen"
+    />
+  </Body>
+</ScreenLayout>
+`;
