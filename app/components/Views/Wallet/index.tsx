@@ -384,14 +384,12 @@ const Wallet = ({ navigation }: any) => {
 
   const installSnap = async (url: string): Promise<void> => {
     const { SnapController } = Engine.context as any;
-    await installTestSnap({ snapController: SnapController, url });
+    await installTestSnap({ snapController: SnapController, snapId: url });
   };
 
   const executeTestSnap = async () => {
     // eslint-disable-next-line no-console
     const { SnapController } = Engine.context as any;
-    console.log('Current snaps', SnapController.internalState.snaps);
-    console.log('LOG: executeTestSnap');
     const localSnap = 'local:http://localhost:3000/snap/';
     const origin = 'origin';
     const result = await SnapController.handleRequest({
