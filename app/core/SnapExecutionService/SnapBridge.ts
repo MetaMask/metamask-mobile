@@ -48,12 +48,16 @@ export default class SnapBridge {
     connectionStream,
     getRPCMethodMiddleware,
   }: ISnapBridgeProps) {
-    console.log('SnapBridge constructor', snapId, !!connectionStream);
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SNAP BRODGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
+      snapId,
+    );
     this.snapId = snapId;
     this.stream = connectionStream;
     this.getRPCMethodMiddleware = getRPCMethodMiddleware;
 
-    const { NetworkController, PreferencesController } = Engine.context as any;
+    const { NetworkController } = Engine.context as any;
 
     const provider = NetworkController.provider;
     const blockTracker = provider._blockTracker;
@@ -96,7 +100,8 @@ export default class SnapBridge {
   }
 
   setupProviderConnection = () => {
-    console.log('method setupProviderConnection');
+    // eslint-disable-next-line no-console
+    console.log('[SNAP BRODGE LOG] Engine+setupProviderConnection');
     const outStream = this.#mux.createStream('metamask-provider');
     const engine = this.setupProviderEngine();
     const providerStream = createEngineStream({ engine });
