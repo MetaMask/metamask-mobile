@@ -335,7 +335,7 @@ const Wallet = ({ navigation }: any) => {
     });
 
     // eslint-disable-next-line no-console
-    stream.on('data', (data) => console.log('Message from webview ', !!data));
+    stream.on('data', (data) => console.log('Message from webview ' + data));
 
     snapsState.stream = stream;
     snapsState.webview = webviewRef.current;
