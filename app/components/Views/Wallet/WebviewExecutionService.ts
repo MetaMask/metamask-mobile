@@ -51,7 +51,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
   protected _terminate(jobWrapper: Job<Window>): void {
     // eslint-disable-next-line no-console
     console.log(
-      'This method should a command to the WebView to teardown the iframe for the job with ID',
+      'TO DO: This method should send a command to the WebView to teardown the iframe for the job with ID',
       jobWrapper.id,
     );
   }
