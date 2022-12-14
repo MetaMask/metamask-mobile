@@ -485,14 +485,11 @@ class Send extends PureComponent {
   /**
    * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
    */
-  removeCollectible = () => {
+  removeNft = () => {
     const { selectedAsset, assetType, providerType } = this.props.transaction;
     if (assetType === 'ERC721' && providerType !== MAINNET) {
-      const { CollectiblesController } = Engine.context;
-      CollectiblesController.removeCollectible(
-        selectedAsset.address,
-        selectedAsset.tokenId,
-      );
+      const { NftController } = Engine.context;
+      NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);
     }
   };
 
@@ -591,7 +588,7 @@ class Send extends PureComponent {
           ...transactionMeta,
           assetType: transaction.assetType,
         });
-        this.removeCollectible();
+        this.removeNft();
       });
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {

@@ -58,6 +58,7 @@ import Toast, {
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -117,6 +118,7 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 

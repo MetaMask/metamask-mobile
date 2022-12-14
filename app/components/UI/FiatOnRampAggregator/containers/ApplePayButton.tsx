@@ -1,9 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order, QuoteResponse } from '@consensys/on-ramp-sdk';
 import { protectWalletModalNotVisible } from '../../../../actions/user';
-import { addFiatOrder } from '../../../../reducers/fiatOrders';
+import {
+  addAuthenticationUrl,
+  addFiatOrder,
+} from '../../../../reducers/fiatOrders';
 import ApplePayButtonComponent from '../components/ApplePayButton';
 import useApplePay, { ABORTED } from '../hooks/applePay';
 import useAnalytics from '../hooks/useAnalytics';
@@ -14,19 +17,14 @@ import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
 import NotificationManager from '../../../../core/NotificationManager';
 import { hexToBN } from '../../../../util/number';
-import WebView, { WebViewNavigation } from 'react-native-webview';
 import { useFiatOnRampSDK } from '../sdk';
 
-function buildAuthenticationUrl(
-  url: string,
-  successUrl: string,
-  failureUrl: string,
-) {
+function buildAuthenticationUrl(url: string, redirectUrl: string) {
   const urlObject = new URL(url);
   const searchParams = urlObject.searchParams;
   searchParams.set('autoRedirect', 'true');
-  searchParams.set('redirectUrl', successUrl);
-  searchParams.set('failureRedirectUrl', failureUrl);
+  searchParams.set('redirectUrl', redirectUrl);
+  searchParams.set('failureRedirectUrl', redirectUrl);
   return urlObject.toString();
 }
 
@@ -49,18 +47,6 @@ const ApplePayButton = ({
 
   const [pay] = useApplePay(quote);
   const lockTime = useSelector((state: any) => state.settings.lockTime);
-
-  const [hasRedirected, setHasRedirected] = useState(false);
-  const [authorizationResult, setAuthorizationResult] =
-    useState<
-      Extract<
-        Awaited<ReturnType<typeof pay>>,
-        Partial<{ authenticationUrl: string }>
-      >
-    >();
-
-  const successUrl = callbackBaseUrl + '?success';
-  const failureUrl = callbackBaseUrl + '?failure';
 
   const addOrder = useCallback(
     (order) => dispatch(addFiatOrder(order)),
@@ -109,35 +95,6 @@ const ApplePayButton = ({
     ],
   );
 
-  const handleNavigationStateChange = useCallback(
-    async (navState: WebViewNavigation) => {
-      if (
-        navState.url.startsWith(callbackBaseUrl) &&
-        navState.loading === false
-      ) {
-        if (!hasRedirected) {
-          setHasRedirected(true);
-          if (navState.url.includes(successUrl)) {
-            authorizationResult?.onPaymentSuccess?.();
-          } else if (navState.url.includes(failureUrl)) {
-            authorizationResult?.onPaymentFailure?.();
-          }
-          if (authorizationResult?.order) {
-            handleSuccessfulOrder(authorizationResult.order);
-          }
-        }
-      }
-    },
-    [
-      authorizationResult,
-      callbackBaseUrl,
-      failureUrl,
-      handleSuccessfulOrder,
-      hasRedirected,
-      successUrl,
-    ],
-  );
-
   const handlePress = useCallback(async () => {
     const prevLockTime = lockTime;
     dispatch(setLockTime(-1));
@@ -147,18 +104,12 @@ const ApplePayButton = ({
         if (paymentResult.authenticationUrl) {
           const authenticationUrl = buildAuthenticationUrl(
             paymentResult.authenticationUrl,
-            successUrl,
-            failureUrl,
+            callbackBaseUrl,
           );
-          setAuthorizationResult({
-            authenticationUrl,
-            order: paymentResult.order,
-            onPaymentSuccess: paymentResult.onPaymentSuccess,
-            onPaymentFailure: paymentResult.onPaymentFailure,
-          });
-        } else if (paymentResult.order) {
-          handleSuccessfulOrder(paymentResult.order);
+          dispatch(addAuthenticationUrl(authenticationUrl));
         }
+
+        handleSuccessfulOrder(paymentResult.order);
       }
     } catch (error: any) {
       NotificationManager.showSimpleNotification({
@@ -177,27 +128,12 @@ const ApplePayButton = ({
     lockTime,
     dispatch,
     pay,
-    successUrl,
-    failureUrl,
+    callbackBaseUrl,
     handleSuccessfulOrder,
     quote.crypto?.symbol,
   ]);
 
-  return (
-    <>
-      {authorizationResult?.authenticationUrl ? (
-        /*
-         * WebView is used to redirect to the authenticationUrl
-         * but is not visible to the user
-         * */
-        <WebView
-          source={{ uri: authorizationResult.authenticationUrl }}
-          onNavigationStateChange={handleNavigationStateChange}
-        />
-      ) : null}
-      <ApplePayButtonComponent label={label} onPress={handlePress} />
-    </>
-  );
+  return <ApplePayButtonComponent label={label} onPress={handlePress} />;
 };
 
 export default ApplePayButton;
