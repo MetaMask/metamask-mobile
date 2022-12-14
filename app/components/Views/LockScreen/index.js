@@ -123,7 +123,7 @@ class LockScreen extends PureComponent {
 
   lock = async () => {
     await Authentication.lockApp();
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
   };
 
   async unlockKeychain() {
@@ -145,7 +145,7 @@ class LockScreen extends PureComponent {
           params: { screen: 'Onboarding' },
         });
       }
-      this.props.navigation.replace('HomeNav');
+      this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (error) {
       if (this.unlockAttempts <= 3) {
         this.unlockKeychain();

@@ -312,10 +312,10 @@ class Login extends PureComponent {
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
-        this.props.navigation.replace('HomeNav');
+        this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       } else {
         this.props.setOnboardingWizardStep(1);
-        this.props.navigation.replace('HomeNav');
+        this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       }
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       this.setState({
@@ -368,7 +368,7 @@ class Login extends PureComponent {
       await Authentication.appTriggeredAuth(this.props.selectedAddress);
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
-      this.props.navigation.replace('HomeNav');
+      this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       this.setState({
         loading: false,
