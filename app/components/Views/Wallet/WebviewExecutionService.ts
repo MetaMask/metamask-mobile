@@ -36,7 +36,10 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     stream: BasePostMessageStream;
   }> {
     // eslint-disable-next-line no-console
-    console.log('------------ [INIT ENV STREAM] ------------. Data:', jobId);
+    console.log(
+      '[EXEC SERVICE LOG] WebviewExecutionService+_initEnvStream: Init env stream for job',
+      jobId,
+    );
     const iframeWindow = snapsState.webview;
     const stream = snapsState.stream;
 
