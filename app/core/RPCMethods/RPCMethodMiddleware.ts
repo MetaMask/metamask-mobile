@@ -634,7 +634,6 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
-        console.log('========> metamask_getProviderState');
         res.result = {
           ...getProviderState(),
           accounts: await getAccounts(),
