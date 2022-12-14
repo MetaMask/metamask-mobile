@@ -61,6 +61,7 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
       target: this._target,
       data,
     };
+    // console.log('WebviewPostMessageStream', JSON.stringify(message.data.data));
     this._targetWindow.postMessage(JSON.stringify(message), this._targetOrigin);
   }
 
@@ -71,8 +72,9 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
     this._onData(data.data);
   }
 
-  _destroy(): void {
+  destroy(): void {
     // eslint-disable-next-line no-console
+    console.log('WebviewPostMessageStream - method destroy');
     console.log('destroy');
   }
 }
