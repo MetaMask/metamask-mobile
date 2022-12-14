@@ -1,25 +1,25 @@
+// eslint-disable-next-line no-unused-vars
 /* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBook from '../screen-objects/AddressBook';
-import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import Contacts from '../screen-objects/Contacts';
+import Helper from '../helpers/Helper.js';
 
-Then(/^I enter a contract address "([^"]*)?" in the sender's input box/, async (address) => {
+Given(/^I enter a contract address "([^"]*)?" in the sender's input box/, async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
 });
 
-Then(/^I should see a warning message "([^"]*)?"/, async (message) => {
+Given(/^I should see a warning message "([^"]*)?"/, async (message) => {
     await SendScreen.isSendWarningMessageVisible(message);
 });
 
-Then(/^I see a button with text "([^"]*)?"/, async (text) => {
+When(/^I see a button with text "([^"]*)?"/, async (text) => {
     await SendScreen.isTextVisible(text);
 });
 
 Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
-    const wait = 500;
-    await driver.pause(wait);
+    await Helper.driverTimeout(500);
     await SendScreen.tapOnText(text);
 });
 
@@ -93,8 +93,7 @@ Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
 });
 
 Then(/I tap on Edit button to edit Saved contact details/, async () => {
-    const wait = 500;
-    await driver.pause(wait);
+    await Helper.driverTimeout();
     await Contacts.tapOnEditButton();
 });
 
@@ -103,8 +102,7 @@ Then(/I can edit the contact name to "([^"]*)?"/, async (name) => {
 });
 
 Then(/^I tap the Edit Contact button which is enabled to confirm the change/, async () => {
-    await Contacts.tapOnEditContactConfirmButton();
-    await Contacts.tapOnAddContactButton();
+    await Contacts.tapOnAddContactButton();// same Id as Edit Contact button
 });
 
 Then(/^I return to the send flow/, async (text) => {
@@ -133,8 +131,7 @@ Then(/^I navigate back to main wallet screen/, async () => {
 });
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
-    const wait = 500;
-    await driver.pause(wait);
+    await Helper.driverTimeout();
     await SendScreen.tapOnText(text);
 });
 

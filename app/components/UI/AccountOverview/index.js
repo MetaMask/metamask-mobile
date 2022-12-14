@@ -8,7 +8,6 @@ import {
   View,
   TouchableOpacity,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
@@ -47,7 +46,6 @@ import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { SEND_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

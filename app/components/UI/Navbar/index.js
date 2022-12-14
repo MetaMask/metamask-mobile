@@ -993,7 +993,6 @@ export function getWalletNavbarOptions(
       <TouchableOpacity
         onPress={openDrawer}
         style={styles.backButton}
-        //testID={'hamburger-menu-button-wallet'}
         {...generateTestId(Platform, HAMBURGER_MENU_BUTTON)}
       >
         <IonicIcon

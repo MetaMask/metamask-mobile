@@ -11,11 +11,11 @@ import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal';
+import Helper from '../helpers/Helper.js';
 
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const wait = 10000;
-  await driver.pause(wait);
+  await Helper.driverTimeout(10000);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.tapIAgreeButton();
@@ -28,8 +28,7 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.isVisible();
-  const wait = 1000;
-  await driver.pause(wait);
+  await Helper.driverTimeout();
   await OnboardingWizardModal.tapNoThanksButton();
 });
 
@@ -98,8 +97,7 @@ When(/^I should see the added network name "([^"]*)?" in the top navigation bar/
 });
 
 Then(/^I tap on the burger menu/, async () => {
-  const wait = 1000;
-  await driver.pause(wait);
+  await Helper.driverTimeout();
   await WalletMainScreen.tapBurgerButton();
 });
 
@@ -115,8 +113,7 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  const wait = 2000;
-  await driver.pause(wait);
+  await Helper.driverTimeout();
 });
 
 Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
@@ -193,8 +190,7 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
-  const wait = 1500;
-  await driver.pause(wait);
+  await Helper.driverTimeout();
   await NetworkSwitchModal.confirmNetworkSwitch();
 });
 
@@ -246,16 +242,14 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
 
 Then(/^I navigate back to the main wallet view/, async () => {
   await NetworksScreen.tapBackButtonInNewScreen();
-  const wait = 1000;
-  await driver.pause(wait);
+  await Helper.driverTimeout();
   await NetworksScreen.tapBackButtonInNewScreen();
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  const wait = 2000;
-  await driver.pause(wait);
+  await Helper.driverTimeout();
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(wait);
+  await Helper.driverTimeout();
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
