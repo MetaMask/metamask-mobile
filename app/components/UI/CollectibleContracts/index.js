@@ -26,8 +26,8 @@ import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
-import { isMainNet } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
+import { MAINNET } from '../../../constants/network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -89,12 +89,13 @@ const createStyles = (colors) =>
 const CollectibleContracts = ({
   selectedAddress,
   chainId,
+  networkType,
   navigation,
   collectibleContracts,
   collectibles,
   favoriteCollectibles,
   removeFavoriteCollectible,
-  useCollectibleDetection,
+  useNftDetection,
   setNftDetectionDismissed,
   nftDetectionDismissed,
 }) => {
@@ -124,13 +125,13 @@ const CollectibleContracts = ({
    * @param tokenId - Collectible token ID.
    */
   const updateCollectibleMetadata = (collectible) => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
     const { address, tokenId } = collectible;
-    CollectiblesController.removeCollectible(address, tokenId);
+    NftController.removeNft(address, tokenId);
     if (String(tokenId).includes('e+')) {
       removeFavoriteCollectible(selectedAddress, chainId, collectible);
     } else {
-      CollectiblesController.addCollectible(address, String(tokenId));
+      NftController.addNft(address, String(tokenId));
     }
   };
 
@@ -253,16 +254,14 @@ const CollectibleContracts = ({
 
   return (
     <View style={styles.wrapper} testID={'collectible-contracts'}>
-      {isMainNet(chainId) &&
-        !nftDetectionDismissed &&
-        !useCollectibleDetection && (
-          <View style={styles.emptyView}>
-            <CollectibleDetectionModal
-              onDismiss={dismissNftInfo}
-              navigation={navigation}
-            />
-          </View>
-        )}
+      {networkType === MAINNET && !nftDetectionDismissed && !useNftDetection && (
+        <View style={styles.emptyView}>
+          <CollectibleDetectionModal
+            onDismiss={dismissNftInfo}
+            navigation={navigation}
+          />
+        </View>
+      )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
       {renderFooter()}
     </View>
@@ -270,6 +269,10 @@ const CollectibleContracts = ({
 };
 
 CollectibleContracts.propTypes = {
+  /**
+   * Network type
+   */
+  networkType: PropTypes.string,
   /**
    * Chain id
    */
@@ -302,7 +305,7 @@ CollectibleContracts.propTypes = {
   /**
    * Boolean to show if NFT detection is enabled
    */
-  useCollectibleDetection: PropTypes.bool,
+  useNftDetection: PropTypes.bool,
   /**
    * Setter for NFT detection state
    */
@@ -314,11 +317,12 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
+  networkType: state.engine.backgroundState.NetworkController.provider.type,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   nftDetectionDismissed: state.user.nftDetectionDismissed,
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),

@@ -91,9 +91,9 @@ const initialState = {
       TokensController: {
         tokens: [],
       },
-      CollectiblesController: {
-        allCollectibles: { [CURRENT_ACCOUNT]: { '1': [] } },
-        allCollectibleContracts: { [CURRENT_ACCOUNT]: { '1': [] } },
+      NftController: {
+        allNfts: { [CURRENT_ACCOUNT]: { '1': [] } },
+        allNftContracts: { [CURRENT_ACCOUNT]: { '1': [] } },
       },
       TokenRatesController: {
         contractExchangeRates: {},

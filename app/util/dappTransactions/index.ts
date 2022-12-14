@@ -231,14 +231,12 @@ interface GasAnalyticsParams {
   dapp_url: string;
   active_currency: { value: string; anonymous: boolean };
   gas_estimate_type: string;
-  network_name: string;
 }
 
 export const getGasAnalyticsParams = (
   transaction: Transaction,
   activeTabUrl: string,
   gasEstimateType: string,
-  networkType: string,
 ): GasAnalyticsParams | Record<string, never> => {
   try {
     const { selectedAsset, origin } = transaction;
@@ -247,7 +245,6 @@ export const getGasAnalyticsParams = (
       dapp_url: activeTabUrl,
       active_currency: { value: selectedAsset?.symbol, anonymous: true },
       gas_estimate_type: gasEstimateType,
-      network_name: networkType,
     };
   } catch (error) {
     return {};

@@ -128,7 +128,6 @@ const wallet_addEthereumChain = async ({
       chain_id: _chainId,
       source: 'Custom Network API',
       symbol: existingNetwork?.ticker,
-      network_name: 'rpc',
       ...analytics,
     };
 
@@ -264,7 +263,6 @@ const wallet_addEthereumChain = async ({
     chain_id: chainIdDecimal,
     source: 'Custom Network API',
     symbol: ticker,
-    network_name: 'rpc',
     ...analytics,
   };
 
