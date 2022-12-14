@@ -1,6 +1,8 @@
 import { InteractionManager } from 'react-native';
+import DefaultPreference from 'react-native-default-preference';
 import Analytics from '../core/Analytics/Analytics';
 import Logger from './Logger';
+import { DENIED, METRICS_OPT_IN } from '../constants/storage';
 
 const generateOpt = (name) => ({ category: name });
 
@@ -218,53 +220,59 @@ export const ANALYTICS_EVENTS_V2 = {
  * @param {Object} params
  */
 export const trackEventV2 = (eventName, params) => {
-  InteractionManager.runAfterInteractions(() => {
-    let anonymousEvent = false;
-    try {
-      if (!params) {
-        Analytics.trackEvent(eventName);
-      }
+  const init = async () => {
+    const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+    if (metricsOptIn === DENIED) return;
 
-      const userParams = {};
-      const anonymousParams = {};
-
-      for (const key in params) {
-        const property = params[key];
-
-        if (
-          property &&
-          typeof property === 'object' &&
-          !Array.isArray(property)
-        ) {
-          if (property.anonymous) {
-            anonymousEvent = true;
-            // Anonymous property - add only to anonymous params
-            anonymousParams[key] = property.value;
-          } else {
-            // Non-anonymous property - add to both
-            userParams[key] = property.value;
-            anonymousParams[key] = property.value;
-          }
-        } else {
-          // Non-anonymous properties - add to both
-          userParams[key] = property;
-          anonymousParams[key] = property;
+    InteractionManager.runAfterInteractions(() => {
+      let anonymousEvent = false;
+      try {
+        if (!params) {
+          Analytics.trackEvent(eventName);
         }
-      }
 
-      // Log all non-anonymous properties
-      if (Object.keys(userParams).length) {
-        Analytics.trackEventWithParameters(eventName, userParams);
-      }
+        const userParams = {};
+        const anonymousParams = {};
 
-      // Log all anonymous properties
-      if (anonymousEvent && Object.keys(anonymousParams).length) {
-        Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        for (const key in params) {
+          const property = params[key];
+
+          if (
+            property &&
+            typeof property === 'object' &&
+            !Array.isArray(property)
+          ) {
+            if (property.anonymous) {
+              anonymousEvent = true;
+              // Anonymous property - add only to anonymous params
+              anonymousParams[key] = property.value;
+            } else {
+              // Non-anonymous property - add to both
+              userParams[key] = property.value;
+              anonymousParams[key] = property.value;
+            }
+          } else {
+            // Non-anonymous properties - add to both
+            userParams[key] = property;
+            anonymousParams[key] = property;
+          }
+        }
+
+        // Log all non-anonymous properties
+        if (Object.keys(userParams).length) {
+          Analytics.trackEventWithParameters(eventName, userParams);
+        }
+
+        // Log all anonymous properties
+        if (anonymousEvent && Object.keys(anonymousParams).length) {
+          Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        }
+      } catch (error) {
+        Logger.error(error, 'Error logging analytics');
       }
-    } catch (error) {
-      Logger.error(error, 'Error logging analytics');
-    }
-  });
+    });
+  };
+  init();
 };
 
 /**

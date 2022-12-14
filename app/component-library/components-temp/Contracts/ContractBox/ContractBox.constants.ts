@@ -18,3 +18,7 @@ export const CONTRACT_COPY_ADDRESS = () => {
 export const CONTRACT_EXPORT_ADDRESS = () => {
   console.log('export address');
 };
+
+export const CONTRACT_ON_PRESS = () => {
+  console.log('contract pressed');
+};

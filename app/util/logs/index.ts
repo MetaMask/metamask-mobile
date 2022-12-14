@@ -4,10 +4,10 @@ import Engine from '../../core/Engine';
 export const generateStateLogs = (state: any): string => {
   const fullState = JSON.parse(JSON.stringify(state));
 
-  delete fullState.engine.backgroundState.CollectiblesController;
+  delete fullState.engine.backgroundState.NftController;
   delete fullState.engine.backgroundState.TokensController;
   delete fullState.engine.backgroundState.TokenDetectionController;
-  delete fullState.engine.backgroundState.CollectibleDetectionController;
+  delete fullState.engine.backgroundState.NftDetectionController;
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
 

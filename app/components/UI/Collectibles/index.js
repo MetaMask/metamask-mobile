@@ -132,9 +132,9 @@ export default class Collectibles extends PureComponent {
   };
 
   refreshMetadata = () => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
 
-    CollectiblesController.addCollectible(
+    NftController.addNft(
       this.longPressedCollectible.current.address,
       this.longPressedCollectible.current.tokenId,
     );
@@ -142,15 +142,15 @@ export default class Collectibles extends PureComponent {
 
   handleMenuAction = (index) => {
     if (index === 1) {
-      this.removeCollectible();
+      this.removeNft();
     } else if (index === 0) {
       this.refreshMetadata();
     }
   };
 
-  removeCollectible = () => {
-    const { CollectiblesController } = Engine.context;
-    CollectiblesController.removeAndIgnoreCollectible(
+  removeNft = () => {
+    const { NftController } = Engine.context;
+    NftController.removeAndIgnoreNft(
       this.longPressedCollectible.address,
       this.longPressedCollectible.tokenId,
     );

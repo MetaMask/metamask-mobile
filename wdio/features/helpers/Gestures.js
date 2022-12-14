@@ -65,7 +65,7 @@ const Actions = {
   RELEASE: 'release',
 };
 
-class Gestures  {
+class Gestures {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
@@ -110,6 +110,15 @@ class Gestures  {
       default:
         throw new Error('Tap type not found');
     }
+  }
+
+  static async longPress(element, waitTime) {
+    const elem = await element;
+    (await elem).touchAction([
+      Actions.PRESS,
+      {action: Actions.WAIT, ms: waitTime},
+      Actions.RELEASE
+    ])
   }
 
   static async typeText(element, text) {
@@ -205,7 +214,7 @@ class Gestures  {
     const endPercentage = 0;
     const anchorPercentage = 50;
 
-    const { width, height } = await driver.getWindowSize();
+    const {width, height} = await driver.getWindowSize();
     const anchor = height * anchorPercentage / 100;
     const startPoint = width * startPercentage / 100;
     const endPoint = width * endPercentage / 100;
