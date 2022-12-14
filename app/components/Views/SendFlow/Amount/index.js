@@ -500,7 +500,7 @@ class Amount extends PureComponent {
    * @returns Promise that resolves ownershio as a boolean.
    */
   validateCollectibleOwnership = async () => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
     const {
       transactionState: {
         selectedAsset: { address, tokenId },
@@ -508,11 +508,7 @@ class Amount extends PureComponent {
       selectedAddress,
     } = this.props;
     try {
-      return await CollectiblesController.isCollectibleOwner(
-        selectedAddress,
-        address,
-        tokenId,
-      );
+      return await NftController.isNftOwner(selectedAddress, address, tokenId);
     } catch (e) {
       return false;
     }

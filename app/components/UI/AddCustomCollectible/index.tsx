@@ -137,8 +137,8 @@ const AddCustomCollectible = ({
    */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
     try {
-      const { CollectiblesController } = Engine.context as any;
-      const isOwner = await CollectiblesController.isCollectibleOwner(
+      const { NftController } = Engine.context as any;
+      const isOwner = await NftController.isNftOwner(
         selectedAddress,
         address,
         tokenId,
@@ -161,12 +161,12 @@ const AddCustomCollectible = ({
     }
   };
 
-  const addCollectible = async (): Promise<void> => {
+  const addNft = async (): Promise<void> => {
     if (!(await validateCustomCollectible())) return;
     if (!(await validateCollectibleOwnership())) return;
 
-    const { CollectiblesController } = Engine.context as any;
-    CollectiblesController.addCollectible(address, tokenId);
+    const { NftController } = Engine.context as any;
+    NftController.addNft(address, tokenId);
 
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED,
@@ -200,7 +200,7 @@ const AddCustomCollectible = ({
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
-        onConfirmPress={addCollectible}
+        onConfirmPress={addNft}
         confirmDisabled={!address && !tokenId}
       >
         <View>
@@ -244,7 +244,7 @@ const AddCustomCollectible = ({
               onBlur={validateCustomCollectibleTokenId}
               testID={'input-token-decimals'}
               ref={assetTokenIdInput}
-              onSubmitEditing={addCollectible}
+              onSubmitEditing={addNft}
               returnKeyType={'done'}
               placeholder={strings('collectible.id_placeholder')}
               placeholderTextColor={colors.text.muted}

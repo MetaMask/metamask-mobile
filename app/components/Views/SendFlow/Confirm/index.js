@@ -603,12 +603,9 @@ class Confirm extends PureComponent {
     } = this.props;
     const { fromSelectedAddress } = this.state;
     if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
-      const { CollectiblesController } = Engine.context;
+      const { NftController } = Engine.context;
       removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
-      CollectiblesController.removeCollectible(
-        selectedAsset.address,
-        selectedAsset.tokenId,
-      );
+      NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);
     }
   };
 

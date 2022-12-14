@@ -1,4 +1,5 @@
 import UntypedEngine from './Engine';
+import AppConstants from './AppConstants';
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
@@ -22,10 +23,10 @@ class EngineService {
       { name: 'AccountTrackerController' },
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
-      { name: 'CollectiblesController' },
+      { name: 'NftController' },
       { name: 'TokensController' },
       { name: 'TokenDetectionController' },
-      { name: 'CollectibleDetectionController' },
+      { name: 'NftDetectionController' },
       { name: 'KeyringController' },
       { name: 'AccountTrackerController' },
       { name: 'NetworkController' },
@@ -69,8 +70,15 @@ class EngineService {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () =>
         store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
-      if (!key) Engine.context[name].subscribe(update_bg_state_cb);
-      else Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
+      if (name !== 'NetworkController')
+        !key
+          ? Engine.context[name].subscribe(update_bg_state_cb)
+          : Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
+      else
+        Engine.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          update_bg_state_cb,
+        );
     });
   };
 }

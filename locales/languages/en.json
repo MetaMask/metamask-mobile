@@ -2225,5 +2225,22 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.",
     "primary_action": "Enable automatic security checks",
     "secondary_action": "No thanks"
+  },
+  "contract_allowance": {
+    "custom_spend_cap": {
+      "max": "Max",
+      "edit": "Edit",
+      "title": "Custom spending cap",
+      "use_default": "Use default",
+      "from_your_balance": "from your current balance.",
+      "no_value_selected": "Only enter a number that you're comfortable with {{domain}} accessing now or in the future. You can always increase the token limit later.",
+      "this_contract_allows": "This contract allows the site to spend",
+      "from_your_current_balance": "from your current balance plus",
+      "future_tokens": "you might have in the future. Your tokens may be at risk.",
+      "info_modal_description_default": "The contract could spend your entire token balance without further notice or consent. Protect yourself by setting a lower spending cap.",
+      "set_spend_cap": "Set a spending cap",
+      "be_careful": "Be careful",
+      "error_enter_number": "Error: Enter only numbers"
+    }
   }
-}
+} 
