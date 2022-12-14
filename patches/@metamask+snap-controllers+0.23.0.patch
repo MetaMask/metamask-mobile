@@ -1,5 +1,119 @@
+diff --git a/node_modules/@metamask/snap-controllers/dist/services/AbstractExecutionService.js b/node_modules/@metamask/snap-controllers/dist/services/AbstractExecutionService.js
+index 90e8295..73a2671 100644
+--- a/node_modules/@metamask/snap-controllers/dist/services/AbstractExecutionService.js
++++ b/node_modules/@metamask/snap-controllers/dist/services/AbstractExecutionService.js
+@@ -12,6 +12,8 @@ const nanoid_1 = require("nanoid");
+ const pump_1 = __importDefault(require("pump"));
+ const json_rpc_middleware_stream_1 = require("json-rpc-middleware-stream");
+ const utils_2 = require("../utils");
++import { v4 as uuidv4 } from 'uuid';
++
+ const controllerName = 'ExecutionService';
+ class AbstractExecutionService {
+     constructor({ setupSnapProvider, messenger, terminationTimeout = utils_1.Duration.Second, }) {
+@@ -52,8 +54,9 @@ class AbstractExecutionService {
+             jsonrpc: '2.0',
+             method: 'terminate',
+             params: [],
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+         }), this._terminationTimeout);
++        console.log('TERINATE', result)
+         if (result === utils_2.hasTimedOut || result !== 'OK') {
+             // We tried to shutdown gracefully but failed. This probably means the Snap is in infite loop and
+             // hogging down the whole JS process.
+@@ -62,8 +65,11 @@ class AbstractExecutionService {
+             //               JS process.
+             console.error(`Job "${jobId}" failed to terminate gracefully.`, result);
+         }
++        console.log({ jobWrapper: Object.keys(jobWrapper), streams: Object.keys(jobWrapper.streams) });
+         Object.values(jobWrapper.streams).forEach((stream) => {
++            console.log('stream ->', Object.keys(stream));
+             try {
++                console.log('Trying to destroy the stream', !!stream, stream.destroy)
+                 !stream.destroyed && stream.destroy();
+                 stream.removeAllListeners();
+             }
+@@ -84,7 +90,7 @@ class AbstractExecutionService {
+      * @returns Information regarding the created job.
+      */
+     async _initJob() {
+-        const jobId = (0, nanoid_1.nanoid)();
++        const jobId = uuidv4();
+         const { streams, worker } = await this._initStreams(jobId);
+         const rpcEngine = new json_rpc_engine_1.JsonRpcEngine();
+         const jsonRpcConnection = (0, json_rpc_middleware_stream_1.createStreamMiddleware)();
+@@ -97,6 +103,7 @@ class AbstractExecutionService {
+             worker,
+         };
+         this.jobs.set(jobId, envMetadata);
++        console.log('method _initJob - returns', Object.keys(envMetadata), { rpcEngine: envMetadata.rpcEngine })
+         return envMetadata;
+     }
+     /**
+@@ -108,6 +115,7 @@ class AbstractExecutionService {
+      * @returns The streams to communicate with the worker and the worker itself.
+      */
+     async _initStreams(jobId) {
++        console.log('method _initStreams')
+         const { worker, stream: envStream } = await this._initEnvStream(jobId);
+         // Typecast justification: stream type mismatch
+         const mux = setupMultiplex(envStream, `Job: "${jobId}"`);
+@@ -187,16 +195,18 @@ class AbstractExecutionService {
+      * @throws If the execution service returns an error.
+      */
+     async executeSnap(snapData) {
++        console.log('method executeSnap', this.snapToJobMap);
+         if (this.snapToJobMap.has(snapData.snapId)) {
+             throw new Error(`Snap "${snapData.snapId}" is already being executed.`);
+         }
+         const job = await this._initJob();
+         this._mapSnapAndJob(snapData.snapId, job.id);
+         // Ping the worker to ensure that it started up
++        
+         await this._command(job.id, {
+             jsonrpc: '2.0',
+             method: 'ping',
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+         });
+         const rpcStream = job.streams.rpc;
+         this.setupSnapProvider(snapData.snapId, rpcStream);
+@@ -204,7 +214,7 @@ class AbstractExecutionService {
+             jsonrpc: '2.0',
+             method: 'executeSnap',
+             params: snapData,
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+         });
+         this._createSnapHooks(snapData.snapId, job.id);
+         return result;
+@@ -217,11 +227,13 @@ class AbstractExecutionService {
+         if (!job) {
+             throw new Error(`Job with id "${jobId}" not found.`);
+         }
+-        console.log('Parent: Sending Command', message);
++        console.log('method _command - Get snap job');
++        // console.log('Parent: Sending Command', message);
+         const response = await job.rpcEngine.handle(message);
+         if (response.error) {
+             throw new Error(response.error.message);
+         }
++        // console.log({ response })
+         return response.result;
+     }
+     _removeSnapHooks(snapId) {
+@@ -230,7 +242,7 @@ class AbstractExecutionService {
+     _createSnapHooks(snapId, workerId) {
+         const rpcHook = async ({ origin, handler, request }) => {
+             return await this._command(workerId, {
+-                id: (0, nanoid_1.nanoid)(),
++                id: uuidv4(),
+                 jsonrpc: '2.0',
+                 method: 'snapRpc',
+                 params: {
 diff --git a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
-index eb7e9bf..7a98722 100644
+index eb7e9bf..35ae6fe 100644
 --- a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
 @@ -378,6 +378,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
@@ -37,7 +151,7 @@ index eb7e9bf..7a98722 100644
 +            console.log('method processRequestedSnap - _startSnap executed');
              const truncated = this.getTruncatedExpect(snapId);
 +
-+            console.log('method processRequestedSnap', { truncated });
++            console.log('method processRequestedSnap');
              this.messagingSystem.publish(`SnapController:snapInstalled`, truncated);
              return truncated;
          }
@@ -45,34 +159,42 @@ index eb7e9bf..7a98722 100644
              throw new Error(`Received invalid snap version range: "${newVersionRange}".`);
          }
          const newSnap = await this._fetchSnap(snapId, newVersionRange);
-+        console.log('method updateSnap - _fetchSnap executed', { newSnap });
++        console.log('method updateSnap - _fetchSnap executed');
          const newVersion = newSnap.manifest.version;
          if (!(0, snap_utils_1.gtVersion)(newVersion, snap.version)) {
              console.warn(`Tried updating snap "${snapId}" within "${newVersionRange}" version range, but newer version "${snap.version}" is already installed`);
-@@ -954,10 +964,19 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -950,16 +960,28 @@ class SnapController extends controllers_1.BaseControllerV2 {
+         }
+     }
+     async _startSnap(snapData) {
++        console.log('method _startSnap');
+         const { snapId } = snapData;
          if (this.isRunning(snapId)) {
              throw new Error(`Snap "${snapId}" is already started.`);
          }
 +
          try {
--            const result = await this._executeWithTimeout(snapId, this.messagingSystem.call('ExecutionService:executeSnap', Object.assign(Object.assign({}, snapData), { endowments: await this._getEndowments(snapId) })));
++            console.log('method _startSnap - try');
+             const result = await this._executeWithTimeout(snapId, this.messagingSystem.call('ExecutionService:executeSnap', Object.assign(Object.assign({}, snapData), { endowments: await this._getEndowments(snapId) })));
 -            this.transition(snapId, snap_utils_1.SnapStatusEvents.Start);
 -            return result;
-+            // const result = await this._executeWithTimeout(snapId, this.messagingSystem.call('ExecutionService:executeSnap', Object.assign(Object.assign({}, snapData), { endowments: await this._getEndowments(snapId) })));
-+            // console.log('result', result);
++            console.log('result', !!result);
 +            // this.transition(snapId, snap_utils_1.SnapStatusEvents.Start);
-+            const result = {
-+                sourceCode: snapData.sourceCode,
-+                id: snapData.snapId,
-+                enabled: true,
-+            }
++            // const result = {
++            //     sourceCode: snapData.sourceCode,
++            //     id: snapData.snapId,
++            //     enabled: true,
++            // }
 +
-+            const resolvePromise = () => Promise.resolves(result)
-+            return await resolvePromise;
++            // const resolvePromise = () => Promise.resolves(result)
++            return await result;
          }
          catch (err) {
++            console.log('method _startSnap - catch');
              await this.terminateSnap(snapId);
-@@ -978,8 +997,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
+             throw err;
+         }
+@@ -978,8 +1000,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
      async _getEndowments(snapId) {
          let allEndowments = [];
          for (const permissionName of this._environmentEndowmentPermissions) {
@@ -85,7 +207,7 @@ index eb7e9bf..7a98722 100644
                  if (endowments) {
                      // We don't have any guarantees about the type of the endowments
                      // value, so we have to guard at runtime.
-@@ -991,6 +1012,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -991,6 +1015,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
                  }
              }
          }
@@ -93,7 +215,7 @@ index eb7e9bf..7a98722 100644
          const dedupedEndowments = [
              ...new Set([...snap_utils_1.DEFAULT_ENDOWMENTS, ...allEndowments]),
          ];
-@@ -998,6 +1020,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -998,6 +1023,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
              snap_utils_1.DEFAULT_ENDOWMENTS.length + allEndowments.length) {
              console.error('Duplicate endowments found. Default endowments should not be requested.', allEndowments);
          }
@@ -101,7 +223,7 @@ index eb7e9bf..7a98722 100644
          return dedupedEndowments;
      }
      /**
-@@ -1073,8 +1096,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1073,8 +1099,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
              const snapPrefix = (0, snap_utils_1.getSnapPrefix)(snapId);
              switch (snapPrefix) {
                  case snap_utils_1.SnapIdPrefixes.local:
@@ -112,14 +234,14 @@ index eb7e9bf..7a98722 100644
                      return this._fetchNpmSnap(snapId.replace(snap_utils_1.SnapIdPrefixes.npm, ''), versionRange);
                  /* istanbul ignore next */
                  default:
-@@ -1108,16 +1133,19 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1108,16 +1136,19 @@ class SnapController extends controllers_1.BaseControllerV2 {
          if (!snap_utils_1.LOCALHOST_HOSTNAMES.has(manifestUrl.hostname)) {
              throw new Error(`Invalid URL: Locally hosted Snaps must be hosted on localhost. Received URL: "${manifestUrl.toString()}"`);
          }
 -        const manifest = await (await this._fetchFunction(manifestUrl.toString(), fetchOptions)).json();
 +
 +        const manifest = await (await this._fetchFunction('GET', manifestUrl.toString(), fetchOptions)).json();
-+        console.log('method _fetchLocalSnap -', { manifest });
++        console.log('method _fetchLocalSnap -',);
          (0, snap_utils_1.assertIsSnapManifest)(manifest);
          const { source: { location: { npm: { filePath, iconPath }, }, }, } = manifest;
 +        console.log('method _fetchLocalSnap -', { sourceCodePath: new URL(filePath, localhostUrl).toString(), icon: new URL(iconPath, localhostUrl).toString() })
@@ -136,7 +258,7 @@ index eb7e9bf..7a98722 100644
          return { manifest, sourceCode, svgIcon };
      }
      /**
-@@ -1232,9 +1260,9 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1232,9 +1263,10 @@ class SnapController extends controllers_1.BaseControllerV2 {
              if (this.state.snaps[snapId].enabled === false) {
                  throw new Error(`Snap "${snapId}" is disabled.`);
              }
@@ -146,10 +268,11 @@ index eb7e9bf..7a98722 100644
 +            // if (this.state.snaps[snapId].status === snap_utils_1.SnapStatus.Installing) {
 +            //     throw new Error(`Snap "${snapId}" is currently being installed. Please try again later.`);
 +            // }
++            console.log('isRunning', this.isRunning(snapId));
              if (this.isRunning(snapId) === false) {
                  let localStartPromise = startPromises.get(snapId);
                  if (!localStartPromise) {
-@@ -1271,8 +1299,11 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1271,8 +1303,11 @@ class SnapController extends controllers_1.BaseControllerV2 {
              const handleRpcRequestPromise = this.messagingSystem.call('ExecutionService:handleRpcRequest', snapId, { origin, handler: handlerType, request: _request });
              // This will either get the result or reject due to the timeout.
              try {
@@ -161,7 +284,7 @@ index eb7e9bf..7a98722 100644
                  return result;
              }
              catch (err) {
-@@ -1294,9 +1325,9 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1294,9 +1329,9 @@ class SnapController extends controllers_1.BaseControllerV2 {
       * @template PromiseValue - The value of the Promise.
       */
      async _executeWithTimeout(snapId, promise, timer) {
