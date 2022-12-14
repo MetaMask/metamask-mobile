@@ -55,7 +55,6 @@ import WebviewExecutionService from '../components/Views/Wallet/WebviewExecution
 import { SnapBridge } from './SnapExecutionService';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 
-
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
@@ -289,24 +288,6 @@ class Engine {
           RNFetchBlob,
         ),
       });
-
-      setTimeout(async () => {
-        // const snapId = 'npm:@metamask/test-snap-bip44';
-        // const localSnap = 'local:http://localhost:3000/snap/';
-        // const origin = 'origin';
-        // await snapController.installSnaps(origin, { [localSnap]: {} });
-        // const result = await snapController.handleRequest({
-        //   localSnap,
-        //   origin,
-        //   handler: 'onRpcRequest',
-        //   request: { method: 'foo', params: { bar: 'qux' } },
-        // });
-        // // eslint-disable-next-line no-console
-        // console.log(result);
-      }, 5000);
-
-      // eslint-disable-next-line no-console
-      // console.log(snapController);
 
       const additionalKeyrings = [QRHardwareKeyring];
 
