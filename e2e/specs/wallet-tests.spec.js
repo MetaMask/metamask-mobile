@@ -9,6 +9,7 @@ import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
 import ImportAccountView from '../pages/ImportAccountView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
 import SendView from '../pages/SendView';
@@ -27,12 +28,11 @@ const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
 const PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
-const RINKEBY = 'Rinkeby Test Network';
 const GOERLI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 const COLLECTIBLE_CONTRACT_ADDRESS =
-  '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
-const COLLECTIBLE_IDENTIFIER = '404';
+  '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
+const COLLECTIBLE_IDENTIFIER = '179';
 const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
@@ -62,6 +62,12 @@ describe('Wallet Tests', () => {
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on the close button to dismiss the whats new modal', async () => {
@@ -148,11 +154,11 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
   });
 
-  it('should switch to Rinkeby network', async () => {
+  it('should switch to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(RINKEBY);
-    await WalletView.isNetworkNameVisible(RINKEBY);
+    await NetworkListModal.changeNetwork(GOERLI);
+    await WalletView.isNetworkNameVisible(GOERLI);
   });
 
   it('should dismiss network education modal', async () => {
@@ -189,11 +195,11 @@ describe('Wallet Tests', () => {
     // Wait for asset to load
     await TestHelpers.delay(3000);
     // Check that the crypto kitty was added
-    await WalletView.isNFTVisibleInWallet('CryptoKitties');
+    await WalletView.isNFTVisibleInWallet('Refinable721');
     // Tap on Crypto Kitty
-    await WalletView.tapOnNFTInWallet('CryptoKitties');
+    await WalletView.tapOnNFTInWallet('Refinable721');
 
-    await WalletView.isNFTNameVisible('1 CryptoKitties');
+    await WalletView.isNFTNameVisible('Refinable721 #179');
   });
 
   it('should switch back to Mainnet network', async () => {
@@ -218,23 +224,21 @@ describe('Wallet Tests', () => {
     // Check that we are on the wallet screen
     // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
-    // Search for SAI
-    await ImportTokensView.typeInTokenName('DAI Stablecoin');
-    // Wait for results to load
+    // Search for XRPL but select RPL
+    await ImportTokensView.typeInTokenName('XRPL');
     await TestHelpers.delay(2000);
 
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
     await TestHelpers.delay(500);
 
     await ImportTokensView.tapImportButton();
-    // Check that we are on the wallet screen
     await WalletView.isVisible();
     await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
 
-    await WalletView.isTokenVisibleInWallet('0 DAI');
-    await WalletView.removeTokenFromWallet('0 DAI');
+    await WalletView.isTokenVisibleInWallet('0 RPL');
+    await WalletView.removeTokenFromWallet('0 RPL');
     await TestHelpers.delay(1500);
-    await WalletView.tokenIsNotVisibleInWallet('0 DAI');
+    await WalletView.tokenIsNotVisibleInWallet('0 RPL');
   });
 
   it('should add a custom token', async () => {
@@ -286,12 +290,6 @@ describe('Wallet Tests', () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.changeNetwork(GOERLI);
     await WalletView.isNetworkNameVisible(GOERLI);
-  });
-
-  it('should close the education modal on Goerli network', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
   });
 
   it('should input a valid address', async () => {

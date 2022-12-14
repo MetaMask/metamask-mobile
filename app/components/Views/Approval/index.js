@@ -247,19 +247,13 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const {
-        activeTabUrl,
-        chainId,
-        transaction,
-        networkType,
-        selectedAddress,
-      } = this.props;
+      const { activeTabUrl, chainId, transaction, selectedAddress } =
+        this.props;
       const { selectedAsset } = transaction;
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
         dapp_url: activeTabUrl,
-        network_name: networkType,
         chain_id: chainId,
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         asset_type: { value: transaction?.assetType, anonymous: true },
@@ -283,7 +277,7 @@ class Approval extends PureComponent {
     const { transaction } = this.props;
     InteractionManager.runAfterInteractions(() => {
       transaction.origin &&
-        transaction.origin.includes(WALLET_CONNECT_ORIGIN) &&
+        transaction.origin.startsWith(WALLET_CONNECT_ORIGIN) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,

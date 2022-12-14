@@ -75,6 +75,7 @@ export interface GasTransactionProps {
 }
 
 export interface GasFeeOptions {
+  estimatedBaseFee: any;
   /**
    * This gasFeeEstimate object is returned from Codefi
    */
@@ -112,10 +113,6 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
    */
   gasSelected: string | null;
-  /**
-   * Suggested gas limit. Default is 21000.
-   */
-  gasLimit: string;
   onlyGas?: boolean;
   /**
    * The type of transaction (EIP1559, legacy)
@@ -125,6 +122,16 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    * the gas transaction props
    */
   gasData: GasTransactionProps;
+  /**
+   * gas object for calculating the gas transaction cost
+   */
+  gasObject: {
+    legacyGasLimit: string;
+    suggestedGasPrice: any;
+    suggestedGasLimit?: string;
+    suggestedMaxFeePerGas: string;
+    suggestedMaxPriorityFeePerGas: string;
+  };
 }
 
 export interface TransactionSharedProps {

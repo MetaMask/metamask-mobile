@@ -13,6 +13,7 @@ exports[`ContactForm should render correctly 1`] = `
       },
     }
   }
+  chainId="1"
   dispatch={[Function]}
   identities={
     Object {

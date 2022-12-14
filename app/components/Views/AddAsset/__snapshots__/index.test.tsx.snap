@@ -4,6 +4,7 @@ exports[`AddAsset should render correctly 1`] = `
 <AddAsset
   chainId="1"
   dispatch={[Function]}
+  networkType="mainnet"
   route={
     Object {
       "params": Object {
@@ -11,6 +12,6 @@ exports[`AddAsset should render correctly 1`] = `
       },
     }
   }
-  useCollectibleDetection={true}
+  useNftDetection={true}
 />
 `;

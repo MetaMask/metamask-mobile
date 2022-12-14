@@ -1,4 +1,6 @@
 export interface SecuritySettingsState {
   allowLoginWithRememberMe: boolean;
-  automaticSecurityChecks: boolean;
+  automaticSecurityChecksEnabled: boolean;
+  hasUserSelectedAutomaticSecurityCheckOption: boolean;
+  isAutomaticSecurityChecksModalOpen: boolean;
 }

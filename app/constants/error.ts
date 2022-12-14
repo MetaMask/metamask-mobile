@@ -15,3 +15,7 @@ export const KEYSTONE_TX_CANCELED = 'KeystoneError#Tx_canceled';
 
 // Password Errors
 export const WRONG_PASSWORD_ERROR = 'error: Invalid password';
+
+// Contact Flow Errors
+export const CONTACT_ALREADY_SAVED = 'contactAlreadySaved';
+export const SYMBOL_ERROR = 'symbolError';
