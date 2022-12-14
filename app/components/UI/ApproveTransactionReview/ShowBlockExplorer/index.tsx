@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import WebviewProgressBar from '../../../UI/WebviewProgressBar';
+import Text, {
+  TextVariants,
+} from '../../../../component-library/components/Texts/Text';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../../util/etherscan';
 import { WebView } from 'react-native-webview';
-import Text from '../../../Base/Text';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 
 const styles = StyleSheet.create({
@@ -25,7 +27,7 @@ const styles = StyleSheet.create({
 });
 
 interface ShowBlockExplorerProps {
-  contractAddress: string;
+  address: string;
   type: string;
   setIsBlockExplorerVisible: (isBlockExplorerVisible: boolean) => void;
   headerWrapperStyle?: any;
@@ -36,14 +38,14 @@ interface ShowBlockExplorerProps {
 const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   const {
     type,
-    contractAddress,
+    address,
     setIsBlockExplorerVisible,
     headerWrapperStyle,
     headerTextStyle,
     iconStyle,
   } = props;
-  const [loading, setLoading] = useState(0);
-  const url = getEtherscanAddressUrl(type, contractAddress);
+  const [loading, setLoading] = useState<number>(0);
+  const url = getEtherscanAddressUrl(type, address);
   const etherscan_url = getEtherscanBaseUrl(type).replace('https://', '');
 
   const onLoadProgress = ({
@@ -63,7 +65,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={headerWrapperStyle}>
-        <Text bold style={headerTextStyle}>
+        <Text variant={TextVariants.lBodyMDBold} style={headerTextStyle}>
           {etherscan_url}
         </Text>
         <AntDesignIcon

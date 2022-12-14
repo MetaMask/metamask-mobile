@@ -12,6 +12,7 @@ import { formatAddress } from '../../../../util/address';
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
 import Button, { ButtonVariants } from '../../../components/Buttons/Button';
+import Identicon from '../../../../components/UI/Identicon';
 
 // Internal dependencies.
 import { ContractBoxBaseProps, IconViewProps } from './ContractBoxBase.types';
@@ -32,22 +33,29 @@ const ContractBoxBase = ({
   onContractPress,
 }: ContractBoxBaseProps) => {
   const formattedAddress = formatAddress(contractAddress, 'short');
-  const { styles } = useStyles(styleSheet, {});
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
 
   const IconView = ({ onPress, name, size, testID }: IconViewProps) => (
     <Pressable onPress={onPress} testID={testID}>
-      <Icon color={'grey'} name={name} size={size} />
+      <Icon color={colors.icon.alternative} name={name} size={size} />
     </Pressable>
   );
 
   return (
     <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
       <View style={styles.rowContainer}>
-        <Avatar
-          variant={AvatarVariants.Token}
-          size={AvatarSize.Xl}
-          imageSource={contractLocalImage}
-        />
+        {contractLocalImage ? (
+          <Avatar
+            variant={AvatarVariants.Token}
+            size={AvatarSize.Xl}
+            imageSource={contractLocalImage}
+          />
+        ) : (
+          <Identicon address={contractAddress} diameter={40} />
+        )}
         {contractPetName ? (
           <Pressable onPress={onContractPress}>
             <Text style={styles.header} variant={TextVariant.HeadingMD}>

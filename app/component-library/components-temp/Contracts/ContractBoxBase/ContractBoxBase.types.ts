@@ -4,7 +4,7 @@ import { IconName, IconSize } from '../../../components/Icons/Icon';
 export interface ContractBoxBaseProps {
   contractAddress: string;
   contractPetName?: string;
-  contractLocalImage: ImageSourcePropType;
+  contractLocalImage?: ImageSourcePropType;
   /**
    * function that copies the contract address to the clipboard
    */

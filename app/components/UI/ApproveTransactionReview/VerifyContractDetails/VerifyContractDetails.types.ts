@@ -1,20 +1,15 @@
 export interface VerifyContractDetailsProps {
   /**
-   * saved contract nickname
-   */
-  contractName?: string;
-  /**
-   * toggle verify contract details view
-   */
-  toggleVerifyContractView: () => void;
-  /**
    * contract address
    */
   contractAddress: string;
+  closeVerifyContractView: () => void;
+  tokenAddress: string;
+  savedContactListToArray: any[];
   /**
    * copy contract address
    */
-  copyAddress: () => void;
+  copyAddress: (address: string) => void;
   /**
    * toggle block explorer view
    */
@@ -22,5 +17,6 @@ export interface VerifyContractDetailsProps {
   /**
    * toggle nickname view
    */
-  toggleNicknameView: () => void;
+  showNickname: (address: string) => void;
+  tokenSymbol: string;
 }
