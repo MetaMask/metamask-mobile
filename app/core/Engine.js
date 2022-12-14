@@ -216,7 +216,10 @@ class Engine {
       });
 
       this.setupSnapProvider = (snapId, connectionStream) => {
-        console.log('method setupSnapProvider', !!connectionStream, snapId);
+        console.log(
+          '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
+          snapId,
+        );
         const bridge = new SnapBridge({
           snapId,
           connectionStream,
