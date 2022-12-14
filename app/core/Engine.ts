@@ -284,6 +284,10 @@ class Engine {
         fetchFunction: RNFetchBlob.config({ fileCache: true }).fetch.bind(
           RNFetchBlob,
         ),
+        closeAllConnections: () =>
+          console.log(
+            'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
+          ),
       });
 
       const additionalKeyrings = [QRHardwareKeyring];
