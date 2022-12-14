@@ -135,7 +135,7 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
     "@metamask/contract-metadata": "^1.35.0",
-    "@metamask/controllers": "30.3.0",
+    "@metamask/controllers": "^33.0.0",
     "@metamask/design-tokens": "^1.9.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/sdk-communication-layer": "^0.0.1-beta.3",
