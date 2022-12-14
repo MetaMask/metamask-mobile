@@ -47,7 +47,11 @@ import { Button } from 'react-native-share';
 
 import WebviewPostMessageStream from './WebviewPostMessageStream';
 import snapsState from '../../../core/SnapsState';
-import { installTestSnapFromLocalHost } from './snaps/utils';
+import {
+  TEST_SNAP_ID_ONE,
+  TEST_SNAP_ID_TWO,
+  installTestSnap,
+} from './snaps/utils';
 
 let stream;
 
@@ -360,7 +364,7 @@ const Wallet = ({ navigation }: any) => {
     });
 
     // eslint-disable-next-line no-console
-    stream.on('data', (data) => console.log('Message from webview ' + data));
+    stream.on('data', (data) => console.log('Message from webview ', !!data));
 
     snapsState.stream = stream;
     snapsState.webview = webviewRef.current;
@@ -378,21 +382,18 @@ const Wallet = ({ navigation }: any) => {
     );
   };
 
-  const installSnap = async () => {
-    // eslint-disable-next-line no-console
-    console.log('LOG: install snap');
+  const installSnap = async (url: string): Promise<void> => {
     const { SnapController } = Engine.context as any;
-    await installTestSnapFromLocalHost(SnapController);
-    // eslint-disable-next-line no-console
-    console.log('Current snaps', SnapController.internalState.snaps);
+    await installTestSnap({ snapController: SnapController, url });
   };
 
   const executeTestSnap = async () => {
     // eslint-disable-next-line no-console
+    const { SnapController } = Engine.context as any;
+    console.log('Current snaps', SnapController.internalState.snaps);
     console.log('LOG: executeTestSnap');
     const localSnap = 'local:http://localhost:3000/snap/';
     const origin = 'origin';
-    const { SnapController } = Engine.context as any;
     const result = await SnapController.handleRequest({
       snapId: localSnap,
       origin,
@@ -419,9 +420,13 @@ const Wallet = ({ navigation }: any) => {
         >
           {selectedAddress ? renderContent() : renderLoader()}
         </ScrollView>
-        <Button onPress={sendMessageToWebview}>Test stream to WebView</Button>
-        <Button onPress={installSnap}>Install test snap</Button>
-        <Button onPress={executeTestSnap}>Execute Test Snap</Button>
+        <Button onPress={async () => await installSnap(TEST_SNAP_ID_ONE)}>
+          Install Test Snap 1
+        </Button>
+        <Button onPress={async () => await installSnap(TEST_SNAP_ID_TWO)}>
+          Install Test Snap 2
+        </Button>
+        <Button onPress={executeTestSnap}>Execute Test Snap 1</Button>
         <WebView
           ref={webviewRef}
           source={{ uri: 'http://localhost:3001/' }}
