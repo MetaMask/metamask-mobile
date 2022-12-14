@@ -169,7 +169,6 @@ const NetworkModals = (props: NetworkProps) => {
         chain_id: decimalChainId,
         source: 'Popular network list',
         symbol: ticker,
-        network_name: nickname,
       };
 
       AnalyticsV2.trackEvent(

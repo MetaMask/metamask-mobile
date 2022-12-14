@@ -124,10 +124,6 @@ class Approve extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * A string representing the network type
-     */
-    networkType: PropTypes.string,
-    /**
      * An object of all saved addresses
      */
     addressBook: PropTypes.object,
@@ -487,7 +483,7 @@ class Approve extends PureComponent {
   getGasAnalyticsParams = () => {
     try {
       const { analyticsParams } = this.state;
-      const { gasEstimateType, networkType } = this.props;
+      const { gasEstimateType } = this.props;
       return {
         dapp_host_name: analyticsParams?.dapp_host_name,
         dapp_url: analyticsParams?.dapp_url,
@@ -496,7 +492,6 @@ class Approve extends PureComponent {
           anonymous: true,
         },
         gas_estimate_type: gasEstimateType,
-        network_name: networkType,
       };
     } catch (error) {
       return {};
@@ -717,7 +712,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   network: state.engine.backgroundState.NetworkController.network,
 });

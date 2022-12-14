@@ -87,3 +87,8 @@ export const LOGIN_WITH_BIOMETRICS_SWITCH = 'login-with-biometrics-switch';
 export const LOGIN_WITH_REMEMBER_ME_SWITCH = 'login-with-remember-me-switch';
 export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';
 export const REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY = 'turn-on-remember-me';
+
+// ONBOARDING
+export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
+export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
+  'manual-backup-step-2-continue-button';
