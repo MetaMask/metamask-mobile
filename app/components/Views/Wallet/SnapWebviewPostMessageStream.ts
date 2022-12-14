@@ -37,22 +37,18 @@ export default class SnapWebviewPostMessageStream extends BasePostMessageStream 
     this._jobId = jobId;
     this._onMessage = this._onMessage.bind(this);
     this._stream.on('data', (data) => this._onMessage(data));
-    // this._handshake();
   }
 
   protected _postMessage(data: unknown): void {
-    console.log('SnapWebviewPostMessageStreamon _postMessage', data);
     this._stream.write(data);
   }
 
   private _onMessage(data: any): void {
-    console.log('SnapWebviewPostMessageStreamon _onMessage', data);
     this._onData(data);
   }
 
   destroy(): void {
     // eslint-disable-next-line no-console
-    console.log('SnapWebviewPostMessageStream - method destroy');
     this.destroyed = true;
   }
 }
