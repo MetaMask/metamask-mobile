@@ -9,7 +9,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  NEXT_MAKER_REMINDER,
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
@@ -108,7 +107,6 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
-    await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
   };
 

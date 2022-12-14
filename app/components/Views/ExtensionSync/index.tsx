@@ -26,7 +26,6 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
   TRUE,
 } from '../../../constants/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -200,7 +199,6 @@ const ExtensionSync = ({ navigation, route }: any) => {
       }
 
       try {
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
         await Engine.resetState();
         await Engine.sync({
           ...dataToSyncRef.current,

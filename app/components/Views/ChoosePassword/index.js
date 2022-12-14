@@ -37,7 +37,6 @@ import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   EXISTING_USER,
-  NEXT_MAKER_REMINDER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -382,7 +381,6 @@ class ChoosePassword extends PureComponent {
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
       } else {
         await this.recreateVault(password, authType);
       }
@@ -403,7 +401,6 @@ class ChoosePassword extends PureComponent {
     } catch (error) {
       await this.recreateVault('');
       // Set state in app as it was with no password
-      await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
