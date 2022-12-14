@@ -40,15 +40,24 @@ export default class SnapWebviewPostMessageStream extends BasePostMessageStream 
   }
 
   protected _postMessage(data: unknown): void {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SNAP STREAM LOG] SnapWebviewPostMessageStream+_postMessage: Write data',
+    );
     this._stream.write(data);
   }
 
   private _onMessage(data: any): void {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[SNAP STREAM LOG] SnapWebviewPostMessageStream+_onMessage: Listen for data',
+    );
     this._onData(data);
   }
 
   destroy(): void {
     // eslint-disable-next-line no-console
+    console.log('TO DO: Destroy stream from SnapWebviewPostMessageStream');
     this.destroyed = true;
   }
 }
