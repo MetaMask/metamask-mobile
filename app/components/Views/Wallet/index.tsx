@@ -364,22 +364,15 @@ const Wallet = ({ navigation }: any) => {
     });
 
     // eslint-disable-next-line no-console
-    stream.on('data', (data) => console.log('Message from webview ' + data));
+    stream.on('data', (data) =>
+      // eslint-disable-next-line no-console
+      console.log(
+        '[APP LOG] setWebviewPostMessage: Message from Webview ' + data,
+      ),
+    );
 
     snapsState.stream = stream;
     snapsState.webview = webviewRef.current;
-  };
-
-  const sendMessageToWebview = () => {
-    // eslint-disable-next-line no-console
-    console.log('LOG: sendMessageToWebview executed');
-    stream.write(
-      JSON.stringify({
-        method: 'hello',
-        snapId: 'jobId',
-        args: { origin: 'origin', request: { method: 'hello' } },
-      }),
-    );
   };
 
   const installSnap = async (url: string): Promise<void> => {
@@ -387,10 +380,10 @@ const Wallet = ({ navigation }: any) => {
     await installTestSnap({ snapController: SnapController, snapId: url });
   };
 
-  const executeTestSnap = async () => {
+  const executeTestSnap = async (snapId: string) => {
     // eslint-disable-next-line no-console
     const { SnapController } = Engine.context as any;
-    const localSnap = 'local:http://localhost:3000/snap/';
+    const localSnap = snapId;
     const origin = 'origin';
     const result = await SnapController.handleRequest({
       snapId: localSnap,
@@ -424,7 +417,9 @@ const Wallet = ({ navigation }: any) => {
         <Button onPress={async () => await installSnap(TEST_SNAP_ID_TWO)}>
           Install Test Snap 2
         </Button>
-        <Button onPress={executeTestSnap}>Execute Test Snap 1</Button>
+        <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_ONE)}>
+          Execute Test Snap 1
+        </Button>
         <WebView
           ref={webviewRef}
           source={{ uri: 'http://localhost:3001/' }}
