@@ -335,7 +335,7 @@ const Wallet = ({ navigation }: any) => {
     });
 
     // eslint-disable-next-line no-console
-    stream.on('data', (data) => console.log('Message from webview ' + data));
+    stream.on('data', (data) => console.log('Message from webview ', !!data));
 
     snapsState.stream = stream;
     snapsState.webview = webviewRef.current;
@@ -353,21 +353,18 @@ const Wallet = ({ navigation }: any) => {
     );
   };
 
-  const installSnap = async () => {
-    // eslint-disable-next-line no-console
-    console.log('LOG: install snap');
+  const installSnap = async (url: string): Promise<void> => {
     const { SnapController } = Engine.context as any;
-    await installTestSnapFromLocalHost(SnapController);
-    // eslint-disable-next-line no-console
-    console.log('Current snaps', SnapController.internalState.snaps);
+    await installTestSnap({ snapController: SnapController, url });
   };
 
   const executeTestSnap = async () => {
     // eslint-disable-next-line no-console
+    const { SnapController } = Engine.context as any;
+    console.log('Current snaps', SnapController.internalState.snaps);
     console.log('LOG: executeTestSnap');
     const localSnap = 'local:http://localhost:3000/snap/';
     const origin = 'origin';
-    const { SnapController } = Engine.context as any;
     const result = await SnapController.handleRequest({
       snapId: localSnap,
       origin,
