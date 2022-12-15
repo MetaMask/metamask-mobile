@@ -13,7 +13,7 @@ const useDeleteWallet = () => {
       await Authentication.newWalletAndKeyChain(`${Date.now()}`, {
         type: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      await Authentication.logout();
+      await Authentication.lockApp();
     } catch (error: any) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);

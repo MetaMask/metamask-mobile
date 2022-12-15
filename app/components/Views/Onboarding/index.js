@@ -280,7 +280,7 @@ class Onboarding extends PureComponent {
       await Authentication.resetVault();
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      await Authentication.logout();
+      await Authentication.lockApp();
       this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
     }
   };
