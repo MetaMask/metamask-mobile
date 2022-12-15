@@ -16,7 +16,7 @@ export default function renderWithProvider(
   const { state = {}, theme = mockTheme } = providerValues ?? {};
   const store = configureStore(state);
 
-  const Wrapper = ({ children }: { children: React.ReactElement }) => (
+  const AllProviders = ({ children }: { children: React.ReactElement }) => (
     <NavigationContainer>
       <Provider store={store}>
         <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
@@ -24,5 +24,5 @@ export default function renderWithProvider(
     </NavigationContainer>
   );
 
-  return render(component, { wrapper: Wrapper });
+  return render(component, { wrapper: AllProviders });
 }
