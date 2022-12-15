@@ -347,11 +347,6 @@ class AccountOverview extends PureComponent {
       },
     });
 
-  goToSnapPOC = () => {
-    console.log('It should navigate');
-    this.props.navigation.navigate('SnapsPOC');
-  };
-
   doENSLookup = async () => {
     const { network, account } = this.props;
     try {
@@ -507,12 +502,6 @@ class AccountOverview extends PureComponent {
                   isAssetAllowed
                 />
               )}
-              <AssetActionButton
-                testID={'flask-button'}
-                icon="flask"
-                onPress={this.goToSnapPOC}
-                label={'Snap POC'}
-              />
             </View>
           </View>
         </ScrollView>
