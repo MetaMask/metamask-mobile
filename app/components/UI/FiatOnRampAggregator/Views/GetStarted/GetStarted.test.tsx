@@ -1,21 +1,12 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
+import render from '../../../../../util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
 import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
 import { Region } from '../../types';
 import { IFiatOnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-
-import { mockTheme, ThemeContext } from '../../../../../util/theme';
-
-const Providers = ({ children }: { children: React.ReactNode }) => (
-  <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-);
-
-const renderWithProviders = (
-  tree: React.ReactElement<any, string | React.JSXElementConstructor<any>>,
-) => render(tree, { wrapper: Providers });
 
 const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
   getStarted: false,
@@ -58,7 +49,7 @@ describe('GetStarted', () => {
     mockUseFiatOnRampSDKValues = {
       ...mockuseFiatOnRampSDKInitialValues,
     };
-    const rendered = renderWithProviders(<GetStarted />);
+    const rendered = render(<GetStarted />);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -67,7 +58,7 @@ describe('GetStarted', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    const rendered = renderWithProviders(<GetStarted />);
+    const rendered = render(<GetStarted />);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -76,12 +67,12 @@ describe('GetStarted', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       getStarted: true,
     };
-    const rendered = renderWithProviders(<GetStarted />);
+    const rendered = render(<GetStarted />);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when rendering', async () => {
-    renderWithProviders(<GetStarted />);
+    render(<GetStarted />);
     expect(mockSetOptions).toBeCalledTimes(1);
   });
 
@@ -89,7 +80,7 @@ describe('GetStarted', () => {
     mockUseFiatOnRampSDKValues = {
       ...mockuseFiatOnRampSDKInitialValues,
     };
-    const rendered = renderWithProviders(<GetStarted />);
+    const rendered = render(<GetStarted />);
     fireEvent.press(rendered.getByTestId(TEST_ID_GET_STARTED_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
@@ -105,7 +96,7 @@ describe('GetStarted', () => {
       getStarted: true,
       selectedRegion: null,
     };
-    renderWithProviders(<GetStarted />);
+    render(<GetStarted />);
     expect(mockReset).toBeCalledTimes(1);
     expect(mockReset).toBeCalledWith({
       index: 0,
@@ -121,7 +112,7 @@ describe('GetStarted', () => {
         id: 'us-al',
       } as Region,
     };
-    renderWithProviders(<GetStarted />);
+    render(<GetStarted />);
     expect(mockReset).toBeCalledTimes(1);
     expect(mockReset).toBeCalledWith({
       index: 0,
