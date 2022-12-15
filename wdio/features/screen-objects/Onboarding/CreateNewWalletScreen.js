@@ -70,11 +70,12 @@ async inputConfirmPasswordField(secondPassword) {
 }
 
 async selectRemindMeLater(){
+  await driver.pause(2000);
   await Gestures.tap(this.remindMeLaterButton);
 }
 
 async isAccountCreated(){
-  await expect(this.remindMeLaterButton).toBeDisplayed();
+  await driver.pause(2000);
   await expect(this.secureWalletScreen).toBeDisplayed();
 }
 
