@@ -45,7 +45,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import WebView from 'react-native-webview';
 import { Button } from 'react-native-share';
 
-import WebviewPostMessageStream from './WebviewPostMessageStream';
+import { WebviewPostMessageStream } from '../../../core/Snaps';
 import snapsState from '../../../core/SnapsState';
 import {
   TEST_SNAP_ID_ONE,

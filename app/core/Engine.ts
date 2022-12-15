@@ -54,8 +54,7 @@ import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
-import WebviewExecutionService from '../components/Views/Wallet/WebviewExecutionService';
-import { SnapBridge } from './SnapExecutionService';
+import { SnapBridge, WebviewExecutionService } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 
 const NON_EMPTY = 'NON_EMPTY';
