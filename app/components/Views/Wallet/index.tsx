@@ -385,6 +385,12 @@ const Wallet = ({ navigation }: any) => {
     console.log(result);
   };
 
+  const getInstalledSnaps = () => {
+    const { SnapController } = Engine.context as any;
+    // eslint-disable-next-line no-console
+    console.log(SnapController.internalState.snaps);
+  };
+
   return (
     <ErrorBoundary view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
@@ -410,6 +416,7 @@ const Wallet = ({ navigation }: any) => {
         <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_ONE)}>
           Execute Test Snap 1
         </Button>
+        <Button onPress={getInstalledSnaps}>Get installed snaps</Button>
         <WebView
           ref={webviewRef}
           source={{ uri: 'http://localhost:3001/' }}
