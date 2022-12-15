@@ -18,7 +18,6 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import SnapsPOC from '../../Views/Snaps/SnapsPOC';
 import AssetOptions from '../../Views/AssetOptions';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
@@ -659,7 +658,6 @@ const MainNavigator = () => (
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}
     />
-    <Stack.Screen name="SnapsPOC" component={SnapsPOC} />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"
