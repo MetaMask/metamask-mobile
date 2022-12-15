@@ -28,7 +28,7 @@ import onUrlSubmit, {
   getHost,
   getUrlObj,
   isTLD,
-  protocolWhitelist,
+  protocolAllowList,
   getAlertMessage,
   allowLinkOpen,
 } from '../../../util/browser';
@@ -823,7 +823,7 @@ export const BrowserTab = (props) => {
 
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
-    if (protocolWhitelist.includes(protocol)) return true;
+    if (protocolAllowList.includes(protocol)) return true;
 
     const alertMsg = getAlertMessage(protocol, strings);
 

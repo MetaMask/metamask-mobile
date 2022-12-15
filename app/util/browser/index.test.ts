@@ -1,7 +1,7 @@
 import onUrlSubmit, {
   isTLD,
   getAlertMessage,
-  protocolWhitelist,
+  protocolAllowList,
   sanitizeUrl,
   getUrlObj,
   getHost,
@@ -182,16 +182,16 @@ describe('Browser utils :: protocolWhitelist', () => {
   it('should match about: protocol', () => {
     const { protocol } = new URL('about:config');
 
-    expect(protocolWhitelist.includes(protocol)).toBeTruthy();
+    expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
   it('should match http: protocol', () => {
     const { protocol } = new URL('http://meta.io');
 
-    expect(protocolWhitelist.includes(protocol)).toBeTruthy();
+    expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
   it('should match https: protocol', () => {
     const { protocol } = new URL('https://meta.io');
 
-    expect(protocolWhitelist.includes(protocol)).toBeTruthy();
+    expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
 });
