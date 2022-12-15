@@ -4,12 +4,10 @@ import RNFetchBlob, {
   FetchBlobResponse,
   RNFetchBlobReadStream,
 } from 'rn-fetch-blob';
-import { Readable } from 'readable-stream';
 import { Buffer } from 'buffer';
-import { extract as tarExtract } from 'tar-stream';
-
-// https://github.com/nodeca/pako
-import pako from 'pako';
+import pako from 'pako'; // https://github.com/nodeca/pako
+// import { Readable } from 'readable-stream';
+// import { extract as tarExtract } from 'tar-stream';
 
 const MOCK_URL =
   'https://registry.npmjs.org/@metamask/test-snap-bip44/-/test-snap-bip44-4.1.2.tgz';
@@ -92,36 +90,4 @@ export const fetchNPMPackage = async () => {
   console.log(path);
 
   // == [End - Working Code] ==
-};
-
-// The SnapController, the tarballResponse must provide a ReadableStream
-// https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream
-export const fetchNPMPackageAlternativeOne = async () => {
-  const tarballResponse = await downloadBlobIntoFile(MOCK_URL);
-  const readableStream = await readStream(tarballResponse.path(), 'base64');
-
-  readableStream.open();
-
-  readableStream.onData((chunk: string | number[]) => {
-    // eslint-disable-next-line no-console
-    // console.log({ type: typeof chunk, data: chunk });
-    // eslint-disable-next-line no-console
-    console.log(chunk as string);
-  });
-
-  readableStream.onError((err: string) => {
-    // eslint-disable-next-line no-console
-    console.log(err);
-  });
-
-  readableStream.onEnd(() => {
-    // eslint-disable-next-line no-console
-    console.log('End stream');
-  });
-};
-
-export const fetchNPMPackageAlternativeTwo = async () => {
-  const tarballResponse = await downloadBlobIntoFile(MOCK_URL);
-  const path = unzip(tarballResponse.path(), 'snap-id-mock-2');
-  const readableStream = await readStream(path, 'utf8');
 };
