@@ -11,6 +11,7 @@ import {
   CONTRACT_COPY_ADDRESS,
   CONTRACT_EXPORT_ADDRESS,
   CONTRACT_ON_PRESS,
+  HAS_BLOCK_EXPLORER,
 } from './ContractBox.constants';
 
 storiesOf('Component Library / Contract Box', module)
@@ -21,6 +22,7 @@ storiesOf('Component Library / Contract Box', module)
       onCopyAddress={CONTRACT_COPY_ADDRESS}
       onExportAddress={CONTRACT_EXPORT_ADDRESS}
       onContractPress={CONTRACT_ON_PRESS}
+      hasBlockExplorer={HAS_BLOCK_EXPLORER}
     />
   ))
   .add('Saved Address', () => (
@@ -31,5 +33,6 @@ storiesOf('Component Library / Contract Box', module)
       onCopyAddress={CONTRACT_COPY_ADDRESS}
       onExportAddress={CONTRACT_EXPORT_ADDRESS}
       onContractPress={CONTRACT_ON_PRESS}
+      hasBlockExplorer={HAS_BLOCK_EXPLORER}
     />
   ));

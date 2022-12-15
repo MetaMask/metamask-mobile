@@ -31,6 +31,7 @@ const ContractBoxBase = ({
   onCopyAddress,
   onExportAddress,
   onContractPress,
+  hasBlockExplorer,
 }: ContractBoxBaseProps) => {
   const formattedAddress = formatAddress(contractAddress, 'short');
   const {
@@ -38,9 +39,21 @@ const ContractBoxBase = ({
     theme: { colors },
   } = useStyles(styleSheet, {});
 
-  const IconView = ({ onPress, name, size, testID }: IconViewProps) => (
+  const IconView = ({
+    onPress,
+    name,
+    size,
+    testID,
+    hasBlockExplorerIcon,
+  }: IconViewProps) => (
     <Pressable onPress={onPress} testID={testID}>
-      <Icon color={colors.icon.alternative} name={name} size={size} />
+      <Icon
+        color={
+          hasBlockExplorerIcon ? colors.icon.alternative : colors.icon.muted
+        }
+        name={name}
+        size={size}
+      />
     </Pressable>
   );
 
@@ -86,10 +99,11 @@ const ContractBoxBase = ({
           testID={COPY_ICON_TEST_ID}
         />
         <IconView
-          onPress={onExportAddress}
           name={IconName.Export}
+          onPress={hasBlockExplorer ? onExportAddress : undefined}
           size={IconSize.Md}
           testID={EXPORT_ICON_TEST_ID}
+          hasBlockExplorerIcon={hasBlockExplorer}
         />
       </View>
     </View>

@@ -17,6 +17,10 @@ export interface ContractBoxBaseProps {
    * functions that called when the user clicks on the contract name
    */
   onContractPress: () => void;
+  /**
+   * Boolean that determines if the contract has a block explorer
+   */
+  hasBlockExplorer?: boolean;
 }
 
 export interface IconViewProps {
@@ -25,4 +29,5 @@ export interface IconViewProps {
   onPress?: () => void;
   testID?: string;
   color?: string;
+  hasBlockExplorerIcon?: boolean;
 }

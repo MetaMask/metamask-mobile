@@ -1,16 +1,17 @@
 import React, { useEffect } from 'react';
-import { View, Linking } from 'react-native';
+import { View } from 'react-native';
 import Text, {
   TextVariants,
 } from '../../../../component-library/components/Texts/Text';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 import ContractBox from '../../../../component-library/components-temp/Contracts/ContractBox';
 import createStyles from './VerifyContractDetails.styles';
 import { VerifyContractDetailsProps } from './VerifyContractDetails.types';
-import images from 'images/static-logos';
+import { findBlockExplorerForRpc } from '../../../../util/networks';
+import { RPC } from '../../../../constants/network';
 
 import { safeToChecksumAddress } from '../../../../util/address';
 
@@ -23,23 +24,28 @@ const VerifyContractDetails = ({
   tokenAddress,
   savedContactListToArray,
   tokenSymbol,
+  networkProvider: { rpcTarget, type },
+  frequentRpcList,
 }: VerifyContractDetailsProps) => {
   const [contractNickname, setContractNickname] = React.useState('');
   const [tokenNickname, setTokenNickname] = React.useState('');
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const learnMore = () => Linking.openURL('');
+  const tokens = useSelector(
+    (state: any) => state.engine.backgroundState.TokensController.tokens,
+  );
 
-  // TODO: This is a temporary solution to get the correct image for the token
-  const imageUtil = (symbol: string) => {
-    switch (symbol) {
-      case 'WETH':
-        return 'weth.png';
-      default:
-        return 'nDEX.png';
-    }
-  };
+  const filterTokensByTokenSymbol = tokens.filter(
+    (token: any) => token.symbol === tokenSymbol,
+  );
+
+  // TODO: handle when tokenSymbol is not found
+  // our tokenController only returns tokens for mainnet
+  const tokenImage =
+    filterTokensByTokenSymbol.length > 0
+      ? filterTokensByTokenSymbol[0].image
+      : null;
 
   useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {
@@ -52,6 +58,9 @@ const VerifyContractDetails = ({
     });
   }, [contractAddress, tokenAddress, savedContactListToArray]);
 
+  const hasBlockExplorer =
+    type === RPC && findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+
   return (
     <View style={styles.container}>
       <ConnectHeader
@@ -62,9 +71,6 @@ const VerifyContractDetails = ({
         <Text variant={TextVariants.sBodyMD} style={styles.text}>
           {strings('confirmation.token_allowance.protect_from_scams')}
         </Text>{' '}
-        <ButtonLink onPress={learnMore}>
-          {strings('confirmation.token_allowance.learn_to_verify')}
-        </ButtonLink>
       </Text>
       <View>
         <Text variant={TextVariants.lBodySM} style={styles.title}>
@@ -78,7 +84,8 @@ const VerifyContractDetails = ({
             contractPetName={tokenNickname}
             onCopyAddress={() => copyAddress(tokenAddress)}
             onExportAddress={() => toggleBlockExplorer(tokenAddress)}
-            contractLocalImage={images[imageUtil(tokenSymbol)]}
+            contractLocalImage={{ uri: tokenImage }}
+            hasBlockExplorer={Boolean(hasBlockExplorer)}
             onContractPress={() => showNickname(tokenAddress)}
           />
         </View>
@@ -92,6 +99,7 @@ const VerifyContractDetails = ({
             onCopyAddress={() => copyAddress(contractAddress)}
             onExportAddress={() => toggleBlockExplorer(contractAddress)}
             onContractPress={() => showNickname(contractAddress)}
+            hasBlockExplorer={Boolean(hasBlockExplorer)}
           />
         </View>
       </View>

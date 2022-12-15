@@ -8,8 +8,10 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../../util/etherscan';
+import { findBlockExplorerForRpc } from '../../../../util/networks';
 import { WebView } from 'react-native-webview';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
+import { RPC } from '../../../../constants/network';
 
 const styles = StyleSheet.create({
   progressBarWrapper: {
@@ -33,6 +35,10 @@ interface ShowBlockExplorerProps {
   headerWrapperStyle?: any;
   headerTextStyle?: any;
   iconStyle?: any;
+  networkProvider: {
+    rpcTarget: string;
+  };
+  frequentRpcList: any[];
 }
 
 const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
@@ -43,10 +49,24 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     headerWrapperStyle,
     headerTextStyle,
     iconStyle,
+    networkProvider,
+    frequentRpcList,
   } = props;
+
+  const { rpcTarget } = networkProvider;
   const [loading, setLoading] = useState<number>(0);
-  const url = getEtherscanAddressUrl(type, address);
-  const etherscan_url = getEtherscanBaseUrl(type).replace('https://', '');
+
+  const url =
+    type === RPC
+      ? `${findBlockExplorerForRpc(
+          rpcTarget,
+          frequentRpcList,
+        )}/address/${address}`
+      : getEtherscanAddressUrl(type, address);
+  const title =
+    type === RPC
+      ? new URL(findBlockExplorerForRpc(rpcTarget, frequentRpcList)).hostname
+      : getEtherscanBaseUrl(type).replace('https://', '');
 
   const onLoadProgress = ({
     nativeEvent: { progress },
@@ -66,7 +86,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     <SafeAreaView style={styles.container}>
       <View style={headerWrapperStyle}>
         <Text variant={TextVariants.lBodyMDBold} style={headerTextStyle}>
-          {etherscan_url}
+          {title}
         </Text>
         <AntDesignIcon
           name={'close'}
