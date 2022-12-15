@@ -402,12 +402,33 @@
   "accounts": {
     "create_new_account": "Buat Akun Baru",
     "import_account": "Impor Akun",
-    "connect_hardware": "Hubungkan Dompet Perangkat Keras",
-    "imported": "DIIMPOR",
+    "connect_hardware": "Hubungkan dompet perangkat keras",
+    "imported": "Diimpor",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
-    "yes_remove_it": "Ya, hapus"
+    "yes_remove_it": "Ya, hapus",
+    "accounts_title": "Akun",
+    "connect_account_title": "Hubungkan Akun",
+    "connect_accounts_title": "Hubungkan Akun",
+    "connected_accounts_title": "Akun yang Terhubung",
+    "connect_description": "Bagikan alamat, saldo, aktivitas akun Anda, dan izinkan situs untuk memulai transaksi.",
+    "connect_multiple_accounts": "Hubungkan beberapa akun",
+    "connect_more_accounts": "Hubungkan lebih banyak akun",
+    "cancel": "Batalkan",
+    "connect": "Hubungkan",
+    "connect_with_count": "Hubungkan{{countLabel}}",
+    "select_all": "Pilih semua",
+    "permissions": "Izin",
+    "disconnect": "Putuskan koneksi",
+    "disconnect_all_accounts": "Putuskan koneksi semua akun"
+  },
+  "toast": {
+    "connected_and_active": "terhubung dan aktif.",
+    "now_active": "sekarang aktif.",
+    "revoked": "dicabut.",
+    "revoked_all": "Semua akun dicabut.",
+    "accounts_connected": "akun terhubung."
   },
   "connect_qr_hardware": {
     "title": "Hubungkan dompet perangkat keras berbasis QR",

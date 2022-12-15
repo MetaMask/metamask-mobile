@@ -407,7 +407,28 @@
     "remove_account_title": "删除账户",
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",
-    "yes_remove_it": "是，删除它"
+    "yes_remove_it": "是，删除它",
+    "accounts_title": "账户",
+    "connect_account_title": "连接账户",
+    "connect_accounts_title": "连接账户",
+    "connected_accounts_title": "已连接的账户",
+    "connect_description": "请分享您的账户地址、余额、活动，并允许站点启动交易。",
+    "connect_multiple_accounts": "连接多个账户",
+    "connect_more_accounts": "连接更多账户",
+    "cancel": "取消",
+    "connect": "连接",
+    "connect_with_count": "连接{{countLabel}}",
+    "select_all": "全部选择",
+    "permissions": "权限",
+    "disconnect": "断开连接",
+    "disconnect_all_accounts": "断开所有账户的连接"
+  },
+  "toast": {
+    "connected_and_active": "已连接且处于活动状态。",
+    "now_active": "现处于活动状态。",
+    "revoked": "已撤销。",
+    "revoked_all": "已撤销所有账户。",
+    "accounts_connected": "账户已连接。"
   },
   "connect_qr_hardware": {
     "title": "连接基于二维码的硬件钱包",
