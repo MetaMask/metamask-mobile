@@ -56,17 +56,19 @@ class CreateNewWalletScren {
 
   async inputConfirmPasswordField(secondPassword) {
     await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
+    await driver.hideKeyboard();
     await Gestures.tap(this.termsAndConditionCheckBox);
     await Gestures.tap(this.newWalletSubmitButton);
   }
 
   async selectRemindMeLater(){
+    await driver.pause(2000);
     await Gestures.tap(this.remindMeLaterButton);
   }
 
   async isAccountCreated(){
+    await driver.pause(5000);
     await expect(this.secureWalletScreen).toBeDisplayed();
-    await expect(this.remindMeLaterButton).toBeDisplayed();
   }
 
   async isScreenDescriptionVisible() {

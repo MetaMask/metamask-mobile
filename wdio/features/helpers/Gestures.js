@@ -93,8 +93,8 @@ class Gestures {
           break;
       default:
         throw new Error('Tap type not found');
+    }
   }
-}
 
   static async tapTextByXpath(text, tapType = 'TAP') {
     switch (tapType) {
