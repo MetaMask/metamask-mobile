@@ -12,9 +12,10 @@ class MetaMetricsScreen {
   }
 
   async swipeUp(){
+    await driver.pause(2000);
     await Gestures.swipe(
-      { x: 100, y: 500 },
-      { x: 100, y: 10 },
+      { x: 200, y: 500 },
+      { x: 200, y: 10 },
     );
   }
 
