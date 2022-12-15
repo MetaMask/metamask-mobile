@@ -33,7 +33,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
-import TransactionReview from '../TransactionReviewEIP1559Update';
+import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
@@ -195,6 +195,7 @@ class TransactionReviewInformation extends PureComponent {
     setProposedNonce: PropTypes.func,
     nativeCurrency: PropTypes.string,
     gasEstimateType: PropTypes.string,
+    EIP1559GasData: PropTypes.object,
     origin: PropTypes.string,
     /**
      * Function to call when update animation starts
@@ -229,17 +230,6 @@ class TransactionReviewInformation extends PureComponent {
      * Boolean to determine if the transaction error is optional to confirm the transaction
      */
     errorContinue: PropTypes.bool,
-    /**
-     * gas object for calculating the gas transaction cost
-     */
-    gasObject: PropTypes.object,
-    /**
-     * update gas transaction state to parent
-     */
-    updateTransactionState: PropTypes.func,
-    eip1559GasTransaction: PropTypes.object,
-    dappSuggestedEIP1559Gas: PropTypes.object,
-    dappSuggestedGasPrice: PropTypes.string,
   };
 
   state = {
@@ -552,6 +542,7 @@ class TransactionReviewInformation extends PureComponent {
 
   renderTransactionReviewEIP1559 = () => {
     const {
+      EIP1559GasData,
       primaryCurrency,
       origin,
       originWarning,
@@ -560,43 +551,37 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       ready,
-      gasSelected,
-      gasObject,
-      updateTransactionState,
-      eip1559GasTransaction,
-      dappSuggestedEIP1559Gas,
     } = this.props;
     let host;
     if (origin) {
       host = new URL(origin).hostname;
     }
-
     const [
       renderableTotalMinNative,
       renderableTotalMinConversion,
       renderableTotalMaxNative,
-    ] = this.getRenderTotalsEIP1559(eip1559GasTransaction)();
-
+    ] = this.getRenderTotalsEIP1559(EIP1559GasData)();
     return (
-      <TransactionReview
+      <TransactionReviewEIP1559
         totalNative={renderableTotalMinNative}
         totalConversion={renderableTotalMinConversion}
         totalMaxNative={renderableTotalMaxNative}
-        gasSelected={gasSelected}
+        gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+        gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+        gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+        gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
         primaryCurrency={primaryCurrency}
+        timeEstimate={EIP1559GasData.timeEstimate}
+        timeEstimateColor={EIP1559GasData.timeEstimateColor}
+        timeEstimateId={EIP1559GasData.timeEstimateId}
         onEdit={this.edit}
+        origin={host}
+        originWarning={originWarning}
         onUpdatingValuesStart={onUpdatingValuesStart}
         onUpdatingValuesEnd={onUpdatingValuesEnd}
         animateOnChange={animateOnChange}
-        updateTransactionState={updateTransactionState}
         isAnimating={isAnimating}
-        origin={host}
-        originWarning={originWarning}
         gasEstimationReady={ready}
-        legacy={false}
-        gasObject={gasObject}
-        dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
-        onlyGas
       />
     );
   };
@@ -608,16 +593,12 @@ class TransactionReviewInformation extends PureComponent {
       transaction: { gas, gasPrice },
       currentCurrency,
       conversionRate,
-      over,
       ticker,
+      over,
       onUpdatingValuesStart,
       onUpdatingValuesEnd,
       animateOnChange,
       isAnimating,
-      gasSelected,
-      updateTransactionState,
-      gasObject,
-      dappSuggestedGasPrice,
     } = this.props;
 
     const totalGas =
@@ -628,27 +609,21 @@ class TransactionReviewInformation extends PureComponent {
       totalGas,
       totalGasFiat,
     )();
-
     return (
-      <TransactionReview
+      <TransactionReviewEIP1559
         totalNative={totalValue}
         totalConversion={totalFiat}
         gasFeeNative={totalGasEth}
         gasFeeConversion={totalGasFiat}
-        gasSelected={gasSelected}
         primaryCurrency={primaryCurrency}
-        onEdit={this.edit}
+        onEdit={() => this.edit()}
+        over={over}
         onUpdatingValuesStart={onUpdatingValuesStart}
         onUpdatingValuesEnd={onUpdatingValuesEnd}
         animateOnChange={animateOnChange}
         isAnimating={isAnimating}
         gasEstimationReady={ready}
         legacy
-        over={over}
-        updateTransactionState={updateTransactionState}
-        gasObject={gasObject}
-        dappSuggestedGasPrice={dappSuggestedGasPrice}
-        onlyGas
       />
     );
   };

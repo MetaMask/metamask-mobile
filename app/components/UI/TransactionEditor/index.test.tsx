@@ -24,8 +24,8 @@ const initialState = {
       TokensController: {
         tokens: [],
       },
-      CollectiblesController: {
-        allCollectibles: { '0x0': { 1: [] } },
+      NftController: {
+        allNfts: { '0x0': { 1: [] } },
       },
       NetworkController: {
         provider: {

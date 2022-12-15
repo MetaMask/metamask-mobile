@@ -20,7 +20,7 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
-
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 const GORELI = 'Goerli Test Network';
 const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
@@ -56,6 +56,12 @@ describe('Custom RPC Tests', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on "Got it" to dimiss the whats new modal', async () => {

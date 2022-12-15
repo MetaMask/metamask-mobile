@@ -90,3 +90,7 @@ export const REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY = 'turn-on-remember-me';
 
 // TransactionReviewInformation
 export const ADDRESS_ERROR_ID = 'address-error';
+// ONBOARDING
+export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
+export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
+  'manual-backup-step-2-continue-button';
