@@ -54,6 +54,7 @@ import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+<<<<<<< HEAD:app/core/Engine.ts
 import {
   SnapBridge,
   WebviewExecutionService,
@@ -62,6 +63,9 @@ import {
   detectSnapLocation,
   fetchFunction,
 } from './Snaps';
+=======
+import { SnapBridge, WebviewExecutionService } from './Snaps';
+>>>>>>> a60eb5c47 (Update paths):app/core/Engine.js
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import {
   getCaveatSpecifications,
