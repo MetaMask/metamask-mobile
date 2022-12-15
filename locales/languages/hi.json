@@ -400,14 +400,35 @@
     "receive": "प्राप्त करें"
   },
   "accounts": {
-    "create_new_account": "नया अकाउंट बनाएं",
-    "import_account": "एक अकाउंट इम्पोर्ट करें",
+    "create_new_account": "नया खाता बनाएं",
+    "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
-    "yes_remove_it": "हां, इसे हटा दें"
+    "yes_remove_it": "हां, इसे हटा दें",
+    "accounts_title": "खाता",
+    "connect_account_title": "खाता कनेक्ट करें",
+    "connect_accounts_title": "खाते को कनेक्ट करें",
+    "connected_accounts_title": "कनेक्ट किए हुए खाते",
+    "connect_description": "अपना खाता पता, शेष राशि, गतिविधि साझा करें और साइट को लेन-देन शुरू करने की अनुमति दें।",
+    "connect_multiple_accounts": "एक से अधिक खाते को कनेक्ट करें",
+    "connect_more_accounts": "अधिक खाते को कनेक्ट करें",
+    "cancel": "रद्द करें",
+    "connect": "कनेक्ट करें",
+    "connect_with_count": "{{countLabel}} को कनेक्ट करें",
+    "select_all": "सभी का चयन करें",
+    "permissions": "अनुमतियां",
+    "disconnect": "डिस्कनेक्ट करें",
+    "disconnect_all_accounts": "सभी खाते डिस्कनेक्ट करें"
+  },
+  "toast": {
+    "connected_and_active": "कनेक्ट किया हुआ और सक्रिय।",
+    "now_active": "अब सक्रिय है",
+    "revoked": "निरस्त किया हुआ।",
+    "revoked_all": "सभी खाते निरस्त कर दिए गए।",
+    "accounts_connected": "खाते कनेक्ट किए गए।"
   },
   "connect_qr_hardware": {
     "title": "क्यूआर-आधारित हार्डवेयर वॉलेट के साथ कनेक्ट करें",

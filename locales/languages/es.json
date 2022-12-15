@@ -402,12 +402,33 @@
   "accounts": {
     "create_new_account": "Crear cuenta nueva",
     "import_account": "Importar una cuenta",
-    "connect_hardware": "Conectar la cartera de hardware",
-    "imported": "IMPORTADO",
+    "connect_hardware": "Conectar la billetera de hardware",
+    "imported": "Importado",
     "remove_account_title": "Eliminación de la cuenta",
     "remove_account_message": "¿Está seguro de que quiere quitar esta cuenta?",
     "no": "No",
-    "yes_remove_it": "Sí, deseo quitarla"
+    "yes_remove_it": "Sí, deseo quitarla",
+    "accounts_title": "Cuentas",
+    "connect_account_title": "Conectar cuenta",
+    "connect_accounts_title": "Conectar cuentas",
+    "connected_accounts_title": "Cuentas conectadas",
+    "connect_description": "Comparta la dirección de su cuenta, saldo, actividad y permita que el sitio inicie transacciones.",
+    "connect_multiple_accounts": "Conectar múltiples cuentas",
+    "connect_more_accounts": "Conectar más cuentas",
+    "cancel": "Cancelar",
+    "connect": "Conectar",
+    "connect_with_count": "Conectar {{countLabel}}",
+    "select_all": "Seleccionar todo",
+    "permissions": "Permisos",
+    "disconnect": "Desconectar",
+    "disconnect_all_accounts": "Desconectar todas las cuentas"
+  },
+  "toast": {
+    "connected_and_active": "conectado y activo.",
+    "now_active": "activo ahora.",
+    "revoked": "revocada.",
+    "revoked_all": "Todas las cuentas revocadas.",
+    "accounts_connected": "cuentas conectadas."
   },
   "connect_qr_hardware": {
     "title": "Conectar una cartera de hardware basada en QR",
