@@ -21,7 +21,7 @@ When(/^I launch MetaMask mobile app/, async () => {
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
-      await WelcomeScreen.waitForSplashScreen();
+      await WelcomeScreen.isScreenTitleVisible();
       break;
     case 'Wallet setup':
       await OnboardingScreen.isScreenTitleVisible();

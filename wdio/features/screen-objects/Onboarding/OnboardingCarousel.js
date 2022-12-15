@@ -28,7 +28,7 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
-  async waitForSplashScreen() {
+  async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
     // await elem.waitForDisplayed({ reverse: true });
