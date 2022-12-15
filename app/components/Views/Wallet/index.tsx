@@ -30,6 +30,7 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
@@ -37,18 +38,6 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import WebView from 'react-native-webview';
-import { Button } from 'react-native-share';
-
-import { WebviewPostMessageStream } from '../../../core/Snaps';
-import snapsState from '../../../core/SnapsState';
-import {
-  TEST_SNAP_ID_ONE,
-  TEST_SNAP_ID_TWO,
-  installTestSnap,
-} from './snaps/utils';
-
-let stream;
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -89,7 +78,6 @@ const Wallet = ({ navigation }: any) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const webviewRef = useRef();
   /**
    * Map of accounts to information objects including balances
    */
@@ -341,56 +329,6 @@ const Wallet = ({ navigation }: any) => {
     [navigation, wizardStep],
   );
 
-  const messageFromWebview = (data) => {
-    stream?._onMessage(data);
-  };
-
-  const setWebviewPostMessage = () => {
-    stream = new WebviewPostMessageStream({
-      name: 'rnside',
-      target: 'webview',
-      targetOrigin: '*',
-      targetWindow: webviewRef.current,
-    });
-
-    // eslint-disable-next-line no-console
-    stream.on('data', (data) =>
-      // eslint-disable-next-line no-console
-      console.log(
-        '[APP LOG] setWebviewPostMessage: Message from Webview ' + data,
-      ),
-    );
-
-    snapsState.stream = stream;
-    snapsState.webview = webviewRef.current;
-  };
-
-  const installSnap = async (url: string): Promise<void> => {
-    const { SnapController } = Engine.context as any;
-    await installTestSnap({ snapController: SnapController, snapId: url });
-  };
-
-  const executeTestSnap = async (snapId: string) => {
-    // eslint-disable-next-line no-console
-    const { SnapController } = Engine.context as any;
-    const localSnap = snapId;
-    const origin = 'origin';
-    const result = await SnapController.handleRequest({
-      snapId: localSnap,
-      origin,
-      handler: 'onRpcRequest',
-      request: { method: 'foo', params: { bar: 'qux' } },
-    });
-    // eslint-disable-next-line no-console
-    console.log(result);
-  };
-
-  const getInstalledSnaps = () => {
-    const { SnapController } = Engine.context as any;
-    // eslint-disable-next-line no-console
-    console.log(SnapController.internalState.snaps);
-  };
-
   return (
     <ErrorBoundary view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
@@ -407,24 +345,7 @@ const Wallet = ({ navigation }: any) => {
         >
           {selectedAddress ? renderContent() : renderLoader()}
         </ScrollView>
-        <Button onPress={async () => await installSnap(TEST_SNAP_ID_ONE)}>
-          Install Test Snap 1
-        </Button>
-        <Button onPress={async () => await installSnap(TEST_SNAP_ID_TWO)}>
-          Install Test Snap 2
-        </Button>
-        <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_ONE)}>
-          Execute Test Snap 1
-        </Button>
-        <Button onPress={getInstalledSnaps}>Get installed snaps</Button>
-        <WebView
-          ref={webviewRef}
-          source={{ uri: 'http://localhost:3001/' }}
-          onMessage={messageFromWebview}
-          onLoadEnd={setWebviewPostMessage}
-          originWhitelist={['*']}
-          javaScriptEnabled
-        />
+        <SnapsExecutionWebView />
         {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
