@@ -10,7 +10,7 @@ export interface PostMessageEvent {
 /**
  * Abstract base class for postMessage streams.
  */
-export abstract class SnapDuplex extends Duplex {
+export default abstract class SnapDuplex extends Duplex {
   private _stream: any;
   private _jobId: string;
 
