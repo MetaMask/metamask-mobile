@@ -1489,6 +1489,7 @@
     "wc_signed_rejected_title": "You've rejected the sign request",
     "wc_signed_failed_title": "This sign request failed",
     "wc_sent_tx_rejected_title": "You've rejected the transaction request",
+    "approved_tx_rejected_title": "You've rejected granting permission",
     "wc_description": "Please check the application"
   },
   "protect_your_wallet_modal": {
