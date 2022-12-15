@@ -23,6 +23,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import {
   toggleAccountsModal,
   toggleReceiveModal,
+  togglePortfolioDappModal,
 } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 
@@ -136,6 +137,22 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       flexDirection: 'row',
     },
+    portfolio: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 15,
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 50,
+    },
+    portfolioText: {
+      fontSize: 18,
+      color: colors.primary.default,
+      ...fontStyles.normal,
+    },
   });
 
 /**
@@ -193,6 +210,10 @@ class AccountOverview extends PureComponent {
      * Action that toggles the receive modal
      */
     toggleReceiveModal: PropTypes.func,
+    /**
+     * Action that toggles the Portofolio Dapp modal
+     */
+    togglePortfolioDappModal: PropTypes.func,
     /**
      * Chain id
      */
@@ -318,6 +339,8 @@ class AccountOverview extends PureComponent {
   };
 
   onReceive = () => this.props.toggleReceiveModal();
+
+  onPorfolioDapp = () => this.props.togglePortfolioDappModal();
 
   onSend = () => {
     const { newAssetTransaction, navigation, ticker } = this.props;
@@ -503,6 +526,14 @@ class AccountOverview extends PureComponent {
                 />
               )}
             </View>
+            <View>
+              <TouchableOpacity
+                style={styles.portfolio}
+                onPress={this.onPorfolioDapp}
+              >
+                <Text style={styles.portfolioText}>{'Your Portfolio'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </View>
@@ -529,6 +560,7 @@ const mapDispatchToProps = (dispatch) => ({
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
+  togglePortfolioDappModal: () => dispatch(togglePortfolioDappModal()),
 });
 
 AccountOverview.contextType = ThemeContext;

@@ -24,6 +24,12 @@ export function toggleReceiveModal(asset) {
   };
 }
 
+export function togglePortfolioDappModal() {
+  return {
+    type: 'TOGGLE_PORTFOLIO_DAPP_MODAL',
+  };
+}
+
 export function toggleDappTransactionModal(show) {
   return {
     type: 'TOGGLE_DAPP_TRANSACTION_MODAL',

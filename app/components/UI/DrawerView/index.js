@@ -33,6 +33,7 @@ import {
   toggleNetworkModal,
   toggleAccountsModal,
   toggleReceiveModal,
+  togglePortfolioDappModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -44,6 +45,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
+import PortfolioDapp from '../PortfolioDapp';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -366,6 +368,10 @@ class DrawerView extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
+     * Action that toggles the Portfolio Dapp modal
+     */
+    togglePortfolioDappModal: PropTypes.func,
+    /**
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
@@ -377,6 +383,10 @@ class DrawerView extends PureComponent {
      * Boolean that determines the status of the receive modal
      */
     receiveModalVisible: PropTypes.bool.isRequired,
+    /**
+     * Boolean that determines the status of the Portfolio Dapp modal
+     */
+    portfolioDappModalVisible: PropTypes.bool.isRequired,
     /**
      * Start transaction with asset
      */
@@ -634,6 +644,10 @@ class DrawerView extends PureComponent {
     this.props.toggleReceiveModal();
   };
 
+  togglePortfolioDappModal = () => {
+    this.props.togglePortfolioDappModal();
+  };
+
   onNetworksModalClose = async (manualClose) => {
     this.toggleNetworksModal();
     if (!manualClose) {
@@ -691,6 +705,10 @@ class DrawerView extends PureComponent {
     this.toggleReceiveModal();
   };
 
+  showPortfolioDappModal = () => {
+    this.togglePortfolioDappModal();
+  };
+
   trackEvent = (event) => {
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(event);
@@ -708,6 +726,10 @@ class DrawerView extends PureComponent {
   onReceive = () => {
     this.toggleReceiveModal();
     this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
+  };
+
+  onPortfolioDapp = () => {
+    this.togglePortfolioDappModal();
   };
 
   onSend = async () => {
@@ -1051,6 +1073,7 @@ class DrawerView extends PureComponent {
     const { selectedAddress } = this.props;
     await ClipboardManager.setString(selectedAddress);
     this.toggleReceiveModal();
+    this.togglePortfolioDappModal();
     InteractionManager.runAfterInteractions(() => {
       this.props.showAlert({
         isVisible: true,
@@ -1466,6 +1489,23 @@ class DrawerView extends PureComponent {
             showReceiveModal={this.showReceiveModal}
           />
         </Modal>
+        <Modal
+          isVisible={this.props.portfolioDappModalVisible}
+          onBackdropPress={this.togglePortfolioDappModal}
+          onBackButtonPress={this.togglePortfolioDappModal}
+          onSwipeComplete={this.togglePortfolioDappModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          style={styles.bottomModal}
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <PortfolioDapp
+            navigation={this.props.navigation}
+            hideModal={this.togglePortfolioDappModal}
+            showPortfolioDappModal={this.showPortfolioDappModal}
+          />
+        </Modal>
         {this.renderProtectModal()}
       </View>
     );
@@ -1486,6 +1526,8 @@ const mapStateToProps = (state) => ({
   networkModalVisible: state.modals.networkModalVisible,
   accountsModalVisible: state.modals.accountsModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
+  portfolioDappModalVisible: state.modals.portfolioDappModalVisible,
+  togglePortfolioDappModal: state.modals.togglePortfolioDappModal,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -1505,6 +1547,7 @@ const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+  togglePortfolioDappModal: () => dispatch(togglePortfolioDappModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
