@@ -6,7 +6,7 @@ import {
   AbstractExecutionService,
   ExecutionServiceArgs,
 } from '@metamask/snap-controllers';
-import snapsState from '../SnapsState';
+import snapsState from './SnapsState';
 // import SnapWebviewPostMessageStream from './SnapWebviewPostMessageStream';
 import SnapDuplex from './SnapDuplex';
 
