@@ -14,7 +14,7 @@ import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwit
 
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const wait = 10000;
+  const wait = 15000;
   await driver.pause(wait);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
@@ -29,10 +29,6 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.isVisible();
   await OnboardingWizardModal.tapNoThanksButton();
-});
-
-Then(/^I tap on the navbar network title button/, async () => {
-  await WalletMainScreen.tapNetworkNavBar();
 });
 
 When(/^I tap on the Add a Network button/, async () => {
@@ -239,6 +235,7 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
 });
 
 Then(/^I navigate back to the main wallet view/, async () => {
+  await driver.pause(2000);
   await NetworksScreen.tapBackButtonInNewScreen();
   const wait = 1000;
   await driver.pause(wait);
