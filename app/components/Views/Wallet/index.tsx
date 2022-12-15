@@ -366,6 +366,12 @@ const Wallet = ({ navigation }: any) => {
     console.log(result);
   };
 
+  const getInstalledSnaps = () => {
+    const { SnapController } = Engine.context as any;
+    // eslint-disable-next-line no-console
+    console.log(SnapController.internalState.snaps);
+  };
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
