@@ -3,25 +3,26 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import { mockTheme, ThemeContext } from '../theme';
+import configureStore from './configureStore';
+import { Theme } from '../theme/models';
 
-function renderWithProvider(component: React.ReactElement, store?: any) {
-  const ThemeProvider = ({ children }: { children: React.ReactElement }) => (
-    <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-  );
+export default function renderWithProvider(
+  component: React.ReactElement,
+  providerValues?: {
+    state?: Record<any, any>;
+    theme?: Theme;
+  },
+) {
+  const { state = {}, theme = mockTheme } = providerValues ?? {};
+  const store = configureStore(state);
 
-  if (!store) {
-    return render(component, { wrapper: ThemeProvider });
-  }
-
-  const AllProviders = ({ children }: { children: React.ReactElement }) => (
+  const Wrapper = ({ children }: { children: React.ReactElement }) => (
     <NavigationContainer>
       <Provider store={store}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
       </Provider>
     </NavigationContainer>
   );
 
-  return render(component, { wrapper: AllProviders });
+  return render(component, { wrapper: Wrapper });
 }
-
-export default renderWithProvider;
