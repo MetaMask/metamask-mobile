@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../EthereumAddress';
@@ -21,6 +21,12 @@ import ShowBlockExplorer from '../ShowBlockExplorer';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './styles';
 import { AddNicknameProps } from './types';
+import { validateAddressOrENS } from '../../../../util/address';
+import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
+import {
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../../constants/error';
 
 const getAnalyticsParams = () => ({});
 
@@ -32,15 +38,43 @@ const AddNickname = (props: AddNicknameProps) => {
     addressNickname,
     networkState: {
       network,
-      providerConfig: { type },
+      provider: { type, chainId },
     },
+    addressBook,
+    identities,
   } = props;
 
   const [newNickname, setNewNickname] = useState(addressNickname);
+  const [addressErr, setAddressErr] = useState(null);
+  const [addressHasError, setAddressHasError] = useState(false);
+  const [errContinue, setErrContinue] = useState(false);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+
+  const chooseToContinue = () => {
+    setAddressHasError(true);
+    return setAddressHasError(!addressHasError);
+  };
+
+  useEffect(() => {
+    const validateAddressOrENSFromInput = async () => {
+      const { addressError, errorContinue } = await validateAddressOrENS({
+        toAccount: address,
+        network,
+        addressBook,
+        identities,
+        chainId,
+      });
+
+      setAddressErr(addressError);
+      setErrContinue(errorContinue);
+      setAddressHasError(addressError !== null);
+    };
+
+    validateAddressOrENSFromInput();
+  }, [address, addressBook, chainId, identities, network]);
 
   const copyaddress = async () => {
     await ClipboardManager.setString(address);
@@ -70,6 +104,23 @@ const AddNickname = (props: AddNicknameProps) => {
 
   const toggleBlockExplorer = () => setIsBlockExplorerVisible(true);
 
+  const renderErrorMessage = (addressError: any) => {
+    let errorMessage = addressError;
+
+    if (addressError === CONTACT_ALREADY_SAVED) {
+      errorMessage = strings('address_book.address_already_saved');
+    }
+    if (addressError === SYMBOL_ERROR) {
+      errorMessage = `${
+        strings('transaction.tokenContractAddressWarning_1') +
+        strings('transaction.tokenContractAddressWarning_2') +
+        strings('transaction.tokenContractAddressWarning_3')
+      }`;
+    }
+
+    return errorMessage;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {isBlockExplorerVisible ? (
@@ -80,6 +131,10 @@ const AddNickname = (props: AddNicknameProps) => {
           headerWrapperStyle={styles.headerWrapper}
           headerTextStyle={styles.headerText}
           iconStyle={styles.icon}
+          networkProvider={{
+            rpcTarget: '',
+          }}
+          frequentRpcList={[]}
         />
       ) : (
         <>
@@ -134,14 +189,24 @@ const AddNickname = (props: AddNicknameProps) => {
               numberOfLines={1}
               style={styles.input}
               value={newNickname}
+              editable={!addressHasError}
               testID={'contract-name-input'}
               keyboardAppearance={themeAppearance}
             />
+            {addressHasError && (
+              <View style={styles.errorContinue}>
+                <ErrorMessage
+                  errorMessage={renderErrorMessage(addressErr)}
+                  errorContinue={!!errContinue}
+                  onContinue={chooseToContinue}
+                />
+              </View>
+            )}
           </View>
           <View style={styles.updateButton}>
             <StyledButton
               type={'confirm'}
-              disabled={!newNickname}
+              disabled={!newNickname || addressHasError}
               onPress={saveTokenNickname}
               testID={'nickname.save_nickname'}
             >
@@ -157,6 +222,8 @@ const AddNickname = (props: AddNicknameProps) => {
 
 const mapStateToProps = (state: any) => ({
   networkState: state.engine.backgroundState.NetworkController,
+  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  identities: state.engine.backgroundState.PreferencesController.identities,
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

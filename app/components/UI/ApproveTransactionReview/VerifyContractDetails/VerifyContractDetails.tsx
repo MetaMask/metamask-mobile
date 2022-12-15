@@ -58,8 +58,14 @@ const VerifyContractDetails = ({
     });
   }, [contractAddress, tokenAddress, savedContactListToArray]);
 
-  const hasBlockExplorer =
-    type === RPC && findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+  const showBlockExplorerIcon = () => {
+    if (type === RPC) {
+      return findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+    }
+    return true;
+  };
+
+  const hasBlockExplorer = showBlockExplorerIcon();
 
   return (
     <View style={styles.container}>

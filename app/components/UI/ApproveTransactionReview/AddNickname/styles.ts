@@ -78,6 +78,9 @@ const createStyles = (colors: any) =>
     actionIcon: {
       color: colors.primary.default,
     },
+    errorContinue: {
+      marginVertical: 16,
+    },
   });
 
 export default createStyles;
