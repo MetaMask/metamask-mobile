@@ -47,15 +47,17 @@ const ContractBoxBase = ({
   return (
     <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
       <View style={styles.rowContainer}>
-        {contractLocalImage ? (
-          <Avatar
-            variant={AvatarVariants.Token}
-            size={AvatarSize.Xl}
-            imageSource={contractLocalImage}
-          />
-        ) : (
-          <Identicon address={contractAddress} diameter={40} />
-        )}
+        <View style={styles.imageContainer}>
+          {contractLocalImage ? (
+            <Avatar
+              variant={AvatarVariants.Token}
+              size={AvatarSize.Md}
+              imageSource={contractLocalImage}
+            />
+          ) : (
+            <Identicon address={contractAddress} diameter={25} />
+          )}
+        </View>
         {contractPetName ? (
           <Pressable onPress={onContractPress}>
             <Text style={styles.header} variant={TextVariant.HeadingMD}>

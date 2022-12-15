@@ -13,7 +13,7 @@ export interface VerifyContractDetailsProps {
   /**
    * toggle block explorer view
    */
-  toggleBlockExplorerView: () => void;
+  toggleBlockExplorer: (address: string) => void;
   /**
    * toggle nickname view
    */

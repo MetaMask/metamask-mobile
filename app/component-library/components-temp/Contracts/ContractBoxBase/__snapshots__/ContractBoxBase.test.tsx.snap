@@ -19,15 +19,23 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       }
     }
   >
-    <Avatar
-      imageSource={
+    <View
+      style={
         Object {
-          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          "marginRight": 16,
         }
       }
-      size="48"
-      variant="Token"
-    />
+    >
+      <Avatar
+        imageSource={
+          Object {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        size="32"
+        variant="Token"
+      />
+    </View>
     <Component>
       <Text
         style={
@@ -35,7 +43,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
             "color": "#0376C9",
           }
         }
-        variant="sHeadingMD"
+        variant="sHeadingSM"
       >
         DAI
       </Text>

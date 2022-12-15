@@ -118,7 +118,8 @@ const createStyles = (colors: any) =>
     verifyContractLink: {
       textAlign: 'center',
       color: colors.primary.default,
-      marginVertical: 10,
+      paddingVertical: 16,
+      lineHeight: 22,
     },
     actionIcon: {
       color: colors.primary.default,

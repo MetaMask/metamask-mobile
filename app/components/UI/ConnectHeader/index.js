@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Text from '../../../component-library/components/Texts/Text';
-import { fontStyles } from '../../../styles/common';
+import Text, {
+  TextVariants,
+} from '../../../component-library/components/Texts/Text';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -14,9 +15,8 @@ const createStyles = (colors) =>
       paddingBottom: 20,
     },
     title: {
-      ...fontStyles.bold,
       color: colors.text.default,
-      fontSize: 14,
+      fontSize: 16,
       textAlign: 'center',
       paddingVertical: 12,
     },
@@ -48,7 +48,9 @@ class ConnectHeader extends Component {
             color={colors.text.default}
           />
         </TouchableOpacity>
-        <Text style={styles.title}>{title}</Text>
+        <Text variant={TextVariants.sHeadingSMRegular} style={styles.title}>
+          {title}
+        </Text>
       </View>
     );
   }

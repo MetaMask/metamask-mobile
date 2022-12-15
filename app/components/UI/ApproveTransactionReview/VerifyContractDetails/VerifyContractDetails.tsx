@@ -18,7 +18,7 @@ const VerifyContractDetails = ({
   contractAddress,
   closeVerifyContractView,
   copyAddress,
-  toggleBlockExplorerView,
+  toggleBlockExplorer,
   showNickname,
   tokenAddress,
   savedContactListToArray,
@@ -59,7 +59,7 @@ const VerifyContractDetails = ({
         title={strings('confirmation.token_allowance.verify_contract_details')}
       />
       <Text style={styles.description}>
-        <Text variant={TextVariants.sBodyMD}>
+        <Text variant={TextVariants.sBodyMD} style={styles.text}>
           {strings('confirmation.token_allowance.protect_from_scams')}
         </Text>{' '}
         <ButtonLink onPress={learnMore}>
@@ -67,7 +67,7 @@ const VerifyContractDetails = ({
         </ButtonLink>
       </Text>
       <View>
-        <Text variant={TextVariants.lBodyMD} style={styles.title}>
+        <Text variant={TextVariants.lBodySM} style={styles.title}>
           {strings('confirmation.token_allowance.contract_type', {
             type: 'Token',
           })}
@@ -77,12 +77,12 @@ const VerifyContractDetails = ({
             contractAddress={tokenAddress}
             contractPetName={tokenNickname}
             onCopyAddress={() => copyAddress(tokenAddress)}
-            onExportAddress={toggleBlockExplorerView}
+            onExportAddress={() => toggleBlockExplorer(tokenAddress)}
             contractLocalImage={images[imageUtil(tokenSymbol)]}
             onContractPress={() => showNickname(tokenAddress)}
           />
         </View>
-        <Text variant={TextVariants.lBodyMD} style={styles.title}>
+        <Text variant={TextVariants.lBodySM} style={styles.title}>
           {strings('confirmation.token_allowance.contract_requesting_text')}
         </Text>
         <View style={styles.contractSection}>
@@ -90,7 +90,7 @@ const VerifyContractDetails = ({
             contractAddress={contractAddress}
             contractPetName={contractNickname}
             onCopyAddress={() => copyAddress(contractAddress)}
-            onExportAddress={toggleBlockExplorerView}
+            onExportAddress={() => toggleBlockExplorer(contractAddress)}
             onContractPress={() => showNickname(contractAddress)}
           />
         </View>
