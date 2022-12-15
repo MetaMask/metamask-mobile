@@ -10,7 +10,7 @@ export const installTestSnap = async ({
 }): Promise<void> => {
   const mockOrigin = 'origin';
   await snapController.installSnaps(mockOrigin, { [snapId]: {} });
-  await snapController.terminateSnap(snapId);
+  // await snapController.terminateSnap(snapId);
 };
 
 export const validateShasum = () => {
