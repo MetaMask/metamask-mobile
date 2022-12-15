@@ -12,9 +12,9 @@ class MetaMetricsScreen {
   }
 
   async swipeUp(){
-    await driver.pause(2000);
+    await driver.pause(5000);
     await Gestures.swipe(
-      { x: 200, y: 500 },
+      { x: 200, y: 1000 },
       { x: 200, y: 10 },
     );
   }
@@ -23,7 +23,6 @@ class MetaMetricsScreen {
     await this.swipeUp();
     const elem = $(`~${OPTIN_METRICS_I_AGREE_BUTTON_ID}`);
     await Gestures.tap(elem);
-    await elem.waitForDisplayed({ reverse: true });
   }
 
   async tapNoThanksButton() {

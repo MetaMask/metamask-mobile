@@ -182,7 +182,7 @@ class NetworksScreen {
     }
 
     async tapBackButtonInNewScreen() {
-       await (await Selectors.getXpathElementByContentDecscription(NETWORK_BACK_ARROW_BUTTON_ID)).touchAction('tap');
+       await (await Selectors.getXpathElementByContentDescription(NETWORK_BACK_ARROW_BUTTON_ID)).touchAction('tap');
     }
 
     async tapBackButtonInSettingsScreen() {

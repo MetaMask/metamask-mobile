@@ -67,8 +67,11 @@ class ImportFromSeed {
   }
 
   async isAlertTextVisible(text){
-    const msg = await driver.getAlertText();
-    expect(msg.includes(text)).toBe(true);
+    var msg = await driver.getAlertText();
+    while(msg === '' || null){
+      msg = await driver.getAlertText();
+    }
+    expect(msg.includes(text.trim())).toBe(true);
   }
 
   async tapOkInAlertMessage(){
