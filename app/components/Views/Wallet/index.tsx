@@ -29,6 +29,7 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
@@ -321,56 +322,6 @@ const Wallet = ({ navigation }: any) => {
       ),
     [navigation, wizardStep],
   );
-
-  const messageFromWebview = (data) => {
-    stream?._onMessage(data);
-  };
-
-  const setWebviewPostMessage = () => {
-    stream = new WebviewPostMessageStream({
-      name: 'rnside',
-      target: 'webview',
-      targetOrigin: '*',
-      targetWindow: webviewRef.current,
-    });
-
-    // eslint-disable-next-line no-console
-    stream.on('data', (data) =>
-      // eslint-disable-next-line no-console
-      console.log(
-        '[APP LOG] setWebviewPostMessage: Message from Webview ' + data,
-      ),
-    );
-
-    snapsState.stream = stream;
-    snapsState.webview = webviewRef.current;
-  };
-
-  const installSnap = async (url: string): Promise<void> => {
-    const { SnapController } = Engine.context as any;
-    await installTestSnap({ snapController: SnapController, snapId: url });
-  };
-
-  const executeTestSnap = async (snapId: string) => {
-    // eslint-disable-next-line no-console
-    const { SnapController } = Engine.context as any;
-    const localSnap = snapId;
-    const origin = 'origin';
-    const result = await SnapController.handleRequest({
-      snapId: localSnap,
-      origin,
-      handler: 'onRpcRequest',
-      request: { method: 'foo', params: { bar: 'qux' } },
-    });
-    // eslint-disable-next-line no-console
-    console.log(result);
-  };
-
-  const getInstalledSnaps = () => {
-    const { SnapController } = Engine.context as any;
-    // eslint-disable-next-line no-console
-    console.log(SnapController.internalState.snaps);
-  };
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
