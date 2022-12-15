@@ -43,6 +43,7 @@ describe('GetStarted', () => {
     mockNavigate.mockClear();
     mockSetOptions.mockClear();
     mockReset.mockClear();
+    (mockuseFiatOnRampSDKInitialValues.setGetStarted as jest.Mock).mockClear();
   });
 
   it('renders correctly', async () => {
@@ -85,9 +86,7 @@ describe('GetStarted', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
     );
-    expect(
-      mockuseFiatOnRampSDKInitialValues.setGetStarted,
-    ).toHaveBeenCalledWith(true);
+    expect(mockUseFiatOnRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 
   it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
