@@ -10,8 +10,8 @@ import useCurrency from '../../../Base/Keypad/useCurrency';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-  NETWORKS_CHAIN_ID,
 } from '../../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
 //* env vars
 

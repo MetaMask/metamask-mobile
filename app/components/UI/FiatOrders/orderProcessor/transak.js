@@ -6,9 +6,9 @@ import Logger from '../../../../util/Logger';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-  NETWORKS_CHAIN_ID,
   TRANSAK_NETWORK_PARAMETERS,
 } from '../../../../constants/on-ramp';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
 //* env vars
 

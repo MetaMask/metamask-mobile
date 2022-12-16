@@ -30,6 +30,7 @@ import {
 import { Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
+import Device from '../../../../util/device';
 interface IFiatOnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -42,6 +43,9 @@ export interface IFiatOnRampSDK {
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
+
+  unsupportedRegion?: Region;
+  setUnsupportedRegion: (region?: Region) => void;
 
   selectedPaymentMethodId: string | null;
   setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
@@ -68,13 +72,17 @@ interface IProviderProps<T> {
 }
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
+const CONTEXT = Device.isAndroid()
+  ? Context.MobileAndroid
+  : Device.isIos()
+  ? Context.MobileIOS
+  : Context.Mobile;
 const VERBOSE_SDK = isDevelopment;
-
 const ACTIVATION_KEYS = process.env.ONRAMP_ACTIVATION_KEYS?.split(',') || [];
 
 export const SDK = OnRampSdk.create(
   isDevelopment ? Environment.Staging : Environment.Production,
-  Context.Mobile,
+  CONTEXT,
   {
     verbose: VERBOSE_SDK,
     locale: I18n.locale,
@@ -139,6 +147,8 @@ export const FiatOnRampSDKProvider = ({
   const INITIAL_SELECTED_ASSET = null;
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
+  const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
+
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
@@ -184,6 +194,9 @@ export const FiatOnRampSDKProvider = ({
 
     selectedRegion,
     setSelectedRegion: setSelectedRegionCallback,
+
+    unsupportedRegion,
+    setUnsupportedRegion,
 
     selectedPaymentMethodId,
     setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
