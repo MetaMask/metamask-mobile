@@ -15,10 +15,7 @@ import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Networks, {
-  compareRpcUrls,
-  getAllNetworks,
-} from '../../../../util/networks';
+import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import getImage from '../../../../util/getImage';
@@ -27,6 +24,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import sanitizeUrl from '../../../../util/sanitizeUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -179,7 +177,7 @@ class NetworksSettings extends PureComponent {
     // Check if it's the selected network and then switch to mainnet first
     const { provider } = this.props;
     if (
-      compareRpcUrls(provider.rpcTarget, this.networkToRemove) &&
+      sanitizeUrl(provider.rpcTarget) === sanitizeUrl(this.networkToRemove) &&
       provider.type === RPC
     ) {
       this.switchToMainnet();
