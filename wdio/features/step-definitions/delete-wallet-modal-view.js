@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@wdio/cucumber-framework';
+import { When } from '@wdio/cucumber-framework';
 import DeleteWalletModal from '../screen-objects/Modals/DeleteWalletModal';
 
 When(/^I tap I understand, continue on Delete wallet modal/, async () => {
