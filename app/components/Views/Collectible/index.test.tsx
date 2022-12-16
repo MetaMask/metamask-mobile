@@ -17,8 +17,8 @@ const initialState = {
           chainId: '1',
         },
       },
-      CollectiblesController: {
-        allCollectibles: {
+      NftController: {
+        allNfts: {
           '0x0': {
             1: [
               {

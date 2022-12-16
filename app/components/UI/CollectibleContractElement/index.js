@@ -131,14 +131,14 @@ function CollectibleContractElement({
     longPressedCollectible.current = collectible;
   }, []);
 
-  const removeCollectible = () => {
-    const { CollectiblesController } = Engine.context;
+  const removeNft = () => {
+    const { NftController } = Engine.context;
     removeFavoriteCollectible(
       selectedAddress,
       chainId,
       longPressedCollectible.current,
     );
-    CollectiblesController.removeAndIgnoreCollectible(
+    NftController.removeAndIgnoreNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
@@ -149,9 +149,9 @@ function CollectibleContractElement({
   };
 
   const refreshMetadata = () => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
 
-    CollectiblesController.addCollectible(
+    NftController.addNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
@@ -159,7 +159,7 @@ function CollectibleContractElement({
 
   const handleMenuAction = (index) => {
     if (index === 1) {
-      removeCollectible();
+      removeNft();
     } else if (index === 0) {
       refreshMetadata();
     }
