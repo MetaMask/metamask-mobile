@@ -18,6 +18,7 @@ type IframeExecutionEnvironmentServiceArgs = {
 
 export default class WebviewExecutionService extends AbstractExecutionService<Window> {
   public iframeUrl: URL;
+  #snapDuplexMap: SnapDuplex[];
 
   constructor({
     iframeUrl,
@@ -29,6 +30,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
       setupSnapProvider,
     });
     this.iframeUrl = iframeUrl;
+    this.#snapDuplexMap = {};
   }
 
   protected async _initEnvStream(jobId: string): Promise<{
@@ -43,10 +45,14 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     const iframeWindow = snapsState.webview;
     const stream = snapsState.stream;
 
+    // The WebviewExecutionService wraps the stream into a Duplex
+    // to pass the jobId to the Proxy Service
     const snapStream = new SnapDuplex({
       stream,
       jobId,
     });
+
+    this.#snapDuplexMap[jobId] = snapStream;
 
     return { worker: iframeWindow, stream: snapStream };
   }
