@@ -33,7 +33,7 @@ const SnapsExecutionWebView = () => {
       snapId: localSnap,
       origin,
       handler: 'onRpcRequest',
-      request: { method: 'foo', params: { bar: 'qux' } },
+      request: { method: 'getAccount' },
     });
     // eslint-disable-next-line no-console
     console.log(result);
