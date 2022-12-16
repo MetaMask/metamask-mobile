@@ -22,7 +22,7 @@ import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {SEND_ADDRESS_INPUT_FIELD} from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
