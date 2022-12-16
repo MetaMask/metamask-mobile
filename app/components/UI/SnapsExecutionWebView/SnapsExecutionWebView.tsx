@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { Button } from 'react-native-share';
 import WebView from 'react-native-webview';
 import { snapsState, WebviewPostMessageStream } from '../../../core/Snaps';
+import { createStyles } from './styles';
 
 import Engine from '../../../core/Engine';
 
@@ -12,6 +13,8 @@ const TEST_SNAP_ID_TWO = 'local:http://localhost:3000/snapother/';
 let stream: any;
 
 const SnapsExecutionWebView = () => {
+  const styles = createStyles();
+
   const webviewRef = useRef();
 
   const installSnap = async (snapId: string): Promise<void> => {
@@ -67,7 +70,7 @@ const SnapsExecutionWebView = () => {
   };
 
   return (
-    <View>
+    <ScrollView style={styles.container}>
       <Button onPress={async () => await installSnap(TEST_SNAP_ID_ONE)}>
         Install Test Snap 1
       </Button>
@@ -78,15 +81,17 @@ const SnapsExecutionWebView = () => {
         Execute Test Snap 1
       </Button>
       <Button onPress={getInstalledSnaps}>Get installed snaps</Button>
-      <WebView
-        ref={webviewRef}
-        source={{ uri: 'http://localhost:3001/' }}
-        onMessage={messageFromWebview}
-        onLoadEnd={setWebviewPostMessage}
-        originWhitelist={['*']}
-        javaScriptEnabled
-      />
-    </View>
+      <View style={styles.webview}>
+        <WebView
+          ref={webviewRef}
+          source={{ uri: 'http://localhost:3001/' }}
+          onMessage={messageFromWebview}
+          onLoadEnd={setWebviewPostMessage}
+          originWhitelist={['*']}
+          javaScriptEnabled
+        />
+      </View>
+    </ScrollView>
   );
 };
 
