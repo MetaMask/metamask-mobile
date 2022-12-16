@@ -3,7 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../Base/Alert';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import { useTheme } from '../../../../../util/theme';
 import { CHAINLIST_URL } from '../../../../../constants/urls';
 
 const createStyles = (colors: any) =>
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const EmptyPopularList = ({ goToCustomNetwork }: Props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 

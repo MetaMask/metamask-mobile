@@ -13,7 +13,7 @@ import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { connect } from 'react-redux';
 import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -52,7 +52,7 @@ const createStyles = (colors) =>
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
 const OfflineMode = ({ navigation, infuraBlocked }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const netinfo = NetInfo.useNetInfo();

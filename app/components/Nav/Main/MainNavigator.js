@@ -59,7 +59,7 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
+import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
@@ -498,7 +498,12 @@ const FiatOnRampAggregator = () => (
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD}
-        component={PaymentMethod}
+        component={PaymentMethods}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED}
+        component={PaymentMethods}
+        options={{ animationEnabled: false }}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
@@ -519,11 +524,6 @@ const FiatOnRampAggregator = () => (
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
-        component={AmountToBuy}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
@@ -631,7 +631,7 @@ const MainNavigator = () => (
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen name="QRScanner" component={QrScanner} />
+    <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />

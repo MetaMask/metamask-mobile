@@ -1,11 +1,11 @@
 import TestHelpers from '../helpers';
+import { ADDRESS_BOOK_NEXT_BUTTON } from '../../app/constants/test-ids';
 
 const ADDRESS_INPUT_BOX_ID = 'txn-to-address-input';
 const ADD_TO_ADDRESS_BOOK_BUTTON_ID = 'add-address-button';
 const CANCEL_BUTTON_ID = 'send-cancel-button';
 const INCORRECT_ADDRESS_ERROR_ID = 'address-error';
 const NO_ETH_WARNING_MESSAGE_ID = 'no-eth-message';
-const NEXT_BUTTON_ID = 'address-book-next-button';
 const MY_ACCOUNTS_BUTTON_ID = 'my-accounts-button';
 const REMOVE_ADDRESS_BUTTON_ID = 'clear-address-button';
 
@@ -15,7 +15,7 @@ export default class SendView {
   }
 
   static async tapNextButton() {
-    await TestHelpers.waitAndTap(NEXT_BUTTON_ID);
+    await TestHelpers.waitAndTap(ADDRESS_BOOK_NEXT_BUTTON);
   }
   static async inputAddress(address) {
     await TestHelpers.replaceTextInField(ADDRESS_INPUT_BOX_ID, address);

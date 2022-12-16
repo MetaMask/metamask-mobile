@@ -500,7 +500,7 @@ class Amount extends PureComponent {
    * @returns Promise that resolves ownershio as a boolean.
    */
   validateCollectibleOwnership = async () => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
     const {
       transactionState: {
         selectedAsset: { address, tokenId },
@@ -508,11 +508,7 @@ class Amount extends PureComponent {
       selectedAddress,
     } = this.props;
     try {
-      return await CollectiblesController.isCollectibleOwner(
-        selectedAddress,
-        address,
-        tokenId,
-      );
+      return await NftController.isNftOwner(selectedAddress, address, tokenId);
     } catch (e) {
       return false;
     }
@@ -655,11 +651,14 @@ class Amount extends PureComponent {
         amount: BNToHex(tokenAmount),
       });
       transactionObject.value = '0x0';
+      transactionObject.to = selectedAsset.address;
     }
 
     if (selectedAsset.erc20) {
       transactionObject.readableValue = value;
     }
+
+    if (selectedAsset.isETH) transactionObject.to = transactionTo;
 
     setTransactionObject(transactionObject);
   };
@@ -1128,7 +1127,11 @@ class Amount extends PureComponent {
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
               >
-                <Text style={styles.textSwitch} numberOfLines={1}>
+                <Text
+                  style={styles.textSwitch}
+                  numberOfLines={1}
+                  testID={'txn-amount-conversion-value'}
+                >
                   {renderableInputValueConversion}
                 </Text>
                 <View styles={styles.switchWrapper}>

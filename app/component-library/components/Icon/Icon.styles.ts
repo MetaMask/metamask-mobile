@@ -1,4 +1,7 @@
+// Third party dependencies.
 import { StyleSheet, ImageStyle } from 'react-native';
+
+// Internal dependencies.
 import { IconStyleSheetVars } from './Icon.types';
 
 /**

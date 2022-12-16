@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import compareVersions from 'compare-versions';
 import {
   WHATS_NEW_APP_VERSION_SEEN,

@@ -14,13 +14,14 @@ const initialState = {
       NetworkController: {
         provider: {
           chainId: 1,
+          type: 'mainnet',
         },
       },
       PreferencesController: {
         selectedAddress: '0x1',
       },
-      CollectiblesController: {
-        allCollectibleContracts: {
+      NftController: {
+        allNftContracts: {
           '0x1': {
             1: [
               {
@@ -34,7 +35,7 @@ const initialState = {
             ],
           },
         },
-        allCollectibles: {
+        allNfts: {
           '0x1': {
             1: [
               {

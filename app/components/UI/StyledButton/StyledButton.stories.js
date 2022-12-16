@@ -5,7 +5,7 @@ import { text, boolean, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 import StyledButton from '.';
 
-storiesOf('UI / StyledButton', module)
+storiesOf('Components / UI / StyledButton', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => (
     <View>

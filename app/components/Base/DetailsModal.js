@@ -4,7 +4,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -59,7 +59,7 @@ const createStyles = (colors) =>
     },
   });
 const DetailsModal = ({ children }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -70,19 +70,19 @@ const DetailsModal = ({ children }) => {
 };
 
 const DetailsModalHeader = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return <View style={[styles.header, style]} {...props} />;
 };
 const DetailsModalTitle = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return <Text style={[styles.title, style]} {...props} />;
 };
 const DetailsModalCloseIcon = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -92,13 +92,13 @@ const DetailsModalCloseIcon = ({ style, ...props }) => {
   );
 };
 const DetailsModalBody = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return <View style={[styles.body, style]} {...props} />;
 };
 const DetailsModalSection = ({ style, borderBottom, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -109,13 +109,13 @@ const DetailsModalSection = ({ style, borderBottom, ...props }) => {
   );
 };
 const DetailsModalSectionTitle = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return <Text style={[styles.sectionTitle, style]} {...props} />;
 };
 const DetailsModalColumn = ({ style, end, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

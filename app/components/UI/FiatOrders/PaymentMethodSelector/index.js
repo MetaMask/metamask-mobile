@@ -35,7 +35,7 @@ import TransakPaymentMethod from './transak';
 import MoonPayPaymentMethod from './moonpay';
 import WyreApplePayPaymentMethod from './wyreApplePay';
 import { setGasEducationCarouselSeen } from '../../../../actions/user';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import Device from '../../../../util/device';
 
 function PaymentMethodSelectorView({
@@ -50,7 +50,7 @@ function PaymentMethodSelectorView({
   const transakURL = useTransakFlowURL(selectedAddress, chainId);
   const getSignedMoonPayURL = useMoonPayFlowURL(selectedAddress, chainId);
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   useEffect(() => {
     navigation.setOptions(

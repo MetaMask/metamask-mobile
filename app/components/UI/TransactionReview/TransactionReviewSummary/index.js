@@ -5,6 +5,7 @@ import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { isTestNet } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -34,6 +35,14 @@ const createStyles = (colors) =>
       paddingTop: 16,
       paddingBottom: 4,
       textTransform: 'uppercase',
+      textAlign: 'center',
+    },
+    testNestSummaryPrimary: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      fontSize: 44,
+      paddingTop: 16,
+      paddingBottom: 4,
       textAlign: 'center',
     },
     summarySecondary: {
@@ -79,6 +88,10 @@ class TransactionReviewSummary extends PureComponent {
      * ETH or fiat, depending on user setting
      */
     primaryCurrency: PropTypes.string,
+    /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
   };
 
   renderWarning = () => (
@@ -95,9 +108,11 @@ class TransactionReviewSummary extends PureComponent {
       fiatValue,
       approveTransaction,
       primaryCurrency,
+      chainId,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const isTestNetResult = isTestNet(chainId);
 
     return (
       <View>
@@ -112,10 +127,24 @@ class TransactionReviewSummary extends PureComponent {
           </Text>
 
           {!conversionRate ? (
-            <Text style={styles.summaryPrimary}>{assetAmount}</Text>
+            <Text
+              style={
+                isTestNetResult
+                  ? styles.testNestSummaryPrimary
+                  : styles.summaryPrimary
+              }
+            >
+              {assetAmount}
+            </Text>
           ) : (
             <View>
-              <Text style={styles.summaryPrimary}>
+              <Text
+                style={
+                  isTestNetResult
+                    ? styles.testNestSummaryPrimary
+                    : styles.summaryPrimary
+                }
+              >
                 {primaryCurrency === 'ETH' ? assetAmount : fiatValue}
               </Text>
               <Text style={styles.summarySecondary}>

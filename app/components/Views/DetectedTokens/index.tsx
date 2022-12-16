@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { getDecimalChainId } from '../../../util/networks';
 import { FlatList } from 'react-native-gesture-handler';
@@ -70,7 +70,7 @@ const DetectedTokens = () => {
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const detectedTokensForAnalytics = useMemo(
@@ -128,7 +128,6 @@ const DetectedTokens = () => {
                   {
                     token_address: address,
                     token_symbol: symbol,
-                    network_name: NetworkController?.state?.provider?.type,
                     chain_id: getDecimalChainId(
                       NetworkController?.state?.provider?.chainId,
                     ),
@@ -157,6 +156,7 @@ const DetectedTokens = () => {
 
     navigation.navigate('DetectedTokensConfirmation', {
       onConfirm: () => dismissModalAndTriggerAction(true),
+      isHidingAll: true,
     });
     InteractionManager.runAfterInteractions(() =>
       AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {

@@ -7,7 +7,7 @@ import Text from '../../../../Base/Text';
 import InfoIcon from '../InfoIcon';
 import Modal from './Modal';
 import Device from '../../../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import { useTheme } from '../../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -56,7 +56,7 @@ const createStyles = (colors) =>
   });
 
 const PaymentMethod = ({ onPress, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
 
   return (
@@ -75,7 +75,7 @@ PaymentMethod.defaultProps = {
 };
 
 const Badge = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
 
   return (
@@ -86,27 +86,27 @@ const Badge = (props) => {
 };
 
 const Title = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
   return <View style={style.title} {...props} />;
 };
 const Content = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
   return <View style={style.content} {...props} />;
 };
 const Details = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
   return <View style={style.details} {...props} />;
 };
 const InfoIconLine = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
   return <View style={style.infoIconLine} {...props} />;
 };
 const PaymentMethodInfoIcon = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
   return <InfoIcon size={16} style={style.infoIcon} {...props} />;
 };

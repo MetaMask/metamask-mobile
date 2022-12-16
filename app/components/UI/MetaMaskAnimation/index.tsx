@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React from 'react';
-import { Animated, Dimensions, View, StyleSheet } from 'react-native';
+import { Animated, Dimensions, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
-import {
-  useAppThemeFromContext,
-  mockTheme,
-  useAssetFromTheme,
-} from '../../../util/theme';
+import { useTheme, useAssetFromTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../../wdio/features/testIDs/Components/MetaMaskAnimation.testIds';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -67,7 +65,7 @@ const MetaMaskAnimation = ({
   animationName: any;
   onAnimationFinish: () => void;
 }): JSX.Element => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const wordmark = useAssetFromTheme(wordmarkLight, wordmarkDark);
 
@@ -75,7 +73,10 @@ const MetaMaskAnimation = ({
     <View style={styles.main}>
       <Animated.View style={[styles.logoWrapper, { opacity }]}>
         <View style={styles.fox}>
-          <View style={styles.foxAndName}>
+          <View
+            style={styles.foxAndName}
+            {...generateTestId(Platform, SPLASH_SCREEN_METAMASK_ANIMATION_ID)}
+          >
             <LottieView
               ref={animation}
               style={styles.animation}

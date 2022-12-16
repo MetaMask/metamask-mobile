@@ -1,8 +1,13 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
-import Checkbox from './Checkbox';
-import { CHECKBOX_ICON_ID } from '../../../constants/test-ids';
+
+// External dependencies.
 import { IconName } from '../Icon';
+
+// Internal dependencies.
+import Checkbox from './Checkbox';
+import { CHECKBOX_ICON_ID } from './Checkbox.constants';
 
 describe('Checkbox', () => {
   it('should render correctly', () => {

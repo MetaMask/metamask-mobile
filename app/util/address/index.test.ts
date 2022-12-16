@@ -3,6 +3,8 @@ import {
   renderSlightlyLongAddress,
   formatAddress,
   isValidHexAddress,
+  isValidAddressInputViaQRCode,
+  stripHexPrefix,
 } from '.';
 
 describe('isENS', () => {
@@ -87,5 +89,52 @@ describe('isValidHexAddress', () => {
 
   it('should return false if the address is an  empty string', () => {
     expect(isValidHexAddress('', { mixedCaseUseChecksum: true })).toBe(false);
+  });
+});
+
+describe('isValidAddressInputViaQRCode', () => {
+  it('should be valid to use the ethereum keyword followed by an address and chain id', () => {
+    const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a@1';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+  });
+
+  it('should be valid to use the ethereum keyword followed by an address', () => {
+    const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+  });
+
+  it('should be invalid to use the ethereum keyword followed by an wrong address', () => {
+    const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119d';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+
+  it('should be invalid to only have the ethereum keyword', () => {
+    const mockInput = 'ethereum:';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+
+  it('should be valid to only have the address', () => {
+    const mockInput = '0x2990079bcdEe240329a520d2444386FC119da21a';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+  });
+
+  it('should be invalid to have an URL', () => {
+    const mockInput = 'https://www.metamask.io';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+});
+
+describe('stripHexPrefix', () => {
+  const str =
+    '0x4cfd3e90fc78b0f86bf7524722150bb8da9c60cd532564d7ff43f5716514f553';
+  const stripped =
+    '4cfd3e90fc78b0f86bf7524722150bb8da9c60cd532564d7ff43f5716514f553';
+
+  it('returns a string without a hex prefix', () => {
+    expect(stripHexPrefix(str)).toBe(stripped);
+  });
+
+  it('returns the same string since there is no hex prefix', () => {
+    expect(stripHexPrefix(stripped)).toBe(stripped);
   });
 });

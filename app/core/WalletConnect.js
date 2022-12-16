@@ -4,17 +4,22 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/controllers/';
-import BackgroundBridge from './BackgroundBridge';
+import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
 } from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
+import { strings } from '../../locales/i18n';
+import NotificationManager from './NotificationManager';
+import { msBetweenDates, msToHours } from '../util/date';
+import URL from 'url-parse';
+
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
@@ -36,18 +41,13 @@ const METHODS_TO_REDIRECT = {
 
 const persistSessions = async () => {
   const sessions = connectors
-    .filter(
-      (connector) =>
-        connector &&
-        connector.walletConnector &&
-        connector &&
-        connector.walletConnector.connected,
-    )
+    .filter((connector) => connector?.walletConnector?.connected)
     .map((connector) => ({
       ...connector.walletConnector.session,
       autosign: connector.autosign,
       redirectUrl: connector.redirectUrl,
       requestOriginatedFrom: connector.requestOriginatedFrom,
+      lastTimeConnected: new Date(),
     }));
 
   await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
@@ -123,7 +123,7 @@ class WalletConnect {
         await waitForInitialization();
         await this.sessionRequest(sessionData);
 
-        this.startSession(sessionData, existing);
+        await this.startSession(sessionData, existing);
 
         this.redirect();
       } catch (e) {
@@ -361,8 +361,22 @@ const instance = {
     const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
+
       sessions.forEach((session) => {
-        connectors.push(new WalletConnect({ session }, true));
+        if (session.lastTimeConnected) {
+          const sessionDate = new Date(session.lastTimeConnected);
+          const diffBetweenDatesInMs = msBetweenDates(sessionDate);
+          const diffInHours = msToHours(diffBetweenDatesInMs);
+
+          if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
+            connectors.push(new WalletConnect({ session }, true));
+          } else {
+            const connector = new WalletConnect({ session }, true);
+            connector.killSession();
+          }
+        } else {
+          connectors.push(new WalletConnect({ session }, true));
+        }
       });
     }
     initialized = true;
@@ -370,13 +384,27 @@ const instance = {
   connectors() {
     return connectors;
   },
-  newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
+  async newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
     const alreadyConnected = this.isSessionConnected(uri);
     if (alreadyConnected) {
-      const errorMsg =
-        'This session is already connected. Close the current session before starting a new one.';
-      throw new Error(errorMsg);
+      NotificationManager.showSimpleNotification({
+        duration: 5000,
+        title: strings('walletconnect_sessions.session_already_exist'),
+        description: strings('walletconnect_sessions.close_current_session'),
+        status: 'error',
+      });
+      return;
     }
+
+    const sessions = connectors
+      .filter((connector) => connector?.walletConnector?.connected)
+      .map((connector) => ({
+        ...connector.walletConnector.session,
+      }));
+    if (sessions.length >= AppConstants.WALLET_CONNECT.LIMIT_SESSIONS) {
+      await this.killSession(sessions[0].peerId);
+    }
+
     const data = { uri, session: {} };
     if (redirectUrl) {
       data.session.redirectUrl = redirectUrl;

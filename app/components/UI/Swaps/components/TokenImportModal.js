@@ -9,7 +9,7 @@ import Alert, { AlertType } from '../../../Base/Alert';
 import TokenIcon from './TokenIcon';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -57,7 +57,7 @@ const createStyles = (colors) =>
   });
 
 function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

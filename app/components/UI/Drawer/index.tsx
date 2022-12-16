@@ -39,7 +39,7 @@ import { useNavigation } from '@react-navigation/native';
 const screenWidth = Dimensions.get('window').width;
 import DrawerView from '../DrawerView';
 import styles from './styles';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 interface DrawerRef {
   dismissDrawer: () => void;
@@ -57,7 +57,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const visibleOffset = 0;
   const navigation = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   // Animation config
   const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {

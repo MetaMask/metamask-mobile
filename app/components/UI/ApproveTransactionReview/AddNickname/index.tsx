@@ -25,7 +25,7 @@ import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Header from '../AddNickNameHeader';
 import ShowBlockExplorer from '../ShowBlockExplorer';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -118,17 +118,7 @@ interface AddNicknameProps {
   type: string;
 }
 
-const getAnalyticsParams = () => {
-  try {
-    const { NetworkController } = Engine.context as any;
-    const { type } = NetworkController?.state?.provider || {};
-    return {
-      network_name: type,
-    };
-  } catch (error) {
-    return {};
-  }
-};
+const getAnalyticsParams = () => ({});
 
 const AddNickname = (props: AddNicknameProps) => {
   const {
@@ -146,7 +136,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [newNickname, setNewNickname] = useState(nickname);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const copyContractAddress = async () => {

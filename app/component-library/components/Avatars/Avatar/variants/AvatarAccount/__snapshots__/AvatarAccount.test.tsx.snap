@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarAccount should render correctly 1`] = `
+<AvatarBase
+  size="48"
+>
+  <Jazzicon
+    address="0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092"
+    size={48}
+  />
+</AvatarBase>
+`;

@@ -1,7 +1,10 @@
 // Network Errors
-export const NETWORK_ERROR_MISSING_NETWORK_ID = 'Missing network id';
-export const NETWORK_ERROR_UNKNOWN_NETWORK_ID = 'Unknown network with id';
-export const NETWORK_ERROR_MISSING_CHAIN_ID = 'Missing chain id';
+export enum NetworkSwitchErrorType {
+  missingNetworkId = 'Missing network id',
+  currentNetwork = 'Already in current network',
+  unknownNetworkId = 'Unknown network with id',
+  missingChainId = 'Missing chain id',
+}
 
 // Transaction Errors
 export const NEGATIVE_TOKEN_DECIMALS = 'Token decimals can not be negative';
@@ -12,3 +15,7 @@ export const KEYSTONE_TX_CANCELED = 'KeystoneError#Tx_canceled';
 
 // Password Errors
 export const WRONG_PASSWORD_ERROR = 'error: Invalid password';
+
+// Contact Flow Errors
+export const CONTACT_ALREADY_SAVED = 'contactAlreadySaved';
+export const SYMBOL_ERROR = 'symbolError';

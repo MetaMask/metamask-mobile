@@ -7,7 +7,7 @@ import {
   View,
   Text,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
@@ -33,13 +33,17 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
     },
-    qrCode: {
+    qrCodeContainer: {
       marginBottom: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 36,
+      padding: 28,
       backgroundColor: colors.background.default,
       borderRadius: 8,
+    },
+    qrCode: {
+      padding: 8,
+      backgroundColor: importedColors.white,
     },
     addressWrapper: {
       alignItems: 'center',
@@ -146,13 +150,13 @@ class AddressQRCode extends PureComponent {
               color={colors.overlay.inverse}
             />
           </TouchableOpacity>
-          <View style={styles.qrCode}>
-            <QRCode
-              value={`ethereum:${this.props.selectedAddress}`}
-              size={Dimensions.get('window').width - 160}
-              color={colors.text.default}
-              backgroundColor={colors.background.default}
-            />
+          <View style={styles.qrCodeContainer}>
+            <View style={styles.qrCode}>
+              <QRCode
+                value={`ethereum:${this.props.selectedAddress}`}
+                size={Dimensions.get('window').width - 160}
+              />
+            </View>
           </View>
           <View style={styles.addressWrapper}>
             <Text style={styles.addressTitle}>

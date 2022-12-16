@@ -1,14 +1,24 @@
 import React from 'react';
 import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  SKIP_BUTTON,
+  CANCEL_BUTTON,
+} from '../../../../wdio/features/testIDs/Components/SkipAccountSecurityModalTestIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,11 +77,13 @@ const SkipAccountSecurityModal = ({
   toggleSkipCheckbox,
   skipCheckbox,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
     <ActionModal
+      cancelTestID={CANCEL_BUTTON}
+      confirmTestID={SKIP_BUTTON}
       confirmText={strings('account_backup_step_1.skip_button_confirm')}
       cancelText={strings('account_backup_step_1.skip_button_cancel')}
       confirmButtonMode={'confirm'}
@@ -97,14 +109,14 @@ const SkipAccountSecurityModal = ({
           name="alert-triangle"
           size={38}
           style={styles.imageWarning}
-          testID={'skip_backup_warning'}
+          {...generateTestId(Platform, 'skip-backup-warning')}
         />
         <Text style={styles.skipTitle}>
           {strings('account_backup_step_1.skip_title')}
         </Text>
         <View
           style={styles.skipModalActionButtons}
-          testID={'skip-backup-modal'}
+          {...generateTestId(Platform, 'skip-backup-modal')}
         >
           <CheckBox
             style={styles.skipModalCheckbox}
@@ -120,7 +132,7 @@ const SkipAccountSecurityModal = ({
           <Text
             onPress={toggleSkipCheckbox}
             style={styles.skipModalText}
-            testID={'skip-backup-text'}
+            {...generateTestId(Platform, 'skip-backup-text')}
           >
             {strings('account_backup_step_1.skip_check')}
           </Text>
