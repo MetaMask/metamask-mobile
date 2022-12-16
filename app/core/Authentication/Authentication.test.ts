@@ -14,8 +14,13 @@ import configureMockStore from 'redux-mock-store';
 import Logger from '../../util/Logger';
 
 describe('Authentication', () => {
+  const initialState = {
+    security: {
+      allowLoginWithRememberMe: true,
+    },
+  };
   const mockStore = configureMockStore();
-  const store = mockStore({});
+  const store = mockStore(initialState);
 
   beforeEach(() => {
     Engine.init({});
