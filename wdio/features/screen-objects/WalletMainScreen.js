@@ -58,7 +58,7 @@ class WalletMainScreen {
   async isNetworkNameCorrect(network) {
     const textFromElement = await this.networkNavBarWalletTitle;
     const networkName = await textFromElement.getText();
-    await expect(networkName).toContain(network);
+    expect(networkName).toContain(network);
   }
 
   async tapSettings() {
