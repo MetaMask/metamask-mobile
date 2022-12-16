@@ -14,7 +14,7 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { NAVBAR_TITLE_NETWORKS2 } from '../../../../wdio/features/testIDs/Screens/WalletScreen-testIds';
+import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/features/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
@@ -139,7 +139,7 @@ class NavbarTitle extends PureComponent {
           <Text
             numberOfLines={1}
             style={styles.networkName}
-            {...generateTestId(Platform, NAVBAR_TITLE_NETWORKS2)}
+            {...generateTestId(Platform, NAVBAR_TITLE_NETWORKS_TEXT)}
           >
             {name}
           </Text>

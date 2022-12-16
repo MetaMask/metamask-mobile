@@ -1,5 +1,5 @@
 /* global driver */
-import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS2 } from '../testIDs/Screens/WalletScreen-testIds.js';
+import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS_TEXT } from '../testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
@@ -34,7 +34,7 @@ class WalletMainScreen {
   }
 
   get networkNavBarWalletTitle() {
-    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORKS2);
+    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORKS_TEXT);
   }
 
   get drawerSettings() {
