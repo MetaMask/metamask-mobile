@@ -140,9 +140,9 @@ class ContactForm extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Network provider type as mainnet
+     * Network chainId
      */
-    providerType: PropTypes.string,
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -223,7 +223,7 @@ class ContactForm extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (address) => {
-    const { network, addressBook, identities, providerType } = this.props;
+    const { network, addressBook, identities, chainId } = this.props;
 
     const {
       addressError,
@@ -236,7 +236,7 @@ class ContactForm extends PureComponent {
       network,
       addressBook,
       identities,
-      providerType,
+      chainId,
     });
 
     this.setState({
@@ -505,7 +505,7 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
   network: state.engine.backgroundState.NetworkController.network,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(ContactForm);

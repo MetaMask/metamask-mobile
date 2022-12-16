@@ -1,6 +1,8 @@
-import { connect } from 'react-redux';
+import React, { useCallback } from 'react';
+import { connect, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import { InteractionManager } from 'react-native';
+import WebView from 'react-native-webview';
+import { InteractionManager, StyleSheet, View } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
@@ -18,12 +20,15 @@ import {
   updateFiatCustomIdData,
   addFiatOrder,
   getCustomOrderIds,
+  getAuthenticationUrls,
+  removeAuthenticationUrl,
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
 import processCustomOrderIdData from '../FiatOnRampAggregator/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from '../FiatOnRampAggregator/orderProcessor/aggregator';
 import { trackEvent } from '../FiatOnRampAggregator/hooks/useAnalytics';
+import { callbackBaseUrl } from '../FiatOnRampAggregator/sdk';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -238,14 +243,23 @@ async function processCustomOrderId(
   }
 }
 
+const styles = StyleSheet.create({
+  hiddenView: {
+    height: 0,
+    width: 0,
+  },
+});
+
 function FiatOrders({
   pendingOrders,
   customOrderIds,
+  authenticationUrls,
   addFiatOrder,
   updateFiatOrder,
   updateFiatCustomIdData,
   removeFiatCustomIdData,
 }) {
+  const dispatch = useDispatch();
   useInterval(
     async () => {
       await Promise.all(
@@ -270,19 +284,53 @@ function FiatOrders({
     customOrderIds.length ? POLLING_FREQUENCY : null,
   );
 
-  return null;
+  const handleNavigationStateChange = useCallback(
+    async (navState, authenticationUrl) => {
+      if (
+        navState.url.startsWith(callbackBaseUrl) &&
+        navState.loading === false
+      ) {
+        dispatch(removeAuthenticationUrl(authenticationUrl));
+      }
+    },
+    [dispatch],
+  );
+
+  return authenticationUrls.length > 0 ? (
+    <View style={styles.hiddenView}>
+      {authenticationUrls.map((url) => (
+        /*
+         * WebView is used to redirect to the authenticationUrl
+         * but is not visible to the user
+         * */
+        <WebView
+          key={url}
+          style={styles.hiddenView}
+          source={{ uri: url }}
+          onNavigationStateChange={(navState) =>
+            handleNavigationStateChange(navState, url)
+          }
+          onHttpError={() => dispatch(removeAuthenticationUrl(url))}
+        />
+      ))}
+    </View>
+  ) : null;
 }
 
 FiatOrders.propTypes = {
-  orders: PropTypes.array,
-  selectedAddress: PropTypes.string,
-  network: PropTypes.string,
+  pendingOrders: PropTypes.array,
+  customOrderIds: PropTypes.array,
+  authenticationUrls: PropTypes.array,
   updateFiatOrder: PropTypes.func,
+  addFiatOrder: PropTypes.func,
+  updateFiatCustomIdData: PropTypes.func,
+  removeFiatCustomIdData: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
   pendingOrders: getPendingOrders(state),
   customOrderIds: getCustomOrderIds(state),
+  authenticationUrls: getAuthenticationUrls(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
