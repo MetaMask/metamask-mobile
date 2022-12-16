@@ -245,7 +245,10 @@ class AuthenticationService {
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
     ) {
       return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
-    } else if (rememberMe) {
+    } else if (
+      rememberMe &&
+      this.store?.getState().security.allowLoginWithRememberMe
+    ) {
       return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
     } else if (
       biometryType &&
