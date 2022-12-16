@@ -1,6 +1,14 @@
 # Changelog
 
 ## Current Main Branch
+- Merge branch 'main' into release/5.12.1
+- [#5300](https://github.com/MetaMask/metamask-mobile/pull/5300): [REFACTOR] Screen ManualBackupStep2
+- [#5363](https://github.com/MetaMask/metamask-mobile/pull/5363): bumped qs version for audit resolution
+- [#5319](https://github.com/MetaMask/metamask-mobile/pull/5319): 5.12.0
+- [#5328](https://github.com/MetaMask/metamask-mobile/pull/5328): Component: Contract Box Update
+- [#5307](https://github.com/MetaMask/metamask-mobile/pull/5307): [IMPROVEMENT] Remove RPC URL and Block Explorer URL from metrics
+- [#5293](https://github.com/MetaMask/metamask-mobile/pull/5293): add e2e start exploring flow
+- [#5291](https://github.com/MetaMask/metamask-mobile/pull/5291): add e2e coverage for automatic security update screen
 
 ## 5.12.1 - Dec 6, 2022
 - [#5366](https://github.com/MetaMask/metamask-mobile/pull/5366): [UPDATE] On-ramp Refactor wyre authentication url approach
