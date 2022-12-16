@@ -230,16 +230,13 @@ class Engine {
               getApprovedHosts: () => null,
               setApprovedHosts: () => null,
               approveHost: () => null,
-              // Website info
+              // Mock URL
               url: 'https://www.google.com',
               title: 'Snap',
               icon: null,
-              // Bookmarks
               isHomepage: false,
-              // Show autocomplete
               fromHomepage: false,
               toggleUrlModal: () => null,
-              // Wizard
               wizardScrollAdjusted: () => null,
               tabId: false,
               isWalletConnect: true,
@@ -930,8 +927,5 @@ export default {
     instance = new Engine(state);
     Object.freeze(instance);
     return instance;
-  },
-  get snapExecutionService() {
-    return instance.snapExecutionService;
   },
 };
