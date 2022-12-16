@@ -58,10 +58,14 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
   }
 
   protected _terminate(jobWrapper: Job<Window>): void {
+    this.#snapDuplexMap[jobWrapper.id].destroy();
+    delete this.#snapDuplexMap[jobWrapper.id];
+
     // eslint-disable-next-line no-console
     console.log(
-      'TO DO: This method should send a command to the WebView to teardown the iframe for the job with ID',
+      '[EXEC SERVICE LOG] WebviewExecutionService+_terminate: Job',
       jobWrapper.id,
+      'SnapDuplex destroyed',
     );
   }
 }
