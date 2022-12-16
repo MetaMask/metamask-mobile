@@ -12,7 +12,7 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
@@ -25,6 +25,7 @@ import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
+import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import {
@@ -220,6 +221,10 @@ class RevealPrivateCredential extends PureComponent {
      * Boolean that indicates if navbar should be disabled
      */
     navBarDisabled: PropTypes.bool,
+    /**
+     * Action that records the timestamp when the SRP was revealed,
+     */
+    recordSRPRevealTimestamp: PropTypes.func,
   };
 
   updateNavBar = () => {
@@ -363,10 +368,13 @@ class RevealPrivateCredential extends PureComponent {
     const { KeyringController } = Engine.context;
     const { password } = this.state;
     if (KeyringController.validatePassword(password)) {
-      if (!this.isPrivateKey())
+      if (!this.isPrivateKey()) {
+        const currentDate = new Date();
+        this.props.recordSRPRevealTimestamp(currentDate.toString());
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
         );
+      }
       this.setState({
         isModalVisible: true,
         warningIncorrectPassword: '',
@@ -759,6 +767,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
+  recordSRPRevealTimestamp: (timestamp) =>
+    dispatch(recordSRPRevealTimestamp(timestamp)),
 });
 
 export default connect(

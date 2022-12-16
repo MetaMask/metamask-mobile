@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
@@ -8,26 +8,20 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  StyleSheet,
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
-import StyledButton from '../../UI/StyledButton';
-import Engine from '../../../core/Engine';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
-import AppConstants from '../../../core/AppConstants';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import TermsAndConditions from '../TermsAndConditions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { OutlinedTextField } from 'react-native-material-textfield';
+import DefaultPreference from 'react-native-default-preference';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Engine from '../../../core/Engine';
+import SecureKeychain from '../../../core/SecureKeychain';
+import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
@@ -35,15 +29,6 @@ import {
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
-import { OutlinedTextField } from 'react-native-material-textfield';
-import {
-  SEED_PHRASE_HINTS,
-  BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
-  ONBOARDING_WIZARD,
-  EXISTING_USER,
-  TRUE,
-} from '../../../constants/storage';
 import Logger from '../../../util/Logger';
 import {
   getPasswordStrengthWord,
@@ -52,148 +37,38 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
-import Clipboard from '@react-native-clipboard/clipboard';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  CREATE_PASSWORD_INPUT_BOX_ID,
-  CONFIRM_PASSWORD_INPUT_BOX_ID,
-  IMPORT_PASSWORD_CONTAINER_ID,
-  SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
+import { useTheme } from '../../../util/theme';
+import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { strings } from '../../../../locales/i18n';
+import TermsAndConditions from '../TermsAndConditions';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import {
+  SEED_PHRASE_HINTS,
+  BIOMETRY_CHOICE_DISABLED,
+  NEXT_MAKER_REMINDER,
+  ONBOARDING_WIZARD,
+  EXISTING_USER,
+  TRUE,
+} from '../../../constants/storage';
+import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
+  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+} from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
+import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
+import createStyles from './styles';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    mainWrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    wrapper: {
-      flex: 1,
-      paddingHorizontal: 32,
-    },
-    title: {
-      fontSize: Device.isAndroid() ? 20 : 25,
-      marginTop: 20,
-      marginBottom: 20,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
-    field: {
-      marginVertical: 5,
-      position: 'relative',
-    },
-    fieldRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-    },
-    fieldCol: {
-      width: '70%',
-    },
-    fieldColRight: {
-      flexDirection: 'row-reverse',
-      width: '30%',
-    },
-    label: {
-      color: colors.text.default,
-      fontSize: 16,
-      marginBottom: 12,
-      ...fontStyles.normal,
-    },
-    ctaWrapper: {
-      marginTop: 20,
-    },
-    errorMsg: {
-      color: colors.error.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-    },
-    seedPhrase: {
-      marginBottom: 10,
-      paddingTop: 20,
-      paddingBottom: 20,
-      paddingHorizontal: 20,
-      fontSize: 20,
-      borderRadius: 10,
-      minHeight: 110,
-      height: 'auto',
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      backgroundColor: colors.background.default,
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
-    padding: {
-      paddingRight: 46,
-    },
-    biometrics: {
-      alignItems: 'flex-start',
-      marginTop: 10,
-    },
-    biometryLabel: {
-      flex: 1,
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    biometrySwitch: {
-      marginTop: 10,
-      flex: 0,
-    },
-    termsAndConditions: {
-      paddingVertical: 10,
-    },
-    passwordStrengthLabel: {
-      height: 20,
-      fontSize: 15,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
-    },
-    showMatchingPasswords: {
-      position: 'absolute',
-      top: 52,
-      right: 17,
-      alignSelf: 'flex-end',
-    },
-    qrCode: {
-      marginRight: 10,
-      borderWidth: 1,
-      borderRadius: 6,
-      borderColor: colors.text.muted,
-      paddingVertical: 4,
-      paddingHorizontal: 6,
-      marginTop: -50,
-      marginBottom: 30,
-      alignSelf: 'flex-end',
-    },
-    inputFocused: {
-      borderColor: colors.primary.default,
-      borderWidth: 2,
-    },
-    input: {
-      ...fontStyles.normal,
-      fontSize: 16,
-      paddingTop: 2,
-      color: colors.text.default,
-    },
-  });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
@@ -201,92 +76,70 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set restore their account
  * using a seed phrase
  */
-class ImportFromSeed extends PureComponent {
-  static propTypes = {
-    /**
-     * The navigator object
-     */
-    navigation: PropTypes.object,
-    /**
-     * The action to update the password set flag
-     * in the redux store
-     */
-    passwordSet: PropTypes.func,
-    /**
-     * The action to set the locktime
-     * in the redux store
-     */
-    setLockTime: PropTypes.func,
-    /**
-     * The action to update the seedphrase backed up flag
-     * in the redux store
-     */
-    seedphraseBackedUp: PropTypes.func,
-    /**
-     * Action to set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    logIn: PropTypes.func,
-    route: PropTypes.object,
-  };
+const ImportFromSeed = ({
+  navigation,
+  passwordSet,
+  setLockTime,
+  seedphraseBackedUp,
+  setOnboardingWizardStep,
+  logIn,
+  route,
+}) => {
+  const { colors, themeAppearance } = useTheme();
+  const styles = createStyles(colors);
 
-  state = {
-    password: '',
-    confirmPassword: '',
-    seed: '',
-    biometryType: null,
-    rememberMe: false,
-    secureTextEntry: true,
-    biometryChoice: false,
-    loading: false,
-    error: null,
-    seedphraseInputFocused: false,
-    inputWidth: { width: '99%' },
-    hideSeedPhraseInput: true,
-  };
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState();
+  const [seed, setSeed] = useState('');
+  const [biometryType, setBiometryType] = useState(null);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [biometryChoice, setBiometryChoice] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
+  const [inputWidth, setInputWidth] = useState({ width: '99%' });
+  const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
 
-  passwordInput = React.createRef();
-  confirmPasswordInput = React.createRef();
+  const passwordInput = React.createRef();
+  const confirmPasswordInput = React.createRef();
 
-  updateNavBar = () => {
-    const { route, navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+  const updateNavBar = () => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   };
 
-  async componentDidMount() {
-    this.updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (biometryType) {
-      let enabled = true;
-      const previouslyDisabled = await AsyncStorage.removeItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      if (previouslyDisabled && previouslyDisabled === TRUE) {
-        enabled = false;
+  useEffect(() => {
+    updateNavBar();
+
+    const setBiometricsOption = async () => {
+      const biometryType = await SecureKeychain.getSupportedBiometryType();
+      if (biometryType) {
+        let enabled = true;
+        const previouslyDisabled = await AsyncStorage.removeItem(
+          BIOMETRY_CHOICE_DISABLED,
+        );
+        if (previouslyDisabled && previouslyDisabled === TRUE) {
+          enabled = false;
+        }
+        setBiometryType(Device.isAndroid() ? 'biometrics' : biometryType);
+        setBiometryChoice(enabled);
       }
-      this.setState({
-        biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: enabled,
-      });
-    }
+    };
+
+    setBiometricsOption();
     // Workaround https://github.com/facebook/react-native/issues/9958
     setTimeout(() => {
-      this.setState({ inputWidth: { width: '100%' } });
+      setInputWidth({ width: '100%' });
     }, 100);
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
-
-  onPressImport = async () => {
-    const { loading, seed, password, confirmPassword } = this.state;
-
+  const onPressImport = async () => {
     const vaultSeed = await parseVaultValue(password, seed);
     const parsedSeed = parseSeedPhrase(vaultSeed || seed);
     //Set the seed state with a valid parsed seed phrase (handle vault scenario)
-    this.setState({ seed: parsedSeed });
+    setSeed(parsedSeed);
 
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
@@ -320,19 +173,19 @@ class ImportFromSeed extends PureComponent {
       });
     } else {
       try {
-        this.setState({ loading: true });
+        setLoading(true);
 
         const { KeyringController } = Engine.context;
         await Engine.resetState();
         await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
         await KeyringController.createNewVaultAndRestore(password, parsedSeed);
 
-        if (this.state.biometryType && this.state.biometryChoice) {
+        if (biometryType && biometryChoice) {
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
-        } else if (this.state.rememberMe) {
+        } else if (rememberMe) {
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
@@ -345,14 +198,14 @@ class ImportFromSeed extends PureComponent {
         // mark the user as existing so it doesn't see the create password screen again
         await AsyncStorage.setItem(EXISTING_USER, TRUE);
         await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-        this.setState({ loading: false });
-        this.props.passwordSet();
-        this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-        this.props.seedphraseBackedUp();
-        this.props.logIn();
+        setLoading(false);
+        passwordSet();
+        setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+        seedphraseBackedUp();
+        logIn();
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
-            biometrics_enabled: Boolean(this.state.biometryType),
+            biometrics_enabled: Boolean(biometryType),
           });
           AnalyticsV2.trackEvent(
             AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED,
@@ -363,10 +216,12 @@ class ImportFromSeed extends PureComponent {
           );
         });
         if (onboardingWizard) {
-          this.props.navigation.replace('ManualBackupStep3');
+          navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
         } else {
-          this.props.setOnboardingWizardStep(1);
-          this.props.navigation.replace('HomeNav', { screen: 'WalletView' });
+          setOnboardingWizardStep(1);
+          navigation.replace(Routes.ONBOARDING.HOME_NAV, {
+            screen: Routes.WALLET_VIEW,
+          });
         }
         await importAdditionalAccounts();
       } catch (error) {
@@ -376,9 +231,10 @@ class ImportFromSeed extends PureComponent {
             'Security Alert',
             'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
           );
-          this.setState({ loading: false });
+          setLoading(false);
         } else {
-          this.setState({ loading: false, error: error.toString() });
+          setLoading(false);
+          setError(error.toString());
           Logger.log('Error with seed phrase import', error);
         }
         InteractionManager.runAfterInteractions(() => {
@@ -394,7 +250,7 @@ class ImportFromSeed extends PureComponent {
     }
   };
 
-  clearSecretRecoveryPhrase = async (seed) => {
+  const clearSecretRecoveryPhrase = async (seed) => {
     // get clipboard contents
     const clipboardContents = await Clipboard.getString();
     const parsedClipboardContents = parseSeedPhrase(clipboardContents);
@@ -409,327 +265,371 @@ class ImportFromSeed extends PureComponent {
     }
   };
 
-  onSeedWordsChange = async (seed) => {
-    this.setState({ seed });
+  const onSeedWordsChange = useCallback(async (seed) => {
+    setSeed(seed);
     // Only clear on android since iOS will notify users when we getString()
     if (Device.isAndroid()) {
       const androidOSVersion = parseInt(Platform.constants.Release, 10);
       // This conditional is necessary to avoid an error in Android 8.1.0 or lower
       if (androidOSVersion >= MINIMUM_SUPPORTED_CLIPBOARD_VERSION) {
-        await this.clearSecretRecoveryPhrase(seed);
+        await clearSecretRecoveryPhrase(seed);
       }
     }
+  }, []);
+
+  const onPasswordChange = (value) => {
+    const passInfo = zxcvbn(value);
+
+    setPassword(value);
+    setPasswordStrength(passInfo.score);
   };
 
-  onPasswordChange = (val) => {
-    const passInfo = zxcvbn(val);
-
-    this.setState({ password: val, passwordStrength: passInfo.score });
+  const onPasswordConfirmChange = (value) => {
+    setConfirmPassword(value);
   };
 
-  onPasswordConfirmChange = (val) => {
-    this.setState({ confirmPassword: val });
-  };
+  const jumpToPassword = useCallback(() => {
+    const { current } = passwordInput;
+    current && current.focus();
+  }, [passwordInput]);
 
-  jumpToPassword = () => {
-    const { current } = this.passwordInput;
+  const jumpToConfirmPassword = () => {
+    const { current } = confirmPasswordInput;
     current && current.focus();
   };
 
-  jumpToConfirmPassword = () => {
-    const { current } = this.confirmPasswordInput;
-    current && current.focus();
-  };
-
-  updateBiometryChoice = async (biometryChoice) => {
+  const updateBiometryChoice = async (biometryChoice) => {
     if (!biometryChoice) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else {
       await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
     }
-    this.setState({ biometryChoice });
+    setBiometryChoice(biometryChoice);
   };
 
-  renderSwitch = () => {
+  const renderSwitch = () => {
     const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
+      setRememberMe(rememberMe);
     };
     return (
       <LoginOptionsSwitch
-        shouldRenderBiometricOption={this.state.biometryType}
-        biometryChoiceState={this.state.biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
+        shouldRenderBiometricOption={biometryType}
+        biometryChoiceState={biometryChoice}
+        onUpdateBiometryChoice={updateBiometryChoice}
         onUpdateRememberMe={handleUpdateRememberMe}
       />
     );
   };
 
-  toggleShowHide = () => {
-    this.setState({ secureTextEntry: !this.state.secureTextEntry });
+  const toggleShowHide = () => {
+    setSecureTextEntry(!secureTextEntry);
   };
 
-  toggleHideSeedPhraseInput = () => {
-    this.setState(({ hideSeedPhraseInput }) => ({
-      hideSeedPhraseInput: !hideSeedPhraseInput,
-    }));
-  };
+  const toggleHideSeedPhraseInput = useCallback(() => {
+    setHideSeedPhraseInput(!hideSeedPhraseInput);
+  }, [hideSeedPhraseInput]);
 
-  onQrCodePress = () => {
-    setTimeout(this.toggleHideSeedPhraseInput, 100);
-    this.props.navigation.navigate('QRScanner', {
+  const onQrCodePress = useCallback(() => {
+    let shouldHideSRP = true;
+    if (!hideSeedPhraseInput) {
+      shouldHideSRP = false;
+    }
+
+    setHideSeedPhraseInput(false);
+    navigation.navigate(Routes.QR_SCANNER, {
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
-          this.setState({ seed });
+          setSeed(seed);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
             strings('import_from_seed.invalid_qr_code_message'),
           );
         }
-        this.toggleHideSeedPhraseInput();
+        setHideSeedPhraseInput(shouldHideSRP);
       },
       onScanError: (error) => {
-        this.toggleHideSeedPhraseInput();
+        setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  };
+  }, [hideSeedPhraseInput, navigation]);
 
-  seedphraseInputFocused = () =>
-    this.setState({
-      seedphraseInputFocused: !this.state.seedphraseInputFocused,
-    });
+  const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  render() {
-    const {
-      password,
-      passwordStrength,
-      confirmPassword,
-      seed,
-      seedphraseInputFocused,
-      inputWidth,
-      secureTextEntry,
-      error,
-      loading,
+  const hiddenSRPInput = useCallback(
+    () => (
+      <OutlinedTextField
+        style={styles.input}
+        containerStyle={inputWidth}
+        inputContainerStyle={styles.padding}
+        placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+        {...generateTestId(
+          Platform,
+          IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+        )}
+        placeholderTextColor={colors.text.muted}
+        returnKeyType="next"
+        autoCapitalize="none"
+        secureTextEntry={hideSeedPhraseInput}
+        onChangeText={onSeedWordsChange}
+        value={seed}
+        baseColor={colors.border.default}
+        tintColor={colors.primary.default}
+        onSubmitEditing={jumpToPassword}
+        keyboardAppearance={themeAppearance || 'light'}
+      />
+    ),
+    [
+      colors.border.default,
+      colors.primary.default,
+      colors.text.muted,
       hideSeedPhraseInput,
-    } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
+      inputWidth,
+      jumpToPassword,
+      onSeedWordsChange,
+      seed,
+      styles.input,
+      styles.padding,
+      themeAppearance,
+    ],
+  );
 
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
-
-    return (
-      <SafeAreaView style={styles.mainWrapper}>
-        <KeyboardAwareScrollView
-          style={styles.wrapper}
-          resetScrollToCoords={{ x: 0, y: 0 }}
-        >
-          <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
-            <Text style={styles.title}>
-              {strings('import_from_seed.title')}
-            </Text>
+  return (
+    <SafeAreaView style={styles.mainWrapper}>
+      <KeyboardAwareScrollView
+        style={styles.wrapper}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+      >
+        <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
+          <Text
+            style={styles.title}
+            {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}
+          >
+            {strings('import_from_seed.title')}
+          </Text>
+          <View style={styles.fieldRow}>
+            <View style={styles.fieldCol}>
+              <Text style={styles.label}>
+                {strings('choose_password.seed_phrase')}
+              </Text>
+            </View>
+            <View style={[styles.fieldCol, styles.fieldColRight]}>
+              <TouchableOpacity onPress={toggleHideSeedPhraseInput}>
+                <Text style={styles.label}>
+                  {strings(
+                    `choose_password.${hideSeedPhraseInput ? 'show' : 'hide'}`,
+                  )}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {hideSeedPhraseInput ? (
+            hiddenSRPInput()
+          ) : (
+            <TextInput
+              value={seed}
+              numberOfLines={3}
+              style={[
+                styles.seedPhrase,
+                inputWidth,
+                seedphraseInputFocused && styles.inputFocused,
+              ]}
+              secureTextEntry
+              multiline={!hideSeedPhraseInput}
+              placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+              placeholderTextColor={colors.text.muted}
+              onChangeText={onSeedWordsChange}
+              blurOnSubmit
+              onSubmitEditing={jumpToPassword}
+              returnKeyType="next"
+              keyboardType={
+                (!hideSeedPhraseInput &&
+                  Device.isAndroid() &&
+                  'visible-password') ||
+                'default'
+              }
+              autoCapitalize="none"
+              autoCorrect={false}
+              onFocus={
+                (() =>
+                  !hideSeedPhraseInput &&
+                  setSeedphraseInputFocused(!seedphraseInputFocused)) || null
+              }
+              onBlur={
+                (() =>
+                  !hideSeedPhraseInput &&
+                  setSeedphraseInputFocused(!seedphraseInputFocused)) || null
+              }
+              keyboardAppearance={themeAppearance || 'light'}
+            />
+          )}
+          <TouchableOpacity style={styles.qrCode} onPress={onQrCodePress}>
+            <Icon name="qrcode" size={20} color={colors.icon.default} />
+          </TouchableOpacity>
+          <View style={styles.field}>
             <View style={styles.fieldRow}>
               <View style={styles.fieldCol}>
                 <Text style={styles.label}>
-                  {strings('choose_password.seed_phrase')}
+                  {strings('import_from_seed.new_password')}
                 </Text>
               </View>
               <View style={[styles.fieldCol, styles.fieldColRight]}>
-                <TouchableOpacity onPress={this.toggleHideSeedPhraseInput}>
+                <TouchableOpacity onPress={toggleShowHide}>
                   <Text style={styles.label}>
                     {strings(
-                      `choose_password.${
-                        hideSeedPhraseInput ? 'show' : 'hide'
-                      }`,
+                      `choose_password.${secureTextEntry ? 'show' : 'hide'}`,
                     )}
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
-            {hideSeedPhraseInput ? (
-              <OutlinedTextField
-                style={styles.input}
-                containerStyle={inputWidth}
-                inputContainerStyle={styles.padding}
-                placeholder={strings(
-                  'import_from_seed.seed_phrase_placeholder',
+            <OutlinedTextField
+              style={styles.input}
+              containerStyle={inputWidth}
+              {...generateTestId(
+                Platform,
+                IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+              )}
+              testID={'create-password-first-input-field'}
+              placeholder={strings('import_from_seed.new_password')}
+              placeholderTextColor={colors.text.muted}
+              returnKeyType={'next'}
+              autoCapitalize="none"
+              secureTextEntry={secureTextEntry}
+              onChangeText={onPasswordChange}
+              value={password}
+              baseColor={colors.border.default}
+              tintColor={colors.primary.default}
+              onSubmitEditing={jumpToConfirmPassword}
+              keyboardAppearance={themeAppearance || 'light'}
+            />
+
+            {(password !== '' && (
+              <Text
+                style={styles.passwordStrengthLabel}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
                 )}
-                placeholderTextColor={colors.text.muted}
-                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
-                returnKeyType="next"
-                autoCapitalize="none"
-                secureTextEntry={hideSeedPhraseInput}
-                onChangeText={this.onSeedWordsChange}
-                value={seed}
-                baseColor={colors.border.default}
-                tintColor={colors.primary.default}
-                onSubmitEditing={this.jumpToPassword}
-                keyboardAppearance={themeAppearance}
-              />
-            ) : (
-              <TextInput
-                value={seed}
-                numberOfLines={3}
-                style={[
-                  styles.seedPhrase,
-                  inputWidth,
-                  seedphraseInputFocused && styles.inputFocused,
-                ]}
-                secureTextEntry
-                multiline={!hideSeedPhraseInput}
-                placeholder={strings(
-                  'import_from_seed.seed_phrase_placeholder',
-                )}
-                placeholderTextColor={colors.text.muted}
-                onChangeText={this.onSeedWordsChange}
-                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
-                blurOnSubmit
-                onSubmitEditing={this.jumpToPassword}
-                returnKeyType="next"
-                keyboardType={
-                  (!hideSeedPhraseInput &&
-                    Device.isAndroid() &&
-                    'visible-password') ||
-                  'default'
-                }
-                autoCapitalize="none"
-                autoCorrect={false}
-                onFocus={
-                  (!hideSeedPhraseInput && this.seedphraseInputFocused) || null
-                }
-                onBlur={
-                  (!hideSeedPhraseInput && this.seedphraseInputFocused) || null
-                }
-                keyboardAppearance={themeAppearance}
-              />
-            )}
-            <TouchableOpacity
-              style={styles.qrCode}
-              onPress={this.onQrCodePress}
-            >
-              <Icon name="qrcode" size={20} color={colors.icon.default} />
-            </TouchableOpacity>
-            <View style={styles.field}>
-              <View style={styles.fieldRow}>
-                <View style={styles.fieldCol}>
-                  <Text style={styles.label}>
-                    {strings('import_from_seed.new_password')}
-                  </Text>
-                </View>
-                <View style={[styles.fieldCol, styles.fieldColRight]}>
-                  <TouchableOpacity onPress={this.toggleShowHide}>
-                    <Text style={styles.label}>
-                      {strings(
-                        `choose_password.${secureTextEntry ? 'show' : 'hide'}`,
-                      )}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <OutlinedTextField
-                style={styles.input}
-                containerStyle={inputWidth}
-                // ref={this.passwordInput}
-                placeholder={strings('import_from_seed.new_password')}
-                placeholderTextColor={colors.text.muted}
-                testID={CREATE_PASSWORD_INPUT_BOX_ID}
-                returnKeyType={'next'}
-                autoCapitalize="none"
-                secureTextEntry={secureTextEntry}
-                onChangeText={this.onPasswordChange}
-                value={password}
-                baseColor={colors.border.default}
-                tintColor={colors.primary.default}
-                onSubmitEditing={this.jumpToConfirmPassword}
-                keyboardAppearance={themeAppearance}
-              />
-
-              {(password !== '' && (
-                <Text style={styles.passwordStrengthLabel}>
-                  {strings('choose_password.password_strength')}
-                  <Text style={styles[`strength_${passwordStrengthWord}`]}>
-                    {' '}
-                    {strings(
-                      `choose_password.strength_${passwordStrengthWord}`,
-                    )}
-                  </Text>
-                </Text>
-              )) || <Text style={styles.passwordStrengthLabel} />}
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>
-                {strings('import_from_seed.confirm_password')}
-              </Text>
-              <OutlinedTextField
-                style={styles.input}
-                containerStyle={inputWidth}
-                // ref={this.confirmPasswordInput}
-                testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
-                onChangeText={this.onPasswordConfirmChange}
-                returnKeyType={'next'}
-                autoCapitalize="none"
-                secureTextEntry={secureTextEntry}
-                placeholder={strings('import_from_seed.confirm_password')}
-                value={confirmPassword}
-                baseColor={colors.border.default}
-                tintColor={colors.primary.default}
-                onSubmitEditing={this.onPressImport}
-                placeholderTextColor={colors.text.muted}
-                keyboardAppearance={themeAppearance}
-              />
-
-              <View style={styles.showMatchingPasswords}>
-                {password !== '' && password === confirmPassword ? (
-                  <Icon name="check" size={12} color={colors.success.default} />
-                ) : null}
-              </View>
-              <Text style={styles.passwordStrengthLabel}>
-                {strings('choose_password.must_be_at_least', {
-                  number: MIN_PASSWORD_LENGTH,
-                })}
-              </Text>
-            </View>
-
-            {this.renderSwitch()}
-
-            {!!error && (
-              <Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
-                {error}
-              </Text>
-            )}
-
-            <View style={styles.ctaWrapper}>
-              <StyledButton
-                type={'blue'}
-                onPress={this.onPressImport}
-                testID={'submit'}
-                disabled={!(password !== '' && password === confirmPassword)}
               >
-                {loading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary.inverse}
-                  />
-                ) : (
-                  strings('import_from_seed.import_button')
-                )}
-              </StyledButton>
-            </View>
+                {strings('choose_password.password_strength')}
+                <Text style={styles[`strength_${passwordStrengthWord}`]}>
+                  {' '}
+                  {strings(`choose_password.strength_${passwordStrengthWord}`)}
+                </Text>
+              </Text>
+            )) || <Text style={styles.passwordStrengthLabel} />}
           </View>
-        </KeyboardAwareScrollView>
-        <View style={styles.termsAndConditions}>
-          <TermsAndConditions
-            navigation={this.props.navigation}
-            action={strings('import_from_seed.import_button')}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
-}
 
-ImportFromSeed.contextType = ThemeContext;
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              {strings('import_from_seed.confirm_password')}
+            </Text>
+            <OutlinedTextField
+              style={styles.input}
+              containerStyle={inputWidth}
+              {...generateTestId(
+                Platform,
+                IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+              )}
+              testID={'create-password-second-input-field'}
+              onChangeText={onPasswordConfirmChange}
+              returnKeyType={'next'}
+              autoCapitalize="none"
+              secureTextEntry={secureTextEntry}
+              placeholder={strings('import_from_seed.confirm_password')}
+              value={confirmPassword}
+              baseColor={colors.border.default}
+              tintColor={colors.primary.default}
+              onSubmitEditing={onPressImport}
+              placeholderTextColor={colors.text.muted}
+              keyboardAppearance={themeAppearance || 'light'}
+            />
+
+            <View style={styles.showMatchingPasswords}>
+              {password !== '' && password === confirmPassword ? (
+                <Icon
+                  name="check"
+                  size={12}
+                  color={colors.success.default}
+                  {...generateTestId(
+                    Platform,
+                    IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+                  )}
+                />
+              ) : null}
+            </View>
+            <Text style={styles.passwordStrengthLabel}>
+              {strings('choose_password.must_be_at_least', {
+                number: MIN_PASSWORD_LENGTH,
+              })}
+            </Text>
+          </View>
+
+          {renderSwitch()}
+
+          {!!error && (
+            <Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
+              {error}
+            </Text>
+          )}
+
+          <View style={styles.ctaWrapper}>
+            <StyledButton
+              type={'blue'}
+              onPress={onPressImport}
+              testID={IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID}
+              disabled={!(password !== '' && password === confirmPassword)}
+            >
+              {loading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.primary.inverse}
+                />
+              ) : (
+                strings('import_from_seed.import_button')
+              )}
+            </StyledButton>
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
+      <View style={styles.termsAndConditions}>
+        <TermsAndConditions
+          navigation={navigation}
+          action={strings('import_from_seed.import_button')}
+        />
+      </View>
+    </SafeAreaView>
+  );
+};
+
+ImportFromSeed.propTypes = {
+  /**
+   * The navigator object
+   */
+  navigation: PropTypes.object,
+  /**
+   * The action to update the password set flag
+   * in the redux store
+   */
+  passwordSet: PropTypes.func,
+  /**
+   * The action to set the locktime
+   * in the redux store
+   */
+  setLockTime: PropTypes.func,
+  /**
+   * The action to update the seedphrase backed up flag
+   * in the redux store
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Action to set onboarding wizard step
+   */
+  setOnboardingWizardStep: PropTypes.func,
+  logIn: PropTypes.func,
+  route: PropTypes.object,
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),

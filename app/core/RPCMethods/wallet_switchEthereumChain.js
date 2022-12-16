@@ -11,6 +11,7 @@ const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
+  analytics,
 }) => {
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
@@ -69,6 +70,7 @@ const wallet_switchEthereumChain = async ({
     let analyticsParams = {
       chain_id: _chainId,
       source: 'Switch Network API',
+      ...analytics,
     };
     if (existingNetworkRPC) {
       requestData = {
@@ -79,10 +81,7 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        rpc_url: existingNetworkRPC?.rpcUrl,
         symbol: existingNetworkRPC?.ticker,
-        block_explorer_url: existingNetworkRPC?.blockExplorerUrl,
-        network_name: 'rpc',
       };
     } else {
       requestData = {
@@ -93,7 +92,6 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        network_name: existingNetworkDefault?.shortName,
       };
     }
 

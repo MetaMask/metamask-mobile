@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 import {
   TEST_REMOTE_IMAGE_SOURCE,
   TEST_NETWORK_NAME,
-} from '../../Avatars/AvatarNetwork/AvatarNetwork.constants';
+} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 import { BadgeVariants } from './Badge.types';
 
 // Internal dependencies.

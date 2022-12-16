@@ -10,7 +10,6 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
 >
   <Avatar
     accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    size="32"
     style={
       Object {
         "marginRight": 16,
@@ -49,7 +48,6 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
 >
   <Avatar
     accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    size="32"
     style={
       Object {
         "marginRight": 16,
@@ -97,7 +95,6 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
 >
   <Avatar
     accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    size="32"
     style={
       Object {
         "marginRight": 16,
@@ -148,7 +145,6 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
 >
   <Avatar
     accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    size="32"
     style={
       Object {
         "marginRight": 16,

@@ -4,37 +4,31 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
-  require('../app/components/Base/Alert.stories');
-  require('../app/components/Base/ListItem.stories');
-  require('../app/components/Base/Text.stories');
-  require('../app/components/Base/Title.stories');
-  require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
-  require('../app/components/UI/Fox/Fox.stories');
-  require('../app/components/UI/StyledButton/StyledButton.stories');
-  require('../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories');
-  require('../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories');
-  require('../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories');
+  require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
+  require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
+  require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
+  require('../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
-  require('../app/component-library/components/Avatars/AvatarIcon/AvatarIcon.stories');
-  require('../app/component-library/components/Avatars/AvatarNetwork/AvatarNetwork.stories');
-  require('../app/component-library/components/Avatars/AvatarToken/AvatarToken.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
-  require('../app/component-library/components/Badges/Badge/foundation/BadgeBase/BadgeBase.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
-  require('../app/component-library/components/Buttons/ButtonBase/ButtonBase.stories');
-  require('../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories');
-  require('../app/component-library/components/Buttons/ButtonLink/ButtonLink.stories');
-  require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
-  require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
-  require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/component-library/components/Buttons/Button/Button.stories');
+  require('../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories');
+  require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
+  require('../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
+  require('../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories');
+  require('../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
-  require('../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories');
-  require('../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
+  require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
@@ -48,42 +42,49 @@ function loadStories() {
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
   require('../app/component-library/components/Tags/Tag/Tag.stories');
   require('../app/component-library/components/Tags/TagUrl/TagUrl.stories');
-  require('../app/component-library/components/Text/Text.stories');
+  require('../app/component-library/components/Texts/Text/Text.stories');
+  require('../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories');
   require('../app/component-library/components/Toast/Toast.stories');
+  require('../app/components/Base/Alert.stories');
+  require('../app/components/Base/ListItem.stories');
+  require('../app/components/Base/Text.stories');
+  require('../app/components/Base/Title.stories');
+  require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
+  require('../app/components/UI/Fox/Fox.stories');
+  require('../app/components/UI/StyledButton/StyledButton.stories');
+  require('../app/components/UI/TextEstimated/TextEstimated.stories');
+  require('../app/components/UI/WarningAlert/WarningAlert.stories');
+  require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
+  require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
 }
 
 const stories = [
-  '../app/components/Base/Alert.stories',
-  '../app/components/Base/ListItem.stories',
-  '../app/components/Base/Text.stories',
-  '../app/components/Base/Title.stories',
-  '../app/components/UI/ButtonReveal/ButtonReveal.stories',
-  '../app/components/UI/Fox/Fox.stories',
-  '../app/components/UI/StyledButton/StyledButton.stories',
-  '../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories',
-  '../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories',
-  '../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories',
+  '../app/component-library/components/Accordions/Accordion/Accordion.stories',
+  '../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories',
+  '../app/component-library/components/Avatars/Avatar/Avatar.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
+  '../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
-  '../app/component-library/components/Avatars/AvatarIcon/AvatarIcon.stories',
-  '../app/component-library/components/Avatars/AvatarNetwork/AvatarNetwork.stories',
-  '../app/component-library/components/Avatars/AvatarToken/AvatarToken.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
-  '../app/component-library/components/Badges/Badge/foundation/BadgeBase/BadgeBase.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
-  '../app/component-library/components/Buttons/ButtonBase/ButtonBase.stories',
-  '../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories',
-  '../app/component-library/components/Buttons/ButtonLink/ButtonLink.stories',
-  '../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories',
-  '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
-  '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
+  '../app/component-library/components/Buttons/Button/Button.stories',
+  '../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories',
+  '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
+  '../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
+  '../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories',
+  '../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories',
+  '../app/component-library/components/Cards/Card/Card.stories',
   '../app/component-library/components/Cells/Cell/Cell.stories',
-  '../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories',
-  '../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories',
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
+  '../app/component-library/components-temp/ContractBox/ContractBox.stories',
+  '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
@@ -97,8 +98,20 @@ const stories = [
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
   '../app/component-library/components/Tags/Tag/Tag.stories',
   '../app/component-library/components/Tags/TagUrl/TagUrl.stories',
-  '../app/component-library/components/Text/Text.stories',
+  '../app/component-library/components/Texts/Text/Text.stories',
+  '../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories',
   '../app/component-library/components/Toast/Toast.stories',
+  '../app/components/Base/Alert.stories',
+  '../app/components/Base/ListItem.stories',
+  '../app/components/Base/Text.stories',
+  '../app/components/Base/Title.stories',
+  '../app/components/UI/ButtonReveal/ButtonReveal.stories',
+  '../app/components/UI/Fox/Fox.stories',
+  '../app/components/UI/StyledButton/StyledButton.stories',
+  '../app/components/UI/TextEstimated/TextEstimated.stories',
+  '../app/components/UI/WarningAlert/WarningAlert.stories',
+  '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
+  '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
 ];
 
 module.exports = {

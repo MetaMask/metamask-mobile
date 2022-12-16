@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -45,7 +45,6 @@ import {
   passwordRequirementsMet,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
-import { syncPrefs } from '../../../util/sync';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
@@ -57,6 +56,7 @@ import {
   CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { recreateVaultWithNewPassword } from '../../../core/Vault';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -371,8 +371,7 @@ class ResetPassword extends PureComponent {
   };
 
   onPressCreate = async () => {
-    const { loading, isSelected, password, confirmPassword, originalPassword } =
-      this.state;
+    const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
 
@@ -388,7 +387,7 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true });
 
-      await this.recreateVault(originalPassword);
+      await this.recreateVault();
       // Set biometrics for new password
       await SecureKeychain.resetGenericPassword();
       try {
@@ -438,76 +437,14 @@ class ResetPassword extends PureComponent {
   /**
    * Recreates a vault
    *
-   * @param password - Password to recreate and set the vault with
    */
-  recreateVault = async (password) => {
+  recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
-    const { KeyringController, PreferencesController } = Engine.context;
-    const seedPhrase = await this.getSeedPhrase();
-    const oldPrefs = PreferencesController.state;
-
-    let importedAccounts = [];
-    try {
-      const keychainPassword = originalPassword;
-      // Get imported accounts
-      const simpleKeyrings = KeyringController.state.keyrings.filter(
-        (keyring) => keyring.type === 'Simple Key Pair',
-      );
-      for (let i = 0; i < simpleKeyrings.length; i++) {
-        const simpleKeyring = simpleKeyrings[i];
-        const simpleKeyringAccounts = await Promise.all(
-          simpleKeyring.accounts.map((account) =>
-            KeyringController.exportAccount(keychainPassword, account),
-          ),
-        );
-        importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
-      }
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to get imported accounts on recreate vault',
-      );
-    }
-
-    // Recreate keyring with password given to this method
-    await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
-
-    // Get props to restore vault
-    const hdKeyring = KeyringController.state.keyrings[0];
-    const existingAccountCount = hdKeyring.accounts.length;
-    const selectedAddress = this.props.selectedAddress;
-
-    // Create previous accounts again
-    for (let i = 0; i < existingAccountCount - 1; i++) {
-      await KeyringController.addNewAccount();
-    }
-
-    try {
-      // Import imported accounts again
-      for (let i = 0; i < importedAccounts.length; i++) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
-        ]);
-      }
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to import accounts on recreate vault',
-      );
-    }
-
-    //Persist old account/identities names
-    const preferencesControllerState = PreferencesController.state;
-    const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
-
-    // Set preferencesControllerState again
-    await PreferencesController.update(prefUpdates);
-    // Reselect previous selected account if still available
-    if (hdKeyring.accounts.includes(selectedAddress)) {
-      PreferencesController.setSelectedAddress(selectedAddress);
-    } else {
-      PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
-    }
+    await recreateVaultWithNewPassword(
+      originalPassword,
+      newPassword,
+      this.props.selectedAddress,
+    );
   };
 
   /**

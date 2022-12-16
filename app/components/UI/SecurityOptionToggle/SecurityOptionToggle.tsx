@@ -35,11 +35,12 @@ const SecurityOptionToggle = ({
     [onOptionUpdated],
   );
   return (
-    <View style={styles.setting} testID={testId}>
+    <View style={styles.setting}>
       <Text style={styles.title}>{title}</Text>
       {description ? <Text style={styles.desc}>{description}</Text> : null}
       <View style={styles.switchElement}>
         <Switch
+          testID={testId}
           value={value}
           onValueChange={(newValue: boolean) => handleOnValueChange(newValue)}
           trackColor={{

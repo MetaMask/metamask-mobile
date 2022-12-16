@@ -5,9 +5,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import AvatarAccount from '../../Avatars/AvatarAccount';
-import Text, { TextVariant } from '../../Text';
-import { AvatarBaseSize } from '../../Avatars/AvatarBase';
+import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Text, { TextVariants } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
 
@@ -28,15 +27,16 @@ const PickerAccount = ({
 
   const renderCellAccount = () => (
     <View style={styles.cellAccount}>
-      <AvatarAccount
+      <Avatar
+        variant={AvatarVariants.Account}
         type={accountAvatarType}
         accountAddress={accountAddress}
-        size={AvatarBaseSize.Md}
+        size={AvatarSize.Md}
         style={styles.accountAvatar}
       />
       <View>
-        <Text variant={TextVariant.sHeadingSMRegular}>{accountName}</Text>
-        <Text variant={TextVariant.sBodyMD} style={styles.accountAddressLabel}>
+        <Text variant={TextVariants.sHeadingSMRegular}>{accountName}</Text>
+        <Text variant={TextVariants.sBodyMD} style={styles.accountAddressLabel}>
           {shortenedAddress}
         </Text>
       </View>

@@ -6,7 +6,7 @@ import { text, boolean, select } from '@storybook/addon-knobs';
 
 import Alert, { AlertType } from './Alert';
 import Text from './Text';
-import { fontStyles } from ' ../../../styles/common';
+import { fontStyles } from '../../styles/common';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 const styles = {
@@ -17,7 +17,7 @@ const styles = {
   },
 };
 
-storiesOf('Base / Alert', module)
+storiesOf('Components / Base / Alert', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const renderIconKnob = boolean('renderIcon', false);

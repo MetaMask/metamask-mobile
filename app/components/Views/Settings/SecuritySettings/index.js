@@ -13,7 +13,7 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -49,7 +49,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
-import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, {
@@ -62,10 +61,12 @@ import {
   CHANGE_PASSWORD_BUTTON_ID,
   REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../constants/test-ids';
+import ClearCookiesSection from './Sections/ClearCookiesSection';
 import { LEARN_MORE_URL } from '../../../../constants/urls';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
+import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
 
 const isIos = Device.isIos();
 
@@ -288,7 +289,7 @@ class Settings extends PureComponent {
     /**
      * State of NFT detection toggle
      */
-    useCollectibleDetection: PropTypes.bool,
+    useNftDetection: PropTypes.bool,
     /**
      * Route passed in props from navigation
      */
@@ -304,8 +305,6 @@ class Settings extends PureComponent {
     biometryChoice: null,
     biometryType: false,
     browserHistoryModalVisible: false,
-    cookiesModalVisible: false,
-    deleteMetricsModalVisible: false,
     analyticsEnabled: false,
     passcodeChoice: false,
     showHint: false,
@@ -518,10 +517,6 @@ class Settings extends PureComponent {
     });
   };
 
-  toggleClearCookiesModal = () => {
-    this.setState({ cookiesModalVisible: !this.state.cookiesModalVisible });
-  };
-
   clearApprovals = () => {
     this.props.clearHosts();
     this.toggleClearApprovalsModal();
@@ -530,13 +525,6 @@ class Settings extends PureComponent {
   clearBrowserHistory = () => {
     this.props.clearBrowserHistory();
     this.toggleClearBrowserHistoryModal();
-  };
-
-  clearCookies = () => {
-    CookieManager.clearAll().then(() => {
-      Logger.log('Browser cookies cleared');
-      this.toggleClearCookiesModal();
-    });
   };
 
   togglePrivacy = (value) => {
@@ -550,12 +538,12 @@ class Settings extends PureComponent {
   toggleOpenSeaApi = (value) => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setOpenSeaEnabled(value);
-    if (!value) PreferencesController?.setUseCollectibleDetection(value);
+    if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
   toggleNftAutodetect = (value) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setUseCollectibleDetection(value);
+    PreferencesController.setUseNftDetection(value);
   };
 
   /**
@@ -930,27 +918,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderClearCookiesSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'clear-cookies-section'}>
-        <Text style={styles.title}>
-          {strings('app_settings.clear_browser_cookies_desc')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.clear_cookies_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.toggleClearCookiesModal}
-          containerStyle={styles.confirm}
-        >
-          {strings('app_settings.clear_browser_cookies_desc')}
-        </StyledButton>
-      </View>
-    );
-  };
-
   renderPrivacyModeSection = () => {
     const { privacyMode } = this.props;
     const { styles, colors } = this.getStyles();
@@ -1087,33 +1054,8 @@ class Settings extends PureComponent {
     );
   };
 
-  renderCookiesModal = () => {
-    const { cookiesModalVisible } = this.state;
-    const { styles } = this.getStyles();
-
-    return (
-      <ActionModal
-        modalVisible={cookiesModalVisible}
-        confirmText={strings('app_settings.clear')}
-        cancelText={strings('app_settings.reset_account_cancel_button')}
-        onCancelPress={this.toggleClearCookiesModal}
-        onRequestClose={this.toggleClearCookiesModal}
-        onConfirmPress={this.clearCookies}
-      >
-        <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>
-            {strings('app_settings.clear_cookies_modal_title')}
-          </Text>
-          <Text style={styles.modalText}>
-            {strings('app_settings.clear_cookies_modal_message')}
-          </Text>
-        </View>
-      </ActionModal>
-    );
-  };
-
   renderOpenSeaSettings = () => {
-    const { openSeaEnabled, useCollectibleDetection } = this.props;
+    const { openSeaEnabled, useNftDetection } = this.props;
     const { styles, colors } = this.getStyles();
 
     return (
@@ -1151,7 +1093,7 @@ class Settings extends PureComponent {
           </Text>
           <View style={styles.switchElement}>
             <Switch
-              value={useCollectibleDetection}
+              value={useNftDetection}
               onValueChange={this.toggleNftAutodetect}
               trackColor={{
                 true: colors.primary.default,
@@ -1201,7 +1143,7 @@ class Settings extends PureComponent {
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
-          {this.renderClearCookiesSection()}
+          <ClearCookiesSection />
           {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
@@ -1209,8 +1151,8 @@ class Settings extends PureComponent {
           {this.renderThirdPartySection()}
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
-          {this.renderCookiesModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
+          <AutomaticSecurityChecks />
           {this.renderHint()}
         </View>
       </ScrollView>
@@ -1233,8 +1175,8 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   openSeaEnabled:
     state.engine.backgroundState.PreferencesController.openSeaEnabled,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: state.engine.backgroundState.NetworkController.provider.type,

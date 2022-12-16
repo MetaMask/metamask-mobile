@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
-<CellDisplayContainer
+<Card
   style={Object {}}
   testID="cell-display"
 >
@@ -15,5 +15,5 @@ exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
     }
     title="Orangefox.eth"
   />
-</CellDisplayContainer>
+</Card>
 `;

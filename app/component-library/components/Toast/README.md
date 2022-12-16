@@ -55,7 +55,7 @@ const SampleRootComponent = () => {
 // Replace import with relative path.
 import {
   ToastContext,
-  ToastVariant,
+  ToastVariants,
 } from 'app/component-library/components/Toast';
 
 const { toastRef } = useContext(ToastContext);
@@ -63,7 +63,7 @@ const { toastRef } = useContext(ToastContext);
 const showToast = () => {
   // Example of showing toast with Account variant.
   toastRef.current?.showToast({
-    variant: ToastVariant.Account,
+    variant: ToastVariants.Account,
     labelOptions: [
       { label: LABEL_CHUNK_1 },
       { label: LABEL_CHUNK_2, isBold: true },
