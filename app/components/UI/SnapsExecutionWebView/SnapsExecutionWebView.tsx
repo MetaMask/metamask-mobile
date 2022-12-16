@@ -8,7 +8,7 @@ import { createStyles } from './styles';
 import Engine from '../../../core/Engine';
 
 const TEST_SNAP_ID_ONE = 'local:http://localhost:3000/snap/';
-const TEST_SNAP_ID_TWO = 'local:http://localhost:3000/snapother/';
+const TEST_SNAP_ID_TWO = 'local:http://localhost:3000/helloworldsnap/';
 
 let stream: any;
 
@@ -33,7 +33,9 @@ const SnapsExecutionWebView = () => {
       snapId: localSnap,
       origin,
       handler: 'onRpcRequest',
-      request: { method: 'getAccount' },
+      request: {
+        method: 'hello',
+      },
     });
     // eslint-disable-next-line no-console
     console.log(result);
@@ -77,8 +79,8 @@ const SnapsExecutionWebView = () => {
       <Button onPress={async () => await installSnap(TEST_SNAP_ID_TWO)}>
         Install Test Snap 2
       </Button>
-      <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_ONE)}>
-        Execute Test Snap 1
+      <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_TWO)}>
+        Test Hello World Snap
       </Button>
       <Button onPress={getInstalledSnaps}>Get installed snaps</Button>
       <View style={styles.webview}>

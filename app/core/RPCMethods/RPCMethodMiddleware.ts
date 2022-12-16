@@ -217,6 +217,12 @@ export const getRpcMethodMiddleware = ({
     };
 
     const rpcMethods: any = {
+      // SNAPS TEMPORAL METHODS
+      snap_confirm: () => {
+        // eslint-disable-next-line no-console
+        console.log('[RPCMethodsMiddleware LOG] snap_confirm executed');
+        res.result = {};
+      },
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
       },
