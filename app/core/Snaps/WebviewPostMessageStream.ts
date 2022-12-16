@@ -73,7 +73,8 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
   }
 
   destroy(): void {
+    // Do nothing
     // eslint-disable-next-line no-console
-    console.log('TO DO: Destroy stream from WebviewPostMessageStream');
+    console.log('[WebviewPostMessageStream LOG]: Destroy stream');
   }
 }
