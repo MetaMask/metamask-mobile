@@ -45,7 +45,7 @@ import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
-  const { hostInfo } = props.route.params;
+  const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const selectedWalletAddress = useSelector(
     (state: any) =>
@@ -85,6 +85,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     const iconUrl = `https://api.faviconkit.com/${hostname}/64`;
     return { uri: iconUrl };
   }, [hostname]);
+
+  const cancelPermissionRequest = useCallback(
+    (requestId) => {
+      Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+    },
+    [Engine.context.PermissionController],
+  );
 
   const dismissSheet = useCallback(
     () => sheetRef?.current?.hide?.(),
