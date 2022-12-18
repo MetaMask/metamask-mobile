@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from 'react';
 
 import {
   ActivityIndicator,
@@ -10,7 +16,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
@@ -51,6 +57,14 @@ import { colors as importedColors } from '../../../styles/common';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
@@ -200,6 +214,38 @@ const Main = (props) => {
     if (skipCheckbox) toggleRemindLater();
   };
 
+  /**
+   * Current network
+   */
+  const networkProvider = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const prevNetworkProvider = useRef(undefined);
+  const { toastRef } = useContext(ToastContext);
+
+  // Show network switch confirmation.
+  useEffect(() => {
+    if (
+      prevNetworkProvider.current &&
+      networkProvider.chainId !== prevNetworkProvider.current.chainId
+    ) {
+      const networkImage = getNetworkImageSource(networkProvider.chainId);
+      const networkName = getNetworkNameFromProvider(networkProvider);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: `${networkName} `,
+            isBold: true,
+          },
+          { label: strings('toast.now_active') },
+        ],
+        networkImageSource: networkImage,
+      });
+    }
+    prevNetworkProvider.current = networkProvider;
+  }, [networkProvider, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
@@ -272,10 +318,12 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
+    const { wizardStep } = props;
     const { type } = network.provider;
     if (
       (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
-      showDeprecatedAlert
+      showDeprecatedAlert &&
+      !wizardStep
     ) {
       return (
         <WarningAlert
@@ -379,6 +427,10 @@ Main.propTypes = {
    * redux flag that indicates if the alert should be shown
    */
   backUpSeedphraseVisible: PropTypes.bool,
+  /**
+   * Onboarding wizard step.
+   */
+  wizardStep: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -387,6 +439,7 @@ const mapStateToProps = (state) => ({
   providerType: state.engine.backgroundState.NetworkController.provider.type,
   network: state.engine.backgroundState.NetworkController,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  wizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({

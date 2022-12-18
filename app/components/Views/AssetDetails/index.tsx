@@ -30,6 +30,7 @@ import {
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -165,33 +166,39 @@ const AssetDetails = (props: Props) => {
 
   const triggerHideToken = () => {
     const { TokensController, NetworkController } = Engine.context as any;
-    navigation.navigate('AssetHideConfirmation', {
-      onConfirm: () => {
-        navigation.navigate('WalletView');
-        InteractionManager.runAfterInteractions(async () => {
-          try {
-            await TokensController.ignoreTokens([address]);
-            NotificationManager.showSimpleNotification({
-              status: `simple_notification`,
-              duration: 5000,
-              title: strings('wallet.token_toast.token_hidden_title'),
-              description: strings('wallet.token_toast.token_hidden_desc', {
-                tokenSymbol: symbol,
-              }),
-            });
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
-              location: 'token_details',
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              tokens: [`${symbol} - ${address}`],
-              chain_id: getDecimalChainId(
-                NetworkController?.state?.provider?.chainId,
-              ),
-            });
-          } catch (err) {
-            Logger.log(err, 'AssetDetails: Failed to hide token!');
-          }
-        });
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'AssetHideConfirmation',
+      params: {
+        onConfirm: () => {
+          navigation.navigate('WalletView');
+          InteractionManager.runAfterInteractions(async () => {
+            try {
+              await TokensController.ignoreTokens([address]);
+              NotificationManager.showSimpleNotification({
+                status: `simple_notification`,
+                duration: 5000,
+                title: strings('wallet.token_toast.token_hidden_title'),
+                description: strings('wallet.token_toast.token_hidden_desc', {
+                  tokenSymbol: symbol,
+                }),
+              });
+              AnalyticsV2.trackEvent(
+                AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN,
+                {
+                  location: 'token_details',
+                  token_standard: 'ERC20',
+                  asset_type: 'token',
+                  tokens: [`${symbol} - ${address}`],
+                  chain_id: getDecimalChainId(
+                    NetworkController?.state?.provider?.chainId,
+                  ),
+                },
+              );
+            } catch (err) {
+              Logger.log(err, 'AssetDetails: Failed to hide token!');
+            }
+          });
+        },
       },
     });
   };

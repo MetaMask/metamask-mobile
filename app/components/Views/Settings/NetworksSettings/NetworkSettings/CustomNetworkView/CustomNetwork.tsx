@@ -20,6 +20,7 @@ const CustomNetwork = ({
   toggleWarningModal,
   showNetworkModal,
   switchTab,
+  shouldNetworkSwitchPopToWallet,
 }: CustomNetworkProps) => {
   const savedNetworkList = useSelector(
     (state: any) =>
@@ -53,6 +54,7 @@ const CustomNetwork = ({
           onClose={closeNetworkModal}
           network={selectedNetwork}
           navigation={navigation}
+          shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
         />
       )}
       {filteredPopularList.map((item, index) => (

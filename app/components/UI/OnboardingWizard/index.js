@@ -1,13 +1,7 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import {
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  Text,
-  InteractionManager,
-} from 'react-native';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { View, StyleSheet, InteractionManager } from 'react-native';
+import { colors as importedColors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -16,18 +10,14 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { strings } from '../../../../locales/i18n';
 import DefaultPreference from 'react-native-default-preference';
-import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
-import Device from '../../../util/device';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
-import { useTheme } from '../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = () =>
   StyleSheet.create({
     root: {
       top: 0,
@@ -43,39 +33,6 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: importedColors.transparent,
     },
-    smallSkipWrapper: {
-      alignItems: 'center',
-      alignSelf: 'center',
-      bottom: Device.isIos() ? 30 : 35,
-    },
-    largeSkipWrapper: {
-      alignItems: 'center',
-      alignSelf: 'center',
-      bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
-    },
-    skipButtonContainer: {
-      height: 30,
-      width: 120,
-      borderRadius: 15,
-      backgroundColor: colors.background.default,
-    },
-    skipButton: {
-      backgroundColor: colors.background.default,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    androidElevated: {
-      width: 120,
-      borderRadius: 30,
-    },
-    iosTouchable: {
-      width: 120,
-    },
-    skipText: {
-      ...fontStyles.normal,
-      fontSize: 12,
-      color: colors.primary.default,
-    },
   });
 
 const OnboardingWizard = (props) => {
@@ -87,8 +44,7 @@ const OnboardingWizard = (props) => {
     isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
@@ -123,13 +79,7 @@ const OnboardingWizard = (props) => {
           navigation={navigation}
         />
       ),
-      5: (
-        <Step5
-          coachmarkRef={coachmarkRef}
-          drawerRef={drawerRef}
-          navigation={navigation}
-        />
-      ),
+      5: <Step5 drawerRef={drawerRef} navigation={navigation} />,
       6: (
         <Step6
           coachmarkRef={coachmarkRef}
@@ -171,26 +121,6 @@ const OnboardingWizard = (props) => {
       style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
-      {step !== 1 && (
-        <ElevatedView
-          elevation={10}
-          style={[
-            Device.isSmallDevice()
-              ? styles.smallSkipWrapper
-              : styles.largeSkipWrapper,
-            styles.skipButtonContainer,
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.skipButtonContainer, styles.skipButton]}
-            onPress={closeOnboardingWizard}
-          >
-            <Text style={styles.skipText}>
-              {strings('onboarding_wizard.skip_tutorial')}
-            </Text>
-          </TouchableOpacity>
-        </ElevatedView>
-      )}
     </Modal>
   );
 };

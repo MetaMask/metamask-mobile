@@ -223,11 +223,10 @@ class AssetOverview extends PureComponent {
   };
 
   goToBrowserUrl(url) {
-    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-      screen: Routes.BROWSER_VIEW,
+    this.props.navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
       params: {
-        newTabUrl: url,
-        timestamp: Date.now(),
+        url,
       },
     });
   }

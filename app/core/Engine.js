@@ -25,6 +25,7 @@ import {
   TokenDetectionController,
   NftDetectionController,
   ApprovalController,
+  PermissionController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { SnapController } from '@metamask/snap-controllers';
@@ -53,6 +54,11 @@ import { isZero } from '../util/lodash';
 import AnalyticsV2 from '../util/analyticsV2';
 import { SnapBridge, WebviewExecutionService } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from './Permissions/specifications.js';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -130,8 +136,8 @@ class Engine {
           end: (arg0: null, arg1: any[]) => void,
           payload: { hostname: string | number },
         ) => {
-          const { approvedHosts, privacyMode } = store.getState();
-          const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+          const { approvedHosts } = store.getState();
+          const isEnabled = approvedHosts[payload.hostname];
           const { KeyringController } = this.context;
           const isUnlocked = KeyringController.isUnlocked();
           const selectedAddress =
@@ -315,33 +321,51 @@ class Engine {
           ),
       });
 
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+      });
+
       const phishingController = new PhishingController();
       phishingController.updatePhishingLists();
 
       const additionalKeyrings = [QRHardwareKeyring];
 
+      const getIdentities = () => {
+        const identities = preferencesController.state.identities;
+        const newIdentities = {};
+        Object.keys(identities).forEach((key) => {
+          newIdentities[key.toLowerCase()] = identities[key];
+        });
+        return newIdentities;
+      };
+
+      const keyringController = new KeyringController(
+        {
+          removeIdentity: preferencesController.removeIdentity.bind(
+            preferencesController,
+          ),
+          syncIdentities: preferencesController.syncIdentities.bind(
+            preferencesController,
+          ),
+          updateIdentities: preferencesController.updateIdentities.bind(
+            preferencesController,
+          ),
+          setSelectedAddress: preferencesController.setSelectedAddress.bind(
+            preferencesController,
+          ),
+          setAccountLabel: preferencesController.setAccountLabel.bind(
+            preferencesController,
+          ),
+        },
+        { encryptor, keyringTypes: additionalKeyrings },
+        initialState.KeyringController,
+      );
+
       const controllers = [
-        new KeyringController(
-          {
-            removeIdentity: preferencesController.removeIdentity.bind(
-              preferencesController,
-            ),
-            syncIdentities: preferencesController.syncIdentities.bind(
-              preferencesController,
-            ),
-            updateIdentities: preferencesController.updateIdentities.bind(
-              preferencesController,
-            ),
-            setSelectedAddress: preferencesController.setSelectedAddress.bind(
-              preferencesController,
-            ),
-            setAccountLabel: preferencesController.setAccountLabel.bind(
-              preferencesController,
-            ),
-          },
-          { encryptor, keyringTypes: additionalKeyrings },
-          initialState.KeyringController,
-        ),
+        keyringController,
         new AccountTrackerController({
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
@@ -464,11 +488,28 @@ class Engine {
           },
         ),
         gasFeeController,
-        new ApprovalController({
+        approvalController,
+        new PermissionController({
           messenger: this.controllerMessenger.getRestricted({
-            name: 'ApprovalController',
+            name: 'PermissionController',
+            allowedActions: [
+              `${approvalController.name}:addRequest`,
+              `${approvalController.name}:hasRequest`,
+              `${approvalController.name}:acceptRequest`,
+              `${approvalController.name}:rejectRequest`,
+            ],
           }),
-          showApprovalRequest: () => null,
+          state: initialState.PermissionController,
+          caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+          permissionSpecifications: {
+            ...getPermissionSpecifications({
+              getAllAccounts: () => keyringController.getAccounts(),
+            }),
+            /*
+            ...this.getSnapPermissionSpecifications(),
+            */
+          },
+          unrestrictedMethods,
         }),
         snapController,
       ];
@@ -741,7 +782,11 @@ class Engine {
       NftController,
       TokenBalancesController,
       TokenRatesController,
+      PermissionController,
     } = this.context;
+
+    // Remove all permissions.
+    PermissionController?.clearState?.();
 
     //Clear assets info
     TokensController.update({
@@ -903,6 +948,7 @@ export default {
       TokensController,
       TokenDetectionController,
       NftDetectionController,
+      PermissionController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -936,6 +982,7 @@ export default {
       GasFeeController,
       TokenDetectionController,
       NftDetectionController,
+      PermissionController,
     };
   },
   get datamodel() {

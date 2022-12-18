@@ -400,14 +400,35 @@
     "receive": "TUMANGGAP"
   },
   "accounts": {
-    "create_new_account": "Gumawa ng Bagong Account",
-    "import_account": "Mag-import ng Account",
-    "connect_hardware": "Ikonekta ang Hardware Wallet",
-    "imported": "NA-IMPORT",
+    "create_new_account": "Gumawa ng bagong account",
+    "import_account": "Mag-import ng account",
+    "connect_hardware": "Ikonekta ang hardware wallet",
+    "imported": "Na-import",
     "remove_account_title": "Pagtanggal ng account",
     "remove_account_message": "Gusto mo ba talagang tanggalin ang account na ito?",
     "no": "Hindi",
-    "yes_remove_it": "Oo, tanggalin ito"
+    "yes_remove_it": "Oo, tanggalin ito",
+    "accounts_title": "Mga Account",
+    "connect_account_title": "Ikonekta ang Account",
+    "connect_accounts_title": "Ikonekta ang mga Account",
+    "connected_accounts_title": "Mga Konektadong Account",
+    "connect_description": "Ibahagi ang address ng iyong account, balanse, aktibidad, at payagan ang site na magsimula ng mga transaksyon.",
+    "connect_multiple_accounts": "Ikonekta ang maraming account",
+    "connect_more_accounts": "Ikonekta ang higit pang mga account",
+    "cancel": "Kanselahin",
+    "connect": "Kumonekta",
+    "connect_with_count": "Kumonekta{{countLabel}}",
+    "select_all": "Piliin lahat",
+    "permissions": "Mga Pahintulot",
+    "disconnect": "Idiskonekta",
+    "disconnect_all_accounts": "Idiskonekta ang lahat ng account"
+  },
+  "toast": {
+    "connected_and_active": "konektado at aktibo.",
+    "now_active": "aktibo ngayon.",
+    "revoked": "binawi.",
+    "revoked_all": "Ang lahat ng account ay binawi.",
+    "accounts_connected": "mga account na konektado."
   },
   "connect_qr_hardware": {
     "title": "Ikonekta ang QR-based na hardware wallet",

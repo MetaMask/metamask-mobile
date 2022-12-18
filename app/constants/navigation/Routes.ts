@@ -16,6 +16,7 @@ const Routes = {
     ORDER_DETAILS: 'OrderDetails',
   },
   QR_SCANNER: 'QRScanner',
+  TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -40,6 +41,19 @@ const Routes = {
   },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
+  },
+  SHEET: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
+    ACCOUNT_CONNECT: 'AccountConnect',
+    ACCOUNT_PERMISSIONS: 'AccountPermissions',
+  },
+  BROWSER: {
+    HOME: 'BrowserTabHome',
+    URL_MODAL: 'BrowserUrlModal',
+    VIEW: 'BrowserView',
+  },
+  WALLET: {
+    HOME: 'WalletTabHome',
   },
 };
 

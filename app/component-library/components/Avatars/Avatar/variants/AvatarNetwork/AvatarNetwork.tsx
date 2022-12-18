@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
@@ -30,6 +30,10 @@ const AvatarNetwork = ({
   const chainNameFirstLetter = name?.[0] ?? '?';
 
   const onError = useCallback(() => setShowFallback(true), [setShowFallback]);
+
+  useEffect(() => {
+    setShowFallback(!imageSource);
+  }, [imageSource]);
 
   return (
     <AvatarBase size={size} style={styles.base}>

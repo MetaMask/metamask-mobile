@@ -475,6 +475,8 @@ class NetworkSettings extends PureComponent {
       ? this.getCustomMainnetRPCURL()
       : route.params?.network;
 
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
@@ -558,7 +560,9 @@ class NetworkSettings extends PureComponent {
       });
       isCustomMainnet
         ? navigation.navigate('OptinMetrics')
-        : navigation.navigate('WalletView');
+        : shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
     }
   };
 
@@ -1008,6 +1012,8 @@ class NetworkSettings extends PureComponent {
   render() {
     const { route } = this.props;
     const network = route.params?.network;
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -1035,6 +1041,9 @@ class NetworkSettings extends PureComponent {
                   toggleWarningModal={this.toggleWarningModal}
                   showNetworkModal={this.showNetworkModal}
                   switchTab={this.tabView}
+                  shouldNetworkSwitchPopToWallet={
+                    shouldNetworkSwitchPopToWallet
+                  }
                 />
               </View>
               <View

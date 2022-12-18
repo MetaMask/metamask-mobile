@@ -22,6 +22,7 @@ const CellSelect = ({
   tagLabel,
   isSelected = false,
   children,
+  ...props
 }: CellSelectProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -30,6 +31,7 @@ const CellSelect = ({
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_SELECT_TEST_ID}
+      {...props}
     >
       <CellBase
         avatarProps={avatarProps}

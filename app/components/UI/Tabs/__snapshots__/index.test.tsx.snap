@@ -46,8 +46,7 @@ exports[`Tabs should render correctly 1`] = `
       Object {
         "backgroundColor": "#FFFFFF",
         "flexDirection": "row",
-        "height": 80,
-        "marginBottom": 0,
+        "height": 50,
         "paddingHorizontal": 20,
         "paddingTop": 17,
         "shadowColor": "#0000001A",

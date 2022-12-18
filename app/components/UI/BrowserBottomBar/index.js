@@ -11,18 +11,16 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const HOME_INDICATOR_HEIGHT = 18;
-const defaultBottomBarPadding = 0;
+// NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
+// TODO: test on an android device
+// const HOME_INDICATOR_HEIGHT = 0;
+// const defaultBottomBarPadding = 0;
 
 const createStyles = (colors) =>
   StyleSheet.create({
     bottomBar: {
       backgroundColor: colors.background.default,
       flexDirection: 'row',
-      paddingBottom:
-        Device.isIphoneX() && Device.isIos()
-          ? defaultBottomBarPadding + HOME_INDICATOR_HEIGHT
-          : defaultBottomBarPadding,
       flex: 0,
       borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
       borderColor: colors.border.muted,

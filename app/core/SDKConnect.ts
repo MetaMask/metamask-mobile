@@ -181,6 +181,7 @@ class Connection {
             wizardScrollAdjusted: { current: false },
             tabId: '',
             isWalletConnect: false,
+            isMMSDK: true,
             analytics: {
               isRemoteConn: true,
               platform: parseSource(originatorInfo?.platform),

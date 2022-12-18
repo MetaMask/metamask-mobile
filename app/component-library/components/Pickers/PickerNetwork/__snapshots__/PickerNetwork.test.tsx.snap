@@ -6,6 +6,7 @@ exports[`PickerNetwork should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "alignSelf": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 16,
       "flexDirection": "row",
@@ -27,6 +28,7 @@ exports[`PickerNetwork should render correctly 1`] = `
   <Text
     style={
       Object {
+        "flexShrink": 1,
         "marginHorizontal": 8,
       }
     }

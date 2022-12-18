@@ -148,8 +148,8 @@ class WalletConnect {
 
       if (payload.method) {
         const payloadUrl = this.walletConnector.session.peerMeta.url;
-
-        if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+        const payloadHostname = new URL(payloadUrl).hostname;
+        if (payloadHostname === this.backgroundBridge.hostname) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -168,7 +168,9 @@ class WalletConnect {
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
                 chainId: payload.params[0].chainId,
+                isWalletConnect: true,
                 activeAccounts: [selectedAddress],
+                hostname: payloadHostname,
               });
 
               const hash = await (
@@ -299,7 +301,7 @@ class WalletConnect {
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
-      url: this.hostname,
+      url: this.url.current,
       isWalletConnect: true,
       wcWalletConnector: this.walletConnector,
       wcRequestActions: {
@@ -312,9 +314,6 @@ class WalletConnect {
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
           navigation: null, //props.navigation,
-          getApprovedHosts: () => null,
-          setApprovedHosts: () => null,
-          approveHost: () => null, //props.approveHost,
           // Website info
           url: this.url,
           title: this.title,

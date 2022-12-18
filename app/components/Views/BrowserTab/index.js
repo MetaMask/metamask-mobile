@@ -16,7 +16,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
@@ -34,7 +34,6 @@ import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import WebviewError from '../../UI/WebviewError';
-import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
@@ -43,7 +42,6 @@ import SearchApi from 'react-native-search-api';
 import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
@@ -61,6 +59,12 @@ import {
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import {
+  getPermittedAccounts,
+  getPermittedAccountsByHostname,
+} from '../../../core/Permissions';
+import Routes from '../../../constants/navigation/Routes';
+import { isEqual } from 'lodash';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -203,12 +207,6 @@ const createStyles = (colors, shadows) =>
 
 const sessionENSNames = {};
 const ensIgnoreList = [];
-let approvedHosts = {};
-
-const getApprovedHosts = () => approvedHosts;
-const setApprovedHosts = (hosts) => {
-  approvedHosts = hosts;
-};
 
 export const BrowserTab = (props) => {
   const [backEnabled, setBackEnabled] = useState(false);
@@ -231,6 +229,16 @@ export const BrowserTab = (props) => {
   const backgroundBridges = useRef([]);
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
+  const permittedAccountsList = useSelector((state) => {
+    const permissionsControllerState =
+      state.engine.backgroundState.PermissionController;
+    const hostname = new URL(url.current).hostname;
+    const permittedAcc = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    return permittedAcc;
+  }, isEqual);
 
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
@@ -238,9 +246,8 @@ export const BrowserTab = (props) => {
   /**
    * Is the current tab the active tab
    */
-  const isTabActive = useCallback(
-    () => props.activeTab === props.id,
-    [props.activeTab, props.id],
+  const isTabActive = useSelector(
+    (state) => state.browser.activeTab === props.id,
   );
 
   /**
@@ -299,57 +306,22 @@ export const BrowserTab = (props) => {
     return currentHost === HOMEPAGE_HOST;
   }, []);
 
-  const notifyAllConnections = useCallback(
-    (payload, restricted = true) => {
-      const fullHostname = new URL(url.current).hostname;
+  const notifyAllConnections = useCallback((payload, restricted = true) => {
+    const fullHostname = new URL(url.current).hostname;
 
-      // TODO:permissions move permissioning logic elsewhere
-      backgroundBridges.current.forEach((bridge) => {
-        if (
-          bridge.hostname === fullHostname &&
-          (!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
-        ) {
-          bridge.sendNotification(payload);
-        }
-      });
-    },
-    [props.privacyMode],
-  );
-
-  /**
-   * Manage hosts that were approved to connect with the user accounts
-   */
-  useEffect(() => {
-    const { approvedHosts: approvedHostsProps, selectedAddress } = props;
-
-    approvedHosts = approvedHostsProps;
-
-    const numApprovedHosts = Object.keys(approvedHosts).length;
-
-    // this will happen if the approved hosts were cleared
-    if (numApprovedHosts === 0) {
-      notifyAllConnections(
-        {
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: [],
-        },
-        false,
-      ); // notification should be sent regardless of approval status
-    }
-
-    if (numApprovedHosts > 0) {
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [selectedAddress],
-      });
-    }
-  }, [notifyAllConnections, props, props.approvedHosts, props.selectedAddress]);
+    // TODO:permissions move permissioning logic elsewhere
+    backgroundBridges.current.forEach((bridge) => {
+      if (bridge.hostname === fullHostname) {
+        bridge.sendNotification(payload);
+      }
+    });
+  }, []);
 
   /**
    * Dismiss the text selection on the current website
    */
   const dismissTextSelectionIfNeeded = useCallback(() => {
-    if (isTabActive() && Device.isAndroid()) {
+    if (isTabActive && Device.isAndroid()) {
       const { current } = webviewRef;
       if (current) {
         setTimeout(() => {
@@ -586,7 +558,6 @@ export const BrowserTab = (props) => {
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
-    approvedHosts = props.approvedHosts;
     const initialUrl = props.initialUrl || HOMEPAGE_URL;
     go(initialUrl, true);
 
@@ -626,7 +597,7 @@ export const BrowserTab = (props) => {
    */
   useEffect(() => {
     const handleAndroidBackPress = () => {
-      if (!isTabActive()) return false;
+      if (!isTabActive) return false;
       goBack();
       return true;
     };
@@ -680,7 +651,7 @@ export const BrowserTab = (props) => {
   /**
    * Handles state changes for when the url changes
    */
-  const changeUrl = (siteInfo) => {
+  const changeUrl = async (siteInfo) => {
     url.current = siteInfo.url;
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
@@ -693,7 +664,7 @@ export const BrowserTab = (props) => {
     setBackEnabled(siteInfo.canGoBack);
     setForwardEnabled(siteInfo.canGoForward);
 
-    isTabActive() &&
+    isTabActive &&
       props.navigation.setParams({
         url: getMaskedUrl(siteInfo.url),
         icon: siteInfo.icon,
@@ -926,9 +897,6 @@ export const BrowserTab = (props) => {
           hostname,
           getProviderState,
           navigation: props.navigation,
-          getApprovedHosts,
-          setApprovedHosts,
-          approveHost: props.approveHost,
           // Website info
           url,
           title,
@@ -947,6 +915,20 @@ export const BrowserTab = (props) => {
     });
     backgroundBridges.current.push(newBridge);
   };
+
+  const sendActiveAccount = useCallback(async () => {
+    notifyAllConnections({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      params: permittedAccountsList,
+    });
+
+    if (isTabActive) {
+      props.navigation.setParams({
+        connectedAccounts: permittedAccountsList,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifyAllConnections, permittedAccountsList, isTabActive]);
 
   /**
    * Website started to load
@@ -969,6 +951,7 @@ export const BrowserTab = (props) => {
     setError(false);
 
     changeUrl(nativeEvent);
+    sendActiveAccount();
 
     icon.current = null;
     if (isHomepage(nativeEvent.url)) {
@@ -987,19 +970,46 @@ export const BrowserTab = (props) => {
    * Enable the header to toggle the url modal and update other header data
    */
   useEffect(() => {
-    if (props.activeTab === props.id) {
-      props.navigation.setParams({
-        showUrlModal: toggleUrlModal,
-        url: getMaskedUrl(url.current),
-        icon: icon.current,
-        error,
-      });
-    }
+    const updateNavbar = async () => {
+      if (isTabActive) {
+        const hostname = new URL(url.current).hostname;
+        const accounts = await getPermittedAccounts(hostname);
+        props.navigation.setParams({
+          showUrlModal: toggleUrlModal,
+          url: getMaskedUrl(url.current),
+          icon: icon.current,
+          error,
+          setAccountsPermissionsVisible: () => {
+            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+              params: {
+                hostInfo: {
+                  metadata: {
+                    // origin: url.current,
+                    origin: url.current && new URL(url.current).hostname,
+                  },
+                },
+              },
+            });
+          },
+          connectedAccounts: accounts,
+        });
+      }
+    };
+
+    updateNavbar();
     /* we do not want to depend on the entire props object
 		- since we are changing it here, this would give us a circular dependency and infinite re renders
 		*/
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error, props.activeTab, props.id, toggleUrlModal]);
+  }, [error, isTabActive, toggleUrlModal]);
+
+  /**
+   * Check whenever permissions change / account changes for Dapp
+   */
+  useEffect(() => {
+    sendActiveAccount();
+  }, [sendActiveAccount, permittedAccountsList]);
 
   /**
    * Allow list updates do not propigate through the useCallbacks this updates a ref that is use in the callbacks
@@ -1053,18 +1063,6 @@ export const BrowserTab = (props) => {
    */
   const trackShareEvent = () => {
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SHARE_SITE);
-  };
-
-  /**
-   * Track change network event
-   */
-  const trackSwitchNetworkEvent = ({ from }) => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK,
-      {
-        from_chain_id: from,
-      },
-    );
   };
 
   /**
@@ -1202,16 +1200,6 @@ export const BrowserTab = (props) => {
   };
 
   /**
-   * Handle switch network press
-   */
-  const switchNetwork = () => {
-    const { toggleNetworkModal, network } = props;
-    toggleOptionsIfNeeded();
-    toggleNetworkModal();
-    trackSwitchNetworkEvent({ from: network });
-  };
-
-  /**
    * Render options menu
    */
   const renderOptions = () => {
@@ -1240,18 +1228,6 @@ export const BrowserTab = (props) => {
                 </Text>
               </Button>
               {renderNonHomeOptions()}
-              <Button onPress={switchNetwork} style={styles.option}>
-                <View style={styles.optionIconWrapper}>
-                  <MaterialCommunityIcon
-                    name="earth"
-                    size={18}
-                    style={styles.optionIcon}
-                  />
-                </View>
-                <Text style={styles.optionText} numberOfLines={2}>
-                  {strings('browser.switch_network')}
-                </Text>
-              </Button>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -1326,7 +1302,7 @@ export const BrowserTab = (props) => {
   return (
     <ErrorBoundary view="BrowserTab">
       <View
-        style={[styles.wrapper, !isTabActive() && styles.hide]}
+        style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
         <View style={styles.webview}>
@@ -1360,10 +1336,10 @@ export const BrowserTab = (props) => {
         </View>
         {updateAllowList()}
         {renderProgressBar()}
-        {isTabActive() && renderPhishingModal()}
-        {isTabActive() && renderOptions()}
-        {isTabActive() && renderBottomBar()}
-        {isTabActive() && renderOnboardingWizard()}
+        {isTabActive && renderPhishingModal()}
+        {isTabActive && renderOptions()}
+        {isTabActive && renderBottomBar()}
+        {isTabActive && renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
   );
@@ -1382,14 +1358,6 @@ BrowserTab.propTypes = {
    * InitialUrl
    */
   initialUrl: PropTypes.string,
-  /**
-   * Called to approve account access for a given hostname
-   */
-  approveHost: PropTypes.func,
-  /**
-   * Map of hostnames with approved account access
-   */
-  approvedHosts: PropTypes.object,
   /**
    * Protocol string to append to URLs that have none
    */
@@ -1411,10 +1379,6 @@ BrowserTab.propTypes = {
    */
   network: PropTypes.string,
   /**
-   * Indicates whether privacy mode is enabled
-   */
-  privacyMode: PropTypes.bool,
-  /**
    * A string that represents the selected address
    */
   selectedAddress: PropTypes.string,
@@ -1427,10 +1391,6 @@ BrowserTab.propTypes = {
    * For ex. deeplinks
    */
   url: PropTypes.string,
-  /**
-   * Function to toggle the network switcher modal
-   */
-  toggleNetworkModal: PropTypes.func,
   /**
    * Function to open a new tab
    */
@@ -1482,25 +1442,20 @@ BrowserTab.defaultProps = {
 };
 
 const mapStateToProps = (state) => ({
-  approvedHosts: state.privacy.approvedHosts,
   bookmarks: state.bookmarks,
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
   network: state.engine.backgroundState.NetworkController.network,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
-  privacyMode: state.privacy.privacyMode,
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
-  activeTab: state.browser.activeTab,
   wizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  approveHost: (hostname) => dispatch(approveHost(hostname)),
   addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
   addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
   addToWhitelist: (url) => dispatch(addToWhitelist(url)),
-  toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 

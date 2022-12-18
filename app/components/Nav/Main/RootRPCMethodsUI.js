@@ -57,6 +57,7 @@ import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import Routes from '../../../constants/navigation/Routes';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -508,6 +509,7 @@ const RootRPCMethodsUI = (props) => {
       <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
     );
 
+  // Reject pending approval using MetaMask SDK.
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
     try {
@@ -517,6 +519,7 @@ const RootRPCMethodsUI = (props) => {
     }
   };
 
+  // Accept pending approval using MetaMask SDK.
   const acceptPendingApproval = (id, requestData) => {
     const { ApprovalController } = Engine.context;
     ApprovalController.accept(id, requestData);
@@ -536,7 +539,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to add chain to wallet.
    */
   const renderAddCustomNetworkModal = () => (
     <Modal
@@ -578,7 +581,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to switch chain on wallet.
    */
   const renderSwitchCustomNetworkModal = () => (
     <Modal
@@ -607,7 +610,7 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * When user clicks on approve to connect with a dapp
+   * When user clicks on approve to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsConfirm = () => {
     acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
@@ -615,7 +618,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * When user clicks on reject to connect with a dapp
+   * When user clicks on reject to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsReject = () => {
     rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
@@ -623,7 +626,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
    */
   const renderAccountsApprovalModal = () => (
     <Modal
@@ -706,6 +709,16 @@ const RootRPCMethodsUI = (props) => {
         setCurrentPageMeta(requestData.pageMeta);
       }
       switch (request.type) {
+        case ApprovalTypes.REQUEST_PERMISSIONS:
+          if (requestData?.permissions?.eth_accounts) {
+            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.ACCOUNT_CONNECT,
+              params: {
+                hostInfo: requestData,
+              },
+            });
+          }
+          break;
         case ApprovalTypes.CONNECT_ACCOUNTS:
           setHostToApprove({ data: requestData, id: request.id });
           showPendingApprovalModal({
@@ -787,9 +800,9 @@ const RootRPCMethodsUI = (props) => {
       {renderApproveModal()}
       {renderAddCustomNetworkModal()}
       {renderSwitchCustomNetworkModal()}
-      {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderAccountsApprovalModal()}
     </React.Fragment>
   );
 };

@@ -24,6 +24,15 @@ import handleNetworkSwitch from './handleNetworkSwitch';
 
 export { handleNetworkSwitch };
 
+/* eslint-disable */
+const ethLogo = require('../../images/eth-logo-new.png');
+const ropstenLogo = require('../../images/ropsten-logo-dark.png');
+const kovanLogo = require('../../images/kovan-logo-dark.png');
+const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
+const goerliLogo = require('../../images/goerli-logo-dark.png');
+/* eslint-enable */
+import PopularList from './customNetworks';
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -40,6 +49,7 @@ const NetworkList = {
     hexChainId: '0x1',
     color: '#3cc29e',
     networkType: 'mainnet',
+    imageSource: ethLogo,
   },
   [ROPSTEN]: {
     name: 'Ropsten Test Network',
@@ -49,6 +59,7 @@ const NetworkList = {
     hexChainId: '0x3',
     color: '#ff4a8d',
     networkType: 'ropsten',
+    imageSource: ropstenLogo,
   },
   [KOVAN]: {
     name: 'Kovan Test Network',
@@ -58,6 +69,7 @@ const NetworkList = {
     hexChainId: '0x2a',
     color: '#7057ff',
     networkType: 'kovan',
+    imageSource: kovanLogo,
   },
   [RINKEBY]: {
     name: 'Rinkeby Test Network',
@@ -67,6 +79,7 @@ const NetworkList = {
     hexChainId: '0x4',
     color: '#f6c343',
     networkType: 'rinkeby',
+    imageSource: rinkebyLogo,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -76,6 +89,7 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
+    imageSource: goerliLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -280,6 +294,42 @@ export function blockTagParamIndex(payload) {
       return undefined;
   }
 }
+
+/**
+ * Gets the current network name given the network provider.
+ *
+ * @param {Object} provider - Network provider state from the NetworkController.
+ * @returns {string} Name of the network.
+ */
+export const getNetworkNameFromProvider = (provider) => {
+  let name = '';
+  if (provider.nickname) {
+    name = provider.nickname;
+  } else {
+    const networkType = provider.type;
+    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+  }
+  return name;
+};
+
+/**
+ * Gets the image source given the chain ID.
+ *
+ * @param {string} chainId - ChainID of the network.
+ * @returns {Object} - Image source of the network.
+ */
+export const getNetworkImageSource = (chainId) => {
+  const defaultNetwork = getDefaultNetworkByChainId(chainId);
+  if (defaultNetwork) {
+    return defaultNetwork.imageSource;
+  }
+  const popularNetwork = PopularList.find(
+    (network) => network.chainId === chainId,
+  );
+  if (popularNetwork) {
+    return popularNetwork.rpcPrefs.imageSource;
+  }
+};
 
 // The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
 const buildOVMGasPriceOracleContract = (eth) => {

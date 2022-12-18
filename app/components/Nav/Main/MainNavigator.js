@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -16,12 +16,8 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import AssetOptions from '../../Views/AssetOptions';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import DetectedTokens from '../../Views/DetectedTokens';
-import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
@@ -67,6 +63,7 @@ import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
+import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -77,9 +74,6 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 125,
     height: 50,
-  },
-  hidden: {
-    opacity: 0,
   },
 });
 
@@ -96,20 +90,6 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-    />
-  </Stack.Navigator>
-);
-
 const WalletModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
@@ -117,7 +97,6 @@ const WalletModalFlow = () => (
       component={Wallet}
       options={{ headerShown: true, animationEnabled: false }}
     />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
   </Stack.Navigator>
 );
 
@@ -147,11 +126,6 @@ const AssetModalFlow = (props) => (
       name={'AssetStackFlow'}
       component={AssetStackFlow}
       initialParams={props.route.params}
-    />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions}
-      initialParams={{ address: props.route.params?.address }}
     />
   </Stack.Navigator>
 );
@@ -190,36 +164,32 @@ const WalletTabStackFlow = () => (
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
+  </Stack.Navigator>
+);
+
+const TransactionsHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
     <Stack.Screen
-      name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation}
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
     />
   </Stack.Navigator>
 );
 
 const BrowserFlow = () => (
   <Stack.Navigator
-    initialRouteName={Routes.BROWSER_VIEW}
+    initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
     screenOptions={{
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER_VIEW} component={Browser} />
+    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name={Routes.BROWSER_URL_MODAL}
+      name={Routes.BROWSER.URL_MODAL}
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
-const TransactionsHome = () => (
-  <Stack.Navigator mode="modal">
-    <Stack.Screen name="TransactionsView" component={ActivityView} />
-    <Stack.Screen
-      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
-      component={OrderDetails}
     />
   </Stack.Navigator>
 );
@@ -228,29 +198,59 @@ export const DrawerContext = React.createContext({ drawerRef: null });
 
 const HomeTabs = () => {
   const drawerRef = useRef(null);
+  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+
+  const options = {
+    home: {
+      tabBarLabel: 'Wallet',
+    },
+    browser: {
+      tabBarLabel: 'Browser',
+    },
+  };
+
+  useEffect(() => {
+    // Hide keyboard on Android when keyboard is visible.
+    // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
+    if (Platform.OS === 'android') {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+        setIsKeyboardHidden(false);
+      });
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+        setIsKeyboardHidden(true);
+      });
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }
+  }, []);
 
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
-          initialRouteName={'WalletTabHome'}
-          tabBarOptions={{ style: styles.hidden }}
-          screenOptions={{ tabBarVisible: false }}
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={({ state, descriptors, navigation }) =>
+            isKeyboardHidden ? (
+              <TabBar
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+              />
+            ) : null
+          }
         >
           <Tab.Screen
-            name="WalletTabHome"
+            name={Routes.WALLET.HOME}
+            options={options.home}
             component={WalletTabModalFlow}
-            options={{ tabBarVisible: false }}
           />
           <Tab.Screen
-            name={Routes.BROWSER_TAB_HOME}
+            name={Routes.BROWSER.HOME}
+            options={options.browser}
             component={BrowserFlow}
-            options={{ tabBarVisible: false }}
-          />
-          <Tab.Screen
-            name="TransactionsHome"
-            component={TransactionsHome}
-            options={{ tabBarVisible: false }}
           />
         </Tab.Navigator>
       </Drawer>
@@ -616,9 +616,10 @@ const MainNavigator = () => (
         }),
       }}
     />
-    <Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
+    <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
+    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
     <Stack.Screen
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}

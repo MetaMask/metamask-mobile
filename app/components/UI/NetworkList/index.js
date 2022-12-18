@@ -30,6 +30,8 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../constants/test-ids';
 import ImageIcon from '../ImageIcon';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
@@ -86,6 +88,7 @@ const createStyles = (colors) =>
     footer: {
       marginVertical: 10,
       flexDirection: 'row',
+      paddingBottom: 8,
     },
     footerButton: {
       flex: 1,
@@ -167,6 +170,10 @@ export class NetworkList extends PureComponent {
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
+    /**
+     * Boolean indicating if switching network action should result in popping back to the wallet.
+     */
+    shouldNetworkSwitchPopToWallet: PropTypes.bool,
   };
 
   getOtherNetworks = () => getAllNetworks().slice(1);
@@ -249,6 +256,7 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
+    color,
   ) => {
     const styles = this.getStyles();
 
@@ -263,13 +271,23 @@ export class NetworkList extends PureComponent {
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
           ) : (
-            <View style={styles.networkIcon} />
+            <AvatarNetwork
+              name={name}
+              size={AvatarSize.Sm}
+              style={styles.networkIcon}
+            />
           ))}
-        {!isCustomRpc && (
-          <View style={[styles.networkIcon, { backgroundColor: image }]}>
-            <Text style={styles.text}>{name[0]}</Text>
-          </View>
-        )}
+        {!isCustomRpc &&
+          (image ? (
+            <ImageIcon
+              image={network.toUpperCase()}
+              style={styles.networkIcon}
+            />
+          ) : (
+            <View style={[styles.networkIcon, { backgroundColor: color }]}>
+              <Text style={styles.text}>{name[0]}</Text>
+            </View>
+          ))}
         <View style={styles.networkInfo}>
           <Text numberOfLines={1} style={styles.networkLabel}>
             {name}
@@ -284,7 +302,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
+      const { name, imageSource, color } = Networks[network];
       const isCustomRpc = false;
       const selected =
         provider.type === network ? (
@@ -294,10 +312,11 @@ export class NetworkList extends PureComponent {
         selected,
         this.onNetworkChange,
         name,
-        color,
+        imageSource,
         i,
         network,
         isCustomRpc,
+        color,
       );
     });
   };
@@ -363,12 +382,13 @@ export class NetworkList extends PureComponent {
   }
 
   goToNetworkSettings = () => {
+    const { shouldNetworkSwitchPopToWallet } = this.props;
     this.props.onClose(false);
     this.props.navigation.navigate('SettingsView', {
       screen: 'SettingsFlow',
       params: {
         screen: 'NetworkSettings',
-        params: { isFullScreenModal: true },
+        params: { isFullScreenModal: true, shouldNetworkSwitchPopToWallet },
       },
     });
   };
@@ -421,6 +441,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+  shouldNetworkSwitchPopToWallet: state.modals.shouldNetworkSwitchPopToWallet,
 });
 
 NetworkList.contextType = ThemeContext;

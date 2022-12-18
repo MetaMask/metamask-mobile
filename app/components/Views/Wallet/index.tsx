@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
   useContext,
+  useMemo,
 } from 'react';
 import {
   RefreshControl,
@@ -15,7 +16,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -37,6 +38,11 @@ import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: any) =>
@@ -130,6 +136,27 @@ const Wallet = ({ navigation }: any) => {
    * Current onboarding wizard step
    */
   const wizardStep = useSelector((state: any) => state.wizard.step);
+  /**
+   * Current network
+   */
+  const networkProvider = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const dispatch = useDispatch();
+  const networkName = useMemo(
+    () => getNetworkNameFromProvider(networkProvider),
+    [networkProvider],
+  );
+
+  const networkImageSource = useMemo(
+    () => getNetworkImageSource(networkProvider.chainId),
+    [networkProvider.chainId],
+  );
+
+  /**
+   * Callback to trigger when pressing the navigation title.
+   */
+  const onTitlePress = () => dispatch(toggleNetworkModal());
 
   const { colors: themeColors } = useTheme();
 
@@ -176,14 +203,16 @@ const Wallet = ({ navigation }: any) => {
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
-        'wallet.title',
+        networkName,
+        networkImageSource,
+        onTitlePress,
         navigation,
         drawerRef,
         themeColors,
       ),
     );
     /* eslint-disable-next-line */
-  }, [navigation, themeColors]);
+  }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
@@ -252,7 +281,7 @@ const Wallet = ({ navigation }: any) => {
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo.png',
+          logo: '../images/eth-logo-new.png',
         },
         ...(tokens || []),
       ];
