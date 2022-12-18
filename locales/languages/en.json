@@ -102,8 +102,6 @@
     },
     "step5": {
       "title": "Explore the Browser",
-      "content1": "You can explore web3 using the browser"
-    },
     "step6": {
       "title": "Search",
       "content": "Search for sites, or type a URL if you know where you’re headed."
@@ -2039,7 +2037,7 @@
   "switch_custom_network": {
     "title_existing_network": "This site would like to switch the network",
     "title_new_network": "New network added",
-    "switch_warning": "This will switch the selected network within MetaMask to a prevously added network:",
+    "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
