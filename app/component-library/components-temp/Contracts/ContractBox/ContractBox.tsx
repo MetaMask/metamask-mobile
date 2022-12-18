@@ -14,6 +14,7 @@ const ContractBox = ({
   onCopyAddress,
   onContractPress,
   hasBlockExplorer,
+  tokenSymbol,
 }: ContractBoxProps) => (
   <View testID={CONTRACT_BOX_TEST_ID}>
     <Card style={styles.container}>
@@ -25,6 +26,7 @@ const ContractBox = ({
         onCopyAddress={onCopyAddress}
         onContractPress={onContractPress}
         hasBlockExplorer={hasBlockExplorer}
+        tokenSymbol={tokenSymbol}
       />
     </Card>
   </View>

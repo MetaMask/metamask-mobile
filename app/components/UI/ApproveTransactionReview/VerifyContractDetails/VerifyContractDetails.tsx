@@ -27,8 +27,8 @@ const VerifyContractDetails = ({
   networkProvider: { rpcTarget, type },
   frequentRpcList,
 }: VerifyContractDetailsProps) => {
-  const [contractNickname, setContractNickname] = React.useState('');
-  const [tokenNickname, setTokenNickname] = React.useState('');
+  const [contractNickname, setContractNickname] = React.useState<string>('');
+  const [tokenNickname, setTokenNickname] = React.useState<string>('');
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
@@ -40,12 +40,12 @@ const VerifyContractDetails = ({
     (token: any) => token.symbol === tokenSymbol,
   );
 
-  // TODO: handle when tokenSymbol is not found
-  // our tokenController only returns tokens for mainnet
+  const tokenSymbolFirstLetter = tokenSymbol?.charAt(0);
+
   const tokenImage =
     filterTokensByTokenSymbol.length > 0
       ? filterTokensByTokenSymbol[0].image
-      : null;
+      : false;
 
   useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {
@@ -90,7 +90,8 @@ const VerifyContractDetails = ({
             contractPetName={tokenNickname}
             onCopyAddress={() => copyAddress(tokenAddress)}
             onExportAddress={() => toggleBlockExplorer(tokenAddress)}
-            contractLocalImage={{ uri: tokenImage }}
+            contractLocalImage={!tokenImage ? null : { uri: tokenImage }}
+            tokenSymbol={tokenSymbolFirstLetter}
             hasBlockExplorer={Boolean(hasBlockExplorer)}
             onContractPress={() => showNickname(tokenAddress)}
           />

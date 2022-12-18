@@ -4,7 +4,7 @@ import { IconName, IconSize } from '../../../components/Icons/Icon';
 export interface ContractBoxBaseProps {
   contractAddress: string;
   contractPetName?: string;
-  contractLocalImage?: ImageSourcePropType;
+  contractLocalImage?: ImageSourcePropType | null;
   /**
    * function that copies the contract address to the clipboard
    */
@@ -21,6 +21,7 @@ export interface ContractBoxBaseProps {
    * Boolean that determines if the contract has a block explorer
    */
   hasBlockExplorer?: boolean;
+  tokenSymbol?: string;
 }
 
 export interface IconViewProps {
