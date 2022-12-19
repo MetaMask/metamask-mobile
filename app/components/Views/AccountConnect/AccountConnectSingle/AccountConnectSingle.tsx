@@ -29,7 +29,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 // Internal dependencies.
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
-import { USER_INTENT } from '../AccountConnect';
+import USER_INTENT from '../../../../constants/permissions';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,

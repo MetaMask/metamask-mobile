@@ -5,7 +5,7 @@ import { ImageSourcePropType } from 'react-native';
 import { AccountConnectScreens } from '../AccountConnect.types';
 import { Account } from '../../../hooks/useAccounts';
 import { IconName } from '../../../../component-library/components/Icon';
-import { USER_INTENT } from '../AccountConnect';
+import USER_INTENT from '../../../../constants/permissions';
 
 /**
  * AccountConnectSingle props.

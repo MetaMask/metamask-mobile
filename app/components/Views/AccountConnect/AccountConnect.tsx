@@ -35,6 +35,7 @@ import { getUrlObj } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
+import USER_INTENT from '../../../constants/permissions';
 
 // Internal dependencies.
 import {
@@ -44,16 +45,6 @@ import {
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
-
-export enum USER_INTENT {
-  None,
-  Create,
-  CreateMultiple,
-  Confirm,
-  Cancel,
-  Import,
-  ConnectHW,
-}
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
