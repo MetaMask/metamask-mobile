@@ -52,7 +52,12 @@ import { EndowmentPermissions } from '../constants/permissions';
 import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import AnalyticsV2 from '../util/analyticsV2';
-import { SnapBridge, WebviewExecutionService } from './Snaps';
+import {
+  SnapBridge,
+  WebviewExecutionService,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
+} from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import {
   getCaveatSpecifications,
@@ -283,6 +288,42 @@ class Engine {
         showApprovalRequest: () => null,
       });
 
+      const getSnapPermissionSpecifications = () => ({
+        ...buildSnapEndowmentSpecifications(),
+        ...buildSnapRestrictedMethodSpecifications({
+          clearSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:clearSnapState',
+          ),
+          // getMnemonic: this.getPrimaryKeyringMnemonic.bind(this),
+          // getUnlockPromise: this.appStateController.getUnlockPromise.bind(
+          //   this.appStateController,
+          // ),
+          getSnap: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:get',
+          ),
+          handleSnapRpcRequest: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:handleRequest',
+          ),
+          getSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:getSnapState',
+          ),
+          // showConfirmation: (origin, confirmationData) =>
+          //   this.approvalController.addAndShowApprovalRequest({
+          //     origin,
+          //     type: MESSAGE_TYPE.SNAP_CONFIRM,
+          //     requestData: confirmationData,
+          //   }),
+          updateSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:updateSnapState',
+          ),
+        }),
+      });
+
       const permissionController = new PermissionController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'PermissionController',
@@ -299,7 +340,7 @@ class Engine {
           ...getPermissionSpecifications({
             getAllAccounts: () => keyringController.getAccounts(),
           }),
-          // ...this.getSnapPermissionSpecifications(),
+          ...getSnapPermissionSpecifications(),
         },
         unrestrictedMethods,
       });

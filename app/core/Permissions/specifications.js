@@ -1,4 +1,6 @@
 import { constructPermission, PermissionType } from '@metamask/controllers';
+import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snap-controllers';
+import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/rpc-methods';
 import { v1 as random } from 'uuid';
 import { CaveatTypes, RestrictedMethods } from './constants';
 
@@ -61,6 +63,8 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
     validator: (caveat, _origin, _target) =>
       validateCaveatAccounts(caveat.value, getIdentities),
   },
+  ...snapsCaveatsSpecifications,
+  ...snapsEndowmentCaveatSpecifications,
 });
 
 /**
