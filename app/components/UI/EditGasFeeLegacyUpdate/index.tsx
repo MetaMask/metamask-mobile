@@ -19,7 +19,8 @@ import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import { EditGasFeeLegacyUpdateProps } from './types';
@@ -95,8 +96,8 @@ const EditGasFeeLegacy = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED,
+      trackEvent(
+        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
@@ -104,10 +105,7 @@ const EditGasFeeLegacy = ({
   }, [getAnalyticsParams, showAdvancedOptions]);
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     const newGasPriceObject = {
       suggestedGasPrice: gasObject?.suggestedGasPrice,
