@@ -18,6 +18,7 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   await Helper.driverTimeout(10000);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
+  await MetaMetricsScreen.swipeUp();
   await MetaMetricsScreen.tapIAgreeButton();
   const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
@@ -28,7 +29,8 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.isVisible();
-  await Helper.driverTimeout();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await OnboardingWizardModal.tapNoThanksButton();
 });
 
@@ -97,7 +99,8 @@ When(/^I should see the added network name "([^"]*)?" in the top navigation bar/
 });
 
 Then(/^I tap on the burger menu/, async () => {
-  await Helper.driverTimeout();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await WalletMainScreen.tapBurgerButton();
 });
 
@@ -113,7 +116,8 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  await Helper.driverTimeout();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
 });
 
 Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
@@ -190,7 +194,8 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
-  await Helper.driverTimeout();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await NetworkSwitchModal.confirmNetworkSwitch();
 });
 
@@ -242,14 +247,16 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
 
 Then(/^I navigate back to the main wallet view/, async () => {
   await NetworksScreen.tapBackButtonInNewScreen();
-  await Helper.driverTimeout();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInNewScreen();
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  await Helper.driverTimeout();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInNewScreen();
-  await Helper.driverTimeout();
+  await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
