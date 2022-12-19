@@ -66,8 +66,8 @@ class WalletMainScreen {
   }
 
   async tapNetworkNavBar() {
-    const wait = 500;
-    await driver.pause(wait);
+    const timeOut = 500;
+    await driver.pause(timeOut);
     await Gestures.tap(this.networkNavBarWalletTitle);
   }
 
