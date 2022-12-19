@@ -20,7 +20,10 @@ const SnapsExecutionWebView = () => {
   const installSnap = async (snapId: string): Promise<void> => {
     const mockOrigin = 'origin';
     const { SnapController } = Engine.context as any;
-    await SnapController.installSnaps(mockOrigin, { [snapId]: {} });
+    await SnapController.processRequestedSnap(mockOrigin, snapId, '');
+    // await SnapController.installSnaps(mockOrigin, {
+    //   [snapId]: {},
+    // });
     // await snapController.terminateSnap(snapId);
   };
 
