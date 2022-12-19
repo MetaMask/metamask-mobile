@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Alert } from 'react-native';
 import { Button } from 'react-native-share';
 import WebView from 'react-native-webview';
 import { snapsState, WebviewPostMessageStream } from '../../../core/Snaps';
@@ -20,7 +20,20 @@ const SnapsExecutionWebView = () => {
   const installSnap = async (snapId: string): Promise<void> => {
     const mockOrigin = 'origin';
     const { SnapController } = Engine.context as any;
-    await SnapController.processRequestedSnap(mockOrigin, snapId, '');
+    let message: string;
+    try {
+      await SnapController.processRequestedSnap(mockOrigin, snapId, '');
+      message = `Snap ${snapId} installed 🎉🎉🎉`;
+    } catch {
+      message = `Snap ${snapId} failed to install 💀💀💀`;
+    }
+    Alert.alert('Snap Alert', message, [
+      {
+        text: 'Ok',
+        onPress: () => null,
+        style: 'cancel',
+      },
+    ]);
     // await SnapController.installSnaps(mockOrigin, {
     //   [snapId]: {},
     // });
