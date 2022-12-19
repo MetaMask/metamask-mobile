@@ -22,8 +22,16 @@ const SnapsExecutionWebView = () => {
     const { SnapController } = Engine.context as any;
     let message: string;
     try {
-      await SnapController.processRequestedSnap(mockOrigin, snapId, '');
-      message = `Snap ${snapId} installed 🎉🎉🎉`;
+      const result = await SnapController.processRequestedSnap(
+        mockOrigin,
+        snapId,
+        '',
+      );
+      if (result.error) {
+        message = `Snap ${snapId} failed to install 💀💀💀`;
+      } else {
+        message = `Snap ${snapId} installed 🎉🎉🎉`;
+      }
     } catch {
       message = `Snap ${snapId} failed to install 💀💀💀`;
     }
