@@ -416,7 +416,7 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.12.3
+      VERSION_NAME: 5.12.1
     - opts:
         is_expand: false
       VERSION_NUMBER: 1030
