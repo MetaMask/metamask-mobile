@@ -11,11 +11,10 @@ import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal';
-import Helper from '../helpers/Helper.js';
-
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  await Helper.driverTimeout(10000);
+  const setTimeout = 10000;
+  await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.swipeUp();
