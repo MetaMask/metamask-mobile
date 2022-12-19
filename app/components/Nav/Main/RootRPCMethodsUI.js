@@ -36,6 +36,7 @@ import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
+import { InstallSnapApproval } from '../../UI/InstallSnapApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
@@ -95,6 +96,8 @@ const RootRPCMethodsUI = (props) => {
 
   const showPendingApprovalModal = ({ type, origin }) => {
     InteractionManager.runAfterInteractions(() => {
+      // eslint-disable-next-line no-console
+      console.log('showPendingApprovalModal', { type, origin });
       setShowPendingApproval({ type, origin });
     });
   };
@@ -650,6 +653,53 @@ const RootRPCMethodsUI = (props) => {
     </Modal>
   );
 
+  const onInstallSnapConfirm = () => {
+    // eslint-disable-next-line no-console
+    console.log(
+      'onInstallSnapConfirm',
+      hostToApprove.id,
+      hostToApprove.requestData,
+    );
+    acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    setShowPendingApproval(false);
+  };
+
+  const onInstallSnapReject = () => {
+    // eslint-disable-next-line no-console
+    console.log(
+      'onInstallSnapReject',
+      hostToApprove.id,
+      hostToApprove.requestData,
+    );
+    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    setShowPendingApproval(false);
+  };
+
+  /**
+   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
+   */
+  const renderInstallSnapApprovalModal = () => (
+    <Modal
+      isVisible={showPendingApproval?.type === ApprovalTypes.INSTALL_SNAP}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={300}
+      animationOutTiming={300}
+      onSwipeComplete={onInstallSnapReject}
+      onBackdropPress={onInstallSnapReject}
+      swipeDirection={'down'}
+    >
+      <InstallSnapApproval
+        onCancel={onInstallSnapReject}
+        onConfirm={onInstallSnapConfirm}
+        requestData={hostToApprove}
+      />
+    </Modal>
+  );
+
   /**
    * On rejection addinga an asset
    */
@@ -709,6 +759,19 @@ const RootRPCMethodsUI = (props) => {
         setCurrentPageMeta(requestData.pageMeta);
       }
       switch (request.type) {
+        case ApprovalTypes.INSTALL_SNAP:
+          // eslint-disable-next-line no-console
+          console.log({ requestData, id: request.id });
+          setHostToApprove({ requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.INSTALL_SNAP,
+            origin: request.origin,
+          });
+          break;
+        case ApprovalTypes.UPDATE_SNAP:
+          // eslint-disable-next-line no-console
+          console.log('Update Snap');
+          break;
         case ApprovalTypes.REQUEST_PERMISSIONS:
           if (requestData?.permissions?.eth_accounts) {
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -803,6 +866,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderInstallSnapApprovalModal()}
     </React.Fragment>
   );
 };
