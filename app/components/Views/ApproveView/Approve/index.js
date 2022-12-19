@@ -454,11 +454,20 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
+    const { TransactionController } = Engine.context;
+    TransactionController.cancelTransaction(this.props.transaction.id);
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
     this.props.toggleApproveModal(false);
+
+    NotificationManager.showSimpleNotification({
+      status: `simple_notification_rejected`,
+      duration: 5000,
+      title: strings('notifications.approved_tx_rejected_title'),
+      description: strings('notifications.wc_description'),
+    });
   };
 
   review = () => {
