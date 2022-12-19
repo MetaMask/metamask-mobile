@@ -2,6 +2,7 @@
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -9,6 +10,7 @@ import React, {
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetBottom, {
@@ -43,10 +45,21 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 
+export enum USER_INTENT {
+  None,
+  Create,
+  CreateMultiple,
+  Confirm,
+  Cancel,
+  Import,
+  ConnectHW,
+}
+
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
+  const navigation = useNavigation();
   const selectedWalletAddress = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -61,6 +74,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+
+  const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+
   const { toastRef } = useContext(ToastContext);
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
@@ -68,6 +84,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       : AvatarAccountType.JazzIcon,
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
+
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   const hostname = hostInfo.metadata.origin;
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
@@ -93,17 +110,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [Engine.context.PermissionController],
   );
 
-  const dismissSheet = useCallback(
-    () => sheetRef?.current?.hide?.(),
-    [sheetRef],
-  );
-
-  const dismissSheetWithCallback = useCallback(
-    (callback?: () => void) => sheetRef?.current?.hide?.(callback),
-    [sheetRef],
-  );
-
-  const onConnect = useCallback(
+  const handleConnect = useCallback(
     async () => {
       const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
         (address, index) => ({ address, lastUsed: Date.now() - index }),
@@ -155,7 +162,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         Logger.error(e, 'Error while trying to connect to a dApp.');
       } finally {
         setIsLoading(false);
-        dismissSheet();
       }
     },
     /* eslint-disable-next-line */
@@ -169,7 +175,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const onCreateAccount = useCallback(async (isMultiSelect?: boolean) => {
+  const handleCreateAccount = useCallback(async (isMultiSelect?: boolean) => {
     const { KeyringController } = Engine.context;
     try {
       setIsLoading(true);
@@ -178,7 +184,10 @@ const AccountConnect = (props: AccountConnectProps) => {
         addedAccountAddress,
       ) as string;
       !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-      AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+      AnalyticsV2.trackEvent(
+        ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT,
+        {},
+      );
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
     } finally {
@@ -186,6 +195,81 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
     /* eslint-disable-next-line */
   }, []);
+
+  const hideSheet = (callback?: () => void) =>
+    sheetRef?.current?.hide?.(callback);
+
+  useEffect(() => {
+    if (userIntent === USER_INTENT.None) return;
+
+    const handleUserActions = (action: USER_INTENT) => {
+      switch (action) {
+        case USER_INTENT.Confirm: {
+          handleConnect();
+          hideSheet();
+          break;
+        }
+        case USER_INTENT.Create: {
+          handleCreateAccount();
+          break;
+        }
+        case USER_INTENT.CreateMultiple: {
+          handleCreateAccount(true);
+          break;
+        }
+        case USER_INTENT.Cancel: {
+          hideSheet(() => cancelPermissionRequest(permissionRequestId));
+          break;
+        }
+        case USER_INTENT.Import: {
+          hideSheet(() => {
+            navigation.navigate('ImportPrivateKeyView');
+            // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+            AnalyticsV2.trackEvent(
+              ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+              {},
+            );
+          });
+          break;
+        }
+        case USER_INTENT.ConnectHW: {
+          hideSheet(() => {
+            navigation.navigate('ConnectQRHardwareFlow');
+            // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+            AnalyticsV2.trackEvent(
+              AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
+              {},
+            );
+          });
+          break;
+        }
+      }
+    };
+
+    handleUserActions(userIntent);
+
+    setUserIntent(USER_INTENT.None);
+  }, [
+    navigation,
+    userIntent,
+    sheetRef,
+    cancelPermissionRequest,
+    permissionRequestId,
+    handleCreateAccount,
+    handleConnect,
+  ]);
+
+  /**
+   * TODO: finalize function comment.
+   * This function will execute every time the bottom sheet dismisses
+   * We want to catch it when there was no user action other than
+   * sliding down on clicking on backdrop to cancel the permission request
+   */
+  const handleSheetDismiss = () => {
+    if (!permissionRequestId || userIntent !== USER_INTENT.None) return;
+
+    cancelPermissionRequest(permissionRequestId);
+  };
 
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
@@ -206,8 +290,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
         onSetScreen={setScreen}
-        onDismissSheet={dismissSheet}
-        onConnect={onConnect}
+        onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
         favicon={favicon}
@@ -219,14 +302,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     accounts,
     ensByAccountAddress,
     selectedAddresses,
-    onConnect,
     isLoading,
     setScreen,
-    dismissSheet,
     setSelectedAddresses,
     favicon,
     hostname,
     secureIcon,
+    setUserIntent,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -238,8 +320,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         onSetSelectedAddresses={setSelectedAddresses}
         selectedAddresses={selectedAddresses}
         isLoading={isLoading}
-        onCreateAccount={() => onCreateAccount()}
-        onDismissSheetWithCallback={dismissSheetWithCallback}
+        onUserAction={setUserIntent}
       />
     ),
     [
@@ -247,8 +328,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       ensByAccountAddress,
       selectedAddresses,
       isLoading,
-      onCreateAccount,
-      dismissSheetWithCallback,
+      setUserIntent,
       setSelectedAddresses,
       setScreen,
     ],
@@ -262,12 +342,10 @@ const AccountConnect = (props: AccountConnectProps) => {
         selectedAddresses={selectedAddresses}
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
-        onDismissSheetWithCallback={dismissSheetWithCallback}
-        onConnect={onConnect}
-        onCreateAccount={() => onCreateAccount(true)}
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
+        onUserAction={setUserIntent}
       />
     ),
     [
@@ -275,10 +353,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       ensByAccountAddress,
       selectedAddresses,
       setSelectedAddresses,
-      onConnect,
       isLoading,
-      onCreateAccount,
-      dismissSheetWithCallback,
+      setUserIntent,
       favicon,
       hostname,
       secureIcon,
@@ -302,7 +378,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <SheetBottom reservedMinOverlayHeight={0} ref={sheetRef}>
+    <SheetBottom
+      onDismissed={handleSheetDismiss}
+      reservedMinOverlayHeight={0}
+      ref={sheetRef}
+    >
       {renderConnectScreens()}
     </SheetBottom>
   );

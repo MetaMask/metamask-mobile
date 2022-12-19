@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -17,13 +16,12 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
 // Internal dependencies.
 import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
 import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import { USER_INTENT } from '../AccountConnect';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -31,35 +29,12 @@ const AccountConnectMultiSelector = ({
   selectedAddresses,
   onSelectAddress,
   isLoading,
-  onDismissSheetWithCallback,
-  onConnect,
-  onCreateAccount,
+  onUserAction,
   hostname,
   favicon,
   secureIcon,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
-
-  const onOpenImportAccount = useCallback(() => {
-    onDismissSheetWithCallback(() => {
-      navigation.navigate('ImportPrivateKeyView');
-      // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-      AnalyticsV2.trackEvent(
-        ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-      );
-    });
-  }, [navigation, onDismissSheetWithCallback]);
-
-  const onOpenConnectHardwareWallet = useCallback(() => {
-    onDismissSheetWithCallback(() => {
-      navigation.navigate('ConnectQRHardwareFlow');
-      // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
-      );
-    });
-  }, [navigation, onDismissSheetWithCallback]);
 
   const renderSheetActions = useCallback(
     () => (
@@ -67,28 +42,23 @@ const AccountConnectMultiSelector = ({
         actions={[
           {
             label: strings('accounts.create_new_account'),
-            onPress: onCreateAccount,
+            onPress: () => onUserAction(USER_INTENT.CreateMultiple),
             isLoading,
           },
           {
             label: strings('accounts.import_account'),
-            onPress: onOpenImportAccount,
+            onPress: () => onUserAction(USER_INTENT.Import),
             disabled: isLoading,
           },
           {
             label: strings('accounts.connect_hardware'),
-            onPress: onOpenConnectHardwareWallet,
+            onPress: () => onUserAction(USER_INTENT.ConnectHW),
             disabled: isLoading,
           },
         ]}
       />
     ),
-    [
-      isLoading,
-      onCreateAccount,
-      onOpenImportAccount,
-      onOpenConnectHardwareWallet,
-    ],
+    [isLoading, onUserAction],
   );
 
   const renderSelectAllButton = useCallback(
@@ -141,7 +111,7 @@ const AccountConnectMultiSelector = ({
           variant={ButtonVariants.Secondary}
           buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
-          onPress={() => onDismissSheetWithCallback()}
+          onPress={() => onUserAction(USER_INTENT.Cancel)}
           size={ButtonSize.Lg}
           style={styles.button}
         />
@@ -154,7 +124,7 @@ const AccountConnectMultiSelector = ({
               ? ` (${selectedAddresses.length})`
               : '',
           })}
-          onPress={onConnect}
+          onPress={() => onUserAction(USER_INTENT.Confirm)}
           size={ButtonSize.Lg}
           style={{
             ...styles.button,
@@ -164,13 +134,7 @@ const AccountConnectMultiSelector = ({
         />
       </View>
     );
-  }, [
-    onConnect,
-    isLoading,
-    selectedAddresses,
-    onDismissSheetWithCallback,
-    styles,
-  ]);
+  }, [isLoading, onUserAction, selectedAddresses, styles]);
 
   const areAllAccountsSelected = accounts
     .map(({ address }) => address)
