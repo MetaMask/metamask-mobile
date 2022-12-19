@@ -654,12 +654,6 @@ const RootRPCMethodsUI = (props) => {
   );
 
   const onInstallSnapConfirm = () => {
-    // eslint-disable-next-line no-console
-    console.log(
-      'onInstallSnapConfirm',
-      hostToApprove.id,
-      hostToApprove.requestData,
-    );
     acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
     setShowPendingApproval(false);
   };
