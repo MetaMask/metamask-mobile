@@ -21,6 +21,7 @@ DerivedData
 project.xcworkspace
 ios/debug.xcconfig
 ios/release.xcconfig
+ios/.xcode.env.local
 
 # android / intellij
 build/
@@ -51,9 +52,10 @@ buck-out/
 !debug.keystore
 
 # fastlane
-*/fastlane/report.xml
-*/fastlane/Preview.html
-*/fastlane/screenshots
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
 
 # bundle artifact
 *.jsbundle
@@ -77,8 +79,9 @@ tests
 # editor
 .vscode
 
-# CocoaPods
+# Ruby / CocoaPods
 /ios/Pods/
+/vendor/bundle/
 
 # Language files to add
 /locales/languagesToUpdate/*.json
