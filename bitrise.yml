@@ -247,10 +247,6 @@ workflows:
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
-          title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@1:
-          inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@1:
@@ -290,10 +286,6 @@ workflows:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-          title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@1:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
