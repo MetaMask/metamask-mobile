@@ -67,9 +67,9 @@ class ImportFromSeed {
   }
 
   async isAlertTextVisible(text){
-    const msg = await driver.getAlertText();
+    const message = await driver.getAlertText();
     try {
-      expect(msg.includes(text.trim())).toBe(true);      
+      expect(message.includes(text.trim())).toBe(true);      
     } catch (error) {
       console.log(`Not able to get device alert text: `);
     }    
