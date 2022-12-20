@@ -74,7 +74,7 @@ class NetworksScreen {
     }
 
     async tapAndHoldNetwork(network) {
-       await Gestures.tapTextByXpath(network, 'LONGPRESS');// does not work after update for some reason
+       await Gestures.tapTextByXpath(network, 'LONGPRESS');
     }
 
     async tapAddNetworkButton() {

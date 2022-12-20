@@ -90,22 +90,23 @@ class Gestures {
         break;
       case 'MOVETO':
         (await elem).touchAction(Actions.MOVETO);
-          break;
+        break;
       default:
         throw new Error('Tap type not found');
     }
   }
 
   static async tapTextByXpath(text, tapType = 'TAP') {
+    const elem = (await Selectors.getXpathElementByText(text));
     switch (tapType) {
       case 'TAP':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.TAP);
+        await elem.touchAction(Actions.TAP);
         break;
       case 'LONGPRESS':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.LONGPRESS);
+        await elem.touchAction(Actions.LONGPRESS);
         break;
       case 'RELEASE':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.RELEASE);
+        await elem.touchAction(Actions.RELEASE);
         break;
       default:
         throw new Error('Tap type not found');
@@ -116,7 +117,7 @@ class Gestures {
     const elem = await element;
     (await elem).touchAction([
       Actions.PRESS,
-      {action: Actions.WAIT, ms: waitTime},
+      { action: Actions.WAIT, ms: waitTime },
       Actions.RELEASE
     ])
   }
@@ -214,7 +215,7 @@ class Gestures {
     const endPercentage = 0;
     const anchorPercentage = 50;
 
-    const {width, height} = await driver.getWindowSize();
+    const { width, height } = await driver.getWindowSize();
     const anchor = height * anchorPercentage / 100;
     const startPoint = width * startPercentage / 100;
     const endPoint = width * endPercentage / 100;
