@@ -12,6 +12,7 @@ import {
   addCurrencySymbol,
   toBN,
   BNToHex,
+  limitToMaximumDecimalPlaces,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -715,12 +716,18 @@ function decodeSwapsTx(args) {
         : swapTransaction.destinationAmount,
       swapTransaction.destinationToken.decimals,
     );
+  let totalAmountForEthSourceTokenFormatted;
+  if (sourceToken.symbol === 'ETH') {
+    const totalAmountForEthSourceToken =
+      Number(!isNaN(totalEthGas) ? totalEthGas : 0) +
+      Number(decimalSourceAmount);
+    totalAmountForEthSourceTokenFormatted = `${limitToMaximumDecimalPlaces(
+      totalAmountForEthSourceToken,
+    )} ${ticker}`;
+  }
   const cryptoSummaryTotalAmount =
     sourceToken.symbol === 'ETH'
-      ? `${
-          Number(!isNaN(totalEthGas) ? totalEthGas : 0) +
-          Number(decimalSourceAmount)
-        } ${ticker}`
+      ? totalAmountForEthSourceTokenFormatted
       : decimalSourceAmount
       ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
       : `${totalEthGas} ${ticker}`;
