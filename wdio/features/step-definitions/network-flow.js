@@ -13,7 +13,7 @@ import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal'
 import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 10000;
+  const setTimeout = 50000;
   await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();

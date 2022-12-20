@@ -32,25 +32,25 @@ Feature: Blockchain Networks
       | Network |
       | Palm    |
 
-  Scenario: Adding a network via the custom network flow
-    Given I tap on the burger menu
-    And I tap on "Settings" in the menu
-    And In settings I tap on "Networks"
-    And I tap on the Add Network button
-    Then "POPULAR" tab is displayed on networks screen
-    And "CUSTOM NETWORKS" tab is displayed on networks screen
-    When I tap on the "CUSTOM NETWORKS" tab
-    Then Add button is disabled
-    When I type "<Network>" into Network name field
-    And I type "<rpcUrl>" into the RPC url field
-    And I type "<ChainID>" into the Chain ID field
-    And I type "<Network>" into the Network symbol field
-    And I tap on the Add button
-    Then I should see the added network name "<Network>" in the top navigation bar
-    Examples:
-      | Network | rpcUrl                                | ChainID | Symbol |
-      | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
-
+  # Scenario: Adding a network via the custom network flow
+  #   Given I tap on the burger menu
+  #   And I tap on "Settings" in the menu
+  #   And In settings I tap on "Networks"
+  #   And I tap on the Add Network button
+  #   Then "POPULAR" tab is displayed on networks screen
+  #   And "CUSTOM NETWORKS" tab is displayed on networks screen
+  #   When I tap on the "CUSTOM NETWORKS" tab
+  #   Then Add button is disabled
+  #   When I type "<Network>" into Network name field
+  #   And I type "<rpcUrl>" into the RPC url field
+  #   And I type "<ChainID>" into the Chain ID field
+  #   And I type "<Network>" into the Network symbol field
+  #   And I tap on the Add button
+  #   Then I should see the added network name "<Network>" in the top navigation bar
+  #   Examples:
+  #     | Network | rpcUrl                                | ChainID | Symbol |
+  #     | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
+  #
 
   # Scenario: I can remove a custom network that was added via the popular network flow
   #   Given I tap on the burger menu
