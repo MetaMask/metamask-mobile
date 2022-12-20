@@ -31,7 +31,7 @@ class AddressBook {
    }
 
    async isDeletedContactNameNotVisible(contact) {
-      await expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
+      expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
    }
 }
 export default new AddressBook();

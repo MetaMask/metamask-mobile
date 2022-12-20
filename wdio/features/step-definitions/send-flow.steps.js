@@ -119,6 +119,8 @@ Then(/^I navigate to the main wallet view from Send screen/, async () => {
 });
 
 Then(/^I should not see "([^"]*)?" appear in the contact list/, async (contactName) => {
+    const timeout = 1000;
+    await driver.pause(timeout);
     await AddressBook.isDeletedContactNameNotVisible(contactName);
 });
 

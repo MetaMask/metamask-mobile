@@ -9,26 +9,22 @@ Feature: Address
     And I tap No thanks on the onboarding welcome tutorial
     And On the Main Wallet view I tap "Send"
 
-  Scenario Outline: Invalid Wallet Addresses
-    When I enter address "<InvalidWalletAddress>" in the sender's input box
+  Scenario Outline: Validate invalid and valid wallet address <Case>
+    When I enter address "<contractAddress>" in the sender's input box
     Then I should see a warning message "<Warning>"
-    # And I enter a contract address "<correctAddress>" in the sender's input box
-    # Then I should see a warning message "This address is a token contract address. If you send tokens to this address, you will lose them."
-    # When I tap on button with text "I understand the risks, continue"
-    # Then I proceed to the amount view
     Examples:
-      | InvalidWalletAddress                       | Warning                                                                                           |
-      | 0xB8B4EE5B1b693971eB60bDa15211570df2dB221L | Recipient address is invalid.                                                                     |
-      | 0xdac17f958d2ee523a2206206994597c13d831ec7 | This address is a token contract address. If you send tokens to this address, you will lose them. |
+      | Case            | contractAddress                            | Warning                                                                                           |
+      | Invalid address | 0xB8B4EE5B1b693971eB60bDa15211570df2dB221L | Recipient address is invalid.                                                                     |
+      | Valid address   | 0xdac17f958d2ee523a2206206994597c13d831ec7 | This address is a token contract address. If you send tokens to this address, you will lose them. |
 
   Scenario: Confirm contract address warning
     When I tap on button with text "I understand the risks, continue"
     Then I proceed to the amount view
+    And I tap on button with text "Cancel"
+
 
   Scenario: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
-    #Next step is tapping Cancel on Send, we should just say that in the step
-    Given I am on the wallet view
-    And On the Main Wallet view I tap "Send"
+    When On the Main Wallet view I tap "Send"
     When I enter address "<Address>" in the sender's input box
     And I tap on button with text "Add this address to your address book"
     Then On the Address book modal Cancel button is enabled
@@ -37,7 +33,6 @@ Feature: Address
     When I tap the Save button
     And the contact name "<ContactName>" appears in the senders input box above the contact address
     And I navigate to the main wallet screen
-    # And I tap on the burger menu
     And I tap burger icon
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
@@ -69,15 +64,8 @@ Feature: Address
 
   Scenario: A user has a saved address then deletes it
     Given I navigate to the main wallet view from Send screen
-
-    #The next step doesn't actually work but doesn't cause a failure
     And I tap on the burger menu
-
-    #The next step fails if the previous scenario fails and burger icon is not on screen
-    # And I tap burger icon
-
-    #Not sure how this steps passes, when the previous scenario fails and screen is on Settings
-    And I tap on "Settings" in the menu
+    And I tap on button with text "Settings"
     And In settings I tap on "Contacts"
     And I tap on button with text "Add contact"
     When I input "<ContactName>" into the contact name field
@@ -98,7 +86,6 @@ Feature: Address
 
   Scenario: A user saves an address on mainnet and should not see that saved address on Goreli
     Given I navigate to the main wallet view from Send screen
-    # And I tap on the burger menu
     And I tap burger icon
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
@@ -115,7 +102,6 @@ Feature: Address
     And I tap on button with text "Goerli Test Network"
     And I tap on button with text "Got it"
     Then I should see the added network name "Goerli Test Network" in the top navigation bar
-    # And I tap on the burger menu
     And I tap burger icon
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
