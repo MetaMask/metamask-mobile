@@ -1537,10 +1537,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@^1.3.1-beta.10":
-  version "1.3.1-beta.10"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.1-beta.10.tgz#6265ea2038ecda00cb2f3fe3de47bc84338d6975"
-  integrity sha512-qlg0D5Rxjpx4H2eM1foQBs5wh3WOQdYnkAVHh5ugOhIUALUvMKk88beEdUFEI0VTz8EX9wSJTjmxPEz5HnMThg==
+"@consensys/on-ramp-sdk@1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.4.1.tgz#b2e9809de3231ae1d99625621995acc5e1d0e9cd"
+  integrity sha512-40BM8gaR2ShmdG+NSDrOtl6ZVr7uYFC6L3g9Im599fElNqBWVR9SyW1QbUn7UOrcrF+VzTg1DblgZ7MW06E5qw==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
