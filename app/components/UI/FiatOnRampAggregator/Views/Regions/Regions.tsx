@@ -21,15 +21,20 @@ import { getFiatOnRampAggNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import { createPaymentMethodsNavDetails } from '../PaymentMethods';
 
 import { useFiatOnRampSDK } from '../../sdk';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
-
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
+
+export const createRegionsNavDetails = createNavigationDetails(
+  Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+);
 
 const RegionsView = () => {
   const navigation = useNavigation();
@@ -76,7 +81,7 @@ const RegionsView = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD);
+    navigation.navigate(...createPaymentMethodsNavDetails());
   }, [navigation]);
 
   const handleRegionPress = useCallback(

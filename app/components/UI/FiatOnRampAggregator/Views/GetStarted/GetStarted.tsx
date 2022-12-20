@@ -13,6 +13,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useAnalytics from '../../hooks/useAnalytics';
 import styles from './GetStarted.styles';
 import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
+import { createRegionsNavDetails } from '../Regions/Regions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
@@ -55,7 +56,7 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.REGION);
+    navigation.navigate(...createRegionsNavDetails());
     setGetStarted(true);
   }, [navigation, setGetStarted]);
 

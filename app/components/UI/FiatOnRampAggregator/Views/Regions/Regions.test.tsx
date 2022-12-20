@@ -8,7 +8,7 @@ import { IFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 import { fireEvent } from '@testing-library/react-native';
-import Routes from '../../../../../constants/navigation/Routes';
+import { createPaymentMethodsNavDetails } from '../PaymentMethods';
 
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
@@ -137,7 +137,7 @@ describe('Regions View', () => {
     const rendered = render(<Regions />);
     fireEvent.press(rendered.getByTestId(TEST_ID_CONTINUE_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
+      ...createPaymentMethodsNavDetails(),
     );
   });
 

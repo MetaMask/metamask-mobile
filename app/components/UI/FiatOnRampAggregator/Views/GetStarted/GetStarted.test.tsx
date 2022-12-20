@@ -7,6 +7,7 @@ import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
 import { Region } from '../../types';
 import { IFiatOnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
+import { createRegionsNavDetails } from '../Regions/Regions';
 
 const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
   getStarted: false,
@@ -83,9 +84,7 @@ describe('GetStarted', () => {
     };
     const rendered = render(<GetStarted />);
     fireEvent.press(rendered.getByTestId(TEST_ID_GET_STARTED_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(...createRegionsNavDetails());
     expect(mockUseFiatOnRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 

@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import AppConfig from './AppConfig';
 import useAppConfig from './useAppConfig';
 
 describe('useAppConfig', () => {
@@ -39,17 +38,16 @@ describe('useAppConfig', () => {
     const { result, waitForNextUpdate } = renderHook(() =>
       useAppConfig(hasGithubPermissions),
     );
-    const expected: AppConfig = {
-      security: {
-        minimumVersions: {
-          appMinimumBuild: 700,
-          appleMinimumOS: 6,
-          androidMinimumAPIVersion: 21,
-        },
-      },
-    };
     await waitForNextUpdate();
     expect(result.all[1].type).toEqual('Success');
-    expect(result.all[1].data).toMatchObject(expected);
+    expect(
+      result.all[1].data.security.minimumVersions.appMinimumBuild,
+    ).toBeDefined();
+    expect(
+      result.all[1].data.security.minimumVersions.appleMinimumOS,
+    ).toBeDefined();
+    expect(
+      result.all[1].data.security.minimumVersions.androidMinimumAPIVersion,
+    ).toBeDefined();
   });
 });
