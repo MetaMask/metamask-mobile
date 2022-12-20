@@ -62,7 +62,7 @@ import {
   getNetworkNonce,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedL1FeeOptimism,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -328,7 +328,7 @@ class Confirm extends PureComponent {
     }
     try {
       const eth = new Eth(Engine.context.NetworkController.provider);
-      const result = await fetchEstimatedL1FeeOptimism(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
@@ -336,7 +336,7 @@ class Confirm extends PureComponent {
         multiLayerL1FeeTotal: result,
       });
     } catch (e) {
-      Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
       this.setState({
         multiLayerL1FeeTotal: '0x0',
       });

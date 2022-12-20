@@ -10,7 +10,7 @@ import {
 import Eth from 'ethjs-query';
 import {
   isMultiLayerFeeNetwork,
-  fetchEstimatedL1FeeOptimism,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -247,7 +247,7 @@ class TransactionReview extends PureComponent {
     }
     try {
       const eth = new Eth(Engine.context.NetworkController.provider);
-      const result = await fetchEstimatedL1FeeOptimism(eth, {
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
       });
@@ -255,7 +255,7 @@ class TransactionReview extends PureComponent {
         multiLayerL1FeeTotal: result,
       });
     } catch (e) {
-      Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
       this.setState({
         multiLayerL1FeeTotal: '0x0',
       });
