@@ -88,10 +88,7 @@ const AddCustomCollectible = ({
 
   const getAnalyticsParams = () => {
     try {
-      const { NetworkController } = Engine.context as any;
-      const { type } = NetworkController?.state?.provider || {};
       return {
-        network_name: type,
         chain_id: chainId,
       };
     } catch (error) {
@@ -141,8 +138,8 @@ const AddCustomCollectible = ({
    */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
     try {
-      const { CollectiblesController } = Engine.context as any;
-      const isOwner = await CollectiblesController.isCollectibleOwner(
+      const { NftController } = Engine.context as any;
+      const isOwner = await NftController.isNftOwner(
         selectedAddress,
         address,
         tokenId,
@@ -165,12 +162,12 @@ const AddCustomCollectible = ({
     }
   };
 
-  const addCollectible = async (): Promise<void> => {
+  const addNft = async (): Promise<void> => {
     if (!(await validateCustomCollectible())) return;
     if (!(await validateCollectibleOwnership())) return;
 
-    const { CollectiblesController } = Engine.context as any;
-    CollectiblesController.addCollectible(address, tokenId);
+    const { NftController } = Engine.context as any;
+    NftController.addNft(address, tokenId);
 
     trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
 
@@ -201,7 +198,7 @@ const AddCustomCollectible = ({
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
-        onConfirmPress={addCollectible}
+        onConfirmPress={addNft}
         confirmDisabled={!address && !tokenId}
       >
         <View>
@@ -245,7 +242,7 @@ const AddCustomCollectible = ({
               onBlur={validateCustomCollectibleTokenId}
               testID={'input-token-decimals'}
               ref={assetTokenIdInput}
-              onSubmitEditing={addCollectible}
+              onSubmitEditing={addNft}
               returnKeyType={'done'}
               placeholder={strings('collectible.id_placeholder')}
               placeholderTextColor={colors.text.muted}

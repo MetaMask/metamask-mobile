@@ -18,7 +18,6 @@ import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 
 const INDICATOR_HEIGHT = 10;
-const DRAWER_WIDTH = 315;
 const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   main: {
@@ -26,8 +25,8 @@ const styles = StyleSheet.create({
     backgroundColor: importedColors.transparent,
   },
   some: {
-    marginLeft: 24,
-    marginRight: WIDTH - DRAWER_WIDTH + 24,
+    marginLeft: 16,
+    width: WIDTH - 32,
   },
   coachmarkContainer: {
     flex: 1,

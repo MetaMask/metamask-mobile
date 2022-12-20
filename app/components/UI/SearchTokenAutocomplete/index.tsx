@@ -66,10 +66,6 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     (state: any) =>
       state.engine.backgroundState.NetworkController.provider.chainId,
   );
-  const networkType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.type,
-  );
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -84,14 +80,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       return {
         token_address: address,
         token_symbol: symbol,
-        network_name: networkType,
         chain_id: chainId,
         source: 'Add token dropdown',
       };
     } catch (error) {
       return {};
     }
-  }, [address, symbol, chainId, networkType]);
+  }, [address, symbol, chainId]);
 
   const cancelAddToken = useCallback(() => {
     navigation.goBack();

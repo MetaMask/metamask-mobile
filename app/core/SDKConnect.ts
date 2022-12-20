@@ -1,7 +1,7 @@
 import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import RemoteCommunication, {
   CommunicationLayerPreference,
-} from '@metamask/sdk-communication-layer';
+} from './RemoteConnection';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';

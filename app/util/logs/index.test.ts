@@ -15,11 +15,11 @@ describe('logs :: generateStateLogs', () => {
     const mockStateInput = {
       engine: {
         backgroundState: {
-          CollectiblesController: {},
+          NftController: {},
           TokensController: {},
           AssetsContractController: {},
           TokenDetectionController: {},
-          CollectibleDetectionController: {},
+          NftDetectionController: {},
           PhishingController: {},
           KeyringController: {
             vault: 'vault mock',
@@ -28,11 +28,11 @@ describe('logs :: generateStateLogs', () => {
       },
     };
     const logs = generateStateLogs(mockStateInput);
-    expect(logs.includes('CollectiblesController')).toBe(false);
+    expect(logs.includes('NftController')).toBe(false);
     expect(logs.includes('TokensController')).toBe(false);
     expect(logs.includes('AssetsContractController')).toBe(false);
     expect(logs.includes('TokenDetectionController')).toBe(false);
-    expect(logs.includes('CollectibleDetectionController')).toBe(false);
+    expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });

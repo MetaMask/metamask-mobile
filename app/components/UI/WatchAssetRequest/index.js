@@ -111,7 +111,7 @@ const WatchAssetRequest = ({
   const getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -119,7 +119,6 @@ const WatchAssetRequest = ({
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         source: 'Dapp suggested (watchAsset)',
       };

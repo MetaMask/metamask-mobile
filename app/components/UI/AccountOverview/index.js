@@ -514,7 +514,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: String(state.engine.backgroundState.NetworkController.network),
   swapsIsLive: swapsLivenessSelector(state),
 });
 

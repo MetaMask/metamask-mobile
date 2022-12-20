@@ -104,7 +104,7 @@ class Analytics {
     );
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
-      preferencesController?.useCollectibleDetection
+      preferencesController?.useNftDetection
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );

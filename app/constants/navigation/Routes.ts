@@ -1,4 +1,5 @@
 const Routes = {
+  WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
@@ -21,6 +22,8 @@ const Routes = {
     MODAL_CONFIRMATION: 'ModalConfirmation',
     WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
+    UPDATE_NEEDED: 'UpdateNeededModal',
+    ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -28,6 +31,9 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    MANUAL_BACKUP: {
+      STEP_3: 'ManualBackupStep3',
+    },
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

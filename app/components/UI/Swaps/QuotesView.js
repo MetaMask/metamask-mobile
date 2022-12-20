@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import Eth from 'ethjs-query';
 import {
   View,
   StyleSheet,
@@ -30,8 +31,13 @@ import {
   renderFromWei,
   toWei,
   weiToFiat,
+  calculateEthFeeForMultiLayer,
 } from '../../../util/number';
-import { isMainnetByChainId } from '../../../util/networks';
+import {
+  isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedL1FeeOptimism,
+} from '../../../util/networks';
 import {
   getErrorMessage,
   getFetchParams,
@@ -306,6 +312,12 @@ function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
               .suggestedMaxPriorityFeePerGas,
         ),
       ),
+      estimatedBaseFee: addHexPrefix(
+        decGWEIToHexWEI(
+          estimates.estimatedBaseFee ||
+            estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET].estimatedBaseFee,
+        ),
+      ),
     };
   }
 
@@ -381,6 +393,7 @@ function SwapsQuotesView({
 
   /* State */
   const isMainnet = isMainnetByChainId(chainId);
+  const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
   const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [shouldFinishFirstLoad, setShouldFinishFirstLoad] = useState(false);
@@ -392,6 +405,7 @@ function SwapsQuotesView({
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [multiLayerL1FeeTotal, setMultiLayerL1FeeTotal] = useState(null);
 
   /* Selected quote, initially topAggId (see effects) */
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -466,15 +480,31 @@ function SwapsQuotesView({
     () => allQuotes.find((quote) => quote?.aggregator === selectedQuoteId),
     [allQuotes, selectedQuoteId],
   );
-  const selectedQuoteValue = useMemo(
-    () => quoteValues[selectedQuoteId],
-    [
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      quoteValues[selectedQuoteId],
-      quoteValues,
-      selectedQuoteId,
-    ],
-  );
+  const selectedQuoteValue = useMemo(() => {
+    if (!quoteValues[selectedQuoteId] || multiLayerL1FeeTotal === null) {
+      return quoteValues[selectedQuoteId];
+    }
+    const fees = {
+      ethFee: calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal,
+        ethFee: quoteValues[selectedQuoteId].ethFee,
+      }),
+      maxEthFee: calculateEthFeeForMultiLayer({
+        multiLayerL1FeeTotal,
+        ethFee: quoteValues[selectedQuoteId].maxEthFee,
+      }),
+    };
+    return {
+      ...quoteValues[selectedQuoteId],
+      ...fees,
+    };
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    quoteValues[selectedQuoteId],
+    multiLayerL1FeeTotal,
+    quoteValues,
+    selectedQuoteId,
+  ]);
 
   const gasEstimates = useMemo(
     () => customGasEstimate || usedGasEstimate,
@@ -1524,6 +1554,26 @@ function SwapsQuotesView({
     handleQuotesErrorMetric(error);
   }, [error, handleQuotesErrorMetric, trackedError]);
 
+  useEffect(() => {
+    if (!multiLayerFeeNetwork || !selectedQuote?.trade) {
+      return;
+    }
+    const getEstimatedL1Fee = async () => {
+      try {
+        const eth = new Eth(Engine.context.NetworkController.provider);
+        const result = await fetchEstimatedL1FeeOptimism(eth, {
+          txParams: selectedQuote.trade,
+          chainId,
+        });
+        setMultiLayerL1FeeTotal(result);
+      } catch (e) {
+        Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
+        setMultiLayerL1FeeTotal(null);
+      }
+    };
+    getEstimatedL1Fee();
+  }, [selectedQuote?.trade, multiLayerFeeNetwork, chainId]);
+
   const openLinkAboutGas = () =>
     Linking.openURL(
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
@@ -1944,19 +1994,12 @@ function SwapsQuotesView({
                       </View>
                     </View>
                     <View style={styles.quotesFiatColumn}>
-                      <TouchableOpacity
-                        disabled={unableToSwap}
-                        onPress={
-                          unableToSwap ? undefined : onEditQuoteTransactionsGas
-                        }
-                      >
-                        <Text link={!unableToSwap} underline={!unableToSwap}>
-                          {renderFromWei(
-                            toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                          )}{' '}
-                          {getTicker(ticker)}
-                        </Text>
-                      </TouchableOpacity>
+                      <Text>
+                        {renderFromWei(
+                          toWei(selectedQuoteValue?.maxEthFee || '0x0'),
+                        )}{' '}
+                        {getTicker(ticker)}
+                      </Text>
                       <Text upper>
                         {`  ${
                           weiToFiat(
@@ -2146,6 +2189,7 @@ function SwapsQuotesView({
         selectedQuote={selectedQuoteId}
         showOverallValue={hasConversionRate}
         ticker={getTicker(ticker)}
+        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
       />
 
       <ApprovalTransactionEditionModal

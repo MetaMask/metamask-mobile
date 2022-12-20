@@ -243,19 +243,13 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const {
-        activeTabUrl,
-        chainId,
-        transaction,
-        networkType,
-        selectedAddress,
-      } = this.props;
+      const { activeTabUrl, chainId, transaction, selectedAddress } =
+        this.props;
       const { selectedAsset } = transaction;
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
         dapp_url: activeTabUrl,
-        network_name: networkType,
         chain_id: chainId,
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         asset_type: { value: transaction?.assetType, anonymous: true },

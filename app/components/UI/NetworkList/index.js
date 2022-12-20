@@ -201,7 +201,6 @@ export class NetworkList extends PureComponent {
       }, 1000);
 
     trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      network_name: type,
       chain_id: String(Networks[type].chainId),
       source: 'Settings',
     });
@@ -215,13 +214,7 @@ export class NetworkList extends PureComponent {
     const { frequentRpcList } = this.props;
     const { NetworkController, CurrencyRateController } = Engine.context;
     const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
-    const {
-      rpcUrl,
-      chainId,
-      ticker,
-      nickname,
-      rpcPrefs: { blockExplorerUrl },
-    } = rpc;
+    const { rpcUrl, chainId, ticker, nickname } = rpc;
     const useRpcName = nickname || sanitizeUrl(rpcUrl);
     const useTicker = ticker || PRIVATENETWORK;
     this.handleNetworkSelected(useRpcName, useTicker, sanitizeUrl(rpcUrl));
@@ -238,12 +231,9 @@ export class NetworkList extends PureComponent {
     NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
     trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      rpc_url: rpcUrl,
       chain_id: chainId,
       source: 'Settings',
       symbol: ticker,
-      block_explorer_url: blockExplorerUrl,
-      network_name: 'rpc',
     });
   };
 
@@ -320,12 +310,16 @@ export class NetworkList extends PureComponent {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getImage(chainId);
       const isCustomRpc = true;
-      const selected =
-        provider.rpcTarget === rpcUrl && provider.type === RPC ? (
+      const rpcTargetHref =
+        provider.rpcTarget && new URL(provider.rpcTarget)?.href;
+      const rpcURL = new URL(rpcUrl);
+      const isSameRPC = rpcTargetHref === rpcURL.href;
+      const selectedIcon =
+        isSameRPC && provider.type === RPC ? (
           <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
-        selected,
+        selectedIcon,
         this.onSetRpcTarget,
         name,
         image,
@@ -340,7 +334,8 @@ export class NetworkList extends PureComponent {
     const { provider } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
-    const isMainnet =
+    // Do not check using chainId. This check needs to specifically use `mainnet`.
+    const checkIcon =
       provider.type === MAINNET ? (
         <Icon name="check" size={15} color={colors.icon.default} />
       ) : null;
@@ -356,7 +351,7 @@ export class NetworkList extends PureComponent {
         >
           <View style={styles.networkWrapper}>
             <View style={[styles.selected, styles.mainnetSelected]}>
-              {isMainnet}
+              {checkIcon}
             </View>
             <ImageIcon image="ETHEREUM" style={styles.networkIcon} />
             <View style={styles.networkInfo}>
