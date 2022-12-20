@@ -12,6 +12,6 @@ exports[`AddAsset should render correctly 1`] = `
       },
     }
   }
-  useCollectibleDetection={true}
+  useNftDetection={true}
 />
 `;

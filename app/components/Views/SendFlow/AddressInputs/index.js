@@ -254,8 +254,7 @@ export const AddressTo = (props) => {
             )}
             <View style={styles.toInputWrapper}>
               <View style={[styles.address, styles.checkAddress]}>
-                {(isENS(toAddressName) ||
-                  toAddressName?.substring(0, 2) !== '0x') && (
+                {isENS(toAddressName) && (
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
