@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import AppConfig from './AppConfig';
 import useAppConfig from './useAppConfig';
 
 describe('useAppConfig', () => {
