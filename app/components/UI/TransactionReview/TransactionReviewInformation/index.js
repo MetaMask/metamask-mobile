@@ -36,6 +36,7 @@ import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import TransactionReview from '../TransactionReviewEIP1559Update';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -531,7 +532,14 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       ready,
+      gasSelected,
+      gasObject,
+      updateTransactionState,
+      eip1559GasTransaction,
+      dappSuggestedEIP1559Gas,
+      dappSuggestedGasPrice,
     } = this.props;
+
     let host;
     if (origin) {
       host = new URL(origin).hostname;
@@ -540,20 +548,14 @@ class TransactionReviewInformation extends PureComponent {
       renderableTotalMinNative,
       renderableTotalMinConversion,
       renderableTotalMaxNative,
-    ] = this.getRenderTotalsEIP1559(EIP1559GasData)();
+    ] = this.getRenderTotalsEIP1559(eip1559GasTransaction)();
     return (
-      <TransactionReviewEIP1559
+      <TransactionReview
         totalNative={renderableTotalMinNative}
         totalConversion={renderableTotalMinConversion}
         totalMaxNative={renderableTotalMaxNative}
-        gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-        gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-        gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-        gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
         primaryCurrency={primaryCurrency}
-        timeEstimate={EIP1559GasData.timeEstimate}
-        timeEstimateColor={EIP1559GasData.timeEstimateColor}
-        timeEstimateId={EIP1559GasData.timeEstimateId}
+        gasSelected={gasSelected}
         onEdit={this.edit}
         origin={host}
         originWarning={originWarning}
@@ -562,6 +564,14 @@ class TransactionReviewInformation extends PureComponent {
         animateOnChange={animateOnChange}
         isAnimating={isAnimating}
         gasEstimationReady={ready}
+        legacy={false}
+        gasObject={gasObject}
+        dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
+        updateTransactionState={updateTransactionState}
+        onlyGas
+        dappSuggestedGasPrice={dappSuggestedGasPrice}
+        origin={host}
+        originWarning={originWarning}
       />
     );
   };
@@ -580,6 +590,12 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       multiLayerL1FeeTotal,
+      gasSelected,
+      gasObject,
+      updateTransactionState,
+      eip1559GasTransaction,
+      dappSuggestedEIP1559Gas,
+      dappSuggestedGasPrice,
     } = this.props;
 
     let totalGas =
@@ -595,7 +611,7 @@ class TransactionReviewInformation extends PureComponent {
       totalGasFiat,
     )();
     return (
-      <TransactionReviewEIP1559
+      <TransactionReview
         totalNative={totalValue}
         totalConversion={totalFiat}
         gasFeeNative={totalGasEth}
@@ -609,6 +625,11 @@ class TransactionReviewInformation extends PureComponent {
         isAnimating={isAnimating}
         gasEstimationReady={ready}
         legacy
+        gasObject={gasObject}
+        dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
+        updateTransactionState={updateTransactionState}
+        onlyGas
+        dappSuggestedGasPrice={dappSuggestedGasPrice}
       />
     );
   };

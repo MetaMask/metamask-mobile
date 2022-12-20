@@ -36,6 +36,12 @@ const TransactionReviewEIP1559Update = ({
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
+  dappSuggestedGasPrice,
+  dappSuggestedEIP1559Gas,
+  totalMaxNative,
+  totalConversion,
+  totalNative,
+  gasFeeNative,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -57,6 +63,8 @@ const TransactionReviewEIP1559Update = ({
     legacy: !!legacy,
     gasObject,
     multiLayerL1FeeTotal,
+    dappSuggestedGasPrice,
+    dappSuggestedEIP1559Gas,
   });
 
   const {
@@ -75,6 +83,11 @@ const TransactionReviewEIP1559Update = ({
     transactionTotalAmount,
     transactionTotalAmountFiat,
   } = gasTransaction;
+
+  totalMaxNative = renderableTotalMaxNative || totalMaxNative;
+  totalConversion = renderableTotalMinConversion || totalConversion;
+  totalNative = renderableTotalMinNative || totalNative;
+  gasFeeNative = transactionTotalAmount || gasFeeNative;
 
   useEffect(() => {
     if (animateOnChange) {

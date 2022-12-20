@@ -172,6 +172,8 @@ export const useGasTransaction = ({
   legacy,
   gasObject,
   multiLayerL1FeeTotal,
+  dappSuggestedEIP1559Gas,
+  dappSuggestedGasPrice,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -197,6 +199,30 @@ export const useGasTransaction = ({
     transaction: { gas: transactionGas },
   } = transactionState;
 
+  let initialGas;
+  if (dappSuggestedEIP1559Gas) {
+    initialGas = {
+      suggestedMaxFeePerGas: fromWei(
+        dappSuggestedEIP1559Gas.maxFeePerGas,
+        'gwei',
+      ),
+      suggestedMaxPriorityFeePerGas: fromWei(
+        dappSuggestedEIP1559Gas.maxPriorityFeePerGas,
+        'gwei',
+      ),
+    };
+  } else if (dappSuggestedGasPrice) {
+    initialGas = {
+      suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+      suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
+    };
+  } else {
+    initialGas = {
+      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
+    };
+  }
+
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
@@ -221,13 +247,7 @@ export const useGasTransaction = ({
 
   return getEIP1559TransactionData({
     gas: {
-      ...(gasSelected
-        ? gasFeeEstimates[gasSelected]
-        : {
-            suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
-            suggestedMaxPriorityFeePerGas:
-              gasObject?.suggestedMaxPriorityFeePerGas,
-          }),
+      ...(gasSelected ? gasFeeEstimates[gasSelected] : initialGas),
       suggestedGasLimit,
       selectedOption: gasSelected,
     },
