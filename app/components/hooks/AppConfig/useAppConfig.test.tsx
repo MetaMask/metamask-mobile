@@ -42,7 +42,7 @@ describe('useAppConfig', () => {
     const expected: AppConfig = {
       security: {
         minimumVersions: {
-          appMinimumBuild: 700,
+          appMinimumBuild: 1024,
           appleMinimumOS: 6,
           androidMinimumAPIVersion: 21,
         },
