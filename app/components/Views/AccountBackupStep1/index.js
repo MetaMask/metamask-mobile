@@ -24,7 +24,7 @@ import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-// import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
+import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -215,7 +215,6 @@ const AccountBackupStep1 = (props) => {
 
   const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
 
-  // <SeedPhraseVideo onClose={skip} />
   return (
     <SafeAreaView style={styles.mainWrapper}>
       <ScrollView
@@ -232,6 +231,7 @@ const AccountBackupStep1 = (props) => {
             <Text style={styles.title}>
               {strings('account_backup_step_1.title')}
             </Text>
+            <SeedPhraseVideo onClose={skip} />
             <View style={styles.text}>
               <Text style={styles.label}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
