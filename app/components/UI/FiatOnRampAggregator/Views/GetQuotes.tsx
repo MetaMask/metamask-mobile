@@ -80,7 +80,7 @@ const createStyles = (colors: Colors) =>
     timerWrapper: {
       backgroundColor: colors.background.alternative,
       borderRadius: 20,
-      marginVertical: 12,
+      marginBottom: 8,
       paddingVertical: 4,
       paddingHorizontal: 15,
       flexDirection: 'row',
