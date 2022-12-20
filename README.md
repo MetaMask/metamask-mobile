@@ -1,5 +1,5 @@
 # metamask-mobile App Config
-A hosted JSON object that can be fetched to get information that needs to come from a third party source.
+A hosted JSON object that can be fetched to get information that needs to come from a remote source.
 
 | Version | Status | Link |
 |---------|--------|------------------------------------------------------------------------|
@@ -23,7 +23,6 @@ $ curl https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json
 
 ```
 
-
 ## Contributing
 
 ### Opening an issue/pull request
@@ -31,12 +30,12 @@ $ curl https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json
 
 ### Changing the minimum version
 - All severity 0 bugs should result in a minimum version bump. The value should reflect the version of the app that resolved said issue.
-- Changing the minimum vesion should only happen after the bug fix has been released to 100% + 24 hours to be safe.
-- All version changes shoulld be documented in notion [here](https://www.notion.so/Minimum-versions-history-750c91610b614f3e88601650099e77b8).
-- Once the above steos have been completed, this becomes a relatively simple change. All that is needed is to change the values in the [AppConfig.json](https://github.com/MetaMask/metamask-mobile/blob/gh-pages/AppConfig/v1/AppConfig.json) file to your desired values. There is no need for a new version of the API or any code changes in the mobile repo.
+- Changing the minimum version should only happen after the bug fix has been released to 100% + 24 hours to be safe.
+- All version changes should be documented in notion [here](https://www.notion.so/Minimum-versions-history-750c91610b614f3e88601650099e77b8).
+- Once the above steps have been completed, this becomes a relatively simple change. All that is needed is to change the values in the [AppConfig.json](https://github.com/MetaMask/metamask-mobile/blob/gh-pages/AppConfig/v1/AppConfig.json) file to your desired values. There is no need for a new version of the API or any code changes in the mobile repo.
 
 ### Changing the schema 
-If you want to add/modify fields to the API then you must create a new version of the API by creating a sub directory in the [AppConfig folder](https://github.com/MetaMask/metamask-mobile/tree/gh-pages/AppConfig/) with your desired version number. You must also modify the test endpoint located at `AppConfig/test/MockAppConfig.json` to match the new schema. 
+If you want to add/modify fields to the API then you must create a new version of the API by creating a subdirectory in the [AppConfig folder](https://github.com/MetaMask/metamask-mobile/tree/gh-pages/AppConfig/) with your desired version number. You must also modify the test endpoint located at `AppConfig/test/MockAppConfig.json` to match the new schema. 
 
 **NOTE** If you are modifying the schema **AND** changing existing values you must also modify the existing values in the older versions of the API.
 
@@ -75,7 +74,7 @@ if (appConfig.data) {
 ```
 
 ## Testing
-A mock endpoint can be found at `AppConfig/test/MockAppConfig.json`. This endpoint can be used to populate test values for QA without changing the stable values. To test minimum values logic, open a PR with values higher than the current stable release values. Once merged, you can query the the test endpoint at [https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json](https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json) and verify that the mobile app performs accordingly.
+A mock endpoint can be found at `AppConfig/test/MockAppConfig.json`. This endpoint can be used to populate test values for QA without changing the stable values. To test minimum values logic, open a PR with values higher than the current stable release values. Once merged, you can query the test endpoint at [https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json](https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json) and verify that the mobile app performs accordingly.
 
 ```json
 {
