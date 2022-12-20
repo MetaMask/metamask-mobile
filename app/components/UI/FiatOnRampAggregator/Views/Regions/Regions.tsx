@@ -1,37 +1,37 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import BaseText from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
-import useModalHandler from '../../../Base/hooks/useModalHandler';
-import ScreenLayout from '../components/ScreenLayout';
-import Box from '../components/Box';
-import RegionModal from '../components/RegionModal';
-import StyledButton from '../../StyledButton';
-import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { useFiatOnRampSDK } from '../sdk';
-import RegionAlert from '../components/RegionAlert';
-import SkeletonText from '../components/SkeletonText';
-import ErrorView from '../components/ErrorView';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
-import useRegions from '../hooks/useRegions';
+import styles from './Regions.styles';
+
+import BaseText from '../../../../Base/Text';
+import BaseListItem from '../../../../Base/ListItem';
+import useModalHandler from '../../../../Base/hooks/useModalHandler';
+
+import ScreenLayout from '../../components/ScreenLayout';
+import Box from '../../components/Box';
+import RegionModal from '../../components/RegionModal';
+import RegionAlert from '../../components/RegionAlert';
+import SkeletonText from '../../components/SkeletonText';
+import ErrorView from '../../components/ErrorView';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+
+import StyledButton from '../../../StyledButton';
+import { getFiatOnRampAggNavbar } from '../../../Navbar';
+import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+
+import { useFiatOnRampSDK } from '../../sdk';
+import useAnalytics from '../../hooks/useAnalytics';
+import useRegions from '../../hooks/useRegions';
+import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
-const styles = StyleSheet.create({
-  flexZero: {
-    flex: 0,
-  },
-});
-
-const RegionView = () => {
+const RegionsView = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -190,6 +190,7 @@ const RegionView = () => {
               type="confirm"
               onPress={handleOnPress}
               disabled={!selectedRegion}
+              testID={TEST_ID_CONTINUE_BUTTON}
             >
               {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>
@@ -200,4 +201,4 @@ const RegionView = () => {
   );
 };
 
-export default RegionView;
+export default RegionsView;
