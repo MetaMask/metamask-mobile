@@ -18,7 +18,10 @@ import {
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
-import { useParams } from '../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import { hexToBN } from '../../../../util/number';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import {
@@ -33,6 +36,17 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import useAnalytics from '../hooks/useAnalytics';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+
+interface CheckoutParams {
+  url: string;
+  customOrderId?: string;
+  provider: Provider;
+}
+
+export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
+  Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
+);
 
 const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
@@ -44,11 +58,7 @@ const CheckoutWebView = () => {
   const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
-  const params = useParams<{
-    url: string;
-    customOrderId?: string;
-    provider: Provider;
-  }>();
+  const params = useParams<CheckoutParams>();
   const { colors } = useTheme();
   const accounts = useSelector(
     (state: any) =>

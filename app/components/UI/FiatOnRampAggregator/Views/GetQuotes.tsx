@@ -45,12 +45,27 @@ import { PROVIDER_LINKS } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../hooks/useInAppBrowser';
 
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
-import { useParams } from '../../../../util/navigation/navUtils';
+import { createCheckoutNavDetails } from './Checkout';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
+
+interface GetQuotesParams {
+  amount: number;
+  asset: CryptoCurrency;
+  fiatCurrency: FiatCurrency;
+}
+
+export const createGetQuotesNavDetails =
+  createNavigationDetails<GetQuotesParams>(
+    Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES,
+  );
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -202,11 +217,7 @@ const GetQuotes = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const params = useParams<{
-    amount: number;
-    asset: CryptoCurrency;
-    fiatCurrency: FiatCurrency;
-  }>();
+  const params = useParams<GetQuotesParams>();
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const [isLoading, setIsLoading] = useState(true);
@@ -499,11 +510,13 @@ const GetQuotes = () => {
           const { url, orderId: customOrderId } = await buyAction.createWidget(
             callbackBaseUrl,
           );
-          navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT, {
-            provider: quote.provider,
-            url,
-            customOrderId,
-          });
+          navigation.navigate(
+            ...createCheckoutNavDetails({
+              provider: quote.provider,
+              url,
+              customOrderId,
+            }),
+          );
         } else {
           throw new Error('Unsupported browser type: ' + buyAction.browser);
         }

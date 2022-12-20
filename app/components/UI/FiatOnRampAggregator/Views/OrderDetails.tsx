@@ -17,9 +17,21 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import Routes from '../../../../constants/navigation/Routes';
-import { useParams } from '../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
+
+interface OrderDetailsParams {
+  orderId?: string;
+}
+
+export const createOrderDetailsNavDetails =
+  createNavigationDetails<OrderDetailsParams>(
+    Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS,
+  );
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
@@ -30,7 +42,7 @@ const OrderDetails = () => {
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
-  const params = useParams<{ orderId?: string }>();
+  const params = useParams<OrderDetailsParams>();
   const order: FiatOrder = useSelector(makeOrderIdSelector(params.orderId));
   const { colors } = useTheme();
   const navigation = useNavigation();

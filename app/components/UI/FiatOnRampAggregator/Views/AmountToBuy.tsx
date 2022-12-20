@@ -47,16 +47,29 @@ import ErrorView from '../components/ErrorView';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import { useParams } from '../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { Colors } from '../../../../util/theme/models';
 import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
 import { formatAmount } from '../utils';
+import { createGetQuotesNavDetails } from './GetQuotes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 const SelectorButton = BaseSelectorButton as any;
+
+interface AmountToBuyParams {
+  showBack?: boolean;
+}
+
+export const createAmountToBuyNavDetails =
+  createNavigationDetails<AmountToBuyParams>(
+    Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY,
+  );
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -96,7 +109,7 @@ const createStyles = (colors: Colors) =>
 
 const AmountToBuy = () => {
   const navigation = useNavigation();
-  const params = useParams<{ showBack?: boolean }>();
+  const params = useParams<AmountToBuyParams>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
@@ -501,19 +514,23 @@ const AmountToBuy = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES, {
-      amount: amountNumber,
-      asset: selectedAsset,
-      fiatCurrency: currentFiatCurrency,
-    });
-    trackEvent('ONRAMP_QUOTES_REQUESTED', {
-      currency_source: currentFiatCurrency?.symbol as string,
-      currency_destination: selectedAsset?.symbol as string,
-      payment_method_id: selectedPaymentMethodId as string,
-      chain_id_destination: selectedChainId,
-      amount: amountNumber,
-      location: 'Amount to Buy Screen',
-    });
+    if (selectedAsset && currentFiatCurrency) {
+      navigation.navigate(
+        ...createGetQuotesNavDetails({
+          amount: amountNumber,
+          asset: selectedAsset,
+          fiatCurrency: currentFiatCurrency,
+        }),
+      );
+      trackEvent('ONRAMP_QUOTES_REQUESTED', {
+        currency_source: currentFiatCurrency.symbol,
+        currency_destination: selectedAsset.symbol,
+        payment_method_id: selectedPaymentMethodId as string,
+        chain_id_destination: selectedChainId,
+        amount: amountNumber,
+        location: 'Amount to Buy Screen',
+      });
+    }
   }, [
     amountNumber,
     currentFiatCurrency,

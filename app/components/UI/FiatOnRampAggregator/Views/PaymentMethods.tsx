@@ -19,10 +19,23 @@ import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
 import usePaymentMethods from '../hooks/usePaymentMethods';
 import useRegions from '../hooks/useRegions';
-import { useParams } from '../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
+import { createAmountToBuyNavDetails } from './AmountToBuy';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
+
+interface PaymenthMehodsParams {
+  showBack?: boolean;
+}
+
+export const createPaymentMethodsNavDetails =
+  createNavigationDetails<PaymenthMehodsParams>(
+    Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
+  );
 
 const styles = StyleSheet.create({
   row: {
@@ -54,7 +67,7 @@ const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const params = useParams<{ showBack?: boolean }>();
+  const params = useParams<PaymenthMehodsParams>();
 
   const {
     setSelectedRegion,
@@ -111,7 +124,7 @@ const PaymentMethods = () => {
   ]);
 
   const handleContinueToAmount = useCallback(() => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
+    navigation.navigate(...createAmountToBuyNavDetails());
   }, [navigation]);
 
   useEffect(() => {
