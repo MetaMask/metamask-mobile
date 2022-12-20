@@ -60,6 +60,11 @@
     // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
+  "include": [
+    "app/**/*",
+    "node_modules/expect-webdriverio",
+    "node_modules/expect-webdriverio/jest"
+  ],
   "exclude": [
     "node_modules",
     "babel.config.js",
