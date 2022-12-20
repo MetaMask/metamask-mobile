@@ -1,33 +1,28 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { strings } from '../../../../../locales/i18n';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
 import styles from './AccountConnectSingleSelector.styles';
+import USER_INTENT from '../../../../constants/permissions';
 
 const AccountConnectSingleSelector = ({
   accounts,
   ensByAccountAddress,
   selectedAddresses,
   isLoading,
-  onCreateAccount,
-  onDismissSheetWithCallback,
   onSetScreen,
   onSetSelectedAddresses,
+  onUserAction,
 }: AccountConnectSingleSelectorProps) => {
-  const navigation = useNavigation();
-
   const onBack = useCallback(
     () => onSetScreen(AccountConnectScreens.SingleConnect),
     [onSetScreen],
@@ -41,26 +36,6 @@ const AccountConnectSingleSelector = ({
     [onSetScreen, onSetSelectedAddresses],
   );
 
-  const onOpenImportAccount = useCallback(() => {
-    onDismissSheetWithCallback(() => {
-      navigation.navigate('ImportPrivateKeyView');
-      // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-      AnalyticsV2.trackEvent(
-        ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-      );
-    });
-  }, [navigation, onDismissSheetWithCallback]);
-
-  const onOpenConnectHardwareWallet = useCallback(() => {
-    onDismissSheetWithCallback(() => {
-      navigation.navigate('ConnectQRHardwareFlow');
-      // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
-      );
-    });
-  }, [navigation, onDismissSheetWithCallback]);
-
   const renderSheetActions = useCallback(
     () => (
       <View style={styles.sheetActionContainer}>
@@ -68,29 +43,24 @@ const AccountConnectSingleSelector = ({
           actions={[
             {
               label: strings('accounts.create_new_account'),
-              onPress: onCreateAccount,
+              onPress: () => onUserAction(USER_INTENT.Create),
               isLoading,
             },
             {
               label: strings('accounts.import_account'),
-              onPress: onOpenImportAccount,
+              onPress: () => onUserAction(USER_INTENT.Import),
               disabled: isLoading,
             },
             {
               label: strings('accounts.connect_hardware'),
-              onPress: onOpenConnectHardwareWallet,
+              onPress: () => onUserAction(USER_INTENT.ConnectHW),
               disabled: isLoading,
             },
           ]}
         />
       </View>
     ),
-    [
-      isLoading,
-      onCreateAccount,
-      onOpenImportAccount,
-      onOpenConnectHardwareWallet,
-    ],
+    [isLoading, onUserAction],
   );
 
   return (

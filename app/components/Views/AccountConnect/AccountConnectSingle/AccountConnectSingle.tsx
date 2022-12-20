@@ -29,13 +29,13 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 // Internal dependencies.
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
+import USER_INTENT from '../../../../constants/permissions';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
   onSetScreen,
   onSetSelectedAddresses,
-  onConnect,
-  onDismissSheet,
+  onUserAction,
   isLoading,
   favicon,
   hostname,
@@ -88,7 +88,9 @@ const AccountConnectSingle = ({
           variant={ButtonVariants.Secondary}
           buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
-          onPress={onDismissSheet}
+          onPress={() => {
+            onUserAction(USER_INTENT.Cancel);
+          }}
           size={ButtonSize.Lg}
           style={styles.button}
         />
@@ -97,13 +99,15 @@ const AccountConnectSingle = ({
           variant={ButtonVariants.Primary}
           buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect')}
-          onPress={onConnect}
+          onPress={() => {
+            onUserAction(USER_INTENT.Confirm);
+          }}
           size={ButtonSize.Lg}
           style={styles.button}
         />
       </View>
     ),
-    [onDismissSheet, onConnect, isLoading, styles],
+    [onUserAction, isLoading, styles],
   );
 
   const renderSelectedAccount = useCallback(() => {

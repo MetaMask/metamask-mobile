@@ -19,6 +19,7 @@ export interface AccountConnectProps {
       hostInfo: {
         metadata: { origin: string };
       };
+      permissionRequestId: string;
     };
   };
 }

@@ -708,6 +708,11 @@ const RootRPCMethodsUI = (props) => {
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
       }
+
+      const {
+        metadata: { id },
+      } = requestData;
+
       switch (request.type) {
         case ApprovalTypes.REQUEST_PERMISSIONS:
           if (requestData?.permissions?.eth_accounts) {
@@ -715,6 +720,7 @@ const RootRPCMethodsUI = (props) => {
               screen: Routes.SHEET.ACCOUNT_CONNECT,
               params: {
                 hostInfo: requestData,
+                permissionRequestId: id,
               },
             });
           }
