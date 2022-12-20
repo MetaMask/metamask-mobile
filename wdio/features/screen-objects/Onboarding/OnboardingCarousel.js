@@ -31,7 +31,6 @@ class WelcomeScreen {
   async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
-    // await elem.waitForDisplayed({ reverse: true });
     await driver.pause(14000);
   }
 
