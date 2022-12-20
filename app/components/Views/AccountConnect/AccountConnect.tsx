@@ -75,10 +75,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       : AvatarAccountType.JazzIcon,
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
-
-  // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   const hostname = hostInfo.metadata.origin;
-  // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
+
   const secureIcon = useMemo(
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
@@ -86,6 +84,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         : IconName.LockSlashFilled,
     [origin],
   );
+
   /**
    * Get image url from favicon api.
    */
@@ -101,95 +100,104 @@ const AccountConnect = (props: AccountConnectProps) => {
     [Engine.context.PermissionController],
   );
 
-  const handleConnect = useCallback(
-    async () => {
-      const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
-        (address, index) => ({ address, lastUsed: Date.now() - index }),
-      );
-      const request = {
-        ...hostInfo,
-        metadata: {
-          ...hostInfo.metadata,
-          origin: hostname,
-        },
-        approvedAccounts: selectedAccounts,
-      };
-      const connectedAccountLength = selectedAccounts.length;
-      const activeAddress = selectedAccounts[0].address;
-      const activeAccountName = getAccountNameWithENS({
-        accountAddress: activeAddress,
-        accounts,
-        ensByAccountAddress,
-      });
+  const handleConnect = useCallback(async () => {
+    const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
+      (address, index) => ({ address, lastUsed: Date.now() - index }),
+    );
+    const request = {
+      ...hostInfo,
+      metadata: {
+        ...hostInfo.metadata,
+        origin: hostname,
+      },
+      approvedAccounts: selectedAccounts,
+    };
+    const connectedAccountLength = selectedAccounts.length;
+    const activeAddress = selectedAccounts[0].address;
+    const activeAccountName = getAccountNameWithENS({
+      accountAddress: activeAddress,
+      accounts,
+      ensByAccountAddress,
+    });
 
+    try {
+      setIsLoading(true);
+      await Engine.context.PermissionController.acceptPermissionsRequest(
+        request,
+      );
+      let labelOptions: ToastOptions['labelOptions'] = [];
+      if (connectedAccountLength > 1) {
+        labelOptions = [
+          { label: `${connectedAccountLength} `, isBold: true },
+          {
+            label: `${strings('toast.accounts_connected')}`,
+          },
+          { label: `\n${activeAccountName} `, isBold: true },
+          { label: strings('toast.now_active') },
+        ];
+      } else {
+        labelOptions = [
+          { label: `${activeAccountName} `, isBold: true },
+          { label: strings('toast.connected_and_active') },
+        ];
+      }
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Account,
+        labelOptions,
+        accountAddress: activeAddress,
+        accountAvatarType,
+      });
+    } catch (e: any) {
+      Logger.error(e, 'Error while trying to connect to a dApp.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    selectedAddresses,
+    hostInfo,
+    accounts,
+    ensByAccountAddress,
+    hostname,
+    accountAvatarType,
+    Engine.context.PermissionController,
+    toastRef,
+  ]);
+
+  const handleCreateAccount = useCallback(
+    async (isMultiSelect?: boolean) => {
+      const { KeyringController } = Engine.context;
       try {
         setIsLoading(true);
-        await Engine.context.PermissionController.acceptPermissionsRequest(
-          request,
+        const { addedAccountAddress } = await KeyringController.addNewAccount();
+        const checksummedAddress = safeToChecksumAddress(
+          addedAccountAddress,
+        ) as string;
+        !isMultiSelect && setSelectedAddresses([checksummedAddress]);
+        AnalyticsV2.trackEvent(
+          ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          {},
         );
-        let labelOptions: ToastOptions['labelOptions'] = [];
-        if (connectedAccountLength > 1) {
-          labelOptions = [
-            { label: `${connectedAccountLength} `, isBold: true },
-            {
-              label: `${strings('toast.accounts_connected')}`,
-            },
-            { label: `\n${activeAccountName} `, isBold: true },
-            { label: strings('toast.now_active') },
-          ];
-        } else {
-          labelOptions = [
-            { label: `${activeAccountName} `, isBold: true },
-            { label: strings('toast.connected_and_active') },
-          ];
-        }
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Account,
-          labelOptions,
-          accountAddress: activeAddress,
-          accountAvatarType,
-        });
       } catch (e: any) {
-        Logger.error(e, 'Error while trying to connect to a dApp.');
+        Logger.error(e, 'error while trying to add a new account');
       } finally {
         setIsLoading(false);
       }
     },
-    /* eslint-disable-next-line */
-    [
-      selectedAddresses,
-      hostInfo,
-      accounts,
-      ensByAccountAddress,
-      hostname,
-      accountAvatarType,
-    ],
+    [Engine.context],
   );
-
-  const handleCreateAccount = useCallback(async (isMultiSelect?: boolean) => {
-    const { KeyringController } = Engine.context;
-    try {
-      setIsLoading(true);
-      const { addedAccountAddress } = await KeyringController.addNewAccount();
-      const checksummedAddress = safeToChecksumAddress(
-        addedAccountAddress,
-      ) as string;
-      !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-      AnalyticsV2.trackEvent(
-        ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT,
-        {},
-      );
-    } catch (e: any) {
-      Logger.error(e, 'error while trying to add a new account');
-    } finally {
-      setIsLoading(false);
-    }
-    /* eslint-disable-next-line */
-  }, []);
 
   const hideSheet = (callback?: () => void) =>
     sheetRef?.current?.hide?.(callback);
 
+  /**
+   * User intent is set on AccountConnectSingle,
+   * AccountConnectSingleSelector & AccountConnectMultiSelector.
+   *
+   * We need to know where the user clicks to decide what
+   * should happen to the Permission Request Promise.
+   * We then trigger the corresponding side effects &
+   * control the Bottom Sheet visibility.
+   */
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
 
@@ -215,7 +223,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           hideSheet(() => {
             navigation.navigate('ImportPrivateKeyView');
-            // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+            // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
             AnalyticsV2.trackEvent(
               ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
               {},
@@ -226,7 +234,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.ConnectHW: {
           hideSheet(() => {
             navigation.navigate('ConnectQRHardwareFlow');
-            // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+            // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
             AnalyticsV2.trackEvent(
               AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
               {},
@@ -250,12 +258,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleConnect,
   ]);
 
-  /**
-   * TODO: finalize function comment.
-   * This function will execute every time the bottom sheet dismisses
-   * We want to catch it when there was no user action other than
-   * sliding down on clicking on backdrop to cancel the permission request
-   */
   const handleSheetDismiss = () => {
     if (!permissionRequestId || userIntent !== USER_INTENT.None) return;
 
