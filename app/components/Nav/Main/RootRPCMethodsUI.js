@@ -709,13 +709,13 @@ const RootRPCMethodsUI = (props) => {
         setCurrentPageMeta(requestData.pageMeta);
       }
 
-      const {
-        metadata: { id },
-      } = requestData;
-
       switch (request.type) {
         case ApprovalTypes.REQUEST_PERMISSIONS:
           if (requestData?.permissions?.eth_accounts) {
+            const {
+              metadata: { id },
+            } = requestData;
+
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_CONNECT,
               params: {
