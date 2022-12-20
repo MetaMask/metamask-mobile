@@ -19,7 +19,8 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
 });
 
 Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
-    await Helper.driverTimeout(500);
+    const timeout = 1000;
+    await driver.pause(timeout);
     await SendScreen.tapOnText(text);
 });
 
@@ -93,7 +94,8 @@ Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
 });
 
 Then(/I tap on Edit button to edit Saved contact details/, async () => {
-    await Helper.driverTimeout();
+    const timeout = 1500;
+    await driver.pause(timeout);
     await Contacts.tapOnEditButton();
 });
 
@@ -133,7 +135,8 @@ Then(/^I navigate back to main wallet screen/, async () => {
 });
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
-    await Helper.driverTimeout();
+    const timeout = 1500;
+    await driver.pause(timeout);
     await SendScreen.tapOnText(text);
 });
 
