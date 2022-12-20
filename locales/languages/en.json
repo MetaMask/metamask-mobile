@@ -102,6 +102,8 @@
     },
     "step5": {
       "title": "Explore the Browser",
+      "content1": "You can explore web3 using the browser"
+    },
     "step6": {
       "title": "Search",
       "content": "Search for sites, or type a URL if you know where you’re headed."
@@ -2246,4 +2248,3 @@
     }
   }
 }
-} 
