@@ -16,7 +16,8 @@ import ButtonTertiary, {
 import { ButtonSize } from '../../../component-library/components/Buttons/Button';
 import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getBuildNumber, getVersion, getBrand } from 'react-native-device-info';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -50,8 +51,8 @@ const UpdateNeeded = () => {
   });
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED,
+    trackEvent(
+      MetaMetricsEvents.FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED,
       generateAnalyticsMetaData(),
     );
   }, []);
@@ -61,17 +62,16 @@ const UpdateNeeded = () => {
 
   const triggerClose = () =>
     dismissModal(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
+      trackEvent(
+        MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
         generateAnalyticsMetaData(),
       );
     });
 
   const openAppStore = useCallback(() => {
     const link = Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS
-        .FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
+    trackEvent(
+      MetaMetricsEvents.FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
       { ...generateAnalyticsMetaData(), link },
     );
     Linking.canOpenURL(link).then(
