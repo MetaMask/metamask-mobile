@@ -6,3 +6,8 @@ When(/^I tap burger icon/, async () => {
     await driver.pause(setTimeout);  //added to run on physical device
     await WalletMainScreen.tapBurgerIcon();
 });
+
+Then(/^I tap on the navbar network title button/, async () => {
+    await WalletMainScreen.tapNetworkNavBar();
+});
+    
