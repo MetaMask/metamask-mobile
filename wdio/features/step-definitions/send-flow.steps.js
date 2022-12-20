@@ -4,7 +4,6 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBook from '../screen-objects/AddressBook';
 import Contacts from '../screen-objects/Contacts';
-import Helper from '../helpers/Helper.js';
 
 Given(/^I enter address "([^"]*)?" in the sender's input box/, async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
