@@ -39,17 +39,16 @@ describe('useAppConfig', () => {
     const { result, waitForNextUpdate } = renderHook(() =>
       useAppConfig(hasGithubPermissions),
     );
-    const expected: AppConfig = {
-      security: {
-        minimumVersions: {
-          appMinimumBuild: 1024,
-          appleMinimumOS: 6,
-          androidMinimumAPIVersion: 21,
-        },
-      },
-    };
     await waitForNextUpdate();
     expect(result.all[1].type).toEqual('Success');
-    expect(result.all[1].data).toMatchObject(expected);
+    expect(
+      result.all[1].data.security.minimumVersions.appMinimumBuild,
+    ).toBeDefined();
+    expect(
+      result.all[1].data.security.minimumVersions.appleMinimumOS,
+    ).toBeDefined();
+    expect(
+      result.all[1].data.security.minimumVersions.androidMinimumAPIVersion,
+    ).toBeDefined();
   });
 });
