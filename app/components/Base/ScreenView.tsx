@@ -1,8 +1,9 @@
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
@@ -10,7 +11,7 @@ const createStyles = (colors) =>
     },
   });
 
-const ScreenView = (props) => {
+const ScreenView: React.FC = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

@@ -4,19 +4,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { ScrollView } from 'react-native-gesture-handler';
-import { FiatOrder, processFiatOrder } from '../../FiatOrders';
-
 import useAnalytics from '../hooks/useAnalytics';
 import ScreenLayout from '../components/ScreenLayout';
 import OrderDetail from '../components/OrderDetails';
 import StyledButton from '../../StyledButton';
 import {
+  FiatOrder,
   makeOrderIdSelector,
   updateFiatOrder,
 } from '../../../../reducers/fiatOrders';
 import { strings } from '../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import Routes from '../../../../constants/navigation/Routes';
+import { processFiatOrder } from '..';
 import {
   createNavigationDetails,
   useParams,
