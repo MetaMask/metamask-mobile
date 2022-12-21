@@ -29,11 +29,11 @@ class Contacts {
     }
 
     async isContactsScreenDisplayed() {
-        await expect(await Selectors.getXpathElementByContentDescription('add-contact-button')).toBeDisplayed();
+        expect(await Selectors.getXpathElementByContentDescription('add-contact-button')).toBeDisplayed();
     }
 
     async isAddContactButtonEnabled() {
-        await expect(await Selectors.getElementByPlatform(CONTACT_ADD_BUTTON)).toBeEnabled();
+        expect(await Selectors.getElementByPlatform(CONTACT_ADD_BUTTON)).toBeEnabled();
     }
 
     async tapOnAddContactButton() {
