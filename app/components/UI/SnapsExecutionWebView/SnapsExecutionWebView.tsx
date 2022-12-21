@@ -10,8 +10,8 @@ import Engine from '../../../core/Engine';
 const TEST_SNAP_ID_ONE = 'local:http://localhost:3000/snap/';
 const TEST_SNAP_ID_TWO = 'local:http://localhost:3000/helloworldsnap/';
 
-const INSTALL_FAILED_MESSAGE = (id: string) => `Snap ${id} installed 🎉🎉🎉`;
-const INSTALL_SUCCESS_MESSAGE = (id: string) =>
+const INSTALL_SUCCESS_MESSAGE = (id: string) => `Snap ${id} installed 🎉🎉🎉`;
+const INSTALL_FAILED_MESSAGE = (id: string) =>
   `Snap ${id} failed to install 💀💀💀`;
 
 let stream: any;
