@@ -10,9 +10,7 @@ import { getTokenListArray } from '../../../reducers/tokens';
 import { TokenListToken } from '@metamask/controllers';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  TOKEN_INPUT_BOX_ID
-} from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
+import { TOKEN_INPUT_BOX_ID } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
