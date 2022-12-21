@@ -1,55 +1,25 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Image, View } from 'react-native';
+import { Image, View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import TextJS from '../../../Base/Text';
-import StyledButton from '../../StyledButton';
-import ScreenLayout from '../components/ScreenLayout';
-import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { useFiatOnRampSDK } from '../sdk';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
-import { createRegionNavDetails } from './Region';
+import TextJS from '../../../../Base/Text';
+import StyledButton from '../../../StyledButton';
+import ScreenLayout from '../../components/ScreenLayout';
+import { getFiatOnRampAggNavbar } from '../../../Navbar';
+import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
+import { useFiatOnRampSDK } from '../../sdk';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import Routes from '../../../../../constants/navigation/Routes';
+import useAnalytics from '../../hooks/useAnalytics';
+import styles from './GetStarted.styles';
+import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
+import { createRegionNavDetails } from '../Region';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const getStartedIcon = require('../components/images/WalletInfo.png');
+const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
-
-const styles = StyleSheet.create({
-  listItem: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 14,
-  },
-  description: {
-    marginVertical: 5,
-  },
-  icon: {
-    alignSelf: 'flex-start',
-    fontSize: 28,
-    marginTop: 1,
-    textAlign: 'center',
-  },
-  getStartedImageWrapper: { flexDirection: 'row', justifyContent: 'center' },
-  getStartedImage: {
-    marginTop: 80,
-  },
-  ctaWrapper: {
-    marginBottom: 30,
-    marginTop: 20,
-  },
-  marginTop: {
-    marginTop: 15,
-  },
-  caption: {
-    marginVertical: 22,
-  },
-});
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
@@ -132,32 +102,34 @@ const GetStarted: React.FC = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          <View style={styles.getStartedImageWrapper}>
-            <Image
-              style={styles.getStartedImage}
-              resizeMethod={'auto'}
-              source={getStartedIcon}
-            />
-          </View>
-        </ScreenLayout.Content>
-        <ScreenLayout.Content>
-          <Text centered bold style={styles.marginTop}>
-            {strings('fiat_on_ramp_aggregator.onboarding.best_quotes')}
-          </Text>
-          <Text centered bold style={styles.caption}>
-            {strings('fiat_on_ramp_aggregator.onboarding.benefits')}
-          </Text>
-        </ScreenLayout.Content>
+        <ScrollView contentContainerStyle={styles.container}>
+          <ScreenLayout.Content>
+            <View style={styles.getStartedImageWrapper}>
+              <Image source={getStartedIcon} />
+            </View>
+          </ScreenLayout.Content>
+          <ScreenLayout.Content>
+            <Text centered bold>
+              {strings('fiat_on_ramp_aggregator.onboarding.best_quotes')}
+            </Text>
+          </ScreenLayout.Content>
+          <ScreenLayout.Content>
+            <Text centered bold>
+              {strings('fiat_on_ramp_aggregator.onboarding.benefits')}
+            </Text>
+          </ScreenLayout.Content>
+        </ScrollView>
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <View style={styles.ctaWrapper}>
-            <StyledButton type={'confirm'} onPress={handleOnPress}>
-              {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
-            </StyledButton>
-          </View>
+          <StyledButton
+            type={'confirm'}
+            onPress={handleOnPress}
+            testID={TEST_ID_GET_STARTED_BUTTON}
+          >
+            {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
+          </StyledButton>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
