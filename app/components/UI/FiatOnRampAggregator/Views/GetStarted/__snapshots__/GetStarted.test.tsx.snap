@@ -1,0 +1,540 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GetStarted renders correctly 1`] = `
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <RCTScrollView
+        contentContainerStyle={
+          Object {
+            "flexGrow": 1,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              Array [
+                Object {
+                  "padding": 15,
+                },
+                undefined,
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                Object {
+                  "alignItems": "center",
+                }
+              }
+            >
+              <Image
+                source={
+                  Object {
+                    "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
+                  }
+                }
+              />
+            </View>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "padding": 15,
+                },
+                undefined,
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  Object {
+                    "textAlign": "center",
+                  },
+                  false,
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "padding": 15,
+                },
+                undefined,
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  Object {
+                    "textAlign": "center",
+                  },
+                  false,
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              Less gas fees to pay, and numerous networks, tokens, and payment methods supported
+            </Text>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View>
+      <View
+        style={
+          Array [
+            Object {
+              "padding": 15,
+            },
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityComponentType="button"
+          accessibilityTraits="button"
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Array [
+              Array [
+                Object {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                Object {
+                  "backgroundColor": "#037DD6",
+                  "minHeight": 50,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+          testID="get-started-button"
+        >
+          <Text
+            style={
+              Array [
+                Object {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                Array [
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  Object {
+                    "color": "#FCFCFC",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</RCTSafeAreaView>
+`;
+
+exports[`GetStarted renders correctly when getStarted is true 1`] = `
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  />
+</RCTSafeAreaView>
+`;
+
+exports[`GetStarted renders correctly when sdkError is present 1`] = `
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "marginTop": -100,
+              "paddingHorizontal": 60,
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "marginVertical": 1,
+              }
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              style={
+                Array [
+                  Object {
+                    "color": undefined,
+                    "fontSize": 12,
+                  },
+                  Array [
+                    Object {
+                      "fontSize": 38,
+                      "marginVertical": 4,
+                      "textAlign": "center",
+                    },
+                    Object {
+                      "color": "#D73A49",
+                    },
+                  ],
+                  Object {
+                    "fontFamily": "Material Design Icons",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  Object {},
+                ]
+              }
+            >
+              
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "marginVertical": 1,
+              }
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 18,
+                      "fontWeight": "600",
+                      "marginVertical": 3,
+                    },
+                    Object {
+                      "textAlign": "center",
+                    },
+                    false,
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              Oops, something went wrong
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "marginVertical": 1,
+              }
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  Object {
+                    "textAlign": "center",
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  Object {
+                    "color": "#535A61",
+                  },
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              sdkError
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "marginTop": 30,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityComponentType="button"
+              accessibilityTraits="button"
+              activeOpacity={0.2}
+              onPress={[Function]}
+              style={
+                Array [
+                  Array [
+                    Object {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    Object {
+                      "backgroundColor": "#037DD6",
+                      "minHeight": 50,
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    Array [
+                      Object {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      Object {
+                        "color": "#FCFCFC",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                Return to Home Screen
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTSafeAreaView>
+`;

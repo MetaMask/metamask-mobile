@@ -3,6 +3,7 @@ Feature: Skip Start Exploring
 
   Scenario: A user should be able to tap the Skip button and the onboarding tutorial modal should disappear
     Given I have imported my wallet
+    And I tap No Thanks on the Enable security check screen
     And the onboarding wizard is visible on wallet view
     When I tap on "Take a Tour" button
     Then the tutorial modal heading should read "Your Accounts"

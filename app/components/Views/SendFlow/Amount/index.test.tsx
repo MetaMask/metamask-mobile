@@ -4,7 +4,6 @@ import Amount from './';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import configureStore from '../../../../util/test/configureStore';
 import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
 
@@ -111,10 +110,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-const renderComponent = (state: any = {}) => {
-  const store = configureStore(state);
-
-  return renderWithProvider(
+const renderComponent = (state: any = {}) =>
+  renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
         {(props) => (
@@ -129,9 +126,8 @@ const renderComponent = (state: any = {}) => {
         )}
       </Stack.Screen>
     </Stack.Navigator>,
-    store,
+    { state },
   );
-};
 
 describe('Amount', () => {
   beforeEach(() => {
