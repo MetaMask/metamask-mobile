@@ -14,7 +14,6 @@ import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 
 import { swapsLivenessSelector } from '../../../reducers/swaps';
@@ -36,14 +35,12 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -219,10 +216,6 @@ class AccountOverview extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * Wether Swaps feature is live or not
-     */
-    swapsIsLive: PropTypes.bool,
-    /**
      * ID of the current network
      */
     network: PropTypes.string,
@@ -340,7 +333,10 @@ class AccountOverview extends PureComponent {
 
   onReceive = () => this.props.toggleReceiveModal();
 
-  onPorfolioDapp = () => this.props.togglePortfolioDappModal();
+  onPorfolioDapp = () =>
+    this.props.togglePortfolioDappModal(
+      'https://portfolio-builds.metafi-dev.codefi.network/48bb3b92f165ce2daf0d11bbefd8611841afb333/',
+    );
 
   onSend = () => {
     const { newAssetTransaction, navigation, ticker } = this.props;
@@ -379,13 +375,17 @@ class AccountOverview extends PureComponent {
     } catch {}
   };
 
+  onBridge = () =>
+    this.props.togglePortfolioDappModal(
+      'https://portfolio-builds.metafi-dev.codefi.network/48bb3b92f165ce2daf0d11bbefd8611841afb333/bridge',
+    );
+
   render() {
     const {
       account: { address, name },
       currentCurrency,
       onboardingWizard,
       chainId,
-      swapsIsLive,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -517,14 +517,12 @@ class AccountOverview extends PureComponent {
                 onPress={this.onSend}
                 label={strings('asset_overview.send_button')}
               />
-              {AppConstants.SWAPS.ACTIVE && (
-                <AssetSwapButton
-                  isFeatureLive={swapsIsLive}
-                  isNetworkAllowed={isSwapsAllowed(chainId)}
-                  onPress={this.goToSwaps}
-                  isAssetAllowed
-                />
-              )}
+              <AssetActionButton
+                testID={'token-send-button'}
+                icon="swap"
+                onPress={this.onBridge}
+                label={'Bridge'}
+              />
             </View>
             <View>
               <TouchableOpacity
@@ -560,7 +558,8 @@ const mapDispatchToProps = (dispatch) => ({
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
-  togglePortfolioDappModal: () => dispatch(togglePortfolioDappModal()),
+  togglePortfolioDappModal: (action) =>
+    dispatch(togglePortfolioDappModal(action)),
 });
 
 AccountOverview.contextType = ThemeContext;

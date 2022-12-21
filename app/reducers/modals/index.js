@@ -24,9 +24,16 @@ const modalsReducer = (state = initialState, action) => {
       };
     }
     case 'TOGGLE_PORTFOLIO_DAPP_MODAL': {
+      let visible;
+      if (state.portfolioDappModalVisible) {
+        visible = false;
+      } else {
+        visible = action.action ? action.action : true;
+      }
+
       return {
         ...state,
-        portfolioDappModalVisible: !state.portfolioDappModalVisible,
+        portfolioDappModalVisible: visible,
       };
     }
     case 'TOGGLE_ACCOUNT_MODAL':

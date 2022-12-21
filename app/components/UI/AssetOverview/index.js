@@ -13,7 +13,10 @@ import AppConstants from '../../../core/AppConstants';
 import TokenImage from '../../UI/TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { toggleReceiveModal } from '../../../actions/modals';
+import {
+  toggleReceiveModal,
+  togglePortfolioDappModal,
+} from '../../../actions/modals';
 import { connect } from 'react-redux';
 import {
   renderFromTokenMinimalUnit,
@@ -179,6 +182,7 @@ class AssetOverview extends PureComponent {
      * Object that contains tokens by token addresses as key
      */
     tokenList: PropTypes.object,
+    togglePortfolioDappModal: PropTypes.func,
   };
 
   onReceive = () => {
@@ -279,6 +283,12 @@ class AssetOverview extends PureComponent {
     );
   };
 
+  onStake = () => {
+    this.props.togglePortfolioDappModal(
+      'https://portfolio-builds.metafi-dev.codefi.network/48bb3b92f165ce2daf0d11bbefd8611841afb333/stake',
+    );
+  };
+
   render() {
     const {
       accounts,
@@ -363,11 +373,6 @@ class AssetOverview extends PureComponent {
 
         {!balanceError && (
           <View style={styles.actions}>
-            <AssetActionButton
-              icon="receive"
-              onPress={this.onReceive}
-              label={strings('asset_overview.receive_button')}
-            />
             {isETH && allowedToBuy(chainId) && (
               <AssetActionButton
                 icon="buy"
@@ -389,6 +394,11 @@ class AssetOverview extends PureComponent {
                 onPress={this.goToSwaps}
               />
             )}
+            <AssetActionButton
+              icon="receive"
+              onPress={this.onStake}
+              label={'Stake'}
+            />
           </View>
         )}
       </View>
@@ -420,6 +430,8 @@ const mapDispatchToProps = (dispatch) => ({
   toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
+  togglePortfolioDappModal: (action) =>
+    dispatch(togglePortfolioDappModal(action)),
 });
 
 AssetOverview.contextType = ThemeContext;

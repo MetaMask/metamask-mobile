@@ -320,11 +320,23 @@ export const BrowserTab = (props) => {
    * Manage hosts that were approved to connect with the user accounts
    */
   useEffect(() => {
-    const { approvedHosts: approvedHostsProps, selectedAddress } = props;
+    const {
+      approvedHosts: approvedHostsProps,
+      selectedAddress,
+      accountsAlwaysConnected,
+    } = props;
 
     approvedHosts = approvedHostsProps;
 
     const numApprovedHosts = Object.keys(approvedHosts).length;
+
+    if (accountsAlwaysConnected) {
+      notifyAllConnections({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: [selectedAddress],
+      });
+      return;
+    }
 
     // this will happen if the approved hosts were cleared
     if (numApprovedHosts === 0) {

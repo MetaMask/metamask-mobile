@@ -30,7 +30,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      minHeight: '85%',
+      minHeight: '90%',
     },
     body: {
       alignItems: 'center',
@@ -124,6 +124,7 @@ class PortfolioDapp extends PureComponent {
      * completed the seed phrase backup flow
      */
     seedphraseBackedUp: PropTypes.bool,
+    url: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   };
 
   state = {
@@ -212,7 +213,9 @@ class PortfolioDapp extends PureComponent {
         <BrowserTab
           id={0}
           key={`tab_portfolio_dapp`}
-          initialUrl={'https://portfolio.metamask.io/'}
+          initialUrl={
+            this.props.url ? this.props.url : 'https://portfolio.metamask.io/'
+          }
           updateTabInfo={() => null}
           showTabs={() => null}
           newTab={() => null}

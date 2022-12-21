@@ -386,7 +386,10 @@ class DrawerView extends PureComponent {
     /**
      * Boolean that determines the status of the Portfolio Dapp modal
      */
-    portfolioDappModalVisible: PropTypes.bool.isRequired,
+    portfolioDappModalVisible: PropTypes.oneOfType([
+      PropTypes.bool,
+      PropTypes.string,
+    ]).isRequired,
     /**
      * Start transaction with asset
      */
@@ -1490,7 +1493,7 @@ class DrawerView extends PureComponent {
           />
         </Modal>
         <Modal
-          isVisible={this.props.portfolioDappModalVisible}
+          isVisible={Boolean(this.props.portfolioDappModalVisible)}
           onBackdropPress={this.togglePortfolioDappModal}
           onBackButtonPress={this.togglePortfolioDappModal}
           onSwipeComplete={this.togglePortfolioDappModal}
@@ -1504,6 +1507,7 @@ class DrawerView extends PureComponent {
             navigation={this.props.navigation}
             hideModal={this.togglePortfolioDappModal}
             showPortfolioDappModal={this.showPortfolioDappModal}
+            url={this.props.portfolioDappModalVisible}
           />
         </Modal>
         {this.renderProtectModal()}

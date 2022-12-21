@@ -24,9 +24,10 @@ export function toggleReceiveModal(asset) {
   };
 }
 
-export function togglePortfolioDappModal() {
+export function togglePortfolioDappModal(action) {
   return {
     type: 'TOGGLE_PORTFOLIO_DAPP_MODAL',
+    action,
   };
 }
 
