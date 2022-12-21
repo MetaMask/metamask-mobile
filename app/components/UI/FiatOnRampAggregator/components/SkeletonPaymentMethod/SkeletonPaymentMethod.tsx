@@ -10,29 +10,27 @@ const ListItem = BaseListItem as any;
 const Text = BaseText as any;
 
 const SkeletonPaymentMethod = () => (
-  <Row>
-    <Box>
-      <ListItem.Content>
-        <ListItem.Icon>
-          <SkeletonBox />
-        </ListItem.Icon>
-        <ListItem.Body>
-          <ListItem.Title>
-            <SkeletonText thin title />
-          </ListItem.Title>
-        </ListItem.Body>
-        <ListItem.Amounts>
-          <Text>
-            <SkeletonText medium /> <SkeletonText medium />
-          </Text>
-        </ListItem.Amounts>
-      </ListItem.Content>
-      <Row />
-      <ListItem.Content>
-        <SkeletonText thin medium />
-      </ListItem.Content>
-    </Box>
-  </Row>
+  <Box>
+    <ListItem.Content>
+      <ListItem.Icon>
+        <SkeletonBox />
+      </ListItem.Icon>
+      <ListItem.Body>
+        <ListItem.Title>
+          <SkeletonText thin title />
+        </ListItem.Title>
+      </ListItem.Body>
+      <ListItem.Amounts>
+        <Text>
+          <SkeletonText medium /> <SkeletonText medium />
+        </Text>
+      </ListItem.Amounts>
+    </ListItem.Content>
+    <Row />
+    <ListItem.Content>
+      <SkeletonText thin medium />
+    </ListItem.Content>
+  </Box>
 );
 
 export default SkeletonPaymentMethod;

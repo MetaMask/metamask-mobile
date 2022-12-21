@@ -151,9 +151,15 @@ const PaymentMethods = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <SkeletonPaymentMethod />
-            <SkeletonPaymentMethod />
-            <SkeletonPaymentMethod />
+            <Row first>
+              <SkeletonPaymentMethod />
+            </Row>
+            <Row>
+              <SkeletonPaymentMethod />
+            </Row>
+            <Row last>
+              <SkeletonPaymentMethod />
+            </Row>
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -190,8 +196,12 @@ const PaymentMethods = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {paymentMethods.map((payment) => (
-              <Row key={payment.id}>
+            {paymentMethods.map((payment, index) => (
+              <Row
+                key={payment.id}
+                first={index === 0}
+                last={index === paymentMethods.length - 1}
+              >
                 <PaymentMethod
                   payment={payment}
                   highlighted={payment.id === selectedPaymentMethodId}
