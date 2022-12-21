@@ -2,20 +2,20 @@ import { Linking } from 'react-native';
 import isUrl from 'is-url';
 
 /**
- * Returns a sanitized url
+ * Returns URL prefixed with protocol
  *
  * @param url - String corresponding to url
  * @param defaultProtocol - Protocol string to append to URLs that have none
  * @returns - String corresponding to sanitized input depending if it's a search or url
  */
-export const sanitizeUrl = (url: string, defaultProtocol = 'https://') => {
+export const prefixUrlWithProtocol = (url: string, defaultProtocol = 'https://') => {
   const hasProtocol = /^[a-z]*:\/\//.test(url);
   const sanitizedURL = hasProtocol ? url : `${defaultProtocol}${url}`;
   return sanitizedURL;
 };
 
 /**
- * Returns a sanitized url, which could be a search engine url if
+ * Returns URL prefixed with protocol, which could be a search engine url if
  * a keyword is detected instead of a url
  *
  * @param input - String corresponding to url input
@@ -39,14 +39,15 @@ export default function onUrlSubmit(
       !input.startsWith('localhost')
     ) {
       // In case of keywords we default to google search
-      let searchUrl = 'https://www.google.com/search?q=' + escape(input);
+      let searchUrl =
+        'https://www.google.com/search?q=' + encodeURIComponent(input);
       if (searchEngine === 'DuckDuckGo') {
-        searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
+        searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
       }
       return searchUrl;
     }
   }
-  return sanitizeUrl(input, defaultProtocol);
+  return prefixUrlWithProtocol(input, defaultProtocol);
 }
 
 /**
@@ -70,7 +71,7 @@ export function getHost(url: string, defaultProtocol = 'https://') {
   const isValidUrl = isUrl(url);
   if (!isValidUrl) return url;
 
-  const sanitizedUrl = sanitizeUrl(url, defaultProtocol);
+  const sanitizedUrl = prefixUrlWithProtocol(url, defaultProtocol);
   const { hostname } = getUrlObj(sanitizedUrl);
 
   const result = hostname === '' ? url : hostname;
