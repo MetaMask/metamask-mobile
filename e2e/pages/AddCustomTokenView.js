@@ -1,17 +1,24 @@
 import TestHelpers from '../helpers';
+import {
+  CUSTOM_TOKEN_CONTAINER_ID,
+  TOKEN_ADDRESS_INPUT_BOX_ID,
+  TOKEN_ADDRESS_SYMBOL_ID,
+  TOKEN_ADDRESS_WARNING_MESSAGE_ID,
+  TOKEN_PRECISION_WARNING_MESSAGE_ID,
+  CUSTOM_TOKEN_BACK_BUTTON_ID,
+  TOKEN_IMPORT_BUTTON_ID,
+} from '../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
+import {
+  NFT_ADDRESS_INPUT_BOX_ID,
+  NFT_ADDRESS_WARNING_MESSAGE_ID,
+  NFT_IDENTIFIER_WARNING_MESSAGE_ID,
+  NFT_IDENTIFIER_INPUT_BOX_ID
+} from '../../wdio/features/testIDs/Screens/NFTImportScreen.testIds';
 
-const CUSTOM_TOKEN_CONTAINER_ID = 'add-custom-token-screen';
-const TOKEN_ADDRESS_INPUT_BOX_ID = 'input-token-address';
-const TOKEN_ADDRESS_SYMBOL_ID = 'input-token-symbol';
 const NFT_ADDRESS_INPUT_BOX_ID = 'input-collectible-address';
 const NFT_ADDRESS_WARNING_MESSAGE_ID = 'collectible-address-warning';
 const NFT_IDENTIFIER_WARNING_MESSAGE_ID = 'collectible-identifier-warning';
-
-const TOKEN_ADDRESS_WARNING_MESSAGE_ID = 'token-address-warning';
-const TOKEN_PRECISION_WARNING_MESSAGE_ID = 'token-decimals-warning';
-const BACK_BUTTON_ID = 'asset-back-button';
 const NFT_IDENTIFIER_INPUT_BOX_ID = 'input-token-decimals';
-const TOKEN_IMPORT_BUTTON_ID = 'add-custom-asset-confirm-button';
 
 export default class AddCustomTokenView {
   static async tapImportButton() {
@@ -30,7 +37,7 @@ export default class AddCustomTokenView {
     if (device.getPlatform() === 'android') {
       await device.pressBack();
     } else {
-      await TestHelpers.tap(BACK_BUTTON_ID);
+      await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
     }
   }
   static async tapTokenSymbolInputBox() {
