@@ -10,6 +10,10 @@ import Engine from '../../../core/Engine';
 const TEST_SNAP_ID_ONE = 'local:http://localhost:3000/snap/';
 const TEST_SNAP_ID_TWO = 'local:http://localhost:3000/helloworldsnap/';
 
+const INSTALL_FAILED_MESSAGE = (id: string) => `Snap ${id} installed 🎉🎉🎉`;
+const INSTALL_SUCCESS_MESSAGE = (id: string) =>
+  `Snap ${id} failed to install 💀💀💀`;
+
 let stream: any;
 
 const SnapsExecutionWebView = () => {
@@ -28,12 +32,12 @@ const SnapsExecutionWebView = () => {
         '',
       );
       if (result.error) {
-        message = `Snap ${snapId} failed to install 💀💀💀`;
+        message = INSTALL_FAILED_MESSAGE(snapId);
       } else {
-        message = `Snap ${snapId} installed 🎉🎉🎉`;
+        message = INSTALL_SUCCESS_MESSAGE(snapId);
       }
     } catch {
-      message = `Snap ${snapId} failed to install 💀💀💀`;
+      message = INSTALL_FAILED_MESSAGE(snapId);
     }
     Alert.alert('Snap Alert', message, [
       {
@@ -63,12 +67,18 @@ const SnapsExecutionWebView = () => {
     });
     // eslint-disable-next-line no-console
     console.log(result);
+    // await SnapController.terminateSnap(snapId);
   };
 
   const getInstalledSnaps = () => {
     const { SnapController } = Engine.context as any;
     // eslint-disable-next-line no-console
     console.log(SnapController.internalState.snaps);
+  };
+
+  const terminateSnap = async (snapId: string) => {
+    const { SnapController } = Engine.context as any;
+    await SnapController.terminateSnap(snapId);
   };
 
   const setWebviewPostMessage = () => {
@@ -98,15 +108,18 @@ const SnapsExecutionWebView = () => {
   return (
     <ScrollView style={styles.container}>
       <Button onPress={async () => await installSnap(TEST_SNAP_ID_ONE)}>
-        Install Test Snap 1
+        Install Test Snap #1
       </Button>
       <Button onPress={async () => await installSnap(TEST_SNAP_ID_TWO)}>
-        Install Test Snap 2
+        Install Test Snap #2
       </Button>
       <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_TWO)}>
-        Test Hello World Snap
+        Test HelloWorldSnap
       </Button>
       <Button onPress={getInstalledSnaps}>Get installed snaps</Button>
+      <Button onPress={async () => await terminateSnap(TEST_SNAP_ID_TWO)}>
+        Terminate Snap #2
+      </Button>
       <View style={styles.webview}>
         <WebView
           ref={webviewRef}
