@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';

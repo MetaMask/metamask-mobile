@@ -13,7 +13,7 @@ import {
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../../wdio/features/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
 import { isMainnetByChainId } from '../../../util/networks';
 

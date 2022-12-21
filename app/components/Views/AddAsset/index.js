@@ -11,7 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
 

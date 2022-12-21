@@ -47,7 +47,7 @@ import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
