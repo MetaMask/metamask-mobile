@@ -6,18 +6,18 @@ import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import Accounts from '../helpers/Accounts';
-import WalletMainScreen from '../screen-objects/WalletMainScreen'
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
-import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal'
-
+import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const wait = 10000;
+  const wait = 15000;
   await driver.pause(wait);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
+  await MetaMetricsScreen.swipeUp();
   await MetaMetricsScreen.tapIAgreeButton();
   const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
@@ -28,11 +28,9 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.isVisible();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await OnboardingWizardModal.tapNoThanksButton();
-});
-
-Then(/^I tap on the navbar network title button/, async () => {
-  await WalletMainScreen.tapNetworkNavBar();
 });
 
 When(/^I tap on the Add a Network button/, async () => {
@@ -96,7 +94,9 @@ When(/^I should see the added network name "([^"]*)?" in the top navigation bar/
 });
 
 Then(/^I tap on the burger menu/, async () => {
-  await WalletMainScreen.tapBurgerIcon();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
+  await WalletMainScreen.tapBurgerButton();
 });
 
 Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
@@ -111,8 +111,8 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  const wait = 6000;
-  await driver.pause(wait);
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
 });
 
 Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
@@ -189,6 +189,8 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await NetworkSwitchModal.confirmNetworkSwitch();
 });
 
@@ -239,17 +241,18 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
 });
 
 Then(/^I navigate back to the main wallet view/, async () => {
+  await driver.pause(2000);
   await NetworksScreen.tapBackButtonInNewScreen();
-  const wait = 1000;
-  await driver.pause(wait);
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInNewScreen();
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  const wait = 1000;
-  await driver.pause(wait);
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(wait);
+  await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
