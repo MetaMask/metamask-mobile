@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import {
+  Alert,
+  Text,
+  TextInput,
+  View,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -10,6 +17,14 @@ import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
+import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  NFT_ADDRESS_INPUT_BOX_ID,
+  NFT_IDENTIFIER_WARNING_MESSAGE_ID,
+  NFT_ADDRESS_WARNING_MESSAGE_ID,
+  NFT_IDENTIFIER_INPUT_BOX_ID,
+} from '../../../../wdio/features/testIDs/Screens/NFTImportScreen.testIds';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -193,7 +208,10 @@ const AddCustomCollectible = ({
   };
 
   return (
-    <View style={styles.wrapper} testID={'add-custom-token-screen'}>
+    <View
+      style={styles.wrapper}
+      {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
+    >
       <ActionView
         cancelTestID={'add-custom-asset-cancel-button'}
         confirmTestID={'add-custom-asset-confirm-button'}
@@ -218,13 +236,13 @@ const AddCustomCollectible = ({
               value={address}
               onChangeText={onAddressChange}
               onBlur={validateCustomCollectibleAddress}
-              testID={'input-collectible-address'}
+              {...generateTestId(Platform, NFT_ADDRESS_INPUT_BOX_ID)}
               onSubmitEditing={jumpToAssetTokenId}
               keyboardAppearance={themeAppearance}
             />
             <Text
               style={styles.warningText}
-              testID={'collectible-address-warning'}
+              {...generateTestId(Platform, NFT_ADDRESS_WARNING_MESSAGE_ID)}
             >
               {warningAddress}
             </Text>
@@ -242,7 +260,7 @@ const AddCustomCollectible = ({
               keyboardType="numeric"
               onChangeText={onTokenIdChange}
               onBlur={validateCustomCollectibleTokenId}
-              testID={'input-token-decimals'}
+              {...generateTestId(Platform, NFT_IDENTIFIER_INPUT_BOX_ID)}
               ref={assetTokenIdInput}
               onSubmitEditing={addNft}
               returnKeyType={'done'}
@@ -252,7 +270,7 @@ const AddCustomCollectible = ({
             />
             <Text
               style={styles.warningText}
-              testID={'collectible-identifier-warning'}
+              {...generateTestId(Platform, NFT_IDENTIFIER_WARNING_MESSAGE_ID)}
             >
               {warningTokenId}
             </Text>

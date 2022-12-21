@@ -41,8 +41,12 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
   }
 
-  async isOnboardingWizardVisible() {
-    await expect(this.wizardContainer).toBeDisplayed();
+  async tapSettings() {
+    await Gestures.tap(this.drawerSettings);
+  }
+
+  async tapSendIcon(text){
+    await Gestures.tapTextByXpath(text);
   }
 
   async tapNoThanks() {
@@ -61,14 +65,15 @@ class WalletMainScreen {
     await Gestures.tap(await Selectors.getXpathElementByContentDescription(this.HamburgerButton));
   }
 
-  async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
-  }
-
   async tapNetworkNavBar() {
-    const timeOut = 500;
+    const timeOut = 3000;
     await driver.pause(timeOut);
     await Gestures.tap(this.networkNavBarWalletTitle);
+    await driver.pause(timeOut);
+  }
+
+  async isVisible() {
+    await expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
@@ -77,14 +82,14 @@ class WalletMainScreen {
     await expect(networkName).toContain(network);
   }
 
-  async tapSettings() {
-    await Gestures.tap(this.drawerSettings);
+  async isTokenTextVisible(token){
+    const tokenText = Selectors.getXpathElementByText(token);
+    await expect(tokenText).toBeDisplayed();
   }
 
-  async tapSendIcon(text){
-    await Gestures.tapTextByXpath(text);
+  async isOnboardingWizardVisible() {
+    await expect(this.wizardContainer).toBeDisplayed();
   }
-
 }
 
 export default new WalletMainScreen();
