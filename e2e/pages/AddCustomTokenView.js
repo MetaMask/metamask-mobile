@@ -12,13 +12,8 @@ import {
   NFT_ADDRESS_INPUT_BOX_ID,
   NFT_ADDRESS_WARNING_MESSAGE_ID,
   NFT_IDENTIFIER_WARNING_MESSAGE_ID,
-  NFT_IDENTIFIER_INPUT_BOX_ID
+  NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../wdio/features/testIDs/Screens/NFTImportScreen.testIds';
-
-const NFT_ADDRESS_INPUT_BOX_ID = 'input-collectible-address';
-const NFT_ADDRESS_WARNING_MESSAGE_ID = 'collectible-address-warning';
-const NFT_IDENTIFIER_WARNING_MESSAGE_ID = 'collectible-identifier-warning';
-const NFT_IDENTIFIER_INPUT_BOX_ID = 'input-token-decimals';
 
 export default class AddCustomTokenView {
   static async tapImportButton() {

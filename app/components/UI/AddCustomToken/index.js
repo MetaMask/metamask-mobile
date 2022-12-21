@@ -22,19 +22,15 @@ import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { 
+import {
   CUSTOM_TOKEN_CONTAINER_ID,
   TOKEN_ADDRESS_INPUT_BOX_ID,
   TOKEN_ADDRESS_SYMBOL_ID,
   TOKEN_ADDRESS_WARNING_MESSAGE_ID,
   TOKEN_CANCEL_IMPORT_BUTTON_ID,
-  TOKEN_IMPORT_BUTTON_ID,
   TOKEN_PRECISION_WARNING_MESSAGE_ID,
-  CUSTOM_TOKEN_BACK_BUTTON_ID
- } from '../../../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
- import {
-  NFT_IDENTIFIER_INPUT_BOX_ID
- } from '../../../../wdio/features/testIDs/Screens/NFTImportScreen.testIds'
+} from '../../../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
+import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/features/testIDs/Screens/NFTImportScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -342,7 +338,8 @@ export default class AddCustomToken extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} 
+      <View
+        style={styles.wrapper}
         {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
       >
         <ActionView
@@ -373,7 +370,8 @@ export default class AddCustomToken extends PureComponent {
                 returnKeyType={'next'}
                 keyboardAppearance={themeAppearance}
               />
-              <Text style={styles.warningText} 
+              <Text
+                style={styles.warningText}
                 {...generateTestId(Platform, TOKEN_ADDRESS_WARNING_MESSAGE_ID)}
               >
                 {this.state.warningAddress}
@@ -419,7 +417,10 @@ export default class AddCustomToken extends PureComponent {
               />
               <Text
                 style={styles.warningText}
-                {...generateTestId(Platform, TOKEN_PRECISION_WARNING_MESSAGE_ID)}
+                {...generateTestId(
+                  Platform,
+                  TOKEN_PRECISION_WARNING_MESSAGE_ID,
+                )}
               >
                 {this.state.warningDecimals}
               </Text>
