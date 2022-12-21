@@ -23,7 +23,6 @@ import {
 } from '@consensys/on-ramp-sdk/dist/API';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import ScreenLayout from '../components/ScreenLayout';
-import ScreenView from '../../FiatOrders/components/ScreenView';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
 import ErrorView from '../components/ErrorView';
@@ -614,31 +613,33 @@ const GetQuotes = () => {
 
   if (pollingCyclesLeft < 0) {
     return (
-      <ScreenView contentContainerStyle={styles.screen}>
-        <View style={[styles.errorContent, styles.errorViewContent]}>
-          {
-            <MaterialCommunityIcons
-              name="clock-outline"
-              style={[styles.errorIcon, styles.expiredIcon]}
-            />
-          }
-          <Text primary centered style={styles.errorTitle}>
-            {strings('fiat_on_ramp_aggregator.quotes_timeout')}
-          </Text>
-          <Text centered style={styles.errorText}>
-            {strings('fiat_on_ramp_aggregator.request_new_quotes')}
-          </Text>
-        </View>
-        <View style={styles.bottomSection}>
-          <StyledButton
-            type="blue"
-            containerStyle={styles.ctaButton}
-            onPress={handleFetchQuotes}
-          >
-            {strings('fiat_on_ramp_aggregator.get_new_quotes')}
-          </StyledButton>
-        </View>
-      </ScreenView>
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <View style={[styles.errorContent, styles.errorViewContent]}>
+            {
+              <MaterialCommunityIcons
+                name="clock-outline"
+                style={[styles.errorIcon, styles.expiredIcon]}
+              />
+            }
+            <Text primary centered style={styles.errorTitle}>
+              {strings('fiat_on_ramp_aggregator.quotes_timeout')}
+            </Text>
+            <Text centered style={styles.errorText}>
+              {strings('fiat_on_ramp_aggregator.request_new_quotes')}
+            </Text>
+          </View>
+          <View style={styles.bottomSection}>
+            <StyledButton
+              type="blue"
+              containerStyle={styles.ctaButton}
+              onPress={handleFetchQuotes}
+            >
+              {strings('fiat_on_ramp_aggregator.get_new_quotes')}
+            </StyledButton>
+          </View>
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 

@@ -84,7 +84,7 @@ import WarningMessage from '../WarningMessage';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import GlobalAlert from '../../../UI/GlobalAlert';
-import { allowedToBuy } from '../../../UI/FiatOrders';
+import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   startGasPolling,
