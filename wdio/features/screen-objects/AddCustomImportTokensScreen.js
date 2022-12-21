@@ -23,10 +23,9 @@ class AddCustomImportToken {
     }
 
     async tapImportButton() {
-        await driver.pause(3000);
-        await Gestures.tapTextByXpath('IMPORT');
-        await driver.pause(3000);
-        await Gestures.tapTextByXpath('IMPORT');
+        await driver.pause(2000);
+        await Gestures.tap(this.importButton);
+        await Gestures.tap(this.importButton);
     }
 
     async tapTokenSymbolField(){
@@ -34,10 +33,8 @@ class AddCustomImportToken {
     }
 
     async typeCustomTokenSymbol(symbol){
-        const elem = await this.symbolField;
-        await elem.waitForDisplayed();
-        await elem.touchAction('tap');
-        await driver.pause(4000);
+        await Gestures.tap(this.symbolField);
+        await driver.pause(2000);
         await driver.hideKeyboard();
     }
 }

@@ -16,12 +16,7 @@ When(/^I tap (.*) of the token Address field/, async (label) => {
 });
 
 Then(/^The Token Symbol is displayed/, async () => {
-    await driver.pause(2000);  //added to run on physical device
     await AddCustomImportTokensScreen.typeCustomTokenSymbol("");
-});
-
-When(/^Token Decimal is displayed/, async () => {
-    await driver.pause(setTimeout = 2000);  //added to run on physical device
 });
 
 When(/^I tap on the Import button/, async () => {

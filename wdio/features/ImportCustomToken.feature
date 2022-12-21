@@ -28,7 +28,6 @@ Feature: Adding a custom token to your wallet
         When I tap Import Tokens
         And I type <TOKENADDRESS> into token Address field
         Then The Token Symbol is displayed
-        And Token Decimal is displayed
         When I tap on the Import button
         Then I should see "Imported Token" toast message
         Examples:
