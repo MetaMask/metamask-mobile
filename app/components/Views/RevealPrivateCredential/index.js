@@ -87,12 +87,12 @@ const RevealPrivateCredential = ({
   const showScreenshotAlert = useCallback(() => {
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
     Alert.alert(
-      strings('reveal_credential.screenshot_warning_title'),
-      strings('reveal_credential.screenshot_warning_desc', {
+      strings('screenshot_deterrent.title'),
+      strings('screenshot_deterrent.description', {
         credentialName:
           privateCredentialName === PRIVATE_KEY
-            ? strings('reveal_credential.private_key_text')
-            : strings('reveal_credential.srp_text'),
+            ? strings('screenshot_deterrent.priv_key_text')
+            : strings('screenshot_deterrent.srp_text'),
       }),
       [
         {

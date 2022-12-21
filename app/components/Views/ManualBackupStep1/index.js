@@ -274,7 +274,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
                     </View>
                   ))}
                 </View>
-                <ScreenshotDeterrent enabled />
+                <ScreenshotDeterrent enabled isSRP />
               </React.Fragment>
             )}
           </View>

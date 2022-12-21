@@ -5,7 +5,13 @@ import useScreenshotWarning from '../../hooks/useScreenshotWarning';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { strings } from '../../../../locales/i18n';
 
-const ScreenshotDeterrent = ({ enabled }: { enabled: boolean }) => {
+const ScreenshotDeterrent = ({
+  enabled,
+  isSRP,
+}: {
+  enabled: boolean;
+  isSRP: boolean;
+}) => {
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
 
   const openSRPGuide = () => {
@@ -19,8 +25,12 @@ const ScreenshotDeterrent = ({ enabled }: { enabled: boolean }) => {
     setAlertPresent(true);
 
     Alert.alert(
-      strings('manual_backup_step_1.screenshot_warning_title'),
-      strings('manual_backup_step_1.screenshot_warning_desc'),
+      strings('screenshot_deterrent.title'),
+      strings('screenshot_deterrent.description', {
+        credentialName: isSRP
+          ? strings('screenshot_deterrent.srp_text')
+          : strings('screenshot_deterrent.priv_key_text'),
+      }),
       [
         {
           text: strings('reveal_credential.learn_more'),
@@ -39,7 +49,7 @@ const ScreenshotDeterrent = ({ enabled }: { enabled: boolean }) => {
         },
       ],
     );
-  }, []);
+  }, [isSRP]);
 
   const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
 

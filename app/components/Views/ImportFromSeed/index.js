@@ -600,7 +600,7 @@ const ImportFromSeed = ({
           action={strings('import_from_seed.import_button')}
         />
       </View>
-      <ScreenshotDeterrent enabled />
+      <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };

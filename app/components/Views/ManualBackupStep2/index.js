@@ -269,7 +269,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           {validateWords() ? renderSuccess() : renderWords()}
         </View>
       </ActionView>
-      <ScreenshotDeterrent enabled />
+      <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };
