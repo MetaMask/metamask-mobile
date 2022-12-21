@@ -1,11 +1,11 @@
   import Selectors from '../../helpers/Selectors';
   import Gestures from '../../helpers/Gestures';
-import { NETWORK_EDUCATION_MODAL_CONTAINER_ID } from '../../../../app/constants/test-ids';
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID } from '../../testIDs/Components/NetworkEducationModalTestIds';
 
 class NetworkEducationModal {
 
   get networkEducationCloseButton() {
-    return Selectors.getElementByPlatform(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    return Selectors.getElementByPlatform(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
   }
 
   async tapGotItButton(){

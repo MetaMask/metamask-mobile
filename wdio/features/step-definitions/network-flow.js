@@ -15,7 +15,7 @@ import NetworkListModal from '../../features/screen-objects/Modals/NetworkListMo
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   const setTimeout = 10000;
-  await driver.pause(setTimeout);
+  await driver.pause(setTimeout); 
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.swipeUp();
@@ -196,7 +196,7 @@ Then(/^I tap on the Add button/, async () => {
   await NetworksScreen.tapAddButton();
 });
 
-Then(/^I tap on "([^"]*)?" in the network education modal /, async () => {
+Then(/^I dismiss the network education modal/, async () => {
   const setTimeout = 1500;
   await driver.pause(setTimeout);
   await NetworkEducationModal.tapGotItButton();
