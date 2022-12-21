@@ -227,7 +227,7 @@ class Transactions extends PureComponent {
   updateBlockExplorer = () => {
     const {
       network: {
-        provider: { type, rpcTarget },
+        providerConfig: { type, rpcTarget },
       },
       frequentRpcList,
     } = this.props;
@@ -343,7 +343,7 @@ class Transactions extends PureComponent {
       navigation,
       network: {
         network,
-        provider: { type },
+        providerConfig: { type },
       },
       selectedAddress,
       close,
@@ -383,7 +383,7 @@ class Transactions extends PureComponent {
     const {
       chainId,
       network: {
-        provider: { type },
+        providerConfig: { type },
       },
     } = this.props;
     const blockExplorerText = () => {

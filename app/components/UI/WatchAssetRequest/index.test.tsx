@@ -17,7 +17,7 @@ const initialState = {
         selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: ROPSTEN,
         },
       },

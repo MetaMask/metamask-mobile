@@ -103,7 +103,7 @@ export const getAllNetworks = () =>
   NetworkListKeys.filter((name) => name !== RPC);
 
 export const isMainNet = (network) =>
-  network?.provider?.type === MAINNET || network === String(1);
+  network?.providerConfig?.type === MAINNET || network === String(1);
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {

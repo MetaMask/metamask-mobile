@@ -100,7 +100,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
   const { colors } = useTheme();
   const styles = createStyle(colors);
   const navigation = useNavigation();
-  const provider = useSelector(selectProviderConfig);
+  const providerConfig = useSelector(selectProviderConfig);
   const frequentRpcList = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
@@ -108,7 +108,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 
   const toBlockExplorer = useCallback(
     (address: string) => {
-      const { type, rpcTarget } = provider;
+      const { type, rpcTarget } = providerConfig;
       let accountLink: string;
       if (type === RPC) {
         const blockExplorer =
@@ -125,7 +125,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
         },
       });
     },
-    [frequentRpcList, navigation, provider],
+    [frequentRpcList, navigation, providerConfig],
   );
 
   return (
@@ -157,7 +157,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
               index={item.index}
               address={item.address}
               balance={item.balance}
-              ticker={provider.ticker}
+              ticker={providerConfig.ticker}
               toBlockExplorer={toBlockExplorer}
             />
           </View>
