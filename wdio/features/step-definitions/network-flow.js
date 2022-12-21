@@ -111,7 +111,7 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  const setTimeout = 1500;
+  const setTimeout = 8000;
   await driver.pause(setTimeout);
 });
 
