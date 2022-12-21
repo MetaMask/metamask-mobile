@@ -129,6 +129,25 @@ describe('Regions View', () => {
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
+  it('renders regions modal when pressing select button', async () => {
+    const rendered = render(<Regions />);
+    const selectRegionButton = rendered.getByRole('button', {
+      name: 'Select your region',
+    });
+    fireEvent.press(selectRegionButton);
+    expect(rendered.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls setSelectedRegion when pressing a region', async () => {
+    const rendered = render(<Regions />);
+    const regionToPress = mockRegionsData[0] as Region;
+    const regionButton = rendered.getByRole('button', {
+      name: regionToPress.name,
+    });
+    fireEvent.press(regionButton);
+    expect(mockSetSelectedRegion).toHaveBeenCalledWith(regionToPress);
+  });
+
   it('navigates on continue press', async () => {
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,

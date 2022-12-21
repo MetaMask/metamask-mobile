@@ -140,17 +140,12 @@ const RegionsView = () => {
         title={strings('fiat_on_ramp_aggregator.region.your_region')}
         description={strings('fiat_on_ramp_aggregator.region.description')}
       />
-      <RegionAlert
-        isVisible={Boolean(unsupportedRegion)}
-        subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
-        dismiss={clearUnsupportedRegion}
-        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
-        link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
-      />
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          <TouchableOpacity onPress={showRegionModal as () => void}>
+          <TouchableOpacity
+            onPress={showRegionModal}
+            accessibilityRole="button"
+          >
             <Box>
               <ListItem.Content>
                 <ListItem.Body>
@@ -176,17 +171,6 @@ const RegionsView = () => {
             </Box>
           </TouchableOpacity>
         </ScreenLayout.Content>
-        <RegionModal
-          isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
-          description={strings(
-            'fiat_on_ramp_aggregator.region.select_country_registered',
-          )}
-          data={data}
-          dismiss={hideRegionModal as () => void}
-          onRegionPress={handleRegionPress}
-          location={'Region Screen'}
-        />
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
@@ -202,6 +186,27 @@ const RegionsView = () => {
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
+
+      <RegionAlert
+        isVisible={Boolean(unsupportedRegion)}
+        subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
+        dismiss={clearUnsupportedRegion}
+        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+        link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+      />
+
+      <RegionModal
+        isVisible={isRegionModalVisible}
+        title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
+        description={strings(
+          'fiat_on_ramp_aggregator.region.select_country_registered',
+        )}
+        data={data}
+        dismiss={hideRegionModal as () => void}
+        onRegionPress={handleRegionPress}
+        location={'Region Screen'}
+      />
     </ScreenLayout>
   );
 };
