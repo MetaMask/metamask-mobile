@@ -14,7 +14,7 @@ import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkE
 import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 10000;
+  const setTimeout = 15000;//added for running on physical device
   await driver.pause(setTimeout); 
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
@@ -269,4 +269,12 @@ Then(/^I go back to the main wallet screen/, async () => {
   await NetworksScreen.tapBackButtonInNewScreen();
   await driver.pause(setTimeout);
   await NetworksScreen.tapBackButtonInSettingsScreen();
+});
+
+Then(/^I tap on Got it in the network education modal/, async () => {
+  await NetworkEducationModal.tapGotItButton();
+});
+
+Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
+  await NetworkListModal.changeNetwork(network);
 });

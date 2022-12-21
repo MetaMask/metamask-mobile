@@ -9,6 +9,7 @@ class NetworkEducationModal {
   }
 
   async tapGotItButton(){
+    await driver.pause(3000);
     await Gestures.tap(this.networkEducationCloseButton);
   }
 }
