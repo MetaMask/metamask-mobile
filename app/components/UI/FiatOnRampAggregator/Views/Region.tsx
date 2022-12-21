@@ -20,6 +20,8 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
 import useRegions from '../hooks/useRegions';
+import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import { createPaymentMethodsNavDetails } from './PaymentMethods';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -30,6 +32,10 @@ const styles = StyleSheet.create({
     flex: 0,
   },
 });
+
+export const createRegionNavDetails = createNavigationDetails(
+  Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+);
 
 const RegionView = () => {
   const navigation = useNavigation();
@@ -76,7 +82,7 @@ const RegionView = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD);
+    navigation.navigate(...createPaymentMethodsNavDetails());
   }, [navigation]);
 
   const handleRegionPress = useCallback(

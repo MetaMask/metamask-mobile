@@ -14,3 +14,6 @@ When(/^I tap Import Tokens/, async () => {
     await Gestures.tapTextByXpath("Import Tokens");
 });
 
+Then(/^I tap on the navbar network title button/, async () => {
+    await WalletMainScreen.tapNetworkNavBar();
+});

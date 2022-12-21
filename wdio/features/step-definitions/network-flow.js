@@ -34,10 +34,6 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.tapNoThanksButton();
 });
 
-Then(/^I tap on the navbar network title button/, async () => {
-  await WalletMainScreen.tapNetworkNavBar();
-});
-
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.clickAddNetworks();
 });
@@ -256,6 +252,7 @@ Then(/^I tap the "([^"]*)?" button/, async (buttons) => {
 });
 
 Then(/^I navigate back to the main wallet view/, async () => {
+  await driver.pause(2000);
   await NetworksScreen.tapBackButtonInNewScreen();
   const setTimeout = 1500;
   await driver.pause(setTimeout);
