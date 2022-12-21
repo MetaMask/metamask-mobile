@@ -41,7 +41,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
-import { allowedToBuy } from '../../FiatOrders';
+import { allowedToBuy } from '../../FiatOnRampAggregator';
 
 const createStyles = (colors) =>
   StyleSheet.create({
