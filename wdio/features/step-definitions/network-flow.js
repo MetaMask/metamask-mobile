@@ -10,7 +10,8 @@ import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
-import NetworkSwitchModal from '../../features/screen-objects/Modals/NetworkSwitchModal';
+import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkEducationModal';
+import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   const setTimeout = 10000;
@@ -193,9 +194,12 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
+});
+
+Then(/^I tap on "([^"]*)?" in the network education modal /, async () => {
   const setTimeout = 1500;
   await driver.pause(setTimeout);
-  await NetworkSwitchModal.confirmNetworkSwitch();
+  await NetworkEducationModal.tapGotItButton();
 });
 
 Then(/^I tap and hold network "([^"]*)?"/, async (network) => {
@@ -217,6 +221,13 @@ Then(/^"([^"]*)?" should be removed from the list of RPC networks/, async (netwo
 Then(/^I tap on network "([^"]*)?" on networks screen/, async (network) => {
   await NetworksScreen.tapOnNetwork(network);
 });
+
+Then(/^I switch to "([^"]*)?" in the network list modal /, async () => {
+    const setTimeout = 1500;
+    await driver.pause(setTimeout);
+    await NetworkListModal.changeNetwork(text);
+  });
+
 
 Then(/^a "([^"]*)?" button should be visible/, async (buttons) => {
   switch (buttons) {
