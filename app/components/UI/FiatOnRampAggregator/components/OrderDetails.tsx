@@ -205,7 +205,9 @@ const OrderDetails: React.FC<Props> = ({
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const amountOut = Number(amount) - Number(cryptoFee);
-  const exchangeRate = Number(amountOut) / Number(cryptoAmount);
+  const exchangeRate =
+    (order.data as Order)?.exchangeRate ??
+    Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
 
   const handleExplorerLinkPress = useCallback(
