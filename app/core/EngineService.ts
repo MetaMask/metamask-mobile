@@ -53,6 +53,10 @@ class EngineService {
         name: 'ApprovalController',
         key: `${Engine.context.ApprovalController.name}:stateChange`,
       },
+      {
+        name: 'SnapController',
+        key: `${Engine.context.SnapController.name}:stateChange`,
+      },
     ];
 
     Engine?.datamodel?.subscribe?.(() => {
