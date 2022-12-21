@@ -4052,10 +4052,10 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/swaps-controller@^6.7.2":
-  version "6.7.2"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.7.2.tgz#c999e55d449d36f8e948409c21d5362db93cc4cf"
-  integrity sha512-p3Czoqx7YANZX2GjW8apTio5rs3RkAGaIvoRd97fVza72R6VKXcRZ/pw9XB1o2z9beYdXqEn7+Q3v69yTUOu7A==
+"@metamask/swaps-controller@^6.8.0":
+  version "6.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.8.0.tgz#c2c43173dc1101fab9ec918e7f7853f14072740b"
+  integrity sha512-BWuALQXWxk2Sw2+djZSIvbIhUDxwX99IE+Mq/c4FMFgNe80BSFMNeAScnhjKvH8xFs47ur7TDmS9bukZpm9rmA==
   dependencies:
     "@metamask/controllers" "^26.0.0"
     abort-controller "^3.0.0"
