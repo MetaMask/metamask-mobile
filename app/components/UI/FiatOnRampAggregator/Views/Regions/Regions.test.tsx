@@ -8,7 +8,7 @@ import { IFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 import { fireEvent } from '@testing-library/react-native';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods';
+import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
