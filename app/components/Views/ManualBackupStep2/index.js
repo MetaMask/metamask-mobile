@@ -10,6 +10,7 @@ import {
 import PropTypes from 'prop-types';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import ActionView from '../../UI/ActionView';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
@@ -268,6 +269,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           {validateWords() ? renderSuccess() : renderWords()}
         </View>
       </ActionView>
+      <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };
