@@ -144,6 +144,7 @@ export const getLegacyTransactionData = ({
   ticker,
   gas,
   onlyGas,
+  multiLayerL1FeeTotal,
 }: LegacyProps) => {
   const parsedTransationData = parseTransactionLegacy(
     {
@@ -155,6 +156,7 @@ export const getLegacyTransactionData = ({
       selectedGasFee: {
         ...gas,
       },
+      multiLayerL1FeeTotal,
     },
     { onlyGas },
   );
@@ -171,6 +173,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasObject,
+  multiLayerL1FeeTotal,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -214,6 +217,7 @@ export const useGasTransaction = ({
       transactionState,
       ticker,
       onlyGas,
+      multiLayerL1FeeTotal,
     });
   }
 

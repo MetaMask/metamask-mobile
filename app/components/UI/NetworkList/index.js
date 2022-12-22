@@ -28,7 +28,7 @@ import getImage from '../../../util/getImage';
 import {
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';

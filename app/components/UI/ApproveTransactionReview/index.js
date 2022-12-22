@@ -5,6 +5,7 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
+import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
@@ -43,7 +44,12 @@ import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
-import { isTestNet, isMainnetByChainId } from '../../../util/networks';
+import {
+  isTestNet,
+  isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
+} from '../../../util/networks';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
@@ -56,13 +62,16 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
-import { allowedToBuy } from '../FiatOrders';
+import { allowedToBuy } from '../FiatOnRampAggregator';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import createStyles from './styles';
 
 const { hexToBN } = util;
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
+
+let intervalIdForEstimatedL1Fee;
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
@@ -224,6 +233,7 @@ class ApproveTransactionReview extends PureComponent {
     token: {},
     showGasTooltip: false,
     gasTransactionObject: {},
+    multiLayerL1FeeTotal: '0x0',
   };
 
   customSpendLimitInput = React.createRef();
@@ -234,7 +244,30 @@ class ApproveTransactionReview extends PureComponent {
   originIsMMSDKRemoteConn =
     this.props.transaction.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    if (!transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
+  };
+
   componentDidMount = async () => {
+    const { chainId } = this.props;
     const {
       transaction: { origin, to, data },
       tokenList,
@@ -293,6 +326,17 @@ class ApproveTransactionReview extends PureComponent {
         );
       },
     );
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
+    }
+  };
+
+  componentWillUnmount = async () => {
+    clearInterval(intervalIdForEstimatedL1Fee);
   };
 
   getAnalyticsParams = () => {
@@ -540,6 +584,7 @@ class ApproveTransactionReview extends PureComponent {
       spenderAddress,
       originalApproveAmount,
       customSpendAmount,
+      multiLayerL1FeeTotal,
     } = this.state;
     const {
       primaryCurrency,
@@ -682,6 +727,7 @@ class ApproveTransactionReview extends PureComponent {
                     }
                     updateTransactionState={updateTransactionState}
                     onlyGas
+                    multiLayerL1FeeTotal={multiLayerL1FeeTotal}
                   />
 
                   {gasError && (

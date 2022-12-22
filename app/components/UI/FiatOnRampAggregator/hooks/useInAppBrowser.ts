@@ -12,10 +12,11 @@ import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import {
   addFiatCustomIdData,
   addFiatOrder,
+  FiatOrder,
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { getNotificationDetails } from '..';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import NotificationManager from '../../../../core/NotificationManager';
 import { hexToBN } from '../../../../util/number';

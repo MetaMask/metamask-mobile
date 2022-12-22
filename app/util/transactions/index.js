@@ -31,6 +31,7 @@ import {
   decGWEIToHexWEI,
   getValueFromWeiHex,
   formatETHFee,
+  sumHexWEIs,
 } from '../conversions';
 import {
   addEth,
@@ -1175,15 +1176,21 @@ export const parseTransactionLegacy = (
     },
     ticker,
     selectedGasFee,
+    multiLayerL1FeeTotal,
   },
   { onlyGas } = {},
 ) => {
   const gasLimit = new BN(selectedGasFee.suggestedGasLimit);
   const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
-  const weiTransactionFee =
+  let weiTransactionFee =
     gasLimit &&
     gasLimit.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+  if (multiLayerL1FeeTotal) {
+    weiTransactionFee = hexToBN(
+      sumHexWEIs([BNToHex(weiTransactionFee), multiLayerL1FeeTotal]),
+    );
+  }
 
   const suggestedGasPriceHex = decGWEIToHexWEI(
     selectedGasFee.suggestedGasPrice,
