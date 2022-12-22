@@ -14,7 +14,7 @@ import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkE
 import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 15000;//added for running on physical device
+  const setTimeout = 25000;//added for running on physical device
   await driver.pause(setTimeout); 
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
@@ -190,12 +190,6 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
-});
-
-Then(/^I dismiss the network education modal/, async () => {
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
-  await NetworkEducationModal.tapGotItButton();
 });
 
 Then(/^I tap and hold network "([^"]*)?"/, async (network) => {

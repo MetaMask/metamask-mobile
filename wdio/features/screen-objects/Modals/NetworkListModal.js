@@ -25,7 +25,7 @@ class NetworkListModal {
   }
   
   async isVisible() {
-    await expect(this.NetworkListModal).tobeDisplayed()
+    await expect(this.NetworkListModal).toBeDisplayed()
   }
 
   async isNotVisible() {

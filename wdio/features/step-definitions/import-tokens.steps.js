@@ -1,5 +1,4 @@
-import { Given, When, Then } from '@wdio/cucumber-framework';
-import Gestures from '../helpers/Gestures.js';
+import {When, Then } from '@wdio/cucumber-framework';
 import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 
@@ -16,7 +15,7 @@ When(/^I tap (.*) of the token Address field/, async (label) => {
 });
 
 Then(/^The Token Symbol is displayed/, async () => {
-    await AddCustomImportTokensScreen.typeCustomTokenSymbol("");
+    await AddCustomImportTokensScreen.tapTokenSymbolFieldAndDismissKeyboard();
 });
 
 When(/^I tap on the Import button/, async () => {
