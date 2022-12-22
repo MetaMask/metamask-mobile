@@ -4,7 +4,7 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBook from '../screen-objects/AddressBook';
 import Contacts from '../screen-objects/Contacts';
-import Gestures from '../helpers/Gestures';
+const fs = require('fs');
 
 Given(/^I enter address "([^"]*)?" in the sender's input box/, async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
@@ -19,10 +19,13 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
 });
 
 Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
+    // driver.startRecordingScreen();
     const timeout = 4000;
     await driver.pause(timeout);
-    // await SendScreen.tapOnText(text);
-    await Gestures.tapTextByXpath(text, 'LONGPRESS');
+    await SendScreen.tapOnText(text);
+    // const base64enconded = await driver.stopRecordingScreen();
+    // const decoded = Buffer.from(base64enconded, 'base64').toString('binary');
+    // fs.writeFileSync('video.mp4', decoded, 'binary');
 });
 
 Then(/^I proceed to the amount view/, async () => {
@@ -74,7 +77,6 @@ Then(/^I am on the contacts view/, async () => {
 });
 
 Then(/^I tap button "([^"]*)?" which is now enabled/, async (text) => {
-    await driver.pause(2000); 
     await Contacts.isAddContactButtonEnabled();
     await Contacts.tapOnAddContactButton();
 });
