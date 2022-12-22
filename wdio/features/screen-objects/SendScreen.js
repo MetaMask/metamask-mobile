@@ -4,11 +4,13 @@ import {
     SEND_ADDRESS_INPUT_FIELD,
     SEND_WARNING_MESSAGE,
     UNDERSTAND_WARNING_CONTINUE,
-    AMOUNT_SCREEN,
     ADD_ADDRESS_BUTTON,
     SEND_CANCEL_BUTTON
  } from '../testIDs/Screens/SendScreen.testIds';
 
+ import { 
+   AMOUNT_SCREEN,
+} from '../testIDs/Screens/AmountScreen.testIds';
 class SendScreen{
 
     get sendAddressInputField (){

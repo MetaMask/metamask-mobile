@@ -8,6 +8,7 @@ import {
   View,
   StyleSheet,
   InteractionManager,
+  Platform,
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -21,6 +22,13 @@ import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  IMPORT_ACCOUNT_SCREEN_ID,
+  IMPORT_PRIVATE_KEY_BUTTON_ID,
+  PRIVATE_KEY_INPUT_BOX_ID,
+  CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
+} from '../../../../wdio/features/testIDs/Screens/ImportAccountScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -228,12 +236,23 @@ export default class ImportPrivateKey extends PureComponent {
           testID={'first-incoming-transaction-screen'}
           resetScrollToCoords={{ x: 0, y: 0 }}
         >
-          <View style={styles.content} testID={'import-account-screen'}>
+          <View
+            style={styles.content}
+            {...generateTestId(Platform, IMPORT_ACCOUNT_SCREEN_ID)}
+          >
             <TouchableOpacity
               onPress={this.dismiss}
               style={styles.navbarRightButton}
             >
-              <MaterialIcon name="close" size={15} style={styles.closeIcon} />
+              <MaterialIcon
+                name="close"
+                size={15}
+                style={styles.closeIcon}
+                {...generateTestId(
+                  Platform,
+                  CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
+                )}
+              />
             </TouchableOpacity>
             <View style={styles.top}>
               <Icon name="download" style={styles.icon} />
@@ -266,7 +285,7 @@ export default class ImportPrivateKey extends PureComponent {
                   this.state.inputWidth ? { width: this.state.inputWidth } : {},
                 ]}
                 onChangeText={this.onInputChange}
-                testID={'input-private-key'}
+                {...generateTestId(Platform, PRIVATE_KEY_INPUT_BOX_ID)}
                 blurOnSubmit
                 onSubmitEditing={this.goNext}
                 returnKeyType={'next'}
@@ -292,7 +311,7 @@ export default class ImportPrivateKey extends PureComponent {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={this.goNext}
-              testID={'import-button'}
+              {...generateTestId(Platform, IMPORT_PRIVATE_KEY_BUTTON_ID)}
             >
               {this.state.loading ? (
                 <ActivityIndicator
