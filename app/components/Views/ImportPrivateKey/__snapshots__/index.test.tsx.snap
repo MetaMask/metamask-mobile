@@ -279,5 +279,9 @@ exports[`ImportPrivateKey should render correctly 1`] = `
       </StyledButton>
     </View>
   </KeyboardAwareScrollView>
+  <ScreenshotDeterrent
+    enabled={true}
+    isSRP={false}
+  />
 </View>
 `;
