@@ -28,7 +28,7 @@ import getImage from '../../../util/getImage';
 import {
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
@@ -200,7 +200,6 @@ export class NetworkList extends PureComponent {
       }, 1000);
 
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
-      network_name: type,
       chain_id: String(Networks[type].chainId),
       source: 'Settings',
     });
@@ -234,7 +233,6 @@ export class NetworkList extends PureComponent {
       chain_id: chainId,
       source: 'Settings',
       symbol: ticker,
-      network_name: 'rpc',
     });
   };
 
@@ -311,12 +309,16 @@ export class NetworkList extends PureComponent {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getImage(chainId);
       const isCustomRpc = true;
-      const selected =
-        provider.rpcTarget === rpcUrl && provider.type === RPC ? (
+      const rpcTargetHref =
+        provider.rpcTarget && new URL(provider.rpcTarget)?.href;
+      const rpcURL = new URL(rpcUrl);
+      const isSameRPC = rpcTargetHref === rpcURL.href;
+      const selectedIcon =
+        isSameRPC && provider.type === RPC ? (
           <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
-        selected,
+        selectedIcon,
         this.onSetRpcTarget,
         name,
         image,
@@ -331,7 +333,8 @@ export class NetworkList extends PureComponent {
     const { provider } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
-    const isMainnet =
+    // Do not check using chainId. This check needs to specifically use `mainnet`.
+    const checkIcon =
       provider.type === MAINNET ? (
         <Icon name="check" size={15} color={colors.icon.default} />
       ) : null;
@@ -347,7 +350,7 @@ export class NetworkList extends PureComponent {
         >
           <View style={styles.networkWrapper}>
             <View style={[styles.selected, styles.mainnetSelected]}>
-              {isMainnet}
+              {checkIcon}
             </View>
             <ImageIcon image="ETHEREUM" style={styles.networkIcon} />
             <View style={styles.networkInfo}>

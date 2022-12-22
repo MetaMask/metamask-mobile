@@ -36,7 +36,7 @@ import {
 import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedL1FeeOptimism,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../../../util/networks';
 import {
   getErrorMessage,
@@ -53,7 +53,7 @@ import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 import { getSwapsQuotesNavbar } from '../Navbar';
-import ScreenView from '../FiatOrders/components/ScreenView';
+import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
 import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
@@ -403,7 +403,8 @@ function SwapsQuotesView({
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [multiLayerL1FeeTotal, setMultiLayerL1FeeTotal] = useState(null);
+  const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
+    useState(null);
 
   /* Selected quote, initially topAggId (see effects) */
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -479,16 +480,16 @@ function SwapsQuotesView({
     [allQuotes, selectedQuoteId],
   );
   const selectedQuoteValue = useMemo(() => {
-    if (!quoteValues[selectedQuoteId] || multiLayerL1FeeTotal === null) {
+    if (!quoteValues[selectedQuoteId] || !multiLayerL1ApprovalFeeTotal) {
       return quoteValues[selectedQuoteId];
     }
     const fees = {
       ethFee: calculateEthFeeForMultiLayer({
-        multiLayerL1FeeTotal,
+        multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
         ethFee: quoteValues[selectedQuoteId].ethFee,
       }),
       maxEthFee: calculateEthFeeForMultiLayer({
-        multiLayerL1FeeTotal,
+        multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
         ethFee: quoteValues[selectedQuoteId].maxEthFee,
       }),
     };
@@ -499,7 +500,7 @@ function SwapsQuotesView({
   }, [
     // eslint-disable-next-line react-hooks/exhaustive-deps
     quoteValues[selectedQuoteId],
-    multiLayerL1FeeTotal,
+    multiLayerL1ApprovalFeeTotal,
     quoteValues,
     selectedQuoteId,
   ]);
@@ -1596,24 +1597,30 @@ function SwapsQuotesView({
   }, [error, handleQuotesErrorMetric, trackedError]);
 
   useEffect(() => {
-    if (!multiLayerFeeNetwork || !selectedQuote?.trade) {
+    if (!multiLayerFeeNetwork) {
       return;
     }
-    const getEstimatedL1Fee = async () => {
+    const getEstimatedL1ApprovalFee = async () => {
       try {
         const eth = new Eth(Engine.context.NetworkController.provider);
-        const result = await fetchEstimatedL1FeeOptimism(eth, {
-          txParams: selectedQuote.trade,
-          chainId,
-        });
-        setMultiLayerL1FeeTotal(result);
+        let l1ApprovalFeeTotal = '0x0';
+        if (approvalTransaction) {
+          l1ApprovalFeeTotal = await fetchEstimatedMultiLayerL1Fee(eth, {
+            txParams: {
+              ...approvalTransaction,
+              value: '0x0', // For approval txs we need to use "0x0" here.
+            },
+            chainId,
+          });
+          setMultiLayerL1ApprovalFeeTotal(l1ApprovalFeeTotal);
+        }
       } catch (e) {
-        Logger.error(e, 'fetchEstimatedL1FeeOptimism call failed');
-        setMultiLayerL1FeeTotal(null);
+        Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+        setMultiLayerL1ApprovalFeeTotal(null);
       }
     };
-    getEstimatedL1Fee();
-  }, [selectedQuote?.trade, multiLayerFeeNetwork, chainId]);
+    getEstimatedL1ApprovalFee();
+  }, [multiLayerFeeNetwork, approvalTransaction, chainId]);
 
   const openLinkAboutGas = () =>
     Linking.openURL(
@@ -2230,7 +2237,7 @@ function SwapsQuotesView({
         selectedQuote={selectedQuoteId}
         showOverallValue={hasConversionRate}
         ticker={getTicker(ticker)}
-        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+        multiLayerL1ApprovalFeeTotal={multiLayerL1ApprovalFeeTotal}
       />
 
       <ApprovalTransactionEditionModal

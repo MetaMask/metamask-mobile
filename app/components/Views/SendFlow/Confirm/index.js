@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
+import Eth from 'ethjs-query';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -60,6 +61,8 @@ import {
   isTestNet,
   getNetworkNonce,
   isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -84,7 +87,7 @@ import WarningMessage from '../WarningMessage';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import GlobalAlert from '../../../UI/GlobalAlert';
-import { allowedToBuy } from '../../../UI/FiatOrders';
+import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   startGasPolling,
@@ -95,8 +98,11 @@ const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 const { hexToBN, BNToHex } = util;
+
+let intervalIdForEstimatedL1Fee;
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -212,10 +218,6 @@ class Confirm extends PureComponent {
      */
     isPaymentRequest: PropTypes.bool,
     /**
-     * A string representing the network type
-     */
-    networkType: PropTypes.string,
-    /**
      * Triggers global alert
      */
     showAlert: PropTypes.func,
@@ -246,6 +248,7 @@ class Confirm extends PureComponent {
     EIP1559GasObject: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
+    multiLayerL1FeeTotal: '0x0',
   };
 
   setNetworkNonce = async () => {
@@ -257,14 +260,12 @@ class Confirm extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { selectedAsset, gasEstimateType, chainId, networkType } =
-        this.props;
+      const { selectedAsset, gasEstimateType, chainId } = this.props;
       const { gasSelected, fromSelectedAddress } = this.state;
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         account_type: getAddressAccountType(fromSelectedAddress),
-        network_name: networkType,
         chain_id: chainId,
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
@@ -277,11 +278,10 @@ class Confirm extends PureComponent {
 
   getGasAnalyticsParams = () => {
     try {
-      const { selectedAsset, gasEstimateType, networkType } = this.props;
+      const { selectedAsset, gasEstimateType } = this.props;
       return {
         active_currency: { value: selectedAsset.symbol, anonymous: true },
         gas_estimate_type: gasEstimateType,
-        network_name: networkType,
       };
     } catch (error) {
       return {};
@@ -318,14 +318,40 @@ class Confirm extends PureComponent {
 
   componentWillUnmount = async () => {
     await stopGasPolling(this.state.pollToken);
+    clearInterval(intervalIdForEstimatedL1Fee);
+  };
+
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    if (!transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
   };
 
   componentDidMount = async () => {
+    const { chainId } = this.props;
     this.updateNavBar();
     this.getGasLimit();
 
     const pollToken = await startGasPolling(this.state.pollToken);
-    this.setState({ pollToken });
+    this.setState({
+      pollToken,
+    });
     // For analytics
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED,
@@ -338,6 +364,13 @@ class Confirm extends PureComponent {
     navigation.setParams({ providerType, isPaymentRequest });
     this.handleConfusables();
     this.parseTransactionDataHeader();
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
+    }
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -350,7 +383,6 @@ class Confirm extends PureComponent {
       selectedAsset,
     } = this.props;
     this.updateNavBar();
-
     const { errorMessage, fromSelectedAddress } = this.state;
     const valueChanged = prevProps.transactionState.transaction.value !== value;
     const fromAddressChanged =
@@ -616,12 +648,9 @@ class Confirm extends PureComponent {
     } = this.props;
     const { fromSelectedAddress } = this.state;
     if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
-      const { CollectiblesController } = Engine.context;
+      const { NftController } = Engine.context;
       removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
-      CollectiblesController.removeCollectible(
-        selectedAsset.address,
-        selectedAsset.tokenId,
-      );
+      NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);
     }
   };
 
@@ -1152,6 +1181,7 @@ class Confirm extends PureComponent {
       warningModalVisible,
       isAnimating,
       animateOnChange,
+      multiLayerL1FeeTotal,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1280,6 +1310,7 @@ class Confirm extends PureComponent {
             updateTransactionState={this.updateTransactionState}
             legacy={!showFeeMarket}
             onlyGas={false}
+            multiLayerL1FeeTotal={multiLayerL1FeeTotal}
           />
           {showCustomNonce && (
             <CustomNonce
@@ -1390,7 +1421,6 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 const mapDispatchToProps = (dispatch) => ({
