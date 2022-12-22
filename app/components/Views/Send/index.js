@@ -37,7 +37,7 @@ import {
   generateTransferData,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
-import { isENS } from '../../../util/address';
+import { isENS, isValidHexAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
@@ -46,6 +46,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { doENSLookup } from '../../../util/ENSUtils';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -266,12 +267,26 @@ class Send extends PureComponent {
   /**
    * Handle deeplink txMeta recipient
    */
-  handleNewTxMetaRecipient = (recipient) => {
+  handleNewTxMetaRecipient = async (recipient) => {
     let ensRecipient, to;
     if (isENS(recipient)) {
       ensRecipient = recipient;
-    } else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
-      to = toChecksumAddress(recipient);
+      to = await doENSLookup(ensRecipient, this.props.network);
+    }
+    if (
+      recipient &&
+      isValidHexAddress(recipient, { mixedCaseUseChecksum: true })
+    ) {
+      to = recipient;
+    }
+    if (!to) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: strings('transaction.invalid_recipient_description'),
+      });
+      this.props.navigation.navigate('WalletView');
     }
     return { ensRecipient, to };
   };
@@ -289,21 +304,26 @@ class Send extends PureComponent {
     const { addressBook, network, identities, selectedAddress } = this.props;
 
     let newTxMeta = {};
+    let txRecipient;
     switch (action) {
       case 'send-eth':
+        txRecipient = await this.handleNewTxMetaRecipient(target_address);
+        if (!txRecipient.to) return;
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
           type: 'ETHER_TRANSACTION',
           paymentRequest: true,
           selectedAsset: { symbol: 'ETH', isETH: true },
-          ...this.handleNewTxMetaRecipient(target_address),
+          ...txRecipient,
         };
+
         if (parameters && parameters.value) {
           newTxMeta.value = BNToHex(toBN(parameters.value));
           newTxMeta.transactionValue = newTxMeta.value;
           newTxMeta.readableValue = fromWei(newTxMeta.value);
         }
+
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
           network,
@@ -311,13 +331,16 @@ class Send extends PureComponent {
           identities,
           ensRecipient: newTxMeta.ensRecipient,
         });
+
         newTxMeta.transactionTo = newTxMeta.to;
         break;
       case 'send-token': {
         const selectedAsset = await this.handleTokenDeeplink(target_address);
-        const { ensRecipient, to } = this.handleNewTxMetaRecipient(
+
+        const { ensRecipient, to } = await this.handleNewTxMetaRecipient(
           parameters.address,
         );
+        if (!to) return;
         const tokenAmount =
           (parameters.uint256 &&
             new BigNumber(parameters.uint256).toString(16)) ||
@@ -331,7 +354,7 @@ class Send extends PureComponent {
           to: selectedAsset.address,
           transactionTo: to,
           data: generateTransferData('transfer', {
-            toAddress: parameters.address,
+            toAddress: to,
             amount: tokenAmount,
           }),
           value: '0x0',
@@ -462,14 +485,11 @@ class Send extends PureComponent {
   /**
    * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
    */
-  removeCollectible = () => {
+  removeNft = () => {
     const { selectedAsset, assetType, providerType } = this.props.transaction;
     if (assetType === 'ERC721' && providerType !== MAINNET) {
-      const { CollectiblesController } = Engine.context;
-      CollectiblesController.removeCollectible(
-        selectedAsset.address,
-        selectedAsset.tokenId,
-      );
+      const { NftController } = Engine.context;
+      NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);
     }
   };
 
@@ -568,7 +588,7 @@ class Send extends PureComponent {
           ...transactionMeta,
           assetType: transaction.assetType,
         });
-        this.removeCollectible();
+        this.removeNft();
       });
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {

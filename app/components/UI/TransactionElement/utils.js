@@ -11,12 +11,15 @@ import {
   weiToFiatNumber,
   addCurrencySymbol,
   toBN,
+  BNToHex,
+  limitToMaximumDecimalPlaces,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFullAddress,
   safeToChecksumAddress,
 } from '../../../util/address';
+import { sumHexWEIs } from '../../../util/conversions';
 import {
   decodeTransferData,
   isCollectibleAddress,
@@ -43,8 +46,8 @@ function calculateTotalGas(transaction) {
     estimatedBaseFee,
     maxPriorityFeePerGas,
     maxFeePerGas,
+    multiLayerL1FeeTotal,
   } = transaction;
-
   if (isEIP1559Transaction(transaction)) {
     const eip1559GasHex = calculateEIP1559GasFeeHexes({
       gasLimitHex: gasUsed || gas,
@@ -57,16 +60,17 @@ function calculateTotalGas(transaction) {
   const gasBN = hexToBN(gas);
   const gasPriceBN = hexToBN(gasPrice);
   const gasUsedBN = gasUsed ? hexToBN(gasUsed) : null;
-
+  let totalGas = hexToBN('0x0');
   if (gasUsedBN && isBN(gasUsedBN) && isBN(gasPriceBN)) {
-    return gasUsedBN.mul(gasPriceBN);
+    totalGas = gasUsedBN.mul(gasPriceBN);
   }
-
   if (isBN(gasBN) && isBN(gasPriceBN)) {
-    return gasBN.mul(gasPriceBN);
+    totalGas = gasBN.mul(gasPriceBN);
   }
-
-  return hexToBN('0x0');
+  if (multiLayerL1FeeTotal) {
+    totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
+  }
+  return totalGas;
 }
 
 function renderGwei(transaction) {
@@ -712,12 +716,18 @@ function decodeSwapsTx(args) {
         : swapTransaction.destinationAmount,
       swapTransaction.destinationToken.decimals,
     );
+  let totalAmountForEthSourceTokenFormatted;
+  if (sourceToken.symbol === 'ETH') {
+    const totalAmountForEthSourceToken =
+      Number(!isNaN(totalEthGas) ? totalEthGas : 0) +
+      Number(decimalSourceAmount);
+    totalAmountForEthSourceTokenFormatted = `${limitToMaximumDecimalPlaces(
+      totalAmountForEthSourceToken,
+    )} ${ticker}`;
+  }
   const cryptoSummaryTotalAmount =
     sourceToken.symbol === 'ETH'
-      ? `${
-          Number(!isNaN(totalEthGas) ? totalEthGas : 0) +
-          Number(decimalSourceAmount)
-        } ${ticker}`
+      ? totalAmountForEthSourceTokenFormatted
       : decimalSourceAmount
       ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
       : `${totalEthGas} ${ticker}`;

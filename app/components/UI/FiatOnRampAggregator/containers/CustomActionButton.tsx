@@ -9,7 +9,7 @@ import { useFiatOnRampSDK } from '../sdk';
 import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../hooks/useInAppBrowser';
 import Logger from '../../../../util/Logger';
-import Routes from '../../../../constants/navigation/Routes';
+import { createCheckoutNavDetails } from '../Views/Checkout';
 
 interface Props {
   customAction: PaymentCustomAction;
@@ -80,11 +80,13 @@ const CustomActionButton: React.FC<
         const { url, orderId: customOrderId } = await buyAction.createWidget(
           callbackBaseUrl,
         );
-        navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT, {
-          url,
-          provider: provider.provider,
-          customOrderId,
-        });
+        navigation.navigate(
+          ...createCheckoutNavDetails({
+            url,
+            provider: provider.provider,
+            customOrderId,
+          }),
+        );
       } else if (
         buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
       ) {

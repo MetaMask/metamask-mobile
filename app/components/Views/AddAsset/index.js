@@ -73,7 +73,7 @@ class AddAsset extends PureComponent {
     /**
      * Boolean to show if NFT detection is enabled
      */
-    useCollectibleDetection: PropTypes.bool,
+    useNftDetection: PropTypes.bool,
   };
 
   updateNavBar = () => {
@@ -127,8 +127,8 @@ class AddAsset extends PureComponent {
       },
       navigation,
       chainId,
+      useNftDetection,
       networkType,
-      useCollectibleDetection,
     } = this.props;
     const { dismissNftInfo } = this.state;
     const isTokenDetectionSupported =
@@ -141,7 +141,7 @@ class AddAsset extends PureComponent {
         {networkType === MAINNET &&
           assetType !== 'token' &&
           !dismissNftInfo &&
-          !useCollectibleDetection && (
+          !useNftDetection && (
             <View style={styles.infoWrapper}>
               <CollectibleDetectionModal
                 onDismiss={this.dismissNftInfo}
@@ -185,8 +185,8 @@ AddAsset.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   networkType: state.engine.backgroundState.NetworkController.provider.type,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
 });
 
 export default connect(mapStateToProps)(AddAsset);
