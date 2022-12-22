@@ -29,7 +29,7 @@ Feature: Importing account in wallet
         And I type <PRIVATEKEY> into the private key input field
         And I tap on the private key import button
         Then I should see an error <warning>
-        When I close the import account screen
+        And I close the import account screen
         Examples:
             | PRIVATEKEY | warning                              |
             | 23423411x  | We couldn't import that private key. |
