@@ -184,6 +184,11 @@ export const ANALYTICS_EVENTS_V2 = {
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
   ONRAMP_ERROR: generateOpt('On-ramp Error'),
 
+  // Screenshots
+  SCREENSHOT_WARNING: generateOpt('screenshot_warning_displayed'),
+  SCREENSHOT_LEARN_MORE: generateOpt('clicked_screenshot_warning_learn_more'),
+  SCREENSHOT_OK: generateOpt('clicked_screenshot_warning_okay'),
+
   // force upgrade/automatic security checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
     'Force Upgrade Update Needed Prompt Viewed',
@@ -194,23 +199,18 @@ export const ANALYTICS_EVENTS_V2 = {
   FORCE_UPGRADE_REMIND_ME_LATER_CLICKED: generateOpt(
     'Force Upgrade Clicked Remind Me Later',
   ),
-
   AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED: generateOpt(
     'Automatic Security Checks Prompt Viewed',
   ),
-
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT: generateOpt(
     'Automatic Security Checks Enabled From Prompt',
   ),
-
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT: generateOpt(
     'Automatic Security Checks Disabled From Prompt',
   ),
-
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS: generateOpt(
     'Automatic Security Checks Enabled From Settings',
   ),
-
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS: generateOpt(
     'Automatic Security Checks Disabled From Settings',
   ),
