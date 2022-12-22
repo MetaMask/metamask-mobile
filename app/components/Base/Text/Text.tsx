@@ -1,8 +1,7 @@
 import React from 'react';
-import { Text as RNText, StyleSheet } from 'react-native';
-import { fontStyles } from '../../styles/common';
-import { useTheme } from '../../util/theme';
-import { Colors } from '../../util/theme/models';
+import { Text as RNText } from 'react-native';
+import { useTheme } from '../../../util/theme';
+import styles from './Text.styles';
 
 interface TextProps extends React.ComponentPropsWithoutRef<typeof RNText> {
   reset?: boolean;
@@ -29,84 +28,6 @@ interface TextProps extends React.ComponentPropsWithoutRef<typeof RNText> {
   strikethrough?: boolean;
   underline?: boolean;
 }
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    text: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      marginVertical: 2,
-      fontSize: 14,
-    },
-    centered: {
-      textAlign: 'center',
-    },
-    right: {
-      textAlign: 'right',
-    },
-    red: {
-      color: colors.error.default,
-    },
-    orange: {
-      color: colors.secondary.default,
-    },
-    black: {
-      color: colors.text.default,
-    },
-    bold: fontStyles.bold,
-    blue: {
-      color: colors.primary.default,
-    },
-    green: {
-      color: colors.success.default,
-    },
-    grey: {
-      color: colors.text.alternative,
-    },
-    primary: {
-      color: colors.text.default,
-    },
-    muted: {
-      color: colors.text.muted,
-    },
-    small: {
-      fontSize: 12,
-    },
-    big: {
-      fontSize: 16,
-    },
-    bigger: {
-      fontSize: 18,
-    },
-    upper: {
-      textTransform: 'uppercase',
-    },
-    disclaimer: {
-      fontStyle: 'italic',
-      letterSpacing: 0.15,
-    },
-    modal: {
-      color: colors.text.default,
-      fontSize: 16,
-      lineHeight: 22.4, // 1.4 * fontSize
-    },
-    infoModal: {
-      lineHeight: 20,
-      marginVertical: 6,
-    },
-    link: {
-      color: colors.primary.default,
-    },
-    strikethrough: {
-      textDecorationLine: 'line-through',
-    },
-    underline: {
-      textDecorationLine: 'underline',
-    },
-    noMargin: {
-      marginVertical: 0,
-    },
-  });
 
 const Text: React.FC<TextProps> = ({
   reset,
@@ -136,7 +57,7 @@ const Text: React.FC<TextProps> = ({
   ...props
 }: TextProps) => {
   const { colors } = useTheme();
-  const style = createStyles(colors);
+  const style = styles(colors);
 
   return (
     <RNText
