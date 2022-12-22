@@ -66,6 +66,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
               "fontSize": 28,
             }
           }
+          testID="close-button-on-account-screen"
         />
       </TouchableOpacity>
       <View
