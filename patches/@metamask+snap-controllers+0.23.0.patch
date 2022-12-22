@@ -135,10 +135,34 @@ index 90e8295..7ac6243 100644
          this._removeSnapHooks(snapId);
      }
 diff --git a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
-index eb7e9bf..97e935d 100644
+index eb7e9bf..8bbc536 100644
 --- a/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snap-controllers/dist/snaps/SnapController.js
-@@ -378,6 +378,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -228,7 +228,9 @@ class SnapController extends controllers_1.BaseControllerV2 {
+         this.messagingSystem.registerActionHandler(`${exports.controllerName}:decrementActiveReferences`, (...args) => this.decrementActiveReferences(...args));
+     }
+     _pollForLastRequestStatus() {
++        console.log('[SNAP CONTROLLER LOG] _pollForLastRequestStatus');
+         this._timeoutForLastRequestStatus = setTimeout(async () => {
++            console.log('[SNAP CONTROLLER LOG] _timeoutForLastRequestStatus');
+             await this._stopSnapsLastRequestPastMax();
+             this._pollForLastRequestStatus();
+         }, this._idleTimeCheckInterval);
+@@ -320,7 +322,13 @@ class SnapController extends controllers_1.BaseControllerV2 {
+         }
+     }
+     async _stopSnapsLastRequestPastMax() {
++        
+         const entries = [...this._snapsRuntimeData.entries()];
++        console.log('[SNAP CONTROLLER LOG] _stopSnapsLastRequestPastMax');
++        entries.forEach((entry) => {
++            console.log('entry', { id: entry[0], activeReferences: entry[1].activeReferences, lastRequest: entry[1].lastRequest, pendingOutboundRequests: entry[1].pendingOutboundRequests, state: entry[1].state });
++            // console.log({ snapId: entry.snapId, references: entry.activeReferences, pendingInboundRequests: runtime.pendingInboundRequests.length, lastRequest: timeSince(runtime.lastRequest), maxIdleTime: this._maxIdleTime });
++        })
+         return Promise.all(entries
+             .filter(([_snapId, runtime]) => runtime.activeReferences === 0 &&
+             runtime.pendingInboundRequests.length === 0 &&
+@@ -378,6 +386,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
       * @param snapId - The id of the Snap to start.
       */
      async startSnap(snapId) {
@@ -146,7 +170,7 @@ index eb7e9bf..97e935d 100644
          const runtime = this.getRuntimeExpect(snapId);
          if (this.state.snaps[snapId].enabled === false) {
              throw new Error(`Snap "${snapId}" is disabled.`);
-@@ -456,6 +457,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -456,6 +465,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
       * @param snapId - The snap to terminate.
       */
      async terminateSnap(snapId) {
@@ -154,7 +178,7 @@ index eb7e9bf..97e935d 100644
          await this.messagingSystem.call('ExecutionService:terminateSnap', snapId);
          this.messagingSystem.publish('SnapController:snapTerminated', this.getTruncatedExpect(snapId));
      }
-@@ -750,6 +752,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -750,6 +760,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
                  };
              }
          }));
@@ -162,7 +186,7 @@ index eb7e9bf..97e935d 100644
          return result;
      }
      /**
-@@ -806,11 +809,14 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -806,11 +817,14 @@ class SnapController extends controllers_1.BaseControllerV2 {
                  id: snapId,
                  versionRange,
              });
@@ -177,7 +201,7 @@ index eb7e9bf..97e935d 100644
              const truncated = this.getTruncatedExpect(snapId);
              this.messagingSystem.publish(`SnapController:snapInstalled`, truncated);
              return truncated;
-@@ -846,6 +852,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -846,6 +860,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
              throw new Error(`Received invalid snap version range: "${newVersionRange}".`);
          }
          const newSnap = await this._fetchSnap(snapId, newVersionRange);
@@ -185,7 +209,7 @@ index eb7e9bf..97e935d 100644
          const newVersion = newSnap.manifest.version;
          if (!(0, snap_utils_1.gtVersion)(newVersion, snap.version)) {
              console.warn(`Tried updating snap "${snapId}" within "${newVersionRange}" version range, but newer version "${snap.version}" is already installed`);
-@@ -950,6 +957,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -950,6 +965,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
          }
      }
      async _startSnap(snapData) {
@@ -193,7 +217,7 @@ index eb7e9bf..97e935d 100644
          const { snapId } = snapData;
          if (this.isRunning(snapId)) {
              throw new Error(`Snap "${snapId}" is already started.`);
-@@ -1103,21 +1111,23 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1103,21 +1119,23 @@ class SnapController extends controllers_1.BaseControllerV2 {
          // Local snaps are mostly used for development purposes. Fetches were cached in the browser and were not requested
          // afterwards which lead to confusing development where old versions of snaps were installed.
          // Thus we disable caching
@@ -221,7 +245,7 @@ index eb7e9bf..97e935d 100644
          return { manifest, sourceCode, svgIcon };
      }
      /**
-@@ -1228,6 +1238,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
+@@ -1228,6 +1246,7 @@ class SnapController extends controllers_1.BaseControllerV2 {
          // We need to set up this promise map to map snapIds to their respective startPromises,
          // because otherwise we would lose context on the correct startPromise.
          const startPromises = new Map();
