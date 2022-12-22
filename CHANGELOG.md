@@ -1,6 +1,35 @@
 # Changelog
 
 ## Current Main Branch
+- [#5408](https://github.com/MetaMask/metamask-mobile/pull/5408): 5.12.3
+- [#5381](https://github.com/MetaMask/metamask-mobile/pull/5381): bumped contract-metadata to 2.1.0
+- [#5424](https://github.com/MetaMask/metamask-mobile/pull/5424): [IMPROVEMENT] Add Screenshot Warning to ImportPrivateKey
+- [#5425](https://github.com/MetaMask/metamask-mobile/pull/5425): Accounts e2e test
+- [#5429](https://github.com/MetaMask/metamask-mobile/pull/5429): Refactor Base/Text component to TypeScript
+- [#5426](https://github.com/MetaMask/metamask-mobile/pull/5426): [FIX] Revert unwanted changes to .iyarc and project.pbxproj
+- [#4670](https://github.com/MetaMask/metamask-mobile/pull/4670): [FEAT] Screenshot Warning
+- [#5422](https://github.com/MetaMask/metamask-mobile/pull/5422): Add custom network and Import custom token
+- [#5423](https://github.com/MetaMask/metamask-mobile/pull/5423): decouple analytics useEffects
+- [#5376](https://github.com/MetaMask/metamask-mobile/pull/5376): Include L1 fee in the Send flow and on the tx detail page for Optimism
+- [#5351](https://github.com/MetaMask/metamask-mobile/pull/5351): On-ramp: remove old on-ramp experience
+- [#5385](https://github.com/MetaMask/metamask-mobile/pull/5385): On-ramp: Refactor Get Started view
+- [#5421](https://github.com/MetaMask/metamask-mobile/pull/5421): Measure how many times automatic security checks prompt is viewed
+- [#5371](https://github.com/MetaMask/metamask-mobile/pull/5371): On-ramp: Refactor quotes to shorter version
+- [#5386](https://github.com/MetaMask/metamask-mobile/pull/5386): On-ramp: Add `useParams` hook to the flow views
+- [#5379](https://github.com/MetaMask/metamask-mobile/pull/5379): On-ramp: Upgrade to on-ramp-sdk@1.4.1
+- [#5414](https://github.com/MetaMask/metamask-mobile/pull/5414): [Force upgrade] fix useAppConfig test
+- [#5398](https://github.com/MetaMask/metamask-mobile/pull/5398): Appium/test fixes
+- [#5373](https://github.com/MetaMask/metamask-mobile/pull/5373): E2e appium address book-Send flow tests
+- [#5352](https://github.com/MetaMask/metamask-mobile/pull/5352): Bump decode-uri-component from 0.2.0 to 0.2.2
+- [#5246](https://github.com/MetaMask/metamask-mobile/pull/5246): Bump loader-utils from 1.4.0 to 1.4.2
+- [#5191](https://github.com/MetaMask/metamask-mobile/pull/5191): Support for ens on deeplink transactions
+- [#5115](https://github.com/MetaMask/metamask-mobile/pull/5115): cancelling transaction when user does not give dapp permission to transfer funds
+- [#5400](https://github.com/MetaMask/metamask-mobile/pull/5400): Fix jest expect type
+- [#4546](https://github.com/MetaMask/metamask-mobile/pull/4546): [Browser] Support downloading Apple Wallet passes on iOS
+- [#5299](https://github.com/MetaMask/metamask-mobile/pull/5299): [REFACTOR] Screen ImportFromSeed
+- [#5200](https://github.com/MetaMask/metamask-mobile/pull/5200): Update Controllers to version 33.0.0
+- [#5083](https://github.com/MetaMask/metamask-mobile/pull/5083): Component: Custom Spending Cap
+- [#5353](https://github.com/MetaMask/metamask-mobile/pull/5353): 5.12.1
 
 ## 5.12.3 - Dec 16, 2022
 - Hotfix version bump for iOS only release, no code changes
