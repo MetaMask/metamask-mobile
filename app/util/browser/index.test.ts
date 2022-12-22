@@ -2,31 +2,31 @@ import onUrlSubmit, {
   isTLD,
   getAlertMessage,
   protocolAllowList,
-  sanitizeUrl,
+  prefixUrlWithProtocol,
   getUrlObj,
   getHost,
 } from '.';
 import { strings } from '../../../locales/i18n';
 
-describe('Browser utils :: sanitizeUrl', () => {
-  it('should sanitize url without protocol', () => {
-    const url = sanitizeUrl('test.com');
+describe('Browser utils :: prefixUrlWithProtocol', () => {
+  it('should prefix url with https: protocol', () => {
+    const url = prefixUrlWithProtocol('test.com');
     expect(url).toBe('https://test.com');
   });
 
   it('should respect the original protocol ', () => {
-    const url = sanitizeUrl('http://test.com');
+    const url = prefixUrlWithProtocol('http://test.com');
     expect(url).toBe('http://test.com');
   });
 
   it('should respect the default protocol ', () => {
-    const url = sanitizeUrl('test.com', 'http://');
+    const url = prefixUrlWithProtocol('test.com', 'http://');
     expect(url).toBe('http://test.com');
   });
 });
 
 describe('Browser utils :: onUrlSubmit', () => {
-  it('should sanitize url without protocol', () => {
+  it('should prefix url with https: protocol', () => {
     const url = onUrlSubmit('test.com');
     expect(url).toBe('https://test.com');
   });
@@ -39,21 +39,24 @@ describe('Browser utils :: onUrlSubmit', () => {
   it('should generate a seach engine link if it we pass non url', () => {
     const keyword = 'test';
     const url = onUrlSubmit(keyword, 'Google');
-    const expectedUrl = 'https://www.google.com/search?q=' + escape(keyword);
+    const expectedUrl =
+      'https://www.google.com/search?q=' + encodeURIComponent(keyword);
     expect(url).toBe(expectedUrl);
   });
 
   it('should choose the search engine based on the params', () => {
     const keyword = 'test';
     const url = onUrlSubmit(keyword, 'DuckDuckGo');
-    const expectedUrl = 'https://duckduckgo.com/?q=' + escape(keyword);
+    const expectedUrl =
+      'https://duckduckgo.com/?q=' + encodeURIComponent(keyword);
     expect(url).toBe(expectedUrl);
   });
 
   it('should detect keywords with several words', () => {
     const keyword = 'what is a test';
     const url = onUrlSubmit(keyword, 'DuckDuckGo');
-    const expectedUrl = 'https://duckduckgo.com/?q=' + escape(keyword);
+    const expectedUrl =
+      'https://duckduckgo.com/?q=' + encodeURIComponent(keyword);
     expect(url).toBe(expectedUrl);
   });
 

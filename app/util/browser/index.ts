@@ -8,7 +8,10 @@ import isUrl from 'is-url';
  * @param defaultProtocol - Protocol string to append to URLs that have none
  * @returns - String corresponding to sanitized input depending if it's a search or url
  */
-export const prefixUrlWithProtocol = (url: string, defaultProtocol = 'https://') => {
+export const prefixUrlWithProtocol = (
+  url: string,
+  defaultProtocol = 'https://',
+) => {
   const hasProtocol = /^[a-z]*:\/\//.test(url);
   const sanitizedURL = hasProtocol ? url : `${defaultProtocol}${url}`;
   return sanitizedURL;
