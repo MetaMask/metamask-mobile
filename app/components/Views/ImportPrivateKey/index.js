@@ -11,6 +11,7 @@ import {
 
 import PropTypes from 'prop-types';
 import StyledButton from '../../UI/StyledButton';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -202,6 +203,7 @@ export default class ImportPrivateKey extends PureComponent {
             </StyledButton>
           </View>
         </KeyboardAwareScrollView>
+        <ScreenshotDeterrent enabled isSRP={false} />
       </View>
     );
   }
