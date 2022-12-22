@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dimensions,
   SafeAreaView,
@@ -10,7 +10,6 @@ import {
   InteractionManager,
   Linking,
   Platform,
-  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PropTypes from 'prop-types';
@@ -24,7 +23,7 @@ import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
-import useScreenshotWarning from '../../hooks/useScreenshotWarning';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
 import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
@@ -79,38 +78,6 @@ const RevealPrivateCredential = ({
   const privateCredentialName =
     credentialName || route.params.privateCredentialName;
 
-  const openSRPGuide = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
-    Linking.openURL(SRP_GUIDE_URL);
-  };
-
-  const showScreenshotAlert = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
-    Alert.alert(
-      strings('screenshot_deterrent.title'),
-      strings('screenshot_deterrent.description', {
-        credentialName:
-          privateCredentialName === PRIVATE_KEY
-            ? strings('screenshot_deterrent.priv_key_text')
-            : strings('screenshot_deterrent.srp_text'),
-      }),
-      [
-        {
-          text: strings('reveal_credential.learn_more'),
-          onPress: openSRPGuide,
-          style: 'cancel',
-        },
-        {
-          text: strings('reveal_credential.got_it'),
-          onPress: () =>
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
-        },
-      ],
-    );
-  }, [privateCredentialName]);
-
-  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
-
   const updateNavBar = () => {
     if (navBarDisabled) {
       return;
@@ -155,7 +122,6 @@ const RevealPrivateCredential = ({
 
       if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
         setClipboardPrivateCredential(privateCredential);
-        enableScreenshotWarning(true);
         setUnlocked(true);
       }
     } catch (e) {
@@ -169,7 +135,6 @@ const RevealPrivateCredential = ({
       }
 
       setIsModalVisible(false);
-      enableScreenshotWarning(false);
       setUnlocked(false);
       setWarningIncorrectPassword(msg);
     }
@@ -572,6 +537,10 @@ const RevealPrivateCredential = ({
         </>
       </ActionView>
       {renderModal(isPrivateKey(), privateCredentialName)}
+      <ScreenshotDeterrent
+        enabled={unlocked}
+        isSRP={privateCredentialName !== PRIVATE_KEY}
+      />
     </SafeAreaView>
   );
 };
