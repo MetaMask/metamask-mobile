@@ -2,13 +2,12 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import EthereumAddress from '../../EthereumAddress';
 import JSIdenticon from '../../Identicon';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { colors as importedColors } from '../../../../styles/common';
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const Identicon = JSIdenticon as any;
 
 const createStyles = (colors: Colors) =>

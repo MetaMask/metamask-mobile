@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from './Regions.styles';
 
-import BaseText from '../../../../Base/Text';
+import Text from '../../../../Base/Text';
 import BaseListItem from '../../../../Base/ListItem';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
 
@@ -29,7 +29,6 @@ import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(

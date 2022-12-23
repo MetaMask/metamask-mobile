@@ -73,7 +73,10 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { AMOUNT_SCREEN } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import {
+  AMOUNT_SCREEN,
+  AMOUNT_SCREEN_CARET_DROP_DOWN,
+} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const { hexToBN, BNToHex } = util;
@@ -1229,6 +1232,10 @@ class Amount extends PureComponent {
                       size={16}
                       color={colors.primary.inverse}
                       style={styles.iconDropdown}
+                      {...generateTestId(
+                        Platform,
+                        AMOUNT_SCREEN_CARET_DROP_DOWN,
+                      )}
                     />
                   </View>
                 </TouchableOpacity>

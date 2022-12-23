@@ -53,6 +53,9 @@ const EnableAutomaticSecurityChecksModal = () => {
       AnalyticsV2.ANALYTICS_EVENTS.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
       generateDeviceAnalyticsMetaData(),
     );
+  }, []);
+
+  useEffect(() => {
     dispatch(setAutomaticSecurityChecksModalOpen(true));
     return () => {
       dispatch(setAutomaticSecurityChecksModalOpen(false));
