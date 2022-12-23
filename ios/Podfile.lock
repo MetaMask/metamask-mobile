@@ -77,7 +77,7 @@ PODS:
   - glog (0.3.5)
   - JitsiWebRTC (106.0.0)
   - libevent (2.1.12)
-  - lottie-ios (3.4.0)
+  - lottie-ios (3.4.1)
   - lottie-react-native (5.1.4):
     - lottie-ios (~> 3.4.0)
     - React-Core
@@ -799,7 +799,7 @@ SPEC CHECKSUMS:
   glog: 5337263514dd6f09803962437687240c5dc39aa4
   JitsiWebRTC: f441eb0e2d67f0588bf24e21c5162e97342714fb
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  lottie-ios: 69495122151a378fdc7d1bb4c5930347e37baf1f
+  lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: b702fab740cdb952a8e2354713d3beda63ff97b0
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
@@ -875,6 +875,6 @@ SPEC CHECKSUMS:
   Yoga: 3f5bfc54ce164fcd5b5d7f9f4232182d6298dd56
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 74e503a275b4ed097cb01c171027882e9cdc699d
+PODFILE CHECKSUM: 30a79fcafb37bd1c1d12e0e39b2cc07c9dffdf84
 
 COCOAPODS: 1.11.2

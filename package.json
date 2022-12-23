@@ -199,7 +199,7 @@
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lodash": "^4.17.21",
-    "lottie-ios": "3.4.0",
+    "lottie-ios": "3.4.1",
     "lottie-react-native": "^5.1.4",
     "metro-config": "^0.71.1",
     "multihashes": "0.4.14",
@@ -464,7 +464,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^14.0.0",
+    "node": "^16.19.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {

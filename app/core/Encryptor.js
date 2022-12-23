@@ -28,12 +28,15 @@ export default class Encryptor {
 
   _encryptWithKey = async (text, keyBase64) => {
     const iv = await Aes.randomKey(16);
-    return Aes.encrypt(text, keyBase64, iv).then((cipher) => ({ cipher, iv }));
+    return Aes.encrypt(text, keyBase64, iv, 'aes-256-cbc').then((cipher) => ({
+      cipher,
+      iv,
+    }));
   };
 
   _decryptWithKey = (encryptedData, key, lib) =>
     lib === 'original'
-      ? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv)
+      ? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv, 'aes-256-cbc')
       : AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
   /**

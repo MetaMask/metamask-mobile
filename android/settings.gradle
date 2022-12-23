@@ -18,9 +18,9 @@ project(':react-native-gesture-handler').projectDir = new File(rootProject.proje
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':react-native-video'
 project(':react-native-video').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android-exoplayer')
-include(":packages:react-native-codegen:android")
+/* include(":packages:react-native-codegen:android")
 project(":packages:react-native-codegen:android").projectDir = new File(rootProject.projectDir, 
 "../node_modules/react-native/packages/react-native-codegen/android")
-includeBuild("../node_modules/react-native/packages/react-native-codegen/android")
+includeBuild("../node_modules/react-native/packages/react-native-codegen/android") */
 include ':ReactAndroid'
 project(':ReactAndroid').projectDir = new File(rootProject.projectDir, '../node_modules/react-native/ReactAndroid')

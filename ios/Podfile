@@ -46,7 +46,9 @@ def common_target_logic
 
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
-
+  pod 'lottie-ios', :path => '../node_modules/lottie-ios'
+  pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
+  
   # you should disable the next line.
   use_flipper!({"Flipper" => "0.93.0", "Flipper-DoubleConversion" => "1.1.7"})
 end
