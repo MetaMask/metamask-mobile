@@ -405,7 +405,6 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => navigation.pop()}
         style={styles.closeButton}
-        // testID={'send-link-close-button'}
         {...generateTestId(Platform, PAYMENT_REQUEST_CLOSE_BUTTON)}
       >
         <IonicIcon

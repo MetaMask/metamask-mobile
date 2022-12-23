@@ -66,11 +66,3 @@ Then(/^I tap button "([^"]*)?" to navigate to (.*) view/, async (button, screen)
     // eslint-disable-next-line no-console
     console.log('On screen ' + screen);
 });
-
-// Then(/^I type "([^"]*)?" onto (.*) (.*) field/, async (text, type, screen) => {
-//     const timeout = 1000;
-//     await driver.pause(timeout);
-//     await Gestures.typeText(text);
-//     // eslint-disable-next-line no-console
-//     console.log('I type on field' + type + ' ' + screen);
-// });
