@@ -1,10 +1,16 @@
 /* global driver */
-import { When, Then } from '@wdio/cucumber-framework';
+import { Given, When, Then } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
-import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkEducationModal';
-import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
+import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
+import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
+
+
+Given(/^I tap on the Add a Network button/, async () => {
+  await AddNetworksModal.clickAddNetworks();
+});
 
 When(/^"([^"]*)?" tab is displayed on networks screen/, async (netWorkTab) => {
   switch (netWorkTab) {
@@ -54,9 +60,6 @@ When(/^I tap on Switch network/, async () => {
   await NetworkApprovalModal.tapSwitchToNetwork();
 });
 
-When(/^I am back to the wallet view/, async () => {
-  await WalletMainScreen.isVisible();
-});
 
 When(/^I should see the added network name "([^"]*)?" in the top navigation bar/, async (network) => {
   await WalletMainScreen.isNetworkNameCorrect(network);
@@ -68,15 +71,7 @@ Then(/^I tap on the burger menu/, async () => {
   await WalletMainScreen.tapBurgerButton();
 });
 
-Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
-  switch (option) {
-    case 'Settings':
-      await WalletMainScreen.tapSettings();
-      break;
-    default:
-      throw new Error('Option not found');
-  }
-});
+
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
@@ -186,7 +181,7 @@ Then(/^I tap on network "([^"]*)?" on networks screen/, async (network) => {
   await NetworksScreen.tapOnNetwork(network);
 });
 
-Then(/^I switch to "([^"]*)?" in the network list modal /, async (text) => {
+Then(/^I switch to "([^"]*)?" in the network list modal /, async () => {
     const setTimeout = 1500;
     await driver.pause(setTimeout);
     await NetworkListModal.changeNetwork(text);

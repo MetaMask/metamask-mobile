@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -48,6 +49,11 @@ import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/controllers/dist/util';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  REQUEST_AMOUNT_INPUT,
+  REQUEST_SEARCH_ASSET_INPUT,
+} from '../../../../wdio/features/testIDs/Screens/RecieveToken.testids';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -468,7 +474,7 @@ class PaymentRequest extends PureComponent {
               returnKeyType="go"
               value={this.state.searchInputValue}
               blurOnSubmit
-              testID={'request-search-asset-input'}
+              {...generateTestId(Platform, REQUEST_SEARCH_ASSET_INPUT)}
               keyboardAppearance={themeAppearance}
             />
             {this.state.searchInputValue ? (
@@ -765,7 +771,7 @@ class PaymentRequest extends PureComponent {
                     value={amount}
                     onSubmitEditing={this.onNext}
                     ref={this.amountInput}
-                    testID={'request-amount-input'}
+                    {...generateTestId(Platform, REQUEST_AMOUNT_INPUT)}
                     keyboardAppearance={themeAppearance}
                   />
                   <Text

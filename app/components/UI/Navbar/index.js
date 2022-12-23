@@ -42,6 +42,7 @@ import {
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
 import { CONTACT_EDIT_BUTTON } from '../../../../wdio/features/testIDs/Screens/Contacts.testids';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
+import { PAYMENT_REQUEST_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/RecieveToken.testids';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -404,7 +405,8 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => navigation.pop()}
         style={styles.closeButton}
-        testID={'send-link-close-button'}
+        // testID={'send-link-close-button'}
+        {...generateTestId(Platform, PAYMENT_REQUEST_CLOSE_BUTTON)}
       >
         <IonicIcon
           name="ios-close"

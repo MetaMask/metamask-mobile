@@ -42,5 +42,7 @@ class NetworkApprovalModal {
     async tapSwitchToNetwork() {
         await Gestures.tap(this.SwitchToNetworkButton);
     }
+
+
 }
 export default new NetworkApprovalModal();
