@@ -3,7 +3,7 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import {INPUT_CHAIN_ID_FIELD,
-    INPUT_RPC_URL_FIELD, ADD_NETWORK_BUTTON, 
+    INPUT_RPC_URL_FIELD, ADD_NETWORK_BUTTON,
     INPUT_NETWORK_NAME,
     NETWORKS_SYMBOL_INPUT_FIELD,
     BLOCK_EXPLORER_FIELD,

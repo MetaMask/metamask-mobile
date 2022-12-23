@@ -181,7 +181,7 @@ Then(/^I tap on network "([^"]*)?" on networks screen/, async (network) => {
   await NetworksScreen.tapOnNetwork(network);
 });
 
-Then(/^I switch to "([^"]*)?" in the network list modal /, async () => {
+Then(/^I switch to "([^"]*)?" in the network list modal /, async (text) => {
     const setTimeout = 1500;
     await driver.pause(setTimeout);
     await NetworkListModal.changeNetwork(text);

@@ -1,7 +1,7 @@
 /* global driver */
 
 import { When, Then } from '@wdio/cucumber-framework';
-import RequestTokenScreen from '../../features/screen-objects/RequestTokenScreen.object'
+import RequestTokenScreen from '../../features/screen-objects/RequestTokenScreen.object';
 
 When(/^I type "([^"]*)?" into the Request Amount field/, async (amount) => {
     RequestTokenScreen.typeAmountInRequest(amount);

@@ -12,7 +12,7 @@ import Gestures from '../../features/helpers/Gestures';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   const setTimeout = 10000;//added for running on physical device
-  await driver.pause(setTimeout); 
+  await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.swipeUp();

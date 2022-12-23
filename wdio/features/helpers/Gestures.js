@@ -120,7 +120,7 @@ class Gestures {
       Actions.PRESS,
       { action: Actions.WAIT, ms: waitTime },
       Actions.RELEASE
-    ])
+    ]);
   }
 
   static async typeText(element, text) {
