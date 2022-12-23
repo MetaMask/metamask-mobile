@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 5.12.3 - Dec 16, 2022
+- Hotfix version bump for iOS only release, no code changes
+
 ## 5.12.1 - Dec 6, 2022
 - [#5366](https://github.com/MetaMask/metamask-mobile/pull/5366): [UPDATE] On-ramp Refactor wyre authentication url approach
 - [#5362](https://github.com/MetaMask/metamask-mobile/pull/5362): [UPDATE] copy for Opt in metrics screen and enable custom mainnet RPC

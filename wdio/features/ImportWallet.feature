@@ -19,6 +19,7 @@ Feature: Import Wallet
     And I type <password> in new password field
     And I type <password> in confirm password field
     And I tap "Import"
+    And I tap No Thanks on the Enable security check screen
     Then "Welcome to your new wallet!" is displayed
     Examples:
       | SRP                                                                   | password  |

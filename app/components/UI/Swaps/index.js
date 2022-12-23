@@ -57,7 +57,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
-import ScreenView from '../FiatOrders/components/ScreenView';
+import ScreenView from '../../Base/ScreenView';
 import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';

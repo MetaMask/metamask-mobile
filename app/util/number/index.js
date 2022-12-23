@@ -252,6 +252,20 @@ export function renderFiatAddition(
 }
 
 /**
+ * Limits a number to a max decimal places.
+ * @param {number} num
+ * @param {number} maxDecimalPlaces
+ * @returns {string}
+ */
+export function limitToMaximumDecimalPlaces(num, maxDecimalPlaces = 5) {
+  if (isNaN(num) || isNaN(maxDecimalPlaces)) {
+    return num;
+  }
+  const base = Math.pow(10, maxDecimalPlaces);
+  return (Math.round(num * base) / base).toString();
+}
+
+/**
  * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
  *
  * @param {number|string} fiat - Fiat number
