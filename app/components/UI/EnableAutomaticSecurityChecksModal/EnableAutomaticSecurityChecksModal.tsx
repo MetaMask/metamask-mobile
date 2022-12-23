@@ -28,6 +28,7 @@ import {
 } from '../../../../wdio/features/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -48,8 +49,14 @@ const EnableAutomaticSecurityChecksModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   useEffect(() => {
-    dispatch(setAutomaticSecurityChecksModalOpen(true));
+    AnalyticsV2.trackEvent(
+      AnalyticsV2.ANALYTICS_EVENTS.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
+      generateDeviceAnalyticsMetaData(),
+    );
+  }, []);
 
+  useEffect(() => {
+    dispatch(setAutomaticSecurityChecksModalOpen(true));
     return () => {
       dispatch(setAutomaticSecurityChecksModalOpen(false));
     };
@@ -61,7 +68,7 @@ const EnableAutomaticSecurityChecksModal = () => {
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS
             .AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
-          { platform: Platform.OS },
+          generateDeviceAnalyticsMetaData(),
         );
         dispatch(userSelectedAutomaticSecurityChecksOptions());
       }),
@@ -73,7 +80,7 @@ const EnableAutomaticSecurityChecksModal = () => {
       AnalyticsV2.trackEvent(
         AnalyticsV2.ANALYTICS_EVENTS
           .AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
-        { platform: Platform.OS },
+        generateDeviceAnalyticsMetaData(),
       );
       dispatch(userSelectedAutomaticSecurityChecksOptions());
       dispatch(setAutomaticSecurityChecks(true));

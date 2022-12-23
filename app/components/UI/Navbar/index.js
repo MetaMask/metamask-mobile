@@ -31,11 +31,18 @@ import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { WALLET_VIEW_BURGER_ICON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import {
+  WALLET_VIEW_BURGER_ICON_ID,
+  HAMBURGER_MENU_BUTTON,
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
 } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import { SEND_CANCEL_BUTTON } from '../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import { CONTACT_EDIT_BUTTON } from '../../../../wdio/features/testIDs/Screens/Contacts.testids';
+import { ASSET_BACK_BUTTON } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
+
 const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = (event) => {
@@ -282,7 +289,11 @@ export function getEditableOptions(title, navigation, route, themeColors) {
     ),
     headerRight: () =>
       !addMode ? (
-        <TouchableOpacity onPress={rightAction} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={rightAction}
+          style={styles.backButton}
+          {...generateTestId(Platform, CONTACT_EDIT_BUTTON)}
+        >
           <Text style={innerStyles.headerButtonText}>
             {editMode
               ? strings('address_book.edit')
@@ -536,7 +547,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
       <TouchableOpacity
         onPress={rightAction}
         style={styles.closeButton}
-        testID={'send-cancel-button'}
+        {...generateTestId(Platform, SEND_CANCEL_BUTTON)}
       >
         <Text style={innerStyles.headerButtonText}>
           {strings('transaction.cancel')}
@@ -983,7 +994,7 @@ export function getWalletNavbarOptions(
       <TouchableOpacity
         onPress={openDrawer}
         style={styles.backButton}
-        testID={'hamburger-menu-button-wallet'}
+        {...generateTestId(Platform, HAMBURGER_MENU_BUTTON)}
       >
         <IonicIcon
           {...generateTestId(Platform, WALLET_VIEW_BURGER_ICON_ID)}
@@ -1049,7 +1060,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={'asset-back-button'}
+        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
       >
         <IonicIcon
           name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
