@@ -2,10 +2,7 @@ import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import CustomText from '../../../Base/Text';
-
-// TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
+import Text from '../../../Base/Text';
 
 const INSET = 25;
 const createStyles = (colors: Colors) =>

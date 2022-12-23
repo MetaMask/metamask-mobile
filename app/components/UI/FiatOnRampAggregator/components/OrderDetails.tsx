@@ -9,7 +9,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
@@ -19,11 +19,10 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../util/number';
-import { getProviderName } from '../../../../reducers/fiatOrders';
+import { FiatOrder, getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';
-import { FiatOrder } from '../../FiatOrders';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
@@ -32,7 +31,6 @@ import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: any) =>
@@ -205,7 +203,9 @@ const OrderDetails: React.FC<Props> = ({
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const amountOut = Number(amount) - Number(cryptoFee);
-  const exchangeRate = Number(amountOut) / Number(cryptoAmount);
+  const exchangeRate =
+    (order.data as Order)?.exchangeRate ??
+    Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
 
   const handleExplorerLinkPress = useCallback(
