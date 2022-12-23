@@ -25,7 +25,7 @@ import {
     }
 
     async typeTextDelete(deleteText){
-        await Gestures.typeText(this.deleteInput, deleteText);
+        await Gestures.typeText(this.deleteInput, deleteText, false);
     }
 
     async tapDeleteMyWallet(){

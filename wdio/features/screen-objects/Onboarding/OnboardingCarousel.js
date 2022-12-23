@@ -9,6 +9,7 @@ import {
 } from '../../testIDs/Components/MetaMaskAnimation.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
+import { WALLET_SETUP_SCREEN_TITLE_ID } from '../../testIDs/Screens/WalletSetupScreen.testIds';
 
 class WelcomeScreen {
   constructor() {
@@ -23,10 +24,14 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
+  get title () {
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
+  }
+
   async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
-    await elem.waitForDisplayed({ reverse: true });
+    await driver.pause(20000);
   }
 
   async verifyCarouselTitle(key) {

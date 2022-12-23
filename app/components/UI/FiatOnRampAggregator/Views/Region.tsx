@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import ScreenLayout from '../components/ScreenLayout';
@@ -24,6 +24,7 @@ import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import { createPaymentMethodsNavDetails } from './PaymentMethods';
 
 // TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
