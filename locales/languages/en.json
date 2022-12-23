@@ -734,10 +734,14 @@
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
     "private_key_text": "Private Key",
-    "screenshot_warning_title": "Safety alert",
-    "screenshot_warning_desc": "Screenshots aren't a safe way to keep track of your {{credentialName}}. Store it somewhere that isn't backed up online to keep your account safe.",
     "got_it": "Got it",
     "learn_more": "Learn More"
+  },
+  "screenshot_deterrent": {
+    "title": "Safety alert",
+    "description": "Screenshots aren't a safe way to keep track of your {{credentialName}}. Store it somewhere that isn't backed up online to keep your account safe.",
+    "srp_text": "Secret Recovery Phrase",
+    "priv_key_text": "Private Key"
   },
   "password_reset": {
     "password_title": "Password",
@@ -1418,8 +1422,6 @@
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
     "confirm": "CONFIRM",
-    "screenshot_warning_title": "Screenshot warning",
-    "screenshot_warning_desc": "Screenshots aren't a safe way to keep track of your Secret Recovery Phrase. Store it somewhere that isn't backed up online to keep your account safe.",
     "got_it": "Got it",
     "learn_more": "Learn More"
   },

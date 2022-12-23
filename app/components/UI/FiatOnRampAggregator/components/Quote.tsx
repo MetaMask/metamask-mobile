@@ -55,6 +55,7 @@ const createStyles = (colors: Colors) =>
       color: colors.icon.alternative,
     },
     data: {
+      marginTop: 4,
       overflow: 'hidden',
     },
   });
@@ -134,31 +135,29 @@ const Quote: React.FC<Props> = ({
       >
         <ListItem.Content>
           <ListItem.Body>
-            <ListItem.Title>
-              <TouchableOpacity
-                onPress={highlighted ? showInfo : undefined}
-                disabled={!highlighted}
-                accessibilityLabel={quote.provider?.name}
-              >
-                <View style={styles.title}>
-                  {quote.provider?.logos?.[logoKey] ? (
-                    <RemoteImage
-                      style={{
-                        width: quote.provider.logos.width,
-                        height: quote.provider.logos.height,
-                      }}
-                      source={{ uri: quote.provider?.logos?.[logoKey] }}
-                    />
-                  ) : (
-                    <Title>{quote?.provider?.name}</Title>
-                  )}
+            <TouchableOpacity
+              onPress={highlighted ? showInfo : undefined}
+              disabled={!highlighted}
+              accessibilityLabel={quote.provider?.name}
+            >
+              <View style={styles.title}>
+                {quote.provider?.logos?.[logoKey] ? (
+                  <RemoteImage
+                    style={{
+                      width: quote.provider.logos.width,
+                      height: quote.provider.logos.height,
+                    }}
+                    source={{ uri: quote.provider?.logos?.[logoKey] }}
+                  />
+                ) : (
+                  <Title>{quote?.provider?.name}</Title>
+                )}
 
-                  {quote?.provider && (
-                    <Feather name="info" size={12} style={styles.infoIcon} />
-                  )}
-                </View>
-              </TouchableOpacity>
-            </ListItem.Title>
+                {quote?.provider && (
+                  <Feather name="info" size={12} style={styles.infoIcon} />
+                )}
+              </View>
+            </TouchableOpacity>
           </ListItem.Body>
           <ListItem.Amounts>
             <Text big primary bold right>
@@ -171,23 +170,23 @@ const Quote: React.FC<Props> = ({
           </ListItem.Amounts>
         </ListItem.Content>
 
-        <ListItem.Content>
-          <ListItem.Body>
-            <Text small>
-              {strings('fiat_on_ramp_aggregator.price')} {fiatCode}
-            </Text>
-          </ListItem.Body>
-          <ListItem.Amounts>
-            <Text small right>
-              ≈ {fiatSymbol} {renderFiat(price, fiatCode, fiat?.decimals)}
-            </Text>
-          </ListItem.Amounts>
-        </ListItem.Content>
-
         <Animated.View
           onLayout={handleOnLayout}
           style={[styles.data, animatedStyle]}
         >
+          <ListItem.Content>
+            <ListItem.Body>
+              <Text small>
+                {strings('fiat_on_ramp_aggregator.price')} {fiatCode}
+              </Text>
+            </ListItem.Body>
+            <ListItem.Amounts>
+              <Text small right>
+                ≈ {fiatSymbol} {renderFiat(price, fiatCode, fiat?.decimals)}
+              </Text>
+            </ListItem.Amounts>
+          </ListItem.Content>
+
           <ListItem.Content>
             <ListItem.Body>
               <Text black small>

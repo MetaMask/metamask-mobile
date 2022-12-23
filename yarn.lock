@@ -1537,10 +1537,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@^1.3.1-beta.10":
-  version "1.3.1-beta.10"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.1-beta.10.tgz#6265ea2038ecda00cb2f3fe3de47bc84338d6975"
-  integrity sha512-qlg0D5Rxjpx4H2eM1foQBs5wh3WOQdYnkAVHh5ugOhIUALUvMKk88beEdUFEI0VTz8EX9wSJTjmxPEz5HnMThg==
+"@consensys/on-ramp-sdk@1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.4.1.tgz#b2e9809de3231ae1d99625621995acc5e1d0e9cd"
+  integrity sha512-40BM8gaR2ShmdG+NSDrOtl6ZVr7uYFC6L3g9Im599fElNqBWVR9SyW1QbUn7UOrcrF+VzTg1DblgZ7MW06E5qw==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -3914,10 +3914,10 @@
     pbkdf2 "^3.0.9"
     randombytes "^2.0.1"
 
-"@metamask/contract-metadata@^1.30.0", "@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^1.35.0":
-  version "1.35.0"
-  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.35.0.tgz#2bf2b8f2b6fdbd5132f0bcfa594b6c02dc71c42e"
-  integrity sha512-zfZKwLFOVrQS8vTFoeoNCG9JhqmK4oyembGiGVVpUAYD9BHVZnd9WpicGoUC07ROXLEyQuAK9AJZNBtqwwzfEQ==
+"@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^1.35.0", "@metamask/contract-metadata@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.1.0.tgz#78f9e32afea61548922e57ef57ee6eb99abf35be"
+  integrity sha512-jPeoNmEonnmtzSIsBGAshy9SCFMkLfURB7d7pkEY1lmRtrhPYv3DTkMpffJciikaCPjyJ62eLWX/6Kme4CPvNg==
 
 "@metamask/controllers@^26.0.0":
   version "26.0.0"
@@ -4077,10 +4077,10 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/swaps-controller@^6.7.2":
-  version "6.7.2"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.7.2.tgz#c999e55d449d36f8e948409c21d5362db93cc4cf"
-  integrity sha512-p3Czoqx7YANZX2GjW8apTio5rs3RkAGaIvoRd97fVza72R6VKXcRZ/pw9XB1o2z9beYdXqEn7+Q3v69yTUOu7A==
+"@metamask/swaps-controller@^6.8.0":
+  version "6.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.8.0.tgz#c2c43173dc1101fab9ec918e7f7853f14072740b"
+  integrity sha512-BWuALQXWxk2Sw2+djZSIvbIhUDxwX99IE+Mq/c4FMFgNe80BSFMNeAScnhjKvH8xFs47ur7TDmS9bukZpm9rmA==
   dependencies:
     "@metamask/controllers" "^26.0.0"
     abort-controller "^3.0.0"
