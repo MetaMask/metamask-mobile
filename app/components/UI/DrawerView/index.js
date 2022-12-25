@@ -78,8 +78,10 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
+  DRAWER_VIEW_BROWSER_TEXT_ID,
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
+  DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
 
 const createStyles = (colors) =>
@@ -981,6 +983,7 @@ class DrawerView extends PureComponent {
           selectedIcon: this.getSelectedIcon('globe'),
           action: this.goToBrowser,
           routeNames: ['BrowserView', 'AddBookmark'],
+          testID: DRAWER_VIEW_BROWSER_TEXT_ID,
         },
         {
           name: strings('drawer.wallet'),
@@ -994,6 +997,7 @@ class DrawerView extends PureComponent {
             'AddAsset',
             'Collectible',
           ],
+          testID: DRAWER_VIEW_WALLET_TEXT_ID,
         },
         {
           name: strings('drawer.transaction_activity'),

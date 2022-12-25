@@ -1,7 +1,16 @@
-import {Given, When, Then} from '@wdio/cucumber-framework';
-import WalletMainScreen from "../screen-objects/WalletMainScreen";
-import DrawerViewScreen from "../screen-objects/DrawerViewScreen";
-import BrowserScreen from "../screen-objects/BrowserScreen";
+import { Given, Then, When } from '@wdio/cucumber-framework';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import DrawerViewScreen from '../screen-objects/DrawerViewScreen';
+import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
+import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
+import AccountListModal from '../screen-objects/Modals/AccountListModal';
+import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen';
+import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
+import ExternalWebsitesScreen from '../screen-objects/BrowserObject/ExternalWebsitesScreen';
+import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
+import MultiTabScreen from '../screen-objects/BrowserObject/MultiTabScreen';
+
+/* global driver */
 
 Given(/^I am on browser view$/, async () => {
   await WalletMainScreen.tapBurgerIcon();
@@ -9,284 +18,375 @@ Given(/^I am on browser view$/, async () => {
   await BrowserScreen.isScreenContentDisplayed();
 });
 
-Given(/^I am on "([^"]*)"$/, async () => {
-  await BrowserScreen.tapNavBar();
+Given(/^I am on "([^"]*)"$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.editUrlInput(text);
+  await AddressBarScreen.tapHomeSuggestionButton();
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.tapUrlCancelButton();
 });
 
-When(/^I input "([^"]*)" in the search field$/, async () => {
-
+When(/^I input "([^"]*)" in the search field$/, async (text) => {
+  await ExternalWebsitesScreen.tapHomeSearchBar();
+  await AddressBarScreen.editUrlInput(text);
 });
 
-Then(/^suggested defi app will be displayed while typing$/, async () => {
-
+When(/^I tap on "([^"]*)" on account list$/, async (text) => {
+  await AccountListModal.tapAccount(text);
 });
 
-Then(/^"([^"]*)" is the top suggestion$/, async () => {
-
+When(/^I tap on "([^"]*)" on the suggestion list$/, async (text) => {
+  await AddressBarScreen.tapSushiSuggestionButton();
 });
 
-Then(/^the browser view is on "([^"]*)"$/, async () => {
-
+Then(/^"([^"]*)" is a suggestion listed$/, async (text) => {
+  await AddressBarScreen.isSushiSuggestionDisplayed();
 });
 
-Then(/^"([^"]*)" is the active wallet account$/, async () => {
-
+Then(/^the browser view is on "([^"]*)"$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.tapUrlCancelButton();
 });
 
-Then(/^"([^"]*)" wallet is connected to "([^"]*)"$/, async () => {
-
+Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
+  await BrowserScreen.tapNavbarHamburgerButton();
+  await DrawerViewScreen.tapWalletButton();
+  await WalletAccountModal.isAccountNameLabelEqualTo(text);
 });
 
-When(/^I tap the account icon located in the upper right of the browser view$/, async () => {
-
+Then(/^"([^"]*)" wallet is connected to Sushi Swap$/, async (text1) => {
+  await WalletAccountModal.tapWalletAddress();
+  const mainWallet = driver.getClipboard();
+  await WalletMainScreen.tapBurgerIcon();
+  await DrawerViewScreen.tapBrowserButton();
+  await ExternalWebsitesScreen.tapSushiHamburgerButton();
+  await ExternalWebsitesScreen.tapSushiWebStatus();
+  await WalletAccountModal.isMainAddressEqualsTo(sushiWallet);
 });
+
+When(
+  /^I tap on the account icon located in the upper right of the browser view$/,
+  async () => {
+    await DrawerViewScreen.tapBrowserButton();
+    await BrowserScreen.tapAccountButton();
+  },
+);
+
 Then(/^select account component is displayed$/, async () => {
-
+  await AccountListModal.isDisplayed();
 });
-Then(/^"([^"]*)" is now active in the app$/, async () => {
 
+Then(/^"([^"]*)" is now active in the app$/, async (text) => {
+  await BrowserScreen.tapNavbarHamburgerButton();
+  await DrawerViewScreen.tapWalletButton();
+  await WalletAccountModal.isAccountNameLabelEqualTo(text);
 });
-Then(/^account icon for "([^"]*)" is displayed$/, async () => {
 
-});
-When(/^I navigate to "([^"]*)"$/, async () => {
+When(/^I navigate to "([^"]*)"$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.editUrlInput(text);
 
+  switch (text) {
+    case 'https://curve.fi':
+      await AddressBarScreen.enterUrlValue();
+      break;
+    case 'https://app.sushi.com/swap':
+      await AddressBarScreen.tapSushiSuggestionButton();
+      break;
+    case 'https://brunobarbieri.eth':
+      break;
+    case 'http://www.empowr.com/FanFeed/Home.aspx':
+      await AddressBarScreen.tapEmpowrSuggestionButton();
+      await AddressBarScreen.tapUrlCancelButton();
+      break;
+    case 'https://quackquakc.easq':
+      await AddressBarScreen.enterUrlValue();
+      break;
+    case 'reddit.com':
+      await AddressBarScreen.tapRedditSuggestion();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
-When(/^I connect "([^"]*)" wallet to "([^"]*)"$/, async () => {
 
+When(/^I connect my wallet to "([^"]*)"$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.tapUrlCancelButton();
+  await ExternalWebsitesScreen.tapCurveConnectWalletButton();
+  await ExternalWebsitesScreen.tapCurveMetaMaskAvailableWalletButton();
+  await BrowserScreen.tapConfirmConnectWalletButton();
 });
-Then(/^"([^"]*)" shows "([^"]*)" is connected$/, async () => {
 
+Given(/^I have (\d+) browser tab displayed$/, async (number) => {
+  await BrowserScreen.numberOfTapsEqualsTo(number);
 });
-Given(/^I am on the browser view$/, async () => {
 
-});
-Given(/^I have one browser tab displayed$/, async () => {
-
-});
 Given(/^I have no favorites saved$/, async () => {
-
+  await ExternalWebsitesScreen.tapHomeFavoritesButton();
+  await ExternalWebsitesScreen.isHomeNoFavoritesMessageDisplayed();
 });
 
-When(/^I navigate to "([^"]*)"$/, async () => {
+When(
+  /^I tap on browser control menu icon on the bottom right of the browser view$/,
+  async () => {
+    await BrowserScreen.tapOptionButton();
+  },
+);
 
+Then(/^"([^"]*)" view is displayed$/, async (text) => {
+  switch (text) {
+    case 'Add Favorites':
+      await AddFavoriteScreen.isScreenDisplayed();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
-When(/^I tap browser control menu icon on the bottom right of the browser view$/, async () => {
 
+Then(/^Name field is pre populated with "([^"]*)"$/, async (text) => {
+  await AddFavoriteScreen.titleEditTextContains(text);
 });
-Then(/^"([^"]*)" view is displayed$/, async () => {
 
+Then(/^Url field is pre populated with "([^"]*)"$/, async (text) => {
+  await AddFavoriteScreen.urlEditTextContains(text);
 });
-Then(/^Name field is prepopulated with "([^"]*)"$/, async () => {
 
+When(/^I tap on "([^"]*)" on the Add Favorite Screen$/, async (text) => {
+  switch (text) {
+    case 'Cancel':
+      await AddFavoriteScreen.tapCancelButton();
+      break;
+    case 'Add':
+      await AddFavoriteScreen.tapAddButton();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
-Then(/^Url field is prepopulated with "([^"]*)"$/, async () => {
 
+Then(/^the "([^"]*)?" is displayed in the browser tab/, async (text) => {
+  switch (text) {
+    case 'https://app.sushi.com/swap':
+      await BrowserScreen.tapUrlNavBar();
+      await AddressBarScreen.isUrlValueContains(text);
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
-Then(/^the favorite is not added$/, async () => {
 
+Then(/^the favorite is not added on the home "([^"]*)" page$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.editUrlInput(text);
+  await AddressBarScreen.tapHomeSuggestionButton();
+  await ExternalWebsitesScreen.tapHomeFavoritesButton();
+  await ExternalWebsitesScreen.isHomeNoFavoritesMessageDisplayed();
 });
-When(/^I input "([^"]*)" in the favorite name field$/, async () => {
 
+When(/^I input "([^"]*)" in the favorite name field$/, async (text1) => {
+  await AddFavoriteScreen.editTitleEditText();
 });
-When(/^I input "([^"]*)"$/, async () => {
 
+When(/^I input "([^"]*)"$/, async (text) => {
+  //
 });
-When(/^I tap the browser home button$/, async () => {
 
+When(/^I tap on the browser home button$/, async () => {
+  await BrowserScreen.tapHomeButton();
 });
-When(/^I tap Favorites on home\.metamask\.io$/, async () => {
 
+When(/^I tap on Favorites on Home Website$/, async () => {
+  await ExternalWebsitesScreen.tapHomeFavoritesButton();
 });
-Then(/^only one favorite is displayed$/, async () => {
 
+Then(/^favorite card title is "([^"]*)"$/, async (text) => {
+  await ExternalWebsitesScreen.isHomeFavoriteSushiTitleCardDisplayed();
 });
-Then(/^favorite card title is "([^"]*)"$/, async () => {
 
+Then(/^favorite card URL is "([^"]*)"$/, async (text) => {
+  await ExternalWebsitesScreen.isHomeFavoriteSushiUrlCardDisplayed();
 });
-Then(/^favorite card URL is "([^"]*)"$/, async () => {
 
-});
 Then(/^the webpage should load successfully$/, async () => {
-
+  await ExternalWebsitesScreen.isBrunoWebsiteDisplayed();
 });
-Then(/^I should see a warning screen with "([^"]*)"$/, async () => {
 
-});
-Then(/^I should see some text explaining why the site I searched is malicious$/, async () => {
+Then(
+  /^I should see a warning screen with Ethereum Phishing Detection title$/,
+  async () => {
+    await ExternalWebsitesScreen.isEthereumFishingDetectionWebsiteTitleDisplayed();
+  },
+);
 
+When(/^I tap on the "([^"]*)" button$/, async (text) => {
+  await ExternalWebsitesScreen.tapEthereumFishingDetectionWebsiteBackButton();
 });
-Then(/^I should see a "([^"]*)" button$/, async () => {
 
-});
-When(/^I tap on the "([^"]*)" button$/, async () => {
-
-});
 Then(/^I am taken back to the home page$/, async () => {
-
+  await ExternalWebsitesScreen.isHomeWebsiteDisplayed();
 });
-Then(/^I should see "([^"]*)"$/, async () => {
 
+Then(/^I should see "([^"]*)"$/, async (text) => {
+  await ExternalWebsitesScreen.isWrongTitleDisplayed();
+  await ExternalWebsitesScreen.isWrongSubtitle();
 });
-Then(/^a blue button with "([^"]*)" should be visible$/, async () => {
 
+When(/^I tap on "([^"]*)"$/, async (text) => {
+  await ExternalWebsitesScreen.tapWrongReturnButton();
 });
-When(/^I tap on "([^"]*)"$/, async () => {
 
-});
-Then(/^I am taken back to the home page`$/, async () => {
-
-});
-Given(/^I have one browser tab active$/, async () => {
-
-});
 When(/^I tap on address bar$/, async () => {
-
+  await BrowserScreen.tapUrlNavBar();
 });
+
 Then(/^browser address bar input view is displayed$/, async () => {
-
+  await AddressBarScreen.isAddressInputViewDisplayed();
 });
-When(/^I tap clear icon in address field$/, async () => {
 
-});
 Then(/^address field is cleared$/, async () => {
-
+  await AddressBarScreen.isUrlInputEmpty();
 });
+
 Then(/^browser address bar input view is no longer displayed$/, async () => {
-
+  await AddressBarScreen.isAddressInputViewNotDisplayed();
 });
-When(/^I input "([^"]*)" in address field$/, async () => {
 
+Then(/^the "([^"]*)" is displayed in active browser tab$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.tapUrlCancelButton();
 });
-When(/^I tap device Go or Next button$/, async () => {
 
+When(/^I input "([^"]*)" in address field$/, async (text) => {
+  await AddressBarScreen.editUrlInput(text);
 });
-Then(/^browser navigates to "([^"]*)"$/, async () => {
 
+When(/^I tap on device Go or Next button$/, async () => {
+  await AddressBarScreen.enterUrlValue();
 });
-Given(/^I have one active browser tab$/, async () => {
 
+When(/^I tap on the back arrow control button$/, async () => {
+  await BrowserScreen.tapBackButton();
 });
-When(/^I tap the back arrow control button$/, async () => {
 
-});
-Then(/^browser navigates to "([^"]*)"$/, async () => {
-
-});
 When(/^I tap on forward arrow control button$/, async () => {
-
+  await BrowserScreen.tapForwardButton();
 });
-Then(/^browser navigates to "([^"]*)"$/, async () => {
 
+When(/^I tap on search button$/, async () => {
+  await BrowserScreen.tapSearchButton();
 });
-When(/^I tap search button$/, async () => {
 
+When(/^I tap on browser tab button with count (\d+)$/, async (number) => {
+  await BrowserScreen.numberOfTapsEqualsTo(number);
+  await BrowserScreen.tapTabsButton();
 });
-Then(/^address bar search view is displayed$/, async () => {
 
-});
-When(/^I tap browser tab button with count (\d+)$/, async () => {
-
-});
 Then(/^multi browser tab view is displayed$/, async () => {
-
+  await MultiTabScreen.isTabsViewDisplayed();
 });
-When(/^I tap add\/plus icon$/, async () => {
 
+Then(/^new browser tab is displayed on "([^"]*)"$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.tapUrlCancelButton();
 });
-Then(/^new browser tab is created$/, async () => {
 
+Then(/^browser tab count is (\d+)$/, async (number) => {
+  await BrowserScreen.numberOfTapsEqualsTo(number);
 });
-Then(/^new browser tab is displayed$/, async () => {
 
+When(/^I input "([^"]*)" in my favorite url field$/, async (text) => {
+  await AddFavoriteScreen.editUrlEditText(text);
 });
-Then(/^browser tab count is (\d+)$/, async () => {
 
+When('I tap on {string} resource card', async (s) => {
+  // Write code here that turns the phrase above into concrete actions
 });
-Then(/^all browser tabs are closed$/, async () => {
 
+Then('{string}  wallet is connected to Curve', async (s) => {
+  // Write code here that turns the phrase above into concrete actions
 });
-Then(/^no browser tab is active$/, async () => {
 
+When(/^I tap on "([^"]*)" button on multi browser tab view$/, async (text) => {
+  switch (text) {
+    case 'Close All':
+      await MultiTabScreen.tapCloseAllButton();
+      break;
+    case 'Add':
+      await MultiTabScreen.tapAddButton();
+      break;
+    case 'Done':
+      await MultiTabScreen.tapDoneButton();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
-When(/^i tap Home button$/, async () => {
 
-});
-Given(/^I am on browser homepage$/, async () => {
-
-});
-When(/^I tap browser options icon on bottom right of browser view$/, async () => {
-
-});
 Then(/^browser options menu is displayed$/, async () => {
-
+  await OptionMenuModal.isModalDisplayed();
 });
-Then(/^"([^"]*)" option item is displayed in browser options menu$/, async () => {
 
+Then(
+  /^([^]*) is not displayed in browser options menu$/,
+  async (addfavorite) => {
+    //
+  },
+);
+
+When(/^I tap the "([^"]*)" option on the Option Menu$/, async (option) => {
+  switch (option) {
+    case 'Add to Favorites':
+      await OptionMenuModal.tapAddFavoriteOption();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });
-Then(/^new browser tab is added$/, async () => {
 
-});
-Then(/^new browser tab is active$/, async () => {
+When(
+  /^"([^"]*)" option item is displayed in browser options menu$/,
+  async (option) => {
+    switch (option) {
+      case 'New tab':
+        await OptionMenuModal.isNewTabOptionDisplayed();
+        break;
+      case 'Add to Favorites':
+        await OptionMenuModal.isAddFavoriteOptionDisplayed();
+        break;
+      case 'Reload':
+        await OptionMenuModal.isReloadOptionDisplayed();
+        break;
+      case 'Share':
+        await OptionMenuModal.isShareOptionDisplayed();
+        break;
+      case 'Open in browser':
+        await OptionMenuModal.isOpenBrowserOptionDisplayed();
+        break;
+      case 'Switch network':
+        await OptionMenuModal.isSwitchptionDisplayed();
+        break;
+      default:
+        throw new Error('Condition not found');
+    }
+  },
+);
+Then(/^"([^"]*)" is not displayed in browser options menu$/, () => {});
 
-});
-Then(/^new browser is on homepage$/, async () => {
-
-});
-When(/^I connect my wallet to "([^"]*)"$/, async () => {
-
-});
-Then(/^active browser tab is refreshed$/, async () => {
-
-});
-Then(/^active browser is on "([^"]*)"$/, async () => {
-
-});
-Then(/^wallet is connected to "([^"]*)"$/, async () => {
-
-});
-When(/^I input "([^"]*)" in name field$/, async () => {
-
-});
-When(/^I input "([^"]*)"$/, async () => {
-
-});
-When(/^I tap home button$/, async () => {
-
-});
-Then(/^"([^"]*)" favorite is displayed in favorites list$/, async () => {
-
-});
-Then(/^"([^"]*)" URL is "([^"]*)"$/, async () => {
-
-});
-When(/^I tap on "([^"]*)" favorite$/, async () => {
-
-});
-Then(/^"([^"]*)" is not displayed in browser options menu$/, async () => {
-
-});
-Then(/^device component is displayed to share current address URL$/, async () => {
-
-});
-Then(/^device component to select browser is displayed$/, async () => {
-
-});
-Then(/^device may auto switch to device default browser without showing device component$/, async () => {
-
-});
-Then(/^device browser is on "([^"]*)"$/, async () => {
-
-});
-When(/^I select "([^"]*)"$/, async () => {
-
-});
-Then(/^"([^"]*)" is selected for MMM app$/, async () => {
-
-});
-Then(/^active browser tab is showing "([^"]*)"$/, async () => {
-
-});
-Then(/^wallet is no longer connected to "([^"]*)"$/, async () => {
-
+When(/^I tap on "([^"]*)" in address field$/, async (button) => {
+  switch (button) {
+    case 'Cancel button':
+      await AddressBarScreen.tapClearButton();
+      break;
+    case 'clear icon':
+      await AddressBarScreen.tapUrlCancelButton();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
 });

@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
@@ -16,6 +17,12 @@ import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  BROWSER_MULTI_TAB_VIEW_ADD,
+  BROWSER_MULTI_TAB_VIEW_CLOSE_ALL,
+  BROWSER_MULTI_TAB_VIEW_DONE,
+} from '../../../../wdio/features/testIDs/BrowserScreen/MultiTab.testIds';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -275,6 +282,7 @@ export default class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={closeAllTabs}
+          {...generateTestId(Platform, BROWSER_MULTI_TAB_VIEW_CLOSE_ALL)}
         >
           <Text
             style={[
@@ -289,6 +297,7 @@ export default class Tabs extends PureComponent {
           <TouchableOpacity
             style={styles.newTabIconButton}
             onPress={this.onNewTabPress}
+            {...generateTestId(Platform, BROWSER_MULTI_TAB_VIEW_ADD)}
           >
             <MaterialCommunityIcon
               name="plus"
@@ -301,6 +310,7 @@ export default class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
           onPress={closeTabsView}
+          {...generateTestId(Platform, BROWSER_MULTI_TAB_VIEW_DONE)}
         >
           <Text
             style={[

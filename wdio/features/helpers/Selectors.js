@@ -19,18 +19,38 @@ class Selectors {
     }
   }
 
+  static async getElementsByPlatform(id) {
+    const platform = await driver.getPlatform();
+    if (platform === 'Android') {
+      return driver.$$(`//*[@content-desc='${id}']`);
+    } else if (platform === 'iOS') {
+      return driver.$$(`-ios class chain:${id}`);
+    }
+  }
+
   static async getXpathElementByText(text) {
-    const element = await $(`//android.widget.TextView[@text='${text}']`);
+    const element = await $(`//*[@text='${text}']`);
     return await element;
   }
 
   static async getXpathElementByContentDescription(text) {
-    const element = await $(`//android.view.ViewGroup[@content-desc='${text}']`);
+    const element = await $(
+      `//android.view.ViewGroup[@content-desc='${text}']`,
+    );
     return await element;
   }
 
   static async getXpathElementByResourceId(text) {
     return await $(`//*[@resource-id='${text}']`);
+  }
+
+  static async getXpathNestedElementByText(element, text) {
+    return await element.$(`//android.widget.TextView[@text='${text}']`);
+  }
+
+  static async getElementByCss(css) {
+    const element = await $(css);
+    return await element;
   }
 }
 

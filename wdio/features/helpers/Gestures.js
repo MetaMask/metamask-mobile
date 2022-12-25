@@ -90,11 +90,11 @@ class Gestures {
         break;
       case 'MOVETO':
         (await elem).touchAction(Actions.MOVETO);
-          break;
+        break;
       default:
         throw new Error('Tap type not found');
+    }
   }
-}
 
   static async tapTextByXpath(text, tapType = 'TAP') {
     switch (tapType) {
@@ -102,10 +102,14 @@ class Gestures {
         (await Selectors.getXpathElementByText(text)).touchAction(Actions.TAP);
         break;
       case 'LONGPRESS':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.LONGPRESS);
+        (await Selectors.getXpathElementByText(text)).touchAction(
+          Actions.LONGPRESS,
+        );
         break;
       case 'RELEASE':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.RELEASE);
+        (await Selectors.getXpathElementByText(text)).touchAction(
+          Actions.RELEASE,
+        );
         break;
       default:
         throw new Error('Tap type not found');
@@ -116,9 +120,9 @@ class Gestures {
     const elem = await element;
     (await elem).touchAction([
       Actions.PRESS,
-      {action: Actions.WAIT, ms: waitTime},
-      Actions.RELEASE
-    ])
+      { action: Actions.WAIT, ms: waitTime },
+      Actions.RELEASE,
+    ]);
   }
 
   static async typeText(element, text) {
@@ -127,6 +131,13 @@ class Gestures {
     (await elem).touchAction(Actions.TAP);
     await elem.clearValue();
     await elem.setValue(text, +'\n');
+  }
+
+  static async submitText(element) {
+    const elem = await element;
+    await elem.waitForDisplayed();
+    (await elem).touchAction(Actions.TAP);
+    await elem.setValue(['Enter']);
   }
 
   /**
@@ -146,6 +157,7 @@ class Gestures {
       );
     } // The element was found, proceed with the next action
   }
+
   /**
    * Swipe down based on a percentage
    */
@@ -156,6 +168,7 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.down.end, percentage),
     );
   }
+
   /**
    * Swipe Up based on a percentage
    */
@@ -166,6 +179,7 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.up.end, percentage),
     );
   }
+
   /**
    * Swipe left based on a percentage
    */
@@ -176,6 +190,7 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.left.end, percentageY),
     );
   }
+
   /**
    * Swipe right based on a percentage
    */
@@ -186,6 +201,7 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.right.end, percentage),
     );
   }
+
   /**
    * Swipe from coordinates (from) to the new coordinates (to). The given coordinates are
    * percentages of the screen.
@@ -204,6 +220,7 @@ class Gestures {
     );
     await this.swipe(pressOptions, moveToScreenCoordinates);
   }
+
   /**
    * Swipe from coordinates (from) to the new coordinates (to). The given coordinates are in pixels.
    */
@@ -214,10 +231,10 @@ class Gestures {
     const endPercentage = 0;
     const anchorPercentage = 50;
 
-    const {width, height} = await driver.getWindowSize();
-    const anchor = height * anchorPercentage / 100;
-    const startPoint = width * startPercentage / 100;
-    const endPoint = width * endPercentage / 100;
+    const { width, height } = await driver.getWindowSize();
+    const anchor = (height * anchorPercentage) / 100;
+    const startPoint = (width * startPercentage) / 100;
+    const endPoint = (width * endPercentage) / 100;
     await driver.touchPerform([
       {
         action: 'press',
@@ -256,17 +273,13 @@ class Gestures {
         parameters: { pointerType: 'touch' },
         actions: [
           // b. Move finger into start position
-          { type: 'pointerMove', duration: 0, x: from.x, y: from.y },
-          // c. Finger comes down into contact with screen
-          { type: 'pointerDown', button: 0 },
-          // d. Pause for a little bit
-          { type: 'pause', duration: 100 },
-          // e. Finger moves to end position
+          { type: 'pointerMove', duration: 0, x: from.x, y: from.y }, // c. Finger comes down into contact with screen
+          { type: 'pointerDown', button: 0 }, // d. Pause for a little bit
+          { type: 'pause', duration: 100 }, // e. Finger moves to end position
           //    We move our finger from the center of the element to the
           //    starting position of the element.
           //    Play with the duration to make the swipe go slower / faster
-          { type: 'pointerMove', duration: 1000, x: to.x, y: to.y },
-          // f. Finger gets up, off the screen
+          { type: 'pointerMove', duration: 1000, x: to.x, y: to.y }, // f. Finger gets up, off the screen
           { type: 'pointerUp', button: 0 },
         ],
       },
@@ -274,6 +287,7 @@ class Gestures {
     // Add a pause, just to make sure the swipe is done
     await driver.pause(1000);
   }
+
   /**
    * Get the screen coordinates based on a device his screen size
    */
@@ -284,6 +298,7 @@ class Gestures {
       y: Math.round(screenSize.height * (coordinates.y / 100)),
     };
   }
+
   /**
    * Calculate the x y coordinates based on a percentage
    */
