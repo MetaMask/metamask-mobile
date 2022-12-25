@@ -58,10 +58,6 @@ class TransactionEditor extends PureComponent {
      */
     accounts: PropTypes.object,
     /**
-     * A string representing the network name
-     */
-    networkType: PropTypes.string,
-    /**
      * Current mode this transaction editor is in
      */
     mode: PropTypes.oneOf([EDIT, REVIEW]),
@@ -731,7 +727,6 @@ class TransactionEditor extends PureComponent {
       gasEstimateType,
       transaction,
       activeTabUrl,
-      networkType,
     } = this.props;
     const {
       ready,
@@ -836,7 +831,6 @@ class TransactionEditor extends PureComponent {
                 transaction,
                 activeTabUrl,
                 gasEstimateType,
-                networkType,
               )}
             />
           ) : (
@@ -864,7 +858,6 @@ class TransactionEditor extends PureComponent {
                 transaction,
                 activeTabUrl,
                 gasEstimateType,
-                networkType,
               )}
             />
           ))}

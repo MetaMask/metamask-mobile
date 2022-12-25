@@ -12,6 +12,7 @@ const ContractBox = ({
   contractLocalImage,
   onExportAddress,
   onCopyAddress,
+  onContractPress,
 }: ContractBoxProps) => (
   <View testID={CONTRACT_BOX_TEST_ID}>
     <Card style={styles.container}>
@@ -21,6 +22,7 @@ const ContractBox = ({
         contractLocalImage={contractLocalImage}
         onExportAddress={onExportAddress}
         onCopyAddress={onCopyAddress}
+        onContractPress={onContractPress}
       />
     </Card>
   </View>

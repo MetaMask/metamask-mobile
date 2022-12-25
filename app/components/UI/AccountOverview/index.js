@@ -8,6 +8,7 @@ import {
   View,
   TouchableOpacity,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
@@ -41,11 +42,17 @@ import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
 import { fontStyles, baseStyles } from '../../../styles/common';
-import { allowedToBuy } from '../FiatOrders';
+import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  WALLET_ACCOUNT_ICON,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
+  WALLET_ACCOUNT_NAME_LABEL_INPUT,
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -396,7 +403,7 @@ class AccountOverview extends PureComponent {
               style={styles.identiconBorder}
               disabled={onboardingWizard}
               onPress={this.toggleAccountsModal}
-              testID={'wallet-account-identicon'}
+              {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
             >
               <Identicon
                 address={address}
@@ -423,7 +430,7 @@ class AccountOverview extends PureComponent {
                   onChangeText={this.onAccountLabelChange}
                   onSubmitEditing={this.setAccountLabel}
                   onBlur={this.setAccountLabel}
-                  testID={'account-label-text-input'}
+                  {...generateTestId(Platform, WALLET_ACCOUNT_NAME_LABEL_INPUT)}
                   value={accountLabel}
                   selectTextOnFocus
                   ref={this.input}
@@ -448,7 +455,10 @@ class AccountOverview extends PureComponent {
                         },
                       ]}
                       numberOfLines={1}
-                      testID={'edit-account-label'}
+                      {...generateTestId(
+                        Platform,
+                        WALLET_ACCOUNT_NAME_LABEL_TEXT,
+                      )}
                     >
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
@@ -518,7 +528,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: String(state.engine.backgroundState.NetworkController.network),
   swapsIsLive: swapsLivenessSelector(state),
 });
 

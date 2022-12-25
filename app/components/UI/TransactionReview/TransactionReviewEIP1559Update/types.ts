@@ -67,6 +67,7 @@ export interface TransactionEIP1559UpdateProps {
    */
   updateTransactionState: any;
   onlyGas: boolean;
+  multiLayerL1FeeTotal?: string;
 }
 
 export interface SkeletonProps {

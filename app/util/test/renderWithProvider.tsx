@@ -2,25 +2,27 @@ import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { ThemeContext, useAppTheme } from '../theme';
+import { mockTheme, ThemeContext } from '../theme';
+import configureStore from './configureStore';
+import { Theme } from '../theme/models';
 
-function renderWithProvider(component: React.ReactElement, store: any) {
-  const ConnectedRoot = ({ children }: { children: React.ReactElement }) => {
-    const theme = useAppTheme();
-    return (
-      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
-    );
-  };
+export default function renderWithProvider(
+  component: React.ReactElement,
+  providerValues?: {
+    state?: Record<any, any>;
+    theme?: Theme;
+  },
+) {
+  const { state = {}, theme = mockTheme } = providerValues ?? {};
+  const store = configureStore(state);
 
-  const Wrapper = ({ children }: { children: React.ReactElement }) => (
+  const AllProviders = ({ children }: { children: React.ReactElement }) => (
     <NavigationContainer>
       <Provider store={store}>
-        <ConnectedRoot>{children}</ConnectedRoot>
+        <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
       </Provider>
     </NavigationContainer>
   );
 
-  return render(component, { wrapper: Wrapper });
+  return render(component, { wrapper: AllProviders });
 }
-
-export default renderWithProvider;

@@ -144,9 +144,8 @@ export const getLegacyTransactionData = ({
   ticker,
   gas,
   onlyGas,
+  multiLayerL1FeeTotal,
 }: LegacyProps) => {
-  // hack: selectedAsset becomes an empty object when legacy transaction is submitted and it breaks the app. See Line 1241 in util/transactions.js
-  transactionState.selectedAsset.isETH = true;
   const parsedTransationData = parseTransactionLegacy(
     {
       contractExchangeRates,
@@ -157,6 +156,7 @@ export const getLegacyTransactionData = ({
       selectedGasFee: {
         ...gas,
       },
+      multiLayerL1FeeTotal,
     },
     { onlyGas },
   );
@@ -173,6 +173,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasObject,
+  multiLayerL1FeeTotal,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -216,6 +217,7 @@ export const useGasTransaction = ({
       transactionState,
       ticker,
       onlyGas,
+      multiLayerL1FeeTotal,
     });
   }
 

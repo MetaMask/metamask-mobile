@@ -97,19 +97,16 @@ class Gestures {
   }
 
   static async tapTextByXpath(text, tapType = 'TAP') {
+    const elem = await Selectors.getXpathElementByText(text);
     switch (tapType) {
       case 'TAP':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.TAP);
+        await elem.touchAction(Actions.TAP);
         break;
       case 'LONGPRESS':
-        (await Selectors.getXpathElementByText(text)).touchAction(
-          Actions.LONGPRESS,
-        );
+        await elem.touchAction(Actions.LONGPRESS);
         break;
       case 'RELEASE':
-        (await Selectors.getXpathElementByText(text)).touchAction(
-          Actions.RELEASE,
-        );
+        await elem.touchAction(Actions.RELEASE);
         break;
       default:
         throw new Error('Tap type not found');

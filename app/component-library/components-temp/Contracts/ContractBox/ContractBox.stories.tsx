@@ -10,6 +10,7 @@ import {
   CONTRACT_LOCAL_IMAGE,
   CONTRACT_COPY_ADDRESS,
   CONTRACT_EXPORT_ADDRESS,
+  CONTRACT_ON_PRESS,
 } from './ContractBox.constants';
 
 storiesOf('Component Library / Contract Box', module)
@@ -19,6 +20,7 @@ storiesOf('Component Library / Contract Box', module)
       contractLocalImage={CONTRACT_LOCAL_IMAGE}
       onCopyAddress={CONTRACT_COPY_ADDRESS}
       onExportAddress={CONTRACT_EXPORT_ADDRESS}
+      onContractPress={CONTRACT_ON_PRESS}
     />
   ))
   .add('Saved Address', () => (
@@ -28,5 +30,6 @@ storiesOf('Component Library / Contract Box', module)
       contractLocalImage={CONTRACT_LOCAL_IMAGE}
       onCopyAddress={CONTRACT_COPY_ADDRESS}
       onExportAddress={CONTRACT_EXPORT_ADDRESS}
+      onContractPress={CONTRACT_ON_PRESS}
     />
   ));
