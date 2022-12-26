@@ -6,12 +6,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleAccountsModal } from '../../../../actions/modals';
 import EthereumAddress from '../../EthereumAddress';
 import JSIdenticon from '../../Identicon';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import JSSelectorButton from '../../../Base/SelectorButton';
 
 // TODO: Convert into typescript and correctly type
 const SelectorButton = JSSelectorButton as any;
-const Text = BaseText as any;
 const Identicon = JSIdenticon as any;
 
 const styles = StyleSheet.create({

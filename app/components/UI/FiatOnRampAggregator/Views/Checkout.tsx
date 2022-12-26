@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from 'react-native-webview';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
@@ -13,11 +13,16 @@ import { useFiatOnRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
   addFiatOrder,
+  FiatOrder,
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import { hexToBN } from '../../../../util/number';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import {
@@ -25,13 +30,24 @@ import {
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import useAnalytics from '../hooks/useAnalytics';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+
+interface CheckoutParams {
+  url: string;
+  customOrderId?: string;
+  provider: Provider;
+}
+
+export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
+  Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
+);
 
 const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
@@ -43,16 +59,7 @@ const CheckoutWebView = () => {
   const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
-  // @ts-expect-error useRoute params error
-  const {
-    params,
-  }: {
-    params: {
-      url: string;
-      customOrderId?: string;
-      provider: Provider;
-    };
-  } = useRoute();
+  const params = useParams<CheckoutParams>();
   const { colors } = useTheme();
   const accounts = useSelector(
     (state: any) =>

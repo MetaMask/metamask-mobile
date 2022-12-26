@@ -6,6 +6,7 @@ import {
   View,
   InteractionManager,
   Image,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -28,7 +29,8 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { IMPORT_NFT_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -160,7 +162,7 @@ const CollectibleContracts = ({
         style={styles.add}
         onPress={goToAddCollectible}
         disabled={!isAddNFTEnabled}
-        testID={'add-collectible-button'}
+        {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
       >
         <Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
       </TouchableOpacity>
