@@ -24,7 +24,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
-import sanitizeUrl from '../../../../util/sanitizeUrl';
+import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -177,7 +177,7 @@ class NetworksSettings extends PureComponent {
     // Check if it's the selected network and then switch to mainnet first
     const { provider } = this.props;
     if (
-      sanitizeUrl(provider.rpcTarget) === sanitizeUrl(this.networkToRemove) &&
+      compareSanitizedUrl(provider.rpcTarget, this.networkToRemove) &&
       provider.type === RPC
     ) {
       this.switchToMainnet();
