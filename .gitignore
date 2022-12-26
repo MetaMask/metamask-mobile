@@ -85,3 +85,6 @@ tests
 
 # attributions
 licenseInfos.json
+
+# wdio
+wdio/reports/
