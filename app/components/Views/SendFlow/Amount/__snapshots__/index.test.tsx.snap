@@ -7512,7 +7512,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
