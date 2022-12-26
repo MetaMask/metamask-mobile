@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Annuler",
     "confirm_cta": "Confirmer"
+  },
+  "automatic_security_checks": {
+    "title": "Identification automatique de failles de sécurité",
+    "description": "Votre adresse IP peut être exposée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée."
+  },
+  "update_needed": {
+    "title": "Des mises à jour sont nécessaires",
+    "description": "Nous avons renforcé la sécurité de votre portefeuille ! Veuillez sécuriser votre compte en mettant à jour l’application.",
+    "primary_action": "Mettre à jour",
+    "secondary_action": "Me le rappeler plus tard"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Vérifier automatiquement si une mise à jour est disponible ?",
+    "description": "Votre adresse IP peut être divulguée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée.",
+    "primary_action": "Activer l’identification automatique de failles de sécurité",
+    "secondary_action": "Non merci"
   }
 }

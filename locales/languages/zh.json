@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "取消",
     "confirm_cta": "确认"
+  },
+  "automatic_security_checks": {
+    "title": "自动安全检查",
+    "description": "自动检查更新可能会将您的IP地址暴露给GitHub服务器。这仅显示您的IP地址正在使用MetaMask。其他信息或账户地址不会暴露。"
+  },
+  "update_needed": {
+    "title": "需要更新",
+    "description": "我们增強了您钱包的安全！请花点时间保护自己，更新到最新版本。",
+    "primary_action": "更新到最新版本",
+    "secondary_action": "稍后提醒我"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "要自动检查安全更新吗？",
+    "description": "自动检查更新可能会将您的IP地址暴露给GitHub服务器。这仅显示您的IP地址正在使用MetaMask。其他信息或账户地址不会暴露。",
+    "primary_action": "启用自动安全检查",
+    "secondary_action": "不，谢谢"
   }
 }

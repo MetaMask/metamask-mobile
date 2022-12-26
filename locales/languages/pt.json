@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Cancelar",
     "confirm_cta": "Confirmar"
+  },
+  "automatic_security_checks": {
+    "title": "Verificações automáticas de segurança",
+    "description": "Verificar atualizações automaticamente pode expor seu endereço IP aos servidores do GitHub. Isso apenas indica que o seu endereço IP está usando a MetaMask. Nenhuma outra informação ou endereços de conta são expostos."
+  },
+  "update_needed": {
+    "title": "Atualizações necessárias",
+    "description": "Aumentamos a segurança da sua carteira! Por favor, reserve um momento para se proteger e atualizar para a versão mais recente.",
+    "primary_action": "Atualizar para a versão mais recente",
+    "secondary_action": "Lembre-me depois"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Verificar se há atualizações de segurança automaticamente?",
+    "description": "Verificar atualizações automaticamente pode expor seu endereço IP aos servidores do GitHub. Isso apenas indica que o seu endereço IP está usando a MetaMask. Nenhuma outra informação ou endereços de conta são expostos.",
+    "primary_action": "Ativar verificações automáticas de segurança",
+    "secondary_action": "Não, obrigado"
   }
 }

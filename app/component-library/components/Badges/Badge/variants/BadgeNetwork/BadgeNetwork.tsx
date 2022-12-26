@@ -4,8 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import AvatarNetwork from '../../../../Avatars/AvatarNetwork';
-import { AvatarBaseSize } from '../../../../Avatars/AvatarBase';
+import Avatar, { AvatarSize, AvatarVariants } from '../../../../Avatars/Avatar';
 import { useStyles } from '../../../../../hooks';
 import BadgeBase from '../../foundation/BadgeBase';
 import { BADGE_NETWORK_TEST_ID } from '../../Badge.constants';
@@ -23,10 +22,11 @@ const BadgeNetwork = ({
 
   return (
     <BadgeBase style={styles.base} testID={BADGE_NETWORK_TEST_ID}>
-      <AvatarNetwork
+      <Avatar
+        variant={AvatarVariants.Network}
         name={name}
         imageSource={imageSource}
-        size={AvatarBaseSize.Xs}
+        size={AvatarSize.Xs}
       />
     </BadgeBase>
   );

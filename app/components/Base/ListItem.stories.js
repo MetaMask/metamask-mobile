@@ -35,7 +35,7 @@ const exampleItems = [
   },
 ];
 
-storiesOf('Base / ListItem', module)
+storiesOf('Components / Base / ListItem', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const title = text('Title', 'Blue Coffee', 'Details');

@@ -567,7 +567,7 @@
     "cancel_remove_network": "Abbrechen",
     "info_title": "Über MetaMask",
     "experimental_title": "Experimentell",
-    "experimental_desc": "WalletConnect & mehr ...",
+    "experimental_desc": "MetaMask SDK, WalletConnect & mehr ...",
     "legal_title": "Rechtliches",
     "conversion_title": "Währungsumrechnung",
     "conversion_desc": "Zeigt Fiatwerte durch die Nutzung einer bestimmten Währung innerhalb der App an.",
@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Abbrechen",
     "confirm_cta": "Bestätigen"
+  },
+  "automatic_security_checks": {
+    "title": "Automatische Sicherheitsprüfungen",
+    "description": "Die automatische Suche nach Updates kann Ihre IP-Adresse den GitHub-Servern preisgeben. Dies zeigt nur an, dass Ihre IP-Adresse MetaMask verwendet. Es werden keine anderen Informationen oder Kontoadressen offengelegt."
+  },
+  "update_needed": {
+    "title": "Updates nötig",
+    "description": "Wir haben die Sicherheit für Ihr Wallet erhöht! Bitte nehmen Sie sich einen Moment Zeit, um sich selbst zu schützen und aktualisieren Sie auf die neueste Version.",
+    "primary_action": "Auf neueste Version aktualisieren",
+    "secondary_action": "Später erinnern"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Automatisch nach Sicherheitsupdates suchen?",
+    "description": "Die automatische Suche nach Updates kann Ihre IP-Adresse den GitHub-Servern preisgeben. Dies zeigt nur an, dass Ihre IP-Adresse MetaMask verwendet. Es werden keine anderen Informationen oder Kontoadressen offengelegt.",
+    "primary_action": "Automatische Sicherheitsprüfungen aktivieren",
+    "secondary_action": "Nein Danke"
   }
 }

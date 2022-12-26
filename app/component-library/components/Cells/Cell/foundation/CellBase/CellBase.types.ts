@@ -2,7 +2,7 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies.
-import { AvatarProps } from '../../../../Avatars/Avatar.types';
+import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 
 // Internal dependencies
 import { CellVariants } from '../../Cell.types';

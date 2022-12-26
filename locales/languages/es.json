@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Cancelar",
     "confirm_cta": "Confirmar"
+  },
+  "automatic_security_checks": {
+    "title": "Controles de seguridad automáticos",
+    "description": "La búsqueda automática de actualizaciones puede exponer su dirección IP a los servidores de GitHub. Esto solo indica que su dirección IP está usando MetaMask. No se exponen otros datos ni direcciones de cuentas."
+  },
+  "update_needed": {
+    "title": "Actualizaciones necesarias",
+    "description": "¡Hemos aumentado la seguridad de su billetera! Tómese un momento para protegerse y actualizar a la última versión.",
+    "primary_action": "Actualizar a la última versión",
+    "secondary_action": "Recordarme más adelante"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "¿Comprobar automáticamente las actualizaciones de seguridad?",
+    "description": "La búsqueda automática de actualizaciones puede exponer su dirección IP a los servidores de GitHub. Esto solo indica que su dirección IP está usando MetaMask. No se exponen otros datos ni direcciones de cuentas.",
+    "primary_action": "Habilitar comprobaciones de seguridad automáticas",
+    "secondary_action": "No, gracias"
   }
 }

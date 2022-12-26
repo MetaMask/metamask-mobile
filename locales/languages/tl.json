@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Kanselahin",
     "confirm_cta": "Kumpirmahin"
+  },
+  "automatic_security_checks": {
+    "title": "Mga awtomatikong pagsusuri sa seguridad",
+    "description": "Ang awtomatikong pagtingin ng mga update ay maaaring ilantad ang iyong IP address sa mga GitHub server. Ipinapahiwatig lang nito na ginagamit ng iyong IP address ang MetaMask. Walang ibang impormasyon o mga address ng account ang nalalantad."
+  },
+  "update_needed": {
+    "title": "Kailangan ng mga update",
+    "description": "Pinataas namin ang seguridad para sa iyong wallet! Mangyaring maglaan ng ilang sandali upang protektahan ang iyong sarili at mag-update sa pinakabagong bersyon.",
+    "primary_action": "I-update sa pinakabagong bersyon",
+    "secondary_action": "Paalalahanan ako mamaya"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Awtomatikong suriin para sa mga update sa seguridad?",
+    "description": "Maaaring ilantad ng awtomatikong pagsuri para sa mga update ang iyong IP address sa mga server ng GitHub. Ipinapahiwatig lamang nito na ang iyong IP address ay gumagamit ng MetaMask. Walang ibang impormasyon o mga address ng account ang nakalantad.",
+    "primary_action": "Paganahin ang mga awtomatikong pagsusuri sa seguridad",
+    "secondary_action": "Salamat nalang"
   }
 }

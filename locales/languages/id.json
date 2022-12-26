@@ -567,7 +567,7 @@
     "cancel_remove_network": "Batal",
     "info_title": "Seputar MetaMask",
     "experimental_title": "Eksperimental",
-    "experimental_desc": "WalletConnect & lainnya...",
+    "experimental_desc": "MetaMask SDK, WalletConnect & lainnya...",
     "legal_title": "Hukum",
     "conversion_title": "Konversi mata uang",
     "conversion_desc": "Menampilkan nilai fiat dalam menggunakan mata uang tertentu di seluruh aplikasi.",
@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Batalkan",
     "confirm_cta": "Konfirmasikan"
+  },
+  "automatic_security_checks": {
+    "title": "Pemeriksaan keamanan otomatis",
+    "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan."
+  },
+  "update_needed": {
+    "title": "Pembaruan diperlukan",
+    "description": "Kami telah meningkatkan keamanan untuk dompet Anda! Mohon luangkan waktu untuk melindungi diri Anda dan perbarui ke versi terkini.",
+    "primary_action": "Perbarui ke versi terkini",
+    "secondary_action": "Ingatkan saya nanti"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Periksa pembaruan keamanan secara otomatis?",
+    "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan.",
+    "primary_action": "Aktifkan pemeriksaan keamanan otomatis",
+    "secondary_action": "Tidak, terima kasih"
   }
 }

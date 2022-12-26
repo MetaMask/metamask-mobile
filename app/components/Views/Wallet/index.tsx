@@ -34,6 +34,7 @@ import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -156,11 +157,11 @@ const Wallet = ({ navigation }: any) => {
       requestAnimationFrame(async () => {
         const {
           TokenDetectionController,
-          CollectibleDetectionController,
+          NftDetectionController,
           AccountTrackerController,
         } = Engine.context as any;
         TokenDetectionController.detectTokens();
-        CollectibleDetectionController.detectCollectibles();
+        NftDetectionController.detectNfts();
         AccountTrackerController.refresh();
       });
     },
@@ -185,14 +186,14 @@ const Wallet = ({ navigation }: any) => {
       setRefreshing(true);
       const {
         TokenDetectionController,
-        CollectibleDetectionController,
+        NftDetectionController,
         AccountTrackerController,
         CurrencyRateController,
         TokenRatesController,
       } = Engine.context as any;
       const actions = [
         TokenDetectionController.detectTokens(),
-        CollectibleDetectionController.detectCollectibles(),
+        NftDetectionController.detectNfts(),
         AccountTrackerController.refresh(),
         CurrencyRateController.start(),
         TokenRatesController.poll(),
@@ -326,7 +327,7 @@ const Wallet = ({ navigation }: any) => {
 
   return (
     <ErrorBoundary view="Wallet">
-      <View style={baseStyles.flexGrow} testID={'wallet-screen'}>
+      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
         <ScrollView
           style={styles.wrapper}
           refreshControl={

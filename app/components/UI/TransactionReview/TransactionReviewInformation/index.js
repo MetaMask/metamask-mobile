@@ -28,6 +28,7 @@ import {
   calculateEthEIP1559,
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
+import { sumHexWEIs } from '../../../../util/conversions';
 import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
@@ -41,7 +42,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
-import { allowedToBuy } from '../../FiatOrders';
+import { allowedToBuy } from '../../FiatOnRampAggregator';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -208,6 +209,7 @@ class TransactionReviewInformation extends PureComponent {
      */
     originWarning: PropTypes.bool,
     gasSelected: PropTypes.string,
+    multiLayerL1FeeTotal: PropTypes.string,
   };
 
   state = {
@@ -389,7 +391,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency: this.isTestNetwork ? ticker : nativeCurrency,
+          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -475,7 +477,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency: this.isTestNetwork ? ticker : nativeCurrency,
+          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -577,10 +579,15 @@ class TransactionReviewInformation extends PureComponent {
       onUpdatingValuesEnd,
       animateOnChange,
       isAnimating,
+      multiLayerL1FeeTotal,
     } = this.props;
 
-    const totalGas =
+    let totalGas =
       isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : hexToBN('0x0');
+    if (multiLayerL1FeeTotal) {
+      totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
+    }
+
     const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
     const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
     const [totalFiat, totalValue] = this.getRenderTotals(
@@ -622,8 +629,8 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const errorPress = this.isTestNetwork ? this.goToFaucet : this.buyEth;
-    const errorLinkText = this.isTestNetwork
+    const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
+    const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 
@@ -661,7 +668,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {this.isTestNetwork || allowedToBuy(network) ? (
+            {this.isTestNetwork() || allowedToBuy(network) ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (

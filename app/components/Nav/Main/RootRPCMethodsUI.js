@@ -111,11 +111,14 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const initializeWalletConnect = () => {
+    WalletConnect.init();
+  };
+
+  const onWalletConnectSessionRequest = () => {
     WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
       setWalletConnectRequest(true);
       setWalletConnectRequestInfo(peerInfo);
     });
-    WalletConnect.init();
   };
 
   const trackSwaps = useCallback(
@@ -507,7 +510,11 @@ const RootRPCMethodsUI = (props) => {
 
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
-    ApprovalController.reject(id, error);
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
   };
 
   const acceptPendingApproval = (id, requestData) => {
@@ -730,6 +737,7 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
+    onWalletConnectSessionRequest();
 
     Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
       onUnapprovedMessage(messageParams, 'eth'),

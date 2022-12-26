@@ -4,9 +4,9 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import { AvatarBaseSize } from '../AvatarBase';
-import Text, { TextVariant } from '../../Text';
-import AvatarToken from '../AvatarToken';
+import { AvatarSize } from '../Avatar/Avatar.types';
+import Text, { TextVariants } from '../../Texts/Text';
+import AvatarToken from '../Avatar/variants/AvatarToken';
 
 // Internal dependencies.
 import styleSheet from './AvatarGroup.styles';
@@ -17,7 +17,7 @@ import {
 } from './AvatarGroup.constants';
 
 const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
-  const extraSmallSize = AvatarBaseSize.Xs;
+  const extraSmallSize = AvatarSize.Xs;
   const sizeAsNumber = Number(extraSmallSize);
   const overflowCounter = tokenList.length - MAX_STACKED_AVATARS;
   const avatarSpacing = sizeAsNumber / 2;
@@ -57,7 +57,7 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
       <View style={styles.overflowCounterWrapper}>
         {shouldRenderOverflowCounter && (
           <Text
-            variant={TextVariant.sBodyMD}
+            variant={TextVariants.sBodyMD}
             style={styles.textStyle}
             testID={STACKED_AVATARS_OVERFLOW_COUNTER_ID}
           >{`+${overflowCounter}`}</Text>

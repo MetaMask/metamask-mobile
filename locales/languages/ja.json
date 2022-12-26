@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "キャンセル",
     "confirm_cta": "確認"
+  },
+  "automatic_security_checks": {
+    "title": "自動セキュリティチェック",
+    "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。"
+  },
+  "update_needed": {
+    "title": "アップデートが必要です",
+    "description": "ウォレットのセキュリティが強化されました！自分の身を守るために、最新バージョンにアップデートしてください。",
+    "primary_action": "最新バージョンにアップデート",
+    "secondary_action": "後で通知する"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "セキュリティアップデートを自動的に確認しますか？",
+    "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。",
+    "primary_action": "自動セキュリティチェックを有効にする",
+    "secondary_action": "結構です"
   }
 }

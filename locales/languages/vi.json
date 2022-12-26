@@ -567,7 +567,7 @@
     "cancel_remove_network": "Hủy",
     "info_title": "Giới thiệu về MetaMask",
     "experimental_title": "Thử nghiệm",
-    "experimental_desc": "WalletConnect & hơn thế nữa...",
+    "experimental_desc": "MetaMask SDK, alletConnect & hơn thế nữa...",
     "legal_title": "Pháp lý",
     "conversion_title": "Chuyển đổi tiền tệ",
     "conversion_desc": "Hiển thị giá trị tiền pháp định bằng cách sử dụng một loại tiền tệ cụ thể trong toàn bộ ứng dụng.",
@@ -2160,5 +2160,21 @@
   "confirmation_modal": {
     "cancel_cta": "Hủy",
     "confirm_cta": "Xác nhận"
+  },
+  "automatic_security_checks": {
+    "title": "Kiểm tra bảo mật tự động",
+    "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác."
+  },
+  "update_needed": {
+    "title": "Cần cập nhật",
+    "description": "Chúng tôi đã tăng cường bảo mật cho ví của bạn! Hãy dành chút thời gian để tự bảo vệ mình và cập nhật lên phiên bản mới nhất.",
+    "primary_action": "Cập nhật lên phiên bản mới nhất",
+    "secondary_action": "Nhắc tôi sau"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Tự động kiểm tra các bản cập nhật bảo mật?",
+    "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác.",
+    "primary_action": "Bật kiểm tra bảo mật tự động",
+    "secondary_action": "Không, cảm ơn"
   }
 }

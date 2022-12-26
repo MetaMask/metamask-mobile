@@ -23,7 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { getTicker } from '../../../util/transactions';
-import { allowedToBuy } from '../FiatOrders';
+import { allowedToBuy } from '../FiatOnRampAggregator';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';

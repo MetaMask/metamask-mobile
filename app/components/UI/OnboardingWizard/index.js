@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   Text,
-  Dimensions,
   InteractionManager,
 } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
@@ -29,7 +28,6 @@ import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import { scale } from 'react-native-size-matters';
 
-const MIN_HEIGHT = Dimensions.get('window').height;
 const createStyles = (colors) =>
   StyleSheet.create({
     root: {
@@ -87,6 +85,7 @@ const OnboardingWizard = (props) => {
     navigation,
     wizard: { step },
     coachmarkRef,
+    isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
@@ -157,6 +156,10 @@ const OnboardingWizard = (props) => {
     return setOnboardingWizardStep(step - 1);
   };
 
+  if (isAutomaticSecurityChecksModalOpen) {
+    return null;
+  }
+
   return (
     <Modal
       animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
@@ -166,7 +169,7 @@ const OnboardingWizard = (props) => {
       disableAnimation
       transparent
       onBackButtonPress={getBackButtonBehavior}
-      style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
+      style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (
@@ -199,6 +202,8 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   wizard: state.wizard,
+  isAutomaticSecurityChecksModalOpen:
+    state.security.isAutomaticSecurityChecksModalOpen,
 });
 
 OnboardingWizard.propTypes = {
@@ -218,6 +223,10 @@ OnboardingWizard.propTypes = {
    * Coachmark ref to get position
    */
   coachmarkRef: PropTypes.object,
+  /**
+   * Boolean that determines if the user has selected the automatic security check option
+   */
+  isAutomaticSecurityChecksModalOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);

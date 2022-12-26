@@ -1,7 +1,7 @@
 /**
  * ModalConfirmation variants.
  */
-export enum ModalConfirmationVariant {
+export enum ModalConfirmationVariants {
   Normal = 'Normal',
   Danger = 'Danger',
 }
@@ -15,7 +15,7 @@ export interface ModalConfirmationRoute {
      * Optional variant to set on the modal.
      * @default Normal
      */
-    variant?: ModalConfirmationVariant;
+    variant?: ModalConfirmationVariants;
     /**
      * Title to show in modal.
      */

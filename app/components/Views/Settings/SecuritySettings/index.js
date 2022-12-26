@@ -13,7 +13,7 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -289,7 +289,7 @@ class Settings extends PureComponent {
     /**
      * State of NFT detection toggle
      */
-    useCollectibleDetection: PropTypes.bool,
+    useNftDetection: PropTypes.bool,
     /**
      * Route passed in props from navigation
      */
@@ -538,12 +538,12 @@ class Settings extends PureComponent {
   toggleOpenSeaApi = (value) => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setOpenSeaEnabled(value);
-    if (!value) PreferencesController?.setUseCollectibleDetection(value);
+    if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
   toggleNftAutodetect = (value) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setUseCollectibleDetection(value);
+    PreferencesController.setUseNftDetection(value);
   };
 
   /**
@@ -1055,7 +1055,7 @@ class Settings extends PureComponent {
   };
 
   renderOpenSeaSettings = () => {
-    const { openSeaEnabled, useCollectibleDetection } = this.props;
+    const { openSeaEnabled, useNftDetection } = this.props;
     const { styles, colors } = this.getStyles();
 
     return (
@@ -1093,7 +1093,7 @@ class Settings extends PureComponent {
           </Text>
           <View style={styles.switchElement}>
             <Switch
-              value={useCollectibleDetection}
+              value={useNftDetection}
               onValueChange={this.toggleNftAutodetect}
               trackColor={{
                 true: colors.primary.default,
@@ -1152,7 +1152,7 @@ class Settings extends PureComponent {
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
-          {__DEV__ ? <AutomaticSecurityChecks /> : null}
+          <AutomaticSecurityChecks />
           {this.renderHint()}
         </View>
       </ScrollView>
@@ -1175,8 +1175,8 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   openSeaEnabled:
     state.engine.backgroundState.PreferencesController.openSeaEnabled,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: state.engine.backgroundState.NetworkController.provider.type,
