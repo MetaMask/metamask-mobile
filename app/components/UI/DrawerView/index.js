@@ -198,6 +198,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      padding: scale(2),
     },
     buttonIcon: {
       marginTop: 0,

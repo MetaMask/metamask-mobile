@@ -63,6 +63,7 @@ import {
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { scale } from 'react-native-size-matters';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,7 +198,7 @@ const createStyles = (colors) =>
     passwordStrengthLabel: {
       height: 20,
       marginTop: 10,
-      fontSize: 15,
+      fontSize: scale(10),
       color: colors.text.default,
       ...fontStyles.normal,
     },
