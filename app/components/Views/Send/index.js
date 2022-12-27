@@ -29,7 +29,7 @@ import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   decodeTransferData,
@@ -43,7 +43,6 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -618,7 +617,7 @@ class Send extends PureComponent {
    */
   trackConfirmScreen = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED,
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
   };
@@ -630,7 +629,7 @@ class Send extends PureComponent {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
         ...this.getTrackingParams(),
         actionKey,
@@ -643,7 +642,7 @@ class Send extends PureComponent {
    */
   trackOnCancel = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
   };
@@ -653,7 +652,7 @@ class Send extends PureComponent {
    */
   trackOnConfirm = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );
   };

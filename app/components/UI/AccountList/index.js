@@ -22,8 +22,6 @@ import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
@@ -218,7 +216,7 @@ class AccountList extends PureComponent {
   importAccount = () => {
     this.props.onImportAccount();
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
     });
   };
 
@@ -254,7 +252,7 @@ class AccountList extends PureComponent {
       }
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
     });
   };
 

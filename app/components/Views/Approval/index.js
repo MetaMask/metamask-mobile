@@ -10,7 +10,7 @@ import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
@@ -24,9 +24,7 @@ import {
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -199,7 +197,7 @@ class Approval extends PureComponent {
    */
   trackConfirmScreen = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED,
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
   };
@@ -211,7 +209,7 @@ class Approval extends PureComponent {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
         ...this.getTrackingParams(),
         actionKey,
@@ -224,7 +222,7 @@ class Approval extends PureComponent {
    */
   trackOnCancel = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
   };

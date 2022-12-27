@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
@@ -148,7 +148,7 @@ export default function getNavbarOptions(
   function onPress() {
     Keyboard.dismiss();
     drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
   }
 
   return {
@@ -527,7 +527,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
   });
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
-    trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
+    trackEventWithParameters(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,
     });
@@ -623,7 +623,7 @@ export function getBrowserViewNavbarOptions(
   function onPress() {
     Keyboard.dismiss();
     drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
   }
 
   return {
@@ -978,14 +978,14 @@ export function getWalletNavbarOptions(
 
   function openDrawer() {
     drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
   }
 
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
     });
-    trackEvent(ANALYTICS_EVENT_OPTS.WALLET_QR_SCANNER);
+    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
 
   return {
@@ -1398,7 +1398,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED,
+          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
           {
             ...trade,
             responseTime: new Date().getTime() - quoteBegin,
@@ -1416,7 +1416,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.QUOTES_REQUEST_CANCELLED,
+          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
           {
             ...trade,
             responseTime: new Date().getTime() - quoteBegin,

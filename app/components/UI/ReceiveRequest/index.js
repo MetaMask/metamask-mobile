@@ -17,11 +17,9 @@ import { connect } from 'react-redux';
 
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { getTicker } from '../../../util/transactions';
 import { allowedToBuy } from '../FiatOnRampAggregator';
@@ -170,7 +168,7 @@ class ReceiveRequest extends PureComponent {
         Logger.log('Error while trying to share address', err);
       });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_SHARE_ADDRESS);
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
     });
   };
 
@@ -229,7 +227,7 @@ class ReceiveRequest extends PureComponent {
   openQrModal = () => {
     this.setState({ qrModalVisible: true });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE);
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
     });
   };
 
@@ -240,9 +238,7 @@ class ReceiveRequest extends PureComponent {
       params: { receiveAsset: this.props.receiveAsset },
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -269,7 +265,7 @@ class ReceiveRequest extends PureComponent {
                     toggleModal();
                     InteractionManager.runAfterInteractions(() => {
                       Analytics.trackEvent(
-                        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE,
+                        MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
                       );
                     });
                   }}

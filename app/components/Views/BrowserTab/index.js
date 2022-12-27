@@ -43,7 +43,6 @@ import SearchApi from 'react-native-search-api';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -367,7 +366,7 @@ export const BrowserTab = (props) => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
+      Analytics.trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
     });
   }, [dismissTextSelectionIfNeeded, showOptions]);
 
@@ -870,7 +869,7 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_HOME);
   };
 
   /**
@@ -1106,7 +1105,7 @@ export const BrowserTab = (props) => {
       },
     });
     trackAddToFavoritesEvent();
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
   };
 
   /**
@@ -1133,7 +1132,7 @@ export const BrowserTab = (props) => {
         error,
       ),
     );
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
   };
 
   /**
