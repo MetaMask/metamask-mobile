@@ -157,7 +157,7 @@ export const FiatOnRampSDKProvider = ({
   const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
 
   const setSelectedRegionCallback = useCallback(
-    (region) => {
+    (region: Region | null) => {
       setSelectedRegion(region);
       dispatch(setFiatOrdersRegionAGG(region));
     },
