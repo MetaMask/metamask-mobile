@@ -65,6 +65,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/confusables';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
@@ -354,7 +355,7 @@ class Confirm extends PureComponent {
     });
     // For analytics
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED,
+      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
 
@@ -769,7 +770,7 @@ class Confirm extends PureComponent {
         });
         this.checkRemoveCollectible();
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
         stopGasPolling();
@@ -786,7 +787,7 @@ class Confirm extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
     }

@@ -20,7 +20,9 @@ import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
@@ -203,12 +205,9 @@ class AccountList extends PureComponent {
       InteractionManager.runAfterInteractions(() => {
         setTimeout(() => {
           // Track Event: "Switched Account"
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.SWITCHED_ACCOUNT,
-            {
-              number_of_accounts: Object.keys(accounts ?? {}).length,
-            },
-          );
+          AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+            number_of_accounts: Object.keys(accounts ?? {}).length,
+          });
         }, 1000);
       });
       const orderedAccounts = this.getAccounts();
@@ -225,9 +224,7 @@ class AccountList extends PureComponent {
 
   connectHardware = () => {
     this.props.onConnectHardware();
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
   };
 
   addAccount = async () => {

@@ -24,7 +24,9 @@ import {
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -187,7 +189,7 @@ class Approval extends PureComponent {
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED,
+      MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
   };
@@ -294,7 +296,7 @@ class Approval extends PureComponent {
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED,
+      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
       this.getAnalyticsParams(),
     );
   };
@@ -366,13 +368,13 @@ class Approval extends PureComponent {
         );
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
       this.setState({ transactionHandled: false });
     }
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
+      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       this.getAnalyticsParams({ gasEstimateType, gasSelected }),
     );
     this.setState({ transactionConfirmed: false });

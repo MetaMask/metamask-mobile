@@ -57,7 +57,8 @@ import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -564,7 +565,7 @@ class DrawerView extends PureComponent {
         this.setState({ showProtectWalletModal: true });
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED,
+            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
             {
               wallet_protection_required: false,
               source: 'Backup Alert',
@@ -699,7 +700,7 @@ class DrawerView extends PureComponent {
 
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       referral_source: 'In-app Navigation',
       chain_id: network,
     });
@@ -727,7 +728,7 @@ class DrawerView extends PureComponent {
   showWallet = () => {
     this.props.navigation.navigate('WalletTabHome');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
+    this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
   };
 
   goToTransactionHistory = () => {
@@ -1110,7 +1111,7 @@ class DrawerView extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: true,
           source: 'Modal',

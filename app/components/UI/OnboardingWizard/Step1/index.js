@@ -13,7 +13,9 @@ import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -54,13 +56,10 @@ class Step1 extends PureComponent {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(2);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STARTED,
-        {
-          tutorial_step_count: 1,
-          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
+        tutorial_step_count: 1,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
+      });
     });
   };
 

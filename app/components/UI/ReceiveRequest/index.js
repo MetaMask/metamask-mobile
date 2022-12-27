@@ -16,7 +16,8 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
 import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -188,7 +189,7 @@ class ReceiveRequest extends PureComponent {
       navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
-          AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
+          MetaMetricsEvents.BUY_BUTTON_CLICKED,
           {
             text: 'Buy Native Token',
             location: 'Receive Modal',

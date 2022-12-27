@@ -52,7 +52,9 @@ import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
@@ -265,7 +267,7 @@ const RootRPCMethodsUI = (props) => {
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           );
         }
       }
