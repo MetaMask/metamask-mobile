@@ -36,6 +36,7 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
+import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -89,26 +90,27 @@ const QRScanner = () => {
     );
   };
 
-  const showAlertForURLRedirection = (url: string): Promise<boolean> =>
-    new Promise((resolve) => {
-      mountedRef.current = false;
-      Alert.alert(
-        strings('qr_scanner.url_redirection_alert_title'),
-        `${url} \n\n ${strings('qr_scanner.url_redirection_alert_desc')}`,
-        [
-          {
-            text: strings('qr_scanner.cancel'),
-            onPress: () => resolve(false),
-            style: 'cancel',
+  const showAlertForURLRedirection = useCallback(
+    (url: string): Promise<boolean> =>
+      new Promise((resolve) => {
+        mountedRef.current = false;
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.MODAL.MODAL_CONFIRMATION,
+          params: {
+            onConfirm: () => resolve(true),
+            onCancel: () => resolve(false),
+            cancelLabel: strings('qr_scanner.cancel'),
+            confirmLabel: strings('qr_scanner.continue'),
+            variant: ModalConfirmationVariants.Normal,
+            title: strings('qr_scanner.url_redirection_alert_title'),
+            description: `${url} \n\n ${strings(
+              'qr_scanner.url_redirection_alert_desc',
+            )}`,
           },
-          {
-            text: strings('qr_scanner.continue'),
-            onPress: () => resolve(true),
-            style: 'default',
-          },
-        ],
-      );
-    });
+        });
+      }),
+    [navigation],
+  );
 
   const onBarCodeRead = useCallback(
     async (response) => {
@@ -240,7 +242,15 @@ const QRScanner = () => {
 
       end();
     },
-    [origin, end, navigation, onStartScan, onScanSuccess, currentChainId],
+    [
+      origin,
+      end,
+      showAlertForURLRedirection,
+      navigation,
+      onStartScan,
+      onScanSuccess,
+      currentChainId,
+    ],
   );
 
   const showCameraNotAuthorizedAlert = () =>
