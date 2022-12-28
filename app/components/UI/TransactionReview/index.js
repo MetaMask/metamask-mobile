@@ -7,6 +7,13 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
+import Eth from 'ethjs-query';
+import {
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
+} from '../../../util/networks';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -41,6 +48,10 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
+
+let intervalIdForEstimatedL1Fee;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -226,6 +237,29 @@ class TransactionReview extends PureComponent {
     assetAmount: undefined,
     conversionRate: undefined,
     fiatValue: undefined,
+    multiLayerL1FeeTotal: '0x0',
+  };
+
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    if (!transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
   };
 
   componentDidMount = async () => {
@@ -269,6 +303,17 @@ class TransactionReview extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
     });
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
+    }
+  };
+
+  componentWillUnmount = async () => {
+    clearInterval(intervalIdForEstimatedL1Fee);
   };
 
   async componentDidUpdate(prevProps) {
@@ -400,6 +445,7 @@ class TransactionReview extends PureComponent {
       conversionRate,
       fiatValue,
       approveTransaction,
+      multiLayerL1FeeTotal,
     } = this.state;
     const currentPageInformation = { url: this.getUrlFromBrowser() };
     const styles = this.getStyles();
@@ -463,6 +509,7 @@ class TransactionReview extends PureComponent {
                       onUpdatingValuesEnd={onUpdatingValuesEnd}
                       animateOnChange={animateOnChange}
                       isAnimating={isAnimating}
+                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
                     />
                   </View>
                 </ScrollView>

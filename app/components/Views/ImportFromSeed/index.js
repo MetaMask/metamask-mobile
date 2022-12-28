@@ -46,6 +46,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -599,6 +600,7 @@ const ImportFromSeed = ({
           action={strings('import_from_seed.import_button')}
         />
       </View>
+      <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };

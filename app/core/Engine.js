@@ -36,6 +36,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -446,6 +447,7 @@ class Engine {
         new SwapsController(
           {
             fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+            fetchEstimatedMultiLayerL1Fee,
           },
           {
             clientId: AppConstants.SWAPS.CLIENT_ID,

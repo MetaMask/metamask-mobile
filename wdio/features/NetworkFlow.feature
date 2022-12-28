@@ -1,5 +1,5 @@
 @androidApp
-Feature: Networks
+Feature: Blockchain Networks
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
   A user should be able to add a custom network via a Dapp.
@@ -21,7 +21,7 @@ Feature: Networks
     When I tap on Switch network
     Then I should see the added network name "<Network>" in the top navigation bar
     #       And my token balance shows up correctly with token "ll"
-    And I tap on the burger menu
+    When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     Then "<Network>" should be visible below the Custom Networks section
@@ -46,6 +46,7 @@ Feature: Networks
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
     When I tap on the Add button
+    And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
     Examples:
       | Network | rpcUrl                                | ChainID | Symbol |
@@ -71,7 +72,7 @@ Feature: Networks
     And In settings I tap on "Networks"
     And I tap and hold network "<Network>"
     Then I should see an alert window with the text "Do you want to remove this network?"
-    And I click "Remove" on remove network modal
+    When I click "Remove" on remove network modal
     Then "<Network>" should be removed from the list of RPC networks
     And I go back to the main wallet screen
     Examples:
@@ -92,12 +93,13 @@ Feature: Networks
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
     When I tap on the Add button
+    And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
-    When I tap on network "<Network>" on networks screen
-    When I tap the "Delete" button
+    And I tap on network "<Network>" on networks screen
+    And I tap the "Delete" button
     Then "<Network>" should be removed from the list of RPC networks
     Examples:
       | Network            | rpcUrl                           | ChainID | Symbol |
