@@ -309,6 +309,7 @@ const createStyles = (colors) =>
     warningTextContainer: {
       lineHeight: 20,
       paddingLeft: 10,
+      paddingRight: 10,
     },
     warningText: {
       lineHeight: 20,
