@@ -230,7 +230,7 @@ describe('Amount', () => {
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId('txn-amount-conversion-value');
-    expect(amountConversionValue.props.children).toBe('$1');
+    expect(amountConversionValue.props.children).toBe('$1.00');
 
     await act(() => fireEvent.press(nextButton));
 
@@ -287,7 +287,7 @@ describe('Amount', () => {
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId('txn-amount-conversion-value');
-    expect(amountConversionValue.props.children).toBe('$1');
+    expect(amountConversionValue.props.children).toBe('$1.00');
 
     await act(() => fireEvent.press(nextButton));
 
@@ -335,7 +335,7 @@ describe('Amount', () => {
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId('txn-amount-conversion-value');
-    expect(amountConversionValue.props.children).toBe('$3000');
+    expect(amountConversionValue.props.children).toBe('$3000.00');
     expect(toJSON()).toMatchSnapshot();
   });
 

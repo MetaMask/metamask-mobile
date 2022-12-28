@@ -1508,7 +1508,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       }
                                       testID="txn-amount-conversion-value"
                                     >
-                                      $3000
+                                      $3000.00
                                     </Text>
                                     <View
                                       styles={
@@ -1967,7 +1967,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                               }
                                             }
                                           >
-                                            $0
+                                            $0.00
                                           </Text>
                                         </View>
                                       </View>
@@ -5525,7 +5525,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       }
                                       testID="txn-amount-conversion-value"
                                     >
-                                      $1
+                                      $1.00
                                     </Text>
                                     <View
                                       styles={
@@ -5979,7 +5979,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                               }
                                             }
                                           >
-                                            $5
+                                            $5.00
                                           </Text>
                                         </View>
                                       </View>
@@ -7418,7 +7418,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       }
                                       testID="txn-amount-conversion-value"
                                     >
-                                      $1
+                                      $1.00
                                     </Text>
                                     <View
                                       styles={
@@ -7955,7 +7955,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                               }
                                             }
                                           >
-                                            $0
+                                            $0.00
                                           </Text>
                                         </View>
                                       </View>
