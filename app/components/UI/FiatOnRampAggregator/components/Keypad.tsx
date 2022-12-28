@@ -4,9 +4,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import KeypadComponent from '../../../Base/Keypad';
 import { useTheme } from '../../../../util/theme';
 import { colors as importedColors } from '../../../../styles/common';
-import { Colors } from '../../../../util/theme/models';
+import { Colors, Shadows } from '../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
+const createStyles = (colors: Colors, shadows: Shadows) =>
   StyleSheet.create({
     keypad: {
       paddingHorizontal: 24,
@@ -17,14 +17,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       paddingVertical: 5,
       margin: 3.5,
-      shadowColor: importedColors.shadow,
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.0,
-
+      ...shadows.size.xs,
       elevation: 1,
     },
     digitText: {
@@ -61,8 +54,8 @@ const Keypad = ({
     | 'deleteIcon'
     | 'style'
   >) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
   return (
     <KeypadComponent
       {...props}

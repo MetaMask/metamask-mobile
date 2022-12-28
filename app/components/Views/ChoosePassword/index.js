@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Switch,
   ActivityIndicator,
   Alert,
   Text,
@@ -11,11 +10,11 @@ import {
   StyleSheet,
   Image,
   InteractionManager,
+  Platform,
 } from 'react-native';
-// eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import {
   logIn,
@@ -27,7 +26,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -62,6 +61,8 @@ import {
   IOS_I_UNDERSTAND_BUTTON_ID,
   ANDROID_I_UNDERSTAND_BUTTON_ID,
 } from '../../../constants/test-ids';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -566,51 +567,17 @@ class ChoosePassword extends PureComponent {
   };
 
   renderSwitch = () => {
-    const { biometryType, rememberMe, biometryChoice } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
+    const { biometryType, biometryChoice } = this.state;
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
     return (
-      <View style={styles.biometrics}>
-        {biometryType ? (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
-            </Text>
-            <View>
-              <Switch
-                onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
-                value={biometryChoice}
-                style={styles.biometrySwitch}
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={importedColors.white}
-                ios_backgroundColor={colors.border.muted}
-              />
-            </View>
-          </>
-        ) : (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`choose_password.remember_me`)}
-            </Text>
-            <Switch
-              onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-              value={rememberMe}
-              style={styles.biometrySwitch}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={importedColors.white}
-              ios_backgroundColor={colors.border.muted}
-              testID={'remember-me-toggle'}
-            />
-          </>
-        )}
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={biometryType}
+        biometryChoiceState={biometryChoice}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 
@@ -720,7 +687,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    testID={CREATE_PASSWORD_INPUT_BOX_ID}
+                    {...generateTestId(Platform, CREATE_PASSWORD_INPUT_BOX_ID)}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -751,6 +718,7 @@ class ChoosePassword extends PureComponent {
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
                     testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    accessibilityLabel={CONFIRM_PASSWORD_INPUT_BOX_ID}
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
@@ -783,6 +751,7 @@ class ChoosePassword extends PureComponent {
                     }}
                     boxType="square"
                     testID={IOS_I_UNDERSTAND_BUTTON_ID}
+                    accessibilityLabel={IOS_I_UNDERSTAND_BUTTON_ID}
                   />
                   <Text
                     style={styles.label}

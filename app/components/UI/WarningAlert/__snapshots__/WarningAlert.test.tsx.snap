@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonBase should render correctly 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#F66A0A",
+        "borderRadius": 8,
+        "bottom": 20,
+        "left": 16,
+        "position": "absolute",
+        "right": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Alert
+    onDismiss={[MockFunction]}
+    renderIcon={[Function]}
+    small={true}
+    style={
+      Object {
+        "flex": 1,
+        "padding": 14,
+      }
+    }
+    type="Warning"
+  >
+    <Text
+      noMargin={true}
+      primary={true}
+      style={
+        Object {
+          "color": "#24272A",
+          "lineHeight": 18,
+          "paddingLeft": 4,
+        }
+      }
+    >
+      test
+    </Text>
+  </Alert>
+</View>
+`;

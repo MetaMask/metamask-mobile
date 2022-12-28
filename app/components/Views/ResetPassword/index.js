@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
   KeyboardAvoidingView,
-  Switch,
   ActivityIndicator,
   Alert,
   Text,
@@ -14,10 +13,9 @@ import {
   Image,
   InteractionManager,
 } from 'react-native';
-// eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -28,11 +26,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -51,7 +45,6 @@ import {
   passwordRequirementsMet,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
-import { syncPrefs } from '../../../util/sync';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
@@ -62,6 +55,8 @@ import {
   ANDROID_I_UNDERSTAND_BUTTON_ID,
   CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
 } from '../../../constants/test-ids';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { recreateVaultWithNewPassword } from '../../../core/Vault';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -231,15 +226,12 @@ const createStyles = (colors) =>
       top: 0,
       right: 0,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
       color: colors.error.default,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     strength_good: {
       color: colors.primary.default,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     strength_strong: {
       color: colors.success.default,
     },
@@ -379,8 +371,7 @@ class ResetPassword extends PureComponent {
   };
 
   onPressCreate = async () => {
-    const { loading, isSelected, password, confirmPassword, originalPassword } =
-      this.state;
+    const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
 
@@ -396,7 +387,7 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true });
 
-      await this.recreateVault(originalPassword);
+      await this.recreateVault();
       // Set biometrics for new password
       await SecureKeychain.resetGenericPassword();
       try {
@@ -446,76 +437,14 @@ class ResetPassword extends PureComponent {
   /**
    * Recreates a vault
    *
-   * @param password - Password to recreate and set the vault with
    */
-  recreateVault = async (password) => {
+  recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
-    const { KeyringController, PreferencesController } = Engine.context;
-    const seedPhrase = await this.getSeedPhrase();
-    const oldPrefs = PreferencesController.state;
-
-    let importedAccounts = [];
-    try {
-      const keychainPassword = originalPassword;
-      // Get imported accounts
-      const simpleKeyrings = KeyringController.state.keyrings.filter(
-        (keyring) => keyring.type === 'Simple Key Pair',
-      );
-      for (let i = 0; i < simpleKeyrings.length; i++) {
-        const simpleKeyring = simpleKeyrings[i];
-        const simpleKeyringAccounts = await Promise.all(
-          simpleKeyring.accounts.map((account) =>
-            KeyringController.exportAccount(keychainPassword, account),
-          ),
-        );
-        importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
-      }
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to get imported accounts on recreate vault',
-      );
-    }
-
-    // Recreate keyring with password given to this method
-    await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
-
-    // Get props to restore vault
-    const hdKeyring = KeyringController.state.keyrings[0];
-    const existingAccountCount = hdKeyring.accounts.length;
-    const selectedAddress = this.props.selectedAddress;
-
-    // Create previous accounts again
-    for (let i = 0; i < existingAccountCount - 1; i++) {
-      await KeyringController.addNewAccount();
-    }
-
-    try {
-      // Import imported accounts again
-      for (let i = 0; i < importedAccounts.length; i++) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
-        ]);
-      }
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to import accounts on recreate vault',
-      );
-    }
-
-    //Persist old account/identities names
-    const preferencesControllerState = PreferencesController.state;
-    const prefUpdates = syncPrefs(oldPrefs, preferencesControllerState);
-
-    // Set preferencesControllerState again
-    await PreferencesController.update(prefUpdates);
-    // Reselect previous selected account if still available
-    if (hdKeyring.accounts.includes(selectedAddress)) {
-      PreferencesController.setSelectedAddress(selectedAddress);
-    } else {
-      PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
-    }
+    await recreateVaultWithNewPassword(
+      originalPassword,
+      newPassword,
+      this.props.selectedAddress,
+    );
   };
 
   /**
@@ -548,50 +477,17 @@ class ResetPassword extends PureComponent {
   };
 
   renderSwitch = () => {
-    const { biometryType, rememberMe, biometryChoice } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
+    const { biometryType, biometryChoice } = this.state;
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
     return (
-      <View style={styles.biometrics}>
-        {biometryType ? (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
-            </Text>
-            <View>
-              <Switch
-                onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
-                value={biometryChoice}
-                style={styles.biometrySwitch}
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={importedColors.white}
-                ios_backgroundColor={colors.border.muted}
-              />
-            </View>
-          </>
-        ) : (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`choose_password.remember_me`)}
-            </Text>
-            <Switch
-              onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-              value={rememberMe}
-              style={styles.biometrySwitch}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={importedColors.white}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </>
-        )}
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={biometryType}
+        biometryChoiceState={biometryChoice}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 

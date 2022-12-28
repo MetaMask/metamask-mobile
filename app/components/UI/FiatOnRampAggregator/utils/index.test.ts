@@ -1,4 +1,4 @@
-import { timeToDescription, TimeDescriptions } from '.';
+import { timeToDescription, TimeDescriptions, formatAmount } from '.';
 describe('timeToDescription', () => {
   it('should return a function', () => {
     expect(timeToDescription).toBeInstanceOf(Function);
@@ -18,4 +18,30 @@ describe('timeToDescription', () => {
       expect(timeToDescription([lower, upper])).toStrictEqual(result);
     },
   );
+});
+
+describe('formatAmount', () => {
+  it('should format amount', () => {
+    jest.spyOn(Intl, 'NumberFormat').mockImplementation(
+      () =>
+        ({
+          format: jest.fn().mockImplementation(() => '123,123'),
+        } as any),
+    );
+    expect(formatAmount(123123)).toBe('123,123');
+    jest.spyOn(Intl, 'NumberFormat').mockClear();
+  });
+
+  it('should return input amount as string if Intl throws', () => {
+    jest.spyOn(Intl, 'NumberFormat').mockImplementation(
+      () =>
+        ({
+          format: jest.fn().mockImplementation(() => {
+            throw Error();
+          }),
+        } as any),
+    );
+    expect(formatAmount(123123)).toBe('123123');
+    jest.spyOn(Intl, 'NumberFormat').mockClear();
+  });
 });

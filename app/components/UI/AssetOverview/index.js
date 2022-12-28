@@ -35,11 +35,12 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { allowedToBuy } from '../FiatOrders';
+import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { isTestNet } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -73,6 +74,11 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.normal,
       textTransform: 'uppercase',
+    },
+    testNetAmount: {
+      fontSize: 30,
+      color: colors.text.default,
+      ...fontStyles.normal,
     },
     amountFiat: {
       fontSize: 18,
@@ -340,7 +346,12 @@ class AssetOverview extends PureComponent {
             this.renderWarning()
           ) : (
             <>
-              <Text style={styles.amount} testID={'token-amount'}>
+              <Text
+                style={
+                  isTestNet(chainId) ? styles.testNetAmount : styles.amount
+                }
+                testID={'token-amount'}
+              >
                 {mainBalance}
               </Text>
               {secondaryBalance && (

@@ -7,18 +7,21 @@ import {
   StyleSheet,
   InteractionManager,
   BackHandler,
+  Platform,
 } from 'react-native';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  IMPORT_SUCESS_SCREEN_ID,
+  IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
+} from '../../../../wdio/features/testIDs/Screens/ImportSuccessScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -83,30 +86,9 @@ class ImportPrivateKeySuccess extends PureComponent {
     /* navigation object required to push and pop other views
     */
     navigation: PropTypes.object,
-    /**
-     * List of keyrings
-     */
-    keyrings: PropTypes.array,
   };
 
   componentDidMount = () => {
-    const { PreferencesController } = Engine.context;
-    const { keyrings } = this.props;
-    try {
-      const allKeyrings =
-        keyrings && keyrings.length
-          ? keyrings
-          : Engine.context.KeyringController.state.keyrings;
-      const accountsOrdered = allKeyrings.reduce(
-        (list, keyring) => list.concat(keyring.accounts),
-        [],
-      );
-      PreferencesController.setSelectedAddress(
-        accountsOrdered[accountsOrdered.length - 1],
-      );
-    } catch (e) {
-      Logger.error(e, 'Error while refreshing imported pkey');
-    }
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
@@ -143,11 +125,17 @@ class ImportPrivateKeySuccess extends PureComponent {
           style={styles.mainWrapper}
           testID={'first-incoming-transaction-screen'}
         >
-          <View style={styles.content} testID={'import-success-screen'}>
+          <View
+            style={styles.content}
+            {...generateTestId(Platform, IMPORT_SUCESS_SCREEN_ID)}
+          >
             <TouchableOpacity
               onPress={this.dismiss}
               style={styles.navbarRightButton}
-              testID={'import-close-button'}
+              {...generateTestId(
+                Platform,
+                IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
+              )}
             >
               <MaterialIcon name="close" size={15} style={styles.closeIcon} />
             </TouchableOpacity>
@@ -173,10 +161,6 @@ class ImportPrivateKeySuccess extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
-  keyrings: state.engine.backgroundState.KeyringController.keyrings,
-});
-
 ImportPrivateKeySuccess.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(ImportPrivateKeySuccess);
+export default ImportPrivateKeySuccess;

@@ -46,20 +46,15 @@ import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
-import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
-import TransakWebView from '../../UI/FiatOrders/TransakWebView';
-import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
-import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
+import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
@@ -457,36 +452,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const FiatOnRamp = () => (
-  <Stack.Navigator initialRouteName="PaymentMethodSelector">
-    <Stack.Screen
-      name="PaymentMethodSelector"
-      component={PaymentMethodSelector}
-      options={PaymentMethodSelector.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentMethodApplePay"
-      component={PaymentMethodApplePay}
-      options={PaymentMethodApplePay.navigationOptions}
-    />
-    <Stack.Screen
-      name="TransakFlow"
-      component={TransakWebView}
-      options={TransakWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="MoonPayFlow"
-      component={MoonPayWebView}
-      options={MoonPayWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="GasEducationCarousel"
-      component={GasEducationCarousel}
-      options={GasEducationCarousel.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const FiatOnRampAggregator = () => (
   <FiatOnRampSDKProvider>
     <Stack.Navigator
@@ -498,7 +463,12 @@ const FiatOnRampAggregator = () => (
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD}
-        component={PaymentMethod}
+        component={PaymentMethods}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED}
+        component={PaymentMethods}
+        options={{ animationEnabled: false }}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
@@ -519,11 +489,6 @@ const FiatOnRampAggregator = () => (
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
-        component={AmountToBuy}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
@@ -631,10 +596,9 @@ const MainNavigator = () => (
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen name="QRScanner" component={QrScanner} />
+    <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}

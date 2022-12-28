@@ -529,7 +529,7 @@
     "cancel_remove_network": "Abbrechen",
     "info_title": "Über MetaMask",
     "experimental_title": "Experimentell",
-    "experimental_desc": "WalletConnect & mehr ...",
+    "experimental_desc": "MetaMask SDK, WalletConnect & mehr ...",
     "legal_title": "Rechtliches",
     "conversion_title": "Währungsumrechnung",
     "conversion_desc": "Zeigt Fiatwerte durch die Nutzung einer bestimmten Währung innerhalb der App an.",
@@ -575,7 +575,26 @@
     "theme_os": "System",
     "theme_light": "Hell",
     "theme_dark": "Dunkel",
-    "network_exists": "Dieses Netzwerk wurde bereits hinzugefügt."
+    "network_exists": "Dieses Netzwerk wurde bereits hinzugefügt.",
+    "delete_metrics_title": "MetaMetrics-Daten löschen",
+    "delete_metrics_description_part_one": "Dies löscht alle historischen MetaMetrics-Daten in Verbindung mit Ihrem Wallet.",
+    "delete_metrics_description_part_two": "MetaMetrics-Daten sind anonymisierte Nutzungs-und Diagnostikdaten.",
+    "delete_metrics_description_part_three": "Ihr Wallet und Ihre Konten bleiben nach der Löschung dieser Daten genau wie sie jetzt sind. Dieser Prozess kann bis zu 60 Tage in Anspruch nehmen. Lesen Sie die",
+    "delete_metrics_description_part_four": "Sie haben diese Aktion eingeleitet am",
+    "delete_metrics_description_part_five": ". Dieser Prozess kann bis zu 60 Tage in Anspruch nehmen. Lesen Sie die",
+    "consensys_privacy_policy": "ConsenSys-Datenschutzerklärung.",
+    "delete_metrics_button": "MetaMetrics-Daten löschen",
+    "check_status_button": "Status überprüfen",
+    "delete_metrics_confirm_modal_title": "MetaMetrics-Daten löschen?",
+    "delete_metrics_confirm_modal_description": "Wir löschen all Ihre MetaMetrics-Daten. Sind Sie sicher?",
+    "delete_wallet_data_title": "Wallet löschen",
+    "delete_wallet_data_description": "Dies entfernt alle mit dem Wallet in Verbindung stehenden Daten von Ihrem Gerät. Ihre Konten existieren auf der Blockchain und stehen nicht mit MetaMask in Verbindung. Sie können Ihre Konten jederzeit mit Ihrer geheimen Wiederherstellungsphrase wiederherstellen.",
+    "delete_wallet_data_button": "Wallet löschen",
+    "delete_data_status_title": "Status der Löschaufgabe",
+    "delete_data_status_description": "Der aktuelle Status lautet",
+    "delete_metrics_error_title": "Wir können diese Daten im Moment nicht löschen.",
+    "delete_metrics_error_description": "Die Anfrage kann aktuell nicht abgeschlossen werden, da ein Problem mit dem Analytik-System des Servers vorliegt, bitte versuchen Sie es später erneut.",
+    "ok": "OK"
   },
   "app_information": {
     "title": "Information",
@@ -1996,5 +2015,31 @@
     "token_detection_mainnet_title": "Die Token-Erkennung ist aktiviert, so dass viele Token automatisch in Ihrem Wallet auftauchen werden.",
     "token_detection_mainnet_link": "Sie können Token auch manuell hinzufügen.",
     "or": "oder"
+  },
+  "remember_me": {
+    "enable_remember_me": "„Angemeldet bleiben“ aktivieren",
+    "enable_remember_me_description": "Wenn „Angemeldet bleiben“ aktiviert ist, kann jeder, der Zugriff zu Ihrem Handy hat, auf Ihr MetaMask-Konto zugreifen."
+  },
+  "turn_off_remember_me": {
+    "title": "Geben Sie Ihr Passwort ein, um „Angemeldet bleiben“ zu deaktivieren",
+    "placeholder": "Passwort",
+    "description": "Wenn Sie diese Option deaktivieren, benötigen Sie von jetzt an Ihr Passwort, um MetaMask zu entsperren.",
+    "action": "„Angemeldet bleiben“ deaktivieren"
+  },
+  "automatic_security_checks": {
+    "title": "Automatische Sicherheitsprüfungen",
+    "description": "Die automatische Suche nach Updates kann Ihre IP-Adresse den GitHub-Servern preisgeben. Dies zeigt nur an, dass Ihre IP-Adresse MetaMask verwendet. Es werden keine anderen Informationen oder Kontoadressen offengelegt."
+  },
+  "update_needed": {
+    "title": "Updates nötig",
+    "description": "Wir haben die Sicherheit für Ihr Wallet erhöht! Bitte nehmen Sie sich einen Moment Zeit, um sich selbst zu schützen und aktualisieren Sie auf die neueste Version.",
+    "primary_action": "Auf neueste Version aktualisieren",
+    "secondary_action": "Später erinnern"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Automatisch nach Sicherheitsupdates suchen?",
+    "description": "Die automatische Suche nach Updates kann Ihre IP-Adresse den GitHub-Servern preisgeben. Dies zeigt nur an, dass Ihre IP-Adresse MetaMask verwendet. Es werden keine anderen Informationen oder Kontoadressen offengelegt.",
+    "primary_action": "Automatische Sicherheitsprüfungen aktivieren",
+    "secondary_action": "Nein Danke"
   }
 }

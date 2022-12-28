@@ -11,8 +11,9 @@ import Device from '../device';
  */
 export const mockTheme = {
   colors: lightTheme.colors,
-  themeAppearance: 'light',
+  themeAppearance: 'light' as AppThemeKey.light,
   typography: lightTheme.typography,
+  shadows: lightTheme.shadows,
 };
 
 export const ThemeContext = React.createContext<any>(undefined);
@@ -62,6 +63,7 @@ export const useAppTheme = (): Theme => {
   );
   let colors: Theme['colors'];
   let typography: Theme['typography'];
+  let shadows: Theme['shadows'];
 
   const setDarkStatusBar = () => {
     StatusBar.setBarStyle('light-content', true);
@@ -81,38 +83,44 @@ export const useAppTheme = (): Theme => {
       if (osThemeName === AppThemeKey.light) {
         colors = lightTheme.colors;
         typography = lightTheme.typography;
+        shadows = lightTheme.shadows;
         setLightStatusBar();
         break;
       } else if (osThemeName === AppThemeKey.dark) {
         colors = darkTheme.colors;
         typography = darkTheme.typography;
+        shadows = darkTheme.shadows;
         setDarkStatusBar();
         break;
       } else {
         // Cover cases where OS returns undefined
         colors = lightTheme.colors;
         typography = lightTheme.typography;
+        shadows = lightTheme.shadows;
         setLightStatusBar();
       }
     }
     case AppThemeKey.light:
       colors = lightTheme.colors;
       typography = lightTheme.typography;
+      shadows = lightTheme.shadows;
       setLightStatusBar();
       break;
     case AppThemeKey.dark:
       colors = darkTheme.colors;
       typography = darkTheme.typography;
+      shadows = darkTheme.shadows;
       setDarkStatusBar();
       break;
     default:
       // Default uses light theme
       colors = lightTheme.colors;
       typography = lightTheme.typography;
+      shadows = lightTheme.shadows;
       setLightStatusBar();
   }
 
-  return { colors, themeAppearance, typography };
+  return { colors, themeAppearance, typography, shadows };
 };
 
 export const useAppThemeFromContext = (): Theme => {
