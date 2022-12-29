@@ -530,9 +530,13 @@ class Approve extends PureComponent {
   };
 
   updateTransactionState = (gas) => {
-    gas.error = this.validateGas(gas.totalMaxHex || gas.totalHex);
+    const gasError = this.validateGas(gas.totalMaxHex || gas.totalHex);
 
-    this.setState({ eip1559GasTransaction: gas, legacyGasTransaction: gas });
+    this.setState({
+      eip1559GasTransaction: gas,
+      legacyGasTransaction: gas,
+      gasError,
+    });
   };
 
   render = () => {
@@ -547,7 +551,7 @@ class Approve extends PureComponent {
       eip1559GasObject,
       eip1559GasTransaction,
       legacyGasObject,
-      legacyGasTransaction,
+      gasError,
     } = this.state;
 
     const {
@@ -626,9 +630,7 @@ class Approve extends PureComponent {
                 review={this.review}
               >
                 <ApproveTransactionReview
-                  gasError={
-                    eip1559GasTransaction.error || legacyGasTransaction.error
-                  }
+                  gasError={gasError}
                   onCancel={this.onCancel}
                   onConfirm={this.onConfirm}
                   over={over}
