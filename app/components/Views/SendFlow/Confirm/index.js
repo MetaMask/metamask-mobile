@@ -491,7 +491,7 @@ class Confirm extends PureComponent {
     prepareTransaction({ ...transaction, ...estimation });
   };
 
-  parseTransactionDataHeader = () => {
+  parseTransactionDataHeader = async () => {
     const {
       accounts,
       contractBalances,
@@ -505,6 +505,7 @@ class Confirm extends PureComponent {
       },
       ticker,
     } = this.props;
+
     const { fromSelectedAddress } = this.state;
     let fromAccountBalance,
       transactionValue,
@@ -551,7 +552,11 @@ class Confirm extends PureComponent {
       );
     } else {
       let rawAmount;
-      const { address, symbol = 'ERC20', decimals } = selectedAsset;
+      const { address, symbol = 'ERC20', decimals, image } = selectedAsset;
+
+      const { TokensController } = Engine.context;
+      await TokensController.addToken(address, symbol, decimals, image);
+
       fromAccountBalance = `${renderFromTokenMinimalUnit(
         contractBalances[address] ? contractBalances[address] : '0',
         decimals,
