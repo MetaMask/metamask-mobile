@@ -76,6 +76,11 @@ import Alert, { AlertType } from '../../../../components/Base/Alert';
 import {
   AMOUNT_SCREEN,
   AMOUNT_SCREEN_CARET_DROP_DOWN,
+  NEXT_BUTTON,
+  TRANSACTION_AMOUNT_INPUT,
+  AMOUNT_ERROR,
+  FIAT_CONVERSION_WARNING_TEXT,
+  TRANSACTION_AMOUNT_CONVERSION_VALUE,
 } from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
@@ -1114,7 +1119,7 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    await this.setState({
+    this.setState({
       internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
     });
     this.onInputChange(inputValueConversion);
@@ -1151,8 +1156,8 @@ class Amount extends PureComponent {
               keyboardType={'numeric'}
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
-              testID={'txn-amount-input'}
               keyboardAppearance={themeAppearance}
+              {...generateTestId(Platform, TRANSACTION_AMOUNT_INPUT)}
             />
           </View>
         </View>
@@ -1166,7 +1171,10 @@ class Amount extends PureComponent {
                 <Text
                   style={styles.textSwitch}
                   numberOfLines={1}
-                  testID={'txn-amount-conversion-value'}
+                  {...generateTestId(
+                    Platform,
+                    TRANSACTION_AMOUNT_CONVERSION_VALUE,
+                  )}
                 >
                   {renderableInputValueConversion}
                 </Text>
@@ -1188,7 +1196,10 @@ class Amount extends PureComponent {
           )}: ${currentBalance}`}</Text>
         </View>
         {amountError && (
-          <View style={styles.errorMessageWrapper} testID={'amount-error'}>
+          <View
+            style={styles.errorMessageWrapper}
+            {...generateTestId(Platform, AMOUNT_ERROR)}
+          >
             <ErrorMessage errorMessage={amountError} />
           </View>
         )}
@@ -1220,7 +1231,10 @@ class Amount extends PureComponent {
           )}`}</Text>
         </View>
         {amountError && (
-          <View style={styles.errorMessageWrapper} testID={'amount-error'}>
+          <View
+            style={styles.errorMessageWrapper}
+            {...generateTestId(Platform, AMOUNT_ERROR)}
+          >
             <ErrorMessage errorMessage={amountError} />
           </View>
         )}
@@ -1244,7 +1258,7 @@ class Amount extends PureComponent {
         {...generateTestId(Platform, AMOUNT_SCREEN)}
       >
         <ScrollView style={styles.scrollWrapper}>
-          {this.props.primaryCurrency === 'Fiat' && !hasExchangeRate ? (
+          {!hasExchangeRate && !selectedAsset.tokenId ? (
             <Alert
               small
               type={AlertType.Warning}
@@ -1259,7 +1273,11 @@ class Amount extends PureComponent {
             >
               {() => (
                 <View style={styles.warningTextContainer}>
-                  <Text red style={styles.warningText}>
+                  <Text
+                    red
+                    style={styles.warningText}
+                    {...generateTestId(Platform, FIAT_CONVERSION_WARNING_TEXT)}
+                  >
                     {strings('transaction.fiat_conversion_not_available')}
                   </Text>
                 </View>
@@ -1324,7 +1342,7 @@ class Amount extends PureComponent {
               containerStyle={styles.buttonNext}
               disabled={!estimatedTotalGas}
               onPress={this.onNext}
-              testID={'txn-amount-next-button'}
+              testID={NEXT_BUTTON}
             >
               {strings('transaction.next')}
             </StyledButton>
