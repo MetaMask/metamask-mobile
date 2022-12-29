@@ -530,6 +530,8 @@ class Approve extends PureComponent {
   };
 
   updateTransactionState = (gas) => {
+    gas.error = this.validateGas(gas.totalMaxHex || gas.totalHex);
+
     this.setState({ eip1559GasTransaction: gas, legacyGasTransaction: gas });
   };
 
