@@ -23,8 +23,8 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOrders';
 import ModalUseTerms from '../../UI/ModalUseTerms';
+import FiatOrders from '../../UI/FiatOnRampAggregator';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -54,6 +54,8 @@ import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { USE_TERMS } from '../../../constants/storage';
+import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
 const Stack = createStackNavigator();
 
@@ -88,6 +90,9 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   const prevLockTime = usePrevious(props.lockTime);
+
+  useEnableAutomaticSecurityChecks();
+  useMinimumVersions();
 
   const pollForIncomingTransactions = useCallback(async () => {
     props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());

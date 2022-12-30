@@ -22,6 +22,8 @@ import {
  * @property {string} account <account wallet address>
  * @property {string} network <network>
  * @property {?string} txHash <transaction hash | null>
+ * @property {boolean} excludeFromPurchases
+ * @property {string} orderType
  * @property {object|import('@consensys/on-ramp-sdk').Order} data original provider data
  * @property {object} [data.order] : Wyre order response
  * @property {object} [data.transfer] : Wyre transfer response
@@ -42,6 +44,8 @@ const ACTIONS = {
   FIAT_ADD_CUSTOM_ID_DATA: 'FIAT_ADD_CUSTOM_ID_DATA',
   FIAT_UPDATE_CUSTOM_ID_DATA: 'FIAT_UPDATE_CUSTOM_ID_DATA',
   FIAT_REMOVE_CUSTOM_ID_DATA: 'FIAT_REMOVE_CUSTOM_ID_DATA',
+  FIAT_ADD_AUTHENTICATION_URL: 'FIAT_ADD_AUTHENTICATION_URL',
+  FIAT_REMOVE_AUTHENTICATION_URL: 'FIAT_REMOVE_AUTHENTICATION_URL',
 };
 
 export const addFiatOrder = (order) => ({
@@ -79,6 +83,14 @@ export const updateFiatCustomIdData = (customIdData) => ({
 export const removeFiatCustomIdData = (customIdData) => ({
   type: ACTIONS.FIAT_REMOVE_CUSTOM_ID_DATA,
   payload: customIdData,
+});
+export const addAuthenticationUrl = (authenticationUrl) => ({
+  type: ACTIONS.FIAT_ADD_AUTHENTICATION_URL,
+  payload: authenticationUrl,
+});
+export const removeAuthenticationUrl = (authenticationUrl) => ({
+  type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL,
+  payload: authenticationUrl,
 });
 
 /**
@@ -175,6 +187,9 @@ export const makeOrderIdSelector = (orderId) =>
     orders.find((order) => order.id === orderId),
   );
 
+export const getAuthenticationUrls = (state) =>
+  state.fiatOrders.authenticationUrls || [];
+
 export const getHasOrders = createSelector(
   getOrders,
   (orders) => orders.length > 0,
@@ -188,6 +203,7 @@ export const initialState = {
   selectedRegionAgg: INITIAL_SELECTED_REGION,
   selectedPaymentMethodAgg: INITIAL_PAYMENT_METHOD,
   getStartedAgg: INITIAL_GET_STARTED,
+  authenticationUrls: [],
 };
 
 const findOrderIndex = (provider, id, orders) =>
@@ -308,6 +324,37 @@ const fiatOrderReducer = (state = initialState, action) => {
         customOrderIds: [
           ...customOrderIds.slice(0, index),
           ...customOrderIds.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_ADD_AUTHENTICATION_URL: {
+      const authenticationUrls = state.authenticationUrls;
+      const authenticationUrl = action.payload;
+      const index = authenticationUrls.findIndex(
+        (url) => url === authenticationUrl,
+      );
+      if (index !== -1) {
+        return state;
+      }
+      return {
+        ...state,
+        authenticationUrls: [...state.authenticationUrls, authenticationUrl],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL: {
+      const authenticationUrls = state.authenticationUrls;
+      const authenticationUrl = action.payload;
+      const index = authenticationUrls.findIndex(
+        (url) => url === authenticationUrl,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        authenticationUrls: [
+          ...authenticationUrls.slice(0, index),
+          ...authenticationUrls.slice(index + 1),
         ],
       };
     }

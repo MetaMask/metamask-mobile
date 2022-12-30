@@ -6,8 +6,9 @@ import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
 import { util } from '@metamask/controllers';
 import numberToBN from 'number-to-bn';
-import currencySymbols from '../currency-symbols.json';
 import BigNumber from 'bignumber.js';
+
+import currencySymbols from '../currency-symbols.json';
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -251,6 +252,20 @@ export function renderFiatAddition(
 }
 
 /**
+ * Limits a number to a max decimal places.
+ * @param {number} num
+ * @param {number} maxDecimalPlaces
+ * @returns {string}
+ */
+export function limitToMaximumDecimalPlaces(num, maxDecimalPlaces = 5) {
+  if (isNaN(num) || isNaN(maxDecimalPlaces)) {
+    return num;
+  }
+  const base = Math.pow(10, maxDecimalPlaces);
+  return (Math.round(num * base) / base).toString();
+}
+
+/**
  * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
  *
  * @param {number|string} fiat - Fiat number
@@ -364,6 +379,23 @@ export function isNumber(str) {
 }
 
 /**
+ * Determines whether the given number is going to be
+ * displalyed in scientific notation after being converted to a string.
+ *
+ * @param {number} value - The value to check.
+ * @returns {boolean} True if the value is a number in scientific notation, false otherwise.
+ * @see https://262.ecma-international.org/5.1/#sec-9.8.1
+ */
+
+export const isNumberScientificNotationWhenString = (value) => {
+  if (typeof value !== 'number') {
+    return false;
+  }
+  // toLowerCase is needed since E is also valid
+  return value.toString().toLowerCase().includes('e');
+};
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -371,6 +403,11 @@ export function isNumber(str) {
  * @returns {Object} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
+  // check the posibilty to convert to BN
+  // directly on the swaps screen
+  if (isNumberScientificNotationWhenString(value)) {
+    value = value.toFixed(18);
+  }
   return convert.toWei(value, unit);
 }
 
@@ -740,4 +777,22 @@ export const toHexadecimal = (decimal) => {
   }
   if (decimal.startsWith('0x')) return decimal;
   return toBigNumber.dec(decimal).toString(16);
+};
+
+export const calculateEthFeeForMultiLayer = ({
+  multiLayerL1FeeTotal,
+  ethFee = 0,
+}) => {
+  if (!multiLayerL1FeeTotal) {
+    return ethFee;
+  }
+  const multiLayerL1FeeTotalDecEth = conversionUtil(multiLayerL1FeeTotal, {
+    fromNumericBase: 'hex',
+    toNumericBase: 'dec',
+    fromDenomination: 'WEI',
+    toDenomination: 'ETH',
+  });
+  return new BigNumber(multiLayerL1FeeTotalDecEth)
+    .plus(new BigNumber(ethFee ?? 0))
+    .toString(10);
 };

@@ -57,7 +57,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
-import ScreenView from '../FiatOrders/components/ScreenView';
+import ScreenView from '../../Base/ScreenView';
 import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
@@ -230,8 +230,15 @@ function SwapsAmountView({
           chainId,
           AppConstants.SWAPS.CLIENT_ID,
         );
+        const isIphone = Device.isIos();
+        const isAndroid = Device.isAndroid();
+        const featureFlagKey = isIphone
+          ? 'mobileActiveIOS'
+          : isAndroid
+          ? 'mobileActiveAndroid'
+          : 'mobileActive';
         const liveness =
-          typeof data === 'boolean' ? data : data?.mobileActive ?? false;
+          typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
         setLiveness(liveness, chainId);
         if (liveness) {
           // Triggered when a user enters the MetaMask Swap feature

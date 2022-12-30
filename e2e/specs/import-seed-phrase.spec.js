@@ -12,6 +12,7 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 //import DrawerView from '../pages/Drawer/DrawerView';
 //import SettingsView from '../pages/Drawer/Settings/SettingsView';
@@ -72,6 +73,12 @@ describe('Import seedphrase flow', () => {
     await ImportWalletView.enterPassword(CORRECT_PASSWORD);
     await ImportWalletView.reEnterPassword(CORRECT_PASSWORD);
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on the close button in the whats new modal', async () => {

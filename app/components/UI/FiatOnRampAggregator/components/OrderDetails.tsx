@@ -7,14 +7,9 @@ import {
   Linking,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import {
-  Order,
-  OrderStatusEnum,
-  Payment,
-  PaymentType,
-} from '@consensys/on-ramp-sdk';
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
@@ -24,19 +19,18 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../util/number';
-import { getProviderName } from '../../../../reducers/fiatOrders';
+import { FiatOrder, getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';
-import { FiatOrder } from '../../FiatOrders';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
+import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: any) =>
@@ -71,8 +65,8 @@ const createStyles = (colors: any) =>
   });
 
 interface PropsStage {
-  stage: string;
-  paymentMethod?: Payment;
+  stage: FiatOrder['state'];
+  pendingDescription?: string;
   cryptocurrency?: string;
   providerName?: string;
 }
@@ -90,14 +84,14 @@ const Group: React.FC = (props) => {
 
 const Stage: React.FC<PropsStage> = ({
   stage,
-  paymentMethod,
+  pendingDescription,
   cryptocurrency,
   providerName,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   switch (stage) {
-    case OrderStatusEnum.Completed: {
+    case FIAT_ORDER_STATES.COMPLETED: {
       return (
         <View style={styles.stage}>
           <Feather
@@ -121,8 +115,8 @@ const Stage: React.FC<PropsStage> = ({
         </View>
       );
     }
-    case OrderStatusEnum.Cancelled:
-    case OrderStatusEnum.Failed: {
+    case FIAT_ORDER_STATES.CANCELLED:
+    case FIAT_ORDER_STATES.FAILED: {
       return (
         <View style={styles.stage}>
           <Image source={failedIcon} />
@@ -148,31 +142,22 @@ const Stage: React.FC<PropsStage> = ({
         </View>
       );
     }
-    case OrderStatusEnum.Pending:
-    case OrderStatusEnum.Unknown:
+    case FIAT_ORDER_STATES.PENDING:
     default: {
       return (
         <View style={styles.stage}>
           <Spinner />
           <Group>
             <Text bold big primary centered>
-              {stage === 'PENDING'
+              {stage === FIAT_ORDER_STATES.PENDING
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
-            {paymentMethod?.paymentType === PaymentType.BankTransfer ? (
+            {pendingDescription ? (
               <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.processing_bank_description',
-                )}
+                {pendingDescription}
               </Text>
-            ) : (
-              <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.processing_card_description',
-                )}
-              </Text>
-            )}
+            ) : null}
           </Group>
         </View>
       );
@@ -218,7 +203,9 @@ const OrderDetails: React.FC<Props> = ({
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const amountOut = Number(amount) - Number(cryptoFee);
-  const exchangeRate = Number(amountOut) / Number(cryptoAmount);
+  const exchangeRate =
+    (order.data as Order)?.exchangeRate ??
+    Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
 
   const handleExplorerLinkPress = useCallback(
@@ -257,7 +244,7 @@ const OrderDetails: React.FC<Props> = ({
       <Group>
         <Stage
           stage={state}
-          paymentMethod={orderData?.paymentMethod}
+          pendingDescription={orderData?.timeDescriptionPending}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
         />
@@ -278,14 +265,16 @@ const OrderDetails: React.FC<Props> = ({
             )}{' '}
             {cryptocurrency}
           </Text>
-          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
+          {state !== FIAT_ORDER_STATES.PENDING &&
+          orderData?.fiatCurrency?.decimals !== undefined &&
+          currencySymbol ? (
             <Text centered small grey>
               {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
             </Text>
           ) : (
-            <Text centered small>
-              ...
+            <Text centered small grey>
+              ... {currency}
             </Text>
           )}
         </Group>
