@@ -33,7 +33,6 @@ const styleSheet = (params: { theme: Theme }) => {
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-      marginHorizontal: 32,
     },
     bodyContainer: {
       maxHeight: maxItemHeight,
