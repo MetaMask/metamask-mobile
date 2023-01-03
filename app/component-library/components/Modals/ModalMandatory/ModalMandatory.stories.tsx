@@ -3,7 +3,6 @@
 // Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import { text, select } from '@storybook/addon-knobs';
 
 // Internal dependencies.
 import ModalMandatory from './ModalMandatory';
