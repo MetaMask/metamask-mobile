@@ -9,7 +9,7 @@ describe('Mandatory Modal', () => {
       <ModalMandatory
         buttonText={'test'}
         headerTitle={'test'}
-        onConfirm={() => {}}
+        onConfirm={() => undefined}
       >
         <Text>test</Text>
       </ModalMandatory>,
