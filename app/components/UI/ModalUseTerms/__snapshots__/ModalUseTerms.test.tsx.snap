@@ -40,7 +40,7 @@ exports[`Use Terms Modal should render correctly 1`] = `
           Object {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 18,
+            "fontSize": 38.57142857142857,
             "fontWeight": "600",
           }
         }
@@ -101,7 +101,7 @@ exports[`Use Terms Modal should render correctly 1`] = `
             Object {
               "flex": 1,
               "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "600",
               "marginLeft": 8,
             }
@@ -135,6 +135,7 @@ exports[`Use Terms Modal should render correctly 1`] = `
         <Text
           style={
             Object {
+              "fontSize": 25.714285714285715,
               "marginVertical": 16,
             }
           }

@@ -14,7 +14,7 @@ storiesOf('Component Library / ModalMandatory', module).add('Default', () => (
     buttonText={'Confirm'}
     headerTitle={'Title'}
     footerHelpText={'Help text'}
-    onPress={() => {}}
+    onPress={() => undefined}
   >
     <Text>Lorem ispum</Text>
   </ModalMandatory>
