@@ -2,6 +2,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import { fontStyles } from '../../../styles/common';
+import { scale } from 'react-native-size-matters';
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -43,7 +44,7 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.bold,
       flex: 1,
       marginLeft: 8,
-      fontSize: 14,
+      fontSize: scale(14),
     },
     confirmButton: {
       width: '100%',

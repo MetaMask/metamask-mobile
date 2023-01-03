@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { fontStyles } from '../../../../styles/common';
 import Device from '../../../../util/device';
+import { scale } from 'react-native-size-matters';
 
 const screenHeight = Device.getDeviceHeight();
 const maxItemHeight = screenHeight - 200;
@@ -48,7 +49,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     headerText: {
       ...fontStyles.bold,
-      fontSize: 18,
+      fontSize: scale(18),
       color: colors.text.default,
     },
     confirmButtonContainer: {
@@ -61,7 +62,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       marginTop: 16,
     },
-    footerHelpText: { marginVertical: 16 },
+    footerHelpText: { marginVertical: 16, fontSize: scale(12) },
   });
 };
 
