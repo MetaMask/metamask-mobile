@@ -698,7 +698,13 @@
     "cancel": "Cancelar",
     "error": "Erro",
     "attempting_to_scan_with_wallet_locked": "Parece que você está tentando fazer a leitura de um código QR. Você precisa desbloquear sua carteira para poder usá-lo.",
-    "attempting_sync_from_wallet_error": "Parece que você está tentando sincronizar com a extensão. Para isso, você precisará apagar sua carteira atual. \n\nDepois de apagar ou reinstalar uma nova versão do app, selecione a opção \"Sincronizar com a extensão MetaMask\". Importante: antes de apagar sua carteira, certifique-se de ter guardado sua Frase Secreta de Recuperação."
+    "attempting_sync_from_wallet_error": "Parece que você está tentando sincronizar com a extensão. Para isso, você precisará apagar sua carteira atual. \n\nDepois de apagar ou reinstalar uma nova versão do app, selecione a opção \"Sincronizar com a extensão MetaMask\". Importante: antes de apagar sua carteira, certifique-se de ter guardado sua Frase Secreta de Recuperação.",
+    "not_allowed_error_title": "Habilitar acesso à câmera",
+    "not_allowed_error_desc": "O acesso à câmera é necessário para ler o código QR associado a um endereço de conta ou endereço de contrato",
+    "unrecognized_address_qr_code_title": "Código QR não reconhecido",
+    "unrecognized_address_qr_code_desc": "Desculpe, esse código QR não está associado a um endereço de conta ou de contrato.",
+    "url_redirection_alert_title": "Você está sendo direcionado a um link externo",
+    "url_redirection_alert_desc": "Links podem ser usados para tentar aplicar golpes ou phishing nas pessoas. Portanto, certifique-se de só visitar sites em que você confia."
   },
   "action_view": {
     "cancel": "Cancelar",
