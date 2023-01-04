@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
@@ -28,6 +29,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { IMPORT_TOKEN_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -215,7 +218,7 @@ class Tokens extends PureComponent {
           style={styles.add}
           onPress={this.goToAddToken}
           disabled={!this.state.isAddTokenEnabled}
-          testID={'add-token-button'}
+          {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
         >
           <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
         </TouchableOpacity>

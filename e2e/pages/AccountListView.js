@@ -1,9 +1,10 @@
 import TestHelpers from '../helpers';
 
-const ACCOUNT_LIST_ID = 'account-list';
-const CREATE_ACCOUNT_BUTTON_ID = 'create-account-button';
-const IMPORT_ACCOUNT_BUTTON_ID = 'import-account-button';
-
+import {
+  ACCOUNT_LIST_ID,
+  CREATE_ACCOUNT_BUTTON_ID,
+  IMPORT_ACCOUNT_BUTTON_ID,
+} from '../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 export default class AccountListView {
   static async tapCreateAccountButton() {
     await TestHelpers.waitAndTap(CREATE_ACCOUNT_BUTTON_ID);

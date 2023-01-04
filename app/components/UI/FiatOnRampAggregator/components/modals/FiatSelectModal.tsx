@@ -16,7 +16,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import ScreenLayout from '../ScreenLayout';
 
-import BaseText from '../../../../Base/Text';
+import Text from '../../../../Base/Text';
 import BaseListItem from '../../../../Base/ListItem';
 import ModalDragger from '../../../../Base/ModalDragger';
 import { useTheme } from '../../../../../util/theme';
@@ -25,7 +25,7 @@ import { FiatCurrency } from '@consensys/on-ramp-sdk';
 
 const MAX_TOKENS_RESULTS = 20;
 
-const Text = BaseText as any;
+// TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: Colors) =>
