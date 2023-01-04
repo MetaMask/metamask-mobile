@@ -657,7 +657,15 @@
     "keep_credential_safe": "Protégez votre {{credentialName}}",
     "srp_abbreviation_text": "PSR",
     "srp_text": "Phrase secrète de récupération",
-    "private_key_text": "Clé privée"
+    "private_key_text": "Clé privée",
+    "got_it": "J’ai compris",
+    "learn_more": "En savoir plus"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerte de sécurité",
+    "description": "Pour sécuriser votre compte, il est fortement déconseillé de conserver votre {{credentialName}} sous forme de capture d'écran ou dans un espace de stockage en ligne.",
+    "srp_text": "Phrase secrète de récupération",
+    "priv_key_text": "Clé privée"
   },
   "password_reset": {
     "password_title": "Mot de passe",

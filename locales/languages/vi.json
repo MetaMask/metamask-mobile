@@ -657,7 +657,15 @@
     "keep_credential_safe": "Đảm bảo an toàn cho {{credentialName}} của bạn",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Cụm từ khôi phục bí mật",
-    "private_key_text": "Khóa riêng tư"
+    "private_key_text": "Khóa riêng tư",
+    "got_it": "Đã hiểu",
+    "learn_more": "Tìm hiểu thêm"
+  },
+  "screenshot_deterrent": {
+    "title": "Cảnh báo an toàn",
+    "description": "Ảnh chụp màn hình không phải là cách an toàn để theo dõi {{credentialName}} của bạn. Hãy lưu trữ ở một nơi không được sao lưu trực tuyến để đảm bảo an toàn cho tài khoản của bạn.",
+    "srp_text": "Cụm Mật Khẩu Khôi Phục Bí Mật",
+    "priv_key_text": "Khóa riêng tư"
   },
   "password_reset": {
     "password_title": "Mật khẩu",

@@ -657,7 +657,15 @@
     "keep_credential_safe": "अपना {{credentialName}} सुरक्षित रखें",
     "srp_abbreviation_text": "SRP",
     "srp_text": "गुप्त रिकवरी वाक्यांश",
-    "private_key_text": "निजी कुंजी"
+    "private_key_text": "निजी कुंजी",
+    "got_it": "समझ गए",
+    "learn_more": "और अधिक जानें"
+  },
+  "screenshot_deterrent": {
+    "title": "सुरक्षा चेतावनी",
+    "description": "अपने {{credentialName}} पर नज़र रखने के लिए स्क्रीनशॉट एक सुरक्षित तरीका नहीं है।अपने खाते को सुरक्षित रखने के लिए इसे किसी ऐसे स्थान पर संग्रहीत करें जिसका ऑनलाइन बैकअप नहीं लिया गया हो।",
+    "srp_text": "गोपनीय पुनर्प्राप्ति वाक्यांश",
+    "priv_key_text": "निजी चाबी"
   },
   "password_reset": {
     "password_title": "पासवर्ड",

@@ -657,7 +657,15 @@
     "keep_credential_safe": "Jaga keamanan {{credentialName}} Anda",
     "srp_abbreviation_text": "FPR",
     "srp_text": "Frasa Pemulihan Rahasia",
-    "private_key_text": "Kunci Pribadi"
+    "private_key_text": "Kunci Pribadi",
+    "got_it": "Mengerti",
+    "learn_more": "Pelajari Selengkapnya"
+  },
+  "screenshot_deterrent": {
+    "title": "Peringatan keamanan",
+    "description": "Tangkapan layar bukan cara yang aman untuk melacak {{credentialName}}. Simpan di tempat yang tidak dicadangkan secara online untuk menjaga keamanan akun Anda.",
+    "srp_text": "Frasa Pemulihan Rahasia",
+    "priv_key_text": "Kunci Privat"
   },
   "password_reset": {
     "password_title": "Kata sandi",

@@ -657,7 +657,15 @@
     "keep_credential_safe": "Κρατήστε το {{credentialName}} σας ασφαλές",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Μυστική Φράση Ανάκτησης",
-    "private_key_text": "Ιδιωτικό Κλειδί"
+    "private_key_text": "Ιδιωτικό Κλειδί",
+    "got_it": "Το κατάλαβα",
+    "learn_more": "Μάθετε περισσότερα"
+  },
+  "screenshot_deterrent": {
+    "title": "Ειδοποίηση ασφαλείας",
+    "description": "Τα στιγμιότυπα οθόνης δεν είναι ασφαλής τρόπος για να διατηρείτε το {{credentialName}} σας. Αποθηκεύστε το κάπου που δεν έχει δημιουργηθεί αντίγραφο ασφαλείας στο διαδίκτυο για να διαφυλάξετε τον λογαριασμό σας.",
+    "srp_text": "Μυστική Φράση Ανάκτησης",
+    "priv_key_text": "Ιδιωτικό Κλειδί"
   },
   "password_reset": {
     "password_title": "Κωδικός",

@@ -657,7 +657,15 @@
     "keep_credential_safe": "Храните {{credentialName}} в безопасности",
     "srp_abbreviation_text": "СФВ",
     "srp_text": "Секретная фраза для восстановления",
-    "private_key_text": "Закрытый ключ"
+    "private_key_text": "Закрытый ключ",
+    "got_it": "Понятно",
+    "learn_more": "Подробнее"
+  },
+  "screenshot_deterrent": {
+    "title": "Предупреждение о безопасности",
+    "description": "Скриншоты — небезопасный способ хранения ваших {{credentialName}}. Сохраните скриншот в чем-то, что не подлежит резервному копированию в Интернете, чтобы защитить свой счет.",
+    "srp_text": "Секретная фраза для восстановления",
+    "priv_key_text": "Закрытый ключ"
   },
   "password_reset": {
     "password_title": "Пароль",
