@@ -657,7 +657,15 @@
     "keep_credential_safe": "{{credentialName}}は安全に保管してください",
     "srp_abbreviation_text": "SRP",
     "srp_text": "秘密のリカバリーフレーズ",
-    "private_key_text": "秘密鍵"
+    "private_key_text": "秘密鍵",
+    "got_it": "了解",
+    "learn_more": "詳細"
+  },
+  "screenshot_deterrent": {
+    "title": "安全性に関するアラート",
+    "description": "スクリーンショットは {{credentialName}} を記録するための安全な手段ではありません。アカウントを安全に保つため、オンラインでバックアップされていない場所に保管してください。",
+    "srp_text": "シークレットリカバリーフレーズ",
+    "priv_key_text": "秘密鍵"
   },
   "password_reset": {
     "password_title": "パスワード",

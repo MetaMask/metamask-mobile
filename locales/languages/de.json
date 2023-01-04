@@ -657,7 +657,15 @@
     "keep_credential_safe": "Bewahren Sie Ihre {{credentialName}} sicher auf",
     "srp_abbreviation_text": "GWP",
     "srp_text": "Geheime Wiederherstellungsphrase",
-    "private_key_text": "Privater Key"
+    "private_key_text": "Privater Key",
+    "got_it": "Verstanden",
+    "learn_more": "Mehr erfahren"
+  },
+  "screenshot_deterrent": {
+    "title": "Sicherheitsalarm",
+    "description": "Screenshots sind keine sichere Methode, um Ihre {{credentialName}} sicher aufzubewahren. Bewahren Sie sie an einem Ort auf, der nicht online gesichert ist, um Ihr Konto zu schützen.",
+    "srp_text": "Geheime Wiederherstellungsphrase",
+    "priv_key_text": "Privater Key"
   },
   "password_reset": {
     "password_title": "Passwort",
