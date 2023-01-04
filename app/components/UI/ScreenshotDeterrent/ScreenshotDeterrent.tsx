@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Alert, Linking, InteractionManager } from 'react-native';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import useScreenshotWarning from '../../hooks/useScreenshotWarning';
+import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { strings } from '../../../../locales/i18n';
 
@@ -52,7 +52,7 @@ const ScreenshotDeterrent = ({
     );
   }, [isSRP]);
 
-  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
+  const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
   useEffect(() => {
     enableScreenshotWarning(enabled && !alertPresent);
