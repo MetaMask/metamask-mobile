@@ -3,7 +3,7 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Device from '../../util/device';
 
-const useScreenshotWarning = (warning: () => void) => {
+const useScreenshotDeterrent = (warning: () => void) => {
   const [enabled, setEnabled] = useState<boolean>(false);
 
   const screenshotDetect = NativeModules.ScreenshotDetect;
@@ -54,4 +54,4 @@ const useScreenshotWarning = (warning: () => void) => {
   return [setEnabled];
 };
 
-export default useScreenshotWarning;
+export default useScreenshotDeterrent;
