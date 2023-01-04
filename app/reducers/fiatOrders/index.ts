@@ -18,54 +18,54 @@ export type { FiatOrder } from './types';
 /** Action Creators */
 
 export const resetFiatOrders = () => ({
-  type: ACTIONS.FIAT_RESET as const,
+  type: ACTIONS.FIAT_RESET,
 });
 export const addFiatOrder = (order: FiatOrder) => ({
-  type: ACTIONS.FIAT_ADD_ORDER as const,
+  type: ACTIONS.FIAT_ADD_ORDER,
   payload: order,
 });
 export const removeFiatOrder = (order: FiatOrder) => ({
-  type: ACTIONS.FIAT_REMOVE_ORDER as const,
+  type: ACTIONS.FIAT_REMOVE_ORDER,
   payload: order,
 });
 export const updateFiatOrder = (order: FiatOrder) => ({
-  type: ACTIONS.FIAT_UPDATE_ORDER as const,
+  type: ACTIONS.FIAT_UPDATE_ORDER,
   payload: order,
 });
 export const setFiatOrdersCountry = (countryCode: string) => ({
-  type: ACTIONS.FIAT_SET_COUNTRY as const,
+  type: ACTIONS.FIAT_SET_COUNTRY,
   payload: countryCode,
 });
 export const setFiatOrdersRegionAGG = (region: Region | null) => ({
-  type: ACTIONS.FIAT_SET_REGION_AGG as const,
+  type: ACTIONS.FIAT_SET_REGION_AGG,
   payload: region,
 });
 export const setFiatOrdersPaymentMethodAGG = (paymentMethodId: string) => ({
-  type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG as const,
+  type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
   payload: paymentMethodId,
 });
 export const setFiatOrdersGetStartedAGG = (getStartedFlag: boolean) => ({
-  type: ACTIONS.FIAT_SET_GETSTARTED_AGG as const,
+  type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
   payload: getStartedFlag,
 });
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
-  type: ACTIONS.FIAT_ADD_CUSTOM_ID_DATA as const,
+  type: ACTIONS.FIAT_ADD_CUSTOM_ID_DATA,
   payload: customIdData,
 });
 export const updateFiatCustomIdData = (customIdData: CustomIdData) => ({
-  type: ACTIONS.FIAT_UPDATE_CUSTOM_ID_DATA as const,
+  type: ACTIONS.FIAT_UPDATE_CUSTOM_ID_DATA,
   payload: customIdData,
 });
 export const removeFiatCustomIdData = (customIdData: CustomIdData) => ({
-  type: ACTIONS.FIAT_REMOVE_CUSTOM_ID_DATA as const,
+  type: ACTIONS.FIAT_REMOVE_CUSTOM_ID_DATA,
   payload: customIdData,
 });
 export const addAuthenticationUrl = (authenticationUrl: string) => ({
-  type: ACTIONS.FIAT_ADD_AUTHENTICATION_URL as const,
+  type: ACTIONS.FIAT_ADD_AUTHENTICATION_URL,
   payload: authenticationUrl,
 });
 export const removeAuthenticationUrl = (authenticationUrl: string) => ({
-  type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL as const,
+  type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL,
   payload: authenticationUrl,
 });
 
