@@ -657,7 +657,15 @@
     "keep_credential_safe": "保护您的 {{credentialName}} 安全",
     "srp_abbreviation_text": "助记词",
     "srp_text": "助记词",
-    "private_key_text": "私钥"
+    "private_key_text": "私钥",
+    "got_it": "知道了",
+    "learn_more": "了解更多"
+  },
+  "screenshot_deterrent": {
+    "title": "安全提示",
+    "description": "截图并非保存您的{{credentialName}}的安全方式。请将其存储在不是在线备份的地方，以保证您的账户安全。",
+    "srp_text": "助记词",
+    "priv_key_text": "私钥"
   },
   "password_reset": {
     "password_title": "密码",

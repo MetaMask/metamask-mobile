@@ -657,7 +657,15 @@
     "keep_credential_safe": "{{credentialName}} 정보를 안전하게 보관하세요",
     "srp_abbreviation_text": "SRP",
     "srp_text": "비밀 복구 구문",
-    "private_key_text": "비공개 키"
+    "private_key_text": "비공개 키",
+    "got_it": "확인",
+    "learn_more": "자세히 알아보기"
+  },
+  "screenshot_deterrent": {
+    "title": "안전 경고",
+    "description": "스크린숏은 {{credentialName}}을(를) 안전하게 추적할 수 있는 방법이 아닙니다. 온라인으로는 백업되지 않는 다른 곳에 보관하셔야 계정을 안전하게 유지할 수 있습니다.",
+    "srp_text": "비밀 복구 구문",
+    "priv_key_text": "비공개 키"
   },
   "password_reset": {
     "password_title": "비밀번호",

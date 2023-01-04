@@ -657,7 +657,15 @@
     "keep_credential_safe": "{{credentialName}} bilgini güvende tut",
     "srp_abbreviation_text": "GKİ",
     "srp_text": "Gizli Kurtarma İfadesi",
-    "private_key_text": "Özel Anahtar"
+    "private_key_text": "Özel Anahtar",
+    "got_it": "Anladım",
+    "learn_more": "Daha Fazlasını Öğren"
+  },
+  "screenshot_deterrent": {
+    "title": "Güvenlik uyarısı",
+    "description": "Ekran görüntüleri {{credentialName}} takibinin güvenli bir yöntemi değildir. Hesabınızı güvende tutmak için çevrimiçi olarak yedeklenmeyen bir yerde saklayın.",
+    "srp_text": "Gizli Kurtarma İfadesi",
+    "priv_key_text": "Özel Anahtar"
   },
   "password_reset": {
     "password_title": "Şifre",
