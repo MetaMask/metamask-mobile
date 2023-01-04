@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from './useSDKMethod';
 
 function usePaymentMethods() {
   const {

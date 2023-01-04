@@ -14,7 +14,8 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
 import usePaymentMethods from '../hooks/usePaymentMethods';
 import useRegions from '../hooks/useRegions';
 import useAnalytics from '../hooks/useAnalytics';
