@@ -57,6 +57,7 @@ import { Colors } from '../../../../util/theme/models';
 import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
 import { formatAmount } from '../utils';
 import { createGetQuotesNavDetails } from './GetQuotes';
+import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -430,7 +431,7 @@ const AmountToBuy = () => {
   }, [toggleRegionModal]);
 
   const handleRegionPress = useCallback(
-    async (region) => {
+    async (region: Region) => {
       hideRegionModal();
       setAmount('0');
       setAmountNumber(0);
