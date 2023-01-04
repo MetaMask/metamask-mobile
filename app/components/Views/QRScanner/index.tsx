@@ -31,6 +31,7 @@ import { getURLProtocol } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import { MM_SDK_DEEPLINK } from '../../../constants/urls';
 import styles from './styles';
 import {
   createNavigationDetails,
@@ -135,8 +136,9 @@ const QRScanner = () => {
 
       const contentProtocol = getURLProtocol(content);
       if (
-        contentProtocol === PROTOCOLS.HTTP ||
-        contentProtocol === PROTOCOLS.HTTPS
+        (contentProtocol === PROTOCOLS.HTTP ||
+          contentProtocol === PROTOCOLS.HTTPS) &&
+        !content.startsWith(MM_SDK_DEEPLINK)
       ) {
         const redirect = await showAlertForURLRedirection(content);
 
