@@ -695,10 +695,17 @@
     "allow_camera_dialog_message": "Kami memerlukan izin Anda untuk memindai kode QR",
     "scanning": "memindai...",
     "ok": "Oke",
+    "continue": "Lanjutkan",
     "cancel": "Batal",
     "error": "Galat",
     "attempting_to_scan_with_wallet_locked": "Tampaknya Anda mencoba memindai kode QR, Anda harus membuka dompet untuk dapat menggunakannya.",
-    "attempting_sync_from_wallet_error": "Tampaknya Anda mencoba menyinkronkan dengan ekstensi. Untuk melakukannya, Anda harus menghapus dompet saat ini. \n\nSetelah Anda menghapus atau menginstal ulang versi baru aplikasi, pilih opsi untuk \"Menyinkronkan dengan Ekstensi MetaMask\". Penting! Sebelum menghapus dompet Anda, pastikan Anda telah mencadangkan Frasa Pemulihan Rahasia."
+    "attempting_sync_from_wallet_error": "Tampaknya Anda mencoba menyinkronkan dengan ekstensi. Untuk melakukannya, Anda harus menghapus dompet saat ini. \n\nSetelah Anda menghapus atau menginstal ulang versi baru aplikasi, pilih opsi untuk \"Menyinkronkan dengan Ekstensi MetaMask\". Penting! Sebelum menghapus dompet Anda, pastikan Anda telah mencadangkan Frasa Pemulihan Rahasia.",
+    "not_allowed_error_title": "Aktifkan akses kamera",
+    "not_allowed_error_desc": "Akses kamera diperlukan untuk memindai kode QR yang terkait dengan alamat akun atau alamat kontrak",
+    "unrecognized_address_qr_code_title": "Kode QR tak dikenal",
+    "unrecognized_address_qr_code_desc": "Maaf, kode QR ini tidak terkait dengan alamat akun atau alamat kontrak.",
+    "url_redirection_alert_title": "Anda akan mengunjungi tautan eksternal",
+    "url_redirection_alert_desc": "Tautan dapat digunakan untuk mencoba menipu atau mengelabui orang, jadi pastikan untuk mengunjungi situs web yang aman saja."
   },
   "action_view": {
     "cancel": "Batal",
