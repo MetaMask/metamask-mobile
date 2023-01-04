@@ -214,6 +214,7 @@ export const ANALYTICS_EVENTS_V2 = {
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS: generateOpt(
     'Automatic Security Checks Disabled From Settings',
   ),
+  USER_TERMS: generateOpt('Terms of Use'),
 };
 
 /**
