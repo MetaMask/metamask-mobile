@@ -657,7 +657,15 @@
     "keep_credential_safe": "Proteja su {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Frase secreta de recuperación",
-    "private_key_text": "Clave privada"
+    "private_key_text": "Clave privada",
+    "got_it": "Entendido",
+    "learn_more": "Más información"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerta de seguridad",
+    "description": "Las capturas de pantalla no son una forma segura de realizar un seguimiento de su {{credentialName}}. Guárdelo en algún lugar que no tenga una copia de seguridad en línea para mantener su cuenta segura.",
+    "srp_text": "Frase secreta de recuperación",
+    "priv_key_text": "Clave privada"
   },
   "password_reset": {
     "password_title": "Contraseña",

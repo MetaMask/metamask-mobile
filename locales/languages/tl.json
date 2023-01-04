@@ -657,7 +657,15 @@
     "keep_credential_safe": "Panatilihing ligtas ang iyong {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Pribadong Key"
+    "private_key_text": "Pribadong Key",
+    "got_it": "Nakuha ko",
+    "learn_more": "Matuto pa"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerto sa kaligtasan",
+    "description": "Ang mga screenshot ay hindi ligtas na paraan para masubaybayan ang iyong {{credentialName}}. Iimbak ito sa ibang lugar na walang online na back-up upang mapanatiling ligtas ang iyong account.",
+    "srp_text": "Secret Recovery Phrase",
+    "priv_key_text": "Private Key"
   },
   "password_reset": {
     "password_title": "Password",

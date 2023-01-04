@@ -657,7 +657,15 @@
     "keep_credential_safe": "Mantenha sua {{credentialName}} protegida",
     "srp_abbreviation_text": "FRS",
     "srp_text": "Frase de Recuperação Secreta",
-    "private_key_text": "Chave Privada"
+    "private_key_text": "Chave Privada",
+    "got_it": "Entendi",
+    "learn_more": "Saber mais"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerta de segurança",
+    "description": "Capturas de tela não são uma forma segura de manter o registro de sua {{credentialName}}. Armazene-o em um lugar que não tenha backup online para manter sua conta segura.",
+    "srp_text": "Frase de Recuperação Secreta",
+    "priv_key_text": "Chave Privada"
   },
   "password_reset": {
     "password_title": "Senha",
