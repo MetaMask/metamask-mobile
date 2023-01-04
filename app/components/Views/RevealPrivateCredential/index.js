@@ -7,7 +7,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  InteractionManager,
   Linking,
   Platform,
 } from 'react-native';
@@ -35,7 +34,6 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -46,7 +44,6 @@ import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 
 const PRIVATE_KEY = 'private_key';
-// const SEED_PHRASE = 'seed_phrase';
 
 /**
  * View that displays private account information as private key or seed phrase
@@ -163,15 +160,6 @@ const RevealPrivateCredential = ({
     };
 
     unlockWithBiometrics();
-    InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.forbid();
-    });
-
-    return () => {
-      InteractionManager.runAfterInteractions(() => {
-        PreventScreenshot.allow();
-      });
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
