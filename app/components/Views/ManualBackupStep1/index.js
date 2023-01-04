@@ -20,7 +20,6 @@ import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
-import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -89,7 +88,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     getSeedphrase();
     setWords(route.params?.words ?? []);
     setReady(true);
-    InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Alert, Linking } from 'react-native';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { View, Alert, Linking, InteractionManager } from 'react-native';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
-import useScreenshotWarning from '../../hooks/useScreenshotWarning';
+import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { strings } from '../../../../locales/i18n';
 
@@ -50,12 +49,20 @@ const ScreenshotDeterrent = ({
     );
   }, [isSRP]);
 
-  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
+  const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
-  useEffect(
-    () => enableScreenshotWarning(enabled && !alertPresent),
-    [alertPresent, enableScreenshotWarning, enabled],
-  );
+  useEffect(() => {
+    enableScreenshotWarning(enabled && !alertPresent);
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [alertPresent, enableScreenshotWarning, enabled]);
 
   return <View />;
 };
