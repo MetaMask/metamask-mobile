@@ -103,7 +103,7 @@ const QRScanner = () => {
             confirmLabel: strings('qr_scanner.continue'),
             variant: ModalConfirmationVariants.Normal,
             title: strings('qr_scanner.url_redirection_alert_title'),
-            description: `${url} \n\n ${strings(
+            description: `${url}\n${strings(
               'qr_scanner.url_redirection_alert_desc',
             )}`,
           },
