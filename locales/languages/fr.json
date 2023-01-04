@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "Nous avons besoin de votre autorisation pour scanner les codes QR",
     "scanning": "Scan en cours…",
     "ok": "Ok",
+    "continue": "Continuer",
     "cancel": "Annuler",
     "error": "Erreur",
     "attempting_to_scan_with_wallet_locked": "Il semble que vous essayez de scanner un code QR — vous devez déverrouiller votre portefeuille pour pouvoir l’utiliser.",

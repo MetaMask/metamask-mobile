@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "Precisamos da sua permissão para fazer a leitura de códigos QR",
     "scanning": "fazendo leitura...",
     "ok": "Ok",
+    "continue": "Continuar",
     "cancel": "Cancelar",
     "error": "Erro",
     "attempting_to_scan_with_wallet_locked": "Parece que você está tentando fazer a leitura de um código QR. Você precisa desbloquear sua carteira para poder usá-lo.",

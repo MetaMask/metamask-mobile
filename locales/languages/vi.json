@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "Chúng tôi cần sự cho phép của bạn để quét mã QR",
     "scanning": "đang quét...",
     "ok": "Ok",
+    "continue": "Tiếp tục",
     "cancel": "Hủy",
     "error": "Lỗi",
     "attempting_to_scan_with_wallet_locked": "Có vẻ như bạn đang cố quét mã QR, bạn cần mở khóa ví của mình để làm được điều đó.",

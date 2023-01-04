@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "我们需要您的许可才能扫描二维码",
     "scanning": "正在扫描...",
     "ok": "确定",
+    "continue": "继续",
     "cancel": "取消",
     "error": "错误",
     "attempting_to_scan_with_wallet_locked": "看起来您是希望扫描二维码，您需要解锁您的钱包才能使用它。",

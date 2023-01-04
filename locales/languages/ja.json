@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "QRコードのスキャンにはアクセス許可が必要です",
     "scanning": "スキャン中...",
     "ok": "OK",
+    "continue": "続行",
     "cancel": "キャンセル",
     "error": "エラー",
     "attempting_to_scan_with_wallet_locked": "QRコードをスキャンしようとしているようですが、使用するにはウォレットのロックを解除する必要があります。",

@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "Necesitamos su permiso para escanear códigos QR",
     "scanning": "escaneando…",
     "ok": "Aceptar",
+    "continue": "Continuar",
     "cancel": "Cancelar",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Si desea escanear un código QR, desbloqueé la cartera para poder usarla.",

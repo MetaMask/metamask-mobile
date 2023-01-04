@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "QR kodlarını taramak için izninize ihtiyacımız var",
     "scanning": "taranıyor...",
     "ok": "Tamam",
+    "continue": "Devam Et",
     "cancel": "İptal",
     "error": "Hata",
     "attempting_to_scan_with_wallet_locked": "Görünüşe göre bir QR kodunu taramaya çalışıyorsunuz, bunu kullanmak için cüzdanınızın kilidini açmanız gerekecek.",

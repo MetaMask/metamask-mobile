@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "Kami memerlukan izin Anda untuk memindai kode QR",
     "scanning": "memindai...",
     "ok": "Oke",
+    "continue": "Lanjutkan",
     "cancel": "Batal",
     "error": "Galat",
     "attempting_to_scan_with_wallet_locked": "Tampaknya Anda mencoba memindai kode QR, Anda harus membuka dompet untuk dapat menggunakannya.",

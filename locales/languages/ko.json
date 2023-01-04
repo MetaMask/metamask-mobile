@@ -695,6 +695,7 @@
     "allow_camera_dialog_message": "QR 코드를 스캔하기 위해서는 권한이 필요합니다",
     "scanning": "스캔 중...",
     "ok": "확인",
+    "continue": "계속",
     "cancel": "취소",
     "error": "오류",
     "attempting_to_scan_with_wallet_locked": "QR 코드를 스캔하시는 것 같습니다. 먼저 지갑을 잠금 해제하세요.",
