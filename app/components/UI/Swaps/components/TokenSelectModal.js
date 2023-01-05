@@ -42,7 +42,7 @@ import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
@@ -287,7 +287,7 @@ function TokenSelectModal({
       const { address, symbol } = item;
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.CUSTOM_TOKEN_IMPORTED,
+          MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
           { address, symbol, chain_id: chainId },
           true,
         );
