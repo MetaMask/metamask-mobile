@@ -5,11 +5,11 @@ import render from '../../../../../util/test/renderWithProvider';
 import GetStarted from './GetStarted';
 import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
 import { Region } from '../../types';
-import { IFiatOnRampSDK } from '../../sdk';
+import { OnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createRegionNavDetails } from '../Region';
 
-const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
+const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
   getStarted: false,
   setGetStarted: jest.fn(),
   sdkError: undefined,
@@ -17,7 +17,7 @@ const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
   selectedRegion: null,
 };
 
-let mockUseFiatOnRampSDKValues: Partial<IFiatOnRampSDK> = {
+let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
   ...mockuseFiatOnRampSDKInitialValues,
 };
 

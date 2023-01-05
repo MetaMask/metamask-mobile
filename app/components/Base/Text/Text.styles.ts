@@ -50,6 +50,9 @@ const createStyles = (colors: Colors) =>
     bigger: {
       fontSize: 18,
     },
+    biggest: {
+      fontSize: 20,
+    },
     upper: {
       textTransform: 'uppercase',
     },
