@@ -16,7 +16,7 @@ const generateOpt = (
   return { name };
 };
 
-export const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
   1: 'Welcome',
   2: 'Accounts',
   3: 'Account Name',
@@ -28,7 +28,7 @@ export const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
 /**
  * V2 Analytics Tracking Events
  */
-export enum EVENT_NAME {
+enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
 
@@ -1071,4 +1071,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents };
+export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
