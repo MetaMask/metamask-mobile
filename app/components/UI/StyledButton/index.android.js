@@ -130,6 +130,7 @@ export default class StyledButton extends PureComponent {
         disabled={this.props.disabled}
         accessible
         accessibilityLabel={this.props.testID}
+        accessibilityRole="button"
       >
         <View style={containerStyles}>
           {this.renderGroupedChildren(fontStyle, containerStyles)}

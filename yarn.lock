@@ -4006,10 +4006,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-3.0.0.tgz#c06744e66a968ffa13f70cc71a7d3b15d86b0ee7"
   integrity sha512-hD10mgvhcDkZX8wnauw8udp1K2MzcbZfrN7Yon9sQ+OqVK9kiQ4VhZAyZNZTy9KJLtfoVD9Y2F6L4gEese7hDA==
 
-"@metamask/contract-metadata@^1.30.0", "@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^1.35.0":
-  version "1.35.0"
-  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.35.0.tgz#2bf2b8f2b6fdbd5132f0bcfa594b6c02dc71c42e"
-  integrity sha512-zfZKwLFOVrQS8vTFoeoNCG9JhqmK4oyembGiGVVpUAYD9BHVZnd9WpicGoUC07ROXLEyQuAK9AJZNBtqwwzfEQ==
+"@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^1.35.0", "@metamask/contract-metadata@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.1.0.tgz#78f9e32afea61548922e57ef57ee6eb99abf35be"
+  integrity sha512-jPeoNmEonnmtzSIsBGAshy9SCFMkLfURB7d7pkEY1lmRtrhPYv3DTkMpffJciikaCPjyJ62eLWX/6Kme4CPvNg==
 
 "@metamask/controllers@^26.0.0":
   version "26.0.0"
@@ -20306,9 +20306,9 @@ react-native-browser-polyfill@0.1.2:
   resolved "https://registry.yarnpkg.com/react-native-browser-polyfill/-/react-native-browser-polyfill-0.1.2.tgz#d2c4e816e7a1d91bc314400a1b0a9795a91b8bcd"
   integrity sha1-0sToFueh2RvDFEAKGwqXlakbi80=
 
-"react-native-button@git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7":
+"react-native-button@git+https://github.com/MetaMask/react-native-button.git#c685e7882034543ceea3f09f6e3d205d18fce46e":
   version "2.3.0"
-  resolved "git+https://github.com/MetaMask/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7"
+  resolved "git+https://github.com/MetaMask/react-native-button.git#c685e7882034543ceea3f09f6e3d205d18fce46e"
   dependencies:
     prop-types "^15.5.10"
 

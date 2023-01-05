@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import ScreenLayout from '../components/ScreenLayout';
@@ -22,9 +22,9 @@ import useAnalytics from '../hooks/useAnalytics';
 import useRegions from '../hooks/useRegions';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import { createPaymentMethodsNavDetails } from './PaymentMethods';
+import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
@@ -86,7 +86,7 @@ const RegionView = () => {
   }, [navigation]);
 
   const handleRegionPress = useCallback(
-    (region) => {
+    (region: Region) => {
       setSelectedRegion(region);
       setSelectedFiatCurrencyId(null);
       hideRegionModal();
