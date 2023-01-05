@@ -21,9 +21,11 @@ import DefaultPreference from 'react-native-default-preference';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/device';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
