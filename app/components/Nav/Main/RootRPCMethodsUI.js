@@ -46,13 +46,14 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
@@ -214,9 +215,9 @@ const RootRPCMethodsUI = (props) => {
           Analytics.trackEventWithParameters(event, parameters, true);
         });
       } catch (e) {
-        Logger.error(e, ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED);
+        Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED, {
+          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
             error: e,
           });
         });
@@ -239,7 +240,7 @@ const RootRPCMethodsUI = (props) => {
               });
             } else {
               if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
+                trackSwaps(MetaMetricsEvents.SWAP_FAILED, transactionMeta);
               }
               throw transactionMeta.error;
             }
@@ -249,7 +250,7 @@ const RootRPCMethodsUI = (props) => {
           `${transactionMeta.id}:confirmed`,
           (transactionMeta) => {
             if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-              trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
+              trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
             }
           },
         );
@@ -265,7 +266,7 @@ const RootRPCMethodsUI = (props) => {
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           );
         }
       }
