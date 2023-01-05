@@ -236,15 +236,16 @@ enum EVENT_NAME {
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED = 'Force Upgrade Clicked Update to Latest Version',
   FORCE_UPGRADE_REMIND_ME_LATER_CLICKED = 'Force Upgrade Clicked Remind Me Later',
+  AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED = 'Automatic Security Checks Prompt Viewed',
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT = 'Automatic Security Checks Enabled From Prompt',
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT = 'Automatic Security Checks Disabled From Prompt',
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS = 'Automatic Security Checks Enabled From Settings',
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS = 'Automatic Security Checks Disabled From Settings',
 
   // Screenshots Deterrent
-  SCREENSHOT_WARNING = 'screenshot_warning_displayed',
-  SCREENSHOT_LEARN_MORE = 'clicked_screenshot_warning_learn_more',
-  SCREENSHOT_OK = 'clicked_screenshot_warning_okay',
+  SCREENSHOT_WARNING = 'Screenshot Warning Displayed',
+  SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
+  SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
 }
 
 const events = {
@@ -457,6 +458,9 @@ const events = {
   ),
   FORCE_UPGRADE_REMIND_ME_LATER_CLICKED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
+  ),
+  AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED: generateOpt(
+    EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
   ),
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT: generateOpt(
     EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
