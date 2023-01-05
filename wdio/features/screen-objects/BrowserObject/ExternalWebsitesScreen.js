@@ -1,48 +1,46 @@
-import Gestures from 'wdio/features/helpers/Gestures';
-import Selectors from 'wdio/features/helpers/Selectors';
+import Gestures from '../../helpers/Gestures';
+import Selectors from '../../helpers/Selectors';
 
-import { SUSHISWAP_SUGGESTION } from 'wdio/features/testIDs/BrowserScreen/AddressBar.testIds';
 import {
   BRUNO_MAIN_ID,
+  CURVE_APPROVE_SPENDING_BUTTON,
   CURVE_CONNECT_WALLET_BUTTON,
   CURVE_METAMASK_AVAILABLE_WALLET_BUTTON,
+  ERROR_PAGE_MESSAGE,
+  ERROR_PAGE_RETURN_BUTTON,
+  ERROR_PAGE_TITLE,
   ETHEREUM_DETECTION_TITLE,
   ETHEREUM_PHISHING_DETECTION_BACK_BUTTON,
-  HOME_FAVORITE_BUTTON_TEXT,
-  HOME_FAVORITE_TITLE_CARD,
-  HOME_SEARCH_BAR_INPUT_CLASS,
+  HOME_EXPLORE_CARDS,
+  HOME_FAVORITE_BUTTON,
+  HOME_FAVORITES_CARDS,
+  HOME_FAVORITES_CARDS_TITLES,
+  HOME_FAVORITES_CARDS_URL,
+  HOME_SEARCH_BAR_INPUT,
   HOME_WEBSITE_ID,
   NO_FAVORITES_MESSAGE,
-  SUSHI_HAMBURGER_BUTTON_CSS,
-  SUSHI_WEB_STATUS_CONNECTED_CSS,
-  WRONG_RETURN_BUTTON,
-  WRONG_SUBTITLE,
-  WRONG_TITLE,
-} from 'wdio/features/testIDs/BrowserScreen/ExternalWebsites.testIds';
+  UNISWAP_CONNECT_BUTTON,
+  UNISWAP_METAMASK_WALLET_BUTTON,
+  UNISWAP_WALLET_ADDRESS_BUTTON,
+  UNISWAP_WALLET_PROFILE_ICON,
+} from '../../testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 class ExternalWebsitesScreen {
-  get mySushiUrlCard() {
-    return Selectors.getXpathElementByText(SUSHISWAP_SUGGESTION);
-  }
-
   get homeSearchBar() {
-    return Selectors.getElementByCss(HOME_SEARCH_BAR_INPUT_CLASS);
+    return Selectors.getElementByCss(HOME_SEARCH_BAR_INPUT);
   }
 
   get homeFavoriteButton() {
-    return Selectors.getXpathElementByText(HOME_FAVORITE_BUTTON_TEXT);
+    return Selectors.getXpathElementByText(HOME_FAVORITE_BUTTON);
   }
 
   get homeNoFavoritesMessageText() {
+    //return Selectors.getElementByCss(NO_FAVORITES_MESSAGE);
     return Selectors.getXpathElementByText(NO_FAVORITES_MESSAGE);
   }
 
-  get mySushiTitleCard() {
-    return Selectors.getXpathElementByText(HOME_FAVORITE_TITLE_CARD);
-  }
-
   get ethereumPhishingDetectionTitle() {
-    return Selectors.getXpathElementByText(ETHEREUM_DETECTION_TITLE);
+    return Selectors.getElementByPlatform(ETHEREUM_DETECTION_TITLE);
   }
 
   get ethereumPhishingDetectionBackButton() {
@@ -55,36 +53,74 @@ class ExternalWebsitesScreen {
     return Selectors.getXpathElementByResourceId(BRUNO_MAIN_ID);
   }
 
-  get wrongTitle() {
-    return Selectors.getXpathElementByText(WRONG_TITLE);
+  get errorPageTitle() {
+    return Selectors.getXpathElementByText(ERROR_PAGE_TITLE);
   }
 
-  get wrongSubtitle() {
-    return Selectors.getXpathElementByText(WRONG_SUBTITLE);
+  get errorPageMessage() {
+    return Selectors.getXpathElementByText(ERROR_PAGE_MESSAGE);
   }
 
   get wrongReturnButton() {
-    return Selectors.getXpathElementByText(WRONG_RETURN_BUTTON);
+    return Selectors.getXpathElementByText(ERROR_PAGE_RETURN_BUTTON);
   }
 
-  get sushiHamburgerButton() {
-    return Selectors.getElementByCss(SUSHI_HAMBURGER_BUTTON_CSS);
+  get uniswapConnectButton() {
+    //return Selectors.getElementByCss(UNISWAP_CONNECT_BUTTON);
+    return Selectors.getXpathElementByText(UNISWAP_CONNECT_BUTTON);
   }
 
-  get sushiWebStatusButton() {
-    return Selectors.getElementByCss(SUSHI_WEB_STATUS_CONNECTED_CSS);
+  get uniswapMetamaskWalletButton() {
+    return Selectors.getXpathElementByText(UNISWAP_METAMASK_WALLET_BUTTON);
+  }
+
+  get uniswapWalletProfileIconButton() {
+    //return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
+    return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
+  }
+
+  get uniswapWalletAddressButton() {
+    return Selectors.getElementByCss(UNISWAP_WALLET_ADDRESS_BUTTON);
   }
 
   get homeScreenId() {
     return Selectors.getXpathElementByResourceId(HOME_WEBSITE_ID);
   }
 
+  get homeFavoritesCards() {
+    return Selectors.getElementsByCss(HOME_FAVORITES_CARDS);
+  }
+
+  get homeExploreCards() {
+    return Selectors.getElementsByCss(HOME_EXPLORE_CARDS);
+  }
+
+  get homeDecentralizedFinanceCards() {
+    return Selectors.getElementsByCss(HOME_EXPLORE_CARDS);
+  }
+
+  get homeFavoriteCardTitle() {
+    //return Selectors.getElementsByCss(HOME_FAVORITES_CARDS_TITLES);
+    return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_TITLES);
+  }
+
+  get homeFavoriteCardUrl() {
+    //return Selectors.getElementsByCss(HOME_FAVORITES_CARDS_URL);
+    return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_URL);
+  }
+
   get curveConnectWalletButton() {
-    return Selectors.getElementByCss(CURVE_CONNECT_WALLET_BUTTON);
+    return Selectors.getXpathElementByText(CURVE_CONNECT_WALLET_BUTTON);
   }
 
   get curveMetaMaskAvailableWalletButton() {
-    return Selectors.getElementByCss(CURVE_METAMASK_AVAILABLE_WALLET_BUTTON);
+    return Selectors.getXpathElementByText(
+      CURVE_METAMASK_AVAILABLE_WALLET_BUTTON,
+    );
+  }
+
+  get curveApproveSpendingButton() {
+    return Selectors.getXpathElementByText(CURVE_APPROVE_SPENDING_BUTTON);
   }
 
   async tapHomeFavoritesButton() {
@@ -92,11 +128,11 @@ class ExternalWebsitesScreen {
   }
 
   async isHomeNoFavoritesMessageDisplayed() {
-    await expect(this.homeNoFavoritesMessageText).toBeDisplayed();
+    await expect(await this.homeNoFavoritesMessageText).toBeDisplayed();
   }
 
   async isEthereumFishingDetectionWebsiteTitleDisplayed() {
-    await expect(this.ethereumPhishingDetectionTitle).toBeDisplayed();
+    await expect(await this.ethereumPhishingDetectionTitle).toBeDisplayed();
   }
 
   async tapEthereumFishingDetectionWebsiteBackButton() {
@@ -104,39 +140,23 @@ class ExternalWebsitesScreen {
   }
 
   async isBrunoWebsiteDisplayed() {
-    await expect(this.bruno).toBeDisabled();
+    await expect(await this.bruno).toBeDisplayed();
   }
 
   async isHomeWebsiteDisplayed() {
-    await expect(this.homeScreenId).toBeDisplayed();
+    await expect(await this.homeScreenId).toBeDisplayed();
   }
 
-  async isWrongTitleDisplayed() {
-    await expect(this.wrongTitle).toBeDisabled();
+  async isErrorPageTitle(title) {
+    await expect(await this.errorPageTitle).toEqual(title);
   }
 
-  async isWrongSubtitle() {
-    await expect(this.wrongSubtitle).toBeDisplayed();
-  }
-
-  async isHomeFavoriteSushiTitleCardDisplayed() {
-    await expect(this.mySushiTitleCard).toBeDisplayed();
-  }
-
-  async isHomeFavoriteSushiUrlCardDisplayed() {
-    await expect(this.mySushiUrlCard).toBeDisplayed();
+  async isErrorPageMessage(message) {
+    await expect(await this.errorPageMessage).toEqual(message);
   }
 
   async tapWrongReturnButton() {
     await Gestures.waitAndTap(this.wrongReturnButton);
-  }
-
-  async tapSushiHamburgerButton() {
-    await Gestures.waitAndTap(this.sushiHamburgerButton);
-  }
-
-  async tapSushiWebStatus() {
-    await Gestures.waitAndTap(this.sushiWebStatusButton);
   }
 
   async tapHomeSearchBar() {
@@ -149,6 +169,84 @@ class ExternalWebsitesScreen {
 
   async tapCurveMetaMaskAvailableWalletButton() {
     await Gestures.waitAndTap(this.curveMetaMaskAvailableWalletButton);
+  }
+
+  async isConnectButtonNotDisplayed() {
+    await expect(await this.curveApproveSpendingButton).toBeDisplayed();
+  }
+
+  async tapUniswapConnectButton() {
+    await Gestures.waitAndTap(this.uniswapConnectButton);
+  }
+
+  async tapUniswapMetaMaskWalletButton() {
+    await Gestures.waitAndTap(this.uniswapMetamaskWalletButton);
+  }
+
+  async isUniswapProfileIconDisplayed() {
+    await expect(await this.uniswapWalletProfileIconButton).toBeDisplayed();
+  }
+
+  async tapUniswapProfileIcon() {
+    await Gestures.tap(this.uniswapWalletProfileIconButton);
+  }
+
+  async tapUniswapWalletAddressButton() {
+    await Gestures.tap(this.uniswapWalletAddressButton);
+  }
+
+  async tapHomeFavoritesCard(link) {
+    const elementsText = this.homeFavoritesCards;
+    await elementsText.every(async (element) => {
+      const elementHref = await element.getAttribute('href');
+
+      if (elementHref === link) {
+        await Gestures.tap(element);
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  async isHomeFavoritesCardsTitle(link) {
+    const elementsText = await this.homeFavoriteCardTitle;
+    //elementsText.filter((element) => element.getText() === link);
+    await expect(await elementsText.getText()).toEqual(link);
+  }
+
+  async isHomeFavoritesCardsUrl(link) {
+    const elementsText = await this.homeFavoriteCardUrl;
+    //elementsText.filter((element) => element.getText() === link);
+    await expect(await elementsText.getText()).toEqual(link);
+  }
+
+  async tapHomeExploreCards(link) {
+    const elementsText = this.homeExploreCards;
+    elementsText.every((element) => {
+      const elementHref = element.getAttribute('href');
+
+      if (elementHref === link) {
+        Gestures.tap(element);
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  async tapDecentralizedFinanceCards(link) {
+    const elementsText = this.homeDecentralizedFinanceCards;
+    elementsText.every((element) => {
+      const elementHref = element.getAttribute('href');
+
+      if (elementHref === link) {
+        Gestures.tap(element);
+        return false;
+      }
+
+      return true;
+    });
   }
 }
 

@@ -10,6 +10,7 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
+import AddressBarScreen from "../screen-objects/BrowserObject/AddressBarScreen";
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -93,7 +94,7 @@ When(/^I tap "([^"]*)"/, async (text) => {
       await WalletMainScreen.tapNoThanks();
       break;
     case 'https://uniswap.exchange':
-      await BrowserScreen.tapUniswapSuggestionButton();
+      await AddressBarScreen.tapUniswapSuggestionButton();
       break;
     default:
       throw new Error('Condition not found');

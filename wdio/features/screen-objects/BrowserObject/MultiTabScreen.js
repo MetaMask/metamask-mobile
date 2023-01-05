@@ -2,36 +2,36 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 import {
-  ADD_BUTTON,
-  CLOSE_ALL_BUTTON,
-  DONE_BUTTON,
-  NO_TABS_MESSAGE,
-  SCREEN_ID,
-} from 'wdio/features/testIDs/BrowserScreen/MultiTab.testIds';
+  MULTI_TAB_ADD_BUTTON,
+  MULTI_TAB_CLOSE_ALL_BUTTON,
+  MULTI_TAB_DONE_BUTTON,
+  MULTI_TAB_NO_TABS_MESSAGE,
+  MULTI_TAB_SCREEN_ID,
+} from '../../testIDs/BrowserScreen/MultiTab.testIds';
 
 class MultiTabScreen {
   get screen() {
-    return Selectors.getXpathElementByResourceId(SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(MULTI_TAB_SCREEN_ID);
   }
 
   get closeAllButton() {
-    return Selectors.getXpathElementByResourceId(CLOSE_ALL_BUTTON);
+    return Selectors.getXpathElementByResourceId(MULTI_TAB_CLOSE_ALL_BUTTON);
   }
 
   get addButton() {
-    return Selectors.getXpathElementByResourceId(ADD_BUTTON);
+    return Selectors.getXpathElementByResourceId(MULTI_TAB_ADD_BUTTON);
   }
 
   get doneButton() {
-    return Selectors.getXpathElementByResourceId(DONE_BUTTON);
+    return Selectors.getXpathElementByResourceId(MULTI_TAB_DONE_BUTTON);
   }
 
   get noTabsMessage() {
-    return Selectors.getXpathElementByResourceId(NO_TABS_MESSAGE);
+    return Selectors.getXpathElementByResourceId(MULTI_TAB_NO_TABS_MESSAGE);
   }
 
   async isTabsViewDisplayed() {
-    await expect(this.screen).toBeDisplayed();
+    await expect(await this.screen).toBeDisplayed();
   }
 
   async tapCloseAllButton() {
@@ -47,7 +47,7 @@ class MultiTabScreen {
   }
 
   async isNoTabsMessageDisplayed() {
-    await expect(this.noTabsMessage).toBeDisplayed();
+    await expect(await this.noTabsMessage).toBeDisplayed();
   }
 }
 

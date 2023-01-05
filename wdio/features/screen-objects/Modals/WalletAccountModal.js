@@ -1,7 +1,9 @@
+/* global driver */
 import {
+  ACCOUNT_OVERVIEW_ID,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_ICON,
+  WALLET_ACCOUNT_ADDRESS_LABEL,
 } from '../../testIDs/Screens/WalletView.testIds';
 
 import Selectors from '../../helpers/Selectors';
@@ -14,6 +16,14 @@ class WalletAccountModal {
 
   get accountNameLabelInput() {
     return Selectors.getElementByPlatform(WALLET_ACCOUNT_NAME_LABEL_INPUT);
+  }
+
+  get walletAddress() {
+    return Selectors.getElementByPlatform(WALLET_ACCOUNT_ADDRESS_LABEL);
+  }
+
+  get walletAccountOverview() {
+    return Selectors.getXpathElementByResourceId(ACCOUNT_OVERVIEW_ID);
   }
 
   async longPressAccountNameLabel() {
@@ -29,13 +39,22 @@ class WalletAccountModal {
   }
 
   async isAccountNameLabelEqualTo(expected) {
-    const textFromElement = await this.accountNameLabelInput;
+    const textFromElement = await this.accountNameLabelText;
     const accountName = await textFromElement.getText();
     await expect(accountName).toContain(expected);
   }
 
   async tapWalletAddress() {
-    await Gestures.tap(this.walletAddress);
+    await Gestures.waitAndTap(this.walletAddress);
+  }
+
+  async isMainWalletAddressEqualTo(expectedWalletAddress) {
+    const actualWalletAddress = driver.getClipboard();
+    await expect(expectedWalletAddress).toEqual(actualWalletAddress);
+  }
+
+  async isAccountOverview() {
+    await expect(await this.walletAccountOverview).toBeDisplayed();
   }
 }
 

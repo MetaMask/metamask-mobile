@@ -13,7 +13,6 @@ import {
   ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_2,
   ONBOARDING_WIZARD_EXPLORE_BROWSER_DESC,
   ONBOARDING_WIZARD_SEARCH_DESC,
-  SECURITY_NO_THANKS_BUTTON,
 } from '../../testIDs/Components/OnboardingWizard.testIds';
 
 import Selectors from '../../helpers/Selectors';
@@ -55,7 +54,7 @@ class OnboardingWizardModal {
   }
 
   get onBoardingWizardSkipTutorialButton() {
-    return Selectors.getXpathElementByText(
+    return Selectors.getElementByPlatform(
       ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
     );
   }
@@ -98,12 +97,6 @@ class OnboardingWizardModal {
 
   get onBoardingWizardSearchDesc() {
     return Selectors.getXpathElementByText(ONBOARDING_WIZARD_SEARCH_DESC);
-  }
-
-  get securityNoThanksButton() {
-    return Selectors.getXpathElementByContentDescription(
-      SECURITY_NO_THANKS_BUTTON,
-    );
   }
 
   async isVisible() {
@@ -176,10 +169,6 @@ class OnboardingWizardModal {
 
   async isSearchDescDisplayed() {
     await expect(this.onBoardingWizardSearchDesc).toBeDisplayed();
-  }
-
-  async tapSecurityNoThanksButton() {
-    await Gestures.waitAndTap(this.securityNoThanksButton);
   }
 }
 

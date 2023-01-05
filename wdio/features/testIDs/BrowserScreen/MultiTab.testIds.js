@@ -1,9 +1,9 @@
-export const SCREEN_ID = '__next';
+export const MULTI_TAB_SCREEN_ID = '__next';
 
-export const CLOSE_ALL_BUTTON = 'tabs_close_all';
+export const MULTI_TAB_CLOSE_ALL_BUTTON = 'tabs_close_all';
 
-export const ADD_BUTTON = 'tabs_add';
+export const MULTI_TAB_ADD_BUTTON = 'tabs_add';
 
-export const DONE_BUTTON = 'tabs_done';
+export const MULTI_TAB_DONE_BUTTON = 'tabs_done';
 
-export const NO_TABS_MESSAGE = 'No Open Tabs';
+export const MULTI_TAB_NO_TABS_MESSAGE = 'no-tabs-message';

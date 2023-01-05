@@ -8,7 +8,7 @@ config.capabilities = [
     noReset: false,
     fullReset: false,
     maxInstances: 1,
-    deviceName: 'R5CRA0C5ZXW',
+    deviceName: 'Android 11 - Pixel 4a API 30',
     platformVersion: '12',
     app: './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
     automationName: 'uiautomator2',

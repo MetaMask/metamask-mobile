@@ -12,14 +12,12 @@ export const OPTIONS_BUTTON = 'options-button';
 
 export const TABS_BUTTON = 'show-tabs-button';
 
-export const TEXT_VIEW_CLASS = 'android.widget.TextView';
+export const TABS_NUMBER = 'show-tabs-number';
 
 export const BACK_BUTTON = '';
 
 export const HOME_BUTTON = 'home-button';
 
 export const FORWARD_BUTTON = 'forward-button';
-
-export const CONNECT_WALLET_BUTTON = 'connect-approve-button';
 
 export const SEARCH_BUTTON = '';

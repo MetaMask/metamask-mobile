@@ -2,12 +2,12 @@ export const MODAL_INPUT = 'url-input';
 
 export const CANCEL_BUTTON = 'cancel-url-button';
 
-export const SUSHISWAP_SUGGESTION = 'https://sushiswap.io/swap';
+export const UNISWAP_SUGGESTION = 'https://uniswap.exchange/';
 
 export const EMPOWR_SUGGESTION = 'http://www.empowr.com/FanFeed/Home.aspx';
 
 export const REDDIT_SUGGESTION = 'reddit.com';
 
-export const HOME_SUGGESTION = '';
+export const HOME_SUGGESTION = 'https://home.metamask.io/';
 
-export const URL_CLEAR_ICON = '';
+export const URL_CLEAR_ICON = 'url-clear-icon';

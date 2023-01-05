@@ -21,6 +21,10 @@ import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
 import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
+import {
+  GOERLI_TEST_NETWORK_OPTION, KOVAN_NETWORK_OPTION,
+  RINKEBY_NETWORK_OPTION, ROPSTEN_NETWORK_OPTION
+} from "../../../wdio/features/testIDs/Components/NetworkListModal.TestIds";
 
 export { handleNetworkSwitch };
 
@@ -49,6 +53,7 @@ const NetworkList = {
     hexChainId: '0x3',
     color: '#ff4a8d',
     networkType: 'ropsten',
+    testId: ROPSTEN_NETWORK_OPTION,
   },
   [KOVAN]: {
     name: 'Kovan Test Network',
@@ -58,6 +63,7 @@ const NetworkList = {
     hexChainId: '0x2a',
     color: '#7057ff',
     networkType: 'kovan',
+    testId: KOVAN_NETWORK_OPTION,
   },
   [RINKEBY]: {
     name: 'Rinkeby Test Network',
@@ -67,6 +73,7 @@ const NetworkList = {
     hexChainId: '0x4',
     color: '#f6c343',
     networkType: 'rinkeby',
+    testId: RINKEBY_NETWORK_OPTION,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -76,6 +83,7 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
+    testId: GOERLI_TEST_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',

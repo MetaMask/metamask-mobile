@@ -1,36 +1,36 @@
 import Selectors from '../../helpers/Selectors';
 import {
-  ADD_FAVORITE_SCREEN_ID,
-  ADD_FAVORITE_TITLE_EDIT_TEXT,
-  ADD_FAVORITE_URL_EDIT_TEXT,
-  ADD_FAVORITE_ADD_BUTTON,
-  ADD_FAVORITE_CANCEL_BUTTON,
+  FAVORITE_SCREEN_ID,
+  FAVORITE_TITLE_EDIT_TEXT,
+  FAVORITE_URL_EDIT_TEXT,
+  FAVORITE_ADD_BUTTON,
+  FAVORITE_CANCEL_BUTTON,
 } from '../../testIDs/BrowserScreen/AddFavorite.testIds';
 import Gestures from '../../helpers/Gestures';
 
 class AddFavoriteScreen {
   get screen() {
-    return Selectors.getXpathElementByResourceId(ADD_FAVORITE_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(FAVORITE_SCREEN_ID);
   }
 
   get titleEditText() {
-    return Selectors.getXpathElementByResourceId(ADD_FAVORITE_TITLE_EDIT_TEXT);
+    return Selectors.getXpathElementByResourceId(FAVORITE_TITLE_EDIT_TEXT);
   }
 
   get urlEditText() {
-    return Selectors.getXpathElementByResourceId(ADD_FAVORITE_URL_EDIT_TEXT);
+    return Selectors.getXpathElementByResourceId(FAVORITE_URL_EDIT_TEXT);
   }
 
   get addButton() {
-    return Selectors.getXpathElementByResourceId(ADD_FAVORITE_ADD_BUTTON);
+    return Selectors.getElementByPlatform(FAVORITE_ADD_BUTTON);
   }
 
   get cancelButton() {
-    return Selectors.getXpathElementByResourceId(ADD_FAVORITE_CANCEL_BUTTON);
+    return Selectors.getElementByPlatform(FAVORITE_CANCEL_BUTTON);
   }
 
   async isScreenDisplayed() {
-    await expect(this.screen).toBeDisplayed();
+    await expect(await this.screen).toBeDisplayed();
   }
 
   async titleEditTextContains(expectedTitle) {

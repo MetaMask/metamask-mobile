@@ -20,12 +20,7 @@ class Selectors {
   }
 
   static async getElementsByPlatform(id) {
-    const platform = await driver.getPlatform();
-    if (platform === 'Android') {
-      return driver.$$(`//*[@content-desc='${id}']`);
-    } else if (platform === 'iOS') {
-      return driver.$$(`-ios class chain:${id}`);
-    }
+    return driver.$$(`//*[@content-desc='${id}']`);
   }
 
   static async getXpathElementByText(text) {
@@ -44,13 +39,12 @@ class Selectors {
     return await $(`//*[@resource-id='${text}']`);
   }
 
-  static async getXpathNestedElementByText(element, text) {
-    return await element.$(`//android.widget.TextView[@text='${text}']`);
+  static async getElementByCss(css) {
+    return await $(css);
   }
 
-  static async getElementByCss(css) {
-    const element = await $(css);
-    return await element;
+  static async getElementsByCss(css) {
+    return driver.$$(css);
   }
 }
 

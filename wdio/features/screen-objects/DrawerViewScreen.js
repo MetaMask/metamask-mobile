@@ -13,11 +13,11 @@ class DrawerViewScreen {
   }
 
   get browser() {
-    return Selectors.getXpathElementByText(DRAWER_VIEW_BROWSER_TEXT_ID);
+    return Selectors.getElementByPlatform(DRAWER_VIEW_BROWSER_TEXT_ID);
   }
 
   get walletButton() {
-    return Selectors.getXpathElementByText(DRAWER_VIEW_WALLET_TEXT_ID);
+    return Selectors.getElementByPlatform(DRAWER_VIEW_WALLET_TEXT_ID);
   }
 
   async tapNavBarItemLock() {

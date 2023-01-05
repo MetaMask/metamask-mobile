@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ACCOUNT_LIST_ACCOUNT_NAMES } from '../../../../../wdio/features/testIDs/Components/AccounstList.testIds';
+import { ACCOUNT_LIST_ACCOUNT_NAMES } from '../../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';

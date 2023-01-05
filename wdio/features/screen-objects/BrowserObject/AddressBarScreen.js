@@ -7,10 +7,10 @@ import {
   HOME_SUGGESTION,
   MODAL_INPUT,
   REDDIT_SUGGESTION,
-  SUSHISWAP_SUGGESTION,
+  UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
-} from 'wdio/features/testIDs/BrowserScreen/AddressBar.testIds';
-import { ROOT_CONTENT_ID } from 'wdio/features/testIDs/BrowserScreen/BrowserScreen.testIds';
+} from '../../testIDs/BrowserScreen/AddressBar.testIds';
+import { ROOT_CONTENT_ID } from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
 
 class AddressBarScreen {
   get urlCancelButton() {
@@ -18,11 +18,11 @@ class AddressBarScreen {
   }
 
   get urlModalInput() {
-    return Selectors.getXpathElementByText(MODAL_INPUT);
+    return Selectors.getXpathElementByResourceId(MODAL_INPUT);
   }
 
-  get sushiSuggestionsButton() {
-    return Selectors.getXpathElementByText(SUSHISWAP_SUGGESTION);
+  get uniswapSuggestionsButton() {
+    return Selectors.getXpathElementByText(UNISWAP_SUGGESTION);
   }
 
   get homeSuggestionsButton() {
@@ -42,15 +42,15 @@ class AddressBarScreen {
   }
 
   get urlClearIcon() {
-    return Selectors.getXpathElementByResourceId(URL_CLEAR_ICON);
+    return Selectors.getElementByPlatform(URL_CLEAR_ICON);
   }
 
   async isAddressInputViewDisplayed() {
-    await expect(this.urlModalInput).toBeDisplayed();
+    await expect(await this.urlModalInput).toBeDisplayed();
   }
 
   async isAddressInputViewNotDisplayed() {
-    await expect(this.urlModalInput).not.toBeDisplayed();
+    await expect(await this.urlModalInput).not.toBeDisplayed();
   }
 
   async isUrlValueContains(text) {
@@ -66,39 +66,35 @@ class AddressBarScreen {
   }
 
   async tapClearButton() {
-    await Gestures.waitAndTap(this.urlClearIcon);
+    await Gestures.tap(this.urlClearIcon);
   }
 
   async editUrlInput(text) {
     await Gestures.typeText(this.urlModalInput, text);
   }
 
-  async enterUrlValue() {
-    await Gestures.submitText(this.urlModalInput);
-  }
-
   async tapUrlCancelButton() {
-    await Gestures.waitAndTap(this.urlCancelButton);
+    await Gestures.tap(this.urlCancelButton);
   }
 
-  async isSushiSuggestionDisplayed() {
-    await expect(this.sushiSuggestionsButton).toBeDisplayed();
+  async isUniswapSuggestionDisplayed() {
+    await expect(await this.uniswapSuggestionsButton).toBeDisplayed();
   }
 
-  async tapSushiSuggestionButton() {
-    await Gestures.waitAndTap(this.sushiSuggestionsButton);
+  async tapUniswapSuggestionButton() {
+    await Gestures.tap(this.uniswapSuggestionsButton);
   }
 
   async tapEmpowrSuggestionButton() {
-    await Gestures.waitAndTap(this.empowrSuggestionsButton);
+    await Gestures.tap(this.empowrSuggestionsButton);
   }
 
   async tapHomeSuggestionButton() {
-    await Gestures.waitAndTap(this.homeSuggestionsButton);
+    await Gestures.tap(this.homeSuggestionsButton);
   }
 
   async tapRedditSuggestion() {
-    await Gestures.waitAndTap(this.redditSuggestionOption);
+    await Gestures.tap(this.redditSuggestionOption);
   }
 }
 

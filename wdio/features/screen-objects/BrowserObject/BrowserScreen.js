@@ -4,7 +4,6 @@ import Selectors from '../../helpers/Selectors';
 import {
   ACCOUNT_BUTTON,
   BACK_BUTTON,
-  CONNECT_WALLET_BUTTON,
   FORWARD_BUTTON,
   HAMBURGER_BUTTON,
   HOME_BUTTON,
@@ -13,16 +12,16 @@ import {
   SCREEN_ID,
   SEARCH_BUTTON,
   TABS_BUTTON,
-  TEXT_VIEW_CLASS,
+  TABS_NUMBER,
 } from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
 
 class BrowserScreen {
   get screen() {
-    return Selectors.getXpathElementByText(SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(SCREEN_ID);
   }
 
   get navBarTitle() {
-    return Selectors.getXpathElementByText(NAVBAR_TITLE_NETWORK);
+    return Selectors.getXpathElementByResourceId(NAVBAR_TITLE_NETWORK);
   }
 
   get navbarHamburgerButton() {
@@ -42,10 +41,7 @@ class BrowserScreen {
   }
 
   get tabsButtonTextElement() {
-    return Selectors.getXpathNestedElementByClassName(
-      this.tapsButton,
-      TEXT_VIEW_CLASS,
-    );
+    return Selectors.getElementByPlatform(TABS_NUMBER);
   }
 
   get homeButton() {
@@ -64,12 +60,8 @@ class BrowserScreen {
     return Selectors.getXpathElementByResourceId(SEARCH_BUTTON);
   }
 
-  get confirmConnectWalletButton() {
-    return Selectors.getElementByPlatform(CONNECT_WALLET_BUTTON);
-  }
-
   async isScreenContentDisplayed() {
-    await expect(this.screen).toBeDisplayed();
+    await expect(await this.screen).toBeDisplayed();
   }
 
   async tapUrlNavBar() {
@@ -91,7 +83,7 @@ class BrowserScreen {
   async numberOfTapsEqualsTo(expectedNumber) {
     const textFromElement = await this.tabsButtonTextElement;
     const actualNumber = parseInt(await textFromElement.getText());
-    await expect(expectedNumber).toEqual(actualNumber);
+    await expect(await expectedNumber).toEqual(actualNumber);
   }
 
   async tapTabsButton() {
@@ -112,10 +104,6 @@ class BrowserScreen {
 
   async tapSearchButton() {
     await Gestures.waitAndTap(this.searchButton);
-  }
-
-  async tapConfirmConnectWalletButton() {
-    await Gestures.waitAndTap(this.confirmConnectWalletButton);
   }
 }
 

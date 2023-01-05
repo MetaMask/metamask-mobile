@@ -1,4 +1,5 @@
-import Gestures from 'wdio/features/helpers/Gestures';
+import Gestures from '../../helpers/Gestures';
+import Selectors from '../../../features/helpers/Selectors';
 import {
   ADD_FAVORITES_OPTION,
   MENU_ID,
@@ -7,42 +8,43 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
   SWITCH_NETWORK_OPTION,
-} from 'wdio/features/testIDs/BrowserScreen/OptionMenu.testIds';
-import Selectors from '../../../features/helpers/Selectors';
+} from '../../testIDs/BrowserScreen/OptionMenu.testIds';
 
 class OptionMenuModal {
   get menu() {
-    return Selectors.getXpathElementByContentDescription(MENU_ID);
+    return Selectors.getElementByPlatform(MENU_ID);
   }
 
   get addFavoriteOption() {
-    return Selectors.getXpathElementByContentDescription(ADD_FAVORITES_OPTION);
+    return Selectors.getElementByPlatform(ADD_FAVORITES_OPTION);
   }
 
   get newTabOption() {
-    return Selectors.getXpathElementByContentDescription(NEW_TAB_OPTION);
+    return Selectors.getElementByPlatform(NEW_TAB_OPTION);
   }
 
   get reloadOption() {
-    return Selectors.getXpathElementByContentDescription(RELOAD_OPTION);
+    return Selectors.getElementByPlatform(RELOAD_OPTION);
   }
 
   get shareOption() {
-    return Selectors.getXpathElementByContentDescription(SHARE_OPTION);
+    return Selectors.getElementByPlatform(SHARE_OPTION);
   }
 
   get openBrowserOption() {
-    return Selectors.getXpathElementByContentDescription(
-      OPEN_IN_BROWSER_OPTION,
-    );
+    return Selectors.getElementByPlatform(OPEN_IN_BROWSER_OPTION);
   }
 
   get switchNetworkOption() {
-    return Selectors.getXpathElementByContentDescription(SWITCH_NETWORK_OPTION);
+    return Selectors.getElementByPlatform(SWITCH_NETWORK_OPTION);
   }
 
   async isModalDisplayed() {
-    await expect(this.menu).toBeDisplayed();
+    await expect(await this.menu).toBeDisplayed();
+  }
+
+  async isModalNotDisplayed() {
+    await expect(await this.menu).not.toBeDisplayed();
   }
 
   async tapAddFavoriteOption() {
@@ -50,7 +52,11 @@ class OptionMenuModal {
   }
 
   async isAddFavoriteOptionDisplayed() {
-    await expect(this.addFavoriteOption).toBeDisplayed();
+    await expect(await this.addFavoriteOption).toBeDisplayed();
+  }
+
+  async isAddFavoriteOptionNotDisplayed() {
+    await expect(await this.addFavoriteOption).not.toBeDisplayed();
   }
 
   async tapNewTabOption() {
@@ -58,7 +64,7 @@ class OptionMenuModal {
   }
 
   async isNewTabOptionDisplayed() {
-    await expect(this.newTabOption).toBeDisplayed();
+    await expect(await this.newTabOption).toBeDisplayed();
   }
 
   async tapReloadOption() {
@@ -66,7 +72,7 @@ class OptionMenuModal {
   }
 
   async isReloadOptionDisplayed() {
-    await expect(this.reloadOption).toBeDisplayed();
+    await expect(await this.reloadOption).toBeDisplayed();
   }
 
   async tapShareOption() {
@@ -74,7 +80,7 @@ class OptionMenuModal {
   }
 
   async isShareOptionDisplayed() {
-    await expect(this.shareOption).toBeDisplayed();
+    await expect(await this.shareOption).toBeDisplayed();
   }
 
   async tapOpenBrowserOption() {
@@ -82,15 +88,15 @@ class OptionMenuModal {
   }
 
   async isOpenBrowserOptionDisplayed() {
-    await expect(this.openBrowserOption).toBeDisplayed();
+    await expect(await this.openBrowserOption).toBeDisplayed();
   }
 
   async tapSwitchOption() {
     await Gestures.waitAndTap(this.switchNetworkOption);
   }
 
-  async isSwitchptionDisplayed() {
-    await expect(this.switchNetworkOption).toBeDisplayed();
+  async isSwitchOptionDisplayed() {
+    await expect(await this.switchNetworkOption).toBeDisplayed();
   }
 }
 

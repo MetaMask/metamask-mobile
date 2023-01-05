@@ -1,5 +1,4 @@
 import Selectors from '../helpers/Selectors';
-
 /* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
@@ -128,13 +127,6 @@ class Gestures {
     (await elem).touchAction(Actions.TAP);
     await elem.clearValue();
     await elem.setValue(text, +'\n');
-  }
-
-  static async submitText(element) {
-    const elem = await element;
-    await elem.waitForDisplayed();
-    (await elem).touchAction(Actions.TAP);
-    await elem.setValue(['Enter']);
   }
 
   /**
