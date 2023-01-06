@@ -72,5 +72,11 @@ export default async () => {
     i++;
   }
 
+  // remove extra zero balance account potentially created from seeking ahead
+  if (accounts.length > 1 && lastBalance === '0x0') {
+    await KeyringController.removeAccount(accounts[accounts.length - 1]);
+    accounts = await KeyringController.getAccounts();
+  }
+
   updateIdentities(accounts);
 };
