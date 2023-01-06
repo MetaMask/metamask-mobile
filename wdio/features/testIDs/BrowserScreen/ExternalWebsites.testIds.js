@@ -6,8 +6,6 @@ export const HOME_FAVORITES_CARDS_URL = 'https://uniswap.exchange';
 
 export const NO_FAVORITES_MESSAGE = 'You have no favorites yet';
 
-export const ETHEREUM_DETECTION_TITLE = 'ethereum-phishing-detection';
-
 export const ETHEREUM_PHISHING_DETECTION_BACK_BUTTON = 'Back to safety';
 
 export const BRUNO_MAIN_ID = 'inner';

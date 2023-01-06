@@ -10,7 +10,6 @@ import {
   ERROR_PAGE_MESSAGE,
   ERROR_PAGE_RETURN_BUTTON,
   ERROR_PAGE_TITLE,
-  ETHEREUM_DETECTION_TITLE,
   ETHEREUM_PHISHING_DETECTION_BACK_BUTTON,
   HOME_FAVORITE_BUTTON,
   HOME_FAVORITES_CARDS_URL,
@@ -30,10 +29,6 @@ class ExternalWebsitesScreen {
   get homeNoFavoritesMessageText() {
     //return Selectors.getElementByCss(NO_FAVORITES_MESSAGE);
     return Selectors.getXpathElementByText(NO_FAVORITES_MESSAGE);
-  }
-
-  get ethereumPhishingDetectionTitle() {
-    return Selectors.getElementByPlatform(ETHEREUM_DETECTION_TITLE);
   }
 
   get ethereumPhishingDetectionBackButton() {
@@ -109,7 +104,7 @@ class ExternalWebsitesScreen {
   }
 
   async isEthereumFishingDetectionWebsiteTitleDisplayed() {
-    await expect(await this.ethereumPhishingDetectionTitle).toBeDisplayed();
+    await expect(await this.ethereumPhishingDetectionBackButton).toBeDisplayed();
   }
 
   async tapEthereumFishingDetectionWebsiteBackButton() {

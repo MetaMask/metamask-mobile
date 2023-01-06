@@ -66,6 +66,7 @@ exports[`PhishingModal should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        testID="ethereum-phishing-detection"
       >
         Ethereum Phishing Detection
       </Text>
@@ -116,7 +117,7 @@ exports[`PhishingModal should render correctly 1`] = `
           }
         }
       >
-        There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the 
+        There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the
         <Text
           style={
             Object {
@@ -127,7 +128,7 @@ exports[`PhishingModal should render correctly 1`] = `
         >
           Ethereum Phishing Detector
         </Text>
-        . 
+        .
         Domains on these warning lists may include outright malicious websites and legitimate websites that have been compromised by a malicious actor.
       </Text>
       <Text
@@ -141,7 +142,7 @@ exports[`PhishingModal should render correctly 1`] = `
           }
         }
       >
-        To read more about this site 
+        To read more about this site
         <Text
           style={
             Object {
@@ -164,7 +165,7 @@ exports[`PhishingModal should render correctly 1`] = `
           }
         }
       >
-        Note that this warning list is compiled on a voluntary basis. This list may be inaccurate or incomplete. Just because a domain does not appear on this list is not an implicit guarantee of that domain's safety. As always, your transactions are your own responsibility. If you wish to interact with any domain on our warning list, you can do so by 
+        Note that this warning list is compiled on a voluntary basis. This list may be inaccurate or incomplete. Just because a domain does not appear on this list is not an implicit guarantee of that domain's safety. As always, your transactions are your own responsibility. If you wish to interact with any domain on our warning list, you can do so by
         <Text
           style={
             Object {
@@ -187,7 +188,7 @@ exports[`PhishingModal should render correctly 1`] = `
           }
         }
       >
-        There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the 
+        There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the
         <Text
           style={
             Object {
