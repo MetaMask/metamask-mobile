@@ -83,6 +83,9 @@ class Settings extends PureComponent {
   };
 
   onPressOnRamp = () => {
+    InteractionManager.runAfterInteractions(() =>
+      Analytics.trackEvent(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED),
+    );
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.SETTINGS);
   };
 

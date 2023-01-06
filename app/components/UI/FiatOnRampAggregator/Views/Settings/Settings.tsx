@@ -6,14 +6,15 @@ import { useFiatOnRampSDK, withFiatOnRampSDK } from '../../sdk';
 import BaseListItem from '../../../../Base/ListItem';
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../StyledButton';
-
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
+import ActivationKeys from './ActivationKeys';
+
 import { strings } from '../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../Navbar';
 import styles from './Settings.styles';
-import ActivationKeys from './ActivationKeys';
+import useAnalytics from '../../hooks/useAnalytics';
 
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
@@ -24,6 +25,7 @@ function Settings() {
     useFiatOnRampSDK();
   const { colors } = useAppTheme();
   const style = styles(colors);
+  const trackEvent = useAnalytics();
 
   useEffect(() => {
     navigation.setOptions(
@@ -38,8 +40,11 @@ function Settings() {
   }, [colors, navigation]);
 
   const handleResetRegion = useCallback(() => {
+    trackEvent('ONRAMP_REGION_RESET', {
+      location: 'Settings Screen',
+    });
     setSelectedRegion(null);
-  }, [setSelectedRegion]);
+  }, [setSelectedRegion, trackEvent]);
 
   return (
     <KeyboardAvoidingView
