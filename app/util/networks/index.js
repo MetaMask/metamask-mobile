@@ -14,17 +14,19 @@ import {
   GOERLI,
   RPC,
   NETWORKS_CHAIN_ID,
-} from '../../../app/constants/network';
-import { NetworkSwitchErrorType } from '../../../app/constants/error';
+} from '../../constants/network';
+import { NetworkSwitchErrorType } from '../../constants/error';
 import Engine from '../../core/Engine';
-import { toLowerCaseEquals } from './../general';
-import { fastSplit } from '../../util/number';
-import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
+import { toLowerCaseEquals } from '../general';
+import { fastSplit } from '../number';
+import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import {
-  GOERLI_TEST_NETWORK_OPTION, KOVAN_NETWORK_OPTION,
-  RINKEBY_NETWORK_OPTION, ROPSTEN_NETWORK_OPTION
-} from "../../../wdio/features/testIDs/Components/NetworkListModal.TestIds";
+  GOERLI_TEST_NETWORK_OPTION,
+  KOVAN_NETWORK_OPTION,
+  RINKEBY_NETWORK_OPTION,
+  ROPSTEN_NETWORK_OPTION,
+} from '../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
 

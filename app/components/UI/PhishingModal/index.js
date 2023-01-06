@@ -15,10 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  ETHEREUM_DETECTION_TITLE,
-  ETHEREUM_PHISHING_DETECTION_BACK_BUTTON,
-} from '../../../../wdio/features/testIDs/BrowserScreen/ExternalWebsites.testIds';
+import { ETHEREUM_DETECTION_TITLE } from '../../../../wdio/features/testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

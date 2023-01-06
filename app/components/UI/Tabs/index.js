@@ -23,7 +23,8 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   MULTI_TAB_ADD_BUTTON,
   MULTI_TAB_CLOSE_ALL_BUTTON,
-  MULTI_TAB_DONE_BUTTON, MULTI_TAB_NO_TABS_MESSAGE,
+  MULTI_TAB_DONE_BUTTON,
+  MULTI_TAB_NO_TABS_MESSAGE,
 } from '../../../../wdio/features/testIDs/BrowserScreen/MultiTab.testIds';
 
 const THUMB_VERTICAL_MARGIN = 15;
