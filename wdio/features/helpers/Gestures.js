@@ -1,4 +1,5 @@
 import Selectors from '../helpers/Selectors';
+
 /* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
@@ -96,7 +97,7 @@ class Gestures {
   }
 
   static async tapTextByXpath(text, tapType = 'TAP') {
-    const elem = await Selectors.getXpathElementByText(text);
+    const elem = (await Selectors.getXpathElementByText(text));
     switch (tapType) {
       case 'TAP':
         await elem.touchAction(Actions.TAP);
@@ -117,8 +118,8 @@ class Gestures {
     (await elem).touchAction([
       Actions.PRESS,
       { action: Actions.WAIT, ms: waitTime },
-      Actions.RELEASE,
-    ]);
+      Actions.RELEASE
+    ])
   }
 
   static async typeText(element, text) {
@@ -146,7 +147,6 @@ class Gestures {
       );
     } // The element was found, proceed with the next action
   }
-
   /**
    * Swipe down based on a percentage
    */
@@ -157,7 +157,6 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.down.end, percentage),
     );
   }
-
   /**
    * Swipe Up based on a percentage
    */
@@ -168,7 +167,6 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.up.end, percentage),
     );
   }
-
   /**
    * Swipe left based on a percentage
    */
@@ -179,7 +177,6 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.left.end, percentageY),
     );
   }
-
   /**
    * Swipe right based on a percentage
    */
@@ -190,7 +187,6 @@ class Gestures {
       this.calculateXY(SWIPE_DIRECTION.right.end, percentage),
     );
   }
-
   /**
    * Swipe from coordinates (from) to the new coordinates (to). The given coordinates are
    * percentages of the screen.
@@ -209,7 +205,6 @@ class Gestures {
     );
     await this.swipe(pressOptions, moveToScreenCoordinates);
   }
-
   /**
    * Swipe from coordinates (from) to the new coordinates (to). The given coordinates are in pixels.
    */
@@ -221,9 +216,9 @@ class Gestures {
     const anchorPercentage = 50;
 
     const { width, height } = await driver.getWindowSize();
-    const anchor = (height * anchorPercentage) / 100;
-    const startPoint = (width * startPercentage) / 100;
-    const endPoint = (width * endPercentage) / 100;
+    const anchor = height * anchorPercentage / 100;
+    const startPoint = width * startPercentage / 100;
+    const endPoint = width * endPercentage / 100;
     await driver.touchPerform([
       {
         action: 'press',
@@ -262,13 +257,17 @@ class Gestures {
         parameters: { pointerType: 'touch' },
         actions: [
           // b. Move finger into start position
-          { type: 'pointerMove', duration: 0, x: from.x, y: from.y }, // c. Finger comes down into contact with screen
-          { type: 'pointerDown', button: 0 }, // d. Pause for a little bit
-          { type: 'pause', duration: 100 }, // e. Finger moves to end position
+          { type: 'pointerMove', duration: 0, x: from.x, y: from.y },
+          // c. Finger comes down into contact with screen
+          { type: 'pointerDown', button: 0 },
+          // d. Pause for a little bit
+          { type: 'pause', duration: 100 },
+          // e. Finger moves to end position
           //    We move our finger from the center of the element to the
           //    starting position of the element.
           //    Play with the duration to make the swipe go slower / faster
-          { type: 'pointerMove', duration: 1000, x: to.x, y: to.y }, // f. Finger gets up, off the screen
+          { type: 'pointerMove', duration: 1000, x: to.x, y: to.y },
+          // f. Finger gets up, off the screen
           { type: 'pointerUp', button: 0 },
         ],
       },
@@ -276,7 +275,6 @@ class Gestures {
     // Add a pause, just to make sure the swipe is done
     await driver.pause(1000);
   }
-
   /**
    * Get the screen coordinates based on a device his screen size
    */
@@ -287,7 +285,6 @@ class Gestures {
       y: Math.round(screenSize.height * (coordinates.y / 100)),
     };
   }
-
   /**
    * Calculate the x y coordinates based on a percentage
    */

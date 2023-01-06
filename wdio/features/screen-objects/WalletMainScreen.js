@@ -9,7 +9,7 @@ import {
 } from '../testIDs/Components/OnboardingWizard.testIds';
 
 import { WALLET_VIEW_BURGER_ICON_ID,
-        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON } 
+        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON }
 from '../testIDs/Screens/WalletView.testIds';
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
 class WalletMainScreen {
@@ -66,7 +66,7 @@ class WalletMainScreen {
   }
 
   async tapBurgerIcon() {
-    await Gestures.tap(this.burgerIcon);
+    await Gestures.waitAndTap(this.burgerIcon);
   }
 
   async tapBurgerButton() {
@@ -93,7 +93,7 @@ class WalletMainScreen {
   async tapIdenticon(){
     await Gestures.tap(this.Identicon);
   }
-  
+
   async tapNetworkNavBar() {
     const timeOut = 3000;
     await driver.pause(timeOut);

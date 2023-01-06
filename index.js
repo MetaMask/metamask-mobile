@@ -68,5 +68,4 @@ LogBox.ignoreLogs([
 /**
  * Application entry point responsible for registering root component
  */
-LogBox.ignoreAllLogs();
 AppRegistry.registerComponent(name, () => Root);

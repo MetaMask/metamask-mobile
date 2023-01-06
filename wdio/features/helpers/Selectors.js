@@ -42,10 +42,6 @@ class Selectors {
   static async getElementByCss(css) {
     return await $(css);
   }
-
-  static async getElementsByCss(css) {
-    return driver.$$(css);
-  }
 }
 
 export default Selectors;
