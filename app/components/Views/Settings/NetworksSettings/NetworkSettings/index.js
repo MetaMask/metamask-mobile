@@ -201,7 +201,8 @@ const createStyles = (colors) =>
   });
 
 const allNetworks = getAllNetworks();
-const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
+const allNetworksblockExplorerUrl = (networkName) =>
+  `https://${networkName}.infura.io/v3/`;
 /**
  * Main view for app configurations
  */
@@ -312,7 +313,7 @@ class NetworkSettings extends PureComponent {
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl + network;
+        rpcUrl = allNetworksblockExplorerUrl(network);
         ticker = strings('unit.eth');
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {

@@ -14,6 +14,7 @@ import {
   GOERLI,
   RPC,
   NETWORKS_CHAIN_ID,
+  SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from '../../core/Engine';
@@ -41,33 +42,6 @@ const NetworkList = {
     color: '#3cc29e',
     networkType: 'mainnet',
   },
-  [ROPSTEN]: {
-    name: 'Ropsten Test Network',
-    shortName: 'Ropsten',
-    networkId: 3,
-    chainId: 3,
-    hexChainId: '0x3',
-    color: '#ff4a8d',
-    networkType: 'ropsten',
-  },
-  [KOVAN]: {
-    name: 'Kovan Test Network',
-    shortName: 'Kovan',
-    networkId: 42,
-    chainId: 42,
-    hexChainId: '0x2a',
-    color: '#7057ff',
-    networkType: 'kovan',
-  },
-  [RINKEBY]: {
-    name: 'Rinkeby Test Network',
-    shortName: 'Rinkeby',
-    networkId: 4,
-    chainId: 4,
-    hexChainId: '0x4',
-    color: '#f6c343',
-    networkType: 'rinkeby',
-  },
   [GOERLI]: {
     name: 'Goerli Test Network',
     shortName: 'Goerli',
@@ -76,6 +50,15 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
+  },
+  [SEPOLIA]: {
+    name: 'Sepolia Test Network',
+    shortName: 'Sepolia',
+    networkId: 11155111,
+    chainId: 11155111,
+    hexChainId: '0xaa36a7',
+    color: '#cfb5f0',
+    networkType: 'sepolia',
   },
   [RPC]: {
     name: 'Private Network',
@@ -118,7 +101,8 @@ export const isTestNet = (networkId) => {
     networkName === ROPSTEN ||
     networkName === GOERLI ||
     networkName === KOVAN ||
-    networkName === RINKEBY
+    networkName === RINKEBY ||
+    networkName === SEPOLIA
   );
 };
 
