@@ -678,6 +678,7 @@
       "sdk_activation_keys": "SDK Activation Keys",
       "activation_keys_description": "Activation Keys will enable specific features or providers.",
       "add_activation_key": "Add Activation Key",
+      "paste_or_type_activation_key": "Paste or type an Activation Key",
       "add": "Add",
       "cancel": "Cancel"
     }

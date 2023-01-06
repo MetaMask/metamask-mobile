@@ -1,10 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  Switch,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useCallback } from 'react';
+import { ActivityIndicator, Switch, TouchableOpacity } from 'react-native';
 
 import BaseListItem from '../../../../Base/ListItem';
 import Text from '../../../../Base/Text';
@@ -16,19 +11,17 @@ import { strings } from '../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../util/theme';
 import { colors as importedColors } from '../../../../../styles/common';
 import useActivationKeys from '../../hooks/useActivationKeys';
-import styles from './Settings.styles';
-import { useFiatOnRampSDK } from '../../sdk';
 
-const activationKeyRegex = /^[a-zA-Z0-9\\-]{1,32}$/;
+import { useFiatOnRampSDK } from '../../sdk';
+import { useNavigation } from '@react-navigation/native';
+import { createAddActivationKeyNavDetails } from './AddActivationKey';
 
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
 function ActivationKeys() {
-  const [newKey, setNewKey] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const { colors, themeAppearance } = useAppTheme();
-  const style = styles(colors);
+  const navigation = useNavigation();
+  const { colors } = useAppTheme();
   const { isInternalBuild } = useFiatOnRampSDK();
 
   const {
@@ -41,13 +34,18 @@ function ActivationKeys() {
     internal: isInternalBuild,
   });
 
-  const handleAddNewKey = useCallback(() => {
-    if (activationKeyRegex.test(newKey)) {
-      addActivationKey(newKey);
-      setNewKey('');
-      setIsEditing(false);
-    }
-  }, [addActivationKey, newKey]);
+  const handleAddNewKey = useCallback(
+    (key) => addActivationKey(key),
+    [addActivationKey],
+  );
+
+  const handleAddNewKeyPress = useCallback(() => {
+    navigation.navigate(
+      ...createAddActivationKeyNavDetails({
+        onSubmit: handleAddNewKey,
+      }),
+    );
+  }, [navigation, handleAddNewKey]);
 
   return (
     <>
@@ -107,58 +105,15 @@ function ActivationKeys() {
         </ListItem>
       ))}
       <Row>
-        {!isEditing ? (
-          <Row>
-            <StyledButton
-              type="normal"
-              disabled={isLoadingKeys}
-              onPress={() => setIsEditing(true)}
-            >
-              {strings('app_settings.fiat_on_ramp.add_activation_key')}
-            </StyledButton>
-          </Row>
-        ) : (
-          <>
-            <Row>
-              <TextInput
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                onChangeText={setNewKey}
-                placeholder={'Paste or type Activation Key'}
-                placeholderTextColor={colors.text.muted}
-                spellCheck={false}
-                numberOfLines={1}
-                style={style.input}
-                value={newKey}
-                keyboardAppearance={themeAppearance}
-                returnKeyType={'done'}
-                onSubmitEditing={handleAddNewKey}
-              />
-            </Row>
-
-            <Row style={style.buttons}>
-              <StyledButton
-                type="confirm"
-                disabled={isLoadingKeys || !activationKeyRegex.test(newKey)}
-                containerStyle={style.button}
-                onPress={handleAddNewKey}
-              >
-                {strings('app_settings.fiat_on_ramp.add')}
-              </StyledButton>
-              <StyledButton
-                type="cancel"
-                disabled={isLoadingKeys}
-                containerStyle={style.button}
-                onPress={() => {
-                  setNewKey('');
-                  setIsEditing(false);
-                }}
-              >
-                {strings('app_settings.fiat_on_ramp.cancel')}
-              </StyledButton>
-            </Row>
-          </>
-        )}
+        <Row>
+          <StyledButton
+            type="normal"
+            disabled={isLoadingKeys}
+            onPress={handleAddNewKeyPress}
+          >
+            {strings('app_settings.fiat_on_ramp.add_activation_key')}
+          </StyledButton>
+        </Row>
       </Row>
     </>
   );

@@ -9,18 +9,15 @@ const styles = (colors: Colors) =>
     },
     input: {
       ...fontStyles.normal,
-      flex: 1,
       borderColor: colors.border.default,
       borderRadius: 5,
       borderWidth: 2,
       padding: 10,
-      marginHorizontal: 5,
-      flexDirection: 'row',
-      alignItems: 'center',
       color: colors.text.default,
     },
     buttons: {
       flexDirection: 'row',
+      marginHorizontal: -5,
     },
     button: {
       flex: 1,

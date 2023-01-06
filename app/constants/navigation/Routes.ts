@@ -15,6 +15,7 @@ const Routes = {
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
     SETTINGS: 'OnRampSettings',
+    ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
   QR_SCANNER: 'QRScanner',
   MODAL: {
