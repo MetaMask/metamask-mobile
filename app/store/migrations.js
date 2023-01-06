@@ -62,7 +62,7 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'rinkeby',
+        type: 'goerli',
       };
     }
     return state;
@@ -90,8 +90,8 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'rinkeby',
-        chainId: NetworksChainId.rinkeby,
+        type: 'goerli',
+        chainId: NetworksChainId.goerli,
       };
     }
     return state;

@@ -7,13 +7,7 @@ import {
   compareRpcUrls,
   handleNetworkSwitch,
 } from '.';
-import {
-  MAINNET,
-  ROPSTEN,
-  GOERLI,
-  RPC,
-  KOVAN,
-} from '../../../app/constants/network';
+import { MAINNET, GOERLI, RPC, SEPOLIA } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
 
@@ -39,7 +33,7 @@ describe('NetworkUtils::getAllNetworks', () => {
   const allNetworks = getAllNetworks();
   it('should get all networks', () => {
     expect(allNetworks.includes(MAINNET)).toEqual(true);
-    expect(allNetworks.includes(ROPSTEN)).toEqual(true);
+    expect(allNetworks.includes(SEPOLIA)).toEqual(true);
     expect(allNetworks.includes(GOERLI)).toEqual(true);
   });
   it('should exclude rpc', () => {
@@ -64,7 +58,7 @@ describe('NetworkUtils::isMainNet', () => {
       isMainNet({
         network: {
           provider: {
-            type: ROPSTEN,
+            type: SEPOLIA,
           },
         },
       }),
@@ -78,14 +72,14 @@ describe('NetworkUtils::getNetworkName', () => {
     expect(main).toEqual(MAINNET);
   });
 
-  it(`should get network name for ${ROPSTEN} id`, () => {
-    const main = getNetworkName(String(3));
-    expect(main).toEqual(ROPSTEN);
+  it(`should get network name for ${GOERLI} id`, () => {
+    const main = getNetworkName(String(5));
+    expect(main).toEqual(GOERLI);
   });
 
-  it(`should get network name for ${KOVAN} id`, () => {
-    const main = getNetworkName(String(42));
-    expect(main).toEqual(KOVAN);
+  it(`should get network name for ${SEPOLIA} id`, () => {
+    const main = getNetworkName(String(11155111));
+    expect(main).toEqual(SEPOLIA);
   });
 
   it(`should return undefined for unknown network id`, () => {
@@ -96,8 +90,8 @@ describe('NetworkUtils::getNetworkName', () => {
 
 describe('NetworkUtils::getNetworkTypeById', () => {
   it('should get network type by Id', () => {
-    const type = getNetworkTypeById(42);
-    expect(type).toEqual(KOVAN);
+    const type = getNetworkTypeById(11155111);
+    expect(type).toEqual(SEPOLIA);
   });
   it('should fail if network Id is missing', () => {
     try {

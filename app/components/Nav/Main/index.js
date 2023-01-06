@@ -5,7 +5,6 @@ import {
   AppState,
   StyleSheet,
   View,
-  Linking,
   PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -17,7 +16,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
-import I18n, { strings } from '../../../../locales/i18n';
+import I18n from '../../../../locales/i18n';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
@@ -48,9 +47,6 @@ import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
-import WarningAlert from '../../../components/UI/WarningAlert';
-import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
-import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
@@ -74,7 +70,6 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
-  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -267,27 +262,6 @@ const Main = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(MM_DEPRECATED_NETWORKS);
-  };
-
-  const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
-    const { type } = network.provider;
-    if (
-      (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
-      showDeprecatedAlert
-    ) {
-      return (
-        <WarningAlert
-          text={strings('networks.deprecated_network_msg')}
-          dismissAlert={() => setShowDeprecatedAlert(false)}
-          onPressLearnMore={openDeprecatedNetworksArticle}
-          precedentAlert={backUpSeedphraseVisible}
-        />
-      );
-    }
-  };
-
   return (
     <React.Fragment>
       <View style={styles.flex}>
@@ -305,10 +279,7 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
-        {renderDeprecatedNetworkAlert(
-          props.network,
-          props.backUpSeedphraseVisible,
-        )}
+
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}
@@ -371,21 +342,12 @@ Main.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Object representing the selected network
-   */
-  network: PropTypes.object,
-  /**
-   * redux flag that indicates if the alert should be shown
-   */
-  backUpSeedphraseVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: state.engine.backgroundState.NetworkController.provider.type,
-  network: state.engine.backgroundState.NetworkController,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 

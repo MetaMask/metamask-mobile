@@ -1,5 +1,5 @@
 import Device from '../util/device';
-import { MAINNET, RINKEBY } from '../constants/network';
+import { MAINNET } from '../constants/network';
 
 const DEVELOPMENT = 'development';
 
@@ -25,7 +25,7 @@ export default {
       4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
       1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071',
     },
-    SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
+    SUPPORTED_NETWORKS: [MAINNET],
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',

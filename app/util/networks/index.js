@@ -8,9 +8,6 @@ import { util } from '@metamask/controllers';
 import AppConstants from '../../core/AppConstants';
 import {
   MAINNET,
-  ROPSTEN,
-  KOVAN,
-  RINKEBY,
   GOERLI,
   RPC,
   NETWORKS_CHAIN_ID,
@@ -97,13 +94,7 @@ export const getNetworkName = (id) =>
 export const isTestNet = (networkId) => {
   const networkName = getNetworkName(networkId);
 
-  return (
-    networkName === ROPSTEN ||
-    networkName === GOERLI ||
-    networkName === KOVAN ||
-    networkName === RINKEBY ||
-    networkName === SEPOLIA
-  );
+  return networkName === GOERLI || networkName === SEPOLIA;
 };
 
 export function getNetworkTypeById(id) {
