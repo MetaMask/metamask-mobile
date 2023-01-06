@@ -657,7 +657,15 @@
     "keep_credential_safe": "Proteja su {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Frase secreta de recuperación",
-    "private_key_text": "Clave privada"
+    "private_key_text": "Clave privada",
+    "got_it": "Entendido",
+    "learn_more": "Más información"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerta de seguridad",
+    "description": "Las capturas de pantalla no son una forma segura de realizar un seguimiento de su {{credentialName}}. Guárdelo en algún lugar que no tenga una copia de seguridad en línea para mantener su cuenta segura.",
+    "srp_text": "Frase secreta de recuperación",
+    "priv_key_text": "Clave privada"
   },
   "password_reset": {
     "password_title": "Contraseña",
@@ -695,10 +703,17 @@
     "allow_camera_dialog_message": "Necesitamos su permiso para escanear códigos QR",
     "scanning": "escaneando…",
     "ok": "Aceptar",
+    "continue": "Continuar",
     "cancel": "Cancelar",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Si desea escanear un código QR, desbloqueé la cartera para poder usarla.",
-    "attempting_sync_from_wallet_error": "Parece que intenta sincronizar con la extensión. debe borrar la cartera actual. \n\nUna vez que haya borrado o vuelto a instalar una versión nueva de la aplicación, seleccione la opción \"Sincronizar con la extensión de MetaMask\". Importante: Antes de borrar la cartera, asegúrese de haber hecho una copia de seguridad de la frase secreta de recuperación."
+    "attempting_sync_from_wallet_error": "Parece que intenta sincronizar con la extensión. debe borrar la cartera actual. \n\nUna vez que haya borrado o vuelto a instalar una versión nueva de la aplicación, seleccione la opción \"Sincronizar con la extensión de MetaMask\". Importante: Antes de borrar la cartera, asegúrese de haber hecho una copia de seguridad de la frase secreta de recuperación.",
+    "not_allowed_error_title": "Habilitar acceso a la cámara",
+    "not_allowed_error_desc": "Se necesita acceso a la cámara para escanear un código QR asociado con una dirección de cuenta o una dirección de contrato",
+    "unrecognized_address_qr_code_title": "Código QR no reconocido",
+    "unrecognized_address_qr_code_desc": "Lo sentimos, este código QR no está asociado con una dirección de cuenta o una dirección de contrato.",
+    "url_redirection_alert_title": "Está a punto de visitar un enlace externo",
+    "url_redirection_alert_desc": "Los enlaces se pueden usar para tratar de estafar o hacer phishing a las personas, así que asegúrese de visitar solo sitios web en los que confíe."
   },
   "action_view": {
     "cancel": "Cancelar",

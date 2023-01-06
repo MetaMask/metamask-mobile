@@ -22,6 +22,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import useRegions from '../hooks/useRegions';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import { createPaymentMethodsNavDetails } from './PaymentMethods';
+import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -85,7 +86,7 @@ const RegionView = () => {
   }, [navigation]);
 
   const handleRegionPress = useCallback(
-    (region) => {
+    (region: Region) => {
       setSelectedRegion(region);
       setSelectedFiatCurrencyId(null);
       hideRegionModal();
