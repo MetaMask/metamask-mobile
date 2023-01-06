@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -90,14 +90,12 @@ class ImportPrivateKeySuccess extends PureComponent {
 
   componentDidMount = () => {
     InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.forbid();
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     });
   };
 
   componentWillUnmount = () => {
     InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.allow();
       BackHandler.removeEventListener(
         'hardwareBackPress',
         this.handleBackPress,
@@ -156,6 +154,7 @@ class ImportPrivateKeySuccess extends PureComponent {
             </View>
           </View>
         </ScrollView>
+        <ScreenshotDeterrent enabled isSRP={false} />
       </View>
     );
   }

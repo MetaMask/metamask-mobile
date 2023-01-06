@@ -6,7 +6,6 @@ import {
   TextInput,
   Text,
   View,
-  InteractionManager,
   Platform,
 } from 'react-native';
 
@@ -19,7 +18,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
-import PreventScreenshot from '../../../core/PreventScreenshot';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -54,12 +52,10 @@ export default class ImportPrivateKey extends PureComponent {
       setTimeout(() => {
         this.mounted && this.setState({ inputWidth: '100%' });
       }, 100);
-    InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
   };
 
   componentWillUnmount = () => {
     this.mounted = false;
-    InteractionManager.runAfterInteractions(() => PreventScreenshot.allow());
   };
 
   goNext = async () => {
