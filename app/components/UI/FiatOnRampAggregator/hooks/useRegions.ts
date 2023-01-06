@@ -1,8 +1,9 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
 import { Region } from '../types';
+import useSDKMethod from './useSDKMethod';
 
 export default function useRegions() {
   const navigation = useNavigation();

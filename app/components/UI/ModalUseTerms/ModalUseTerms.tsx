@@ -12,6 +12,7 @@ import { ModalUseTermsI } from './ModalUseTerms.types';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { TERMS_ACCEPTED, TERMS_DISPLAYED } from './ModalUseTerms.constants';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const ModalUseTerms = ({ onDismiss }: ModalUseTermsI) => {
   const { styles } = useStyles(stylesheet, {});
@@ -19,7 +20,7 @@ const ModalUseTerms = ({ onDismiss }: ModalUseTermsI) => {
   const [isTermsSelected, setIsTermsSelected] = useState(false);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.USER_TERMS, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
       value: TERMS_DISPLAYED,
     });
   }, []);
@@ -30,7 +31,7 @@ const ModalUseTerms = ({ onDismiss }: ModalUseTermsI) => {
 
   const onConfirmUseTerms = async () => {
     await AsyncStorage.setItem(USE_TERMS, TRUE);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.USER_TERMS, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
       value: TERMS_ACCEPTED,
     });
     onDismiss();

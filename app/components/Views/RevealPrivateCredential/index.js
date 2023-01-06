@@ -7,7 +7,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  InteractionManager,
   Linking,
   Platform,
 } from 'react-native';
@@ -35,10 +34,11 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
@@ -46,7 +46,6 @@ import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 
 const PRIVATE_KEY = 'private_key';
-// const SEED_PHRASE = 'seed_phrase';
 
 /**
  * View that displays private account information as private key or seed phrase
@@ -92,7 +91,7 @@ const RevealPrivateCredential = ({
         navigation,
         false,
         colors,
-        AnalyticsV2.ANALYTICS_EVENTS.GO_BACK_SRP_SCREEN,
+        MetaMetricsEvents.GO_BACK_SRP_SCREEN,
       ),
     );
   };
@@ -144,7 +143,7 @@ const RevealPrivateCredential = ({
     updateNavBar();
     // Track SRP Reveal screen rendered
     if (!isPrivateKey()) {
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_SCREEN);
+      AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN);
     }
 
     const unlockWithBiometrics = async () => {
@@ -163,15 +162,6 @@ const RevealPrivateCredential = ({
     };
 
     unlockWithBiometrics();
-    InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.forbid();
-    });
-
-    return () => {
-      InteractionManager.runAfterInteractions(() => {
-        PreventScreenshot.allow();
-      });
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -183,15 +173,13 @@ const RevealPrivateCredential = ({
     if (!unlocked)
       AnalyticsV2.trackEvent(
         isPrivateKey()
-          ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
-          : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
+          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
+          : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
         { view: 'Enter password' },
       );
 
     if (!isPrivateKey())
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.CANCEL_REVEAL_SRP_CTA,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA);
     if (cancel) return cancel();
     navigateBack();
   };
@@ -202,9 +190,7 @@ const RevealPrivateCredential = ({
       if (!isPrivateKey()) {
         const currentDate = new Date();
         recordSRPRevealTimestamp(currentDate.toString());
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
       }
       setIsModalVisible(true);
       setWarningIncorrectPassword('');
@@ -219,21 +205,19 @@ const RevealPrivateCredential = ({
   };
 
   const done = () => {
-    if (!isPrivateKey())
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SRP_DONE_CTA);
+    if (!isPrivateKey()) AnalyticsV2.trackEvent(MetaMetricsEvents.SRP_DONE_CTA);
     navigateBack();
   };
 
   const copyPrivateCredentialToClipboard = async (privateCredentialName) => {
     AnalyticsV2.trackEvent(
       privateCredentialName === PRIVATE_KEY
-        ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
-        : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+        ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
+        : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
       { action: 'copied to clipboard' },
     );
 
-    if (!isPrivateKey())
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.COPY_SRP);
+    if (!isPrivateKey()) AnalyticsV2.trackEvent(MetaMetricsEvents.COPY_SRP);
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -278,23 +262,22 @@ const RevealPrivateCredential = ({
     if (event.i === 0) {
       AnalyticsV2.trackEvent(
         isPrivateKey()
-          ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
-          : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
+          : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
 
-      if (!isPrivateKey())
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP);
+      if (!isPrivateKey()) AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP);
     } else if (event.i === 1) {
       AnalyticsV2.trackEvent(
         isPrivateKey()
-          ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
-          : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
+          : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
       );
 
       if (!isPrivateKey())
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP_QR);
+        AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP_QR);
     }
   };
 
@@ -386,14 +369,12 @@ const RevealPrivateCredential = ({
   const closeModal = () => {
     AnalyticsV2.trackEvent(
       isPrivateKey()
-        ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
-        : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
+        ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
+        : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
       { view: 'Hold to reveal' },
     );
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG);
 
     setIsModalVisible(false);
   };
