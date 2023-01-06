@@ -27,6 +27,7 @@ import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import getImage from '../../../util/getImage';
 import {
+  NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
 } from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
@@ -262,7 +263,12 @@ export class NetworkList extends PureComponent {
         onPress={() => onPress(network)} // eslint-disable-line
         {...generateTestId(Platform, testId)}
       >
-        <View style={styles.selected}>{selected}</View>
+        <View
+          {...generateTestId(Platform, `${testId}-selected`)}
+          style={styles.selected}
+        >
+          {selected}
+        </View>
         {isCustomRpc &&
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
@@ -398,6 +404,7 @@ export class NetworkList extends PureComponent {
             name={'ios-close'}
             size={30}
             style={styles.closeIcon}
+            {...generateTestId(Platform, NETWORK_LIST_CLOSE_ICON)}
           />
         </View>
         <ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>

@@ -3,8 +3,8 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 import {
-  GOERLI_TEST_NETWORK_OPTION,
-  NETWORK_LIST_MODAL_CONTAINER_ID
+  GOERLI_TEST_NETWORK_OPTION, NETWORK_LIST_CLOSE_ICON,
+  NETWORK_LIST_MODAL_CONTAINER_ID,
 } from '../../testIDs/Components/NetworkListModal.TestIds';
 
 class NetworkListModal {
@@ -14,6 +14,16 @@ class NetworkListModal {
 
   get goerliTestNetworkOption() {
     return Selectors.getElementByPlatform(GOERLI_TEST_NETWORK_OPTION);
+  }
+
+  get goerliNetworkSelectedIcon() {
+    return Selectors.getElementByPlatform(
+      `${GOERLI_TEST_NETWORK_OPTION}-selected`,
+    );
+  }
+
+  get networkListCloseIcon() {
+    return Selectors.getElementByPlatform(NETWORK_LIST_CLOSE_ICON);
   }
 
   async changeNetwork(networkName) {
@@ -35,6 +45,14 @@ class NetworkListModal {
 
   async tapGoerliTestNetwork() {
     await Gestures.waitAndTap(this.goerliTestNetworkOption);
+  }
+
+  async isGoerliNetworkSelectedIconDisplayed() {
+    await expect(await this.goerliNetworkSelectedIcon).toBeDisplayed();
+  }
+
+  async tapNetworkListCloseIcon() {
+    await Gestures.waitAndTap(this.networkListCloseIcon);
   }
 }
 

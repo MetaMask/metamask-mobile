@@ -14,10 +14,10 @@ export const TABS_BUTTON = 'show-tabs-button';
 
 export const TABS_NUMBER = 'show-tabs-number';
 
-export const BACK_BUTTON = '';
+export const BACK_BUTTON = 'go-back-button';
 
 export const HOME_BUTTON = 'home-button';
 
-export const FORWARD_BUTTON = 'forward-button';
+export const FORWARD_BUTTON = 'go-forward-button';
 
-export const SEARCH_BUTTON = '';
+export const SEARCH_BUTTON = 'search-button';

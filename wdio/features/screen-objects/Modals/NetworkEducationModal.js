@@ -25,7 +25,8 @@ class NetworkEducationModal {
   }
 
   async isNetworkEducationNetworkName(name) {
-    await expect(this.networkEducationNetworkName).toEqual(name);
+    const element = await this.networkEducationNetworkName;
+    await expect(await element.getText()).toContain(name);
   }
 }
 export default new NetworkEducationModal();

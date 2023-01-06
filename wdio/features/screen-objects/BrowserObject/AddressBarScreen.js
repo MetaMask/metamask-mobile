@@ -3,10 +3,8 @@ import Selectors from '../../helpers/Selectors';
 
 import {
   CANCEL_BUTTON,
-  EMPOWR_SUGGESTION,
   HOME_SUGGESTION,
   MODAL_INPUT,
-  REDDIT_SUGGESTION,
   UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
 } from '../../testIDs/BrowserScreen/AddressBar.testIds';
@@ -27,14 +25,6 @@ class AddressBarScreen {
 
   get homeSuggestionsButton() {
     return Selectors.getXpathElementByText(HOME_SUGGESTION);
-  }
-
-  get empowrSuggestionsButton() {
-    return Selectors.getXpathElementByText(EMPOWR_SUGGESTION);
-  }
-
-  get redditSuggestionOption() {
-    return Selectors.getXpathElementByText(REDDIT_SUGGESTION);
   }
 
   get root() {
@@ -62,11 +52,11 @@ class AddressBarScreen {
   async isUrlInputEmpty() {
     const textFromElement = await this.urlModalInput;
     const urlValue = await textFromElement.getText();
-    await expect(urlValue).toEqual('');
+    await expect(urlValue).toEqual('Search or Type URL');
   }
 
   async tapClearButton() {
-    await Gestures.tap(this.urlClearIcon);
+    await Gestures.waitAndTap(this.urlClearIcon);
   }
 
   async editUrlInput(text) {
@@ -74,7 +64,7 @@ class AddressBarScreen {
   }
 
   async tapUrlCancelButton() {
-    await Gestures.tap(this.urlCancelButton);
+    await Gestures.waitAndTap(this.urlCancelButton);
   }
 
   async isUniswapSuggestionDisplayed() {
@@ -82,19 +72,11 @@ class AddressBarScreen {
   }
 
   async tapUniswapSuggestionButton() {
-    await Gestures.tap(this.uniswapSuggestionsButton);
-  }
-
-  async tapEmpowrSuggestionButton() {
-    await Gestures.tap(this.empowrSuggestionsButton);
+    await Gestures.waitAndTap(this.uniswapSuggestionsButton);
   }
 
   async tapHomeSuggestionButton() {
-    await Gestures.tap(this.homeSuggestionsButton);
-  }
-
-  async tapRedditSuggestion() {
-    await Gestures.tap(this.redditSuggestionOption);
+    await Gestures.waitAndTap(this.homeSuggestionsButton);
   }
 }
 

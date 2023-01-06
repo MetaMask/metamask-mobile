@@ -6,18 +6,15 @@ import {
   CURVE_APPROVE_SPENDING_BUTTON,
   CURVE_CONNECT_WALLET_BUTTON,
   CURVE_METAMASK_AVAILABLE_WALLET_BUTTON,
+  CURVER_CHANGE_NETWORK_BUTTON,
   ERROR_PAGE_MESSAGE,
   ERROR_PAGE_RETURN_BUTTON,
   ERROR_PAGE_TITLE,
   ETHEREUM_DETECTION_TITLE,
   ETHEREUM_PHISHING_DETECTION_BACK_BUTTON,
-  HOME_EXPLORE_CARDS,
   HOME_FAVORITE_BUTTON,
-  HOME_FAVORITES_CARDS,
-  HOME_FAVORITES_CARDS_TITLES,
   HOME_FAVORITES_CARDS_URL,
-  HOME_SEARCH_BAR_INPUT,
-  HOME_WEBSITE_ID,
+  HOME_FAVORITES_UNISWAP_CARD_TITLE,
   NO_FAVORITES_MESSAGE,
   UNISWAP_CONNECT_BUTTON,
   UNISWAP_METAMASK_WALLET_BUTTON,
@@ -26,10 +23,6 @@ import {
 } from '../../testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 class ExternalWebsitesScreen {
-  get homeSearchBar() {
-    return Selectors.getElementByCss(HOME_SEARCH_BAR_INPUT);
-  }
-
   get homeFavoriteButton() {
     return Selectors.getXpathElementByText(HOME_FAVORITE_BUTTON);
   }
@@ -54,19 +47,18 @@ class ExternalWebsitesScreen {
   }
 
   get errorPageTitle() {
-    return Selectors.getXpathElementByText(ERROR_PAGE_TITLE);
+    return Selectors.getElementByPlatform(ERROR_PAGE_TITLE);
   }
 
   get errorPageMessage() {
-    return Selectors.getXpathElementByText(ERROR_PAGE_MESSAGE);
+    return Selectors.getElementByPlatform(ERROR_PAGE_MESSAGE);
   }
 
   get wrongReturnButton() {
-    return Selectors.getXpathElementByText(ERROR_PAGE_RETURN_BUTTON);
+    return Selectors.getElementByPlatform(ERROR_PAGE_RETURN_BUTTON);
   }
 
   get uniswapConnectButton() {
-    //return Selectors.getElementByCss(UNISWAP_CONNECT_BUTTON);
     return Selectors.getXpathElementByText(UNISWAP_CONNECT_BUTTON);
   }
 
@@ -75,7 +67,6 @@ class ExternalWebsitesScreen {
   }
 
   get uniswapWalletProfileIconButton() {
-    //return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
     return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
   }
 
@@ -83,29 +74,11 @@ class ExternalWebsitesScreen {
     return Selectors.getElementByCss(UNISWAP_WALLET_ADDRESS_BUTTON);
   }
 
-  get homeScreenId() {
-    return Selectors.getXpathElementByResourceId(HOME_WEBSITE_ID);
+  get homeFavoriteUniswapCardTitle() {
+    return Selectors.getXpathElementByText(HOME_FAVORITES_UNISWAP_CARD_TITLE);
   }
 
-  get homeFavoritesCards() {
-    return Selectors.getElementsByCss(HOME_FAVORITES_CARDS);
-  }
-
-  get homeExploreCards() {
-    return Selectors.getElementsByCss(HOME_EXPLORE_CARDS);
-  }
-
-  get homeDecentralizedFinanceCards() {
-    return Selectors.getElementsByCss(HOME_EXPLORE_CARDS);
-  }
-
-  get homeFavoriteCardTitle() {
-    //return Selectors.getElementsByCss(HOME_FAVORITES_CARDS_TITLES);
-    return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_TITLES);
-  }
-
-  get homeFavoriteCardUrl() {
-    //return Selectors.getElementsByCss(HOME_FAVORITES_CARDS_URL);
+  get homeFavoriteUniswapCardUrl() {
     return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_URL);
   }
 
@@ -121,6 +94,10 @@ class ExternalWebsitesScreen {
 
   get curveApproveSpendingButton() {
     return Selectors.getXpathElementByText(CURVE_APPROVE_SPENDING_BUTTON);
+  }
+
+  get curveChangeNetworkButton() {
+    return Selectors.getXpathElementByText(CURVER_CHANGE_NETWORK_BUTTON);
   }
 
   async tapHomeFavoritesButton() {
@@ -143,24 +120,18 @@ class ExternalWebsitesScreen {
     await expect(await this.bruno).toBeDisplayed();
   }
 
-  async isHomeWebsiteDisplayed() {
-    await expect(await this.homeScreenId).toBeDisplayed();
-  }
-
   async isErrorPageTitle(title) {
-    await expect(await this.errorPageTitle).toEqual(title);
+    const element = await this.errorPageTitle;
+    await expect(await element.getText()).toEqual(title);
   }
 
   async isErrorPageMessage(message) {
-    await expect(await this.errorPageMessage).toEqual(message);
+    const element = await this.errorPageMessage;
+    await expect(await element.getText()).toEqual(message);
   }
 
   async tapWrongReturnButton() {
     await Gestures.waitAndTap(this.wrongReturnButton);
-  }
-
-  async tapHomeSearchBar() {
-    await Gestures.waitAndTap(this.homeSearchBar);
   }
 
   async tapCurveConnectWalletButton() {
@@ -169,6 +140,10 @@ class ExternalWebsitesScreen {
 
   async tapCurveMetaMaskAvailableWalletButton() {
     await Gestures.waitAndTap(this.curveMetaMaskAvailableWalletButton);
+  }
+
+  async isCurveChangeNetworkButtonDisplayed() {
+    await expect(await this.curveChangeNetworkButton).toBeDisplayed();
   }
 
   async isConnectButtonNotDisplayed() {
@@ -195,58 +170,12 @@ class ExternalWebsitesScreen {
     await Gestures.tap(this.uniswapWalletAddressButton);
   }
 
-  async tapHomeFavoritesCard(link) {
-    const elementsText = this.homeFavoritesCards;
-    await elementsText.every(async (element) => {
-      const elementHref = await element.getAttribute('href');
-
-      if (elementHref === link) {
-        await Gestures.tap(element);
-        return false;
-      }
-
-      return true;
-    });
+  async isHomeFavoriteUniswapTitle() {
+    await expect(await this.homeFavoriteUniswapCardTitle).toBeDisplayed();
   }
 
-  async isHomeFavoritesCardsTitle(link) {
-    const elementsText = await this.homeFavoriteCardTitle;
-    //elementsText.filter((element) => element.getText() === link);
-    await expect(await elementsText.getText()).toEqual(link);
-  }
-
-  async isHomeFavoritesCardsUrl(link) {
-    const elementsText = await this.homeFavoriteCardUrl;
-    //elementsText.filter((element) => element.getText() === link);
-    await expect(await elementsText.getText()).toEqual(link);
-  }
-
-  async tapHomeExploreCards(link) {
-    const elementsText = this.homeExploreCards;
-    elementsText.every((element) => {
-      const elementHref = element.getAttribute('href');
-
-      if (elementHref === link) {
-        Gestures.tap(element);
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  async tapDecentralizedFinanceCards(link) {
-    const elementsText = this.homeDecentralizedFinanceCards;
-    elementsText.every((element) => {
-      const elementHref = element.getAttribute('href');
-
-      if (elementHref === link) {
-        Gestures.tap(element);
-        return false;
-      }
-
-      return true;
-    });
+  async isHomeFavoriteUniswapUrl() {
+    await expect(await this.homeFavoriteUniswapCardUrl).toBeDisplayed();
   }
 }
 

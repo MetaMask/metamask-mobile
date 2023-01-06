@@ -1,5 +1,3 @@
-export const MULTI_TAB_SCREEN_ID = '__next';
-
 export const MULTI_TAB_CLOSE_ALL_BUTTON = 'tabs_close_all';
 
 export const MULTI_TAB_ADD_BUTTON = 'tabs_add';

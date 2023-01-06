@@ -11,7 +11,6 @@ import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
 import MultiTabScreen from '../screen-objects/BrowserObject/MultiTabScreen';
 import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal';
 import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
-import DefaultBrowser from '../screen-objects/BrowserObject/DefaultBrowser';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal';
@@ -32,7 +31,6 @@ Given(/^I am on "([^"]*)"$/, async (text) => {
 });
 
 When(/^I input "([^"]*)" in the search field$/, async (text) => {
-  //await ExternalWebsitesScreen.tapHomeSearchBar();
   await BrowserScreen.tapUrlNavBar();
   await AddressBarScreen.editUrlInput(text);
 });
@@ -76,7 +74,7 @@ Then(/^active wallet is connected to Uniswap$/, async () => {
 When(
   /^I tap on the account icon located in the upper right of the browser view$/,
   async () => {
-    await driver.pause(1000);
+    await driver.pause(500);
     await BrowserScreen.tapAccountButton();
   },
 );
@@ -97,6 +95,20 @@ When(/^I navigate to "([^"]*)"$/, async (text) => {
   await BrowserScreen.tapUrlNavBar();
   await AddressBarScreen.editUrlInput(text);
   await driver.pressKeyCode(66);
+  await AddressBarScreen.tapUrlCancelButton();
+});
+
+When(/^I navigate to "([^"]*)" website$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.editUrlInput(text);
+  await driver.pressKeyCode(66);
+});
+
+Then(/^the browser view is on "([^"]*)" website$/, async (text) => {
+  await AddressBarScreen.tapUrlCancelButton();
+  await driver.pause(500);
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains(text);
   await AddressBarScreen.tapUrlCancelButton();
 });
 
@@ -174,12 +186,12 @@ When(/^I tap on Favorites on Home Website$/, async () => {
   await ExternalWebsitesScreen.tapHomeFavoritesButton();
 });
 
-Then(/^favorite card title is "([^"]*)"$/, async (text) => {
-  await ExternalWebsitesScreen.isHomeFavoritesCardsTitle(text);
+Then(/^favorite card title My Uniswap is Displayed$/, async () => {
+  await ExternalWebsitesScreen.isHomeFavoriteUniswapTitle();
 });
 
-Then(/^favorite card URL is "([^"]*)"$/, async (text) => {
-  await ExternalWebsitesScreen.isHomeFavoritesCardsUrl(text);
+Then(/^favorite card URL My Uniswap is Displayed$/, async () => {
+  await ExternalWebsitesScreen.isHomeFavoriteUniswapUrl();
 });
 
 Then(/^the webpage should load successfully$/, async () => {
@@ -195,10 +207,6 @@ Then(
 
 When(/^I tap the Back button on Phishing Detection page$/, async () => {
   await ExternalWebsitesScreen.tapEthereumFishingDetectionWebsiteBackButton();
-});
-
-Then(/^I am taken back to the home page$/, async () => {
-  await ExternalWebsitesScreen.isHomeWebsiteDisplayed();
 });
 
 Then(/^I should see "([^"]*)" error title$/, async (text) => {
@@ -219,6 +227,7 @@ When(/^I tap on address bar$/, async () => {
 
 Then(/^browser address bar input view is displayed$/, async () => {
   await AddressBarScreen.isAddressInputViewDisplayed();
+  await AddressBarScreen.tapUrlCancelButton();
 });
 
 Then(/^address field is cleared$/, async () => {
@@ -235,6 +244,8 @@ When(/^I input "([^"]*)" in address field$/, async (text) => {
 
 When(/^I tap on device Go or Next button$/, async () => {
   await driver.pressKeyCode(66);
+  await driver.pause(500);
+  await AddressBarScreen.tapUrlCancelButton();
 });
 
 When(/^I tap on the back arrow control button$/, async () => {
@@ -242,7 +253,9 @@ When(/^I tap on the back arrow control button$/, async () => {
 });
 
 When(/^I tap on forward arrow control button$/, async () => {
+  await driver.pause(500);
   await BrowserScreen.tapForwardButton();
+  await driver.pause(5000);
 });
 
 When(/^I tap on search button$/, async () => {
@@ -270,10 +283,6 @@ Then(/^browser tab count is (\d+)$/, async (number) => {
 
 When(/^I input "([^"]*)" in my favorite url field$/, async (text) => {
   await AddFavoriteScreen.editUrlEditText(text);
-});
-
-When('I tap on {string} resource card on the home page', async (s) => {
-  await ExternalWebsitesScreen.tapHomeExploreCards(s);
 });
 
 When(/^I tap on "([^"]*)" button on multi browser tab view$/, async (text) => {
@@ -316,15 +325,12 @@ When(/^I tap the "([^"]*)" option on the Option Menu$/, async (option) => {
     case 'Share':
       await OptionMenuModal.tapShareOption();
       break;
-    case 'Open a Browser':
-      await OptionMenuModal.tapOpenBrowserOption();
-      break;
     default:
       throw new Error('Condition not found');
   }
 });
 
-When(
+Then(
   /^"([^"]*)" option item is displayed in browser options menu$/,
   async (option) => {
     switch (option) {
@@ -365,15 +371,16 @@ Then(/^"([^"]*)" is not displayed in browser options menu$/, async (option) => {
 When(/^I tap on "([^"]*)" in address field$/, async (button) => {
   switch (button) {
     case 'Cancel button':
-      await AddressBarScreen.tapClearButton();
+      await AddressBarScreen.tapUrlCancelButton();
       break;
     case 'clear icon':
-      await AddressBarScreen.tapUrlCancelButton();
+      await AddressBarScreen.tapClearButton();
       break;
     default:
       throw new Error('Condition not found');
   }
 });
+
 Then(/^wallet is connected to Curve\.fi site$/, async () => {
   await ExternalWebsitesScreen.isConnectButtonNotDisplayed();
 });
@@ -381,6 +388,7 @@ Then(/^wallet is connected to Curve\.fi site$/, async () => {
 Then(/^all browser tabs are closed$/, async () => {
   await MultiTabScreen.isNoTabsMessageDisplayed();
 });
+
 Then(/^new browser tab is added$/, async () => {
   await BrowserScreen.numberOfTapsEqualsTo(2);
 });
@@ -394,15 +402,7 @@ When(/^I connect my wallet to Curve\.fi$/, async () => {
   await ExternalWebsitesScreen.tapCurveMetaMaskAvailableWalletButton();
   await AccountApprovalModal.tapConnectButton();
 });
-When(/^I tap on "([^"]*)" favorite card$/, async (text) => {
-  await ExternalWebsitesScreen.tapHomeFavoritesCard(text);
-});
-When(/^I tap on "([^"]*)" resource card$/, async (text) => {
-  await ExternalWebsitesScreen.tapDecentralizedFinanceCards(text);
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains(text);
-  await AddressBarScreen.tapUrlCancelButton();
-});
+
 Then(
   /^device component is displayed to share current address URL$/,
   async () => {
@@ -410,14 +410,6 @@ Then(
     driver.back();
   },
 );
-When(/^device auto switch to device default browser$/, async () => {
-  await DefaultBrowser.isDeviceDefaultBrowserDisplay();
-});
-
-When(/^device browser is on "([^"]*)"$/, async (url) => {
-  await DefaultBrowser.isDeviceDefaultBrowserUrl(url);
-  await driver.back();
-});
 
 When(/^I select "([^"]*)" network option$/, async (option) => {
   switch (option) {
@@ -427,16 +419,30 @@ When(/^I select "([^"]*)" network option$/, async (option) => {
     default:
       throw new Error('Condition not found');
   }
-});
-Then(/^"([^"]*)" is selected for MMM app$/, async (text) => {
-  await NetworkEducationModal.isNetworkEducationNetworkName(text);
+
+  await NetworkEducationModal.isNetworkEducationNetworkName(option);
   await NetworkEducationModal.tapGotItButton();
 });
 
-Then(/^wallet is no longer connected to Curve website$/, async () => {
-  await AccountApprovalModal.isSwitchModalDisplay();
-  await AccountApprovalModal.tapCancelButton();
+Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
+  await BrowserScreen.tapOptionButton();
+  await OptionMenuModal.tapSwitchOption();
+
+  switch (option) {
+    case 'Goerli':
+      await NetworkListModal.isGoerliNetworkSelectedIconDisplayed();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
+
+  await NetworkListModal.tapNetworkListCloseIcon();
 });
+
+Then(/^wallet is no longer connected to Curve website$/, async () => {
+  await ExternalWebsitesScreen.isCurveChangeNetworkButtonDisplayed();
+});
+
 Given(/^I navigate to the browser$/, async () => {
   await EnableAutomaticSecurityChecksScreen.tapNoThanksButton();
   await OnboardingWizardModal.tapSkipTutorialButton();
@@ -444,8 +450,13 @@ Given(/^I navigate to the browser$/, async () => {
   await WalletMainScreen.tapBurgerIcon();
   await DrawerViewScreen.tapBrowserButton();
 });
+
 When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
   await ExternalWebsitesScreen.tapUniswapConnectButton();
   await ExternalWebsitesScreen.tapUniswapMetaMaskWalletButton();
   await AccountApprovalModal.tapConnectButton();
+});
+
+Then(/^the "([^"]*)" url is displayed in address field$/, async (text) => {
+  await AddressBarScreen.isUrlValueContains(text);
 });
