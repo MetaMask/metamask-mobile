@@ -1,26 +1,20 @@
 import { NETWORKS_CHAIN_ID } from './network';
 
-/**
- * @enum {string}
- */
-export const FIAT_ORDER_PROVIDERS = {
-  WYRE: 'WYRE',
-  WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
-  TRANSAK: 'TRANSAK',
-  MOONPAY: 'MOONPAY',
+export enum FIAT_ORDER_PROVIDERS {
+  WYRE = 'WYRE',
+  WYRE_APPLE_PAY = 'WYRE_APPLE_PAY',
+  TRANSAK = 'TRANSAK',
+  MOONPAY = 'MOONPAY',
   // The key for fiat on-ramp aggregator
-  AGGREGATOR: 'AGGREGATOR',
-};
+  AGGREGATOR = 'AGGREGATOR',
+}
 
-/**
- * @enum {string}
- */
-export const FIAT_ORDER_STATES = {
-  PENDING: 'PENDING',
-  FAILED: 'FAILED',
-  COMPLETED: 'COMPLETED',
-  CANCELLED: 'CANCELLED',
-};
+export enum FIAT_ORDER_STATES {
+  PENDING = 'PENDING',
+  FAILED = 'FAILED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
 
 export const NETWORKS_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum',
@@ -33,7 +27,7 @@ export const NETWORKS_NAMES = {
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
   [NETWORKS_CHAIN_ID.CELO]: 'Celo',
   [NETWORKS_CHAIN_ID.HARMONY]: 'Harmony',
-};
+} as const;
 
 export const FORMATTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
@@ -42,6 +36,6 @@ export const FORMATTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
   [NETWORKS_CHAIN_ID.CELO]: 'Celo',
   [NETWORKS_CHAIN_ID.FANTOM]: 'Fantom',
-};
+} as const;
 
 export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
