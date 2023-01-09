@@ -58,7 +58,7 @@ import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import Region from '../../UI/FiatOnRampAggregator/Views/Region';
+import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
@@ -484,11 +484,11 @@ const FiatOnRampAggregator = () => (
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
-        component={Region}
+        component={Regions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
-        component={Region}
+        component={Regions}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
