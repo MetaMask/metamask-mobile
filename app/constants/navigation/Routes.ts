@@ -1,4 +1,5 @@
 const Routes = {
+  WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
@@ -36,6 +37,9 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    MANUAL_BACKUP: {
+      STEP_3: 'ManualBackupStep3',
+    },
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

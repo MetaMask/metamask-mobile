@@ -6,6 +6,7 @@ import {
   InteractionManager,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -25,9 +26,9 @@ import { getSendFlowTitle } from '../../../UI/Navbar';
 import AccountList from '../../../UI/AccountList';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
-import { allowedToBuy } from '../../../UI/FiatOrders';
+import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
@@ -54,7 +55,6 @@ import { strings } from '../../../../../locales/i18n';
 import {
   ADDRESS_BOOK_NEXT_BUTTON,
   ADD_ADDRESS_MODAL_CONTAINER_ID,
-  ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -64,6 +64,9 @@ import {
 } from '../../../../constants/error';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
+import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/features/testIDs/Screens/AddressBook.testids';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const { hexToBN } = util;
 
@@ -295,7 +298,7 @@ class SendFlow extends PureComponent {
    * @param {*} toSelectedAddress - The address or the ens writted on the destination input
    */
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { network, addressBook, identities, providerType } = this.props;
+    const { network, addressBook, identities, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -311,7 +314,7 @@ class SendFlow extends PureComponent {
       network,
       addressBook,
       identities,
-      providerType,
+      chainId,
     });
 
     this.setState({
@@ -466,7 +469,7 @@ class SendFlow extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
         {
           network: providerType,
         },
@@ -524,7 +527,7 @@ class SendFlow extends PureComponent {
                     onSubmitEditing={this.onFocus}
                     value={alias}
                     keyboardAppearance={themeAppearance}
-                    testID={ENTER_ALIAS_INPUT_BOX_ID}
+                    {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
                   />
                 </View>
               </View>
@@ -573,7 +576,7 @@ class SendFlow extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
         button_copy: 'Buy Native Token',
         chain_id_destination: this.props.chainId,
@@ -751,7 +754,10 @@ class SendFlow extends PureComponent {
                   onPress={this.toggleAddToAddressBookModal}
                   testID={'add-address-button'}
                 >
-                  <Text style={styles.myAccountsText}>
+                  <Text
+                    style={styles.myAccountsText}
+                    {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
+                  >
                     {strings('address_book.add_this_address')}
                   </Text>
                 </TouchableOpacity>

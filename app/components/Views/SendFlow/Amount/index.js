@@ -10,6 +10,7 @@ import {
   FlatList,
   InteractionManager,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -58,7 +59,7 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
@@ -72,6 +73,11 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import {
+  AMOUNT_SCREEN,
+  AMOUNT_SCREEN_CARET_DROP_DOWN,
+} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const { hexToBN, BNToHex } = util;
 
@@ -500,7 +506,7 @@ class Amount extends PureComponent {
    * @returns Promise that resolves ownershio as a boolean.
    */
   validateCollectibleOwnership = async () => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
     const {
       transactionState: {
         selectedAsset: { address, tokenId },
@@ -508,11 +514,7 @@ class Amount extends PureComponent {
       selectedAddress,
     } = this.props;
     try {
-      return await CollectiblesController.isCollectibleOwner(
-        selectedAddress,
-        address,
-        tokenId,
-      );
+      return await NftController.isNftOwner(selectedAddress, address, tokenId);
     } catch (e) {
       return false;
     }
@@ -573,7 +575,7 @@ class Amount extends PureComponent {
     }
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
         { network: providerType },
       );
     });
@@ -1209,7 +1211,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={'amount-screen'}
+        {...generateTestId(Platform, AMOUNT_SCREEN)}
       >
         <ScrollView style={styles.scrollWrapper}>
           <View style={styles.inputWrapper}>
@@ -1230,6 +1232,10 @@ class Amount extends PureComponent {
                       size={16}
                       color={colors.primary.inverse}
                       style={styles.iconDropdown}
+                      {...generateTestId(
+                        Platform,
+                        AMOUNT_SCREEN_CARET_DROP_DOWN,
+                      )}
                     />
                   </View>
                 </TouchableOpacity>

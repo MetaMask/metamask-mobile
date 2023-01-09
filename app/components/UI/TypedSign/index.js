@@ -11,7 +11,9 @@ import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import URL from 'url-parse';
 import {
   getAddressAccountType,
@@ -95,13 +97,12 @@ class TypedSign extends PureComponent {
       const { currentPageInformation, messageParams, selectedAddress } =
         this.props;
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         sign_type: 'typed',
         version: messageParams?.version,
@@ -114,7 +115,7 @@ class TypedSign extends PureComponent {
 
   componentDidMount = () => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
   };
@@ -161,7 +162,7 @@ class TypedSign extends PureComponent {
       const finalizeConfirmation = async (confirmed, rawSignature) => {
         if (!confirmed) {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+            MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
             this.getAnalyticsParams(),
           );
           return this.rejectMessage(messageId);
@@ -171,7 +172,7 @@ class TypedSign extends PureComponent {
         this.showWalletConnectNotification(messageParams, true);
 
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
+          MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
           this.getAnalyticsParams(),
         );
       };
@@ -224,7 +225,7 @@ class TypedSign extends PureComponent {
     this.rejectMessage(messageId);
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
     this.props.onCancel();
@@ -236,7 +237,7 @@ class TypedSign extends PureComponent {
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );
         this.props.onCancel();

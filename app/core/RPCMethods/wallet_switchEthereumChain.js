@@ -5,6 +5,7 @@ import {
   isPrefixedFormattedHexString,
   isSafeChainId,
 } from '../../util/networks';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
 
 const wallet_switchEthereumChain = async ({
@@ -82,7 +83,6 @@ const wallet_switchEthereumChain = async ({
       analyticsParams = {
         ...analyticsParams,
         symbol: existingNetworkRPC?.ticker,
-        network_name: 'rpc',
       };
     } else {
       requestData = {
@@ -93,7 +93,6 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        network_name: existingNetworkDefault?.shortName,
       };
     }
 
@@ -115,10 +114,7 @@ const wallet_switchEthereumChain = async ({
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED,
-      analyticsParams,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;

@@ -25,8 +25,6 @@ exports[`Confirm should render correctly 1`] = `
     ]
   }
   network="1"
-  networkType="mainnet"
-  openLedgerTransactionModal={[Function]}
   prepareTransaction={[Function]}
   providerType="mainnet"
   removeFavoriteCollectible={[Function]}

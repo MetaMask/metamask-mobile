@@ -11,7 +11,7 @@ import Device from '../device';
  */
 export const mockTheme = {
   colors: lightTheme.colors,
-  themeAppearance: 'light',
+  themeAppearance: 'light' as AppThemeKey.light,
   typography: lightTheme.typography,
   shadows: lightTheme.shadows,
 };

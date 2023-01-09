@@ -49,14 +49,9 @@ import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
-import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
-import TransakWebView from '../../UI/FiatOrders/TransakWebView';
-import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
-import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
@@ -465,36 +460,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const FiatOnRamp = () => (
-  <Stack.Navigator initialRouteName="PaymentMethodSelector">
-    <Stack.Screen
-      name="PaymentMethodSelector"
-      component={PaymentMethodSelector}
-      options={PaymentMethodSelector.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentMethodApplePay"
-      component={PaymentMethodApplePay}
-      options={PaymentMethodApplePay.navigationOptions}
-    />
-    <Stack.Screen
-      name="TransakFlow"
-      component={TransakWebView}
-      options={TransakWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="MoonPayFlow"
-      component={MoonPayWebView}
-      options={MoonPayWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="GasEducationCarousel"
-      component={GasEducationCarousel}
-      options={GasEducationCarousel.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const FiatOnRampAggregator = () => (
   <FiatOnRampSDKProvider>
     <Stack.Navigator
@@ -697,7 +662,6 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}
