@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import styles from './Regions.styles';
 
 import Text from '../../../../Base/Text';
@@ -25,9 +26,11 @@ import { createNavigationDetails } from '../../../../../util/navigation/navUtils
 import { createPaymentMethodsNavDetails } from '../PaymentMethods';
 
 import { useFiatOnRampSDK } from '../../sdk';
+import { Region } from '../../types';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
+
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
 
@@ -84,7 +87,7 @@ const RegionsView = () => {
   }, [navigation]);
 
   const handleRegionPress = useCallback(
-    (region) => {
+    (region: Region) => {
       setSelectedRegion(region);
       setSelectedFiatCurrencyId(null);
       hideRegionModal();

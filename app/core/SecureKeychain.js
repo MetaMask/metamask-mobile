@@ -3,6 +3,7 @@ import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { MetaMetricsEvents } from '../core/Analytics';
 import {
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
@@ -59,9 +60,7 @@ export default {
     instance = new SecureKeychain(salt);
 
     if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANDROID_HARDWARE_KEYSTORE,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE);
 
     Object.freeze(instance);
     return instance;

@@ -9,7 +9,6 @@ import ScreenLayout from '../components/ScreenLayout';
 import OrderDetail from '../components/OrderDetails';
 import StyledButton from '../../StyledButton';
 import {
-  FiatOrder,
   makeOrderIdSelector,
   updateFiatOrder,
 } from '../../../../reducers/fiatOrders';
@@ -43,7 +42,7 @@ const OrderDetails = () => {
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
   const params = useParams<OrderDetailsParams>();
-  const order: FiatOrder = useSelector(makeOrderIdSelector(params.orderId));
+  const order = useSelector(makeOrderIdSelector(params.orderId));
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -86,6 +85,7 @@ const OrderDetails = () => {
   );
 
   const handleOnRefresh = useCallback(async () => {
+    if (!order) return;
     try {
       setIsRefreshing(true);
       await processFiatOrder(order, dispatchUpdateFiatOrder);

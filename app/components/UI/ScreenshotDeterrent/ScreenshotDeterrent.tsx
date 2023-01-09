@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Alert, Linking } from 'react-native';
+import { View, Alert, Linking, InteractionManager } from 'react-native';
+import PreventScreenshot from '../../../core/PreventScreenshot';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import useScreenshotWarning from '../../hooks/useScreenshotWarning';
+import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { strings } from '../../../../locales/i18n';
 
@@ -16,12 +18,12 @@ const ScreenshotDeterrent = ({
 
   const openSRPGuide = () => {
     setAlertPresent(false);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
     Linking.openURL(SRP_GUIDE_URL);
   };
 
   const showScreenshotAlert = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
     setAlertPresent(true);
 
     Alert.alert(
@@ -41,22 +43,27 @@ const ScreenshotDeterrent = ({
           text: strings('reveal_credential.got_it'),
           onPress: () => {
             setAlertPresent(false);
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK,
-              {},
-            );
+            AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
           },
         },
       ],
     );
   }, [isSRP]);
 
-  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
+  const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
-  useEffect(
-    () => enableScreenshotWarning(enabled && !alertPresent),
-    [alertPresent, enableScreenshotWarning, enabled],
-  );
+  useEffect(() => {
+    enableScreenshotWarning(enabled && !alertPresent);
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [alertPresent, enableScreenshotWarning, enabled]);
 
   return <View />;
 };
