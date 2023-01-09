@@ -29,7 +29,6 @@ import { useFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
-import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -181,7 +180,6 @@ const RegionsView = () => {
               type="confirm"
               onPress={handleOnPress}
               disabled={!selectedRegion}
-              testID={TEST_ID_CONTINUE_BUTTON}
             >
               {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>

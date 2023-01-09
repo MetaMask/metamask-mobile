@@ -6,7 +6,6 @@ import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
 import { IFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
-import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 import { fireEvent } from '@testing-library/react-native';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods';
 
@@ -154,7 +153,11 @@ describe('Regions View', () => {
       selectedRegion: mockRegionsData[0] as Country,
     };
     const rendered = render(<Regions />);
-    fireEvent.press(rendered.getByTestId(TEST_ID_CONTINUE_BUTTON));
+    fireEvent.press(
+      rendered.getByRole('button', {
+        name: 'Continue',
+      }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createPaymentMethodsNavDetails(),
     );
@@ -162,7 +165,9 @@ describe('Regions View', () => {
 
   it('has continue button disabled', async () => {
     const rendered = render(<Regions />);
-    const continueButton = rendered.getByTestId(TEST_ID_CONTINUE_BUTTON);
+    const continueButton = rendered.getByRole('button', {
+      name: 'Continue',
+    });
     expect(continueButton.props.disabled).toBe(true);
   });
 
