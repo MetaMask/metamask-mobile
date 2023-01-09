@@ -359,7 +359,6 @@ class Onboarding extends PureComponent {
             this.props.navigation.replace(
               Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
             );
-            this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
             this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
           },
         });
