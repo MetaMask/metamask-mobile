@@ -7,7 +7,7 @@ import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
 import { Region } from '../../types';
 import { OnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import { createRegionNavDetails } from '../Region';
+import { createRegionsNavDetails } from '../Regions/Regions';
 
 const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
   getStarted: false,
@@ -84,7 +84,7 @@ describe('GetStarted', () => {
     };
     const rendered = render(<GetStarted />);
     fireEvent.press(rendered.getByTestId(TEST_ID_GET_STARTED_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(...createRegionNavDetails());
+    expect(mockNavigate).toHaveBeenCalledWith(...createRegionsNavDetails());
     expect(mockUseFiatOnRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
 
