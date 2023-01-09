@@ -28,12 +28,12 @@ import {
 
 import { createAmountToBuyNavDetails } from '../AmountToBuy';
 
-interface PaymenthMehodsParams {
+interface PaymenthMethodsParams {
   showBack?: boolean;
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymenthMehodsParams>(
+  createNavigationDetails<PaymenthMethodsParams>(
     Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
   );
 
@@ -41,7 +41,7 @@ const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const params = useParams<PaymenthMehodsParams>();
+  const { showBack } = useParams<PaymenthMethodsParams>();
 
   const {
     setSelectedRegion,
@@ -82,7 +82,7 @@ const PaymentMethods = () => {
   const handleResetState = useCallback(() => {
     setSelectedRegion(null);
     setSelectedPaymentMethodId(null);
-    const needsReset = params.showBack === false;
+    const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
         routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
@@ -90,12 +90,7 @@ const PaymentMethods = () => {
     } else {
       navigation.goBack();
     }
-  }, [
-    params.showBack,
-    setSelectedPaymentMethodId,
-    setSelectedRegion,
-    navigation,
-  ]);
+  }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
     navigation.navigate(...createAmountToBuyNavDetails());
@@ -109,13 +104,13 @@ const PaymentMethods = () => {
           title: strings(
             'fiat_on_ramp_aggregator.payment_method.payment_method',
           ),
-          showBack: params.showBack,
+          showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params.showBack]);
+  }, [navigation, colors, handleCancelPress, showBack]);
 
   if (sdkError) {
     return (

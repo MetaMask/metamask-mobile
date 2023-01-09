@@ -1,8 +1,14 @@
 import React from 'react';
+import { Country, Payment } from '@consensys/on-ramp-sdk';
+import { Region } from '../../types';
 import render from '../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
+import { mockPaymentMethods } from './PaymentMethods.constants';
+
 import { IFiatOnRampSDK } from '../../sdk';
+import useRegions from '../../hooks/useRegions';
+import usePaymentMethods from '../../hooks/usePaymentMethods';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -37,6 +43,55 @@ jest.mock('../../sdk', () => ({
   useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
 }));
 
+const mockQueryGetCountries = jest.fn();
+const mockClearUnsupportedRegion = jest.fn();
+
+const mockRegionsData = [
+  {
+    currencies: ['/currencies/fiat/clp'],
+    emoji: '🇨🇱',
+    id: '/regions/cl',
+    name: 'Chile',
+    unsupported: false,
+  },
+] as Partial<Country>[];
+
+const mockuseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
+  data: mockRegionsData as Country[],
+  isFetching: false,
+  error: null,
+  query: mockQueryGetCountries,
+  selectedRegion: mockRegionsData[0] as Region,
+  unsupportedRegion: undefined,
+  clearUnsupportedRegion: mockClearUnsupportedRegion,
+};
+
+let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
+  ...mockuseRegionsInitialValues,
+};
+
+jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+
+const mockQueryGetPaymentMethods = jest.fn();
+
+const mockUsePaymentMethodsInitialValues: Partial<
+  ReturnType<typeof usePaymentMethods>
+> = {
+  data: mockPaymentMethods as Payment[],
+  isFetching: false,
+  error: null,
+  query: mockQueryGetPaymentMethods,
+  currentPaymentMethod: mockPaymentMethods[0] as Payment,
+};
+
+let mockUsePaymentMethodsValues = {
+  ...mockUsePaymentMethodsInitialValues,
+};
+
+jest.mock('../../hooks/usePaymentMethods', () =>
+  jest.fn(() => mockUsePaymentMethodsValues),
+);
+
 describe('PaymentMethods View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -47,6 +102,12 @@ describe('PaymentMethods View', () => {
   beforeEach(() => {
     mockUseFiatOnRampSDKValues = {
       ...mockuseFiatOnRampSDKInitialValues,
+    };
+    mockUseRegionsValues = {
+      ...mockuseRegionsInitialValues,
+    };
+    mockUsePaymentMethodsValues = {
+      ...mockUsePaymentMethodsInitialValues,
     };
   });
 
