@@ -35,7 +35,7 @@ import {
 import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import { allowedToBuy } from '../FiatOrders';
+import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';

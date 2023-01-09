@@ -74,7 +74,7 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
   );
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
+    <ReusableModal ref={modalRef} style={styles.screen} onDismiss={onCancel}>
       <View style={styles.modal}>
         <View style={styles.bodyContainer}>
           {renderHeader()}

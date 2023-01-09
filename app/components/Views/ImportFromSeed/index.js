@@ -37,6 +37,16 @@ import {
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
+import Logger from '../../../util/Logger';
+import {
+  getPasswordStrengthWord,
+  passwordRequirementsMet,
+  MIN_PASSWORD_LENGTH,
+} from '../../../util/password';
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import { useTheme } from '../../../util/theme';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -45,16 +55,7 @@ import {
   EXISTING_USER,
   TRUE,
 } from '../../../constants/storage';
-import Logger from '../../../util/Logger';
-import {
-  getPasswordStrengthWord,
-  passwordRequirementsMet,
-  MIN_PASSWORD_LENGTH,
-} from '../../../util/password';
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { trackEvent } from '../../../util/analyticsV2';
-import { useTheme } from '../../../util/theme';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -589,6 +590,7 @@ const ImportFromSeed = ({
           action={strings('import_from_seed.import_button')}
         />
       </View>
+      <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };

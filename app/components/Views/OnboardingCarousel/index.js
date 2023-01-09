@@ -10,6 +10,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -24,7 +25,6 @@ import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,

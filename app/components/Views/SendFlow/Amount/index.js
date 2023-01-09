@@ -9,6 +9,7 @@ import {
   FlatList,
   InteractionManager,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -73,6 +74,11 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import {
+  AMOUNT_SCREEN,
+  AMOUNT_SCREEN_CARET_DROP_DOWN,
+} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const { hexToBN, BNToHex } = util;
 
@@ -1205,7 +1211,7 @@ class Amount extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={'amount-screen'}
+        {...generateTestId(Platform, AMOUNT_SCREEN)}
       >
         <ScrollView style={styles.scrollWrapper}>
           <View style={styles.inputWrapper}>
@@ -1226,6 +1232,10 @@ class Amount extends PureComponent {
                       size={16}
                       color={colors.primary.inverse}
                       style={styles.iconDropdown}
+                      {...generateTestId(
+                        Platform,
+                        AMOUNT_SCREEN_CARET_DROP_DOWN,
+                      )}
                     />
                   </View>
                 </TouchableOpacity>

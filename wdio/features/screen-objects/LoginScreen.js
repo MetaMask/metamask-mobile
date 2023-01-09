@@ -1,8 +1,8 @@
-import Gestures from "../helpers/Gestures";
-import Selectors from "../helpers/Selectors";
+import Gestures from '../helpers/Gestures';
+import Selectors from '../helpers/Selectors';
 import { 
     LOGIN_VIEW_RESET_WALLET_ID,
- } from "../testIDs/Screens/LoginScreen.testIds";
+ } from '../testIDs/Screens/LoginScreen.testIds';
 
 class LoginScreen{
 

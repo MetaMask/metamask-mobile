@@ -26,6 +26,7 @@ import {
   isNumber,
   isNumberScientificNotationWhenString,
   calculateEthFeeForMultiLayer,
+  limitToMaximumDecimalPlaces,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -757,5 +758,19 @@ describe('Number utils :: calculateEthFeeForMultiLayer', () => {
         ethFee: 0.000001,
       }),
     ).toBe('0.000227739');
+  });
+});
+
+describe('Number utils :: limitToMaximumDecimalPlaces', () => {
+  it('limits a num to a max decimal places (5)', () => {
+    expect(limitToMaximumDecimalPlaces(0.001050172)).toBe('0.00105');
+  });
+
+  it('limits a num to 3 decimal places', () => {
+    expect(limitToMaximumDecimalPlaces(0.001000172)).toBe('0.001');
+  });
+
+  it('does not add any decimal places for a whole number', () => {
+    expect(limitToMaximumDecimalPlaces(5)).toBe('5');
   });
 });

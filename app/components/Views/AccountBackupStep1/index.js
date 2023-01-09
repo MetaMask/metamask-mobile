@@ -247,9 +247,11 @@ const AccountBackupStep1 = (props) => {
                   style={styles.remindLaterButton}
                   onPress={showRemindLater}
                   hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                  {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
                 >
-                  <Text style={styles.remindLaterText}>
+                  <Text
+                    style={styles.remindLaterText}
+                    {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
+                  >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>
                 </TouchableOpacity>

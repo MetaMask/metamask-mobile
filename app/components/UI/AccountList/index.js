@@ -11,6 +11,7 @@ import {
   Text,
   View,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
@@ -25,6 +26,12 @@ import AccountElement from './AccountElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { safeToChecksumAddress } from '../../../util/address';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  ACCOUNT_LIST_ID,
+  CREATE_ACCOUNT_BUTTON_ID,
+  IMPORT_ACCOUNT_BUTTON_ID,
+} from '../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -399,7 +406,10 @@ class AccountList extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'account-list'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        {...generateTestId(Platform, ACCOUNT_LIST_ID)}
+      >
         <View style={styles.titleWrapper}>
           <View style={styles.dragger} testID={'account-list-dragger'} />
         </View>
@@ -420,7 +430,7 @@ class AccountList extends PureComponent {
           <View style={styles.footer}>
             <TouchableOpacity
               style={styles.footerButton}
-              testID={'create-account-button'}
+              {...generateTestId(Platform, CREATE_ACCOUNT_BUTTON_ID)}
               onPress={this.addAccount}
             >
               {this.state.loading ? (
@@ -437,7 +447,7 @@ class AccountList extends PureComponent {
             <TouchableOpacity
               onPress={this.importAccount}
               style={styles.footerButton}
-              testID={'import-account-button'}
+              {...generateTestId(Platform, IMPORT_ACCOUNT_BUTTON_ID)}
             >
               <Text style={styles.btnText}>
                 {strings('accounts.import_account')}

@@ -31,6 +31,7 @@ import {
   calculateEthEIP1559,
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
+import { sumHexWEIs } from '../../../../util/conversions';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import { trackLegacyEvent } from '../../../../util/analyticsV2';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
@@ -42,7 +43,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
-import { allowedToBuy } from '../../FiatOrders';
+import { allowedToBuy } from '../../FiatOnRampAggregator';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -209,6 +210,7 @@ class TransactionReviewInformation extends PureComponent {
      */
     originWarning: PropTypes.bool,
     gasSelected: PropTypes.string,
+    multiLayerL1FeeTotal: PropTypes.string,
   };
 
   state = {
@@ -576,10 +578,15 @@ class TransactionReviewInformation extends PureComponent {
       onUpdatingValuesEnd,
       animateOnChange,
       isAnimating,
+      multiLayerL1FeeTotal,
     } = this.props;
 
-    const totalGas =
+    let totalGas =
       isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : hexToBN('0x0');
+    if (multiLayerL1FeeTotal) {
+      totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
+    }
+
     const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
     const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
     const [totalFiat, totalValue] = this.getRenderTotals(

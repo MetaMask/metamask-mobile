@@ -16,7 +16,7 @@ const generateOpt = (
   return { name };
 };
 
-export const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
   1: 'Welcome',
   2: 'Accounts',
   3: 'Account Name',
@@ -25,45 +25,55 @@ export const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
   6: 'Search',
 };
 
-export enum EVENT_NAME {
-  // V2 TRACKING EVENTS
-
+/**
+ * V2 Analytics Tracking Events
+ */
+enum EVENT_NAME {
   // Error
   ERROR = 'Error occurred',
+
   // Approval
   APPROVAL_STARTED = 'Approval Started',
   APPROVAL_COMPLETED = 'Approval Completed',
   APPROVAL_CANCELLED = 'Approval Cancelled',
   APPROVAL_PERMISSION_UPDATED = 'Approval Permission Updated',
+
   // Fee changed
   GAS_FEE_CHANGED = 'Gas Fee Changed',
   GAS_ADVANCED_OPTIONS_CLICKED = 'Gas Advanced Options Clicked',
+
   // Dapp Transaction
   DAPP_TRANSACTION_STARTED = 'Dapp Transaction Started',
   DAPP_TRANSACTION_COMPLETED = 'Dapp Transaction Completed',
   DAPP_TRANSACTION_CANCELLED = 'Dapp Transaction Cancelled',
   CONTRACT_ADDRESS_COPIED = 'Contract Address Copied',
   CONTRACT_ADDRESS_NICKNAME = 'Contract Address Nickname',
+
   // Sign request
   SIGN_REQUEST_STARTED = 'Sign Request Started',
   SIGN_REQUEST_COMPLETED = 'Sign Request Completed',
   SIGN_REQUEST_CANCELLED = 'Sign Request Cancelled',
+
   // Connect request
   CONNECT_REQUEST_STARTED = 'Connect Request Started',
   CONNECT_REQUEST_COMPLETED = 'Connect Request Completed',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
+
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
+
   // Network
   NETWORK_SWITCHED = 'Network Switched',
   NETWORK_ADDED = 'Network Added',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
+
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
+
   // On-ramp [LEGACY]
   ONRAMP_OPENED = 'On-ramp Opened',
   ONRAMP_CLOSED = 'On-ramp Closed',
@@ -74,6 +84,7 @@ export enum EVENT_NAME {
   ONRAMP_PURCHASE_FAILED_LEGACY = 'On-ramp Purchase Failed',
   ONRAMP_PURCHASE_CANCELLED_LEGACY = 'On-ramp Purchase Cancelled',
   ONRAMP_PURCHASE_COMPLETED_LEGACY = 'On-ramp Purchase Completed',
+
   // Wallet Security
   WALLET_SECURITY_STARTED = 'Wallet Security Started',
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED = 'Manual Backup Initiated',
@@ -86,9 +97,11 @@ export enum EVENT_NAME {
   WALLET_SECURITY_PROTECT_VIEWED = 'Wallet Security Reminder Viewed',
   WALLET_SECURITY_PROTECT_ENGAGED = 'Wallet Security Reminder Engaged',
   WALLET_SECURITY_PROTECT_DISMISSED = 'Wallet Security Reminder Dismissed',
+
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected',
   ANALYTICS_REQUEST_DATA_DELETION = 'Delete MetaMetrics Data Request Submitted',
+
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED = 'Welcome Message Viewed',
   ONBOARDING_WELCOME_SCREEN_ENGAGEMENT = 'Welcome Screen Engagement',
@@ -99,6 +112,7 @@ export enum EVENT_NAME {
   ONBOARDING_TOUR_STEP_REVISITED = 'Onboarding Tour Step Completed',
   ONBOARDING_TOUR_COMPLETED = 'Onboarding Tour Completed',
   ONBOARDING_COMPLETED = 'Onboarding Completed',
+
   // Wallet Setup
   WALLET_SETUP_STARTED = 'Wallet Setup Started',
   WALLET_IMPORT_STARTED = 'Wallet Import Started',
@@ -111,8 +125,10 @@ export enum EVENT_NAME {
   WALLET_CREATED = 'Wallet Created',
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
+
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
+
   // Browser
   BROWSER_OPENED = 'Browser Opened',
   BROWSER_SEARCH_USED = 'Search Used',
@@ -123,8 +139,10 @@ export enum EVENT_NAME {
   BROWSER_SHARE_SITE = 'Shared A Site',
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
+
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
+
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
   REVEAL_SRP_SCREEN = 'Views Reveal Secret Recovery Phrase',
@@ -139,12 +157,15 @@ export enum EVENT_NAME {
   REVEAL_SRP_INITIATED = 'Reveal SRP Initiated',
   REVEAL_SRP_CANCELLED = 'Reveal SRP Cancelled',
   REVEAL_SRP_COMPLETED = 'Reveal SRP Completed',
+
   // Reveal Private Key
   REVEAL_PRIVATE_KEY_INITIATED = 'Reveal Private Key Initiated',
   REVEAL_PRIVATE_KEY_CANCELLED = 'Reveal Private Key Cancelled',
   REVEAL_PRIVATE_KEY_COMPLETED = 'Reveal Private Key Completed',
-  // Key Managment
+
+  // Key Management
   ANDROID_HARDWARE_KEYSTORE = 'Android Hardware Keystore',
+
   // QR Hardware Wallet
   CONNECT_HARDWARE_WALLET = 'Clicked Connect Hardware Wallet',
   CONTINUE_QR_HARDWARE_WALLET = 'Clicked Continue QR Hardware Wallet',
@@ -152,13 +173,13 @@ export enum EVENT_NAME {
   QR_HARDWARE_TRANSACTION_CANCELED = 'User canceled QR hardware transaction',
   HARDWARE_WALLET_ERROR = 'Hardware wallet error',
 
-  // TOKENS
+  // Tokens
   TOKEN_DETECTED = 'Token Detected',
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
 
-  // ONRAMP AGGREGATOR
+  // On Ramp Aggregator
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   ONRAMP_REGION_SELECTED = 'On-ramp Region Selected',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
@@ -193,7 +214,8 @@ export enum EVENT_NAME {
   DAPP_INTERACTIONS = 'Dapp Interactions',
   WALLET = 'Wallet',
   PAYMENTS = 'Payments',
-  // SWAPS
+
+  // Swaps
   SWAPS_OPENED = 'Swaps Opened',
   SWAP_TRACKING_FAILED = 'Swap Tracking Failed',
   QUOTES_REQUESTED = 'Quotes Requested',
@@ -209,14 +231,20 @@ export enum EVENT_NAME {
   EDIT_SPEND_LIMIT_OPENED = 'Edit Spend Limit Opened',
   TOKEN_IMPORTED = 'Custom Token Imported',
 
-  // force upgrade/automatic security checks
-  FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
+  // Force Upgrade | Automatic Security Checks
+  FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED = 'Force Upgrade Clicked Update to Latest Version',
   FORCE_UPGRADE_REMIND_ME_LATER_CLICKED = 'Force Upgrade Clicked Remind Me Later',
+  AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED = 'Automatic Security Checks Prompt Viewed',
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT = 'Automatic Security Checks Enabled From Prompt',
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT = 'Automatic Security Checks Disabled From Prompt',
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS = 'Automatic Security Checks Enabled From Settings',
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS = 'Automatic Security Checks Disabled From Settings',
+
+  // Screenshots Deterrent
+  SCREENSHOT_WARNING = 'Screenshot Warning Displayed',
+  SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
+  SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
 }
 
 const events = {
@@ -231,12 +259,10 @@ const events = {
   APPROVAL_PERMISSION_UPDATED: generateOpt(
     EVENT_NAME.APPROVAL_PERMISSION_UPDATED,
   ),
-  // Fee changed
   GAS_FEE_CHANGED: generateOpt(EVENT_NAME.GAS_FEES_CHANGED),
   GAS_ADVANCED_OPTIONS_CLICKED: generateOpt(
     EVENT_NAME.GAS_ADVANCED_OPTIONS_CLICKED,
   ),
-  // Dapp Transaction
   DAPP_TRANSACTION_STARTED: generateOpt(EVENT_NAME.DAPP_TRANSACTION_STARTED),
   DAPP_TRANSACTION_COMPLETED: generateOpt(
     EVENT_NAME.DAPP_TRANSACTION_COMPLETED,
@@ -246,29 +272,23 @@ const events = {
   ),
   CONTRACT_ADDRESS_COPIED: generateOpt(EVENT_NAME.CONTRACT_ADDRESS_COPIED),
   CONTRACT_ADDRESS_NICKNAME: generateOpt(EVENT_NAME.CONTRACT_ADDRESS_NICKNAME),
-  // Sign request
   SIGN_REQUEST_STARTED: generateOpt(EVENT_NAME.SIGN_REQUEST_STARTED),
   SIGN_REQUEST_COMPLETED: generateOpt(EVENT_NAME.SIGN_REQUEST_COMPLETED),
   SIGN_REQUEST_CANCELLED: generateOpt(EVENT_NAME.SIGN_REQUEST_CANCELLED),
-  // Connect request
   CONNECT_REQUEST_STARTED: generateOpt(EVENT_NAME.CONNECT_REQUEST_STARTED),
   CONNECT_REQUEST_COMPLETED: generateOpt(EVENT_NAME.CONNECT_REQUEST_COMPLETED),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
-  // Wallet
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
-  // Network
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
   NETWORK_REQUESTED: generateOpt(EVENT_NAME.NETWORK_REQUESTED),
   NETWORK_REQUEST_REJECTED: generateOpt(EVENT_NAME.NETWORK_REQUEST_REJECTED),
-  // Send transaction
   SEND_TRANSACTION_STARTED: generateOpt(EVENT_NAME.SEND_TRANSACTION_STARTED),
   SEND_TRANSACTION_COMPLETED: generateOpt(
     EVENT_NAME.SEND_TRANSACTION_COMPLETED,
   ),
-  // On-ramp [LEGACY]
   ONRAMP_OPENED: generateOpt(EVENT_NAME.ONRAMP_OPENED),
   ONRAMP_CLOSED: generateOpt(EVENT_NAME.ONRAMP_CLOSED),
   ONRAMP_PURCHASE_EXITED: generateOpt(EVENT_NAME.ONRAMP_PURCHASE_EXITED),
@@ -288,7 +308,6 @@ const events = {
   ONRAMP_PURCHASE_COMPLETED_LEGACY: generateOpt(
     EVENT_NAME.ONRAMP_PURCHASE_COMPLETED_LEGACY,
   ),
-  // Wallet Security
   WALLET_SECURITY_STARTED: generateOpt(EVENT_NAME.WALLET_SECURITY_STARTED),
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt(
     EVENT_NAME.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
@@ -318,14 +337,12 @@ const events = {
   WALLET_SECURITY_PROTECT_DISMISSED: generateOpt(
     EVENT_NAME.WALLET_SECURITY_PROTECT_DISMISSED,
   ),
-  // Analytics
   ANALYTICS_PREFERENCE_SELECTED: generateOpt(
     EVENT_NAME.ANALYTICS_PREFERENCE_SELECTED,
   ),
   ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
   ),
-  // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_WELCOME_MESSAGE_VIEWED,
   ),
@@ -343,7 +360,6 @@ const events = {
   ),
   ONBOARDING_TOUR_COMPLETED: generateOpt(EVENT_NAME.ONBOARDING_TOUR_COMPLETED),
   ONBOARDING_COMPLETED: generateOpt(EVENT_NAME.ONBOARDING_COMPLETED),
-  // Wallet Setup
   WALLET_SETUP_STARTED: generateOpt(EVENT_NAME.WALLET_SETUP_STARTED),
   WALLET_IMPORT_STARTED: generateOpt(EVENT_NAME.WALLET_IMPORT_STARTED),
   WALLET_IMPORT_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_IMPORT_ATTEMPTED),
@@ -355,9 +371,7 @@ const events = {
   WALLET_CREATED: generateOpt(EVENT_NAME.WALLET_CREATED),
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
-  // Account
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
-  // Browser
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
   BROWSER_SEARCH_USED: generateOpt(EVENT_NAME.BROWSER_SEARCH_USED),
   BROWSER_NEW_TAB: generateOpt(EVENT_NAME.BROWSER_NEW_TAB),
@@ -369,9 +383,7 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
-  // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
-  // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
   GO_BACK_SRP_SCREEN: generateOpt(EVENT_NAME.GO_BACK_SRP_SCREEN),
@@ -387,7 +399,6 @@ const events = {
   REVEAL_SRP_INITIATED: generateOpt(EVENT_NAME.REVEAL_SRP_INITIATED),
   REVEAL_SRP_CANCELLED: generateOpt(EVENT_NAME.REVEAL_SRP_CANCELLED),
   REVEAL_SRP_COMPLETED: generateOpt(EVENT_NAME.REVEAL_SRP_COMPLETED),
-  // Reveal Private Key
   REVEAL_PRIVATE_KEY_INITIATED: generateOpt(
     EVENT_NAME.REVEAL_PRIVATE_KEY_INITIATED,
   ),
@@ -397,9 +408,7 @@ const events = {
   REVEAL_PRIVATE_KEY_COMPLETED: generateOpt(
     EVENT_NAME.REVEAL_PRIVATE_KEY_COMPLETED,
   ),
-  // Key Managment
   ANDROID_HARDWARE_KEYSTORE: generateOpt(EVENT_NAME.ANDROID_HARDWARE_KEYSTORE),
-  // QR Hardware Wallet
   CONNECT_HARDWARE_WALLET: generateOpt(EVENT_NAME.CONNECT_HARDWARE_WALLET),
   CONTINUE_QR_HARDWARE_WALLET: generateOpt(
     EVENT_NAME.CONTINUE_QR_HARDWARE_WALLET,
@@ -411,14 +420,10 @@ const events = {
     EVENT_NAME.QR_HARDWARE_TRANSACTION_CANCELED,
   ),
   HARDWARE_WALLET_ERROR: generateOpt(EVENT_NAME.HARDWARE_WALLET_ERROR),
-
-  // TOKENS
   TOKEN_DETECTED: generateOpt(EVENT_NAME.TOKEN_DETECTED),
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
-
-  // ONRAMP AGGREGATOR
   BUY_BUTTON_CLICKED: generateOpt(EVENT_NAME.BUY_BUTTON_CLICKED),
   ONRAMP_REGION_SELECTED: generateOpt(EVENT_NAME.ONRAMP_REGION_SELECTED),
   ONRAMP_PAYMENT_METHOD_SELECTED: generateOpt(
@@ -446,9 +451,8 @@ const events = {
   ),
   ONRAMP_QUOTE_ERROR: generateOpt(EVENT_NAME.ONRAMP_QUOTE_ERROR),
   ONRAMP_ERROR: generateOpt(EVENT_NAME.ONRAMP_ERROR),
-  // FORCE UPGRADE
-  FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED: generateOpt(
-    EVENT_NAME.FORCE_UPGRADE_UPDATED_NEEDED_PROMPT_VIEWED,
+  FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
+    EVENT_NAME.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
   ),
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
@@ -456,25 +460,29 @@ const events = {
   FORCE_UPGRADE_REMIND_ME_LATER_CLICKED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
   ),
-
+  AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED: generateOpt(
+    EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
+  ),
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT: generateOpt(
     EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
   ),
-
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT: generateOpt(
     EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
   ),
-
   AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS: generateOpt(
     EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS,
   ),
-
   AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS: generateOpt(
     EVENT_NAME.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
   ),
+  SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
+  SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
+  SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
 };
 
-// --- LEGACY TRACKING EVENTS ---
+/**
+ * Legacy Analytics Tracking Events
+ */
 
 enum DESCRIPTION {
   //Onboarding
@@ -609,7 +617,7 @@ enum ACTIONS {
   SWAP = 'Swap',
 }
 
-const LegacyMetaMetricsEvents = {
+const legacyMetaMetricsEvents = {
   //Onboarding
   ONBOARDING_METRICS_OPT_IN: generateOpt(
     EVENT_NAME.ONBOARDING,
@@ -1066,6 +1074,6 @@ const LegacyMetaMetricsEvents = {
   ),
 };
 
-const MetaMetricsEvents = { ...events, ...LegacyMetaMetricsEvents };
+const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents };
+export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };

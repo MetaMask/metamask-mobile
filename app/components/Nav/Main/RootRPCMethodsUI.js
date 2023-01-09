@@ -10,7 +10,6 @@ import { BN } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
 import BigNumber from 'bignumber.js';
-
 import Engine from '../../../core/Engine';
 import {
   trackEvent,
