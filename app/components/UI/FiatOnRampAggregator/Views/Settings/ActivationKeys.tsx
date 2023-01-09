@@ -16,6 +16,8 @@ import { useFiatOnRampSDK } from '../../sdk';
 import { useNavigation } from '@react-navigation/native';
 import { createAddActivationKeyNavDetails } from './AddActivationKey';
 
+import styles from './Settings.styles';
+
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
@@ -23,6 +25,7 @@ function ActivationKeys() {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
   const { isInternalBuild } = useFiatOnRampSDK();
+  const style = styles(colors);
 
   const {
     isLoadingKeys,
@@ -50,7 +53,7 @@ function ActivationKeys() {
   return (
     <>
       <Text reset>
-        <Text biggest>
+        <Text style={style.title}>
           {strings('app_settings.fiat_on_ramp.sdk_activation_keys')}
         </Text>
         <Text>

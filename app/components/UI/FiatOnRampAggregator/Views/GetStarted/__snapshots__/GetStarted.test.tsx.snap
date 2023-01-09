@@ -116,7 +116,6 @@ exports[`GetStarted renders correctly 1`] = `
                   undefined,
                   undefined,
                   undefined,
-                  undefined,
                 ]
               }
             >
@@ -152,7 +151,6 @@ exports[`GetStarted renders correctly 1`] = `
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontWeight": "600",
                   },
-                  undefined,
                   undefined,
                   undefined,
                   undefined,
@@ -402,7 +400,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   undefined,
                   undefined,
                   undefined,
-                  undefined,
                   Array [
                     Object {
                       "color": "#24272A",
@@ -451,7 +448,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   Object {
                     "color": "#535A61",
                   },
-                  undefined,
                   undefined,
                   undefined,
                   undefined,

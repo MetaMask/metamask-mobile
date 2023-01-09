@@ -7534,7 +7534,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                           undefined,
                                           undefined,
                                           undefined,
-                                          undefined,
                                           Array [
                                             Object {
                                               "color": "#24272A",

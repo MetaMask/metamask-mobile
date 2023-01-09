@@ -23,7 +23,6 @@ interface TextProps extends React.ComponentPropsWithoutRef<typeof RNText> {
   small?: boolean;
   big?: boolean;
   bigger?: boolean;
-  biggest?: boolean;
   upper?: boolean;
   link?: boolean;
   strikethrough?: boolean;
@@ -46,7 +45,6 @@ const Text: React.FC<TextProps> = ({
   small,
   big,
   bigger,
-  biggest,
   upper,
   modal,
   infoModal,
@@ -81,7 +79,6 @@ const Text: React.FC<TextProps> = ({
         small && style.small,
         big && style.big,
         bigger && style.bigger,
-        biggest && style.biggest,
         upper && style.upper,
         modal && style.modal,
         infoModal && style.infoModal,

@@ -55,7 +55,7 @@ function Settings() {
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <Row>
-              <Text biggest>
+              <Text style={style.title}>
                 {strings('app_settings.fiat_on_ramp.current_region')}
               </Text>
               {selectedRegion ? (

@@ -67,7 +67,7 @@ function AddActivationKey() {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          <Text biggest>
+          <Text style={style.title}>
             {strings('app_settings.fiat_on_ramp.add_activation_key')}
           </Text>
           <Row>

@@ -23,6 +23,9 @@ const styles = (colors: Colors) =>
       flex: 1,
       marginHorizontal: 5,
     },
+    title: {
+      fontSize: 20,
+    },
   });
 
 export default styles;
