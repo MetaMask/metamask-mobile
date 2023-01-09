@@ -66,12 +66,16 @@ jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockPop = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
+    dangerouslyGetParent: () => ({
+      pop: mockPop,
+    }),
   }),
 }));
 
@@ -94,6 +98,11 @@ describe('Regions View', () => {
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,
     };
+  });
+
+  it('calls setOptions when rendering', async () => {
+    render(<Regions />);
+    expect(mockSetOptions).toBeCalledTimes(1);
   });
 
   it('renders correctly', async () => {
@@ -185,11 +194,22 @@ describe('Regions View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
-    };
     const rendered = render(<Regions />);
     expect(rendered.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to home when clicking sdKError button', async () => {
+    mockUseFiatOnRampSDKValues = {
+      ...mockuseFiatOnRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
+    const rendered = render(<Regions />);
+    fireEvent.press(
+      rendered.getByRole('button', {
+        name: 'Return to Home Screen',
+      }),
+    );
+    expect(mockPop).toBeCalledTimes(1);
   });
 
   it('renders correctly with error', async () => {
@@ -201,8 +221,17 @@ describe('Regions View', () => {
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
-  it('calls setOptions when rendering', async () => {
-    render(<Regions />);
-    expect(mockSetOptions).toBeCalledTimes(1);
+  it('queries countries again with error', async () => {
+    mockUseRegionsValues = {
+      ...mockuseRegionsInitialValues,
+      error: 'Test error',
+    };
+    const rendered = render(<Regions />);
+    fireEvent.press(
+      rendered.getByRole('button', {
+        name: 'Try again',
+      }),
+    );
+    expect(mockQueryGetCountries).toBeCalledTimes(1);
   });
 });
