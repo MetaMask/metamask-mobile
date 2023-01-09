@@ -285,8 +285,7 @@ exports[`Regions View renders correctly 1`] = `
       >
         <View>
           <TouchableOpacity
-            accessibilityComponentType="button"
-            accessibilityTraits="button"
+            accessibilityRole="button"
             activeOpacity={1}
             disabled={true}
             style={
@@ -308,7 +307,6 @@ exports[`Regions View renders correctly 1`] = `
                 },
               ]
             }
-            testID="continue-button"
           >
             <Text
               style={
@@ -2325,8 +2323,7 @@ exports[`Regions View renders correctly with error 1`] = `
             }
           >
             <TouchableOpacity
-              accessibilityComponentType="button"
-              accessibilityTraits="button"
+              accessibilityRole="button"
               activeOpacity={0.2}
               onPress={[Function]}
               style={
@@ -2778,8 +2775,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             }
           >
             <TouchableOpacity
-              accessibilityComponentType="button"
-              accessibilityTraits="button"
+              accessibilityRole="button"
               activeOpacity={0.2}
               onPress={[Function]}
               style={
@@ -3125,8 +3121,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
       >
         <View>
           <TouchableOpacity
-            accessibilityComponentType="button"
-            accessibilityTraits="button"
+            accessibilityRole="button"
             activeOpacity={0.2}
             disabled={false}
             onPress={[Function]}
@@ -3147,7 +3142,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                 null,
               ]
             }
-            testID="continue-button"
           >
             <Text
               style={
@@ -5051,8 +5045,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
       >
         <View>
           <TouchableOpacity
-            accessibilityComponentType="button"
-            accessibilityTraits="button"
+            accessibilityRole="button"
             activeOpacity={1}
             disabled={true}
             style={
@@ -5074,7 +5067,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                 },
               ]
             }
-            testID="continue-button"
           >
             <Text
               style={
@@ -6978,8 +6970,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
       >
         <View>
           <TouchableOpacity
-            accessibilityComponentType="button"
-            accessibilityTraits="button"
+            accessibilityRole="button"
             activeOpacity={1}
             disabled={true}
             style={
@@ -7001,7 +6992,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                 },
               ]
             }
-            testID="continue-button"
           >
             <Text
               style={
