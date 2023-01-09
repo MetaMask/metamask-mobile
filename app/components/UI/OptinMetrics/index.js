@@ -26,7 +26,9 @@ import {
   AGREED,
 } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -264,13 +266,10 @@ class OptinMetrics extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: false,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: false,
+      });
     });
   };
 

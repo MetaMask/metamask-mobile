@@ -6,7 +6,6 @@ import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
 import { IFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
-import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
 import { fireEvent } from '@testing-library/react-native';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
@@ -67,12 +66,16 @@ jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockPop = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
+    dangerouslyGetParent: () => ({
+      pop: mockPop,
+    }),
   }),
 }));
 
@@ -95,6 +98,11 @@ describe('Regions View', () => {
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,
     };
+  });
+
+  it('calls setOptions when rendering', async () => {
+    render(<Regions />);
+    expect(mockSetOptions).toBeCalledTimes(1);
   });
 
   it('renders correctly', async () => {
@@ -154,7 +162,11 @@ describe('Regions View', () => {
       selectedRegion: mockRegionsData[0] as Country,
     };
     const rendered = render(<Regions />);
-    fireEvent.press(rendered.getByTestId(TEST_ID_CONTINUE_BUTTON));
+    fireEvent.press(
+      rendered.getByRole('button', {
+        name: 'Continue',
+      }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createPaymentMethodsNavDetails(),
     );
@@ -162,7 +174,9 @@ describe('Regions View', () => {
 
   it('has continue button disabled', async () => {
     const rendered = render(<Regions />);
-    const continueButton = rendered.getByTestId(TEST_ID_CONTINUE_BUTTON);
+    const continueButton = rendered.getByRole('button', {
+      name: 'Continue',
+    });
     expect(continueButton.props.disabled).toBe(true);
   });
 
@@ -180,11 +194,22 @@ describe('Regions View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
-    };
     const rendered = render(<Regions />);
     expect(rendered.toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to home when clicking sdKError button', async () => {
+    mockUseFiatOnRampSDKValues = {
+      ...mockuseFiatOnRampSDKInitialValues,
+      sdkError: new Error('sdkError'),
+    };
+    const rendered = render(<Regions />);
+    fireEvent.press(
+      rendered.getByRole('button', {
+        name: 'Return to Home Screen',
+      }),
+    );
+    expect(mockPop).toBeCalledTimes(1);
   });
 
   it('renders correctly with error', async () => {
@@ -196,8 +221,17 @@ describe('Regions View', () => {
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
-  it('calls setOptions when rendering', async () => {
-    render(<Regions />);
-    expect(mockSetOptions).toBeCalledTimes(1);
+  it('queries countries again with error', async () => {
+    mockUseRegionsValues = {
+      ...mockuseRegionsInitialValues,
+      error: 'Test error',
+    };
+    const rendered = render(<Regions />);
+    fireEvent.press(
+      rendered.getByRole('button', {
+        name: 'Try again',
+      }),
+    );
+    expect(mockQueryGetCountries).toBeCalledTimes(1);
   });
 });

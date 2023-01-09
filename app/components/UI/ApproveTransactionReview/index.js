@@ -5,6 +5,7 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
+import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
@@ -34,7 +35,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
@@ -43,7 +44,12 @@ import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
-import { isTestNet, isMainnetByChainId } from '../../../util/networks';
+import {
+  isTestNet,
+  isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
+} from '../../../util/networks';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
@@ -63,6 +69,9 @@ import createStyles from './styles';
 const { hexToBN } = util;
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
+
+let intervalIdForEstimatedL1Fee;
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
@@ -228,6 +237,7 @@ class ApproveTransactionReview extends PureComponent {
     token: {},
     showGasTooltip: false,
     gasTransactionObject: {},
+    multiLayerL1FeeTotal: '0x0',
   };
 
   customSpendLimitInput = React.createRef();
@@ -238,7 +248,30 @@ class ApproveTransactionReview extends PureComponent {
   originIsMMSDKRemoteConn =
     this.props.transaction.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    if (!transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
+  };
+
   componentDidMount = async () => {
+    const { chainId } = this.props;
     const {
       transaction: { origin, to, data },
       tokenList,
@@ -292,11 +325,22 @@ class ApproveTransactionReview extends PureComponent {
       },
       () => {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED,
+          MetaMetricsEvents.APPROVAL_STARTED,
           this.getAnalyticsParams(),
         );
       },
     );
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
+    }
+  };
+
+  componentWillUnmount = async () => {
+    clearInterval(intervalIdForEstimatedL1Fee);
   };
 
   getAnalyticsParams = () => {
@@ -361,7 +405,7 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
     this.setState({ viewDetails: !viewDetails });
   };
 
@@ -369,7 +413,7 @@ class ApproveTransactionReview extends PureComponent {
     const { editPermissionVisible } = this.state;
     !editPermissionVisible &&
       this.trackApproveEvent(
-        ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION,
+        MetaMetricsEvents.DAPP_APPROVE_SCREEN_EDIT_PERMISSION,
       );
     this.setState({ editPermissionVisible: !editPermissionVisible });
   };
@@ -408,14 +452,14 @@ class ApproveTransactionReview extends PureComponent {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED,
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       this.getAnalyticsParams(),
     );
   };
 
   edit = () => {
     const { onModeChange } = this.props;
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION);
+    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -460,7 +504,7 @@ class ApproveTransactionReview extends PureComponent {
     }
     this.toggleEditPermission();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED,
+      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       this.getAnalyticsParams(),
     );
   };
@@ -549,6 +593,7 @@ class ApproveTransactionReview extends PureComponent {
       spenderAddress,
       originalApproveAmount,
       customSpendAmount,
+      multiLayerL1FeeTotal,
     } = this.state;
     const {
       primaryCurrency,
@@ -691,6 +736,7 @@ class ApproveTransactionReview extends PureComponent {
                     }
                     updateTransactionState={updateTransactionState}
                     onlyGas
+                    multiLayerL1FeeTotal={multiLayerL1FeeTotal}
                   />
 
                   {gasError && (
@@ -784,9 +830,7 @@ class ApproveTransactionReview extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

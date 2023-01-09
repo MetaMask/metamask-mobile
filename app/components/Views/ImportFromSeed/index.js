@@ -36,7 +36,9 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
@@ -46,6 +48,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -143,9 +146,7 @@ const ImportFromSeed = ({
 
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_ATTEMPTED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     });
     let error = null;
     if (!passwordRequirementsMet(password)) {
@@ -163,13 +164,10 @@ const ImportFromSeed = ({
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
-          {
-            wallet_setup_type: 'import',
-            error_type: error,
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: error,
+        });
       });
     } else {
       try {
@@ -204,16 +202,13 @@ const ImportFromSeed = ({
         seedphraseBackedUp();
         logIn();
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
+          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(biometryType),
           });
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED,
-            {
-              wallet_setup_type: 'import',
-              new_wallet: false,
-            },
-          );
+          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+            wallet_setup_type: 'import',
+            new_wallet: false,
+          });
         });
         if (onboardingWizard) {
           navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
@@ -238,13 +233,10 @@ const ImportFromSeed = ({
           Logger.log('Error with seed phrase import', error);
         }
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
-            {
-              wallet_setup_type: 'import',
-              error_type: error.toString(),
-            },
-          );
+          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+            wallet_setup_type: 'import',
+            error_type: error.toString(),
+          });
         });
       }
     }
@@ -599,6 +591,7 @@ const ImportFromSeed = ({
           action={strings('import_from_seed.import_button')}
         />
       </View>
+      <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
 };

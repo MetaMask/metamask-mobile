@@ -2,9 +2,10 @@ import React, { useCallback, useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import styles from './Regions.styles';
 
-import BaseText from '../../../../Base/Text';
+import Text from '../../../../Base/Text';
 import BaseListItem from '../../../../Base/ListItem';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
 
@@ -25,11 +26,11 @@ import { createNavigationDetails } from '../../../../../util/navigation/navUtils
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
 import { useFiatOnRampSDK } from '../../sdk';
+import { Region } from '../../types';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
-import { TEST_ID_CONTINUE_BUTTON } from './Regions.constants';
+
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(
@@ -85,7 +86,7 @@ const RegionsView = () => {
   }, [navigation]);
 
   const handleRegionPress = useCallback(
-    (region) => {
+    (region: Region) => {
       setSelectedRegion(region);
       setSelectedFiatCurrencyId(null);
       hideRegionModal();
@@ -179,7 +180,6 @@ const RegionsView = () => {
               type="confirm"
               onPress={handleOnPress}
               disabled={!selectedRegion}
-              testID={TEST_ID_CONTINUE_BUTTON}
             >
               {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import BaseText from '../../../../Base/Text';
+import Text from '../../../../Base/Text';
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
 import PaymentMethod from '../../components/PaymentMethod';
@@ -20,15 +20,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useAnalytics from '../../hooks/useAnalytics';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
+
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
 
 import { createAmountToBuyNavDetails } from '../AmountToBuy';
-
-// TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 
 interface PaymenthMehodsParams {
   showBack?: boolean;

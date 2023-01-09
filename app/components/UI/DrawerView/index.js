@@ -46,7 +46,7 @@ import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
@@ -57,7 +57,7 @@ import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -564,7 +564,7 @@ class DrawerView extends PureComponent {
         this.setState({ showProtectWalletModal: true });
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED,
+            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
             {
               wallet_protection_required: false,
               source: 'Backup Alert',
@@ -627,7 +627,7 @@ class DrawerView extends PureComponent {
       }, 500);
     }
     !this.props.accountsModalVisible &&
-      this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
+      this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
   };
 
   toggleReceiveModal = () => {
@@ -699,7 +699,7 @@ class DrawerView extends PureComponent {
 
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       referral_source: 'In-app Navigation',
       chain_id: network,
     });
@@ -707,39 +707,39 @@ class DrawerView extends PureComponent {
 
   onReceive = () => {
     this.toggleReceiveModal();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 
   onSend = async () => {
     this.props.newAssetTransaction(getEther(this.props.ticker));
     this.props.navigation.navigate('SendFlowView');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND);
   };
 
   goToBrowser = () => {
     this.props.navigation.navigate(Routes.BROWSER_TAB_HOME);
     this.hideDrawer();
     this.trackOpenBrowserEvent();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER);
   };
 
   showWallet = () => {
     this.props.navigation.navigate('WalletTabHome');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
+    this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
   };
 
   goToTransactionHistory = () => {
     this.props.navigation.navigate('TransactionsHome');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
   };
 
   showSettings = async () => {
     this.props.navigation.navigate('SettingsView');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
   };
 
   logOut = () => {
@@ -779,7 +779,7 @@ class DrawerView extends PureComponent {
       ],
       { cancelable: false },
     );
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
   };
 
   viewInEtherscan = () => {
@@ -807,11 +807,11 @@ class DrawerView extends PureComponent {
       );
       this.goToBrowserUrl(url, etherscan_url);
     }
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
   };
 
   submitFeedback = () => {
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
     this.goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
@@ -823,7 +823,7 @@ class DrawerView extends PureComponent {
       'https://support.metamask.io',
       strings('drawer.metamask_support'),
     );
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
   };
 
   goToBrowserUrl(url, title) {
@@ -1072,7 +1072,7 @@ class DrawerView extends PureComponent {
       .catch((err) => {
         Logger.log('Error while trying to share address', err);
       });
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
   };
 
   closeInvalidCustomNetworkAlert = () => {
@@ -1110,7 +1110,7 @@ class DrawerView extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: true,
           source: 'Modal',
