@@ -702,7 +702,15 @@
     "keep_credential_safe": "Bewahren Sie Ihre {{credentialName}} sicher auf",
     "srp_abbreviation_text": "GWP",
     "srp_text": "Geheime Wiederherstellungsphrase",
-    "private_key_text": "Privater Key"
+    "private_key_text": "Privater Key",
+    "got_it": "Verstanden",
+    "learn_more": "Mehr erfahren"
+  },
+  "screenshot_deterrent": {
+    "title": "Sicherheitsalarm",
+    "description": "Screenshots sind keine sichere Methode, um Ihre {{credentialName}} sicher aufzubewahren. Bewahren Sie sie an einem Ort auf, der nicht online gesichert ist, um Ihr Konto zu schützen.",
+    "srp_text": "Geheime Wiederherstellungsphrase",
+    "priv_key_text": "Privater Key"
   },
   "password_reset": {
     "password_title": "Passwort",
@@ -763,12 +771,17 @@
     "allow_camera_dialog_message": "Wir benötigen Ihre Berechtigung, um QR-Codes zu scannen",
     "scanning": "Scanne ...",
     "ok": "Ok",
+    "continue": "Weiter",
     "cancel": "Abbrechen",
     "error": "Fehler",
     "attempting_to_scan_with_wallet_locked": "Es sieht aus, als würden Sie versuchen, einen QR-Code einzuscannen. Sie müssen Ihr Wallet entsperren, um diesen nutzen zu können.",
     "attempting_sync_from_wallet_error": "Es sieht aus, als würden Sie versuchen, die Erweiterung zu synchronisieren. Um dies zu tun, müssen Sie Ihr aktuelles Waller löschen. \n\nNachdem Sie die App gelöscht oder eine aktuelle Version der App neu installiert haben, wählen Sie die Option „Mit MetaMask-Erweiterung synchronisieren“. Wichtig! Bevor Sie Ihr Wallet löschen, stellen Sie sicher, dass Sie ein Backup Ihrer geheimen Wiederherstellungsphrase haben.",
     "not_allowed_error_title": "Kamerazugriff aktivieren",
-    "not_allowed_error_desc": "Kamerazugriff erforderlich, um einen QR-Code zu scannen, der einer Kontoadresse oder Kontaktadresse zugeordnet ist"
+    "not_allowed_error_desc": "Kamerazugriff erforderlich, um einen QR-Code zu scannen, der einer Kontoadresse oder Kontaktadresse zugeordnet ist",
+    "unrecognized_address_qr_code_title": "Unbekannter QR-Code",
+    "unrecognized_address_qr_code_desc": "Es tut uns leid, aber dieser QR-Code ist mit keiner Kontoadresse oder Contract-Adresse verbunden.",
+    "url_redirection_alert_title": "Sie sind im Begriff, einen externen Link zu besuchen",
+    "url_redirection_alert_desc": "Links können verwendet werden, um versuchen, Personen zu betrügen oder zu phishen, also besuchen Sie nur Webseiten, denen Sie vertrauen."
   },
   "action_view": {
     "cancel": "Abbrechen",

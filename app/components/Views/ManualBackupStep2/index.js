@@ -17,6 +17,7 @@ import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { shuffle, compareSRPs } from '../../../util/SRP';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
@@ -132,7 +133,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           words,
         });
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_CONFIRMED,
+          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         );
       });
     } else {

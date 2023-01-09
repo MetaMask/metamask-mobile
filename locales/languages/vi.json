@@ -702,7 +702,15 @@
     "keep_credential_safe": "Đảm bảo an toàn cho {{credentialName}} của bạn",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Cụm từ khôi phục bí mật",
-    "private_key_text": "Khóa riêng tư"
+    "private_key_text": "Khóa riêng tư",
+    "got_it": "Đã hiểu",
+    "learn_more": "Tìm hiểu thêm"
+  },
+  "screenshot_deterrent": {
+    "title": "Cảnh báo an toàn",
+    "description": "Ảnh chụp màn hình không phải là cách an toàn để theo dõi {{credentialName}} của bạn. Hãy lưu trữ ở một nơi không được sao lưu trực tuyến để đảm bảo an toàn cho tài khoản của bạn.",
+    "srp_text": "Cụm Mật Khẩu Khôi Phục Bí Mật",
+    "priv_key_text": "Khóa riêng tư"
   },
   "password_reset": {
     "password_title": "Mật khẩu",
@@ -763,12 +771,17 @@
     "allow_camera_dialog_message": "Chúng tôi cần sự cho phép của bạn để quét mã QR",
     "scanning": "đang quét...",
     "ok": "Ok",
+    "continue": "Tiếp tục",
     "cancel": "Hủy",
     "error": "Lỗi",
     "attempting_to_scan_with_wallet_locked": "Có vẻ như bạn đang cố quét mã QR, bạn cần mở khóa ví của mình để làm được điều đó.",
     "attempting_sync_from_wallet_error": "Có vẻ như bạn đang cố đồng bộ với tiện ích mở rộng. Để làm như vậy, bạn sẽ cần xóa ví hiện tại của mình. \n\nSau khi bạn đã xóa hoặc cài đặt lại phiên bản ứng dụng mới, hãy chọn tùy chọn \"Đồng bộ với Tiện ích mở rộng MetaMask\". Lưu ý quan trọng! Trước khi xóa ví, hãy đảm bảo rằng bạn đã sao lưu Cụm từ khôi phục bí mật.",
     "not_allowed_error_title": "Bật quyền truy cập camera",
-    "not_allowed_error_desc": "Cần cấp quyền truy cập camera để quét mã QR được liên kết với địa chỉ tài khoản hoặc địa chỉ hợp đồng"
+    "not_allowed_error_desc": "Cần cấp quyền truy cập camera để quét mã QR được liên kết với địa chỉ tài khoản hoặc địa chỉ hợp đồng",
+    "unrecognized_address_qr_code_title": "Không nhận diện được mã QR",
+    "unrecognized_address_qr_code_desc": "Rất tiếc, mã QR này không được liên kết với bất kỳ địa chỉ tài khoản hoặc địa chỉ hợp đồng nào.",
+    "url_redirection_alert_title": "Bạn sắp truy cập một liên kết bên ngoài",
+    "url_redirection_alert_desc": "Các liên kết có thể được sử dụng để cố gắng gian lận hoặc lừa đảo mọi người, vì vậy hãy đảm bảo chỉ truy cập các trang web mà bạn tin tưởng."
   },
   "action_view": {
     "cancel": "Hủy",

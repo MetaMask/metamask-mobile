@@ -10,7 +10,9 @@ import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import URL from 'url-parse';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
@@ -132,7 +134,7 @@ const WatchAssetRequest = ({
     onConfirm && onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
+        MetaMetricsEvents.TOKEN_ADDED,
         getAnalyticsParams(),
       );
       NotificationManager.showSimpleNotification({

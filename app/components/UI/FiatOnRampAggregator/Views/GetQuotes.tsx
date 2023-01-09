@@ -21,7 +21,12 @@ import {
   FiatCurrency,
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
+import useAnalytics from '../hooks/useAnalytics';
+import useInAppBrowser from '../hooks/useInAppBrowser';
+
 import ScreenLayout from '../components/ScreenLayout';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
@@ -41,8 +46,6 @@ import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
-import useAnalytics from '../hooks/useAnalytics';
-import useInAppBrowser from '../hooks/useInAppBrowser';
 
 import {
   createNavigationDetails,
