@@ -8,7 +8,7 @@ import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
+import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { useFiatOnRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
@@ -109,7 +109,7 @@ const CheckoutWebView = () => {
 
       if (
         Number(chainId) !== Number(selectedChainId) ||
-        NETWORK_NATIVE_SYMBOL[chainId] === symbol
+        address === NATIVE_ADDRESS
       ) {
         return;
       }
