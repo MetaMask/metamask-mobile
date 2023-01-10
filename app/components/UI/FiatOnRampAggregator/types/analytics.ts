@@ -6,7 +6,8 @@ export type ScreenLocation =
   | 'Provider Webview'
   | 'Provider InApp Browser'
   | 'Get Started Screen'
-  | 'Order Details Screen';
+  | 'Order Details Screen'
+  | 'Settings Screen';
 
 export interface AnalyticsEvents {
   BUY_BUTTON_CLICKED: {
@@ -18,6 +19,9 @@ export interface AnalyticsEvents {
     is_unsupported: boolean;
     country_onramp_id: string;
     state_onramp_id?: string;
+    location?: ScreenLocation;
+  };
+  ONRAMP_REGION_RESET: {
     location?: ScreenLocation;
   };
   ONRAMP_PAYMENT_METHOD_SELECTED: {

@@ -8,6 +8,7 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,6 +82,13 @@ class Settings extends PureComponent {
     this.props.navigation.navigate('NetworksSettings');
   };
 
+  onPressOnRamp = () => {
+    InteractionManager.runAfterInteractions(() =>
+      Analytics.trackEvent(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED),
+    );
+    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.SETTINGS);
+  };
+
   onPressExperimental = () => {
     InteractionManager.runAfterInteractions(() =>
       Analytics.trackEvent(MetaMetricsEvents.SETTINGS_EXPERIMENTAL),
@@ -131,6 +139,11 @@ class Settings extends PureComponent {
           title={strings('app_settings.networks_title')}
           description={strings('app_settings.networks_desc')}
           onPress={this.onPressNetworks}
+        />
+        <SettingsDrawer
+          title={strings('app_settings.fiat_on_ramp.title')}
+          description={strings('app_settings.fiat_on_ramp.description')}
+          onPress={this.onPressOnRamp}
         />
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
