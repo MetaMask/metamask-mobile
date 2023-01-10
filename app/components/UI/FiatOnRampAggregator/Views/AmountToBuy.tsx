@@ -14,7 +14,8 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
 import usePaymentMethods from '../hooks/usePaymentMethods';
 import useRegions from '../hooks/useRegions';
 import useAnalytics from '../hooks/useAnalytics';
@@ -56,6 +57,7 @@ import { Colors } from '../../../../util/theme/models';
 import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
 import { formatAmount } from '../utils';
 import { createGetQuotesNavDetails } from './GetQuotes';
+import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -430,7 +432,7 @@ const AmountToBuy = () => {
   }, [toggleRegionModal]);
 
   const handleRegionPress = useCallback(
-    async (region) => {
+    async (region: Region) => {
       hideRegionModal();
       setAmount('0');
       setAmountNumber(0);

@@ -1,43 +1,43 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import BaseText from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
-import useModalHandler from '../../../Base/hooks/useModalHandler';
-import ScreenLayout from '../components/ScreenLayout';
-import Box from '../components/Box';
-import RegionModal from '../components/RegionModal';
-import StyledButton from '../../StyledButton';
-import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { useFiatOnRampSDK } from '../sdk';
-import RegionAlert from '../components/RegionAlert';
-import SkeletonText from '../components/SkeletonText';
-import ErrorView from '../components/ErrorView';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
-import useRegions from '../hooks/useRegions';
-import { createNavigationDetails } from '../../../../util/navigation/navUtils';
-import { createPaymentMethodsNavDetails } from './PaymentMethods';
+
+import styles from './Regions.styles';
+
+import Text from '../../../../Base/Text';
+import BaseListItem from '../../../../Base/ListItem';
+import useModalHandler from '../../../../Base/hooks/useModalHandler';
+
+import ScreenLayout from '../../components/ScreenLayout';
+import Box from '../../components/Box';
+import RegionModal from '../../components/RegionModal';
+import RegionAlert from '../../components/RegionAlert';
+import SkeletonText from '../../components/SkeletonText';
+import ErrorView from '../../components/ErrorView';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+
+import StyledButton from '../../../StyledButton';
+import { getFiatOnRampAggNavbar } from '../../../Navbar';
+import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import { createPaymentMethodsNavDetails } from '../PaymentMethods';
+
+import { useFiatOnRampSDK } from '../../sdk';
+import { Region } from '../../types';
+import useAnalytics from '../../hooks/useAnalytics';
+import useRegions from '../../hooks/useRegions';
 
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
-const styles = StyleSheet.create({
-  flexZero: {
-    flex: 0,
-  },
-});
-
-export const createRegionNavDetails = createNavigationDetails(
+export const createRegionsNavDetails = createNavigationDetails(
   Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
 );
 
-const RegionView = () => {
+const RegionsView = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -86,7 +86,7 @@ const RegionView = () => {
   }, [navigation]);
 
   const handleRegionPress = useCallback(
-    (region) => {
+    (region: Region) => {
       setSelectedRegion(region);
       setSelectedFiatCurrencyId(null);
       hideRegionModal();
@@ -141,17 +141,12 @@ const RegionView = () => {
         title={strings('fiat_on_ramp_aggregator.region.your_region')}
         description={strings('fiat_on_ramp_aggregator.region.description')}
       />
-      <RegionAlert
-        isVisible={Boolean(unsupportedRegion)}
-        subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
-        dismiss={clearUnsupportedRegion}
-        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
-        link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
-      />
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          <TouchableOpacity onPress={showRegionModal as () => void}>
+          <TouchableOpacity
+            onPress={showRegionModal}
+            accessibilityRole="button"
+          >
             <Box>
               <ListItem.Content>
                 <ListItem.Body>
@@ -177,17 +172,6 @@ const RegionView = () => {
             </Box>
           </TouchableOpacity>
         </ScreenLayout.Content>
-        <RegionModal
-          isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
-          description={strings(
-            'fiat_on_ramp_aggregator.region.select_country_registered',
-          )}
-          data={data}
-          dismiss={hideRegionModal as () => void}
-          onRegionPress={handleRegionPress}
-          location={'Region Screen'}
-        />
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
@@ -202,8 +186,29 @@ const RegionView = () => {
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
+
+      <RegionAlert
+        isVisible={Boolean(unsupportedRegion)}
+        subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
+        dismiss={clearUnsupportedRegion}
+        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+        link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+      />
+
+      <RegionModal
+        isVisible={isRegionModalVisible}
+        title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
+        description={strings(
+          'fiat_on_ramp_aggregator.region.select_country_registered',
+        )}
+        data={data}
+        dismiss={hideRegionModal as () => void}
+        onRegionPress={handleRegionPress}
+        location={'Region Screen'}
+      />
     </ScreenLayout>
   );
 };
 
-export default RegionView;
+export default RegionsView;

@@ -1,96 +1,87 @@
+import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
+import { Region } from '../../components/UI/FiatOnRampAggregator/types';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
-
-/**
- * @typedef FiatOrder
- * @type {object}
- * @property {string} id - Original id given by Provider. Orders are identified by (provider, id)
- * @property {FIAT_ORDER_PROVIDERS}  provider Fiat Provider
- * @property {number} createdAt Fiat amount
- * @property {string|number} amount Fiat amount
- * @property {string|number} [fee] Fiat fee
- * @property {string|number} [cryptoAmount] Crypto currency amount
- * @property {string|number} [cryptoFee] Crypto currency fee
- * @property {string} currency "USD"
- * @property {string} cryptocurrency "ETH"
- * @property {string} [currencySymbol] "$"
- * @property {string} [amountInUSD] Fiat amount in USD
- * @property {FIAT_ORDER_STATES} state Order state
- * @property {string} account <account wallet address>
- * @property {string} network <network>
- * @property {?string} txHash <transaction hash | null>
- * @property {boolean} excludeFromPurchases
- * @property {string} orderType
- * @property {object|import('@consensys/on-ramp-sdk').Order} data original provider data
- * @property {object} [data.order] : Wyre order response
- * @property {object} [data.transfer] : Wyre transfer response
- */
+import {
+  Action,
+  ACTIONS,
+  CustomIdData,
+  FiatOrder,
+  FiatOrdersState,
+  RootState,
+} from './types';
+export type { FiatOrder } from './types';
 
 /** Action Creators */
 
-const ACTIONS = {
-  FIAT_ADD_ORDER: 'FIAT_ADD_ORDER',
-  FIAT_UPDATE_ORDER: 'FIAT_UPDATE_ORDER',
-  FIAT_REMOVE_ORDER: 'FIAT_REMOVE_ORDER',
-  FIAT_RESET: 'FIAT_RESET',
-  FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY',
-  // aggregator actions
-  FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
-  FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
-  FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
-  FIAT_ADD_CUSTOM_ID_DATA: 'FIAT_ADD_CUSTOM_ID_DATA',
-  FIAT_UPDATE_CUSTOM_ID_DATA: 'FIAT_UPDATE_CUSTOM_ID_DATA',
-  FIAT_REMOVE_CUSTOM_ID_DATA: 'FIAT_REMOVE_CUSTOM_ID_DATA',
-  FIAT_ADD_AUTHENTICATION_URL: 'FIAT_ADD_AUTHENTICATION_URL',
-  FIAT_REMOVE_AUTHENTICATION_URL: 'FIAT_REMOVE_AUTHENTICATION_URL',
-};
-
-export const addFiatOrder = (order) => ({
+export const resetFiatOrders = () => ({
+  type: ACTIONS.FIAT_RESET,
+});
+export const addFiatOrder = (order: FiatOrder) => ({
   type: ACTIONS.FIAT_ADD_ORDER,
   payload: order,
 });
-export const updateFiatOrder = (order) => ({
+export const removeFiatOrder = (order: FiatOrder) => ({
+  type: ACTIONS.FIAT_REMOVE_ORDER,
+  payload: order,
+});
+export const updateFiatOrder = (order: FiatOrder) => ({
   type: ACTIONS.FIAT_UPDATE_ORDER,
   payload: order,
 });
-export const setFiatOrdersCountry = (countryCode) => ({
+export const setFiatOrdersCountry = (countryCode: string) => ({
   type: ACTIONS.FIAT_SET_COUNTRY,
   payload: countryCode,
 });
-export const setFiatOrdersRegionAGG = (regionCode) => ({
+export const setFiatOrdersRegionAGG = (region: Region | null) => ({
   type: ACTIONS.FIAT_SET_REGION_AGG,
-  payload: regionCode,
+  payload: region,
 });
-export const setFiatOrdersPaymentMethodAGG = (paymentMethodId) => ({
+export const setFiatOrdersPaymentMethodAGG = (paymentMethodId: string) => ({
   type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
   payload: paymentMethodId,
 });
-export const setFiatOrdersGetStartedAGG = (getStartedFlag) => ({
+export const setFiatOrdersGetStartedAGG = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
   payload: getStartedFlag,
 });
-export const addFiatCustomIdData = (customIdData) => ({
+export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
   type: ACTIONS.FIAT_ADD_CUSTOM_ID_DATA,
   payload: customIdData,
 });
-export const updateFiatCustomIdData = (customIdData) => ({
+export const updateFiatCustomIdData = (customIdData: CustomIdData) => ({
   type: ACTIONS.FIAT_UPDATE_CUSTOM_ID_DATA,
   payload: customIdData,
 });
-export const removeFiatCustomIdData = (customIdData) => ({
+export const removeFiatCustomIdData = (customIdData: CustomIdData) => ({
   type: ACTIONS.FIAT_REMOVE_CUSTOM_ID_DATA,
   payload: customIdData,
 });
-export const addAuthenticationUrl = (authenticationUrl) => ({
+export const addAuthenticationUrl = (authenticationUrl: string) => ({
   type: ACTIONS.FIAT_ADD_AUTHENTICATION_URL,
   payload: authenticationUrl,
 });
-export const removeAuthenticationUrl = (authenticationUrl) => ({
+export const removeAuthenticationUrl = (authenticationUrl: string) => ({
   type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL,
   payload: authenticationUrl,
+});
+export const addActivationKey = (activationKey: string) => ({
+  type: ACTIONS.FIAT_ADD_ACTIVATION_KEY,
+  payload: activationKey,
+});
+export const removeActivationKey = (activationKey: string) => ({
+  type: ACTIONS.FIAT_REMOVE_ACTIVATION_KEY,
+  payload: activationKey,
+});
+export const updateActivationKey = (
+  activationKey: string,
+  active: boolean,
+) => ({
+  type: ACTIONS.FIAT_UPDATE_ACTIVATION_KEY,
+  payload: { key: activationKey, active },
 });
 
 /**
@@ -101,7 +92,10 @@ export const removeAuthenticationUrl = (authenticationUrl) => ({
  * Get the provider display name
  * @param {FIAT_ORDER_PROVIDERS} provider
  */
-export const getProviderName = (provider, data = {}) => {
+export const getProviderName = (
+  provider: FIAT_ORDER_PROVIDERS,
+  data: FiatOrder['data'],
+) => {
   switch (provider) {
     case FIAT_ORDER_PROVIDERS.WYRE:
     case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
@@ -114,7 +108,7 @@ export const getProviderName = (provider, data = {}) => {
       return 'MoonPay';
     }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
-      const providerName = data.provider?.name;
+      const providerName = (data as Order).provider?.name;
       return providerName ? `${providerName}` : '...';
     }
     default: {
@@ -127,19 +121,30 @@ const INITIAL_SELECTED_REGION = null;
 const INITIAL_GET_STARTED = false;
 const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
 
-const ordersSelector = (state) => state.fiatOrders.orders || [];
-export const chainIdSelector = (state) =>
-  state.engine.backgroundState.NetworkController.provider.chainId;
+const ordersSelector = (state: RootState) =>
+  (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
+export const chainIdSelector: (state: RootState) => string = (
+  state: RootState,
+) => state.engine.backgroundState.NetworkController.provider.chainId;
 
-export const selectedAddressSelector = (state) =>
-  state.engine.backgroundState.PreferencesController.selectedAddress;
-export const fiatOrdersCountrySelector = (state) =>
+export const selectedAddressSelector: (state: RootState) => string = (
+  state: RootState,
+) => state.engine.backgroundState.PreferencesController.selectedAddress;
+export const fiatOrdersCountrySelector: (
+  state: RootState,
+) => FiatOrdersState['selectedCountry'] = (state: RootState) =>
   state.fiatOrders.selectedCountry;
-export const fiatOrdersRegionSelectorAgg = (state) =>
+export const fiatOrdersRegionSelectorAgg: (
+  state: RootState,
+) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>
   state.fiatOrders.selectedRegionAgg;
-export const fiatOrdersPaymentMethodSelectorAgg = (state) =>
+export const fiatOrdersPaymentMethodSelectorAgg: (
+  state: RootState,
+) => FiatOrdersState['selectedPaymentMethodAgg'] = (state: RootState) =>
   state.fiatOrders.selectedPaymentMethodAgg;
-export const fiatOrdersGetStartedAgg = (state) =>
+export const fiatOrdersGetStartedAgg: (
+  state: RootState,
+) => FiatOrdersState['getStartedAgg'] = (state: RootState) =>
   state.fiatOrders.getStartedAgg;
 
 export const getOrders = createSelector(
@@ -168,7 +173,10 @@ export const getPendingOrders = createSelector(
     ),
 );
 
-const customOrdersSelector = (state) => state.fiatOrders.customOrderIds || [];
+const customOrdersSelector: (
+  state: RootState,
+) => FiatOrdersState['customOrderIds'] = (state: RootState) =>
+  state.fiatOrders.customOrderIds || [];
 
 export const getCustomOrderIds = createSelector(
   customOrdersSelector,
@@ -182,20 +190,27 @@ export const getCustomOrderIds = createSelector(
     ),
 );
 
-export const makeOrderIdSelector = (orderId) =>
+export const makeOrderIdSelector = (orderId?: FiatOrder['id']) =>
   createSelector(ordersSelector, (orders) =>
     orders.find((order) => order.id === orderId),
   );
 
-export const getAuthenticationUrls = (state) =>
+export const getAuthenticationUrls: (
+  state: RootState,
+) => FiatOrdersState['authenticationUrls'] = (state: RootState) =>
   state.fiatOrders.authenticationUrls || [];
+
+export const getActivationKeys: (
+  state: RootState,
+) => FiatOrdersState['activationKeys'] = (state: RootState) =>
+  state.fiatOrders.activationKeys || [];
 
 export const getHasOrders = createSelector(
   getOrders,
   (orders) => orders.length > 0,
 );
 
-export const initialState = {
+export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
   selectedCountry: 'US',
@@ -204,15 +219,25 @@ export const initialState = {
   selectedPaymentMethodAgg: INITIAL_PAYMENT_METHOD,
   getStartedAgg: INITIAL_GET_STARTED,
   authenticationUrls: [],
+  activationKeys: [],
 };
 
-const findOrderIndex = (provider, id, orders) =>
+const findOrderIndex = (
+  provider: FiatOrder['provider'],
+  id: FiatOrder['id'],
+  orders: FiatOrder[],
+) =>
   orders.findIndex((order) => order.id === id && order.provider === provider);
 
-const findCustomIdIndex = (id, customOrderIds) =>
-  customOrderIds.findIndex((customOrderId) => customOrderId.id === id);
+const findCustomIdIndex = (
+  id: FiatOrder['id'],
+  customOrderIds: CustomIdData[],
+) => customOrderIds.findIndex((customOrderId) => customOrderId.id === id);
 
-const fiatOrderReducer = (state = initialState, action) => {
+const fiatOrderReducer: (
+  state: FiatOrdersState | undefined,
+  action: Action | Record<'type', null>,
+) => FiatOrdersState = (state = initialState, action = { type: null }) => {
   switch (action.type) {
     case ACTIONS.FIAT_ADD_ORDER: {
       const orders = state.orders;
@@ -358,6 +383,59 @@ const fiatOrderReducer = (state = initialState, action) => {
         ],
       };
     }
+    case ACTIONS.FIAT_ADD_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const key = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index !== -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [...state.activationKeys, { key, active: true }],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const key = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [
+          ...activationKeys.slice(0, index),
+          ...activationKeys.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_UPDATE_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const { key, active } = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [
+          ...activationKeys.slice(0, index),
+          {
+            ...activationKeys[index],
+            active,
+          },
+          ...activationKeys.slice(index + 1),
+        ],
+      };
+    }
+
     default: {
       return state;
     }
