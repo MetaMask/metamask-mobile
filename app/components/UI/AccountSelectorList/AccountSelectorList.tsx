@@ -163,6 +163,10 @@ const AccountSelectorList = ({
         isSelectedAccount = selectedAddresses.includes(address);
       }
 
+      const cellStyle = {
+        opacity: isLoading ? 0.5 : 1,
+      };
+
       return (
         <Cell
           onLongPress={() => {
@@ -186,8 +190,7 @@ const AccountSelectorList = ({
           }}
           tagLabel={tagLabel}
           disabled={isDisabled}
-          /* eslint-disable-next-line */
-          style={{ opacity: isLoading ? 0.5 : 1 }}
+          style={cellStyle}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets))}

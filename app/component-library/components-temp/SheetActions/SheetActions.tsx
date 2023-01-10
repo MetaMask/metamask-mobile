@@ -24,6 +24,10 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
           // Avoid drawing separator above the first element
           const isFirstElement = index === 0;
 
+          const buttonStyle = {
+            opacity: disabled ? 0.5 : 1,
+          };
+
           return (
             <React.Fragment key={key}>
               {actions.length > 1 && !isFirstElement && (
@@ -35,8 +39,7 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
                   label={label}
                   size={ButtonSize.Lg}
                   disabled={disabled || isLoading}
-                  /* eslint-disable-next-line */
-                  style={{ opacity: disabled ? 0.5 : 1 }}
+                  style={buttonStyle}
                   variant={variant}
                   {...generateTestId(Platform, testID)}
                 />
