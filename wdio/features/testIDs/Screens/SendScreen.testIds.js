@@ -8,6 +8,9 @@ export const SEND_ADDRESS_INPUT_FIELD =
   export const UNDERSTAND_WARNING_CONTINUE =
   'error-message-warning';
 
+  export const AMOUNT_SCREEN =
+  'amount-screen';
+
   export const ADD_THIS_ADDRESS_TO_BOOK =
   'add-to-address-book';
 

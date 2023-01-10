@@ -28,6 +28,8 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   DELETE_MODAL_UNDERSTAND_CONTINUE_ID,
   DELETE_MODAL_CANCEL_BUTTON,
+  DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY,
+  DELETE_MODEL_DELETE_MY_WALLET_CANCEL,
 } from '../../../../wdio/features/testIDs/Components/DeleteWalletModal.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
@@ -103,8 +105,8 @@ const DeleteWalletModal = () => {
         <WarningExistingUserModal
           warningModalVisible
           cancelText={strings('login.delete_my')}
-          cancelTestID={'delete-my-wallet-button-on-permanetly-delete-modal'}
-          confirmTestID={'cancel-button-on-permanetly-delete-modal'}
+          cancelTestID={DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY}
+          confirmTestID={DELETE_MODEL_DELETE_MY_WALLET_CANCEL}
           cancelButtonDisabled={disableButton}
           onCancelPress={deleteWallet}
           onRequestClose={triggerClose}

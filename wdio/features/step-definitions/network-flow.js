@@ -14,8 +14,8 @@ import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkE
 import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 25000;//added for running on physical device
-  await driver.pause(setTimeout); 
+  const setTimeout = 50000;
+  await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.swipeUp();
@@ -112,7 +112,7 @@ Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
 
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
-  const setTimeout = 1500;
+  const setTimeout = 2000;
   await driver.pause(setTimeout);
 });
 
@@ -174,7 +174,7 @@ Then(/^I type "([^"]*)?" into the Network symbol field/, async (data) => {
   await NetworksScreen.typeIntoNetworkSymbol(data);
 });
 
-Then(/^the Block Explorer URL input box is visible/, async (data) => {
+Then(/^the Block Explorer URL input box is visible/, async () => {
   await NetworksScreen.isBlockExplorerUrlVisible();
 });
 
@@ -190,6 +190,8 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard();// hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
 });
 
 Then(/^I tap and hold network "([^"]*)?"/, async (network) => {
