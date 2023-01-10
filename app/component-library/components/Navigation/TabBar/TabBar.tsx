@@ -21,8 +21,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const label = descriptors[route.key].options.tabBarLabel as TabBarLabel;
-      if (!label) return null;
-
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_LABEL[label];
