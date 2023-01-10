@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
 import TokenIcon from '../Swaps/components/TokenIcon';
 
