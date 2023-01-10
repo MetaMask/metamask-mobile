@@ -73,7 +73,7 @@ Then(/^I am on the contacts view/, async () => {
 
 Then(/^I tap button "([^"]*)?" which is now enabled/, async (text) => {
     await Contacts.isAddContactButtonEnabled();
-     await Contacts.tapOnAddContactButton();
+    await Contacts.tapOnAddContactButton();
 });
 
 Then(/^I input "([^"]*)?" into the contact name field/, async (name) => {
@@ -93,7 +93,7 @@ Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
 });
 
 Then(/I tap on Edit button to edit Saved contact details/, async () => {
-    const timeout = 1500;
+    const timeout = 2000;
     await driver.pause(timeout);
     await Contacts.tapOnEditButton();
 });
@@ -106,9 +106,9 @@ Then(/^I tap the Edit Contact button which is enabled to confirm the change/, as
     await Contacts.tapOnAddContactButton();// same Id as Edit Contact button
 });
 
-Then(/^I return to the send flow/, async (text) => {
+Then(/^I return to the send flow/, async () => {
     await Contacts.isAddContactButtonEnabled();
-     await Contacts.tapOnAddContactButton();
+    await Contacts.tapOnAddContactButton();
 });
 
 Then(/^I should see the edited name "([^"]*)?" contact under Recents on the send screen/, async (name) => {

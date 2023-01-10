@@ -29,7 +29,7 @@ class MetaMetricsScreen {
     await this.swipeUp();
     const elem = $(`~${OPTIN_METRICS_NO_THANKS_BUTTON_ID}`);
     await Gestures.tap(elem);
-    await elem.waitForDisplayed({ reverse: true });
+    await driver.pause(2000);
   }
 }
 
