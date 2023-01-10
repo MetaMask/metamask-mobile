@@ -1199,8 +1199,7 @@
     "empty_popular_networks": "You’ve added all the popular networks. You can discover more networks",
     "add_other_network_here": "here.",
     "you_can": "Or you can",
-    "add_network": "add more networks manually.",
-    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon."
+    "add_network": "add more networks manually."
   },
   "select": {
     "cancel": "Cancel",
