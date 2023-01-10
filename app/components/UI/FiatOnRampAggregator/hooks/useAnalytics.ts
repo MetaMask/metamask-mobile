@@ -6,6 +6,7 @@ import { AnalyticsEvents } from '../types';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [
   'ONRAMP_REGION_SELECTED',
+  'ONRAMP_REGION_RESET',
   'ONRAMP_PAYMENT_METHOD_SELECTED',
   'ONRAMP_QUOTES_REQUESTED',
   'ONRAMP_QUOTES_RECEIVED',
