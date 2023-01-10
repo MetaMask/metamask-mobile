@@ -4,7 +4,7 @@ import render from '../../../../../util/test/renderWithProvider';
 
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
-import { IFiatOnRampSDK } from '../../sdk';
+import { OnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import { fireEvent } from '@testing-library/react-native';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
@@ -12,14 +12,14 @@ import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
+const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
 };
 
-let mockUseFiatOnRampSDKValues: Partial<IFiatOnRampSDK> = {
+let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
   ...mockuseFiatOnRampSDKInitialValues,
 };
 

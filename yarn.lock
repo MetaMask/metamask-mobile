@@ -1537,10 +1537,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.4.1.tgz#b2e9809de3231ae1d99625621995acc5e1d0e9cd"
-  integrity sha512-40BM8gaR2ShmdG+NSDrOtl6ZVr7uYFC6L3g9Im599fElNqBWVR9SyW1QbUn7UOrcrF+VzTg1DblgZ7MW06E5qw==
+"@consensys/on-ramp-sdk@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.6.0.tgz#8eeb2fc7f62407dea30b03cc3e014b8154a248ea"
+  integrity sha512-G58/ncUJSYKLN8d++LazX/oNYURtQKhGokJhyNL4O4Vi8LmZbRWgJg463xTc600bFfhC7oEzEXVoYuCbAM83Ig==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -4049,10 +4049,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/sdk-communication-layer@^0.0.1-beta.3":
-  version "0.0.1-beta.3"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.0.1-beta.3.tgz#65afc1a80eb4e59c55be1a008265a8329c934725"
-  integrity sha512-9niXUF1BO1iu0TEZAj6GcfoThgKx7Cuugn42sNHINZMLKIhF57fah3cyLDxZFFnn3/zhlg3l2ZLyGmPkhX1VvQ==
+"@metamask/sdk-communication-layer@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.1.0.tgz#ca4db624eb7eec6cc1f0b03de6385a43a1a3f11e"
+  integrity sha512-y9iWBOc3HKXn1dnkeN31nH1aUP/OKsSThUg8s+37skhgIw7EpUQM+AAc2pfGht/3O4gLb9iQ5BVr9kQfSCHSGw==
   dependencies:
     eciesjs "^0.3.15"
     eventemitter2 "^6.4.5"
