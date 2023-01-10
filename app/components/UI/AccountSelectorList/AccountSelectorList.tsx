@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
@@ -39,32 +39,13 @@ const AccountSelectorList = ({
 }: AccountSelectorListProps) => {
   const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
+  const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  useEffect(() => {
-    if (!accounts.length || isMultiSelect) return;
-    const selectedAddressOverride = selectedAddresses?.[0];
-    const account = accounts.find(({ isSelected, address }) =>
-      selectedAddressOverride
-        ? selectedAddressOverride === address
-        : isSelected,
-    );
-    if (account) {
-      // Wrap in timeout to provide more time for the list to render.
-      setTimeout(() => {
-        accountListRef?.current?.scrollToOffset({
-          offset: account.yOffset,
-          animated: false,
-        });
-      }, 0);
-    }
-    // eslint-disable-next-line
-  }, [accounts.length, selectedAddresses, isMultiSelect]);
 
   const getKeyExtractor = ({ address }: Account) => address;
 
@@ -211,9 +192,28 @@ const AccountSelectorList = ({
     ],
   );
 
+  const onContentSizeChanged = useCallback(() => {
+    // Handle auto scroll to account
+    if (!accounts.length || isMultiSelect) return;
+    if (accountsLengthRef.current !== accounts.length) {
+      const selectedAddressOverride = selectedAddresses?.[0];
+      const account = accounts.find(({ isSelected, address }) =>
+        selectedAddressOverride
+          ? selectedAddressOverride === address
+          : isSelected,
+      );
+      accountListRef?.current?.scrollToOffset({
+        offset: account?.yOffset,
+        animated: false,
+      });
+      accountsLengthRef.current = accounts.length;
+    }
+  }, [accounts.length, selectedAddresses, isMultiSelect]);
+
   return (
     <FlatList
       ref={accountListRef}
+      onContentSizeChange={onContentSizeChanged}
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
