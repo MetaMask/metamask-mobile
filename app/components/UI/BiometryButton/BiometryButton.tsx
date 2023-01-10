@@ -1,45 +1,38 @@
-/* eslint-disable import/no-commonjs */
 import React from 'react';
-import {
-  TouchableOpacity,
-  Image as ImageRN,
-  Platform,
-  StyleSheet,
-} from 'react-native';
-import PropTypes from 'prop-types';
+import { TouchableOpacity, Image as ImageRN, Platform } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../util/theme';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { createStyles } from './styles';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
-    fixCenterIcon: {
-      marginBottom: -3,
-    },
-    image: {
-      height: 24,
-      width: 24,
-      tintColor: colors.text.default,
-    },
-    hitSlop: {
-      top: 10,
-      left: 10,
-      bottom: 10,
-      right: 10,
-    },
-  });
-
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable import/no-commonjs */
 const iosFaceId = require('../../../images/ios-face-id.png');
 const androidFaceRecognition = require('../../../images/android-face-recognition.png');
 const androidIris = require('../../../images/android-iris.png');
 
-const BiometryButton = ({ onPress, hidden, type }) => {
+type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE.BIOMETRIC;
+
+interface BiometryButtonProps {
+  onPress: () => void;
+  hidden: boolean;
+  biometryType: BiometryType;
+}
+
+const BiometryButton = ({
+  onPress,
+  hidden,
+  biometryType,
+}: BiometryButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const renderIcon = (type) => {
+  const renderIcon = (type: BiometryType) => {
     if (Platform.OS === 'ios') {
-      if (type === 'TouchID')
+      if (type === 'TouchID') {
         return (
           <Ionicons
             color={colors.text.default}
@@ -48,8 +41,8 @@ const BiometryButton = ({ onPress, hidden, type }) => {
             name="ios-finger-print"
           />
         );
-      if (type === 'FaceID')
-        return <ImageRN style={styles.image} source={iosFaceId} />;
+      }
+      return <ImageRN style={styles.image} source={iosFaceId} />;
     }
 
     if (Platform.OS === 'android') {
@@ -82,24 +75,9 @@ const BiometryButton = ({ onPress, hidden, type }) => {
 
   return (
     <TouchableOpacity hitSlop={styles.hitSlop} onPress={onPress}>
-      {renderIcon(type)}
+      {renderIcon(biometryType)}
     </TouchableOpacity>
   );
-};
-
-BiometryButton.propTypes = {
-  /**
-   * Callback for when the button is pressed
-   */
-  onPress: PropTypes.func,
-  /**
-   * If this button should not appear
-   */
-  hidden: PropTypes.bool,
-  /**
-   * Type of biometry icon
-   */
-  type: PropTypes.string,
 };
 
 export default BiometryButton;
