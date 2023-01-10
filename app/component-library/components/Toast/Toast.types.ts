@@ -58,6 +58,7 @@ interface AccountToastOption extends BaseToastVariants {
  */
 interface NetworkToastOption extends BaseToastVariants {
   variant: ToastVariants.Network;
+  networkName?: string;
   networkImageSource: ImageSourcePropType;
 }
 

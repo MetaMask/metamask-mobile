@@ -271,11 +271,7 @@ export class NetworkList extends PureComponent {
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
           ) : (
-            <AvatarNetwork
-              name={name}
-              size={AvatarSize.Sm}
-              style={styles.networkIcon}
-            />
+            <AvatarNetwork name={name} style={styles.networkIcon} />
           ))}
         {!isCustomRpc &&
           (image ? (
