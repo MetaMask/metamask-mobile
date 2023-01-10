@@ -20,7 +20,7 @@ export const trackEventV2 = (eventName, params) => {
     InteractionManager.runAfterInteractions(() => {
       let anonymousEvent = false;
       try {
-        if (!params) {
+        if (!params || Object.keys(params).length === 0) {
           Analytics.trackEvent(eventName);
         }
 
