@@ -194,7 +194,8 @@ exports[`GetStarted renders correctly 1`] = `
         }
       >
         <TouchableOpacity
-          accessibilityRole="button"
+          accessibilityComponentType="button"
+          accessibilityTraits="button"
           activeOpacity={0.2}
           onPress={[Function]}
           style={
@@ -479,7 +480,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             }
           >
             <TouchableOpacity
-              accessibilityRole="button"
+              accessibilityComponentType="button"
+              accessibilityTraits="button"
               activeOpacity={0.2}
               onPress={[Function]}
               style={

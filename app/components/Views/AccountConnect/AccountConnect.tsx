@@ -20,7 +20,7 @@ import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import {
   ToastContext,
@@ -174,7 +174,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
         AnalyticsV2.trackEvent(
-          ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
           {},
         );
       } catch (e: any) {
@@ -226,7 +226,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             navigation.navigate('ImportPrivateKeyView');
             // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
             AnalyticsV2.trackEvent(
-              ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
               {},
             );
           });
@@ -238,7 +238,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             navigation.navigate('ConnectQRHardwareFlow');
             // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
             AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
               {},
             );
           });

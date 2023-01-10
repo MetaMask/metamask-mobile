@@ -29,7 +29,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icon';
@@ -129,7 +129,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          {},
+        );
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
       } finally {
@@ -214,7 +217,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             navigation.navigate('ImportPrivateKeyView');
             // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
             AnalyticsV2.trackEvent(
-              ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
               {},
             );
           });
@@ -225,7 +228,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             navigation.navigate('ConnectQRHardwareFlow');
             // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
             AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
               {},
             );
           });

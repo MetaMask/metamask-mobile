@@ -599,7 +599,8 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -1594,7 +1595,8 @@ exports[`Amount should convert ETH to USD 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -2606,7 +2608,8 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -3618,7 +3621,8 @@ exports[`Amount should convert USD to ETH 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -4612,7 +4616,8 @@ exports[`Amount should display correct balance 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -5607,7 +5612,8 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={0.2}
                             disabled={false}
                             onPress={[Function]}
@@ -6517,7 +6523,8 @@ exports[`Amount should render correctly 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -7581,7 +7588,8 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityRole="button"
+                            accessibilityComponentType="button"
+                            accessibilityTraits="button"
                             activeOpacity={0.2}
                             disabled={false}
                             onPress={[Function]}
