@@ -36,7 +36,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
@@ -324,7 +324,7 @@ class ApproveTransactionReview extends PureComponent {
       },
       () => {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED,
+          MetaMetricsEvents.APPROVAL_STARTED,
           this.getAnalyticsParams(),
         );
       },
@@ -404,7 +404,7 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
     this.setState({ viewDetails: !viewDetails });
   };
 
@@ -412,7 +412,7 @@ class ApproveTransactionReview extends PureComponent {
     const { editPermissionVisible } = this.state;
     !editPermissionVisible &&
       this.trackApproveEvent(
-        ANALYTICS_EVENT_OPTS.DAPP_APPROVE_SCREEN_EDIT_PERMISSION,
+        MetaMetricsEvents.DAPP_APPROVE_SCREEN_EDIT_PERMISSION,
       );
     this.setState({ editPermissionVisible: !editPermissionVisible });
   };
@@ -451,14 +451,14 @@ class ApproveTransactionReview extends PureComponent {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED,
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       this.getAnalyticsParams(),
     );
   };
 
   edit = () => {
     const { onModeChange } = this.props;
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION);
+    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -503,7 +503,7 @@ class ApproveTransactionReview extends PureComponent {
     }
     this.toggleEditPermission();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED,
+      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       this.getAnalyticsParams(),
     );
   };
@@ -829,9 +829,7 @@ class ApproveTransactionReview extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

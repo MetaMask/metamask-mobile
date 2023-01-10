@@ -126,7 +126,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.4.1",
+    "@consensys/on-ramp-sdk": "1.6.0",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -149,7 +149,7 @@
     "@metamask/network-controller": "^1.0.0",
     "@metamask/phishing-controller": "^1.1.0",
     "@metamask/preferences-controller": "^1.0.1",
-    "@metamask/sdk-communication-layer": "^0.0.1-beta.3",
+    "@metamask/sdk-communication-layer": "^0.1.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^1.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -172,7 +172,7 @@
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "2.4.2",
     "@testing-library/react": "^13.3.0",
-    "@testing-library/react-native": "^9.1.0",
+    "@testing-library/react-native": "^11.5.0",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",

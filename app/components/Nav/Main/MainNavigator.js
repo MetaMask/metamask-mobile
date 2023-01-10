@@ -58,7 +58,9 @@ import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import Region from '../../UI/FiatOnRampAggregator/Views/Region';
+import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
+import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
+import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
@@ -287,6 +289,14 @@ const SettingsFlow = () => (
       options={SecuritySettings.navigationOptions}
     />
     <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.SETTINGS}
+      component={OnRampSettings}
+    />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ADD_ACTIVATION_KEY}
+      component={OnrampAddActivationKey}
+    />
+    <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
@@ -484,11 +494,11 @@ const FiatOnRampAggregator = () => (
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
-        component={Region}
+        component={Regions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
-        component={Region}
+        component={Regions}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>

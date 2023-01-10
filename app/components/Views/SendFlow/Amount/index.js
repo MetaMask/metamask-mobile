@@ -60,7 +60,7 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
@@ -574,7 +574,7 @@ class Amount extends PureComponent {
     }
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
         { network: providerType },
       );
     });
