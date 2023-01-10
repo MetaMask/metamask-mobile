@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 
 const styles = StyleSheet.create({
   row: {
@@ -13,8 +13,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface Props {
-  style?: ViewStyle;
+interface Props extends ViewProps {
   first?: boolean;
   last?: boolean;
   children?: React.ReactNode;
