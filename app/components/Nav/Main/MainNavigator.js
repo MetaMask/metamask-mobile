@@ -54,6 +54,8 @@ import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
+import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
+import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
 import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
@@ -285,6 +287,14 @@ const SettingsFlow = () => (
       name="SecuritySettings"
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.SETTINGS}
+      component={OnRampSettings}
+    />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ADD_ACTIVATION_KEY}
+      component={OnrampAddActivationKey}
     />
     <Stack.Screen
       name="ExperimentalSettings"

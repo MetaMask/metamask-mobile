@@ -667,7 +667,20 @@
     "ok": "OK",
     "clear_sdk_connections_title": "Clear all MetaMask SDK Connections",
     "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
-    "sdk_connections": "MetaMask SDK Connections"
+    "sdk_connections": "MetaMask SDK Connections",
+    "fiat_on_ramp": {
+      "title": "Buy Crypto",
+      "description": "Region & more...",
+      "current_region": "Current Region",
+      "reset_region": "Reset Region",
+      "no_region_selected": "No region selected",
+      "sdk_activation_keys": "SDK Activation Keys",
+      "activation_keys_description": "Activation Keys will enable specific features or providers.",
+      "add_activation_key": "Add Activation Key",
+      "paste_or_type_activation_key": "Paste or type an Activation Key",
+      "add": "Add",
+      "cancel": "Cancel"
+    }
   },
   "app_information": {
     "title": "Information",

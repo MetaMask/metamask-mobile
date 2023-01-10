@@ -31,13 +31,15 @@ import { Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-interface IFiatOnRampSDKConfig {
+import useActivationKeys from '../hooks/useActivationKeys';
+
+interface OnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
   POLLING_CYCLES: number;
 }
 
-export interface IFiatOnRampSDK {
+export interface OnRampSDK {
   sdk: RegionsService | undefined;
   sdkError?: Error;
 
@@ -62,8 +64,9 @@ export interface IFiatOnRampSDK {
   selectedAddress: string;
   selectedChainId: string;
 
-  appConfig: IFiatOnRampSDKConfig;
+  appConfig: OnRampSDKConfig;
   callbackBaseUrl: string;
+  isInternalBuild: boolean;
 }
 
 interface IProviderProps<T> {
@@ -72,21 +75,22 @@ interface IProviderProps<T> {
 }
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
+const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
 const CONTEXT = Device.isAndroid()
   ? Context.MobileAndroid
   : Device.isIos()
   ? Context.MobileIOS
   : Context.Mobile;
 const VERBOSE_SDK = isDevelopment;
-const ACTIVATION_KEYS = process.env.ONRAMP_ACTIVATION_KEYS?.split(',') || [];
 
 export const SDK = OnRampSdk.create(
-  isDevelopment ? Environment.Staging : Environment.Production,
+  isDevelopmentOrInternalBuild ? Environment.Staging : Environment.Production,
   CONTEXT,
   {
     verbose: VERBOSE_SDK,
     locale: I18n.locale,
-    activationKeys: ACTIVATION_KEYS,
   },
 );
 
@@ -106,14 +110,18 @@ const appConfig = {
   POLLING_CYCLES: 6,
 };
 
-const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
+const SDKContext = createContext<OnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({
   value,
   ...props
-}: IProviderProps<IFiatOnRampSDK>) => {
+}: IProviderProps<OnRampSDK>) => {
   const [sdkModule, setSdkModule] = useState<RegionsService>();
   const [sdkError, setSdkError] = useState<Error>();
+  useActivationKeys({
+    provider: true,
+    internal: isDevelopmentOrInternalBuild,
+  });
 
   useEffect(() => {
     (async () => {
@@ -188,7 +196,7 @@ export const FiatOnRampSDKProvider = ({
     [dispatch],
   );
 
-  const contextValue: IFiatOnRampSDK = {
+  const contextValue: OnRampSDK = {
     sdk,
     sdkError,
 
@@ -215,6 +223,7 @@ export const FiatOnRampSDKProvider = ({
 
     appConfig,
     callbackBaseUrl,
+    isInternalBuild: isDevelopmentOrInternalBuild,
   };
 
   return <SDKContext.Provider value={value || contextValue} {...props} />;
@@ -222,7 +231,7 @@ export const FiatOnRampSDKProvider = ({
 
 export const useFiatOnRampSDK = () => {
   const contextValue = useContext(SDKContext);
-  return contextValue as IFiatOnRampSDK;
+  return contextValue as OnRampSDK;
 };
 
 export const withFiatOnRampSDK = (Component: React.FC) => (props: any) =>
