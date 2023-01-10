@@ -42,14 +42,9 @@ import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
-import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
-import TransakWebView from '../../UI/FiatOrders/TransakWebView';
-import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
-import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
@@ -59,7 +54,7 @@ import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import Region from '../../UI/FiatOnRampAggregator/Views/Region';
+import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
@@ -457,36 +452,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const FiatOnRamp = () => (
-  <Stack.Navigator initialRouteName="PaymentMethodSelector">
-    <Stack.Screen
-      name="PaymentMethodSelector"
-      component={PaymentMethodSelector}
-      options={PaymentMethodSelector.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentMethodApplePay"
-      component={PaymentMethodApplePay}
-      options={PaymentMethodApplePay.navigationOptions}
-    />
-    <Stack.Screen
-      name="TransakFlow"
-      component={TransakWebView}
-      options={TransakWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="MoonPayFlow"
-      component={MoonPayWebView}
-      options={MoonPayWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="GasEducationCarousel"
-      component={GasEducationCarousel}
-      options={GasEducationCarousel.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const FiatOnRampAggregator = () => (
   <FiatOnRampSDKProvider>
     <Stack.Navigator
@@ -519,11 +484,11 @@ const FiatOnRampAggregator = () => (
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
-        component={Region}
+        component={Regions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
-        component={Region}
+        component={Regions}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
@@ -635,7 +600,6 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}

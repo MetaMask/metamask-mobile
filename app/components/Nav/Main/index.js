@@ -29,7 +29,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOrders';
+import FiatOrders from '../../UI/FiatOnRampAggregator';
 import {
   showTransactionNotification,
   hideCurrentNotification,

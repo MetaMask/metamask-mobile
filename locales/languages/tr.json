@@ -678,7 +678,15 @@
     "keep_credential_safe": "{{credentialName}} bilgini güvende tut",
     "srp_abbreviation_text": "GKİ",
     "srp_text": "Gizli Kurtarma İfadesi",
-    "private_key_text": "Özel Anahtar"
+    "private_key_text": "Özel Anahtar",
+    "got_it": "Anladım",
+    "learn_more": "Daha Fazlasını Öğren"
+  },
+  "screenshot_deterrent": {
+    "title": "Güvenlik uyarısı",
+    "description": "Ekran görüntüleri {{credentialName}} takibinin güvenli bir yöntemi değildir. Hesabınızı güvende tutmak için çevrimiçi olarak yedeklenmeyen bir yerde saklayın.",
+    "srp_text": "Gizli Kurtarma İfadesi",
+    "priv_key_text": "Özel Anahtar"
   },
   "password_reset": {
     "password_title": "Şifre",
@@ -716,10 +724,17 @@
     "allow_camera_dialog_message": "QR kodlarını taramak için izninize ihtiyacımız var",
     "scanning": "taranıyor...",
     "ok": "Tamam",
+    "continue": "Devam Et",
     "cancel": "İptal",
     "error": "Hata",
     "attempting_to_scan_with_wallet_locked": "Görünüşe göre bir QR kodunu taramaya çalışıyorsunuz, bunu kullanmak için cüzdanınızın kilidini açmanız gerekecek.",
-    "attempting_sync_from_wallet_error": "Görünüşe göre uzantı ile senkronize etmeye çalışıyorsunuz. Bunu yapabilmek için mevcut cüzdanınızı silmeniz gerekecek. \n\nUygulamayı sildiğinizde veya uygulamanın yeni bir sürümünü tekrar yüklediğinizde \"MetaMask Uzantısı ile Senkronize Et\" seçeneğini seçin. Önemli! Cüzdanınızı silmeden önce Gizli Kurtarma İfadenizi yedeklediğinizden emin olun."
+    "attempting_sync_from_wallet_error": "Görünüşe göre uzantı ile senkronize etmeye çalışıyorsunuz. Bunu yapabilmek için mevcut cüzdanınızı silmeniz gerekecek. \n\nUygulamayı sildiğinizde veya uygulamanın yeni bir sürümünü tekrar yüklediğinizde \"MetaMask Uzantısı ile Senkronize Et\" seçeneğini seçin. Önemli! Cüzdanınızı silmeden önce Gizli Kurtarma İfadenizi yedeklediğinizden emin olun.",
+    "not_allowed_error_title": "Kamera erişimini etkinleştir",
+    "not_allowed_error_desc": "Bir hesap adresi veya iletişim adresi ile ilişkili bir QR kodunu taramak için kamera erişimine ihtiyaç var",
+    "unrecognized_address_qr_code_title": "Tanınmayan QR kodu",
+    "unrecognized_address_qr_code_desc": "Üzgünüz, bu QR kodu bir hesap adresi ya da bir iletişim adresiyle ilişkilendirilmemiş.",
+    "url_redirection_alert_title": "Harici bir bağlantıyı ziyaret etmek üzeresiniz",
+    "url_redirection_alert_desc": "Bağlantılar insanları dolandırmak ya da kimlik avı için kullanılabilir bu nedenle sadece güendiğiniz web sitelerini ziyaret ettiğinizden emin olun."
   },
   "action_view": {
     "cancel": "İptal",

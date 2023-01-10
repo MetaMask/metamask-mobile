@@ -7,8 +7,11 @@ import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import Device from '../../../../util/device';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -53,13 +56,10 @@ const Step6 = (props) => {
   const onBack = () => {
     navigation?.navigate?.(Routes.WALLET.HOME);
     setOnboardingWizardStep && setOnboardingWizardStep(5);
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED,
-      {
-        tutorial_step_count: 6,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+      tutorial_step_count: 6,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
+    });
   };
 
   /**

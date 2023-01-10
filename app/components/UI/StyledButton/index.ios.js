@@ -80,6 +80,7 @@ export default class StyledButton extends PureComponent {
     return (
       <Button
         testID={testID}
+        accessibilityRole="button"
         disabled={disabled}
         styleDisabled={disabled ? styleDisabled : null}
         disabledContainerStyle={disabled ? disabledContainerStyle : null}

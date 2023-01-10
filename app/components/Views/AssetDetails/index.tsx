@@ -29,6 +29,7 @@ import {
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -182,18 +183,15 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              AnalyticsV2.trackEvent(
-                AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN,
-                {
-                  location: 'token_details',
-                  token_standard: 'ERC20',
-                  asset_type: 'token',
-                  tokens: [`${symbol} - ${address}`],
-                  chain_id: getDecimalChainId(
-                    NetworkController?.state?.provider?.chainId,
-                  ),
-                },
-              );
+              AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+                location: 'token_details',
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                tokens: [`${symbol} - ${address}`],
+                chain_id: getDecimalChainId(
+                  NetworkController?.state?.provider?.chainId,
+                ),
+              });
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
             }

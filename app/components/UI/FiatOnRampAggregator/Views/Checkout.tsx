@@ -8,11 +8,12 @@ import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
+import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { useFiatOnRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
   addFiatOrder,
+  FiatOrder,
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
@@ -29,7 +30,7 @@ import {
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
@@ -108,7 +109,7 @@ const CheckoutWebView = () => {
 
       if (
         Number(chainId) !== Number(selectedChainId) ||
-        NETWORK_NATIVE_SYMBOL[chainId] === symbol
+        address === NATIVE_ADDRESS
       ) {
         return;
       }

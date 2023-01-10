@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
+import Eth from 'ethjs-query';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -53,12 +54,14 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
   getNetworkNonce,
   isMainnetByChainId,
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -83,7 +86,7 @@ import WarningMessage from '../WarningMessage';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import GlobalAlert from '../../../UI/GlobalAlert';
-import { allowedToBuy } from '../../../UI/FiatOrders';
+import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   startGasPolling,
@@ -94,8 +97,11 @@ const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 const { hexToBN, BNToHex } = util;
+
+let intervalIdForEstimatedL1Fee;
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -236,6 +242,7 @@ class Confirm extends PureComponent {
     EIP1559GasObject: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
+    multiLayerL1FeeTotal: '0x0',
   };
 
   setNetworkNonce = async () => {
@@ -305,17 +312,43 @@ class Confirm extends PureComponent {
 
   componentWillUnmount = async () => {
     await stopGasPolling(this.state.pollToken);
+    clearInterval(intervalIdForEstimatedL1Fee);
+  };
+
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    if (!transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
   };
 
   componentDidMount = async () => {
+    const { chainId } = this.props;
     this.updateNavBar();
     this.getGasLimit();
 
     const pollToken = await startGasPolling(this.state.pollToken);
-    this.setState({ pollToken });
+    this.setState({
+      pollToken,
+    });
     // For analytics
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED,
+      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
 
@@ -325,6 +358,13 @@ class Confirm extends PureComponent {
     navigation.setParams({ providerType, isPaymentRequest });
     this.handleConfusables();
     this.parseTransactionDataHeader();
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
+    }
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -337,7 +377,6 @@ class Confirm extends PureComponent {
       selectedAsset,
     } = this.props;
     this.updateNavBar();
-
     const { errorMessage, fromSelectedAddress } = this.state;
     const valueChanged = prevProps.transactionState.transaction.value !== value;
     const fromAddressChanged =
@@ -431,7 +470,7 @@ class Confirm extends PureComponent {
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEvent(
-          ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
         );
       });
     }
@@ -724,7 +763,7 @@ class Confirm extends PureComponent {
         });
         this.checkRemoveCollectible();
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
         stopGasPolling();
@@ -741,7 +780,7 @@ class Confirm extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
     }
@@ -1036,9 +1075,7 @@ class Confirm extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -1109,6 +1146,7 @@ class Confirm extends PureComponent {
       warningModalVisible,
       isAnimating,
       animateOnChange,
+      multiLayerL1FeeTotal,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1237,6 +1275,7 @@ class Confirm extends PureComponent {
             updateTransactionState={this.updateTransactionState}
             legacy={!showFeeMarket}
             onlyGas={false}
+            multiLayerL1FeeTotal={multiLayerL1FeeTotal}
           />
           {showCustomNonce && (
             <CustomNonce

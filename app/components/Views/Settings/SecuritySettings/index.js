@@ -47,6 +47,7 @@ import {
 } from '../../../../constants/storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
@@ -351,7 +352,7 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SECURITY_SETTINGS);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
@@ -529,13 +530,10 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: true,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: true,
+      });
     });
   };
 
@@ -556,17 +554,15 @@ class Settings extends PureComponent {
   };
 
   goToRevealPrivateCredential = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_INITIATED);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CTA);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'seed_phrase',
     });
   };
 
   goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_INITIATED,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'private_key',
     });
@@ -579,12 +575,9 @@ class Settings extends PureComponent {
   goToBackup = () => {
     this.props.navigation.navigate('AccountBackupStep1B');
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED,
-        {
-          source: 'Settings',
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
+        source: 'Settings',
+      });
     });
   };
 

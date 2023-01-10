@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { InteractionManager, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -13,9 +13,11 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import UntypedEngine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.
 import {
@@ -49,6 +51,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     PreferencesController.setSelectedAddress(address);
     sheetRef.current?.hide();
     onSelectAccount?.(address);
+    InteractionManager.runAfterInteractions(() => {
+      // Track Event: "Switched Account"
+      AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        number_of_accounts: accounts?.length,
+      });
+    });
   };
 
   const createNewAccount = useCallback(async () => {
@@ -57,7 +65,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       setIsLoading(true);
       const { addedAccountAddress } = await KeyringController.addNewAccount();
       PreferencesController.setSelectedAddress(addedAccountAddress);
-      AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
     } finally {
@@ -71,9 +79,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     sheetRef.current?.hide(() => {
       navigation.navigate('ImportPrivateKeyView');
       // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-      AnalyticsV2.trackEvent(
-        ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
     });
     onOpenImportAccount?.();
   }, [onOpenImportAccount, navigation]);
@@ -82,9 +88,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     sheetRef.current?.hide(() => {
       navigation.navigate('ConnectQRHardwareFlow');
       // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
     });
     onOpenConnectHardwareWallet?.();
   }, [onOpenConnectHardwareWallet, navigation]);
@@ -130,9 +134,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         onSelectAccount={_onSelectAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        key={ACCOUNT_LIST_ID}
         isLoading={isLoading}
         isRemoveAccountEnabled
+        {...generateTestId(Platform, ACCOUNT_LIST_ID)}
       />
       <View style={styles.sheet}>{renderSheetActions()}</View>
     </SheetBottom>

@@ -26,7 +26,7 @@ import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
@@ -250,9 +250,9 @@ const Wallet = ({ navigation }: any) => {
   const onChangeTab = useCallback((obj) => {
     InteractionManager.runAfterInteractions(() => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_TOKENS);
+        Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
-        Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COLLECTIBLES);
+        Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
     });
   }, []);

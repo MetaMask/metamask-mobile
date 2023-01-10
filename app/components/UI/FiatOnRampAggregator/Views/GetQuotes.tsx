@@ -21,9 +21,13 @@ import {
   FiatCurrency,
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
+import useAnalytics from '../hooks/useAnalytics';
+import useInAppBrowser from '../hooks/useInAppBrowser';
+
 import ScreenLayout from '../components/ScreenLayout';
-import ScreenView from '../../FiatOrders/components/ScreenView';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
 import ErrorView from '../components/ErrorView';
@@ -31,7 +35,7 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import InfoAlert from '../components/InfoAlert';
 import SkeletonText from '../components/SkeletonText';
 import Box from '../components/Box';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import BaseListItem from '../../../Base/ListItem';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -42,8 +46,6 @@ import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
-import useAnalytics from '../hooks/useAnalytics';
-import useInAppBrowser from '../hooks/useInAppBrowser';
 
 import {
   createNavigationDetails,
@@ -53,7 +55,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { createCheckoutNavDetails } from './Checkout';
 
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 interface GetQuotesParams {
@@ -614,31 +615,33 @@ const GetQuotes = () => {
 
   if (pollingCyclesLeft < 0) {
     return (
-      <ScreenView contentContainerStyle={styles.screen}>
-        <View style={[styles.errorContent, styles.errorViewContent]}>
-          {
-            <MaterialCommunityIcons
-              name="clock-outline"
-              style={[styles.errorIcon, styles.expiredIcon]}
-            />
-          }
-          <Text primary centered style={styles.errorTitle}>
-            {strings('fiat_on_ramp_aggregator.quotes_timeout')}
-          </Text>
-          <Text centered style={styles.errorText}>
-            {strings('fiat_on_ramp_aggregator.request_new_quotes')}
-          </Text>
-        </View>
-        <View style={styles.bottomSection}>
-          <StyledButton
-            type="blue"
-            containerStyle={styles.ctaButton}
-            onPress={handleFetchQuotes}
-          >
-            {strings('fiat_on_ramp_aggregator.get_new_quotes')}
-          </StyledButton>
-        </View>
-      </ScreenView>
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <View style={[styles.errorContent, styles.errorViewContent]}>
+            {
+              <MaterialCommunityIcons
+                name="clock-outline"
+                style={[styles.errorIcon, styles.expiredIcon]}
+              />
+            }
+            <Text primary centered style={styles.errorTitle}>
+              {strings('fiat_on_ramp_aggregator.quotes_timeout')}
+            </Text>
+            <Text centered style={styles.errorText}>
+              {strings('fiat_on_ramp_aggregator.request_new_quotes')}
+            </Text>
+          </View>
+          <View style={styles.bottomSection}>
+            <StyledButton
+              type="blue"
+              containerStyle={styles.ctaButton}
+              onPress={handleFetchQuotes}
+            >
+              {strings('fiat_on_ramp_aggregator.get_new_quotes')}
+            </StyledButton>
+          </View>
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 

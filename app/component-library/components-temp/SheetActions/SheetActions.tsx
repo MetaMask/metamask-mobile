@@ -1,12 +1,13 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
 import ButtonTertiary from '../../components/Buttons/Button/variants/ButtonTertiary';
 import { ButtonSize } from '../../components/Buttons/Button';
 import Loader from '../Loader';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.
 import { SheetActionsProps } from './SheetActions.types';
@@ -30,7 +31,6 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
               )}
               <View>
                 <ButtonTertiary
-                  testID={testID}
                   onPress={onPress}
                   label={label}
                   size={ButtonSize.Lg}
@@ -38,6 +38,7 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
                   /* eslint-disable-next-line */
                   style={{ opacity: disabled ? 0.5 : 1 }}
                   variant={variant}
+                  {...generateTestId(Platform, testID)}
                 />
                 {isLoading && <Loader size={'small'} />}
               </View>

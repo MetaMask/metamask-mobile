@@ -35,6 +35,7 @@ const TransactionReviewEIP1559Update = ({
   gasObject,
   onlyGas,
   updateTransactionState,
+  multiLayerL1FeeTotal,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -55,6 +56,7 @@ const TransactionReviewEIP1559Update = ({
     gasSelected,
     legacy: !!legacy,
     gasObject,
+    multiLayerL1FeeTotal,
   });
 
   const {

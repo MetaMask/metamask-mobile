@@ -4,8 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { ScrollView } from 'react-native-gesture-handler';
-import { FiatOrder, processFiatOrder } from '../../FiatOrders';
-
 import useAnalytics from '../hooks/useAnalytics';
 import ScreenLayout from '../components/ScreenLayout';
 import OrderDetail from '../components/OrderDetails';
@@ -17,6 +15,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import Routes from '../../../../constants/navigation/Routes';
+import { processFiatOrder } from '..';
 import {
   createNavigationDetails,
   useParams,
@@ -43,7 +42,7 @@ const OrderDetails = () => {
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
   const params = useParams<OrderDetailsParams>();
-  const order: FiatOrder = useSelector(makeOrderIdSelector(params.orderId));
+  const order = useSelector(makeOrderIdSelector(params.orderId));
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -86,6 +85,7 @@ const OrderDetails = () => {
   );
 
   const handleOnRefresh = useCallback(async () => {
+    if (!order) return;
     try {
       setIsRefreshing(true);
       await processFiatOrder(order, dispatchUpdateFiatOrder);

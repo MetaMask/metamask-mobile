@@ -7,8 +7,11 @@ import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import { colors as importedColors } from '../../../../styles/common';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { useTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
@@ -61,13 +64,10 @@ const Step4 = (props) => {
    */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(5);
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED,
-      {
-        tutorial_step_count: 4,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+      tutorial_step_count: 4,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+    });
   };
 
   /**
@@ -75,13 +75,10 @@ const Step4 = (props) => {
    */
   const onBack = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(3);
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_REVISITED,
-      {
-        tutorial_step_count: 4,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+      tutorial_step_count: 4,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+    });
   };
 
   /**

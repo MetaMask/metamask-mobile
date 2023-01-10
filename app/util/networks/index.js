@@ -344,13 +344,14 @@ const buildOVMGasPriceOracleContract = (eth) => {
 };
 
 /**
- * It returns an estimated L1 fee for the Optimism network.
+ * It returns an estimated L1 fee for a multi layer network.
+ * Currently only for the Optimism network, but can be extended to other networks.
  *
  * @param {Object} eth
  * @param {Object} txMeta
  * @returns {String}
  */
-export const fetchEstimatedL1FeeOptimism = async (eth, txMeta) => {
+export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
   const contract = buildOVMGasPriceOracleContract(eth);
   const serializedTransaction =
     buildUnserializedTransaction(txMeta).serialize();
