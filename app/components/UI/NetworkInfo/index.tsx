@@ -13,7 +13,7 @@ import {
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../../wdio/features/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
 import { isMainnetByChainId } from '../../../util/networks';
 
@@ -133,7 +133,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
-    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
+    isTokenDetectionSupportedForNetwork(chainId);
   const isMainnet = isMainnetByChainId(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {

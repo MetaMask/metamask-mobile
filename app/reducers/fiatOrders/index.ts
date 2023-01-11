@@ -68,6 +68,21 @@ export const removeAuthenticationUrl = (authenticationUrl: string) => ({
   type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL,
   payload: authenticationUrl,
 });
+export const addActivationKey = (activationKey: string) => ({
+  type: ACTIONS.FIAT_ADD_ACTIVATION_KEY,
+  payload: activationKey,
+});
+export const removeActivationKey = (activationKey: string) => ({
+  type: ACTIONS.FIAT_REMOVE_ACTIVATION_KEY,
+  payload: activationKey,
+});
+export const updateActivationKey = (
+  activationKey: string,
+  active: boolean,
+) => ({
+  type: ACTIONS.FIAT_UPDATE_ACTIVATION_KEY,
+  payload: { key: activationKey, active },
+});
 
 /**
  * Selectors
@@ -185,6 +200,11 @@ export const getAuthenticationUrls: (
 ) => FiatOrdersState['authenticationUrls'] = (state: RootState) =>
   state.fiatOrders.authenticationUrls || [];
 
+export const getActivationKeys: (
+  state: RootState,
+) => FiatOrdersState['activationKeys'] = (state: RootState) =>
+  state.fiatOrders.activationKeys || [];
+
 export const getHasOrders = createSelector(
   getOrders,
   (orders) => orders.length > 0,
@@ -199,6 +219,7 @@ export const initialState: FiatOrdersState = {
   selectedPaymentMethodAgg: INITIAL_PAYMENT_METHOD,
   getStartedAgg: INITIAL_GET_STARTED,
   authenticationUrls: [],
+  activationKeys: [],
 };
 
 const findOrderIndex = (
@@ -362,6 +383,59 @@ const fiatOrderReducer: (
         ],
       };
     }
+    case ACTIONS.FIAT_ADD_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const key = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index !== -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [...state.activationKeys, { key, active: true }],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const key = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [
+          ...activationKeys.slice(0, index),
+          ...activationKeys.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_UPDATE_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const { key, active } = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [
+          ...activationKeys.slice(0, index),
+          {
+            ...activationKeys[index],
+            active,
+          },
+          ...activationKeys.slice(index + 1),
+        ],
+      };
+    }
+
     default: {
       return state;
     }

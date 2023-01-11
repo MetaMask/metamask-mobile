@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image, View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../Base/Text';
+import TextJS from '../../../../Base/Text';
 import StyledButton from '../../../StyledButton';
 import ScreenLayout from '../../components/ScreenLayout';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
@@ -13,10 +13,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useAnalytics from '../../hooks/useAnalytics';
 import styles from './GetStarted.styles';
 import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
-import { createRegionNavDetails } from '../Region';
+import { createRegionsNavDetails } from '../Regions/Regions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
+
+// TODO: Convert into typescript and correctly type optionals
+const Text = TextJS as any;
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
@@ -53,7 +56,7 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(...createRegionNavDetails());
+    navigation.navigate(...createRegionsNavDetails());
     setGetStarted(true);
   }, [navigation, setGetStarted]);
 

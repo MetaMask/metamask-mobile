@@ -7,6 +7,7 @@ export const HAMBURGER_MENU_BUTTON =
 
 export const SEND_BUTTON_ID =
   'token-send-button';
+
 export const IMPORT_NFT_BUTTON_ID = 'import-collectible-button';
 export const IMPORT_TOKEN_BUTTON_ID = 'import-token-button';
 

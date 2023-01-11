@@ -16,7 +16,7 @@ import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
 
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from '../../Swaps/components/TokenIcon';
@@ -26,6 +26,7 @@ import { Colors } from '../../../../util/theme/models';
 import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
 
 // TODO: Convert into typescript and correctly type optionals
+const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: Colors) =>

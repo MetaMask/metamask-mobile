@@ -49,7 +49,8 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { hexToBN, BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -78,8 +79,6 @@ import {
   AMOUNT_SCREEN_CARET_DROP_DOWN,
 } from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-const { hexToBN, BNToHex } = util;
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
