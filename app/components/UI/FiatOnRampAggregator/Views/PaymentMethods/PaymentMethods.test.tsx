@@ -6,7 +6,7 @@ import render from '../../../../../util/test/renderWithProvider';
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
 
-import { IFiatOnRampSDK } from '../../sdk';
+import { OnRampSDK } from '../../sdk';
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 
@@ -26,7 +26,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
+const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   selectedPaymentMethodId: null,
@@ -34,7 +34,7 @@ const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
   sdkError: undefined,
 };
 
-let mockUseFiatOnRampSDKValues: Partial<IFiatOnRampSDK> = {
+let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
   ...mockuseFiatOnRampSDKInitialValues,
 };
 
