@@ -3,7 +3,7 @@ import { TouchableOpacity, View, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { isMainnetByChainId } from '../../../../util/networks';
+import { isMainnetByChainId, isTestNet } from '../../../../util/networks';
 import InfoModal from '../../Swaps/components/InfoModal';
 import FadeAnimationView from '../../FadeAnimationView';
 import { strings } from '../../../../../locales/i18n';
@@ -105,6 +105,7 @@ const TransactionReviewCard = ({
   }, [isAnimating, onEdit]);
 
   const isMainnet = isMainnetByChainId(chainId);
+  const isTestNetwork = isTestNet(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
   const switchNativeCurrencyDisplayOptions = (
@@ -194,7 +195,7 @@ const TransactionReviewCard = ({
                 <Text
                   primary
                   bold
-                  upper
+                  upper={!isTestNetwork}
                   grey={!nativeCurrencySelected}
                   link={nativeCurrencySelected}
                   underline={nativeCurrencySelected}
@@ -313,15 +314,15 @@ const TransactionReviewCard = ({
                               gasFeeNative,
                             )
                           : switchNativeCurrencyDisplayOptions(
-                              renderableTotalMinConversion,
-                              renderableTotalMinNative,
+                              renderableGasFeeMinConversion,
+                              renderableGasFeeMinNative,
                             )}
                       </Text>
                     )}
                   <Text
                     bold
                     primary
-                    upper
+                    upper={!isTestNetwork}
                     right
                     noMargin
                     style={[Device.isSmallDevice() && styles.flex]}

@@ -141,6 +141,7 @@ class TransactionEditor extends PureComponent {
     dappSuggestedGasPrice: '',
     dappSuggestedEIP1559Gas: '',
     legacyGasTransaction: {},
+    gasError: undefined,
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {
@@ -498,7 +499,7 @@ class TransactionEditor extends PureComponent {
     this.props?.onModeChange(REVIEW);
   };
 
-  validate = async () => {
+  validate = async (totalMaxHex) => {
     const {
       transaction: {
         assetType,
@@ -511,7 +512,8 @@ class TransactionEditor extends PureComponent {
 
     const totalError = this.validateTotal(
       this.state.eip1559GasTransaction.totalMaxHex ||
-        this.state.legacyGasTransaction.totalHex,
+        this.state.legacyGasTransaction.totalHex ||
+        totalMaxHex,
     );
     const amountError = await validateAmount(
       assetType,
@@ -621,10 +623,12 @@ class TransactionEditor extends PureComponent {
     this.setState({ isAnimating: false });
   };
 
-  updateTransactionState = (gas) => {
+  updateTransactionState = async (gas) => {
+    const gasError = await this.validate(gas.totalMaxHex || gas.totalHex);
     this.setState({
       eip1559GasTransaction: gas,
       legacyGasTransaction: gas,
+      gasError,
     });
   };
 
@@ -713,6 +717,7 @@ class TransactionEditor extends PureComponent {
                 }
                 eip1559GasTransaction={eip1559GasTransaction}
                 updateTransactionState={this.updateTransactionState}
+                gasError={this.state.gasError}
               />
               {/** View fixes layout issue after removing <CustomGas/> */}
               <View />

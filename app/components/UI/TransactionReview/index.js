@@ -222,6 +222,7 @@ class TransactionReview extends PureComponent {
     dappSuggestedGasWarning: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    gasError: PropTypes.string,
     /**
      * Returns the selected gas type
      * @returns {string}
@@ -451,6 +452,7 @@ class TransactionReview extends PureComponent {
       eip1559GasTransaction,
       dappSuggestedGasPrice,
       dappSuggestedEIP1559Gas,
+      gasError,
     } = this.props;
     const {
       actionKey,
@@ -490,7 +492,9 @@ class TransactionReview extends PureComponent {
               onConfirmPress={this.props.onConfirm}
               confirmed={transactionConfirmed}
               confirmDisabled={
-                transactionConfirmed || Boolean(error) || isAnimating
+                transactionConfirmed ||
+                Boolean(error || gasError) ||
+                isAnimating
               }
             >
               <View style={styles.actionViewChildren}>
@@ -504,7 +508,7 @@ class TransactionReview extends PureComponent {
                     </View>
                     <TransactionReviewInformation
                       navigation={navigation}
-                      error={error}
+                      error={error || gasError}
                       edit={this.edit}
                       ready={ready}
                       assetAmount={assetAmount}
