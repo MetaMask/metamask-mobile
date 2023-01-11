@@ -302,7 +302,13 @@ class Approval extends PureComponent {
   /**
    * Callback on confirm transaction
    */
-  onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
+  onConfirm = async ({
+    gasEstimateType,
+    eip1559GasTransaction,
+    gasSelected,
+  }) => {
+    // console.log(eip1559GasTransaction, 'eip1559GasTransaction')
+
     const { TransactionController, KeyringController } = Engine.context;
     const {
       transactions,
@@ -320,14 +326,14 @@ class Approval extends PureComponent {
         transaction = this.prepareTransaction({
           transaction,
           gasEstimateType,
-          EIP1559GasData,
+          eip1559GasTransaction,
         });
       } else {
         transaction = this.prepareAssetTransaction({
           transaction,
           selectedAsset,
           gasEstimateType,
-          EIP1559GasData,
+          eip1559GasTransaction,
         });
       }
 
@@ -399,20 +405,26 @@ class Approval extends PureComponent {
    *
    * @param {object} transaction - Transaction object
    */
-  prepareTransaction = ({ transaction, gasEstimateType, EIP1559GasData }) => {
+  prepareTransaction = ({
+    transaction,
+    gasEstimateType,
+    eip1559GasTransaction,
+  }) => {
     const transactionToSend = {
       ...transaction,
       value: BNToHex(transaction.value),
       to: safeToChecksumAddress(transaction.to),
     };
 
+    // console.log(EIP1559GasData, 'EIP1559GasData')
+
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
+      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
       transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
+        eip1559GasTransaction.suggestedMaxFeePerGasHex,
       ); //'0x2540be400'
       transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
+        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
       transactionToSend.to = safeToChecksumAddress(transaction.to);
       delete transactionToSend.gasPrice;
@@ -435,7 +447,7 @@ class Approval extends PureComponent {
     transaction,
     selectedAsset,
     gasEstimateType,
-    EIP1559GasData,
+    eip1559GasTransaction,
   }) => {
     const transactionToSend = {
       ...transaction,
@@ -444,12 +456,12 @@ class Approval extends PureComponent {
     };
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
+      transactionToSend.gas = eip1559GasTransaction.gasLimitHex;
       transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
+        eip1559GasTransaction.suggestedMaxFeePerGasHex,
       ); //'0x2540be400'
       transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
+        eip1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
       delete transactionToSend.gasPrice;
     } else {

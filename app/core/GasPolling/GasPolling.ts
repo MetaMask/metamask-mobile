@@ -123,6 +123,8 @@ export const getEIP1559TransactionData = ({
       { onlyGas },
     );
 
+    // console.log('parsedTransactionEIP1559', parsedTransactionEIP1559);
+
     return parsedTransactionEIP1559;
   } catch (error) {
     return 'Error parsing transaction data';

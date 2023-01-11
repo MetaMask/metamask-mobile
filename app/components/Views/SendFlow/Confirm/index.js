@@ -67,7 +67,7 @@ import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import TransactionReview from '../../../UI/TransactionReview/TransactionReviewEIP1559Update';
+import TransactionReviewCard from '../../../UI/TransactionReview/TransactionReviewCard';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import CustomNonce from '../../../UI/CustomNonce';
@@ -1277,7 +1277,7 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          <TransactionReview
+          <TransactionReviewCard
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
             onEdit={() => this.edit(!showFeeMarket ? EDIT : EDIT_EIP1559)}

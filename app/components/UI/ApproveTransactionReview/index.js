@@ -57,7 +57,7 @@ import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import { getTokenList } from '../../../reducers/tokens';
-import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
+import TransactionReviewCard from '../TransactionReview/TransactionReviewCard';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -784,7 +784,7 @@ class ApproveTransactionReview extends PureComponent {
               <View style={styles.paddingHorizontal}>
                 <AccountInfoCard fromAddress={from} />
                 <View style={styles.section}>
-                  <TransactionReview
+                  <TransactionReviewCard
                     gasSelected={gasSelected}
                     primaryCurrency={primaryCurrency}
                     hideTotal

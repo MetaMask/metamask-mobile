@@ -34,9 +34,8 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
-import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import TransactionReview from '../TransactionReviewEIP1559Update';
+import TransactionReviewCard from '../TransactionReviewCard';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -187,7 +186,6 @@ class TransactionReviewInformation extends PureComponent {
     setProposedNonce: PropTypes.func,
     nativeCurrency: PropTypes.string,
     gasEstimateType: PropTypes.string,
-    EIP1559GasData: PropTypes.object,
     origin: PropTypes.string,
     /**
      * Function to call when update animation starts
@@ -211,6 +209,11 @@ class TransactionReviewInformation extends PureComponent {
     originWarning: PropTypes.bool,
     gasSelected: PropTypes.string,
     multiLayerL1FeeTotal: PropTypes.string,
+    gasObject: PropTypes.object,
+    updateTransactionState: PropTypes.func,
+    eip1559GasTransaction: PropTypes.object,
+    dappSuggestedEIP1559Gas: PropTypes.any,
+    dappSuggestedGasPrice: PropTypes.any,
   };
 
   state = {
@@ -523,7 +526,6 @@ class TransactionReviewInformation extends PureComponent {
 
   renderTransactionReviewEIP1559 = () => {
     const {
-      EIP1559GasData,
       primaryCurrency,
       origin,
       originWarning,
@@ -550,7 +552,7 @@ class TransactionReviewInformation extends PureComponent {
       renderableTotalMaxNative,
     ] = this.getRenderTotalsEIP1559(eip1559GasTransaction)();
     return (
-      <TransactionReview
+      <TransactionReviewCard
         totalNative={renderableTotalMinNative}
         totalConversion={renderableTotalMinConversion}
         totalMaxNative={renderableTotalMaxNative}
@@ -570,8 +572,6 @@ class TransactionReviewInformation extends PureComponent {
         updateTransactionState={updateTransactionState}
         onlyGas
         dappSuggestedGasPrice={dappSuggestedGasPrice}
-        origin={host}
-        originWarning={originWarning}
       />
     );
   };
@@ -590,10 +590,8 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       multiLayerL1FeeTotal,
-      gasSelected,
       gasObject,
       updateTransactionState,
-      eip1559GasTransaction,
       dappSuggestedEIP1559Gas,
       dappSuggestedGasPrice,
     } = this.props;
@@ -611,7 +609,7 @@ class TransactionReviewInformation extends PureComponent {
       totalGasFiat,
     )();
     return (
-      <TransactionReview
+      <TransactionReviewCard
         totalNative={totalValue}
         totalConversion={totalFiat}
         gasFeeNative={totalGasEth}

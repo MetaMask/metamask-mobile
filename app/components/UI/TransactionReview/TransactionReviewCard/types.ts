@@ -1,4 +1,4 @@
-export interface TransactionEIP1559UpdateProps {
+export interface TransactionReviewCardProps {
   /**
    * Selected primary currency
    */
@@ -68,6 +68,12 @@ export interface TransactionEIP1559UpdateProps {
   updateTransactionState: any;
   onlyGas: boolean;
   multiLayerL1FeeTotal?: string;
+  dappSuggestedGasPrice?: any;
+  dappSuggestedEIP1559Gas?: any;
+  totalMaxNative?: string;
+  totalConversion?: string;
+  totalNative?: string;
+  gasFeeNative?: string;
 }
 
 export interface SkeletonProps {
