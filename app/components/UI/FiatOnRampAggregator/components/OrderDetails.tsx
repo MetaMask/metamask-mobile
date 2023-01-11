@@ -9,7 +9,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import Text from '../../../Base/Text';
+import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
@@ -31,6 +31,7 @@ import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 
 // TODO: Convert into typescript and correctly type optionals
+const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: any) =>

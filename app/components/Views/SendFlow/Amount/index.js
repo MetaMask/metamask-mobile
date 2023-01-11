@@ -49,7 +49,8 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { hexToBN, BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -59,7 +60,7 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { BN } from 'ethereumjs-util';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
@@ -78,8 +79,6 @@ import {
   AMOUNT_SCREEN_CARET_DROP_DOWN,
 } from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-const { hexToBN, BNToHex } = util;
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -575,7 +574,7 @@ class Amount extends PureComponent {
     }
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_AMOUNT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
         { network: providerType },
       );
     });

@@ -17,7 +17,9 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
@@ -122,7 +124,7 @@ const EditGasFee1559Update = ({
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED,
+        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
@@ -142,7 +144,7 @@ const EditGasFee1559Update = ({
 
   const save = useCallback(() => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED,
+      MetaMetricsEvents.GAS_FEE_CHANGED,
       getAnalyticsParams(),
     );
 

@@ -15,7 +15,9 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -184,7 +186,7 @@ const AddCustomCollectible = ({
     NftController.addNft(address, tokenId);
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED,
+      MetaMetricsEvents.COLLECTIBLE_ADDED,
       getAnalyticsParams(),
     );
 

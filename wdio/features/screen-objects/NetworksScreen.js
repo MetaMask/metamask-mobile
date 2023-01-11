@@ -74,7 +74,7 @@ class NetworksScreen {
     }
 
     async tapAndHoldNetwork(network) {
-       await Gestures.tapTextByXpath(network, 'LONGPRESS');
+       await Gestures.tapTextByXpath(network);
     }
 
     async tapAddNetworkButton() {
@@ -154,11 +154,11 @@ class NetworksScreen {
     }
 
     async isButtonTextVisibleByXpath(text) {
-       await expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
     }
 
     async isNetworkRemoved(network) {
-       await expect(await (Selectors.getXpathElementByText(network))).not.toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(network))).not.toBeDisplayed();
     }
 
     async tapOnNetwork(network) {
@@ -166,11 +166,11 @@ class NetworksScreen {
     }
 
     async isNetworkVisible(network) {
-        await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
     }
 
     async isNetworkNotVisible(text) {
-       await expect(await (Selectors.getXpathElementByText(text))).not.toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(text))).not.toBeDisplayed();
     }
 
     async tapOptionInSettings(text) {
@@ -178,11 +178,12 @@ class NetworksScreen {
     }
 
     async isNetworknameDisplayed(network) {
-        await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
     }
 
     async tapBackButtonInNewScreen() {
-       await (await Selectors.getXpathElementByContentDescription(NETWORK_BACK_ARROW_BUTTON_ID)).touchAction('tap');
+      driver.pause(2000);
+      (await Selectors.getXpathElementByContentDescription(NETWORK_BACK_ARROW_BUTTON_ID)).touchAction('tap');
     }
 
     async tapBackButtonInSettingsScreen() {

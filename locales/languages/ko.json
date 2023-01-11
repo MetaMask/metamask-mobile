@@ -657,7 +657,15 @@
     "keep_credential_safe": "{{credentialName}} 정보를 안전하게 보관하세요",
     "srp_abbreviation_text": "SRP",
     "srp_text": "비밀 복구 구문",
-    "private_key_text": "비공개 키"
+    "private_key_text": "비공개 키",
+    "got_it": "확인",
+    "learn_more": "자세히 알아보기"
+  },
+  "screenshot_deterrent": {
+    "title": "안전 경고",
+    "description": "스크린숏은 {{credentialName}}을(를) 안전하게 추적할 수 있는 방법이 아닙니다. 온라인으로는 백업되지 않는 다른 곳에 보관하셔야 계정을 안전하게 유지할 수 있습니다.",
+    "srp_text": "비밀 복구 구문",
+    "priv_key_text": "비공개 키"
   },
   "password_reset": {
     "password_title": "비밀번호",
@@ -695,10 +703,17 @@
     "allow_camera_dialog_message": "QR 코드를 스캔하기 위해서는 권한이 필요합니다",
     "scanning": "스캔 중...",
     "ok": "확인",
+    "continue": "계속",
     "cancel": "취소",
     "error": "오류",
     "attempting_to_scan_with_wallet_locked": "QR 코드를 스캔하시는 것 같습니다. 먼저 지갑을 잠금 해제하세요.",
-    "attempting_sync_from_wallet_error": "확장 프로그램과의 동기화를 시도하시는 것 같습니다. 이를 위해서는 현재 지갑을 지워야 합니다. \n\n 신규 버전 앱을 지우거나 재설치하고 나면 \"MetaMask 확장 프로그램과 동기화\" 옵션을 선택하세요. 중요!: 지갑을 지우기 전에 비밀 복구 구문을 반드시 백업하세요."
+    "attempting_sync_from_wallet_error": "확장 프로그램과의 동기화를 시도하시는 것 같습니다. 이를 위해서는 현재 지갑을 지워야 합니다. \n\n 신규 버전 앱을 지우거나 재설치하고 나면 \"MetaMask 확장 프로그램과 동기화\" 옵션을 선택하세요. 중요!: 지갑을 지우기 전에 비밀 복구 구문을 반드시 백업하세요.",
+    "not_allowed_error_title": "카메라 접근 허용",
+    "not_allowed_error_desc": "계정 주소나 연락처 주소와 연동된 QR 코드를 스캔하려면 카메라 접근을 허용해야 합니다",
+    "unrecognized_address_qr_code_title": "읽을 수 없는 QR 코드",
+    "unrecognized_address_qr_code_desc": "죄송합니다. 이 QR 코드는 계정 주소나 연락처 주소와 연계되어 있지 않습니다.",
+    "url_redirection_alert_title": "이제 외부 링크로 이동합니다.",
+    "url_redirection_alert_desc": "링크는 피싱이나 사기에 도용될 수 있습니다. 신뢰할 수 있는 웹사이트만 방문하시기 바랍니다."
   },
   "action_view": {
     "cancel": "취소",

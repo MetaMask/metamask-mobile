@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import Text from '../../../Base/Text';
+import TextJS from '../../../Base/Text';
+
+const Text = TextJS as any;
 
 interface Style {
   wrapper: ViewStyle;

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Linking } from 'react-native';
+import { View, Linking, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import PreventScreenshot from '../../../core/PreventScreenshot';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import useScreenshotWarning from '../../hooks/useScreenshotWarning';
+import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -20,12 +22,12 @@ const ScreenshotDeterrent = ({
 
   const openSRPGuide = () => {
     setAlertPresent(false);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_LEARN_MORE, {});
     Linking.openURL(SRP_GUIDE_URL);
   };
 
   const showScreenshotAlert = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
     setAlertPresent(true);
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -40,10 +42,7 @@ const ScreenshotDeterrent = ({
         }),
         onConfirm: () => {
           setAlertPresent(false);
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK,
-            {},
-          );
+          AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
         },
         onCancel: openSRPGuide,
         cancelLabel: strings('reveal_credential.learn_more'),
@@ -52,12 +51,20 @@ const ScreenshotDeterrent = ({
     });
   }, [isSRP, navigation]);
 
-  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
+  const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
-  useEffect(
-    () => enableScreenshotWarning(enabled && !alertPresent),
-    [alertPresent, enableScreenshotWarning, enabled],
-  );
+  useEffect(() => {
+    enableScreenshotWarning(enabled && !alertPresent);
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [alertPresent, enableScreenshotWarning, enabled]);
 
   return <View />;
 };

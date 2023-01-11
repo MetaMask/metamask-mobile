@@ -21,7 +21,12 @@ import {
   FiatCurrency,
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
+import useAnalytics from '../hooks/useAnalytics';
+import useInAppBrowser from '../hooks/useInAppBrowser';
+
 import ScreenLayout from '../components/ScreenLayout';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
@@ -30,7 +35,7 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import InfoAlert from '../components/InfoAlert';
 import SkeletonText from '../components/SkeletonText';
 import Box from '../components/Box';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import BaseListItem from '../../../Base/ListItem';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -41,8 +46,6 @@ import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
-import useAnalytics from '../hooks/useAnalytics';
-import useInAppBrowser from '../hooks/useInAppBrowser';
 
 import {
   createNavigationDetails,
@@ -52,6 +55,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { createCheckoutNavDetails } from './Checkout';
 
 // TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 interface GetQuotesParams {
