@@ -37,7 +37,7 @@ exports[`Regions View renders correctly 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -84,7 +84,7 @@ exports[`Regions View renders correctly 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -197,7 +197,7 @@ exports[`Regions View renders correctly 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -549,7 +549,7 @@ exports[`Regions View renders correctly 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -595,7 +595,7 @@ exports[`Regions View renders correctly 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -645,7 +645,7 @@ exports[`Regions View renders correctly 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -690,7 +690,7 @@ exports[`Regions View renders correctly 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -953,7 +953,7 @@ exports[`Regions View renders correctly 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -1003,7 +1003,7 @@ exports[`Regions View renders correctly 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -1267,7 +1267,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1308,7 +1308,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1423,7 +1423,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1464,7 +1464,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1732,7 +1732,7 @@ exports[`Regions View renders correctly 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -1778,7 +1778,7 @@ exports[`Regions View renders correctly 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -1828,7 +1828,7 @@ exports[`Regions View renders correctly 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -1873,7 +1873,7 @@ exports[`Regions View renders correctly 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -2217,7 +2217,7 @@ exports[`Regions View renders correctly with error 1`] = `
                   Object {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
                   },
@@ -2277,7 +2277,7 @@ exports[`Regions View renders correctly with error 1`] = `
                   Object {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
                   },
@@ -2669,7 +2669,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   Object {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
                   },
@@ -2729,7 +2729,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   Object {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 30,
                     "fontWeight": "400",
                     "marginVertical": 2,
                   },
@@ -2870,7 +2870,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -2917,7 +2917,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -3030,7 +3030,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -3380,7 +3380,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -3426,7 +3426,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -3476,7 +3476,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -3521,7 +3521,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -3784,7 +3784,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -3834,7 +3834,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -4098,7 +4098,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -4139,7 +4139,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -4254,7 +4254,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -4295,7 +4295,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -4563,7 +4563,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -4609,7 +4609,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -4659,7 +4659,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -4704,7 +4704,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -4797,7 +4797,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -4844,7 +4844,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -4957,7 +4957,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -5305,7 +5305,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -5351,7 +5351,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -5401,7 +5401,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -5446,7 +5446,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -5709,7 +5709,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -5759,7 +5759,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -6023,7 +6023,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -6064,7 +6064,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -6179,7 +6179,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -6220,7 +6220,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -6488,7 +6488,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -6534,7 +6534,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -6584,7 +6584,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -6629,7 +6629,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -6722,7 +6722,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -6769,7 +6769,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
@@ -6882,7 +6882,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -7230,7 +7230,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -7276,7 +7276,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                       Object {
                         "color": "#24272A",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
                       },
@@ -7326,7 +7326,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -7371,7 +7371,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -7630,7 +7630,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -7680,7 +7680,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
                         },
@@ -7944,7 +7944,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -7985,7 +7985,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -8100,7 +8100,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -8141,7 +8141,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -8405,7 +8405,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -8451,7 +8451,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
                               },
@@ -8501,7 +8501,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -8546,7 +8546,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
