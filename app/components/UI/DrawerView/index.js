@@ -79,6 +79,7 @@ import {
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
+import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -609,14 +610,14 @@ class DrawerView extends PureComponent {
 
   openAccountSelector = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-      params: {
+
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({
         onOpenImportAccount: this.hideDrawer,
         onOpenConnectHardwareWallet: this.hideDrawer,
         onSelectAccount: this.hideDrawer,
-      },
-    });
+      }),
+    );
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
   };
 

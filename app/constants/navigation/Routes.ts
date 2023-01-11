@@ -27,6 +27,7 @@ const Routes = {
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
+    DETECTED_TOKENS: 'DetectedTokens',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -53,6 +54,10 @@ const Routes = {
     HOME: 'BrowserTabHome',
     URL_MODAL: 'BrowserUrlModal',
     VIEW: 'BrowserView',
+  },
+  WEBVIEW: {
+    MAIN: 'Webview',
+    SIMPLE: 'SimpleWebview',
   },
   WALLET: {
     HOME: 'WalletTabHome',

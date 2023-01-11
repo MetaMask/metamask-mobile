@@ -8,7 +8,7 @@ import JSIdenticon from '../../Identicon';
 import BaseText from '../../../Base/Text';
 import JSSelectorButton from '../../../Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
 
 // TODO: Convert into typescript and correctly type
 const SelectorButton = JSSelectorButton as any;
@@ -39,9 +39,7 @@ const AccountSelector = () => {
   );
 
   const openAccountSelector = () =>
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-    });
+    navigation.navigate(...createAccountSelectorNavDetails());
 
   return (
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
