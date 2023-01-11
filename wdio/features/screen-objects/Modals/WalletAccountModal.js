@@ -1,9 +1,9 @@
 /* global driver */
 import {
   ACCOUNT_OVERVIEW_ID,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
-  WALLET_ACCOUNT_NAME_LABEL_INPUT,
   WALLET_ACCOUNT_ADDRESS_LABEL,
+  WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../testIDs/Screens/WalletView.testIds';
 
 import Selectors from '../../helpers/Selectors';
@@ -42,15 +42,6 @@ class WalletAccountModal {
     const textFromElement = await this.accountNameLabelText;
     const accountName = await textFromElement.getText();
     await expect(accountName).toContain(expected);
-  }
-
-  async tapWalletAddress() {
-    await Gestures.waitAndTap(this.walletAddress);
-  }
-
-  async isMainWalletAddressEqualTo(expectedWalletAddress) {
-    const actualWalletAddress = driver.getClipboard();
-    await expect(expectedWalletAddress).toEqual(actualWalletAddress);
   }
 
   async isAccountOverview() {

@@ -1,3 +1,4 @@
+/* global driver */
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
@@ -8,7 +9,7 @@ import {
   UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
 } from '../../testIDs/BrowserScreen/AddressBar.testIds';
-import { ROOT_CONTENT_ID } from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
+import {ROOT_CONTENT_ID} from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
 
 class AddressBarScreen {
   get urlCancelButton() {
@@ -41,6 +42,17 @@ class AddressBarScreen {
 
   async isAddressInputViewNotDisplayed() {
     await expect(await this.urlModalInput).not.toBeDisplayed();
+  }
+
+  async submitUrlWebsite() {
+    await driver.pressKeyCode(66);
+    await driver.pause(500);
+    const element = await this.urlCancelButton;
+    const flag = await element.isDisplayed();
+
+    if (flag) {
+      await Gestures.waitAndTap(this.urlCancelButton);
+    }
   }
 
   async isUrlValueContains(text) {

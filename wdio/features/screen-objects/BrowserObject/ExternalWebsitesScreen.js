@@ -3,10 +3,6 @@ import Selectors from '../../helpers/Selectors';
 
 import {
   BRUNO_MAIN_ID,
-  CURVE_APPROVE_SPENDING_BUTTON,
-  CURVE_CONNECT_WALLET_BUTTON,
-  CURVE_METAMASK_AVAILABLE_WALLET_BUTTON,
-  CURVER_CHANGE_NETWORK_BUTTON,
   ERROR_PAGE_MESSAGE,
   ERROR_PAGE_RETURN_BUTTON,
   ERROR_PAGE_TITLE,
@@ -15,9 +11,10 @@ import {
   HOME_FAVORITES_CARDS_URL,
   HOME_FAVORITES_UNISWAP_CARD_TITLE,
   NO_FAVORITES_MESSAGE,
+  REDDIT_ICON,
   UNISWAP_CONNECT_BUTTON,
   UNISWAP_METAMASK_WALLET_BUTTON,
-  UNISWAP_WALLET_ADDRESS_BUTTON,
+  UNISWAP_SWAP_PAGE,
   UNISWAP_WALLET_PROFILE_ICON,
 } from '../../testIDs/BrowserScreen/ExternalWebsites.testIds';
 
@@ -53,6 +50,10 @@ class ExternalWebsitesScreen {
     return Selectors.getElementByPlatform(ERROR_PAGE_RETURN_BUTTON);
   }
 
+  get redditIcon() {
+    return Selectors.getElementByPlatform(REDDIT_ICON);
+  }
+
   get uniswapConnectButton() {
     return Selectors.getXpathElementByText(UNISWAP_CONNECT_BUTTON);
   }
@@ -65,8 +66,8 @@ class ExternalWebsitesScreen {
     return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
   }
 
-  get uniswapWalletAddressButton() {
-    return Selectors.getElementByCss(UNISWAP_WALLET_ADDRESS_BUTTON);
+  get uniswapSwapPage() {
+    return Selectors.getXpathElementByResourceId(UNISWAP_SWAP_PAGE);
   }
 
   get homeFavoriteUniswapCardTitle() {
@@ -75,24 +76,6 @@ class ExternalWebsitesScreen {
 
   get homeFavoriteUniswapCardUrl() {
     return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_URL);
-  }
-
-  get curveConnectWalletButton() {
-    return Selectors.getXpathElementByText(CURVE_CONNECT_WALLET_BUTTON);
-  }
-
-  get curveMetaMaskAvailableWalletButton() {
-    return Selectors.getXpathElementByText(
-      CURVE_METAMASK_AVAILABLE_WALLET_BUTTON,
-    );
-  }
-
-  get curveApproveSpendingButton() {
-    return Selectors.getXpathElementByText(CURVE_APPROVE_SPENDING_BUTTON);
-  }
-
-  get curveChangeNetworkButton() {
-    return Selectors.getXpathElementByText(CURVER_CHANGE_NETWORK_BUTTON);
   }
 
   async tapHomeFavoritesButton() {
@@ -104,7 +87,9 @@ class ExternalWebsitesScreen {
   }
 
   async isEthereumFishingDetectionWebsiteTitleDisplayed() {
-    await expect(await this.ethereumPhishingDetectionBackButton).toBeDisplayed();
+    await expect(
+      await this.ethereumPhishingDetectionBackButton,
+    ).toBeDisplayed();
   }
 
   async tapEthereumFishingDetectionWebsiteBackButton() {
@@ -129,20 +114,12 @@ class ExternalWebsitesScreen {
     await Gestures.waitAndTap(this.wrongReturnButton);
   }
 
-  async tapCurveConnectWalletButton() {
-    await Gestures.waitAndTap(this.curveConnectWalletButton);
+  async isRedditIconDisplayed() {
+    await expect(await this.redditIcon).toBeDisplayed();
   }
 
-  async tapCurveMetaMaskAvailableWalletButton() {
-    await Gestures.waitAndTap(this.curveMetaMaskAvailableWalletButton);
-  }
-
-  async isCurveChangeNetworkButtonDisplayed() {
-    await expect(await this.curveChangeNetworkButton).toBeDisplayed();
-  }
-
-  async isConnectButtonNotDisplayed() {
-    await expect(await this.curveApproveSpendingButton).toBeDisplayed();
+  async isUniswapSwapPageDisplayed() {
+    await expect(await this.uniswapSwapPage).toBeDisplayed();
   }
 
   async tapUniswapConnectButton() {
@@ -157,20 +134,16 @@ class ExternalWebsitesScreen {
     await expect(await this.uniswapWalletProfileIconButton).toBeDisplayed();
   }
 
-  async tapUniswapProfileIcon() {
-    await Gestures.tap(this.uniswapWalletProfileIconButton);
-  }
-
-  async tapUniswapWalletAddressButton() {
-    await Gestures.tap(this.uniswapWalletAddressButton);
-  }
-
   async isHomeFavoriteUniswapTitle() {
     await expect(await this.homeFavoriteUniswapCardTitle).toBeDisplayed();
   }
 
   async isHomeFavoriteUniswapUrl() {
     await expect(await this.homeFavoriteUniswapCardUrl).toBeDisplayed();
+  }
+
+  async isHomeFavoriteButtonDisplayed() {
+    await expect(await this.homeFavoriteButton).toBeDisplayed();
   }
 }
 

@@ -83,10 +83,6 @@ class OptionMenuModal {
     await expect(await this.shareOption).toBeDisplayed();
   }
 
-  async tapOpenBrowserOption() {
-    await Gestures.waitAndTap(this.openBrowserOption);
-  }
-
   async isOpenBrowserOptionDisplayed() {
     await expect(await this.openBrowserOption).toBeDisplayed();
   }

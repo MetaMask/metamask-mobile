@@ -16,21 +16,13 @@ export const ERROR_PAGE_MESSAGE = 'error-page-message';
 
 export const ERROR_PAGE_RETURN_BUTTON = 'error-page-return-button';
 
-export const CURVE_CONNECT_WALLET_BUTTON = 'Connect Wallet';
-
-export const CURVE_METAMASK_AVAILABLE_WALLET_BUTTON = 'MetaMask';
-
-export const CURVE_APPROVE_SPENDING_BUTTON = 'Approve Spending';
-
-export const CURVER_CHANGE_NETWORK_BUTTON = 'CHANGE NETWORK';
+export const REDDIT_ICON = 'www.reddit';
 
 export const UNISWAP_CONNECT_BUTTON = 'Connect';
 
 export const UNISWAP_METAMASK_WALLET_BUTTON = 'Uniswap Interface';
-//'button[id="metamask"]';
+
+export const UNISWAP_SWAP_PAGE = 'swap-page';
 
 export const UNISWAP_WALLET_PROFILE_ICON =
   '//android.view.View[@resource-id="root"]/android.view.View[1]/android.view.View/android.widget.Button';
-
-export const UNISWAP_WALLET_ADDRESS_BUTTON =
-  '//android.view.ViewGroup[@resource-id="browser-screen"]/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup/android.webkit.WebView/android.webkit.WebView/android.view.View/android.view.View[3]/android.widget.Button[1]';

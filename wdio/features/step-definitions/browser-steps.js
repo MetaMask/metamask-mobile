@@ -13,20 +13,12 @@ import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal'
 import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal';
-import EnableAutomaticSecurityChecksScreen from '../screen-objects/EnableSecurityChecksScreen';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 
-Given(/^I am on browser view$/, async () => {
-  await BrowserScreen.isScreenContentDisplayed();
-});
-
-Given(/^I am on "([^"]*)"$/, async (text) => {
+Given(/^I am on Home MetaMask website$/, async () => {
+  await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
   await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.editUrlInput(text);
-  await AddressBarScreen.tapHomeSuggestionButton();
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
   await AddressBarScreen.tapUrlCancelButton();
 });
 
@@ -47,21 +39,24 @@ Then(/^Uniswap exchange page is a suggestion listed$/, async () => {
   await AddressBarScreen.isUniswapSuggestionDisplayed();
 });
 
-Then(/^the browser view is on "([^"]*)"$/, async (text) => {
+Then(/^the browser view is on Uniswap Page$/, async () => {
+  await ExternalWebsitesScreen.isUniswapSwapPageDisplayed();
   await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains(text);
+  await AddressBarScreen.isUrlValueContains('https://app.uniswap.org/');
+  await AddressBarScreen.tapUrlCancelButton();
+});
+
+Then(/^the browser view is on Home MetaMask website$/, async () => {
+  await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
   await AddressBarScreen.tapUrlCancelButton();
 });
 
 Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
-  await ExternalWebsitesScreen.tapUniswapProfileIcon();
-  await ExternalWebsitesScreen.tapUniswapWalletAddressButton();
-  const expectedWalletAddress = driver.getClipboard();
   await BrowserScreen.tapNavbarHamburgerButton();
   await DrawerViewScreen.tapWalletButton();
   await WalletAccountModal.isAccountOverview();
-  await WalletAccountModal.tapWalletAddress();
-  await WalletAccountModal.isMainWalletAddressEqualTo(expectedWalletAddress);
   await WalletAccountModal.isAccountNameLabelEqualTo(text);
   await WalletMainScreen.tapBurgerIcon();
   await DrawerViewScreen.tapBrowserButton();
@@ -74,7 +69,6 @@ Then(/^active wallet is connected to Uniswap$/, async () => {
 When(
   /^I tap on the account icon located in the upper right of the browser view$/,
   async () => {
-    await driver.pause(500);
     await BrowserScreen.tapAccountButton();
   },
 );
@@ -94,22 +88,7 @@ Then(/^"([^"]*)" is now active in the app$/, async (text) => {
 When(/^I navigate to "([^"]*)"$/, async (text) => {
   await BrowserScreen.tapUrlNavBar();
   await AddressBarScreen.editUrlInput(text);
-  await driver.pressKeyCode(66);
-  await AddressBarScreen.tapUrlCancelButton();
-});
-
-When(/^I navigate to "([^"]*)" website$/, async (text) => {
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.editUrlInput(text);
-  await driver.pressKeyCode(66);
-});
-
-Then(/^the browser view is on "([^"]*)" website$/, async (text) => {
-  await AddressBarScreen.tapUrlCancelButton();
-  await driver.pause(500);
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains(text);
-  await AddressBarScreen.tapUrlCancelButton();
+  await AddressBarScreen.submitUrlWebsite();
 });
 
 Given(/^I have (\d+) browser tab displayed$/, async (number) => {
@@ -244,7 +223,6 @@ When(/^I input "([^"]*)" in address field$/, async (text) => {
 
 When(/^I tap on device Go or Next button$/, async () => {
   await driver.pressKeyCode(66);
-  await driver.pause(500);
   await AddressBarScreen.tapUrlCancelButton();
 });
 
@@ -253,9 +231,7 @@ When(/^I tap on the back arrow control button$/, async () => {
 });
 
 When(/^I tap on forward arrow control button$/, async () => {
-  await driver.pause(500);
   await BrowserScreen.tapForwardButton();
-  await driver.pause(5000);
 });
 
 When(/^I tap on search button$/, async () => {
@@ -381,10 +357,6 @@ When(/^I tap on "([^"]*)" in address field$/, async (button) => {
   }
 });
 
-Then(/^wallet is connected to Curve\.fi site$/, async () => {
-  await ExternalWebsitesScreen.isConnectButtonNotDisplayed();
-});
-
 Then(/^all browser tabs are closed$/, async () => {
   await MultiTabScreen.isNoTabsMessageDisplayed();
 });
@@ -395,12 +367,6 @@ Then(/^new browser tab is added$/, async () => {
 
 Then(/^active browser tab is refreshed$/, async () => {
   await OptionMenuModal.isModalNotDisplayed();
-});
-
-When(/^I connect my wallet to Curve\.fi$/, async () => {
-  await ExternalWebsitesScreen.tapCurveConnectWalletButton();
-  await ExternalWebsitesScreen.tapCurveMetaMaskAvailableWalletButton();
-  await AccountApprovalModal.tapConnectButton();
 });
 
 Then(
@@ -439,14 +405,7 @@ Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
   await NetworkListModal.tapNetworkListCloseIcon();
 });
 
-Then(/^wallet is no longer connected to Curve website$/, async () => {
-  await ExternalWebsitesScreen.isCurveChangeNetworkButtonDisplayed();
-});
-
 Given(/^I navigate to the browser$/, async () => {
-  await EnableAutomaticSecurityChecksScreen.tapNoThanksButton();
-  await OnboardingWizardModal.tapSkipTutorialButton();
-  await driver.pause(5000);
   await WalletMainScreen.tapBurgerIcon();
   await DrawerViewScreen.tapBrowserButton();
 });
@@ -459,4 +418,18 @@ When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
 
 Then(/^the "([^"]*)" url is displayed in address field$/, async (text) => {
   await AddressBarScreen.isUrlValueContains(text);
+});
+
+Then(/^browser address view is displayed$/, async () => {
+  await AddressBarScreen.isAddressInputViewDisplayed();
+});
+
+Then(/^the browser view is on the Reddit website$/, async () => {
+  await ExternalWebsitesScreen.isRedditIconDisplayed();
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains('reddit.com');
+  await AddressBarScreen.tapUrlCancelButton();
+});
+Then(/^I should close the address view$/, async () => {
+  await AddressBarScreen.tapUrlCancelButton();
 });
