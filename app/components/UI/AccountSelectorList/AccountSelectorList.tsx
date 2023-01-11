@@ -215,7 +215,7 @@ const AccountSelectorList = ({
       });
       accountsLengthRef.current = accounts.length;
     }
-  }, [accounts.length, selectedAddresses, isAutoScrollEnabled]);
+  }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
   return (
     <FlatList

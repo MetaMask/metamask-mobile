@@ -39,7 +39,7 @@ const AccountConnectMultiSelector = ({
 
   const onRemoveAccount = useCallback(
     ({ removedAddress }: { removedAddress: string }) => {
-      let newSelectedAccountAddresses = [...selectedAddresses];
+      const newSelectedAccountAddresses = [...selectedAddresses];
       const selectedAddressIndex = selectedAddresses.indexOf(removedAddress);
       newSelectedAccountAddresses.splice(selectedAddressIndex, 1);
       onSelectAddress(newSelectedAccountAddresses);

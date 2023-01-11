@@ -82,7 +82,13 @@ const AccountConnectSingle = ({
         />
       </View>
     ),
-    [onSetScreen, onSetSelectedAddresses, isLoading, styles],
+    [
+      onSetScreen,
+      onSetSelectedAddresses,
+      isLoading,
+      styles,
+      defaultSelectedAccount?.address,
+    ],
   );
 
   const renderCtaButtons = useCallback(

@@ -64,7 +64,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       nextActiveAddress &&
         PreferencesController.setSelectedAddress(nextActiveAddress);
     },
-    [],
+    [Engine.context],
   );
 
   const createNewAccount = useCallback(async () => {

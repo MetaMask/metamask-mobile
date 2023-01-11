@@ -106,8 +106,8 @@ const AccountPermissionsConnected = ({
   const onRemoveAccount = useCallback(
     () =>
       // Check if the deleted account is the only account.
-      accounts.length == 1 && onDismissSheet(),
-    [accounts],
+      accounts.length === 1 && onDismissSheet(),
+    [accounts, onDismissSheet],
   );
 
   const switchNetwork = useCallback(() => {
