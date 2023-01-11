@@ -58,6 +58,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     });
   };
 
+  const onRemoveAccount = useCallback(
+    ({ nextActiveAddress }: { nextActiveAddress: string }) => {
+      const { PreferencesController } = Engine.context;
+      nextActiveAddress &&
+        PreferencesController.setSelectedAddress(nextActiveAddress);
+    },
+    [],
+  );
+
   const createNewAccount = useCallback(async () => {
     const { KeyringController, PreferencesController } = Engine.context;
     try {
@@ -134,6 +143,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       <SheetHeader title={strings('accounts.accounts_title')} />
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
+        onRemoveAccount={onRemoveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}

@@ -27,6 +27,7 @@ import styleSheet from './AccountSelectorList.styles';
 
 const AccountSelectorList = ({
   onSelectAccount,
+  onRemoveAccount,
   accounts,
   ensByAccountAddress,
   isLoading = false,
@@ -98,7 +99,6 @@ const AccountSelectorList = ({
             text: strings('accounts.yes_remove_it'),
             onPress: async () => {
               // TODO: Refactor account deletion logic to make more robust.
-              const { PreferencesController } = Engine.context;
               const selectedAddressOverride = selectedAddresses?.[0];
               const account = accounts.find(
                 ({ isSelected: isAccountSelected, address: accountAddress }) =>
@@ -109,12 +109,18 @@ const AccountSelectorList = ({
               let nextActiveAddress = account.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
-                nextActiveAddress = accounts[nextActiveIndex].address;
-                PreferencesController.setSelectedAddress(nextActiveAddress);
+                nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
+              // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
+              // If needed, place PreferencesController.setSelectedAddress in onRemoveAccount callback.
+              onRemoveAccount?.({
+                removedAddress: address,
+                nextActiveAddress,
+              });
               await Engine.context.KeyringController.removeAccount(address);
+              // Revocation of accounts from PermissionController is needed whenever accounts are removed.
+              // If there is an instance where this is not the case, this logic will need to be updated.
               removeAccountFromPermissions(address);
-              onSelectAccount?.(nextActiveAddress, isSelected);
             },
           },
         ],
@@ -122,7 +128,7 @@ const AccountSelectorList = ({
       );
     },
     /* eslint-disable-next-line */
-    [accounts, onSelectAccount, isRemoveAccountEnabled, selectedAddresses],
+    [accounts, onRemoveAccount, isRemoveAccountEnabled, selectedAddresses],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(

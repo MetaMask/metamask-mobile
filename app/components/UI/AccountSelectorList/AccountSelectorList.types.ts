@@ -23,6 +23,13 @@ export interface AccountSelectorListProps
    */
   onSelectAccount?: (address: string, isSelected: boolean) => void;
   /**
+   * Optional callback to trigger when account is removed.
+   */
+  onRemoveAccount?: (params: {
+    removedAddress: string;
+    nextActiveAddress: string;
+  }) => void;
+  /**
    * Optional boolean that indicates if accounts are being processed in the background. The accounts will be unselectable as long as this is true.
    * @default false
    */

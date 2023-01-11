@@ -36,6 +36,33 @@ const AccountConnectMultiSelector = ({
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
 
+  const onRemoveAccount = useCallback(
+    ({ removedAddress }: { removedAddress: string }) => {
+      let newSelectedAccountAddresses = [...selectedAddresses];
+      const selectedAddressIndex = selectedAddresses.indexOf(removedAddress);
+      newSelectedAccountAddresses.splice(selectedAddressIndex, 1);
+      onSelectAddress(newSelectedAccountAddresses);
+    },
+    [selectedAddresses, onSelectAddress],
+  );
+
+  const onSelectAccount = useCallback(
+    (accAddress) => {
+      const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
+      // Reconstruct selected addresses.
+      const newAccountAddresses = accounts.reduce((acc, { address }) => {
+        if (accAddress === address) {
+          selectedAddressIndex === -1 && acc.push(address);
+        } else if (selectedAddresses.includes(address)) {
+          acc.push(address);
+        }
+        return acc;
+      }, [] as string[]);
+      onSelectAddress(newAccountAddresses);
+    },
+    [accounts, selectedAddresses, onSelectAddress],
+  );
+
   const renderSheetActions = useCallback(
     () => (
       <SheetActions
@@ -153,24 +180,14 @@ const AccountConnectMultiSelector = ({
           : renderSelectAllButton()}
       </View>
       <AccountSelectorList
-        onSelectAccount={(accAddress) => {
-          const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
-          // Reconstruct selected addresses.
-          const newAccountAddresses = accounts.reduce((acc, { address }) => {
-            if (accAddress === address) {
-              selectedAddressIndex === -1 && acc.push(address);
-            } else if (selectedAddresses.includes(address)) {
-              acc.push(address);
-            }
-            return acc;
-          }, [] as string[]);
-          onSelectAddress(newAccountAddresses);
-        }}
+        onSelectAccount={onSelectAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
         selectedAddresses={selectedAddresses}
         isMultiSelect
+        isRemoveAccountEnabled
+        onRemoveAccount={onRemoveAccount}
       />
       {renderSheetActions()}
       <View style={styles.body}>{renderCtaButtons()}</View>
