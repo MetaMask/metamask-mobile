@@ -39,8 +39,13 @@ sudo gem install cocoapods
 
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
--   Install the Android NDK, via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-    -   In the SDK Manager, select the `SDK Tools` tab and install NDK version `21.4.7075529`. You'll need to click "Show Package Details" in order to select the appropriate version.
+-   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
+    - Go to Preferences > Appearance & Behavior > System Settings > Android SDK
+    - Select `SDK Tools` tab
+    - Locate `NDK (Side-by-side)` option in the tools list
+    - Check `Show Package Details` option below the tools list to show available versions
+    - Check NDK version `21.4.7075529` 
+    - Click "OK" to download
 -   Linux only:
     -   Ensure that you have the `secret-tool` binary on your machine.
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
