@@ -10,8 +10,10 @@ import {
   TextStyle,
 } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Text from './Text';
+import CustomText from './Text';
 import { useTheme } from '../../util/theme';
+// TODO: Convert into typescript and correctly type optionals
+const Text = CustomText as any;
 
 export enum AlertType {
   Info = 'Info',

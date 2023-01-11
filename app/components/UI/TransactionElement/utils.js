@@ -33,8 +33,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
-import { util } from '@metamask/controllers';
-const { isEIP1559Transaction } = util;
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 
 const { getSwapsContractAddress } = swapsUtils;
 

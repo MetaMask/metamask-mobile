@@ -2260,5 +2260,26 @@
       "be_careful": "Be careful",
       "error_enter_number": "Error: Enter only numbers"
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Restore needed",
+    "restore_needed_description": "Something has gone wrong but don’t worry! Let’s try to restore your wallet.",
+    "restore_needed_action": "Restore wallet"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Your wallet is ready!",
+    "wallet_restored_action": "Continue to wallet",
+    "wallet_restored_description_part_one": "You may need to add some of your assets, networks, and settings again manually.",
+    "wallet_restored_description_part_two": "Take a moment to",
+    "wallet_restored_description_link": "back up your Secret Recovery Phrase",
+    "wallet_restored_description_part_three": "in case you need to restore your wallet again in the future."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "New wallet needed",
+    "new_wallet_needed_create_new_wallet_action": "Create a new wallet",
+    "new_wallet_needed_create_try_again_action": "Try recovering wallet",
+    "new_wallet_needed_description_part_one": "Something's wrong with your wallet, and you'll need to create a new one. Because your accounts are on the blockchain, they're still safe. Only the preferences, saved networks, account names, and related data saved on your device are gone.",
+    "new_wallet_needed_description_part_two":"To import your accounts to a new wallet, you'll need your Secret Recovery Phrase. If you don't have your Secret Recovery Phrase, you won't be able to import your accounts.",
+    "new_wallet_needed_description_part_three": "To keep this from happening again, be sure to always keep your MetaMask app and OS updated to the latest version."
   }
 }

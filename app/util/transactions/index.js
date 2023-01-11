@@ -2,7 +2,8 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
-import { util } from '@metamask/controllers';
+import { query, isSmartContractCode } from '@metamask/controller-utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -294,9 +295,9 @@ export async function isSmartContractAddress(address, chainId) {
   }
   const { TransactionController } = Engine.context;
   const code = address
-    ? await util.query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(TransactionController.ethQuery, 'getCode', [address])
     : undefined;
-  const isSmartContract = util.isSmartContractCode(code);
+  const isSmartContract = isSmartContractCode(code);
   return isSmartContract;
 }
 
@@ -1303,7 +1304,7 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
     let gasPrice = transaction.transaction.gasPrice;
     const transactionToCheck = transaction.transaction;
 
-    if (util.isEIP1559Transaction(transactionToCheck)) {
+    if (isEIP1559Transaction(transactionToCheck)) {
       gasPrice = transactionToCheck.maxFeePerGas;
     }
 

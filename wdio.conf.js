@@ -1,3 +1,6 @@
+import generateTestReports from './wdio/utils/generateTestReports';
+const { removeSync } = require('fs-extra');
+
 export const config = {
   //
   // ====================
@@ -108,7 +111,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 30000,
+  waitforTimeout: 90000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -144,7 +147,26 @@ export const config = {
   // Test reporter for stdout.
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
-  reporters: ['spec'],
+  reporters: [
+    'spec',
+    [
+      'cucumberjs-json',
+      {
+        jsonFolder: './wdio/reports/json',
+        language: 'en',
+      },
+    ],
+    [
+      'junit',
+      {
+        outputDir: './wdio/reports/junit-results',
+        outputFileFormat: function (options) {
+          // optional
+          return `results-${options.cid}.${options.capabilities.platformName}.xml`;
+        },
+      },
+    ],
+  ],
 
   //
   // If you are using Cucumber you need to specify the location of your step definitions.
@@ -168,7 +190,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 60000,
+    timeout: 90000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },
@@ -186,8 +208,9 @@ export const config = {
    * @param {Object} config wdio configuration object
    * @param {Array.<Object>} capabilities list of capabilities details
    */
-  // onPrepare: function (config, capabilities) {
-  // },
+  onPrepare: function (config, capabilities) {
+    removeSync('./wdio/reports');
+  },
   /**
    * Gets executed before a worker process is spawned and can be used to initialise specific service
    * for that worker as well as modify runtime environments in an async fashion.
@@ -334,8 +357,9 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
-  // onComplete: function (exitCode, config, capabilities) {
-  // },
+  onComplete: async function (exitCode, config, capabilities) {
+    generateTestReports();
+  },
   /**
    * Gets executed when a refresh happens.
    * @param {String} oldSessionId session ID of the old session
