@@ -180,25 +180,10 @@ exports[`GetStarted renders correctly 1`] = `
               </Text>
             </View>
           </View>
-        </View>
-      </RCTScrollView>
-    </View>
-    <View>
-      <View
-        style={
-          Array [
-            Object {
-              "padding": 15,
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={0.2}
-          onPress={[Function]}
+        </RCTScrollView>
+      </View>
+      <View>
+        <View
           style={
             Array [
               Object {
@@ -210,8 +195,7 @@ exports[`GetStarted renders correctly 1`] = `
           }
         >
           <TouchableOpacity
-            accessibilityComponentType="button"
-            accessibilityTraits="button"
+            accessibilityRole="button"
             activeOpacity={0.2}
             onPress={[Function]}
             style={
