@@ -48,6 +48,7 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
 } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -223,9 +224,7 @@ class AccountOverview extends PureComponent {
   openAccountSelector = () => {
     const { onboardingWizard, navigation } = this.props;
     !onboardingWizard &&
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ACCOUNT_SELECTOR,
-      });
+      navigation.navigate(...createAccountSelectorNavDetails());
   };
 
   isAccountLabelDefined = (accountLabel) =>

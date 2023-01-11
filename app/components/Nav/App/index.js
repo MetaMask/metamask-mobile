@@ -149,7 +149,7 @@ const OnboardingNav = () => (
 const SimpleWebviewScreen = () => (
   <Stack.Navigator mode={'modal'}>
     <Stack.Screen
-      name="SimpleWebview"
+      name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
       options={SimpleWebview.navigationOptions}
     />
@@ -173,7 +173,7 @@ const OnboardingRootNav = () => (
       header={null}
     />
     <Stack.Screen
-      name="Webview"
+      name={Routes.WEBVIEW.MAIN}
       header={null}
       component={SimpleWebviewScreen}
     />

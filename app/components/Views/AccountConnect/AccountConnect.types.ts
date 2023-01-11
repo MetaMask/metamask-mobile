@@ -7,6 +7,13 @@ export enum AccountConnectScreens {
   MultiConnectSelector = 'MultiConnectSelector',
 }
 
+export interface AccountConnectParams {
+  hostInfo: {
+    metadata: { origin: string };
+  };
+  permissionRequestId: string;
+}
+
 /**
  * AccountConnect props.
  */
@@ -15,11 +22,6 @@ export interface AccountConnectProps {
    * Props that are passed in while navigating to screen.
    */
   route: {
-    params: {
-      hostInfo: {
-        metadata: { origin: string };
-      };
-      permissionRequestId: string;
-    };
+    params: AccountConnectParams;
   };
 }

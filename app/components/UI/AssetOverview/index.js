@@ -42,6 +42,7 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { isTestNet } from '../../../util/networks';
+import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -221,12 +222,11 @@ class AssetOverview extends PureComponent {
   };
 
   goToBrowserUrl(url) {
-    this.props.navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
+    this.props.navigation.navigate(
+      ...createWebviewNavDetails({
         url,
-      },
-    });
+      }),
+    );
   }
 
   renderLogo = () => {

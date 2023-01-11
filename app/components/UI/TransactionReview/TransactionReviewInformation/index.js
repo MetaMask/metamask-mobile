@@ -39,10 +39,10 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { allowedToBuy } from '../../FiatOnRampAggregator';
+import { createBrowserNavDetails } from '../../../Views/Browser';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -511,10 +511,12 @@ class TransactionReviewInformation extends PureComponent {
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate(Routes.BROWSER.VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
-        timestamp: Date.now(),
-      });
+      this.props.navigation.navigate(
+        ...createBrowserNavDetails({
+          newTabUrl: AppConstants.URLS.MM_FAUCET,
+          timestamp: Date.now(),
+        }),
+      );
     });
   };
 

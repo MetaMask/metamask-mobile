@@ -31,9 +31,9 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
-import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { IMPORT_TOKEN_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -326,9 +326,7 @@ class Tokens extends PureComponent {
   showDetectedTokens = () => {
     const { NetworkController } = Engine.context;
     const { detectedTokens } = this.props;
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: 'DetectedTokens',
-    });
+    this.props.navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
