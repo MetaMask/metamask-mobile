@@ -11,7 +11,7 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { util } from '@metamask/controllers';
+import { hexToBN } from '@metamask/controller-utils';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -27,8 +27,8 @@ import AccountList from '../../../UI/AccountList';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
@@ -67,8 +67,6 @@ import createStyles from './styles';
 import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
 import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/features/testIDs/Screens/AddressBook.testids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-const { hexToBN } = util;
 
 const dummy = () => true;
 
@@ -469,7 +467,7 @@ class SendFlow extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
         {
           network: providerType,
         },
@@ -576,7 +574,7 @@ class SendFlow extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
         button_copy: 'Buy Native Token',
         chain_id_destination: this.props.chainId,

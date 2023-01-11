@@ -20,7 +20,6 @@ import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
-import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -35,6 +34,7 @@ import { createStyles } from './styles';
 
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
 
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 /**
@@ -88,7 +88,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     getSeedphrase();
     setWords(route.params?.words ?? []);
     setReady(true);
-    InteractionManager.runAfterInteractions(() => PreventScreenshot.forbid());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -110,9 +109,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_REVEALED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
     });
   };
 
