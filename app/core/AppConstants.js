@@ -1,5 +1,4 @@
 import Device from '../util/device';
-import { MAINNET } from '../constants/network';
 
 const DEVELOPMENT = 'development';
 
