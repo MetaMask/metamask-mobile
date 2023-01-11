@@ -307,8 +307,6 @@ class Approval extends PureComponent {
     eip1559GasTransaction,
     gasSelected,
   }) => {
-    // console.log(eip1559GasTransaction, 'eip1559GasTransaction')
-
     const { TransactionController, KeyringController } = Engine.context;
     const {
       transactions,
@@ -415,8 +413,6 @@ class Approval extends PureComponent {
       value: BNToHex(transaction.value),
       to: safeToChecksumAddress(transaction.to),
     };
-
-    // console.log(EIP1559GasData, 'EIP1559GasData')
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       transactionToSend.gas = eip1559GasTransaction.gasLimitHex;

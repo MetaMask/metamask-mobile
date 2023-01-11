@@ -1,8 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EditGasFeeLegacyUpdate should render correctly 1`] = `
+exports[`EditGasFeeLegacy should render correctly 1`] = `
 <EditGasFeeLegacy
   ignoreOptions={Array []}
+  selected="medium"
   view="Test"
   warningMinimumEstimateOption="low"
 />

@@ -14,8 +14,8 @@ const initialState = {
       },
       NetworkController: {
         provider: {
-          ticker: 'ETH',
-          chainId: '1',
+          ticker: 'BSC',
+          chainId: '56',
         },
       },
     },
@@ -23,11 +23,11 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
-describe('EditGasFeeLegacyUpdate', () => {
+describe('EditGasFeeLegacy', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <EditGasFeeLegacy view={'Test'} />
+        <EditGasFeeLegacy view={'Test'} selected={'medium'} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

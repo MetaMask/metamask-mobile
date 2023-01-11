@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import EditGasFee1559Update from '../EditGasFee1559';
+import EditGasFee1559 from '../EditGasFee1559';
 import { connect } from 'react-redux';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -222,7 +222,7 @@ const UpdateEIP1559Tx = ({
     suggestedGasLimit,
   };
   return (
-    <EditGasFee1559Update
+    <EditGasFee1559
       selectedGasValue={gasSelected}
       gasOptions={gasFeeEstimates}
       primaryCurrency={primaryCurrency}

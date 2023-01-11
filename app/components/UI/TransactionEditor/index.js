@@ -135,9 +135,7 @@ class TransactionEditor extends PureComponent {
     over: false,
     gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
-    // the gas transaction fee object
     eip1559GasTransaction: {},
-    // the selected gas option object. If user edits gas options, this object is updated.
     eip1559GasObject: {},
     legacyGasObject: {},
     dappSuggestedGasPrice: '',

@@ -207,13 +207,22 @@ class TransactionReviewInformation extends PureComponent {
      * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
      */
     originWarning: PropTypes.bool,
+    /**
+     * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
+     */
     gasSelected: PropTypes.string,
     multiLayerL1FeeTotal: PropTypes.string,
+    /**
+     * gas object for calculating the new gas fees
+     */
     gasObject: PropTypes.object,
+    /**
+     * update gas transaction state to parent
+     */
     updateTransactionState: PropTypes.func,
     eip1559GasTransaction: PropTypes.object,
-    dappSuggestedEIP1559Gas: PropTypes.any,
-    dappSuggestedGasPrice: PropTypes.any,
+    dappSuggestedEIP1559Gas: PropTypes.string,
+    dappSuggestedGasPrice: PropTypes.string,
   };
 
   state = {

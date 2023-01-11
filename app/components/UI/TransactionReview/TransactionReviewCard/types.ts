@@ -68,8 +68,11 @@ export interface TransactionReviewCardProps {
   updateTransactionState: any;
   onlyGas: boolean;
   multiLayerL1FeeTotal?: string;
-  dappSuggestedGasPrice?: any;
-  dappSuggestedEIP1559Gas?: any;
+  dappSuggestedGasPrice?: string;
+  dappSuggestedEIP1559Gas?: string;
+  /**
+   * total gas fees
+   */
   totalMaxNative?: string;
   totalConversion?: string;
   totalNative?: string;

@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import EditGasFeeLegacySwaps from '.';
 
-describe('EditGasFeeLegacy', () => {
+describe('EditGasFeeLegacySwaps', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <EditGasFeeLegacySwaps
