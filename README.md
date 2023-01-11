@@ -37,6 +37,10 @@ sudo gem install cocoapods
 
 #### Android
 
+-   Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
+```
+  java -version
+```
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
