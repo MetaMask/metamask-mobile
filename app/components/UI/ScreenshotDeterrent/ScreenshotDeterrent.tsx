@@ -40,13 +40,13 @@ const ScreenshotDeterrent = ({
             ? strings('screenshot_deterrent.srp_text')
             : strings('screenshot_deterrent.priv_key_text'),
         }),
-        onConfirm: () => {
+        onCancel: () => {
           setAlertPresent(false);
           AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
         },
-        onCancel: openSRPGuide,
-        cancelLabel: strings('reveal_credential.learn_more'),
-        confirmLabel: strings('reveal_credential.got_it'),
+        onConfirm: openSRPGuide,
+        confirmLabel: strings('reveal_credential.learn_more'),
+        cancelLabel: strings('reveal_credential.got_it'),
       },
     });
   }, [isSRP, navigation]);
