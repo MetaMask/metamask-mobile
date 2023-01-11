@@ -36,6 +36,7 @@ const AccountSelectorList = ({
   renderRightAccessory,
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
+  isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
   const Engine = UntypedEngine as any;
@@ -200,7 +201,7 @@ const AccountSelectorList = ({
 
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
-    if (!accounts.length || isMultiSelect) return;
+    if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
       const selectedAddressOverride = selectedAddresses?.[0];
       const account = accounts.find(({ isSelected, address }) =>
@@ -214,7 +215,7 @@ const AccountSelectorList = ({
       });
       accountsLengthRef.current = accounts.length;
     }
-  }, [accounts.length, selectedAddresses, isMultiSelect]);
+  }, [accounts.length, selectedAddresses, isAutoScrollEnabled]);
 
   return (
     <FlatList

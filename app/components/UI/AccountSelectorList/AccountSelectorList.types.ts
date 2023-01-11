@@ -45,6 +45,10 @@ export interface AccountSelectorListProps
    */
   isMultiSelect?: boolean;
   /**
+   * Optional boolean that indicates if list should auto scroll to selected address.
+   */
+  isAutoScrollEnabled?: boolean;
+  /**
    * Optional render function to replace the right accessory of each account element.
    */
   renderRightAccessory?: (

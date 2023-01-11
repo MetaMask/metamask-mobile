@@ -69,7 +69,11 @@ const AccountConnectSingle = ({
             {
               label: strings('accounts.connect_multiple_accounts'),
               onPress: () => {
-                onSetSelectedAddresses([]);
+                onSetSelectedAddresses(
+                  defaultSelectedAccount?.address
+                    ? [defaultSelectedAccount.address]
+                    : [],
+                );
                 onSetScreen(AccountConnectScreens.MultiConnectSelector);
               },
               disabled: isLoading,

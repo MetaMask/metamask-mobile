@@ -17,4 +17,5 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   hostname: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
+  isAutoScrollEnabled?: boolean;
 }

@@ -292,6 +292,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
+        isAutoScrollEnabled={false}
       />
     ),
     [
