@@ -1,4 +1,7 @@
-import { constructPermission, PermissionType } from '@metamask/controllers';
+import {
+  constructPermission,
+  PermissionType,
+} from '@metamask/permission-controller';
 import { v1 as random } from 'uuid';
 import { CaveatTypes, RestrictedMethods } from './constants';
 

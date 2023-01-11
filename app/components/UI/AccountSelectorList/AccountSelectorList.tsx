@@ -3,7 +3,7 @@ import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import Cell, {
