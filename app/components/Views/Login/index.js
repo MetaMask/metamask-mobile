@@ -10,8 +10,9 @@ import {
   Image,
   InteractionManager,
   BackHandler,
+  Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
@@ -50,6 +51,7 @@ import {
   RESET_WALLET_ID,
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -422,14 +424,12 @@ class Login extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
+        const vaultCorruptionError = new Error('Vault Corruption Error');
+        Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
         this.setState({
           loading: false,
           error: strings('login.clean_vault_error'),
         });
-        Logger.error(
-          'Vault Corruption Error',
-          strings('login.clean_vault_error'),
-        );
       } else {
         this.setState({ loading: false, error });
       }
@@ -516,7 +516,7 @@ class Login extends PureComponent {
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View testID={'login'}>
+            <View testID={'login'} {...generateTestId(Platform, 'login')}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
@@ -588,6 +588,7 @@ class Login extends PureComponent {
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
                   testID={RESET_WALLET_ID}
+                  {...generateTestId(Platform, RESET_WALLET_ID)}
                 >
                   {strings('login.reset_wallet')}
                 </Button>

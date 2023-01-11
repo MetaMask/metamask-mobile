@@ -23,6 +23,8 @@ import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
+import { ADD_NETWORK_BUTTON } from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -174,7 +176,10 @@ class NetworksSettings extends PureComponent {
   removeNetwork = () => {
     // Check if it's the selected network and then switch to mainnet first
     const { provider } = this.props;
-    if (provider.rpcTarget === this.networkToRemove && provider.type === RPC) {
+    if (
+      compareSanitizedUrl(provider.rpcTarget, this.networkToRemove) &&
+      provider.type === RPC
+    ) {
       this.switchToMainnet();
     }
     const { PreferencesController } = Engine.context;
@@ -193,39 +198,44 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
     return (
       <View key={`network-${network}`}>
-        {network === MAINNET ? (
-          this.renderMainnet()
-        ) : (
-          <TouchableOpacity
-            key={`network-${i}`}
-            onPress={() => this.onNetworkPress(network)}
-            onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
-            testID={'select-network'}
-          >
-            <View style={styles.network}>
-              {isCustomRPC &&
-                (image ? (
-                  <ImageIcons image={image} style={styles.networkIcon} />
-                ) : (
-                  <View style={styles.networkIcon} />
-                ))}
-              {!isCustomRPC && (
-                <View style={[styles.networkIcon, { backgroundColor: image }]}>
-                  <Text style={styles.text}>{name[0]}</Text>
-                </View>
-              )}
-              <Text style={styles.networkLabel}>{name}</Text>
-              {!isCustomRPC && (
-                <FontAwesome
-                  name="lock"
-                  size={20}
-                  color={colors.icon.default}
-                  style={styles.icon}
-                />
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
+        {
+          // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
+          network === MAINNET ? (
+            this.renderMainnet()
+          ) : (
+            <TouchableOpacity
+              key={`network-${i}`}
+              onPress={() => this.onNetworkPress(network)}
+              onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
+              testID={'select-network'}
+            >
+              <View style={styles.network}>
+                {isCustomRPC &&
+                  (image ? (
+                    <ImageIcons image={image} style={styles.networkIcon} />
+                  ) : (
+                    <View style={styles.networkIcon} />
+                  ))}
+                {!isCustomRPC && (
+                  <View
+                    style={[styles.networkIcon, { backgroundColor: image }]}
+                  >
+                    <Text style={styles.text}>{name[0]}</Text>
+                  </View>
+                )}
+                <Text style={styles.networkLabel}>{name}</Text>
+                {!isCustomRPC && (
+                  <FontAwesome
+                    name="lock"
+                    size={20}
+                    color={colors.icon.default}
+                    style={styles.icon}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+          )
+        }
       </View>
     );
   }
@@ -387,7 +397,7 @@ class NetworksSettings extends PureComponent {
           type="confirm"
           onPress={this.onAddNetwork}
           containerStyle={styles.syncConfirm}
-          testID={'add-network-button'}
+          testID={ADD_NETWORK_BUTTON}
         >
           {strings('app_settings.network_add_network')}
         </StyledButton>

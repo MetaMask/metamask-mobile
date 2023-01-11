@@ -10,8 +10,8 @@ import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
-import { getNetworkTypeById } from '../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
+import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
+import { WalletDevice } from '@metamask/transaction-controller';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -19,8 +19,9 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
+import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
-
+import Minimizer from 'react-native-minimizer';
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
@@ -42,52 +43,21 @@ class DeeplinkManager {
    */
   _handleNetworkSwitch = (switchToChainId) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
+    const network = handleNetworkSwitch(switchToChainId, this.frequentRpcList, {
+      networkController: NetworkController,
+      currencyRateController: CurrencyRateController,
+    });
 
-    // If not specified, use the current network
-    if (!switchToChainId) {
-      return;
-    }
+    if (!network) return;
 
-    // If current network is the same as the one we want to switch to, do nothing
-    if (
-      NetworkController?.state?.provider?.chainId === String(switchToChainId)
-    ) {
-      return;
-    }
-
-    const rpc = this.frequentRpcList.find(
-      ({ chainId }) => chainId === switchToChainId,
+    this.dispatch(
+      showAlert({
+        isVisible: true,
+        autodismiss: 5000,
+        content: 'clipboard-alert',
+        data: { msg: strings('send.warn_network_change') + network },
+      }),
     );
-
-    if (rpc) {
-      const { rpcUrl, chainId, ticker, nickname } = rpc;
-      CurrencyRateController.setNativeCurrency(ticker);
-      NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-      this.dispatch(
-        showAlert({
-          isVisible: true,
-          autodismiss: 5000,
-          content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + nickname },
-        }),
-      );
-      return;
-    }
-
-    const networkType = getNetworkTypeById(switchToChainId);
-
-    if (networkType) {
-      CurrencyRateController.setNativeCurrency('ETH');
-      NetworkController.setProviderType(networkType);
-      this.dispatch(
-        showAlert({
-          isVisible: true,
-          autodismiss: 5000,
-          content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + networkType },
-        }),
-      );
-    }
   };
 
   _approveTransaction = (ethUrl, origin) => {
@@ -240,7 +210,16 @@ class DeeplinkManager {
           const action = urlObj.pathname.split('/')[1];
 
           if (action === ACTIONS.CONNECT) {
-            Alert.alert(strings('dapp_connect.warning'));
+            if (params.redirect) {
+              Minimizer.goBack();
+            } else {
+              SDKConnect.connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
@@ -325,7 +304,16 @@ class DeeplinkManager {
       case PROTOCOLS.METAMASK:
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-          Alert.alert(strings('dapp_connect.warning'));
+          if (params.redirect) {
+            Minimizer.goBack();
+          } else {
+            SDKConnect.connectToChannel({
+              id: params.channelId,
+              commLayer: params.comm,
+              origin,
+              otherPublicKey: params.pubkey,
+            });
+          }
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;

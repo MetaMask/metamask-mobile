@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import CellBase from '../../foundation/CellBase';
-import CellDisplayContainer from '../../foundation/CellDisplayContainer';
+import Card from '../../../../Cards/Card';
 
 // Internal dependencies.
 import { CELL_DISPLAY_TEST_ID } from './CellDisplay.constants';
@@ -25,7 +25,7 @@ const CellDisplay = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <CellDisplayContainer style={styles.base} testID={CELL_DISPLAY_TEST_ID}>
+    <Card style={styles.base} testID={CELL_DISPLAY_TEST_ID}>
       <CellBase
         avatarProps={avatarProps}
         title={title}
@@ -35,7 +35,7 @@ const CellDisplay = ({
       >
         {children}
       </CellBase>
-    </CellDisplayContainer>
+    </Card>
   );
 };
 

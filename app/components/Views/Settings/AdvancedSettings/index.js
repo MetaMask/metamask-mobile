@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
@@ -38,6 +38,7 @@ import Logger from '../../../../util/Logger';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
+import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
@@ -257,6 +258,7 @@ class AdvancedSettings extends PureComponent {
   };
 
   downloadStateLogs = async () => {
+    const { fullState } = this.props;
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
@@ -264,25 +266,9 @@ class AdvancedSettings extends PureComponent {
       RNFS.DocumentDirectoryPath +
       `/state-logs-v${appVersion}-(${buildNumber}).json`;
     // A not so great way to copy objects by value
-    const fullState = JSON.parse(JSON.stringify(this.props.fullState));
 
-    // Remove stuff we don't want to sync
-    delete fullState.engine.backgroundState.CollectiblesController;
-    delete fullState.engine.backgroundState.TokensController;
-    delete fullState.engine.backgroundState.AssetsContractController;
-    delete fullState.engine.backgroundState.TokenDetectionController;
-    delete fullState.engine.backgroundState.CollectibleDetectionController;
-    delete fullState.engine.backgroundState.PhishingController;
-    delete fullState.engine.backgroundState.AssetsContractController;
-
-    // Remove encrypted vault from logs
-    delete fullState.engine.backgroundState.KeyringController.vault;
-
-    // Add extra stuff
-    fullState.engine.backgroundState.KeyringController.keyrings =
-      Engine.context.KeyringController.state.keyrings;
     try {
-      const data = JSON.stringify(fullState);
+      const data = generateStateLogs(fullState);
 
       let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
       // // Android accepts attachements as BASE64
@@ -314,7 +300,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
-    if (!controllerUtils.isTokenDetectionSupportedForNetwork(chainId)) {
+    if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
     return (

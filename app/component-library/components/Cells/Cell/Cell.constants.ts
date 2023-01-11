@@ -1,5 +1,5 @@
-import { AvatarProps, AvatarVariants } from '../../Avatars/Avatar.types';
-import { AvatarAccountType } from '../../Avatars/AvatarAccount';
+import { AvatarProps, AvatarVariants } from '../../Avatars/Avatar/Avatar.types';
+import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
 
 export const TEST_ACCOUNT_ADDRESS =
   '0x2990079bcdEe240329a520d2444386FC119da21a';

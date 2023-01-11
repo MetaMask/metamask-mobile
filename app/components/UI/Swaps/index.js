@@ -28,7 +28,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -57,7 +57,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
-import ScreenView from '../FiatOrders/components/ScreenView';
+import ScreenView from '../../Base/ScreenView';
 import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
@@ -230,8 +230,15 @@ function SwapsAmountView({
           chainId,
           AppConstants.SWAPS.CLIENT_ID,
         );
+        const isIphone = Device.isIos();
+        const isAndroid = Device.isAndroid();
+        const featureFlagKey = isIphone
+          ? 'mobileActiveIOS'
+          : isAndroid
+          ? 'mobileActiveAndroid'
+          : 'mobileActive';
         const liveness =
-          typeof data === 'boolean' ? data : data?.mobile_active ?? false;
+          typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
         setLiveness(liveness, chainId);
         if (liveness) {
           // Triggered when a user enters the MetaMask Swap feature
@@ -247,11 +254,11 @@ function SwapsAmountView({
               chain_id: chainId,
             };
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               {},
             );
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               parameters,
               true,
             );

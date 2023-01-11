@@ -529,7 +529,7 @@
     "cancel_remove_network": "Batal",
     "info_title": "Seputar MetaMask",
     "experimental_title": "Eksperimental",
-    "experimental_desc": "WalletConnect & lainnya...",
+    "experimental_desc": "MetaMask SDK, WalletConnect & lainnya...",
     "legal_title": "Hukum",
     "conversion_title": "Konversi mata uang",
     "conversion_desc": "Menampilkan nilai fiat dalam menggunakan mata uang tertentu di seluruh aplikasi.",
@@ -575,7 +575,26 @@
     "theme_os": "Sistem",
     "theme_light": "Terang",
     "theme_dark": "Gelap",
-    "network_exists": "Jaringan ini telah ditambahkan."
+    "network_exists": "Jaringan ini telah ditambahkan.",
+    "delete_metrics_title": "Hapus data MetaMetrics",
+    "delete_metrics_description_part_one": "Tindakan ini akan menghapus data MetaMetrics historis yang terkait dengan dompet Anda.",
+    "delete_metrics_description_part_two": "Data MetaMetrics merupakan data penggunaan dan diagnostik yang dianonimkan.",
+    "delete_metrics_description_part_three": "Dompet dan akun Anda akan tetap sama seperti sekarang setelah data ini dihapus. Proses ini mungkin memerlukan waktu hingga 60 hari. Lihat",
+    "delete_metrics_description_part_four": "Anda memulai tindakan ini pada",
+    "delete_metrics_description_part_five": ". Proses ini bisa memerlukan waktu hingga 60 hari. Lihat",
+    "consensys_privacy_policy": "Kebijakan Privasi ConsenSys.",
+    "delete_metrics_button": "Hapus data MetaMetrics",
+    "check_status_button": "Periksa Status",
+    "delete_metrics_confirm_modal_title": "Hapus data MetaMetrics?",
+    "delete_metrics_confirm_modal_description": "Kami akan menghapus semua data MetaMetrics Anda. Lanjutkan?",
+    "delete_wallet_data_title": "Hapus dompet",
+    "delete_wallet_data_description": "Tindakan ini akan menghapus semua data terkait dompet dari perangkat Anda. Akun Anda terdapat di blockchain dan tidak terkait dengan MetaMask. Akun Anda dapat dipulihkan kapan saja menggunakan Frasa Pemulihan Rahasia.",
+    "delete_wallet_data_button": "Hapus dompet",
+    "delete_data_status_title": "Penghapusan Status Tugas",
+    "delete_data_status_description": "Status saat ini adalah",
+    "delete_metrics_error_title": "Kami tidak dapat menghapus data ini sekarang.",
+    "delete_metrics_error_description": "Permintaan ini tidak dapat diselesaikan sekarang karena masalah server sistem analitis, coba lagi nanti.",
+    "ok": "Oke"
   },
   "app_information": {
     "title": "Informasi",
@@ -638,7 +657,15 @@
     "keep_credential_safe": "Jaga keamanan {{credentialName}} Anda",
     "srp_abbreviation_text": "FPR",
     "srp_text": "Frasa Pemulihan Rahasia",
-    "private_key_text": "Kunci Pribadi"
+    "private_key_text": "Kunci Pribadi",
+    "got_it": "Mengerti",
+    "learn_more": "Pelajari Selengkapnya"
+  },
+  "screenshot_deterrent": {
+    "title": "Peringatan keamanan",
+    "description": "Tangkapan layar bukan cara yang aman untuk melacak {{credentialName}}. Simpan di tempat yang tidak dicadangkan secara online untuk menjaga keamanan akun Anda.",
+    "srp_text": "Frasa Pemulihan Rahasia",
+    "priv_key_text": "Kunci Privat"
   },
   "password_reset": {
     "password_title": "Kata sandi",
@@ -676,10 +703,17 @@
     "allow_camera_dialog_message": "Kami memerlukan izin Anda untuk memindai kode QR",
     "scanning": "memindai...",
     "ok": "Oke",
+    "continue": "Lanjutkan",
     "cancel": "Batal",
     "error": "Galat",
     "attempting_to_scan_with_wallet_locked": "Tampaknya Anda mencoba memindai kode QR, Anda harus membuka dompet untuk dapat menggunakannya.",
-    "attempting_sync_from_wallet_error": "Tampaknya Anda mencoba menyinkronkan dengan ekstensi. Untuk melakukannya, Anda harus menghapus dompet saat ini. \n\nSetelah Anda menghapus atau menginstal ulang versi baru aplikasi, pilih opsi untuk \"Menyinkronkan dengan Ekstensi MetaMask\". Penting! Sebelum menghapus dompet Anda, pastikan Anda telah mencadangkan Frasa Pemulihan Rahasia."
+    "attempting_sync_from_wallet_error": "Tampaknya Anda mencoba menyinkronkan dengan ekstensi. Untuk melakukannya, Anda harus menghapus dompet saat ini. \n\nSetelah Anda menghapus atau menginstal ulang versi baru aplikasi, pilih opsi untuk \"Menyinkronkan dengan Ekstensi MetaMask\". Penting! Sebelum menghapus dompet Anda, pastikan Anda telah mencadangkan Frasa Pemulihan Rahasia.",
+    "not_allowed_error_title": "Aktifkan akses kamera",
+    "not_allowed_error_desc": "Akses kamera diperlukan untuk memindai kode QR yang terkait dengan alamat akun atau alamat kontrak",
+    "unrecognized_address_qr_code_title": "Kode QR tak dikenal",
+    "unrecognized_address_qr_code_desc": "Maaf, kode QR ini tidak terkait dengan alamat akun atau alamat kontrak.",
+    "url_redirection_alert_title": "Anda akan mengunjungi tautan eksternal",
+    "url_redirection_alert_desc": "Tautan dapat digunakan untuk mencoba menipu atau mengelabui orang, jadi pastikan untuk mengunjungi situs web yang aman saja."
   },
   "action_view": {
     "cancel": "Batal",
@@ -2006,5 +2040,21 @@
     "placeholder": "Kata sandi",
     "description": "Jika Anda menonaktifkan opsi ini, Anda memerlukan kata sandi untuk membuka MetaMask mulai sekarang.",
     "action": "Nonaktifkan Ingatkan saya"
+  },
+  "automatic_security_checks": {
+    "title": "Pemeriksaan keamanan otomatis",
+    "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan."
+  },
+  "update_needed": {
+    "title": "Pembaruan diperlukan",
+    "description": "Kami telah meningkatkan keamanan untuk dompet Anda! Mohon luangkan waktu untuk melindungi diri Anda dan perbarui ke versi terkini.",
+    "primary_action": "Perbarui ke versi terkini",
+    "secondary_action": "Ingatkan saya nanti"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Periksa pembaruan keamanan secara otomatis?",
+    "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan.",
+    "primary_action": "Aktifkan pemeriksaan keamanan otomatis",
+    "secondary_action": "Tidak, terima kasih"
   }
 }

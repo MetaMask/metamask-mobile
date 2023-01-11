@@ -14,7 +14,9 @@ import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const THUMB_VERTICAL_MARGIN = 15;
@@ -28,7 +30,7 @@ const ROWS_VISIBLE = Math.floor(
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     noTabs: {
       flex: 1,
@@ -86,13 +88,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       marginBottom: Device.isIphoneX() ? 0 : 0,
       paddingTop: 17,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 12,
-      },
-      shadowOpacity: 0.58,
-      shadowRadius: 15.0,
+      ...shadows.size.md,
       backgroundColor: colors.background.default,
       height: Device.isIphoneX() ? 80 : 50,
     },
@@ -219,7 +215,8 @@ export default class Tabs extends PureComponent {
 
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
-    return createStyles(colors);
+    const shadows = this.context.shadows || mockTheme.shadows;
+    return createStyles(colors, shadows);
   };
 
   renderNoTabs() {
@@ -265,7 +262,7 @@ export default class Tabs extends PureComponent {
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
       option_chosen: 'Browser Bottom Bar Menu',
       number_of_tabs: tabsNumber,
     });

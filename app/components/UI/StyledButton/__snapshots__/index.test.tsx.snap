@@ -1,7 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -24,7 +27,10 @@ exports[`StyledButton should render correctly on Android the button with type ca
 `;
 
 exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -46,7 +52,10 @@ exports[`StyledButton should render correctly on Android the button with type co
 `;
 
 exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -69,7 +78,10 @@ exports[`StyledButton should render correctly on Android the button with type no
 `;
 
 exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
-<TouchableNativeFeedback>
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
   <View
     style={
       Array [
@@ -92,6 +104,7 @@ exports[`StyledButton should render correctly on Android the button with type or
 
 exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
 <Button
+  accessibilityRole="button"
   containerStyle={
     Array [
       Object {
@@ -128,6 +141,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
 
 exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
 <Button
+  accessibilityRole="button"
   containerStyle={
     Array [
       Object {
@@ -163,6 +177,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
 
 exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
 <Button
+  accessibilityRole="button"
   containerStyle={
     Array [
       Object {
@@ -199,6 +214,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
 
 exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
 <Button
+  accessibilityRole="button"
   containerStyle={
     Array [
       Object {

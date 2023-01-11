@@ -529,7 +529,7 @@
     "cancel_remove_network": "Hủy",
     "info_title": "Giới thiệu về MetaMask",
     "experimental_title": "Thử nghiệm",
-    "experimental_desc": "WalletConnect & hơn thế nữa...",
+    "experimental_desc": "MetaMask SDK, alletConnect & hơn thế nữa...",
     "legal_title": "Pháp lý",
     "conversion_title": "Chuyển đổi tiền tệ",
     "conversion_desc": "Hiển thị giá trị tiền pháp định bằng cách sử dụng một loại tiền tệ cụ thể trong toàn bộ ứng dụng.",
@@ -575,7 +575,26 @@
     "theme_os": "Hệ thống",
     "theme_light": "Sáng",
     "theme_dark": "Tối",
-    "network_exists": "Mạng này đã được thêm."
+    "network_exists": "Mạng này đã được thêm.",
+    "delete_metrics_title": "Xóa dữ liệu MetaMetrics",
+    "delete_metrics_description_part_one": "Thao tác này sẽ xóa dữ liệu MetaMetrics lịch sử được liên kết với ví của bạn.",
+    "delete_metrics_description_part_two": "Dữ liệu MetaMetrics là dữ liệu chẩn đoán và sử dụng ẩn danh.",
+    "delete_metrics_description_part_three": "Ví và tài khoản của bạn sẽ vẫn giữ nguyên như hiện tại sau khi dữ liệu này đã bị xóa. Quá trình này có thể mất đến 60 ngày. Xem",
+    "delete_metrics_description_part_four": "Bạn đã thực hiện hành động này vào",
+    "delete_metrics_description_part_five": ". Quá trình này có thể mất đến 60 ngày. Xem",
+    "consensys_privacy_policy": "Chính sách quyền riêng tư ConsenSys",
+    "delete_metrics_button": "Xóa dữ liệu MetaMetrics",
+    "check_status_button": "Kiểm tra trạng thái",
+    "delete_metrics_confirm_modal_title": "Xóa dữ liệu MetaMetrics?",
+    "delete_metrics_confirm_modal_description": "Chúng tôi sắp xóa tất cả dữ liệu MetaMetrics của bạn. Bạn có chắc không?",
+    "delete_wallet_data_title": "Xóa ví",
+    "delete_wallet_data_description": "Thao tác này sẽ xóa tất cả dữ liệu liên quan đến ví khỏi thiết bị của bạn. Các tài khoản của bạn tồn tại trên blockchain và không liên quan đến MetaMask. Bạn luôn có thể khôi phục tài khoản của mình bằng Cụm từ khôi phục bí mật.",
+    "delete_wallet_data_button": "Xóa ví",
+    "delete_data_status_title": "Trạng thái tác vụ xóa",
+    "delete_data_status_description": "Trạng thái hiện tại là",
+    "delete_metrics_error_title": "Chúng tôi không thể xóa dữ liệu này bây giờ.",
+    "delete_metrics_error_description": "Không thể hoàn tất yêu cầu này ngay bây giờ do sự cố máy chủ hệ thống phân tích, vui lòng thử lại sau.",
+    "ok": "OK"
   },
   "app_information": {
     "title": "Thông tin",
@@ -638,7 +657,15 @@
     "keep_credential_safe": "Đảm bảo an toàn cho {{credentialName}} của bạn",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Cụm từ khôi phục bí mật",
-    "private_key_text": "Khóa riêng tư"
+    "private_key_text": "Khóa riêng tư",
+    "got_it": "Đã hiểu",
+    "learn_more": "Tìm hiểu thêm"
+  },
+  "screenshot_deterrent": {
+    "title": "Cảnh báo an toàn",
+    "description": "Ảnh chụp màn hình không phải là cách an toàn để theo dõi {{credentialName}} của bạn. Hãy lưu trữ ở một nơi không được sao lưu trực tuyến để đảm bảo an toàn cho tài khoản của bạn.",
+    "srp_text": "Cụm Mật Khẩu Khôi Phục Bí Mật",
+    "priv_key_text": "Khóa riêng tư"
   },
   "password_reset": {
     "password_title": "Mật khẩu",
@@ -676,10 +703,17 @@
     "allow_camera_dialog_message": "Chúng tôi cần sự cho phép của bạn để quét mã QR",
     "scanning": "đang quét...",
     "ok": "Ok",
+    "continue": "Tiếp tục",
     "cancel": "Hủy",
     "error": "Lỗi",
     "attempting_to_scan_with_wallet_locked": "Có vẻ như bạn đang cố quét mã QR, bạn cần mở khóa ví của mình để làm được điều đó.",
-    "attempting_sync_from_wallet_error": "Có vẻ như bạn đang cố đồng bộ với tiện ích mở rộng. Để làm như vậy, bạn sẽ cần xóa ví hiện tại của mình. \n\nSau khi bạn đã xóa hoặc cài đặt lại phiên bản ứng dụng mới, hãy chọn tùy chọn \"Đồng bộ với Tiện ích mở rộng MetaMask\". Lưu ý quan trọng! Trước khi xóa ví, hãy đảm bảo rằng bạn đã sao lưu Cụm từ khôi phục bí mật."
+    "attempting_sync_from_wallet_error": "Có vẻ như bạn đang cố đồng bộ với tiện ích mở rộng. Để làm như vậy, bạn sẽ cần xóa ví hiện tại của mình. \n\nSau khi bạn đã xóa hoặc cài đặt lại phiên bản ứng dụng mới, hãy chọn tùy chọn \"Đồng bộ với Tiện ích mở rộng MetaMask\". Lưu ý quan trọng! Trước khi xóa ví, hãy đảm bảo rằng bạn đã sao lưu Cụm từ khôi phục bí mật.",
+    "not_allowed_error_title": "Bật quyền truy cập camera",
+    "not_allowed_error_desc": "Cần cấp quyền truy cập camera để quét mã QR được liên kết với địa chỉ tài khoản hoặc địa chỉ hợp đồng",
+    "unrecognized_address_qr_code_title": "Không nhận diện được mã QR",
+    "unrecognized_address_qr_code_desc": "Rất tiếc, mã QR này không được liên kết với bất kỳ địa chỉ tài khoản hoặc địa chỉ hợp đồng nào.",
+    "url_redirection_alert_title": "Bạn sắp truy cập một liên kết bên ngoài",
+    "url_redirection_alert_desc": "Các liên kết có thể được sử dụng để cố gắng gian lận hoặc lừa đảo mọi người, vì vậy hãy đảm bảo chỉ truy cập các trang web mà bạn tin tưởng."
   },
   "action_view": {
     "cancel": "Hủy",
@@ -2006,5 +2040,21 @@
     "placeholder": "Mật khẩu",
     "description": "Nếu bạn tắt tùy chọn này, bạn sẽ cần nhập mật khẩu để mở khóa MetaMask kể từ bây giờ.",
     "action": "Tắt Ghi nhớ"
+  },
+  "automatic_security_checks": {
+    "title": "Kiểm tra bảo mật tự động",
+    "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác."
+  },
+  "update_needed": {
+    "title": "Cần cập nhật",
+    "description": "Chúng tôi đã tăng cường bảo mật cho ví của bạn! Hãy dành chút thời gian để tự bảo vệ mình và cập nhật lên phiên bản mới nhất.",
+    "primary_action": "Cập nhật lên phiên bản mới nhất",
+    "secondary_action": "Nhắc tôi sau"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Tự động kiểm tra các bản cập nhật bảo mật?",
+    "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác.",
+    "primary_action": "Bật kiểm tra bảo mật tự động",
+    "secondary_action": "Không, cảm ơn"
   }
 }

@@ -7,12 +7,12 @@ on:
     types: [opened]
 jobs:
   bump-version-name:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: "contains(github.head_ref, 'release/')"
     permissions:
       contents: write  
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Bump script
       env:
         HEAD_REF: ${{ github.head_ref }}

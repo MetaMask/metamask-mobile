@@ -4,7 +4,7 @@ import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { NetworksChainId, NetworkType } from '@metamask/controllers';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -17,6 +17,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
+import AppConstants from '../AppConstants.js';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -37,10 +38,7 @@ interface RPCMethodsMiddleParameters {
   approveHost: (fullHostname: string) => void;
   url: { current: string };
   title: { current: string };
-  icon: { current: string };
-  approvalRequest: {
-    current: { resolve: (value: boolean) => void; reject: () => void };
-  };
+  icon: { current: string | undefined };
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -53,6 +51,7 @@ interface RPCMethodsMiddleParameters {
   // For WalletConnect
   isWalletConnect: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
+  analytics: { [key: string]: string | boolean };
 }
 
 export const checkActiveAccountAndChainId = ({
@@ -134,6 +133,8 @@ export const getRpcMethodMiddleware = ({
   // For WalletConnect
   isWalletConnect,
   injectHomePageScripts,
+  // For analytics
+  analytics,
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -158,6 +159,13 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.provider.userRejectedRequest();
     };
 
+    const getSource = () => {
+      if (analytics?.isRemoteConn)
+        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    };
+
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clear(
@@ -173,6 +181,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         },
         id: random(),
@@ -250,7 +262,7 @@ export const getRpcMethodMiddleware = ({
               type: ApprovalTypes.CONNECT_ACCOUNTS,
               requestData: { hostname },
             });
-            const fullHostname = new URL(url.current).hostname;
+            const fullHostname = hostname;
             approveHost?.(fullHostname);
             setApprovedHosts?.({
               ...getApprovedHosts?.(),
@@ -294,6 +306,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
@@ -313,9 +329,8 @@ export const getRpcMethodMiddleware = ({
 
           res.result = rawSig;
         } else {
-          throw ethErrors.rpc.invalidParams(
-            'eth_sign requires 32 byte message hash',
-          );
+          res.result = AppConstants.ETH_SIGN_ERROR;
+          throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
         }
       },
 
@@ -338,6 +353,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
@@ -363,6 +382,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
@@ -396,6 +419,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
@@ -430,6 +457,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
@@ -624,6 +655,10 @@ export const getRpcMethodMiddleware = ({
           req,
           res,
           requestUserApproval,
+          analytics: {
+            request_source: getSource(),
+            request_platform: analytics?.platform,
+          },
         });
       },
 
@@ -633,6 +668,10 @@ export const getRpcMethodMiddleware = ({
           req,
           res,
           requestUserApproval,
+          analytics: {
+            request_source: getSource(),
+            request_platform: analytics?.platform,
+          },
         });
       },
     };

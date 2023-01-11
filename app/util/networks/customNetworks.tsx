@@ -19,7 +19,7 @@ const PopularList = [
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.arbitrum.io',
+      blockExplorerUrl: 'https://arbiscan.io',
       imageUrl: 'AETH',
     },
   },

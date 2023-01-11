@@ -5,7 +5,7 @@ import axios from 'axios';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import { store } from '../../store';
 import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
 import {
@@ -15,8 +15,12 @@ import {
   ANALYTICS_DATA_DELETION_TASK_ID,
   ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
+  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
-import { ResponseStatus, DeletionTaskStatus } from './constants';
+import {
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
+} from './MetaMetrics.types';
 
 const RCTAnalytics = NativeModules.Analytics;
 
@@ -100,7 +104,7 @@ class Analytics {
     );
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
-      preferencesController?.useCollectibleDetection
+      preferencesController?.useNftDetection
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );
@@ -125,7 +129,7 @@ class Analytics {
     { event, params = {}, value, info, anonymously = false },
   ) {
     const isAnalyticsPreferenceSelectedEvent =
-      ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+      MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
     this._setUserProfileProperties();
     if (!__DEV__) {
@@ -168,7 +172,7 @@ class Analytics {
    *  {
    *    status: ResponseStatus,
    *    error?: string,
-   *    deletionTaskStatus?: DeletionTaskStatus
+   *    DataDeleteStatus?: DataDeleteStatus
    *  }
    */
   async _createDataDeletionTask(compliance) {
@@ -178,8 +182,8 @@ class Analytics {
         `Analytics Deletion Task Created for following ${compliance} compliance`,
       );
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.pending,
+        status: DataDeleteResponseStatus.ok,
+        DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
     const distinctId = await this.getDistinctId();
@@ -203,7 +207,7 @@ class Analytics {
 
       const result = response.data;
 
-      if (result.status === ResponseStatus.ok) {
+      if (result.status === DataDeleteResponseStatus.ok) {
         this.dataDeletionTaskId = result.results.task_id;
 
         await DefaultPreference.set(
@@ -230,14 +234,14 @@ class Analytics {
 
         return {
           status: result.status,
-          deletionTaskStatus: ResponseStatus.pending,
+          DataDeleteStatus: DataDeleteResponseStatus.pending,
         };
       }
       Logger.log(`Analytics Deletion Task Error - ${result.error}`);
       return { status: response.status, error: result.error };
     } catch (error) {
       Logger.log(`Analytics Deletion Task Error - ${error}`);
-      return { status: ResponseStatus.error, error };
+      return { status: DataDeleteResponseStatus.error, error };
     }
   }
 
@@ -249,22 +253,22 @@ class Analytics {
    * @returns Object with the response of the request
    *  {
    *    status: ResponseStatus,
-   *    deletionTaskStatus?: DeletionTaskStatus
+   *    dataDeleteStatus?: DataDeleteStatus
    *  }
    */
   async _checkStatusDataDeletionTask() {
     if (__DEV__) {
       // Mock response for DEV env
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.pending,
+        status: DataDeleteResponseStatus.ok,
+        DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
 
     if (!this.dataDeletionTaskId) {
       return {
-        status: ResponseStatus.error,
-        deletionTaskStatus: DeletionTaskStatus.unknown,
+        status: DataDeleteResponseStatus.error,
+        dataDeleteStatus: DataDeleteStatus.unknown,
       };
     }
 
@@ -283,17 +287,17 @@ class Analytics {
 
     const { status, results } = response.data;
 
-    if (results.status === ResponseStatus.success) {
+    if (results.status === DataDeleteResponseStatus.success) {
       this.dataDeletionTaskId = undefined;
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.success,
+        status: DataDeleteResponseStatus.ok,
+        dataDeleteStatus: DataDeleteStatus.success,
       };
     }
 
     return {
       status,
-      deletionTaskStatus: results.status || DeletionTaskStatus.unknown,
+      DataDeleteStatus: results.status || DataDeleteStatus.unknown,
     };
   }
 
@@ -531,6 +535,7 @@ export default {
     const dataDeletionDate = await DefaultPreference.get(
       ANALYTICS_DATA_DELETION_DATE,
     );
+    const metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
     const isDataRecorded =
       (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
     instance = new Analytics(
@@ -539,6 +544,12 @@ export default {
       dataDeletionDate,
       isDataRecorded,
     );
+    // MixPanel distinctId stored for consistency purposes between
+    // Segment and MixPanel
+    if (!metametricsId) {
+      const distinctId = await instance.getDistinctId();
+      DefaultPreference.set(MIXPANEL_METAMETRICS_ID, distinctId);
+    }
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
       instance.remoteVariables = JSON.parse(vars);

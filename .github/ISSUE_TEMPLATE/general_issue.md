@@ -18,7 +18,8 @@ Describe the task. What does this aim to solve?
 
 ### **Acceptance Criteria**
 
--   Check with product on metrics
+-   Are metrics required?
+-   Are translations required?
 -   Cases to satisfy
 -   XYZ should work
 -   Etc.

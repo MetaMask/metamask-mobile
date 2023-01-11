@@ -119,6 +119,7 @@ import StudentFilled from './assets/student-filled.svg';
 import SwapHorizontalOutline from './assets/swap-horizontal-outline.svg';
 import SwapVertivalFilled from './assets/swap-vertival-filled.svg';
 import TagFilled from './assets/tag-filled.svg';
+import TildeOutline from './assets/tilde-outline.svg';
 import TimerTimer from './assets/timer-timer.svg';
 import TrashFilled from './assets/trash-filled.svg';
 import TrendDownFilled from './assets/trend-down-filled.svg';
@@ -256,6 +257,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.SwapHorizontalOutline]: SwapHorizontalOutline,
   [IconName.SwapVertivalFilled]: SwapVertivalFilled,
   [IconName.TagFilled]: TagFilled,
+  [IconName.TildeOutline]: TildeOutline,
   [IconName.TimerTimer]: TimerTimer,
   [IconName.TrashFilled]: TrashFilled,
   [IconName.TrendDownFilled]: TrendDownFilled,

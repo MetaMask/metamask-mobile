@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import {
@@ -12,6 +12,7 @@ import {
   Text,
   View,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
@@ -19,12 +20,19 @@ import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { safeToChecksumAddress } from '../../../util/address';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  ACCOUNT_LIST_ID,
+  CREATE_ACCOUNT_BUTTON_ID,
+  IMPORT_ACCOUNT_BUTTON_ID,
+} from '../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -195,12 +203,9 @@ class AccountList extends PureComponent {
       InteractionManager.runAfterInteractions(() => {
         setTimeout(() => {
           // Track Event: "Switched Account"
-          AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.SWITCHED_ACCOUNT,
-            {
-              number_of_accounts: Object.keys(accounts ?? {}).length,
-            },
-          );
+          AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+            number_of_accounts: Object.keys(accounts ?? {}).length,
+          });
         }, 1000);
       });
       const orderedAccounts = this.getAccounts();
@@ -211,37 +216,35 @@ class AccountList extends PureComponent {
   importAccount = () => {
     this.props.onImportAccount();
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
     });
   };
 
   connectHardware = () => {
     this.props.onConnectHardware();
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
   };
 
   addAccount = async () => {
     if (this.state.loading) return;
     this.mounted && this.setState({ loading: true });
-    const { KeyringController } = Engine.context;
+    const { KeyringController, PreferencesController } = Engine.context;
     requestAnimationFrame(async () => {
       try {
-        await KeyringController.addNewAccount();
-        const { PreferencesController } = Engine.context;
-        const newIndex = Object.keys(this.props.identities).length - 1;
-        PreferencesController.setSelectedAddress(
-          Object.keys(this.props.identities)[newIndex],
-        );
+        const { addedAccountAddress } = await KeyringController.addNewAccount();
+        const checksummedAddress = safeToChecksumAddress(addedAccountAddress);
+        PreferencesController.setSelectedAddress(checksummedAddress);
         setTimeout(() => {
           this.flatList &&
             this.flatList.current &&
             this.flatList.current.scrollToEnd();
           this.mounted && this.setState({ loading: false });
         }, 500);
-        const orderedAccounts = this.getAccounts();
-        this.mounted && this.setState({ orderedAccounts });
+        // Use setTimeout to ensure latest accounts are reflected in the next frame
+        setTimeout(() => {
+          const orderedAccounts = this.getAccounts();
+          this.mounted && this.setState({ orderedAccounts });
+        }, 0);
       } catch (e) {
         // Restore to the previous index in case anything goes wrong
         Logger.error(e, 'error while trying to add a new account'); // eslint-disable-line
@@ -249,7 +252,7 @@ class AccountList extends PureComponent {
       }
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
     });
   };
 
@@ -333,7 +336,7 @@ class AccountList extends PureComponent {
   getAccounts() {
     const { accounts, identities, selectedAddress, keyrings, getBalanceError } =
       this.props;
-    // This is a temporary fix until we can read the state from @metamask/controllers
+    // This is a temporary fix until we can read the state from @metamask/keyring-controller
     const allKeyrings =
       keyrings && keyrings.length
         ? keyrings
@@ -404,7 +407,10 @@ class AccountList extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'account-list'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        {...generateTestId(Platform, ACCOUNT_LIST_ID)}
+      >
         <View style={styles.titleWrapper}>
           <View style={styles.dragger} testID={'account-list-dragger'} />
         </View>
@@ -425,7 +431,7 @@ class AccountList extends PureComponent {
           <View style={styles.footer}>
             <TouchableOpacity
               style={styles.footerButton}
-              testID={'create-account-button'}
+              {...generateTestId(Platform, CREATE_ACCOUNT_BUTTON_ID)}
               onPress={this.addAccount}
             >
               {this.state.loading ? (
@@ -442,7 +448,7 @@ class AccountList extends PureComponent {
             <TouchableOpacity
               onPress={this.importAccount}
               style={styles.footerButton}
-              testID={'import-account-button'}
+              {...generateTestId(Platform, IMPORT_ACCOUNT_BUTTON_ID)}
             >
               <Text style={styles.btnText}>
                 {strings('accounts.import_account')}

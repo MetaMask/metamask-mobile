@@ -575,7 +575,26 @@
     "theme_os": "Système",
     "theme_light": "Clair",
     "theme_dark": "Sombre",
-    "network_exists": "Ce réseau a déjà été ajouté."
+    "network_exists": "Ce réseau a déjà été ajouté.",
+    "delete_metrics_title": "Supprimer les données MetaMetrics",
+    "delete_metrics_description_part_one": "Cela supprimera toutes les données MetaMetrics associées à votre portefeuille.",
+    "delete_metrics_description_part_two": "Les données MetaMetrics sont des données d’utilisation et de diagnostic anonymisées.",
+    "delete_metrics_description_part_three": "Votre portefeuille et vos comptes resteront exactement tels qu’ils sont maintenant après la suppression de ces données. Ce processus peut prendre jusqu’à 60 jours. Veuillez consulter la",
+    "delete_metrics_description_part_four": "Vous avez entrepris cette action le",
+    "delete_metrics_description_part_five": ". Ce processus peut prendre jusqu’à 60 jours. Veuillez consulter la",
+    "consensys_privacy_policy": "Politique de confidentialité de ConsenSys.",
+    "delete_metrics_button": "Supprimer les données MetaMetrics",
+    "check_status_button": "Vérifier l’état",
+    "delete_metrics_confirm_modal_title": "Voulez-vous supprimer les données MetaMetrics ?",
+    "delete_metrics_confirm_modal_description": "Nous sommes sur le point de supprimer toutes vos données MetaMetrics. Êtes-vous sûr(e) de vouloir continuer ?",
+    "delete_wallet_data_title": "Supprimer le portefeuille",
+    "delete_wallet_data_description": "Cela supprimera toutes les données liées au portefeuille de votre appareil. Vos comptes existent sur la blockchain et ne sont pas liés à MetaMask. Vous pouvez toujours récupérer vos comptes en utilisant votre phrase secrète de récupération.",
+    "delete_wallet_data_button": "Supprimer le portefeuille",
+    "delete_data_status_title": "État d’avancement de la suppression",
+    "delete_data_status_description": "L’état actuel de la demande est",
+    "delete_metrics_error_title": "Il nous est impossible de supprimer ces données pour le moment.",
+    "delete_metrics_error_description": "Impossible de répondre à cette demande pour le moment en raison d’un problème avec le serveur du système d’analyse. Veuillez réessayer plus tard.",
+    "ok": "OK"
   },
   "app_information": {
     "title": "Informations",
@@ -638,7 +657,15 @@
     "keep_credential_safe": "Protégez votre {{credentialName}}",
     "srp_abbreviation_text": "PSR",
     "srp_text": "Phrase secrète de récupération",
-    "private_key_text": "Clé privée"
+    "private_key_text": "Clé privée",
+    "got_it": "J’ai compris",
+    "learn_more": "En savoir plus"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerte de sécurité",
+    "description": "Pour sécuriser votre compte, il est fortement déconseillé de conserver votre {{credentialName}} sous forme de capture d'écran ou dans un espace de stockage en ligne.",
+    "srp_text": "Phrase secrète de récupération",
+    "priv_key_text": "Clé privée"
   },
   "password_reset": {
     "password_title": "Mot de passe",
@@ -676,10 +703,17 @@
     "allow_camera_dialog_message": "Nous avons besoin de votre autorisation pour scanner les codes QR",
     "scanning": "Scan en cours…",
     "ok": "Ok",
+    "continue": "Continuer",
     "cancel": "Annuler",
     "error": "Erreur",
     "attempting_to_scan_with_wallet_locked": "Il semble que vous essayez de scanner un code QR — vous devez déverrouiller votre portefeuille pour pouvoir l’utiliser.",
-    "attempting_sync_from_wallet_error": "Il semble que vous essayez de vous synchroniser avec l’extension. Pour ce faire, vous devrez effacer votre portefeuille actuel. \n\nAprès avoir effacé ou réinstallé une nouvelle version de l’appli, sélectionnez l’option « Synchroniser avec l’extension MetaMask ». Attention ! Avant d’effacer votre portefeuille, effectuez une copie de votre phrase secrète de récupération."
+    "attempting_sync_from_wallet_error": "Il semble que vous essayez de vous synchroniser avec l’extension. Pour ce faire, vous devrez effacer votre portefeuille actuel. \n\nAprès avoir effacé ou réinstallé une nouvelle version de l’appli, sélectionnez l’option « Synchroniser avec l’extension MetaMask ». Attention ! Avant d’effacer votre portefeuille, effectuez une copie de votre phrase secrète de récupération.",
+    "not_allowed_error_title": "Autoriser l’accès à l’appareil photo",
+    "not_allowed_error_desc": "L’autorisation d’accéder à l’appareil photo est requise pour scanner un code QR associé à une adresse de compte ou à une adresse de contrat",
+    "unrecognized_address_qr_code_title": "Code QR non reconnu",
+    "unrecognized_address_qr_code_desc": "Désolé, ce code QR n’est pas associé à une adresse de compte ou à une adresse de contrat.",
+    "url_redirection_alert_title": "Vous allez consulter un lien externe",
+    "url_redirection_alert_desc": "Sachez que les liens peuvent être utilisés pour tenter d’escroquer ou d’hameçonner les utilisateurs. Faites donc bien attention de ne visiter que des sites Web fiables."
   },
   "action_view": {
     "cancel": "Annuler",
@@ -2006,5 +2040,21 @@
     "placeholder": "Mot de passe",
     "description": "Si vous désactivez cette option, la saisie du mot de passe sera requise pour déverrouiller MetaMask.",
     "action": "Désactiver l'option « Se souvenir de moi »"
+  },
+  "automatic_security_checks": {
+    "title": "Identification automatique de failles de sécurité",
+    "description": "Votre adresse IP peut être exposée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée."
+  },
+  "update_needed": {
+    "title": "Des mises à jour sont nécessaires",
+    "description": "Nous avons renforcé la sécurité de votre portefeuille ! Veuillez sécuriser votre compte en mettant à jour l’application.",
+    "primary_action": "Mettre à jour",
+    "secondary_action": "Me le rappeler plus tard"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "Vérifier automatiquement si une mise à jour est disponible ?",
+    "description": "Votre adresse IP peut être divulguée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée.",
+    "primary_action": "Activer l’identification automatique de failles de sécurité",
+    "secondary_action": "Non merci"
   }
 }

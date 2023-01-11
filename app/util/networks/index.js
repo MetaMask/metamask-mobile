@@ -1,4 +1,9 @@
 import URL from 'url-parse';
+import { utils } from 'ethers';
+import EthContract from 'ethjs-contract';
+import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
+import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
+
 import AppConstants from '../../core/AppConstants';
 import {
   MAINNET,
@@ -7,16 +12,18 @@ import {
   RINKEBY,
   GOERLI,
   RPC,
+  NETWORKS_CHAIN_ID,
 } from '../../../app/constants/network';
-import {
-  NETWORK_ERROR_MISSING_NETWORK_ID,
-  NETWORK_ERROR_UNKNOWN_NETWORK_ID,
-  NETWORK_ERROR_MISSING_CHAIN_ID,
-} from '../../../app/constants/error';
-import { util } from '@metamask/controllers';
+import { NetworkSwitchErrorType } from '../../../app/constants/error';
+import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
+import handleNetworkSwitch from './handleNetworkSwitch';
+
+export { handleNetworkSwitch };
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -98,6 +105,9 @@ export const getDecimalChainId = (chainId) => {
 export const isMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(1);
 
+export const isMultiLayerFeeNetwork = (chainId) =>
+  chainId === NETWORKS_CHAIN_ID.OPTIMISM;
+
 export const getNetworkName = (id) =>
   NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
 
@@ -114,7 +124,7 @@ export const isTestNet = (networkId) => {
 
 export function getNetworkTypeById(id) {
   if (!id) {
-    throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);
+    throw new Error(NetworkSwitchErrorType.missingNetworkId);
   }
   const network = NetworkListKeys.filter(
     (key) => NetworkList[key].networkId === parseInt(id, 10),
@@ -123,12 +133,12 @@ export function getNetworkTypeById(id) {
     return network[0];
   }
 
-  throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
+  throw new Error(`${NetworkSwitchErrorType.unknownNetworkId} ${id}`);
 }
 
 export function getDefaultNetworkByChainId(chainId) {
   if (!chainId) {
-    throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
+    throw new Error(NetworkSwitchErrorType.missingChainId);
   }
 
   let returnNetwork;
@@ -243,7 +253,7 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await util.query(
+  const networkNonce = await query(
     TransactionController.ethQuery,
     'getTransactionCount',
     [from, 'pending'],
@@ -270,3 +280,31 @@ export function blockTagParamIndex(payload) {
       return undefined;
   }
 }
+
+// The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
+const buildOVMGasPriceOracleContract = (eth) => {
+  const OVMGasPriceOracle = getContractFactory('OVM_GasPriceOracle').attach(
+    predeploys.OVM_GasPriceOracle,
+  );
+  const abi = JSON.parse(
+    OVMGasPriceOracle.interface.format(utils.FormatTypes.json),
+  );
+  const contract = new EthContract(eth);
+  return contract(abi).at(OVMGasPriceOracle.address);
+};
+
+/**
+ * It returns an estimated L1 fee for a multi layer network.
+ * Currently only for the Optimism network, but can be extended to other networks.
+ *
+ * @param {Object} eth
+ * @param {Object} txMeta
+ * @returns {String}
+ */
+export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
+  const contract = buildOVMGasPriceOracleContract(eth);
+  const serializedTransaction =
+    buildUnserializedTransaction(txMeta).serialize();
+  const result = await contract.getL1Fee(serializedTransaction);
+  return result?.[0]?.toString(16);
+};

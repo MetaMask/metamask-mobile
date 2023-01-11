@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';

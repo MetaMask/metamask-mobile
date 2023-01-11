@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
+<View
+  style={Object {}}
+  testID="accordion"
+>
+  <AccordionHeader
+    isExpanded={true}
+    onPress={[Function]}
+    title="Sample Accordion Header Title"
+  />
+  <Transitioning.View
+    transition={
+      <Transition.Together>
+        <Transition.In
+          durationMs={150}
+          type="fade"
+        />
+        <Transition.Out
+          durationMs={150}
+          type="fade"
+        />
+      </Transition.Together>
+    }
+  >
+    <View
+      testID="accordion-content"
+    >
+      <View />
+    </View>
+  </Transitioning.View>
+</View>
+`;
+
+exports[`Accordion - Snapshot should render default settings correctly 1`] = `
+<View
+  style={Object {}}
+  testID="accordion"
+>
+  <AccordionHeader
+    isExpanded={false}
+    onPress={[Function]}
+    title="Sample Accordion Header Title"
+  />
+  <Transitioning.View
+    transition={
+      <Transition.Together>
+        <Transition.In
+          durationMs={150}
+          type="fade"
+        />
+        <Transition.Out
+          durationMs={150}
+          type="fade"
+        />
+      </Transition.Together>
+    }
+  />
+</View>
+`;

@@ -23,7 +23,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOrders';
+import FiatOrders from '../../UI/FiatOnRampAggregator';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -34,7 +34,7 @@ import {
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
 import {
@@ -51,6 +51,8 @@ import { colors as importedColors } from '../../../styles/common';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
 const Stack = createStackNavigator();
 
@@ -85,6 +87,9 @@ const Main = (props) => {
 
   const prevLockTime = usePrevious(props.lockTime);
 
+  useEnableAutomaticSecurityChecks();
+  useMinimumVersions();
+
   const pollForIncomingTransactions = useCallback(async () => {
     props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
     // Stop polling if the app is in the background
@@ -114,7 +119,7 @@ const Main = (props) => {
     if (props.providerType !== 'rpc') {
       try {
         const { TransactionController } = Engine.context;
-        await util.query(TransactionController.ethQuery, 'blockNumber', []);
+        await query(TransactionController.ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {

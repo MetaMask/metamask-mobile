@@ -30,23 +30,8 @@ exports[`AssetActionButtons should render correctly 1`] = `
     }
   />
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     numberOfLines={1}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "color": "#037DD6",
@@ -55,8 +40,6 @@ exports[`AssetActionButtons should render correctly 1`] = `
         "marginTop": 8,
       }
     }
-    underline={false}
-    upper={false}
   >
     mock text
   </Text>
@@ -107,23 +90,8 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     numberOfLines={1}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "color": "#037DD6",
@@ -132,8 +100,6 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
         "marginTop": 8,
       }
     }
-    underline={false}
-    upper={false}
   >
     mock text
   </Text>
@@ -184,23 +150,8 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     numberOfLines={1}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "color": "#037DD6",
@@ -209,8 +160,6 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
         "marginTop": 8,
       }
     }
-    underline={false}
-    upper={false}
   >
     mock text
   </Text>
@@ -273,23 +222,8 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     numberOfLines={1}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "color": "#037DD6",
@@ -298,8 +232,6 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
         "marginTop": 8,
       }
     }
-    underline={false}
-    upper={false}
   >
     receive...
   </Text>
@@ -350,23 +282,8 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     numberOfLines={1}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "color": "#037DD6",
@@ -375,8 +292,6 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
         "marginTop": 8,
       }
     }
-    underline={false}
-    upper={false}
   >
     mock text
   </Text>
@@ -433,23 +348,8 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     numberOfLines={1}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "color": "#037DD6",
@@ -458,8 +358,6 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
         "marginTop": 8,
       }
     }
-    underline={false}
-    upper={false}
   >
     mock text
   </Text>

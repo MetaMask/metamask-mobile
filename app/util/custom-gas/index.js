@@ -3,8 +3,7 @@ import { renderFromWei, weiToFiat, toWei, conversionUtil } from '../number';
 import { strings } from '../../../locales/i18n';
 import TransactionTypes from '../../core/TransactionTypes';
 import Engine from '../../core/Engine';
-import { util } from '@metamask/controllers';
-const { hexToBN } = util;
+import { hexToBN } from '@metamask/controller-utils';
 
 export const ETH = 'ETH';
 export const GWEI = 'GWEI';

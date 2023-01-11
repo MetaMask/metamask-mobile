@@ -575,7 +575,26 @@
     "theme_os": "Sistema",
     "theme_light": "Claro",
     "theme_dark": "Oscuro",
-    "network_exists": "La red ya ha sido instalada"
+    "network_exists": "La red ya ha sido instalada",
+    "delete_metrics_title": "Eliminar datos de MetaMetrics",
+    "delete_metrics_description_part_one": "Esto eliminará los datos históricos de MetaMetrics asociados a su cartera.",
+    "delete_metrics_description_part_two": "Los datos de MetaMetrics son datos anónimos de uso y diagnóstico.",
+    "delete_metrics_description_part_three": "Su billetera y cuentas permanecerán exactamente como están ahora después de que se hayan eliminado estos datos. Este proceso puede demorar hasta 60 días. Ver el",
+    "delete_metrics_description_part_four": "Inició esta acción el",
+    "delete_metrics_description_part_five": ". Este proceso puede tardar hasta 60 días. Ver el",
+    "consensys_privacy_policy": "Política de privacidad de ConsenSys.",
+    "delete_metrics_button": "Eliminar datos de MetaMetrics",
+    "check_status_button": "Comprobar estado",
+    "delete_metrics_confirm_modal_title": "¿Eliminar datos de MetaMetrics?",
+    "delete_metrics_confirm_modal_description": "Estamos a punto de eliminar todos sus datos de MetaMetrics. ¿Está seguro?",
+    "delete_wallet_data_title": "Eliminar billetera",
+    "delete_wallet_data_description": "Esto eliminará de su dispositivo todos los datos relacionados con la cartera. Sus cuentas existen en la cadena de bloques y no están relacionadas con MetaMask. Siempre puede recuperar sus cuentas usando su frase secreta de recuperación.",
+    "delete_wallet_data_button": "Eliminar billetera",
+    "delete_data_status_title": "Estado de la tarea de eliminación",
+    "delete_data_status_description": "El estado actual es",
+    "delete_metrics_error_title": "No pudimos eliminar estos datos en este momento.",
+    "delete_metrics_error_description": "Esta solicitud no se puede completar en este momento debido a un problema con el servidor del sistema de análisis. Por favor, vuelva a intentarlo más tarde.",
+    "ok": "Aceptar"
   },
   "app_information": {
     "title": "Información",
@@ -638,7 +657,15 @@
     "keep_credential_safe": "Proteja su {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Frase secreta de recuperación",
-    "private_key_text": "Clave privada"
+    "private_key_text": "Clave privada",
+    "got_it": "Entendido",
+    "learn_more": "Más información"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerta de seguridad",
+    "description": "Las capturas de pantalla no son una forma segura de realizar un seguimiento de su {{credentialName}}. Guárdelo en algún lugar que no tenga una copia de seguridad en línea para mantener su cuenta segura.",
+    "srp_text": "Frase secreta de recuperación",
+    "priv_key_text": "Clave privada"
   },
   "password_reset": {
     "password_title": "Contraseña",
@@ -676,10 +703,17 @@
     "allow_camera_dialog_message": "Necesitamos su permiso para escanear códigos QR",
     "scanning": "escaneando…",
     "ok": "Aceptar",
+    "continue": "Continuar",
     "cancel": "Cancelar",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Si desea escanear un código QR, desbloqueé la cartera para poder usarla.",
-    "attempting_sync_from_wallet_error": "Parece que intenta sincronizar con la extensión. debe borrar la cartera actual. \n\nUna vez que haya borrado o vuelto a instalar una versión nueva de la aplicación, seleccione la opción \"Sincronizar con la extensión de MetaMask\". Importante: Antes de borrar la cartera, asegúrese de haber hecho una copia de seguridad de la frase secreta de recuperación."
+    "attempting_sync_from_wallet_error": "Parece que intenta sincronizar con la extensión. debe borrar la cartera actual. \n\nUna vez que haya borrado o vuelto a instalar una versión nueva de la aplicación, seleccione la opción \"Sincronizar con la extensión de MetaMask\". Importante: Antes de borrar la cartera, asegúrese de haber hecho una copia de seguridad de la frase secreta de recuperación.",
+    "not_allowed_error_title": "Habilitar acceso a la cámara",
+    "not_allowed_error_desc": "Se necesita acceso a la cámara para escanear un código QR asociado con una dirección de cuenta o una dirección de contrato",
+    "unrecognized_address_qr_code_title": "Código QR no reconocido",
+    "unrecognized_address_qr_code_desc": "Lo sentimos, este código QR no está asociado con una dirección de cuenta o una dirección de contrato.",
+    "url_redirection_alert_title": "Está a punto de visitar un enlace externo",
+    "url_redirection_alert_desc": "Los enlaces se pueden usar para tratar de estafar o hacer phishing a las personas, así que asegúrese de visitar solo sitios web en los que confíe."
   },
   "action_view": {
     "cancel": "Cancelar",
@@ -2006,5 +2040,21 @@
     "placeholder": "Contraseña",
     "description": "Si desactiva esta opción, necesitará su contraseña para desbloquear MetaMask de ahora en adelante.",
     "action": "Desactivar Recordarme"
+  },
+  "automatic_security_checks": {
+    "title": "Controles de seguridad automáticos",
+    "description": "La búsqueda automática de actualizaciones puede exponer su dirección IP a los servidores de GitHub. Esto solo indica que su dirección IP está usando MetaMask. No se exponen otros datos ni direcciones de cuentas."
+  },
+  "update_needed": {
+    "title": "Actualizaciones necesarias",
+    "description": "¡Hemos aumentado la seguridad de su billetera! Tómese un momento para protegerse y actualizar a la última versión.",
+    "primary_action": "Actualizar a la última versión",
+    "secondary_action": "Recordarme más adelante"
+  },
+  "enable_automatic_security_check_modal": {
+    "title": "¿Comprobar automáticamente las actualizaciones de seguridad?",
+    "description": "La búsqueda automática de actualizaciones puede exponer su dirección IP a los servidores de GitHub. Esto solo indica que su dirección IP está usando MetaMask. No se exponen otros datos ni direcciones de cuentas.",
+    "primary_action": "Habilitar comprobaciones de seguridad automáticas",
+    "secondary_action": "No, gracias"
   }
 }

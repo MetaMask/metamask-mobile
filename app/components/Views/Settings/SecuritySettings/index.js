@@ -13,7 +13,7 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
@@ -51,6 +51,7 @@ import {
 } from '../../../../constants/storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
@@ -289,7 +290,7 @@ class Settings extends PureComponent {
     /**
      * State of NFT detection toggle
      */
-    useCollectibleDetection: PropTypes.bool,
+    useNftDetection: PropTypes.bool,
     /**
      * Route passed in props from navigation
      */
@@ -371,7 +372,7 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SECURITY_SETTINGS);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
@@ -538,12 +539,12 @@ class Settings extends PureComponent {
   toggleOpenSeaApi = (value) => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setOpenSeaEnabled(value);
-    if (!value) PreferencesController?.setUseCollectibleDetection(value);
+    if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
   toggleNftAutodetect = (value) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setUseCollectibleDetection(value);
+    PreferencesController.setUseNftDetection(value);
   };
 
   /**
@@ -552,13 +553,10 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: true,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: true,
+      });
     });
   };
 
@@ -579,17 +577,15 @@ class Settings extends PureComponent {
   };
 
   goToRevealPrivateCredential = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_INITIATED);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CTA);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'seed_phrase',
     });
   };
 
   goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_INITIATED,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'private_key',
     });
@@ -602,12 +598,9 @@ class Settings extends PureComponent {
   goToBackup = () => {
     this.props.navigation.navigate('AccountBackupStep1B');
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED,
-        {
-          source: 'Settings',
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
+        source: 'Settings',
+      });
     });
   };
 
@@ -1055,7 +1048,7 @@ class Settings extends PureComponent {
   };
 
   renderOpenSeaSettings = () => {
-    const { openSeaEnabled, useCollectibleDetection } = this.props;
+    const { openSeaEnabled, useNftDetection } = this.props;
     const { styles, colors } = this.getStyles();
 
     return (
@@ -1093,7 +1086,7 @@ class Settings extends PureComponent {
           </Text>
           <View style={styles.switchElement}>
             <Switch
-              value={useCollectibleDetection}
+              value={useNftDetection}
               onValueChange={this.toggleNftAutodetect}
               trackColor={{
                 true: colors.primary.default,
@@ -1152,7 +1145,7 @@ class Settings extends PureComponent {
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
-          {__DEV__ ? <AutomaticSecurityChecks /> : null}
+          <AutomaticSecurityChecks />
           {this.renderHint()}
         </View>
       </ScrollView>
@@ -1175,8 +1168,8 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   openSeaEnabled:
     state.engine.backgroundState.PreferencesController.openSeaEnabled,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: state.engine.backgroundState.NetworkController.provider.type,

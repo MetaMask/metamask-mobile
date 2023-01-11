@@ -8,7 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
@@ -22,7 +22,9 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 
@@ -108,6 +110,10 @@ const createStyles = (colors) =>
     },
   });
 
+/**
+ * The EditGasFeeLegacy component will be deprecated in favor of EditGasFeeLegacyUpdate as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFeeLegacyUpdate will be renamed EditGasFeeLegacy and this component will be removed. The EditGasFeeLegacyUpdate is currently being used in the Update Transaction(Speed Up/Cancel) flow.
+ */
+
 const EditGasFeeLegacy = ({
   selected,
   gasFee,
@@ -160,7 +166,7 @@ const EditGasFeeLegacy = ({
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED,
+        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
@@ -169,7 +175,7 @@ const EditGasFeeLegacy = ({
 
   const save = useCallback(() => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED,
+      MetaMetricsEvents.GAS_FEE_CHANGED,
       getAnalyticsParams(),
     );
 

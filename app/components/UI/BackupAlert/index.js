@@ -15,7 +15,9 @@ import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
@@ -116,6 +118,11 @@ class BackupAlert extends PureComponent {
      * currently used to toggle the backup reminder modal (a second time)
      */
     onDismiss: PropTypes.func,
+    /**
+     * Used to determine if onboarding has been completed
+     * we only want to render the backup alert after onboarding
+     */
+    onboardingWizardStep: PropTypes.number,
   };
 
   state = {
@@ -147,7 +154,7 @@ class BackupAlert extends PureComponent {
     });
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: false,
           source: 'Backup Alert',
@@ -161,7 +168,7 @@ class BackupAlert extends PureComponent {
     backUpSeedphraseAlertNotVisible();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
         {
           wallet_protection_required: false,
           source: 'Backup Alert',
@@ -172,13 +179,22 @@ class BackupAlert extends PureComponent {
   };
 
   render() {
-    const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
+    const {
+      seedphraseBackedUp,
+      backUpSeedphraseVisible,
+      onboardingWizardStep,
+    } = this.props;
     const { inBrowserView, blockedView } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible)
-      return null;
+    const shouldNotRenderAlert =
+      seedphraseBackedUp ||
+      blockedView ||
+      !backUpSeedphraseVisible ||
+      onboardingWizardStep !== 0;
+
+    if (shouldNotRenderAlert) return null;
     return (
       <ElevatedView
         elevation={99}
@@ -227,6 +243,7 @@ class BackupAlert extends PureComponent {
 const mapStateToProps = (state) => ({
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  onboardingWizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({

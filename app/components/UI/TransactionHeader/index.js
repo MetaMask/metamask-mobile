@@ -11,6 +11,7 @@ import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { useTheme } from '../../../util/theme';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -87,9 +88,13 @@ const TransactionHeader = (props) => {
   const originIsDeeplink =
     props.currentPageInformation.origin === ORIGIN_DEEPLINK ||
     props.currentPageInformation.origin === ORIGIN_QR_CODE;
-  const originIsWalletConnect = props.currentPageInformation.origin?.includes(
+  const originIsWalletConnect = props.currentPageInformation.origin?.startsWith(
     WALLET_CONNECT_ORIGIN,
   );
+
+  const originIsMMSDKRemoteConn =
+    props.currentPageInformation.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
+
   /**
    * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
    *
@@ -121,7 +126,11 @@ const TransactionHeader = (props) => {
     const { url, origin } = props.currentPageInformation;
     const name =
       getUrlObj(
-        originIsWalletConnect ? origin.split(WALLET_CONNECT_ORIGIN)[1] : url,
+        originIsWalletConnect
+          ? origin.split(WALLET_CONNECT_ORIGIN)[1]
+          : originIsMMSDKRemoteConn
+          ? origin.split(MM_SDK_REMOTE_ORIGIN)[1]
+          : url,
       ).protocol === 'https:'
         ? 'lock'
         : 'warning';
@@ -147,6 +156,8 @@ const TransactionHeader = (props) => {
     if (originIsWalletConnect) {
       url = origin.split(WALLET_CONNECT_ORIGIN)[1];
       iconTitle = getHost(url);
+    } else if (originIsMMSDKRemoteConn) {
+      url = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
     }
     return (
       <WebsiteIcon
@@ -166,7 +177,9 @@ const TransactionHeader = (props) => {
     if (originIsDeeplink) title = renderShortAddress(spenderAddress);
     else if (originIsWalletConnect)
       title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-    else title = getHost(currentEnsName || url || origin);
+    else if (originIsMMSDKRemoteConn) {
+      title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
+    } else title = getHost(currentEnsName || url || origin);
 
     return <Text style={styles.domainUrl}>{title}</Text>;
   };
