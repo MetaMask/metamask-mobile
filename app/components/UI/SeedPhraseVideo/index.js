@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const SeedPhraseVideo = ({ style, onClose }) => {
+const SeedPhraseVideo = ({ style, onClose, showVideo }) => {
   const language = I18n.locale.substr(0, 2);
   const subtitle_source_tracks = [
     {
@@ -30,15 +30,18 @@ const SeedPhraseVideo = ({ style, onClose }) => {
       uri: getSubtitleUri(language),
     },
   ];
+
   return (
     <View style={styles.videoContainer}>
-      <MediaPlayer
-        onClose={onClose}
-        uri={video_source_uri}
-        style={[styles.mediaPlayer, style]}
-        textTracks={subtitle_source_tracks}
-        selectedTextTrack={{ type: 'index', value: 0 }}
-      />
+      {showVideo ? (
+        <MediaPlayer
+          onClose={onClose}
+          uri={video_source_uri}
+          style={[styles.mediaPlayer, style]}
+          textTracks={subtitle_source_tracks}
+          selectedTextTrack={{ type: 'index', value: 0 }}
+        />
+      ) : null}
     </View>
   );
 };
@@ -46,6 +49,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 SeedPhraseVideo.propTypes = {
   style: PropTypes.object,
   onClose: PropTypes.func,
+  showVideo: PropTypes.bool,
 };
 
 export default SeedPhraseVideo;
