@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';

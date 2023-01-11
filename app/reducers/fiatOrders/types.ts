@@ -3,9 +3,11 @@ import {
   addAuthenticationUrl,
   addFiatCustomIdData,
   addFiatOrder,
+  addActivationKey,
   removeAuthenticationUrl,
   removeFiatCustomIdData,
   removeFiatOrder,
+  removeActivationKey,
   resetFiatOrders,
   setFiatOrdersCountry,
   setFiatOrdersGetStartedAGG,
@@ -13,6 +15,7 @@ import {
   setFiatOrdersRegionAGG,
   updateFiatCustomIdData,
   updateFiatOrder,
+  updateActivationKey,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -61,6 +64,10 @@ export interface CustomIdData {
   order?: Record<string, any>;
 }
 
+export interface ActivationKey {
+  key: string;
+  active: boolean;
+}
 export interface FiatOrdersState {
   orders: FiatOrder[];
   customOrderIds: CustomIdData[];
@@ -69,6 +76,7 @@ export interface FiatOrdersState {
   selectedPaymentMethodAgg: string;
   getStartedAgg: boolean;
   authenticationUrls: string[];
+  activationKeys: ActivationKey[];
 }
 
 export const ACTIONS = {
@@ -86,6 +94,9 @@ export const ACTIONS = {
   FIAT_REMOVE_CUSTOM_ID_DATA: 'FIAT_REMOVE_CUSTOM_ID_DATA',
   FIAT_ADD_AUTHENTICATION_URL: 'FIAT_ADD_AUTHENTICATION_URL',
   FIAT_REMOVE_AUTHENTICATION_URL: 'FIAT_REMOVE_AUTHENTICATION_URL',
+  FIAT_ADD_ACTIVATION_KEY: 'FIAT_ADD_ACTIVATION_KEY',
+  FIAT_UPDATE_ACTIVATION_KEY: 'FIAT_UPDATE_ACTIVATION_KEY',
+  FIAT_REMOVE_ACTIVATION_KEY: 'FIAT_REMOVE_ACTIVATION_KEY',
 } as const;
 
 export type Action =
@@ -101,6 +112,9 @@ export type Action =
   | ReturnType<typeof updateFiatCustomIdData>
   | ReturnType<typeof removeFiatCustomIdData>
   | ReturnType<typeof addAuthenticationUrl>
-  | ReturnType<typeof removeAuthenticationUrl>;
+  | ReturnType<typeof removeAuthenticationUrl>
+  | ReturnType<typeof addActivationKey>
+  | ReturnType<typeof updateActivationKey>
+  | ReturnType<typeof removeActivationKey>;
 
 export type Region = Country & State;

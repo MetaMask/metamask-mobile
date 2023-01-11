@@ -85,3 +85,8 @@ tests
 
 # attributions
 licenseInfos.json
+
+# wdio
+wdio/reports/
+# Allows access to preview versions of @metamask/* packages for testing
+.npmrc

@@ -7,7 +7,9 @@ import {
 import { useAssetFromTheme } from '../../../../util/theme';
 import StyledButton from '../../StyledButton';
 import RemoteImage from '../../../Base/RemoteImage';
-import Text from '../../../Base/Text';
+import CustomText from '../../../Base/Text';
+// TODO: Convert into typescript and correctly type optionals
+const Text = CustomText as any;
 
 interface Props {
   customActionButton: PaymentCustomActionButton;

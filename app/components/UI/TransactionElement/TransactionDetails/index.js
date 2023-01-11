@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
 
@@ -125,7 +125,7 @@ class TransactionDetails extends PureComponent {
 
   fetchTxReceipt = async (transactionHash) => {
     const { TransactionController } = Engine.context;
-    return await util.query(
+    return await query(
       TransactionController.ethQuery,
       'getTransactionReceipt',
       [transactionHash],

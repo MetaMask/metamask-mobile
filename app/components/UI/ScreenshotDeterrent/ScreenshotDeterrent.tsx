@@ -18,7 +18,7 @@ const ScreenshotDeterrent = ({
 
   const openSRPGuide = () => {
     setAlertPresent(false);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_LEARN_MORE, {});
     Linking.openURL(SRP_GUIDE_URL);
   };
 

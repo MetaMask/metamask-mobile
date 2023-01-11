@@ -45,3 +45,6 @@ export const MM_APP_STORE_LINK =
   'itms-apps://apps.apple.com/app/metamask-blockchain-wallet/id1438144202';
 
 export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
+
+// SDK
+export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
