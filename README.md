@@ -57,7 +57,9 @@ sudo gem install cocoapods
     -   You should use the following:
         -   **Android OS Version:** Latest, unless told otherwise
         -   **Device:** Google Pixel 3
--   Finally, start the emulator from Android Studio, and run:
+-   Finally, start the emulator from Android Studio:
+    -   Open "Virtual Device Manager"
+    -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
 
 
 #### iOS
