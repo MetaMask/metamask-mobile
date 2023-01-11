@@ -41,8 +41,8 @@ const TransactionReviewCard = ({
   totalMaxNative,
   totalConversion,
   totalNative,
-}: // gasFeeNative,
-TransactionReviewCardProps) => {
+  gasFeeNative,
+}: TransactionReviewCardProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
@@ -84,12 +84,10 @@ TransactionReviewCardProps) => {
     transactionTotalAmountFiat,
   } = gasTransaction;
 
-  // console.log('gasTransaction', gasTransaction);
-
   totalMaxNative = renderableTotalMaxNative || totalMaxNative;
   totalConversion = renderableTotalMinConversion || totalConversion;
   totalNative = renderableTotalMinNative || totalNative;
-  // gasFeeNative = transactionTotalAmount || gasFeeNative;
+  gasFeeNative = transactionTotalAmount || gasFeeNative;
 
   useEffect(() => {
     if (animateOnChange) {
@@ -312,7 +310,7 @@ TransactionReviewCardProps) => {
                         {legacy
                           ? switchNativeCurrencyDisplayOptions(
                               transactionTotalAmountFiat,
-                              transactionTotalAmount,
+                              gasFeeNative,
                             )
                           : switchNativeCurrencyDisplayOptions(
                               renderableTotalMinConversion,
@@ -332,7 +330,7 @@ TransactionReviewCardProps) => {
                   >
                     {legacy
                       ? switchNativeCurrencyDisplayOptions(
-                          transactionTotalAmount,
+                          gasFeeNative,
                           transactionTotalAmountFiat,
                         )
                       : switchNativeCurrencyDisplayOptions(

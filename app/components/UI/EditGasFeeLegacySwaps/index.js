@@ -110,11 +110,7 @@ const createStyles = (colors) =>
     },
   });
 
-/**
- * The EditGasFeeLegacy component will be deprecated in favor of EditGasFeeLegacyUpdate as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFeeLegacyUpdate will be renamed EditGasFeeLegacy and this component will be removed. The EditGasFeeLegacyUpdate is currently being used in the Update Transaction(Speed Up/Cancel) flow.
- */
-
-const EditGasFeeLegacy = ({
+const EditGasFeeLegacySwaps = ({
   selected,
   gasFee,
   gasOptions,
@@ -532,12 +528,12 @@ const EditGasFeeLegacy = ({
   );
 };
 
-EditGasFeeLegacy.defaultProps = {
+EditGasFeeLegacySwaps.defaultProps = {
   ignoreOptions: [],
   warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
 };
 
-EditGasFeeLegacy.propTypes = {
+EditGasFeeLegacySwaps.propTypes = {
   /**
    * Gas option selected (low, medium, high)
    */
@@ -640,4 +636,4 @@ EditGasFeeLegacy.propTypes = {
   view: PropTypes.string.isRequired,
 };
 
-export default EditGasFeeLegacy;
+export default EditGasFeeLegacySwaps;

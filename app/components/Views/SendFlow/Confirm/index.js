@@ -68,8 +68,8 @@ import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TransactionReviewCard from '../../../UI/TransactionReview/TransactionReviewCard';
-import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
-import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
+import EditGasFee1559 from '../../../UI/EditGasFee1559';
+import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
 import {

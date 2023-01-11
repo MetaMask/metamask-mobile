@@ -1,0 +1,287 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditGasFeeLegacy should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "maxHeight": "95%",
+      "minHeight": 200,
+      "paddingBottom": 32,
+      "paddingTop": 24,
+    }
+  }
+>
+  <ScrollView
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <TouchableWithoutFeedback>
+      <View>
+        <View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingBottom": 20,
+                "width": "100%",
+              }
+            }
+          >
+            <TouchableOpacity>
+              <Icon
+                allowFontScaling={false}
+                color="#24272A"
+                name="ios-arrow-back"
+                size={24}
+              />
+            </TouchableOpacity>
+            <Text
+              black={true}
+              bold={true}
+            >
+              Edit gas fee
+            </Text>
+            <Icon
+              allowFontScaling={false}
+              color="#FFFFFF"
+              name="ios-arrow-back"
+              size={24}
+            />
+          </View>
+        </View>
+        <FadeAnimationView>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "marginBottom": 22,
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  Object {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  black={true}
+                  right={true}
+                  style={
+                    Object {
+                      "fontSize": 48,
+                    }
+                  }
+                >
+                  ~
+                </Text>
+              </View>
+              <Text
+                black={true}
+                style={
+                  Object {
+                    "fontSize": 48,
+                  }
+                }
+              />
+              <View
+                style={
+                  Object {
+                    "flex": 1,
+                  }
+                }
+              />
+            </View>
+            <Text
+              big={true}
+              black={true}
+            >
+              <Text
+                black={true}
+                bold={true}
+              />
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "marginBottom": 30,
+                "marginTop": 25,
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "marginTop": 14,
+                }
+              }
+            >
+              <View
+                style={
+                  Object {
+                    "marginBottom": 20,
+                  }
+                }
+              >
+                <RangeInput
+                  increment={"1000"}
+                  leftLabelComponent={
+                    <View
+                      style={
+                        Object {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <Text
+                        black={true}
+                        bold={true}
+                        noMargin={true}
+                      >
+                        Gas limit
+                         
+                      </Text>
+                      <TouchableOpacity
+                        hitSlop={
+                          Object {
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
+                          }
+                        }
+                        onPress={[Function]}
+                      >
+                        <Icon
+                          allowFontScaling={false}
+                          name="information"
+                          size={14}
+                          style={
+                            Object {
+                              "color": "#BBC0C5",
+                            }
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  }
+                  min={"21000"}
+                  name="Gas limit"
+                  onChangeValue={[Function]}
+                  value="21000"
+                />
+              </View>
+              <View
+                style={
+                  Object {
+                    "marginBottom": 20,
+                  }
+                }
+              >
+                <RangeInput
+                  increment={"1"}
+                  leftLabelComponent={
+                    <View
+                      style={
+                        Object {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <Text
+                        black={true}
+                        bold={true}
+                        noMargin={true}
+                      >
+                        Gas price
+                         
+                      </Text>
+                      <TouchableOpacity
+                        hitSlop={
+                          Object {
+                            "bottom": 10,
+                            "left": 10,
+                            "right": 10,
+                            "top": 10,
+                          }
+                        }
+                        onPress={[Function]}
+                      >
+                        <Icon
+                          allowFontScaling={false}
+                          name="information"
+                          size={14}
+                          style={
+                            Object {
+                              "color": "#BBC0C5",
+                            }
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  }
+                  min={"0"}
+                  name="Gas price"
+                  onChangeValue={[Function]}
+                  unit="GWEI"
+                  value="10"
+                />
+              </View>
+            </View>
+          </View>
+        </FadeAnimationView>
+        <View>
+          <StyledButton
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            type="confirm"
+          >
+            Save
+          </StyledButton>
+        </View>
+        <InfoModal
+          body={
+            <View>
+              <Text
+                grey={true}
+                infoModal={true}
+              />
+            </View>
+          }
+          isVisible={false}
+          title={null}
+          toggleModal={[Function]}
+        />
+      </View>
+    </TouchableWithoutFeedback>
+  </ScrollView>
+</View>
+`;

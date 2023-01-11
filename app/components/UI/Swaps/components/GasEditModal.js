@@ -9,8 +9,8 @@ import { connect } from 'react-redux';
 
 import Text from '../../../Base/Text';
 import InfoModal from './InfoModal';
-import EditGasFeeLegacy from '../../EditGasFeeLegacy';
-import EditGasFee1559 from '../../EditGasFee1559';
+import EditGasFeeLegacySwaps from '../../EditGasFeeLegacySwaps';
+import EditGasFee1559Swaps from '../../EditGasFee1559Swaps';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
@@ -335,7 +335,7 @@ function GasEditModal({
       >
         {gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
           <>
-            <EditGasFee1559
+            <EditGasFee1559Swaps
               selected={gasSelected}
               ignoreOptions={[GAS_OPTIONS.LOW]}
               extendOptions={{ [GAS_OPTIONS.MEDIUM]: { error: true } }}
@@ -419,7 +419,7 @@ function GasEditModal({
             />
           </>
         ) : (
-          <EditGasFeeLegacy
+          <EditGasFeeLegacySwaps
             selected={gasSelected}
             ignoreOptions={[GAS_OPTIONS.LOW]}
             warningMinimumEstimateOption={GAS_OPTIONS.MEDIUM}
