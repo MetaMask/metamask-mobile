@@ -8,7 +8,7 @@ import Box from '../components/Box';
 import CustomText from '../../../Base/Text';
 import CustomTitle from '../../../Base/Title';
 import RemoteImage from '../../../Base/RemoteImage';
-import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { Colors } from '../../../../util/theme/models';
 import useAnalytics from '../hooks/useAnalytics';
@@ -69,11 +69,9 @@ const InfoAlert: React.FC<Props> = ({
   providerPrivacyPolicy,
   providerSupport,
 }: Props) => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
-
-  const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
   const handleProviderHomepageLinkPress = useCallback(
     (url: string) => {
@@ -131,13 +129,13 @@ const InfoAlert: React.FC<Props> = ({
           <IonicIcon name="ios-close" size={30} color={colors.icon.default} />
         </TouchableOpacity>
         <View style={styles.title}>
-          {logos?.[logoKey] ? (
+          {logos?.[themeAppearance] ? (
             <RemoteImage
               style={{
                 width: logos.width * LOGO_SIZE,
                 height: logos.height * LOGO_SIZE,
               }}
-              source={{ uri: logos[logoKey] }}
+              source={{ uri: logos[themeAppearance] }}
             />
           ) : (
             <Title centered>{providerName}</Title>

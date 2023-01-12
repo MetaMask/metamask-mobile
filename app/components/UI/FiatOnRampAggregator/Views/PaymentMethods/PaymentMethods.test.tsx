@@ -1,14 +1,31 @@
 import React from 'react';
 import { Country, Payment } from '@consensys/on-ramp-sdk';
-import { Region } from '../../types';
-import render from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
 
-import { OnRampSDK } from '../../sdk';
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
+import { Region } from '../../types';
+import { OnRampSDK } from '../../sdk';
+import Routes from '../../../../../constants/navigation/Routes';
+
+function render(Component: React.ComponentType) {
+  return renderScreen(
+    Component,
+    {
+      name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
+    },
+    {
+      state: {
+        engine: { backgroundState: { PreferencesController: {} } },
+      },
+    },
+  );
+}
+
+jest.unmock('react-redux');
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -92,6 +109,13 @@ jest.mock('../../hooks/usePaymentMethods', () =>
   jest.fn(() => mockUsePaymentMethodsValues),
 );
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    showBack: true,
+  }),
+}));
+
 describe('PaymentMethods View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -111,8 +135,8 @@ describe('PaymentMethods View', () => {
     };
   });
 
-  it.todo('renders correctly', async () => {
-    const rendered = render(<PaymentMethods />);
+  it('renders correctly', async () => {
+    const rendered = render(PaymentMethods);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 });
