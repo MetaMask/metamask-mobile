@@ -38,7 +38,7 @@ export default class WalletView {
     await TestHelpers.tapByText('NFTs');
   }
   static async tapTokensTab() {
-    await TestHelpers.tapByText('TOKENS');
+    await TestHelpers.tapByText('Tokens');
   }
 
   static async tapImportNFTButton() {
