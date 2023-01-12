@@ -1,19 +1,21 @@
 /* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-
 import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS_TEXT, } from '../testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
 } from '../testIDs/Components/OnboardingWizard.testIds';
-
-import { WALLET_VIEW_BURGER_ICON_ID,
-        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON } 
-from '../testIDs/Screens/WalletView.testIds';
+import {
+  WALLET_VIEW_BURGER_ICON_ID,
+  HAMBURGER_MENU_BUTTON,
+  IMPORT_NFT_BUTTON_ID,
+  IMPORT_TOKEN_BUTTON_ID,
+  WALLET_ACCOUNT_ICON 
+} from '../testIDs/Screens/WalletView.testIds';
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
-class WalletMainScreen {
 
+class WalletMainScreen {
   get wizardContainer() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
   }
@@ -72,9 +74,11 @@ class WalletMainScreen {
   async tapBurgerButton() {
     await Gestures.tap(this.HamburgerButton);
   }
+
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.ImportToken);
   }
+
   async tapImportNFTButton() {
     await Gestures.swipe(
       { x: 100, y: 500 },
