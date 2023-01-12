@@ -70,5 +70,10 @@
     "babel.config.js",
     "metro.config.js",
     "jest.config.js"
+  ],
+  "include": [
+    "app/**/**",
+    "node_modules/expect-webdriverio",
+    "node_modules/expect-webdriverio/jest"
   ]
 }
