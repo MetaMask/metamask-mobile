@@ -1382,10 +1382,6 @@ BrowserTab.propTypes = {
    */
   navigation: PropTypes.object,
   /**
-   * A string representing the network id
-   */
-  network: PropTypes.string,
-  /**
    * A string that represents the selected address
    */
   selectedAddress: PropTypes.string,
@@ -1451,7 +1447,6 @@ BrowserTab.defaultProps = {
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-  network: state.engine.backgroundState.NetworkController.network,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
   searchEngine: state.settings.searchEngine,
