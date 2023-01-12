@@ -104,4 +104,6 @@ export interface EditGasFee1559UpdateProps {
     suggestedGasLimit: string;
   };
   onlyGas?: boolean;
+  dappSuggestedGasPrice?: any;
+  dappSuggestedEIP1559Gas?: any;
 }

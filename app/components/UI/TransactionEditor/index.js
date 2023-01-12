@@ -742,6 +742,8 @@ class TransactionEditor extends PureComponent {
               }
               warning={this.renderWarning()}
               error={eip1559GasTransaction.error}
+              dappSuggestedGasPrice={dappSuggestedGasPrice}
+              dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
               over={over}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
@@ -769,6 +771,8 @@ class TransactionEditor extends PureComponent {
               over={over}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+              dappSuggestedGasPrice={dappSuggestedGasPrice}
+              dappSuggestedEIP1559Gas={dappSuggestedEIP1559Gas}
               animateOnChange={animateOnChange}
               isAnimating={isAnimating}
               view={'Transaction'}

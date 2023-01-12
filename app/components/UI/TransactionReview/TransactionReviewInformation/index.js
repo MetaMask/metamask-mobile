@@ -225,8 +225,8 @@ class TransactionReviewInformation extends PureComponent {
      */
     updateTransactionState: PropTypes.func,
     eip1559GasTransaction: PropTypes.object,
-    dappSuggestedEIP1559Gas: PropTypes.string,
-    dappSuggestedGasPrice: PropTypes.string,
+    dappSuggestedEIP1559Gas: PropTypes.any,
+    dappSuggestedGasPrice: PropTypes.any,
   };
 
   state = {
