@@ -318,16 +318,6 @@ export function calcTokenValueToSend(value, decimals) {
 }
 
 /**
- * Converts a hex string to a BN object
- *
- * @param {string} value - Number represented as a hex string
- * @returns {BN} - A BN instance
- */
-export function hexToBN(value) {
-  return util.hexToBN(value);
-}
-
-/**
  * Checks if a value is a BN instance
  *
  * @param {object} value - Value to check
