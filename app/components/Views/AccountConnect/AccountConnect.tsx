@@ -89,7 +89,7 @@ const AccountConnect = (props: AccountConnectProps) => {
    * Get image url from favicon api.
    */
   const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${hostname}/64`;
+    const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
     return { uri: iconUrl };
   }, [hostname]);
 

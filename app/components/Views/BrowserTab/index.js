@@ -801,7 +801,7 @@ export const BrowserTab = (props) => {
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
     // Generate favicon.
-    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/32`;
+    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
