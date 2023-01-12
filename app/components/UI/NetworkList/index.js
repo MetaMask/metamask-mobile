@@ -206,6 +206,7 @@ export class NetworkList extends PureComponent {
   onNetworkChange = (type) => {
     this.handleNetworkSelected(type, ETH, type);
     const { NetworkController, CurrencyRateController } = Engine.context;
+    const source = 'Wallet tab || Browser tab';
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
     this.props.thirdPartyApiMode &&
@@ -215,7 +216,7 @@ export class NetworkList extends PureComponent {
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: String(Networks[type].chainId),
-      source: 'Settings',
+      source,
     });
   };
 

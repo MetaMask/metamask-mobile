@@ -695,7 +695,7 @@ class DrawerView extends PureComponent {
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      referral_source: 'In-app Navigation',
+      source: 'In-app Navigation',
       chain_id: network,
     });
   };

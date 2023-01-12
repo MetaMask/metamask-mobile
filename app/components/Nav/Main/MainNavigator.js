@@ -60,6 +60,8 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -197,9 +199,25 @@ const HomeTabs = () => {
   const options = {
     home: {
       tabBarLabel: 'Wallet',
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+          totalAccounts: 1,
+          chain_id: 1,
+        });
+      },
     },
     browser: {
       tabBarLabel: 'Browser',
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+          totalAccounts: 1,
+          chain_id: 1,
+          source: 'Navigation Tab',
+          connectedAccounts: 1,
+          activeConnectedDapp: false,
+          numOpenTabs: 1,
+        });
+      },
     },
   };
 

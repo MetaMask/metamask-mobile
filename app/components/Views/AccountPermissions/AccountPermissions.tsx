@@ -164,6 +164,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
+        //TODO: should we keep both events?
+        AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
+          totalAccounts: 1,
+          connectedAccounts: 1,
+          totalMainnetNetworks: 1,
+        });
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
           {},

@@ -23,6 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
@@ -596,8 +597,15 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
 
   const handleUrlPress = () => route.params?.showUrlModal?.();
 
-  const setAccountsPermissionsVisible =
-    route.params?.setAccountsPermissionsVisible;
+  const handleAccountRightButtonPress = () => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
+      activeConnectedDapp: false,
+      totalAccounts: 1,
+      connectedAccounts: 1,
+      mainnetNetworksAmount: 0,
+    });
+    route.params?.setAccountsPermissionsVisible();
+  };
 
   const connectedAccounts = route.params?.connectedAccounts;
 
@@ -611,7 +619,7 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
       <AccountRightButton
         selectedAddress={connectedAccounts?.[0]}
         isNetworkVisible
-        onPress={setAccountsPermissionsVisible}
+        onPress={handleAccountRightButtonPress}
       />
     ),
     headerStyle: innerStyles.headerStyle,

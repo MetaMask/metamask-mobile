@@ -17,7 +17,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-
+import Routes from '../../../constants/navigation/Routes';
 // Internal dependencies.
 import {
   ACCOUNT_LIST_ID,
@@ -45,14 +45,29 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     isLoading,
   });
 
+  const getMainTab = (fromView?: string) => {
+    switch (fromView) {
+      case Routes.WALLET.HOME:
+        return 'Wallet Tab';
+      case Routes.BROWSER.HOME:
+        return 'Browser Tab';
+      //TODO: add the Connect Request Route
+      /* case Routes... : return 'Connect Request' */
+      default:
+        return 'Undefined fromView';
+    }
+  };
+
   const _onSelectAccount = (address: string) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setSelectedAddress(address);
     sheetRef.current?.hide();
     onSelectAccount?.(address);
+    const source = getMainTab(route.params?.fromView);
     InteractionManager.runAfterInteractions(() => {
       // Track Event: "Switched Account"
       AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        source,
         number_of_accounts: accounts?.length,
       });
     });

@@ -26,6 +26,8 @@ import {
 import { ToastOptions } from '../../../../component-library/components/Toast/Toast.types';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -52,6 +54,14 @@ const AccountPermissionsRevoke = ({
       try {
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
+        );
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+          {
+            totalAccounts: 1,
+            connectedAccounts: 1,
+            totalMainnetNetworks: 1,
+          },
         );
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);

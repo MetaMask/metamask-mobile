@@ -18,6 +18,8 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import getAccountNameWithENS from '../../../util/accounts';
 import { useAccounts } from '../../../components/hooks/useAccounts';
@@ -85,6 +87,8 @@ const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
+    //TODO: add here switch tab analytic event
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
