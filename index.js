@@ -61,9 +61,9 @@ LogBox.ignoreLogs([
   'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
 ]);
 
-const IGNORE_LOGS_DEVELOPMENT = process.env.IGNORE_LOGS_DEVELOPMENT;
+const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
 // Ignore box logs, usefull for QA testing in development builds
-if (IGNORE_LOGS_DEVELOPMENT === 'true') {
+if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
   LogBox.ignoreAllLogs();
 }
 
