@@ -1,5 +1,5 @@
 Feature: Creating account in wallet
-
+    @ChainScenarios
     Scenario: Import account
         Given I have imported my wallet
         # Given I have created my wallet
