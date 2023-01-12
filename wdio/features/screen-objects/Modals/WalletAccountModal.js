@@ -1,7 +1,5 @@
-/* global driver */
 import {
   ACCOUNT_OVERVIEW_ID,
-  WALLET_ACCOUNT_ADDRESS_LABEL,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../testIDs/Screens/WalletView.testIds';
@@ -16,10 +14,6 @@ class WalletAccountModal {
 
   get accountNameLabelInput() {
     return Selectors.getElementByPlatform(WALLET_ACCOUNT_NAME_LABEL_INPUT);
-  }
-
-  get walletAddress() {
-    return Selectors.getElementByPlatform(WALLET_ACCOUNT_ADDRESS_LABEL);
   }
 
   get walletAccountOverview() {

@@ -22,6 +22,10 @@ Given(/^I am on Home MetaMask website$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
 });
 
+Given(/^I am on the browser view$/, async () => {
+  await BrowserScreen.isScreenContentDisplayed();
+});
+
 When(/^I input "([^"]*)" in the search field$/, async (text) => {
   await BrowserScreen.tapUrlNavBar();
   await AddressBarScreen.editUrlInput(text);
@@ -40,7 +44,7 @@ Then(/^Uniswap exchange page is a suggestion listed$/, async () => {
 });
 
 Then(/^the browser view is on Uniswap Page$/, async () => {
-  await ExternalWebsitesScreen.isUniswapSwapPageDisplayed();
+  await ExternalWebsitesScreen.isUniswapPageDisplayed();
   await BrowserScreen.tapUrlNavBar();
   await AddressBarScreen.isUrlValueContains('https://app.uniswap.org/');
   await AddressBarScreen.tapUrlCancelButton();
@@ -69,20 +73,13 @@ Then(/^active wallet is connected to Uniswap$/, async () => {
 When(
   /^I tap on the account icon located in the upper right of the browser view$/,
   async () => {
+    await BrowserScreen.isScreenContentDisplayed();
     await BrowserScreen.tapAccountButton();
   },
 );
 
 Then(/^select account component is displayed$/, async () => {
   await AccountListComponent.isVisible();
-});
-
-Then(/^"([^"]*)" is now active in the app$/, async (text) => {
-  await BrowserScreen.tapNavbarHamburgerButton();
-  await DrawerViewScreen.tapWalletButton();
-  await WalletAccountModal.isAccountNameLabelEqualTo(text);
-  await WalletMainScreen.tapBurgerIcon();
-  await DrawerViewScreen.tapBrowserButton();
 });
 
 When(/^I navigate to "([^"]*)"$/, async (text) => {
@@ -139,7 +136,7 @@ When(/^I tap on "([^"]*)" on the Add Favorite Screen$/, async (text) => {
   }
 });
 
-Then(/^the "([^"]*)?" is displayed in the browser tab/, async (text) => {
+Then(/^the "([^"]*)?" is displayed in the browser tab$/, async (text) => {
   await BrowserScreen.tapUrlNavBar();
   await AddressBarScreen.isUrlValueContains(text);
   await AddressBarScreen.tapUrlCancelButton();
@@ -334,16 +331,6 @@ Then(
   },
 );
 
-Then(/^"([^"]*)" is not displayed in browser options menu$/, async (option) => {
-  switch (option) {
-    case 'Add Favorites':
-      await OptionMenuModal.isAddFavoriteOptionNotDisplayed();
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-});
-
 When(/^I tap on "([^"]*)" in address field$/, async (button) => {
   switch (button) {
     case 'Cancel button':
@@ -432,4 +419,9 @@ Then(/^the browser view is on the Reddit website$/, async () => {
 });
 Then(/^I should close the address view$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
+});
+
+Then(/^the created account is selected$/, async () => {
+  await AccountListComponent.isAccountTwoCheckedIconDisplayed();
+  await AccountListComponent.tapAccount('Account 2');
 });

@@ -14,7 +14,7 @@ import {
   REDDIT_ICON,
   UNISWAP_CONNECT_BUTTON,
   UNISWAP_METAMASK_WALLET_BUTTON,
-  UNISWAP_SWAP_PAGE,
+  UNISWAP_PAGE,
   UNISWAP_WALLET_PROFILE_ICON,
 } from '../../testIDs/BrowserScreen/ExternalWebsites.testIds';
 
@@ -66,8 +66,8 @@ class ExternalWebsitesScreen {
     return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
   }
 
-  get uniswapSwapPage() {
-    return Selectors.getXpathElementByResourceId(UNISWAP_SWAP_PAGE);
+  get uniswapPage() {
+    return Selectors.getElementByPlatform(UNISWAP_PAGE);
   }
 
   get homeFavoriteUniswapCardTitle() {
@@ -118,8 +118,8 @@ class ExternalWebsitesScreen {
     await expect(await this.redditIcon).toBeDisplayed();
   }
 
-  async isUniswapSwapPageDisplayed() {
-    await expect(await this.uniswapSwapPage).toBeDisplayed();
+  async isUniswapPageDisplayed() {
+    await expect(await this.uniswapPage).toBeDisplayed();
   }
 
   async tapUniswapConnectButton() {

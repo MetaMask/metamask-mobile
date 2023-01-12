@@ -1,7 +1,7 @@
 @androidApp
-Feature: This feature file cover the switch account wallet on the browser flow.
+Feature: This feature file cover the switch account on the browser flow.
 
-  Scenario: Switching wallet accounts while connected to a dapp.
+  Scenario: Switching accounts while connected to a dapp.
   Use the search bar on the homepage to return a popular defi
   apps as a suggested search, connect to the dapp and then switch accounts
 
@@ -19,6 +19,7 @@ Feature: This feature file cover the switch account wallet on the browser flow.
     And "Account 1" is the active wallet account
     When I tap on the account icon located in the upper right of the browser view
     Then select account component is displayed
-    When I tap on "Account 2" on account list
-    Then "Account 2" is the active wallet account
+    When I tap on Create a new account
+    Then the created account is selected
+    And "Account 2" is the active wallet account
     And active wallet is connected to Uniswap

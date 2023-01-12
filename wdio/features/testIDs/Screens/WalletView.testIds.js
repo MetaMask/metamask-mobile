@@ -10,3 +10,5 @@ export const IMPORT_TOKEN_BUTTON_ID = 'import-token-button';
 export const WALLET_ACCOUNT_ICON = 'wallet-account-identicon';
 export const WALLET_ACCOUNT_NAME_LABEL_TEXT = 'edit-account-label';
 export const WALLET_ACCOUNT_NAME_LABEL_INPUT = 'account-label-text-input';
+
+export const ACCOUNT_OVERVIEW_ID = 'account-overview';

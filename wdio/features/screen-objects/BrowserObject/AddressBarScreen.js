@@ -9,7 +9,7 @@ import {
   UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
 } from '../../testIDs/BrowserScreen/AddressBar.testIds';
-import {ROOT_CONTENT_ID} from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
+import { ROOT_CONTENT_ID } from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
 
 class AddressBarScreen {
   get urlCancelButton() {

@@ -1,11 +1,11 @@
+/* global driver */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_BROWSER_TEXT_ID,
+  DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../testIDs/Screens/DrawerView.testIds';
-import { driver } from '@wdio/appium-service';
 
 class DrawerViewScreen {
   get lockNavBarItem() {

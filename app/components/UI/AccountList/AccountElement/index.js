@@ -2,11 +2,11 @@ import React, { PureComponent } from 'react';
 import Identicon from '../../Identicon';
 import PropTypes from 'prop-types';
 import {
-  TouchableOpacity,
+  Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
-  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { renderFromWei } from '../../../../util/number';
@@ -15,9 +15,12 @@ import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ACCOUNT_LIST_ACCOUNT_NAMES } from '../../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
+import {
+  ACCOUNT_LIST_ACCOUNT_NAMES,
+  ACCOUNT_LIST_CHECK_ICON,
+} from '../../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';
@@ -140,9 +143,15 @@ class AccountElement extends PureComponent {
     } = this.props.item;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const nameId = name.replace(' ', '-');
 
     const selected = isSelected ? (
-      <Icon name="check-circle" size={30} color={colors.primary.default} />
+      <Icon
+        name="check-circle"
+        size={30}
+        color={colors.primary.default}
+        {...generateTestId(Platform, `${ACCOUNT_LIST_CHECK_ICON}-${nameId}`)}
+      />
     ) : null;
     const tag =
       isImported || isQRHardware ? (

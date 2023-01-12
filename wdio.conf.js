@@ -1,5 +1,6 @@
 import generateTestReports from './wdio/utils/generateTestReports';
-const { removeSync } = require('fs-extra');
+
+const {removeSync} = require('fs-extra');
 
 export const config = {
   //
@@ -35,7 +36,7 @@ export const config = {
       './wdio/features/BrowserFlow/NavigationControls.feature',
       './wdio/features/BrowserFlow/OptionMenu.feature',
       './wdio/features/BrowserFlow/PhishingDetection.feature',
-      './wdio/features/BrowserFlow/SwitchWallet.feature',
+      './wdio/features/BrowserFlow/SwitchAccount.feature',
     ],
   },
   // Patterns to exclude.
