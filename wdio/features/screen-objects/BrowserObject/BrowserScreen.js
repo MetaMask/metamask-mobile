@@ -16,7 +16,7 @@ import {
 } from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
 
 class BrowserScreen {
-  get screen() {
+  get container() {
     return Selectors.getXpathElementByResourceId(SCREEN_ID);
   }
 
@@ -61,7 +61,7 @@ class BrowserScreen {
   }
 
   async isScreenContentDisplayed() {
-    await expect(await this.screen).toBeDisplayed();
+    await expect(await this.container).toBeDisplayed();
   }
 
   async tapUrlNavBar() {

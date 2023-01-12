@@ -12,7 +12,7 @@ class DrawerViewScreen {
     return Selectors.getElementByPlatform(DRAWER_VIEW_LOCK_TEXT_ID);
   }
 
-  get browser() {
+  get browserButton() {
     return Selectors.getElementByPlatform(DRAWER_VIEW_BROWSER_TEXT_ID);
   }
 
@@ -29,7 +29,7 @@ class DrawerViewScreen {
   }
 
   async tapBrowserButton() {
-    await Gestures.waitAndTap(this.browser);
+    await Gestures.waitAndTap(this.browserButton);
   }
 
   async tapWalletButton() {

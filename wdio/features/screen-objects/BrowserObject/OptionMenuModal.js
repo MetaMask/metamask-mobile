@@ -11,7 +11,7 @@ import {
 } from '../../testIDs/BrowserScreen/OptionMenu.testIds';
 
 class OptionMenuModal {
-  get menu() {
+  get container() {
     return Selectors.getElementByPlatform(MENU_ID);
   }
 
@@ -40,11 +40,11 @@ class OptionMenuModal {
   }
 
   async isModalDisplayed() {
-    await expect(await this.menu).toBeDisplayed();
+    await expect(await this.container).toBeDisplayed();
   }
 
   async isModalNotDisplayed() {
-    await expect(await this.menu).not.toBeDisplayed();
+    await expect(await this.container).not.toBeDisplayed();
   }
 
   async tapAddFavoriteOption() {
@@ -53,10 +53,6 @@ class OptionMenuModal {
 
   async isAddFavoriteOptionDisplayed() {
     await expect(await this.addFavoriteOption).toBeDisplayed();
-  }
-
-  async isAddFavoriteOptionNotDisplayed() {
-    await expect(await this.addFavoriteOption).not.toBeDisplayed();
   }
 
   async tapNewTabOption() {

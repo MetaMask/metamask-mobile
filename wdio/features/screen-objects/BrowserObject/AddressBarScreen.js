@@ -9,7 +9,6 @@ import {
   UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
 } from '../../testIDs/BrowserScreen/AddressBar.testIds';
-import { ROOT_CONTENT_ID } from '../../testIDs/BrowserScreen/BrowserScreen.testIds';
 
 class AddressBarScreen {
   get urlCancelButton() {
@@ -28,10 +27,6 @@ class AddressBarScreen {
     return Selectors.getXpathElementByText(HOME_SUGGESTION);
   }
 
-  get root() {
-    return Selectors.getXpathElementByResourceId(ROOT_CONTENT_ID);
-  }
-
   get urlClearIcon() {
     return Selectors.getElementByPlatform(URL_CLEAR_ICON);
   }
@@ -48,9 +43,9 @@ class AddressBarScreen {
     await driver.pressKeyCode(66);
     await driver.pause(500);
     const element = await this.urlCancelButton;
-    const flag = await element.isDisplayed();
+    const isCancelButtonDisplayed = await element.isDisplayed();
 
-    if (flag) {
+    if (isCancelButtonDisplayed) {
       await Gestures.waitAndTap(this.urlCancelButton);
     }
   }
