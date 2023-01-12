@@ -339,11 +339,11 @@ class AuthenticationService {
    * @param selectedAddress - current address pulled from persisted state
    */
   appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
-    const credentials: any = await SecureKeychain.getGenericPassword();
     try {
+      const credentials: any = await SecureKeychain.getGenericPassword();
       const password = credentials?.password;
+      if (!password) throw new Error('Password does not exist');
       await this.loginVaultCreation(password, selectedAddress);
-      if (!password) await this.storePassword(password, this.authData.type);
       this.dispatchLogin();
     } catch (e: any) {
       this.lockApp(false);
