@@ -1,6 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { query } from '@metamask/controller-utils';
+import { connect } from 'react-redux';
+import URL from 'url-parse';
+
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -8,14 +12,13 @@ import {
   findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainNet,
+  isMultiLayerFeeNetwork,
 } from '../../../../util/networks';
 import {
   getEtherscanTransactionUrl,
   getEtherscanBaseUrl,
 } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
-import { connect } from 'react-redux';
-import URL from 'url-parse';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
@@ -26,6 +29,8 @@ import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Engine from '../../../../core/Engine';
+import decodeTransaction from '../../TransactionElement/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -99,11 +104,90 @@ class TransactionDetails extends PureComponent {
      */
     showSpeedUpModal: PropTypes.func,
     showCancelModal: PropTypes.func,
+    transaction: PropTypes.object,
+    selectedAddress: PropTypes.string,
+    transactions: PropTypes.array,
+    ticker: PropTypes.string,
+    tokens: PropTypes.object,
+    contractExchangeRates: PropTypes.object,
+    conversionRate: PropTypes.number,
+    currentCurrency: PropTypes.string,
+    swapsTransactions: PropTypes.object,
+    swapsTokens: PropTypes.array,
+    primaryCurrency: PropTypes.string,
   };
 
   state = {
     rpcBlockExplorer: undefined,
     renderTxActions: true,
+    updatedTransactionDetails: undefined,
+  };
+
+  fetchTxReceipt = async (transactionHash) => {
+    const { TransactionController } = Engine.context;
+    return await query(
+      TransactionController.ethQuery,
+      'getTransactionReceipt',
+      [transactionHash],
+    );
+  };
+
+  /**
+   * Updates transactionDetails for multilayer fee networks (e.g. for Optimism).
+   */
+  updateTransactionDetails = async () => {
+    const {
+      transactionObject,
+      transactionDetails,
+      selectedAddress,
+      ticker,
+      chainId,
+      conversionRate,
+      currentCurrency,
+      contractExchangeRates,
+      tokens,
+      primaryCurrency,
+      swapsTransactions,
+      swapsTokens,
+      transactions,
+    } = this.props;
+    const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
+    const transactionHash = transactionDetails?.transactionHash;
+    if (
+      !multiLayerFeeNetwork ||
+      !transactionHash ||
+      !transactionObject.transaction
+    ) {
+      this.setState({ updatedTransactionDetails: transactionDetails });
+      return;
+    }
+    try {
+      let { l1Fee: multiLayerL1FeeTotal } = await this.fetchTxReceipt(
+        transactionHash,
+      );
+      if (!multiLayerL1FeeTotal) {
+        multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
+      }
+      transactionObject.transaction.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
+      const decodedTx = await decodeTransaction({
+        tx: transactionObject,
+        selectedAddress,
+        ticker,
+        chainId,
+        conversionRate,
+        currentCurrency,
+        transactions,
+        contractExchangeRates,
+        tokens,
+        primaryCurrency,
+        swapsTransactions,
+        swapsTokens,
+      });
+      this.setState({ updatedTransactionDetails: decodedTx[1] });
+    } catch (e) {
+      Logger.error(e);
+      this.setState({ updatedTransactionDetails: transactionDetails });
+    }
   };
 
   componentDidMount = () => {
@@ -120,6 +204,7 @@ class TransactionDetails extends PureComponent {
         NO_RPC_BLOCK_EXPLORER;
     }
     this.setState({ rpcBlockExplorer: blockExplorer });
+    this.updateTransactionDetails();
   };
 
   viewOnEtherscan = () => {
@@ -223,15 +308,15 @@ class TransactionDetails extends PureComponent {
   render = () => {
     const {
       chainId,
-      transactionDetails,
       transactionObject: { status, time, transaction },
     } = this.props;
+    const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
     const renderTxActions = status === 'submitted' || status === 'approved';
     const { rpcBlockExplorer } = this.state;
 
-    return transactionDetails ? (
+    return updatedTransactionDetails ? (
       <DetailsModal.Body>
         <DetailsModal.Section borderBottom>
           <DetailsModal.Column>
@@ -263,7 +348,7 @@ class TransactionDetails extends PureComponent {
             <Text small primary>
               <EthereumAddress
                 type="short"
-                address={transactionDetails.renderFrom}
+                address={updatedTransactionDetails.renderFrom}
               />
             </Text>
           </DetailsModal.Column>
@@ -274,7 +359,7 @@ class TransactionDetails extends PureComponent {
             <Text small primary>
               <EthereumAddress
                 type="short"
-                address={transactionDetails.renderTo}
+                address={updatedTransactionDetails.renderTo}
               />
             </Text>
           </DetailsModal.Column>
@@ -299,21 +384,21 @@ class TransactionDetails extends PureComponent {
           ]}
         >
           <TransactionSummary
-            amount={transactionDetails.summaryAmount}
-            fee={transactionDetails.summaryFee}
-            totalAmount={transactionDetails.summaryTotalAmount}
+            amount={updatedTransactionDetails.summaryAmount}
+            fee={updatedTransactionDetails.summaryFee}
+            totalAmount={updatedTransactionDetails.summaryTotalAmount}
             secondaryTotalAmount={
               isMainNet(chainId)
-                ? transactionDetails.summarySecondaryTotalAmount
+                ? updatedTransactionDetails.summarySecondaryTotalAmount
                 : undefined
             }
             gasEstimationReady
-            transactionType={transactionDetails.transactionType}
+            transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
           />
         </View>
 
-        {transactionDetails.transactionHash &&
+        {updatedTransactionDetails.transactionHash &&
           status !== 'cancelled' &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
             <TouchableOpacity
@@ -339,6 +424,27 @@ const mapStateToProps = (state) => ({
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  transactions: state.engine.backgroundState.TransactionController.transactions,
+  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
+    (tokens, token) => {
+      tokens[token.address] = token;
+      return tokens;
+    },
+    {},
+  ),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  conversionRate:
+    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  currentCurrency:
+    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  primaryCurrency: state.settings.primaryCurrency,
+  swapsTransactions:
+    state.engine.backgroundState.TransactionController.swapsTransactions || {},
+  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
 });
 
 TransactionDetails.contextType = ThemeContext;

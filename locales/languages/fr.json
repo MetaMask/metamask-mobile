@@ -657,7 +657,15 @@
     "keep_credential_safe": "Protégez votre {{credentialName}}",
     "srp_abbreviation_text": "PSR",
     "srp_text": "Phrase secrète de récupération",
-    "private_key_text": "Clé privée"
+    "private_key_text": "Clé privée",
+    "got_it": "J’ai compris",
+    "learn_more": "En savoir plus"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerte de sécurité",
+    "description": "Pour sécuriser votre compte, il est fortement déconseillé de conserver votre {{credentialName}} sous forme de capture d'écran ou dans un espace de stockage en ligne.",
+    "srp_text": "Phrase secrète de récupération",
+    "priv_key_text": "Clé privée"
   },
   "password_reset": {
     "password_title": "Mot de passe",
@@ -695,10 +703,17 @@
     "allow_camera_dialog_message": "Nous avons besoin de votre autorisation pour scanner les codes QR",
     "scanning": "Scan en cours…",
     "ok": "Ok",
+    "continue": "Continuer",
     "cancel": "Annuler",
     "error": "Erreur",
     "attempting_to_scan_with_wallet_locked": "Il semble que vous essayez de scanner un code QR — vous devez déverrouiller votre portefeuille pour pouvoir l’utiliser.",
-    "attempting_sync_from_wallet_error": "Il semble que vous essayez de vous synchroniser avec l’extension. Pour ce faire, vous devrez effacer votre portefeuille actuel. \n\nAprès avoir effacé ou réinstallé une nouvelle version de l’appli, sélectionnez l’option « Synchroniser avec l’extension MetaMask ». Attention ! Avant d’effacer votre portefeuille, effectuez une copie de votre phrase secrète de récupération."
+    "attempting_sync_from_wallet_error": "Il semble que vous essayez de vous synchroniser avec l’extension. Pour ce faire, vous devrez effacer votre portefeuille actuel. \n\nAprès avoir effacé ou réinstallé une nouvelle version de l’appli, sélectionnez l’option « Synchroniser avec l’extension MetaMask ». Attention ! Avant d’effacer votre portefeuille, effectuez une copie de votre phrase secrète de récupération.",
+    "not_allowed_error_title": "Autoriser l’accès à l’appareil photo",
+    "not_allowed_error_desc": "L’autorisation d’accéder à l’appareil photo est requise pour scanner un code QR associé à une adresse de compte ou à une adresse de contrat",
+    "unrecognized_address_qr_code_title": "Code QR non reconnu",
+    "unrecognized_address_qr_code_desc": "Désolé, ce code QR n’est pas associé à une adresse de compte ou à une adresse de contrat.",
+    "url_redirection_alert_title": "Vous allez consulter un lien externe",
+    "url_redirection_alert_desc": "Sachez que les liens peuvent être utilisés pour tenter d’escroquer ou d’hameçonner les utilisateurs. Faites donc bien attention de ne visiter que des sites Web fiables."
   },
   "action_view": {
     "cancel": "Annuler",

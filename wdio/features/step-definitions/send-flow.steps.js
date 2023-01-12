@@ -4,7 +4,6 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBook from '../screen-objects/AddressBook';
 import Contacts from '../screen-objects/Contacts';
-const fs = require('fs');
 
 Given(/^I enter address "([^"]*)?" in the sender's input box/, async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
@@ -19,13 +18,9 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
 });
 
 Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
-    // driver.startRecordingScreen();
-    const timeout = 4000;
+    const timeout = 1000;
     await driver.pause(timeout);
     await SendScreen.tapOnText(text);
-    // const base64enconded = await driver.stopRecordingScreen();
-    // const decoded = Buffer.from(base64enconded, 'base64').toString('binary');
-    // fs.writeFileSync('video.mp4', decoded, 'binary');
 });
 
 Then(/^I proceed to the amount view/, async () => {
@@ -111,9 +106,9 @@ Then(/^I tap the Edit Contact button which is enabled to confirm the change/, as
     await Contacts.tapOnAddContactButton();// same Id as Edit Contact button
 });
 
-Then(/^I return to the send flow/, async (text) => {
+Then(/^I return to the send flow/, async () => {
     await Contacts.isAddContactButtonEnabled();
-     await Contacts.tapOnAddContactButton();
+    await Contacts.tapOnAddContactButton();
 });
 
 Then(/^I should see the edited name "([^"]*)?" contact under Recents on the send screen/, async (name) => {

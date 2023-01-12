@@ -3,7 +3,6 @@ import { utils } from 'ethers';
 import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
-import { util } from '@metamask/controllers';
 
 import AppConstants from '../../core/AppConstants';
 import {
@@ -16,6 +15,7 @@ import {
   NETWORKS_CHAIN_ID,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
+import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
@@ -253,7 +253,7 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await util.query(
+  const networkNonce = await query(
     TransactionController.ethQuery,
     'getTransactionCount',
     [from, 'pending'],
@@ -294,13 +294,14 @@ const buildOVMGasPriceOracleContract = (eth) => {
 };
 
 /**
- * It returns an estimated L1 fee for the Optimism network.
+ * It returns an estimated L1 fee for a multi layer network.
+ * Currently only for the Optimism network, but can be extended to other networks.
  *
  * @param {Object} eth
  * @param {Object} txMeta
  * @returns {String}
  */
-export const fetchEstimatedL1FeeOptimism = async (eth, txMeta) => {
+export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
   const contract = buildOVMGasPriceOracleContract(eth);
   const serializedTransaction =
     buildUnserializedTransaction(txMeta).serialize();

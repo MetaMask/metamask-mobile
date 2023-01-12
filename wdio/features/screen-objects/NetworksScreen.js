@@ -154,11 +154,11 @@ class NetworksScreen {
     }
 
     async isButtonTextVisibleByXpath(text) {
-       await expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
     }
 
     async isNetworkRemoved(network) {
-       await expect(await (Selectors.getXpathElementByText(network))).not.toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(network))).not.toBeDisplayed();
     }
 
     async tapOnNetwork(network) {
@@ -166,11 +166,11 @@ class NetworksScreen {
     }
 
     async isNetworkVisible(network) {
-        await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
     }
 
     async isNetworkNotVisible(text) {
-       await expect(await (Selectors.getXpathElementByText(text))).not.toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(text))).not.toBeDisplayed();
     }
 
     async tapOptionInSettings(text) {
@@ -178,7 +178,7 @@ class NetworksScreen {
     }
 
     async isNetworknameDisplayed(network) {
-        await expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
+       expect(await (Selectors.getXpathElementByText(network))).toBeDisplayed();
     }
 
     async tapBackButtonInNewScreen() {

@@ -1,15 +1,15 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import { 
-    SEND_ADDRESS_INPUT_FIELD,
-    SEND_WARNING_MESSAGE,
-    UNDERSTAND_WARNING_CONTINUE,
-    AMOUNT_SCREEN,
-    ADD_ADDRESS_BUTTON,
-    SEND_CANCEL_BUTTON
- } from '../testIDs/Screens/SendScreen.testIds';
+  SEND_ADDRESS_INPUT_FIELD,
+  SEND_WARNING_MESSAGE,
+  UNDERSTAND_WARNING_CONTINUE,
+  AMOUNT_SCREEN,
+  ADD_ADDRESS_BUTTON,
+  SEND_CANCEL_BUTTON
+} from '../testIDs/Screens/SendScreen.testIds';
 
-class SendScreen{
+class SendScreen {
 
     get sendAddressInputField (){
        return Selectors.getElementByPlatform(SEND_ADDRESS_INPUT_FIELD);
@@ -40,11 +40,11 @@ class SendScreen{
     }
 
     async isSendWarningMessageVisible(message){
-        await expect(await (Selectors.getXpathElementByText(message))).toBeDisplayed();
+        expect(await (Selectors.getXpathElementByText(message))).toBeDisplayed();
     }
 
     async isTextVisible(message){
-        await expect(await (Selectors.getXpathElementByText(message))).toBeDisplayed();
+        expect(await (Selectors.getXpathElementByText(message))).toBeDisplayed();
     }
 
      async isContinueTextVisible(){
@@ -68,7 +68,7 @@ class SendScreen{
     }
 
     async isChangedContactNameVisible(contactName){
-      await expect(await Selectors.getXpathElementByText(contactName)).toBeDisplayed();
-  }
+       expect(await Selectors.getXpathElementByText(contactName)).toBeDisplayed();
+    }
 }
 export default new SendScreen();
