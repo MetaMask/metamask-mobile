@@ -10,12 +10,14 @@ import {
   StackNavigationOptions,
 } from '@react-navigation/stack';
 
+interface ProviderValues {
+  state?: Record<any, any>;
+  theme?: Theme;
+}
+
 export default function renderWithProvider(
   component: React.ReactElement,
-  providerValues?: {
-    state?: Record<any, any>;
-    theme?: Theme;
-  },
+  providerValues?: ProviderValues,
 ) {
   const { state = {}, theme = mockTheme } = providerValues ?? {};
   const store = configureStore(state);
@@ -37,6 +39,7 @@ export function renderScreen(
     name: string;
     options?: StackNavigationOptions;
   },
+  providerValues?: ProviderValues,
 ) {
   const Stack = createStackNavigator();
   return renderWithProvider(
@@ -47,5 +50,6 @@ export function renderScreen(
         component={Component}
       ></Stack.Screen>
     </Stack.Navigator>,
+    providerValues,
   );
 }
