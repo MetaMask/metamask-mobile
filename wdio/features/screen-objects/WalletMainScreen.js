@@ -6,13 +6,11 @@ import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
 } from '../testIDs/Components/OnboardingWizard.testIds';
-import {
-  WALLET_VIEW_BURGER_ICON_ID,
-  HAMBURGER_MENU_BUTTON,
-  IMPORT_NFT_BUTTON_ID,
-  IMPORT_TOKEN_BUTTON_ID,
-  WALLET_ACCOUNT_ICON 
-} from '../testIDs/Screens/WalletView.testIds';
+
+import { WALLET_VIEW_BURGER_ICON_ID,
+        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON }
+from '../testIDs/Screens/WalletView.testIds';
+
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
 
 class WalletMainScreen {
@@ -97,7 +95,7 @@ class WalletMainScreen {
   async tapIdenticon(){
     await Gestures.tap(this.Identicon);
   }
-  
+
   async tapNetworkNavBar() {
     const timeOut = 3000;
     await driver.pause(timeOut);
