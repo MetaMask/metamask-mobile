@@ -285,6 +285,13 @@ describe('Wallet Tests', () => {
     await WalletView.isTokenVisibleInWallet('0 BLT');
   });
 
+  it('should switch to Goerli network', async () => {
+    await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.isVisible();
+    await NetworkListModal.changeNetwork(GOERLI);
+    await WalletView.isNetworkNameVisible(GOERLI);
+  });
+
   it('should input a valid address', async () => {
     // Check that we are on the wallet screen
     await WalletView.isVisible();
