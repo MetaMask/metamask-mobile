@@ -12,6 +12,7 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
+import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 
 
 Given(/^I have imported my wallet$/, async () => {
@@ -48,4 +49,11 @@ Given(/^I have created my wallet$/, async () => { // should be in a common step 
   await CreateNewWalletScreen.isAccountCreated();
   await CreateNewWalletScreen.isNotVisible();
 
+});
+
+Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
+  await OnboardingWizardModal.isVisible();
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
+  await OnboardingWizardModal.tapNoThanksButton();
 });
