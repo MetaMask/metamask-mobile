@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @ChainScenarios
 Feature: Blockchain Networks
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
