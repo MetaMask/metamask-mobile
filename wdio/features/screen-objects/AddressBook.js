@@ -15,11 +15,11 @@ class AddressBook {
    }
 
    async isCancelButtonEnabled() {
-      await expect(await Selectors.getXpathElementByText('Cancel')).toBeEnabled();
+      expect(await Selectors.getXpathElementByText('Cancel')).toBeEnabled();
    }
 
    async isSaveButtonEnabled() {
-      await expect(await Selectors.getXpathElementByText('Save')).toBeEnabled();
+      expect(await Selectors.getXpathElementByText('Save')).toBeEnabled();
    }
 
    async tapOnSaveButton() {
@@ -27,7 +27,7 @@ class AddressBook {
    }
 
    async isContactNameVisible(contact) {
-      await expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
+      expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
    }
 
    async isDeletedContactNameNotVisible(contact) {

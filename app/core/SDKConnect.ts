@@ -1,13 +1,13 @@
 import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import RemoteCommunication, {
   CommunicationLayerPreference,
-} from './RemoteConnection';
+} from '@metamask/sdk-communication-layer';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from './Engine';
-import { WalletDevice } from '@metamask/controllers';
+import { WalletDevice } from '@metamask/transaction-controller';
 import DefaultPreference from 'react-native-default-preference';
 
 import {

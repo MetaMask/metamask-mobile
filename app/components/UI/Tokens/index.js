@@ -21,7 +21,9 @@ import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
 import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
@@ -313,14 +315,11 @@ class Tokens extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
-        {
-          text: 'Buy Native Token',
-          location: 'Home Screen',
-          chain_id_destination: this.props.chainId,
-        },
-      );
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy Native Token',
+        location: 'Home Screen',
+        chain_id_destination: this.props.chainId,
+      });
     });
   };
 
@@ -331,18 +330,15 @@ class Tokens extends PureComponent {
       screen: 'DetectedTokens',
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CLICKED,
-        {
-          source: 'detected',
-          chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
-          ),
-          tokens: detectedTokens.map(
-            (token) => `${token.symbol} - ${token.address}`,
-          ),
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+        source: 'detected',
+        chain_id: getDecimalChainId(
+          NetworkController?.state?.provider?.chainId,
+        ),
+        tokens: detectedTokens.map(
+          (token) => `${token.symbol} - ${token.address}`,
+        ),
+      });
       this.setState({ isAddTokenEnabled: true });
     });
   };
@@ -394,15 +390,12 @@ class Tokens extends PureComponent {
     this.setState({ isAddTokenEnabled: false });
     this.props.navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CLICKED,
-        {
-          source: 'manual',
-          chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
-          ),
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+        source: 'manual',
+        chain_id: getDecimalChainId(
+          NetworkController?.state?.provider?.chainId,
+        ),
+      });
       this.setState({ isAddTokenEnabled: true });
     });
   };
@@ -427,7 +420,7 @@ class Tokens extends PureComponent {
         }),
       });
       InteractionManager.runAfterInteractions(() =>
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
           location: 'assets_list',
           token_standard: 'ERC20',
           asset_type: 'token',

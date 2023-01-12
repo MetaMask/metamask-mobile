@@ -33,6 +33,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -556,7 +557,7 @@ class NetworkSettings extends PureComponent {
         symbol: ticker,
       };
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       this.props.showNetworkOnboardingAction({

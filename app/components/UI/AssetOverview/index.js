@@ -34,7 +34,8 @@ import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
@@ -189,14 +190,11 @@ class AssetOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
-        {
-          text: 'Buy',
-          location: 'Token Screen',
-          chain_id_destination: this.props.chainId,
-        },
-      );
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy',
+        location: 'Token Screen',
+        chain_id_destination: this.props.chainId,
+      });
     });
   };
 

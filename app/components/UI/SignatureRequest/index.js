@@ -13,7 +13,7 @@ import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
@@ -163,7 +163,7 @@ class SignatureRequest extends PureComponent {
   onCancel = () => {
     this.props.onCancel();
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE,
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
   };
@@ -174,7 +174,7 @@ class SignatureRequest extends PureComponent {
   onConfirm = () => {
     this.props.onConfirm();
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE,
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );
   };

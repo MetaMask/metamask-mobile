@@ -14,7 +14,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 
@@ -23,9 +23,7 @@ import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
-
 import Device from '../../../util/device';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
 import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
@@ -308,7 +306,7 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COPIED_ADDRESS);
+      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
     });
   };
 
@@ -323,14 +321,11 @@ class AccountOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
-        {
-          text: 'Buy',
-          location: 'Wallet',
-          chain_id_destination: this.props.chainId,
-        },
-      );
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy',
+        location: 'Wallet',
+        chain_id_destination: this.props.chainId,
+      });
     });
   };
 

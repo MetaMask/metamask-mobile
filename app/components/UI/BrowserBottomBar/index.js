@@ -7,7 +7,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -93,14 +95,14 @@ export default class BrowserBottomBar extends PureComponent {
   };
 
   trackSearchEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
       option_chosen: 'Browser Bottom Bar Menu',
       number_of_tabs: undefined,
     });
   };
 
   trackNavigationEvent = (navigationOption) => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NAVIGATION, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
       option_chosen: navigationOption,
       os: Platform.OS,
     });

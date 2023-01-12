@@ -40,7 +40,7 @@ import {
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
 import {
@@ -133,7 +133,7 @@ const Main = (props) => {
     if (props.providerType !== 'rpc') {
       try {
         const { TransactionController } = Engine.context;
-        await util.query(TransactionController.ethQuery, 'blockNumber', []);
+        await query(TransactionController.ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {

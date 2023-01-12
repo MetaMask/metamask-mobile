@@ -1,32 +1,35 @@
 /* eslint-disable no-console */
 import {
   AccountTrackerController,
-  AddressBookController,
   AssetsContractController,
   TokenListController,
-  ControllerMessenger,
-  ComposableController,
   CurrencyRateController,
-  KeyringController,
-  PersonalMessageManager,
-  MessageManager,
-  NetworkController,
-  PhishingController,
-  PreferencesController,
   TokenBalancesController,
   TokenRatesController,
-  Transaction,
-  TransactionController,
-  TypedMessageManager,
-  WalletDevice,
-  GasFeeController,
   TokensController,
   NftController,
   TokenDetectionController,
   NftDetectionController,
-  ApprovalController,
-  PermissionController,
-} from '@metamask/controllers';
+} from '@metamask/assets-controllers';
+import { AddressBookController } from '@metamask/address-book-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import { ComposableController } from '@metamask/composable-controller';
+import { KeyringController } from '@metamask/keyring-controller';
+import {
+  PersonalMessageManager,
+  MessageManager,
+  TypedMessageManager,
+} from '@metamask/message-manager';
+import { NetworkController } from '@metamask/network-controller';
+import { PhishingController } from '@metamask/phishing-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
+import {
+  Transaction,
+  TransactionController,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import { GasFeeController } from '@metamask/gas-fee-controller';
+import { ApprovalController } from '@metamask/approval-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { SnapController } from '@metamask/snap-controllers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -52,6 +55,7 @@ import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { EndowmentPermissions } from '../constants/permissions';
 import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
+import { MetaMetricsEvents } from '../core/Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
 import {
   SnapBridge,
@@ -464,16 +468,13 @@ class Engine {
             ),
           addDetectedTokens: (tokens) => {
             // Track detected tokens event
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.TOKEN_DETECTED,
-              {
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                chain_id: getDecimalChainId(
-                  networkController.state.provider.chainId,
-                ),
-              },
-            );
+            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              chain_id: getDecimalChainId(
+                networkController.state.provider.chainId,
+              ),
+            });
             tokensController.addDetectedTokens(tokens);
           },
           getTokensState: () => tokensController.state,

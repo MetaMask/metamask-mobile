@@ -22,13 +22,14 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
 import AppConstants from '../../../core/AppConstants';
-import { Token as TokenType } from '@metamask/controllers';
+import { Token as TokenType } from '@metamask/assets-controllers';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -182,18 +183,15 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              AnalyticsV2.trackEvent(
-                AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN,
-                {
-                  location: 'token_details',
-                  token_standard: 'ERC20',
-                  asset_type: 'token',
-                  tokens: [`${symbol} - ${address}`],
-                  chain_id: getDecimalChainId(
-                    NetworkController?.state?.provider?.chainId,
-                  ),
-                },
-              );
+              AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+                location: 'token_details',
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                tokens: [`${symbol} - ${address}`],
+                chain_id: getDecimalChainId(
+                  NetworkController?.state?.provider?.chainId,
+                ),
+              });
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
             }

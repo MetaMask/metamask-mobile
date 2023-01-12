@@ -17,10 +17,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
   WalletDevice,
-  util,
-  GAS_ESTIMATE_TYPES,
   TransactionStatus,
-} from '@metamask/controllers/';
+} from '@metamask/transaction-controller';
+import { query } from '@metamask/controller-utils';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
   addHexPrefix,
@@ -50,8 +50,7 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
@@ -703,11 +702,11 @@ function SwapsQuotesView({
           chain_id: chainId,
         };
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED,
+          MetaMetricsEvents.GAS_FEES_CHANGED,
           {},
         );
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.GAS_FEES_CHANGED,
+          MetaMetricsEvents.GAS_FEES_CHANGED,
           parameters,
           true,
         );
@@ -759,12 +758,12 @@ function SwapsQuotesView({
       newSwapsTransactions,
     ) => {
       const { TransactionController } = Engine.context;
-      const blockNumber = await util.query(
+      const blockNumber = await query(
         TransactionController.ethQuery,
         'blockNumber',
         [],
       );
-      const currentBlock = await util.query(
+      const currentBlock = await query(
         TransactionController.ethQuery,
         'getBlockByNumber',
         [blockNumber, false],
@@ -865,12 +864,9 @@ function SwapsQuotesView({
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           chain_id: chainId,
         };
+        Analytics.trackEventWithParameters(MetaMetricsEvents.SWAP_STARTED, {});
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.SWAP_STARTED,
-          {},
-        );
-        Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.SWAP_STARTED,
+          MetaMetricsEvents.SWAP_STARTED,
           parameters,
           true,
         );
@@ -1095,11 +1091,11 @@ function SwapsQuotesView({
         chain_id: chainId,
       };
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED,
+        MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED,
         {},
       );
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.EDIT_SPEND_LIMIT_OPENED,
+        MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED,
         parameters,
         true,
       );
@@ -1149,12 +1145,9 @@ function SwapsQuotesView({
         available_quotes: allQuotes.length,
         chain_id: chainId,
       };
+      Analytics.trackEventWithParameters(MetaMetricsEvents.QUOTES_RECEIVED, {});
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED,
-        {},
-      );
-      Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.QUOTES_RECEIVED,
+        MetaMetricsEvents.QUOTES_RECEIVED,
         parameters,
         true,
       );
@@ -1203,11 +1196,11 @@ function SwapsQuotesView({
         chain_id: chainId,
       };
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED,
+        MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED,
         {},
       );
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.ALL_AVAILABLE_QUOTES_OPENED,
+        MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED,
         parameters,
         true,
       );
@@ -1248,11 +1241,11 @@ function SwapsQuotesView({
             gas_fees: '',
           };
           Analytics.trackEventWithParameters(
-            ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT,
+            MetaMetricsEvents.QUOTES_TIMED_OUT,
             {},
           );
           Analytics.trackEventWithParameters(
-            ANALYTICS_EVENT_OPTS.QUOTES_TIMED_OUT,
+            MetaMetricsEvents.QUOTES_TIMED_OUT,
             parameters,
             true,
           );
@@ -1263,11 +1256,11 @@ function SwapsQuotesView({
         InteractionManager.runAfterInteractions(() => {
           const parameters = { ...data };
           Analytics.trackEventWithParameters(
-            ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE,
+            MetaMetricsEvents.NO_QUOTES_AVAILABLE,
             {},
           );
           Analytics.trackEventWithParameters(
-            ANALYTICS_EVENT_OPTS.NO_QUOTES_AVAILABLE,
+            MetaMetricsEvents.NO_QUOTES_AVAILABLE,
             parameters,
             true,
           );
@@ -1300,9 +1293,7 @@ function SwapsQuotesView({
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   }, [navigation]);
 
@@ -1551,11 +1542,11 @@ function SwapsQuotesView({
     navigation.setParams({ quoteBegin: Date.now() });
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED,
+        MetaMetricsEvents.QUOTES_REQUESTED,
         {},
       );
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.QUOTES_REQUESTED,
+        MetaMetricsEvents.QUOTES_REQUESTED,
         data,
         true,
       );

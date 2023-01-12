@@ -17,7 +17,9 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -174,7 +176,7 @@ const NetworkModals = (props: NetworkProps) => {
       };
 
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       setNetworkAdded(true);
