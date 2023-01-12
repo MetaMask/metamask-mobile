@@ -461,8 +461,6 @@
     "select_all": "Select all",
     "unselect_all": "Unselect all",
     "permissions": "Permissions",
-    "disconnect": "Disconnect",
-    "disconnect_all_accounts": "Disconnect all accounts",
     "revoke": "Revoke",
     "revoke_all": "Revoke all"
   },

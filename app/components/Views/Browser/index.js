@@ -365,4 +365,6 @@ Browser.propTypes = {
   route: PropTypes.object,
 };
 
+export { default as createBrowserNavDetails } from './Browser.types';
+
 export default connect(mapStateToProps, mapDispatchToProps)(Browser);

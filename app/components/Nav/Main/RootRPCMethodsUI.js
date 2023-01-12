@@ -59,7 +59,7 @@ import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import Routes from '../../../constants/navigation/Routes';
+import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -753,6 +753,7 @@ const RootRPCMethodsUI = (props) => {
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
       }
+
       switch (request.type) {
         case ApprovalTypes.INSTALL_SNAP:
           // eslint-disable-next-line no-console
@@ -769,12 +770,16 @@ const RootRPCMethodsUI = (props) => {
           break;
         case ApprovalTypes.REQUEST_PERMISSIONS:
           if (requestData?.permissions?.eth_accounts) {
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.ACCOUNT_CONNECT,
-              params: {
+            const {
+              metadata: { id },
+            } = requestData;
+
+            props.navigation.navigate(
+              ...createAccountConnectNavDetails({
                 hostInfo: requestData,
-              },
-            });
+                permissionRequestId: id,
+              }),
+            );
           }
           break;
         case ApprovalTypes.CONNECT_ACCOUNTS:

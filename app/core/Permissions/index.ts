@@ -185,8 +185,8 @@ export const getPermittedAccounts = async (hostname: string) => {
         hostname,
         RestrictedMethods.eth_accounts,
       );
-    return accountsWithLastUsed.map(
-      ({ address }: { address: string }) => address,
+    return accountsWithLastUsed.map(({ address }: { address: string }) =>
+      address.toLowerCase(),
     );
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {

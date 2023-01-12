@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -29,13 +29,13 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 // Internal dependencies.
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
+import { USER_INTENT } from '../../../../constants/permissions';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
   onSetScreen,
   onSetSelectedAddresses,
-  onConnect,
-  onDismissSheet,
+  onUserAction,
   isLoading,
   favicon,
   hostname,
@@ -69,7 +69,11 @@ const AccountConnectSingle = ({
             {
               label: strings('accounts.connect_multiple_accounts'),
               onPress: () => {
-                onSetSelectedAddresses([]);
+                onSetSelectedAddresses(
+                  defaultSelectedAccount?.address
+                    ? [defaultSelectedAccount.address]
+                    : [],
+                );
                 onSetScreen(AccountConnectScreens.MultiConnectSelector);
               },
               disabled: isLoading,
@@ -78,7 +82,13 @@ const AccountConnectSingle = ({
         />
       </View>
     ),
-    [onSetScreen, onSetSelectedAddresses, isLoading, styles],
+    [
+      onSetScreen,
+      onSetSelectedAddresses,
+      isLoading,
+      styles,
+      defaultSelectedAccount?.address,
+    ],
   );
 
   const renderCtaButtons = useCallback(
@@ -88,7 +98,9 @@ const AccountConnectSingle = ({
           variant={ButtonVariants.Secondary}
           buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
-          onPress={onDismissSheet}
+          onPress={() => {
+            onUserAction(USER_INTENT.Cancel);
+          }}
           size={ButtonSize.Lg}
           style={styles.button}
         />
@@ -97,13 +109,15 @@ const AccountConnectSingle = ({
           variant={ButtonVariants.Primary}
           buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect')}
-          onPress={onConnect}
+          onPress={() => {
+            onUserAction(USER_INTENT.Confirm);
+          }}
           size={ButtonSize.Lg}
           style={styles.button}
         />
       </View>
     ),
-    [onDismissSheet, onConnect, isLoading, styles],
+    [onUserAction, isLoading, styles],
   );
 
   const renderSelectedAccount = useCallback(() => {

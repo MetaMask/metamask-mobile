@@ -19,7 +19,7 @@ import {
 } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
-import Routes from '../../../../constants/navigation/Routes';
+import { createBrowserNavDetails } from '../../../Views/Browser';
 
 const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
@@ -60,10 +60,7 @@ const Step5 = (props) => {
    */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(6);
-    navigation &&
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-      });
+    navigation && navigation.navigate(...createBrowserNavDetails());
     AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],

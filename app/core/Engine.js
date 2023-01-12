@@ -30,6 +30,7 @@ import {
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
+import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { SnapController } from '@metamask/snap-controllers';
 import AsyncStorage from '@react-native-async-storage/async-storage';

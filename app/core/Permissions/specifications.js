@@ -1,6 +1,9 @@
-import { constructPermission, PermissionType } from '@metamask/controllers';
 import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snap-controllers';
 import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/rpc-methods';
+import {
+  constructPermission,
+  PermissionType,
+} from '@metamask/permission-controller';
 import { v1 as random } from 'uuid';
 import { CaveatTypes, RestrictedMethods } from './constants';
 

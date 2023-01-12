@@ -15,7 +15,9 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
+  TextStyle,
 } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -45,7 +47,7 @@ import {
 import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
-const createStyles = (colors: any) =>
+const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
@@ -60,11 +62,10 @@ const createStyles = (colors: any) =>
     },
     tabBar: {
       borderColor: colors.border.muted,
+      marginTop: 16,
     },
     textStyle: {
-      fontSize: 12,
-      letterSpacing: 0.5,
-      ...(fontStyles.bold as any),
+      ...(typography.sHeadingSM as TextStyle),
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -81,9 +82,9 @@ const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
   const [refreshing, setRefreshing] = useState(false);
   const accountOverviewRef = useRef(null);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
+  const theme = useTheme();
+  const styles = createStyles(theme);
+  const { colors } = theme;
   /**
    * Map of accounts to information objects including balances
    */
@@ -240,8 +241,8 @@ const Wallet = ({ navigation }: any) => {
     () => (
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.alternative}
+        activeTextColor={colors.text.default}
+        inactiveTextColor={colors.text.muted}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}

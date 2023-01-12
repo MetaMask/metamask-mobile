@@ -1,5 +1,6 @@
 // External dependencies.
 import { UseAccounts } from '../../../hooks/useAccounts';
+import { USER_INTENT } from '../../../../constants/permissions';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 /**
@@ -8,8 +9,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 export interface AccountConnectSingleSelectorProps extends UseAccounts {
   selectedAddresses: string[];
   isLoading?: boolean;
-  onCreateAccount: () => void;
   onSetScreen: (screen: AccountConnectScreens) => void;
   onSetSelectedAddresses: (addresses: string[]) => void;
-  onDismissSheetWithCallback: (callback?: () => void) => void;
+  onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
 }

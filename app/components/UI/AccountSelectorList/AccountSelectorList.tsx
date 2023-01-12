@@ -1,9 +1,9 @@
 // Third party dependencies.
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import Cell, {
@@ -27,6 +27,7 @@ import styleSheet from './AccountSelectorList.styles';
 
 const AccountSelectorList = ({
   onSelectAccount,
+  onRemoveAccount,
   accounts,
   ensByAccountAddress,
   isLoading = false,
@@ -35,36 +36,18 @@ const AccountSelectorList = ({
   renderRightAccessory,
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
+  isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
   const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
+  const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  useEffect(() => {
-    if (!accounts.length || isMultiSelect) return;
-    const selectedAddressOverride = selectedAddresses?.[0];
-    const account = accounts.find(({ isSelected, address }) =>
-      selectedAddressOverride
-        ? selectedAddressOverride === address
-        : isSelected,
-    );
-    if (account) {
-      // Wrap in timeout to provide more time for the list to render.
-      setTimeout(() => {
-        accountListRef?.current?.scrollToOffset({
-          offset: account.yOffset,
-          animated: false,
-        });
-      }, 0);
-    }
-    // eslint-disable-next-line
-  }, [accounts.length, selectedAddresses, isMultiSelect]);
 
   const getKeyExtractor = ({ address }: Account) => address;
 
@@ -117,7 +100,6 @@ const AccountSelectorList = ({
             text: strings('accounts.yes_remove_it'),
             onPress: async () => {
               // TODO: Refactor account deletion logic to make more robust.
-              const { PreferencesController } = Engine.context;
               const selectedAddressOverride = selectedAddresses?.[0];
               const account = accounts.find(
                 ({ isSelected: isAccountSelected, address: accountAddress }) =>
@@ -128,12 +110,18 @@ const AccountSelectorList = ({
               let nextActiveAddress = account.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
-                nextActiveAddress = accounts[nextActiveIndex].address;
-                PreferencesController.setSelectedAddress(nextActiveAddress);
+                nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
+              // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
+              // If needed, place PreferencesController.setSelectedAddress in onRemoveAccount callback.
+              onRemoveAccount?.({
+                removedAddress: address,
+                nextActiveAddress,
+              });
               await Engine.context.KeyringController.removeAccount(address);
+              // Revocation of accounts from PermissionController is needed whenever accounts are removed.
+              // If there is an instance where this is not the case, this logic will need to be updated.
               removeAccountFromPermissions(address);
-              onSelectAccount?.(nextActiveAddress, isSelected);
             },
           },
         ],
@@ -141,7 +129,7 @@ const AccountSelectorList = ({
       );
     },
     /* eslint-disable-next-line */
-    [accounts, onSelectAccount, isRemoveAccountEnabled, selectedAddresses],
+    [accounts, onRemoveAccount, isRemoveAccountEnabled, selectedAddresses],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
@@ -162,6 +150,10 @@ const AccountSelectorList = ({
       if (selectedAddresses) {
         isSelectedAccount = selectedAddresses.includes(address);
       }
+
+      const cellStyle = {
+        opacity: isLoading ? 0.5 : 1,
+      };
 
       return (
         <Cell
@@ -186,8 +178,7 @@ const AccountSelectorList = ({
           }}
           tagLabel={tagLabel}
           disabled={isDisabled}
-          /* eslint-disable-next-line */
-          style={{ opacity: isLoading ? 0.5 : 1 }}
+          style={cellStyle}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets))}
@@ -208,9 +199,28 @@ const AccountSelectorList = ({
     ],
   );
 
+  const onContentSizeChanged = useCallback(() => {
+    // Handle auto scroll to account
+    if (!accounts.length || !isAutoScrollEnabled) return;
+    if (accountsLengthRef.current !== accounts.length) {
+      const selectedAddressOverride = selectedAddresses?.[0];
+      const account = accounts.find(({ isSelected, address }) =>
+        selectedAddressOverride
+          ? selectedAddressOverride === address
+          : isSelected,
+      );
+      accountListRef?.current?.scrollToOffset({
+        offset: account?.yOffset,
+        animated: false,
+      });
+      accountsLengthRef.current = accounts.length;
+    }
+  }, [accounts, selectedAddresses, isAutoScrollEnabled]);
+
   return (
     <FlatList
       ref={accountListRef}
+      onContentSizeChange={onContentSizeChanged}
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}

@@ -240,6 +240,7 @@ const Main = (props) => {
           },
           { label: strings('toast.now_active') },
         ],
+        networkName,
         networkImageSource: networkImage,
       });
     }

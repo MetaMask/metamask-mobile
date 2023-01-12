@@ -13,6 +13,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -37,12 +38,9 @@ const ActivityView = () => {
       screen: Routes.SHEET.ACCOUNT_SELECTOR,
     });
     // Track Event: "Opened Acount Switcher"
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPEN_ACCOUNT_SWITCH,
-      {
-        number_of_accounts: Object.keys(accounts ?? {}).length,
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
+      number_of_accounts: Object.keys(accounts ?? {}).length,
+    });
   }, [navigation, accounts]);
 
   useEffect(

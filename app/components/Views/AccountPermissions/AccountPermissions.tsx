@@ -2,6 +2,7 @@
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -9,6 +10,7 @@ import React, {
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetBottom, {
@@ -27,7 +29,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icon';
@@ -43,8 +45,10 @@ import {
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
+import { USER_INTENT } from '../../../constants/permissions';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
+  const navigation = useNavigation();
   const Engine = UntypedEngine as any;
   const {
     hostInfo: {
@@ -70,7 +74,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
    * Get image url from favicon api.
    */
   const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${hostname}/64`;
+    const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
     return { uri: iconUrl };
   }, [hostname]);
 
@@ -92,12 +96,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   });
   const activeAddress: string = permittedAccountsByHostname[0];
 
-  const dismissSheet = useCallback(
-    () => sheetRef?.current?.hide?.(),
-    [sheetRef],
-  );
+  const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
-  const dismissSheetWithCallback = useCallback(
+  const hideSheet = useCallback(
     (callback?: () => void) => sheetRef?.current?.hide?.(callback),
     [sheetRef],
   );
@@ -122,13 +123,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return accountsByPermittedStatus;
   }, [accounts, permittedAccountsByHostname]);
 
-  const onCreateAccount = useCallback(
+  const handleCreateAccount = useCallback(
     async () => {
       const { KeyringController } = Engine.context;
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          {},
+        );
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
       } finally {
@@ -139,7 +143,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const onConnect = useCallback(async () => {
+  const handleConnect = useCallback(async () => {
     try {
       setIsLoading(true);
       const newActiveAddress = await addPermittedAccounts(
@@ -178,17 +182,71 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {
       setIsLoading(false);
-      dismissSheetWithCallback();
     }
   }, [
     selectedAddresses,
     accounts,
     setIsLoading,
-    dismissSheetWithCallback,
     hostname,
     ensByAccountAddress,
     toastRef,
     accountAvatarType,
+  ]);
+
+  useEffect(() => {
+    if (userIntent === USER_INTENT.None) return;
+
+    const handleUserActions = (action: USER_INTENT) => {
+      switch (action) {
+        case USER_INTENT.Confirm: {
+          handleConnect();
+          hideSheet();
+          break;
+        }
+        case USER_INTENT.Create:
+        case USER_INTENT.CreateMultiple: {
+          handleCreateAccount();
+          break;
+        }
+        case USER_INTENT.Cancel: {
+          hideSheet();
+          break;
+        }
+        case USER_INTENT.Import: {
+          hideSheet(() => {
+            navigation.navigate('ImportPrivateKeyView');
+            // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+            AnalyticsV2.trackEvent(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+              {},
+            );
+          });
+          break;
+        }
+        case USER_INTENT.ConnectHW: {
+          hideSheet(() => {
+            navigation.navigate('ConnectQRHardwareFlow');
+            // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+            AnalyticsV2.trackEvent(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+              {},
+            );
+          });
+          break;
+        }
+      }
+    };
+
+    handleUserActions(userIntent);
+
+    setUserIntent(USER_INTENT.None);
+  }, [
+    navigation,
+    userIntent,
+    sheetRef,
+    hideSheet,
+    handleCreateAccount,
+    handleConnect,
   ]);
 
   const renderConnectedScreen = useCallback(
@@ -197,7 +255,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isLoading={isLoading}
         onSetSelectedAddresses={setSelectedAddresses}
         onSetPermissionsScreen={setPermissionsScreen}
-        onDismissSheet={dismissSheet}
+        onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={[activeAddress]}
@@ -214,7 +272,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountsFilteredByPermissions,
       setSelectedAddresses,
       setPermissionsScreen,
-      dismissSheet,
+      hideSheet,
       favicon,
       hostname,
       secureIcon,
@@ -230,12 +288,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         selectedAddresses={selectedAddresses}
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
-        onDismissSheetWithCallback={dismissSheetWithCallback}
-        onConnect={onConnect}
-        onCreateAccount={onCreateAccount}
+        onUserAction={setUserIntent}
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
+        isAutoScrollEnabled={false}
       />
     ),
     [
@@ -243,9 +300,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       selectedAddresses,
       isLoading,
       accountsFilteredByPermissions,
-      dismissSheetWithCallback,
-      onConnect,
-      onCreateAccount,
+      setUserIntent,
       favicon,
       hostname,
       secureIcon,
@@ -260,7 +315,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress={ensByAccountAddress}
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
-        onDismissSheet={dismissSheet}
+        onDismissSheet={hideSheet}
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
@@ -273,7 +328,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       permittedAccountsByHostname,
       accountsFilteredByPermissions,
       setPermissionsScreen,
-      dismissSheet,
+      hideSheet,
       favicon,
       hostname,
       secureIcon,

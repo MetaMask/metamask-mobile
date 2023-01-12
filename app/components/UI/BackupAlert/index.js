@@ -64,10 +64,10 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     modalViewInBrowserView: {
-      bottom: Device.isIphoneX() ? 90 : 80,
+      bottom: Device.isIphoneX() ? 180 : 170,
     },
     modalViewNotInBrowserView: {
-      bottom: Device.isIphoneX() ? 20 : 10,
+      bottom: Device.isIphoneX() ? 120 : 110,
     },
     buttonsWrapper: {
       flexDirection: 'row-reverse',

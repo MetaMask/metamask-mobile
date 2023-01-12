@@ -801,7 +801,7 @@ export const BrowserTab = (props) => {
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
     // Generate favicon.
-    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/32`;
+    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -980,6 +980,13 @@ export const BrowserTab = (props) => {
           icon: icon.current,
           error,
           setAccountsPermissionsVisible: () => {
+            // Track Event: "Opened Acount Switcher"
+            AnalyticsV2.trackEvent(
+              MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH,
+              {
+                number_of_accounts: accounts?.length,
+              },
+            );
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
@@ -1375,10 +1382,6 @@ BrowserTab.propTypes = {
    */
   navigation: PropTypes.object,
   /**
-   * A string representing the network id
-   */
-  network: PropTypes.string,
-  /**
    * A string that represents the selected address
    */
   selectedAddress: PropTypes.string,
@@ -1444,7 +1447,6 @@ BrowserTab.defaultProps = {
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-  network: state.engine.backgroundState.NetworkController.network,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
   searchEngine: state.settings.searchEngine,

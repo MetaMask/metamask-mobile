@@ -1,12 +1,13 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
 import ButtonTertiary from '../../components/Buttons/Button/variants/ButtonTertiary';
 import { ButtonSize } from '../../components/Buttons/Button';
 import Loader from '../Loader';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.
 import { SheetActionsProps } from './SheetActions.types';
@@ -23,6 +24,10 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
           // Avoid drawing separator above the first element
           const isFirstElement = index === 0;
 
+          const buttonStyle = {
+            opacity: disabled ? 0.5 : 1,
+          };
+
           return (
             <React.Fragment key={key}>
               {actions.length > 1 && !isFirstElement && (
@@ -30,14 +35,13 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
               )}
               <View>
                 <ButtonTertiary
-                  testID={testID}
                   onPress={onPress}
                   label={label}
                   size={ButtonSize.Lg}
                   disabled={disabled || isLoading}
-                  /* eslint-disable-next-line */
-                  style={{ opacity: disabled ? 0.5 : 1 }}
+                  style={buttonStyle}
                   variant={variant}
+                  {...generateTestId(Platform, testID)}
                 />
                 {isLoading && <Loader size={'small'} />}
               </View>

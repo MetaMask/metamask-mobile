@@ -149,6 +149,7 @@
     "@metamask/keyring-controller": "^1.0.1",
     "@metamask/message-manager": "^1.0.1",
     "@metamask/network-controller": "^1.0.0",
+    "@metamask/permission-controller": "^1.0.2",
     "@metamask/phishing-controller": "^1.1.0",
     "@metamask/post-message-stream": "6.0.0",
     "@metamask/preferences-controller": "^1.0.1",

@@ -4278,6 +4278,22 @@
     "@metamask/safe-event-emitter" "^2.0.0"
     through2 "^2.0.3"
 
+"@metamask/permission-controller@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-1.0.2.tgz#ca0f79d817ba2dab2ce831065506ab3658ce6b94"
+  integrity sha512-YW8OGCS5ZjG+BlgSG+HEi+mqOIDvZonOpFNLzAVasE1DCReJdumBELEsy+l05XVCf1Dp4kLZ3MfRsPSPfHl0YA==
+  dependencies:
+    "@metamask/approval-controller" "^1.0.1"
+    "@metamask/base-controller" "^1.1.1"
+    "@metamask/controller-utils" "^1.0.0"
+    "@metamask/types" "^1.1.0"
+    "@types/deep-freeze-strict" "^1.1.0"
+    deep-freeze-strict "^1.1.1"
+    eth-rpc-errors "^4.0.0"
+    immer "^9.0.6"
+    json-rpc-engine "^6.1.0"
+    nanoid "^3.1.31"
+
 "@metamask/phishing-controller@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-1.1.0.tgz#39c1ef109b9a7927d7758c127c6f1a26799fa273"
@@ -5607,20 +5623,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/chrome@^0.0.136":
-  version "0.0.136"
-  resolved "https://registry.yarnpkg.com/@types/chrome/-/chrome-0.0.136.tgz#7c011b9f997b0156f25a140188a0c5689d3f368f"
-  integrity sha512-XDEiRhLkMd+SB7Iw3ZUIj/fov3wLd4HyTdLltVszkgl1dBfc3Rb7oPMVZ2Mz2TLqnF7Ow+StbR8E7r9lqpb4DA==
-  dependencies:
-    "@types/filesystem" "*"
-    "@types/har-format" "*"
-
-"@types/debug@^4.1.7":
-  version "4.1.7"
-  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz#7cc0ea761509124709b8b2d1090d8f6c17aadb82"
-  integrity sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==
-  dependencies:
-    "@types/ms" "*"
+"@types/deep-freeze-strict@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/deep-freeze-strict/-/deep-freeze-strict-1.1.0.tgz#447a6a2576191344aa42310131dd3df5c41492c4"
+  integrity sha512-fILflsS66kGQ4iIBzYoxuQCWK1wQdy/ooguTofUk0KSxA+G5ZzH8WdU8mf6IU+5cMBW+j9u+eh+7kv63R3O9Tw==
 
 "@types/diff@^5.0.0":
   version "5.0.2"

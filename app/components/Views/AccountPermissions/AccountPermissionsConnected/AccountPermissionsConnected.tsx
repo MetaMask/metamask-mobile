@@ -23,6 +23,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
@@ -99,14 +100,21 @@ const AccountPermissionsConnected = ({
     ],
   );
 
+  /**
+   * Permission removal is already handled in AccountSelectorList.
+   */
+  const onRemoveAccount = useCallback(
+    () =>
+      // Check if the deleted account is the only account.
+      accounts.length === 1 && onDismissSheet(),
+    [accounts, onDismissSheet],
+  );
+
   const switchNetwork = useCallback(() => {
     dispatch(toggleNetworkModal(false));
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK,
-      {
-        from_chain_id: networkController.network,
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
+      from_chain_id: networkController.network,
+    });
   }, [networkController.network, dispatch]);
 
   const renderSheetAction = useCallback(
@@ -148,10 +156,12 @@ const AccountPermissionsConnected = ({
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
+        onRemoveAccount={onRemoveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
         selectedAddresses={selectedAddresses}
+        isRemoveAccountEnabled
       />
       {renderSheetAction()}
     </>

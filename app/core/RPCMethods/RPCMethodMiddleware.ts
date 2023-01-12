@@ -303,23 +303,20 @@ export const getRpcMethodMiddleware = ({
           } else {
             try {
               checkTabActive();
-              await Engine.context.ApprovalController.clear(
-                ethErrors.provider.userRejectedRequest(),
-              );
+              await Engine.context.ApprovalController.clear();
               await Engine.context.PermissionController.requestPermissions(
-                {
-                  // origin: url.current,
-                  origin: hostname,
-                },
+                { origin: hostname },
                 { eth_accounts: {} },
                 { id: random() },
               );
               const acc = await getPermittedAccounts(hostname);
               res.result = acc;
-            } catch (e) {
-              throw ethErrors.provider.userRejectedRequest(
-                'User denied account authorization.',
-              );
+            } catch (error) {
+              if (error) {
+                throw ethErrors.provider.userRejectedRequest(
+                  'User denied account authorization.',
+                );
+              }
             }
           }
         }
