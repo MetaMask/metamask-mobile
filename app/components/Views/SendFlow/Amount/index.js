@@ -74,8 +74,10 @@ import {
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import {
+  AMOUNT_INPUT_FIELD,
   AMOUNT_SCREEN,
   AMOUNT_SCREEN_CARET_DROP_DOWN,
+  NEXT_BUTTON,
 } from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
@@ -1084,7 +1086,8 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    await this.setState({
+
+    this.setState({
       internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
     });
     this.onInputChange(inputValueConversion);
@@ -1121,8 +1124,8 @@ class Amount extends PureComponent {
               keyboardType={'numeric'}
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
-              testID={'txn-amount-input'}
               keyboardAppearance={themeAppearance}
+              {...generateTestId(Platform, AMOUNT_INPUT_FIELD)}
             />
           </View>
         </View>
@@ -1272,7 +1275,7 @@ class Amount extends PureComponent {
               containerStyle={styles.buttonNext}
               disabled={!estimatedTotalGas}
               onPress={this.onNext}
-              testID={'txn-amount-next-button'}
+              testID={NEXT_BUTTON}
             >
               {strings('transaction.next')}
             </StyledButton>

@@ -9,6 +9,7 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
+import Web3 from '../helpers/Web3.js';
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -56,6 +57,8 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
 Then(/^"([^"]*)?" carousel item is displayed/, async (text) => {
   switch (text) {
     case 'Welcome to MetaMask':
+      const txn = await Web3.getTransaction(1, '0xbd87280e0a1ed325a0d2f05778af0360474a8ed7b7639230eafda126f48ce9b2');
+      expect(txn.hash).toBe('0xbd87280e0a1ed325a0d2f05778af0360474a8ed7b7639230eafda126f48ce9b2');
       await WelcomeScreen.verifyCarouselTitle(1);
       break;
     case 'Manage your digital assets':

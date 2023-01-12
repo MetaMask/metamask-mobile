@@ -57,8 +57,8 @@ class WalletMainScreen {
     await Gestures.tap(this.drawerSettings);
   }
 
-  async tapSendIcon(text){
-    await Gestures.tapTextByXpath(text);
+  async tapSendIcon(){
+    await Gestures.tapTextByXpath('Send');
   }
 
   async tapNoThanks() {
