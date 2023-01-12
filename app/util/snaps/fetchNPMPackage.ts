@@ -12,6 +12,7 @@ import pako from 'pako'; // https://github.com/nodeca/pako
 const MOCK_URL =
   'https://registry.npmjs.org/@metamask/test-snap-bip44/-/test-snap-bip44-4.1.2.tgz';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 enum NpmSnapFileNames {
   PackageJson = 'package.json',
   Manifest = 'snap.manifest.json',
@@ -63,6 +64,7 @@ const unzip = (base64: string, snapId: string): string => {
   return filePath;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const readStream = async (
   filePath: string,
   encoding: Encoding,
