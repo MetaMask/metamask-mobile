@@ -276,7 +276,7 @@ export const config = {
    * @param {Object}                 context  Cucumber World object
    */
   beforeScenario: async function (world, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
+    if(!JSON.stringify(world.pickle.tags).includes("@ChainScenarios")){
       await driver.launchApp();
     }
   },
@@ -313,7 +313,7 @@ export const config = {
    * @param {Object}                 context          Cucumber World object
    */
   afterScenario: async function (world, result, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
+    if(!JSON.stringify(world.pickle.tags).includes("@ChainScenarios")){
       await driver.closeApp();
     }
   },
