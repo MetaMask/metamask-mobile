@@ -88,24 +88,21 @@ const mockNavigate = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => {
-    const actualUseNavigation = jest.requireActual(
-      '@react-navigation/native',
-    ).useNavigation;
-
-    return {
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions.mockImplementation(
-        actualUseNavigation().setOptions,
+        actualReactNavigation.useNavigation().setOptions,
       ),
       dangerouslyGetParent: () => ({
         pop: mockPop,
       }),
-    };
-  },
-}));
+    }),
+  };
+});
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
