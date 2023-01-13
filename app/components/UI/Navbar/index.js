@@ -1497,7 +1497,11 @@ export function getFiatOnRampAggNavbar(
       if (!showBack) return <View />;
 
       return Device.isAndroid() ? (
-        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={leftAction}
+          style={styles.backButton}
+          accessibilityRole="button"
+        >
           <IonicIcon
             name={'md-arrow-back'}
             size={24}
@@ -1505,7 +1509,11 @@ export function getFiatOnRampAggNavbar(
           />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+        <TouchableOpacity
+          onPress={leftAction}
+          style={styles.closeButton}
+          accessibilityRole="button"
+        >
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
         </TouchableOpacity>
       );
@@ -1517,6 +1525,7 @@ export function getFiatOnRampAggNavbar(
           onCancel?.();
         }}
         style={styles.closeButton}
+        accessibilityRole="button"
       >
         <Text style={innerStyles.headerButtonText}>
           {strings('navigation.cancel')}
