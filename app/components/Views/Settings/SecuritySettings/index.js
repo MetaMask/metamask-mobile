@@ -339,24 +339,22 @@ class Settings extends PureComponent {
   };
 
   setPassword = async (enabled, passwordType) => {
-    this.setState({ loading: true }, async () => {
-      let credentials;
-      try {
-        credentials = await Authentication.getPassword();
-      } catch (error) {
-        Logger.error(error);
-      }
+    let credentials;
+    try {
+      credentials = await Authentication.getPassword();
+    } catch (error) {
+      Logger.error(error);
+    }
 
-      if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, passwordType);
-      } else {
-        this.props.navigation.navigate('EnterPasswordSimple', {
-          onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, passwordType);
-          },
-        });
-      }
-    });
+    if (credentials && credentials.password !== '') {
+      this.storeCredentials(credentials.password, enabled, passwordType);
+    } else {
+      this.props.navigation.navigate('EnterPasswordSimple', {
+        onPasswordSet: (password) => {
+          this.storeCredentials(password, enabled, passwordType);
+        },
+      });
+    }
   };
 
   isMainnet = () => this.props.type === MAINNET;
@@ -379,7 +377,7 @@ class Settings extends PureComponent {
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
-        this.setState({ [type]: false, loading: false });
+        this.setState({ [type]: false });
         if (type === PASSCODE_CHOICE_STRING) {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         } else if (type === BIOMETRY_CHOICE_STRING) {
@@ -410,7 +408,7 @@ class Settings extends PureComponent {
         this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       }
 
-      this.setState({ [type]: true, loading: false });
+      this.setState({ [type]: true });
     } catch (e) {
       if (e.message === 'Invalid password') {
         Alert.alert(
@@ -421,7 +419,7 @@ class Settings extends PureComponent {
       } else {
         Logger.error(e, 'SecuritySettings:biometrics');
       }
-      this.setState({ [type]: !enabled, loading: false });
+      this.setState({ [type]: !enabled });
     }
   };
 
