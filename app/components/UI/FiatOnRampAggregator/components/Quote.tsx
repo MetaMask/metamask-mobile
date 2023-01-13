@@ -17,8 +17,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import CustomText from '../../../Base/Text';
-import CustomTitle from '../../../Base/Title';
+import Text from '../../../Base/Text';
+import Title from '../../../Base/Title';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import {
@@ -34,8 +34,6 @@ import RemoteImage from '../../../Base/RemoteImage';
 import { Colors } from '../../../../util/theme/models';
 
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
-const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: Colors) =>

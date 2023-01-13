@@ -421,7 +421,9 @@
     "select_all": "모두 선택",
     "permissions": "권한",
     "disconnect": "연결 해제",
-    "disconnect_all_accounts": "모든 계정 연결 해제"
+    "disconnect_all_accounts": "모든 계정 연결 해제",
+    "revoke": "취소",
+    "revoke_all": "모두 취소"
   },
   "toast": {
     "connected_and_active": "연결되어 활성화됨.",

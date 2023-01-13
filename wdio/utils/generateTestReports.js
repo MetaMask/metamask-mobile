@@ -1,6 +1,6 @@
 const fs = require('fs');
 const xml2js = require('xml2js');
-const { generate } = require('multiple-cucumber-html-reporter');
+const {generate} = require('multiple-cucumber-html-reporter');
 
 function generateTestReports() {
   // Generate the report when it all tests are done

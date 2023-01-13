@@ -9,6 +9,8 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
+import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
+import AddressBarScreen from "../screen-objects/BrowserObject/AddressBarScreen";
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -73,7 +75,7 @@ When(/^I swipe left on the carousel/, async () => {
   await WelcomeScreen.swipeNextSlide();
 });
 
-When(/^I tap "([^"]*)?"/, async (text) => {
+When(/^I tap "([^"]*)"/, async (text) => {
   switch (text) {
     case 'Get started':
       await WelcomeScreen.clickGetStartedButton();
@@ -89,6 +91,9 @@ When(/^I tap "([^"]*)?"/, async (text) => {
       break;
     case 'No, Thanks':
       await WalletMainScreen.tapNoThanks();
+      break;
+    case 'https://uniswap.exchange':
+      await AddressBarScreen.tapUniswapSuggestionButton();
       break;
     default:
       throw new Error('Condition not found');
@@ -120,7 +125,7 @@ When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
     case 'Create a new wallet':
       await OnboardingScreen.tapCreateNewWalletButton();
       break;
-      case 'Agree':
+    case 'Agree':
       await MetaMetricsScreen.tapIAgreeButton();
       break;
     default:
@@ -128,9 +133,12 @@ When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
   }
 });
 
-When(/^I am presented with a new Account screen with password fields/, async () => {
-  await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
-});
+When(
+  /^I am presented with a new Account screen with password fields/,
+  async () => {
+    await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
+  },
+);
 
 When(/^I input a new password "([^"]*)?"/, async (password) => {
   await CreateNewWalletScreen.inputPasswordInFirstField(password);
@@ -146,7 +154,7 @@ When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
     case 'Skip':
       await SkipAccountSecurityModal.proceedWithoutWalletSecure();
       break;
-      case 'Cancel':
+    case 'Cancel':
       break;
     default:
       throw new Error('Condition not found');

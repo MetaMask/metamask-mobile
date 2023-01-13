@@ -421,7 +421,9 @@
     "select_all": "Pilih semua",
     "permissions": "Izin",
     "disconnect": "Putuskan koneksi",
-    "disconnect_all_accounts": "Putuskan koneksi semua akun"
+    "disconnect_all_accounts": "Putuskan koneksi semua akun",
+    "revoke": "Cabut",
+    "revoke_all": "Cabut semua"
   },
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
