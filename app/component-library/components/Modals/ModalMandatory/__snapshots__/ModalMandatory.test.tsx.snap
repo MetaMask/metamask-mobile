@@ -1,87 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Mandatory Modal should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "alignItems": "center",
-      "backgroundColor": "#00000099",
-      "bottom": 0,
-      "justifyContent": "center",
-      "left": 0,
-      "position": "absolute",
-      "right": 0,
-      "top": 0,
-    }
-  }
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
 >
-  <View
-    style={
+  <ModalMandatory
+    route={
       Object {
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 10,
+        "params": Object {
+          "body": Object {
+            "source": "WebView",
+            "uri": "http://google.com",
+          },
+          "buttonText": "test",
+          "checkboxText": "test",
+          "footerHelpText": "test",
+          "headerTitle": "test",
+          "onAccept": [Function],
+        },
       }
     }
-  >
-    <View
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "center",
-          "marginHorizontal": 16,
-          "marginTop": 16,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 38.57142857142857,
-            "fontWeight": "600",
-          }
-        }
-      >
-        test
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "marginHorizontal": 16,
-          "marginTop": 16,
-          "maxHeight": 1134,
-        }
-      }
-    >
-      <Text>
-        test
-      </Text>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "justifyContent": "center",
-            "marginHorizontal": 16,
-          }
-        }
-      >
-        <ButtonPrimary
-          disabled={false}
-          label="test"
-          style={
-            Object {
-              "backgroundColor": "#037DD6",
-              "marginTop": 16,
-              "width": "100%",
-            }
-          }
-        />
-      </View>
-    </View>
-  </View>
-</View>
+  />
+</RCTSafeAreaView>
 `;

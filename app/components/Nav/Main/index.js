@@ -23,7 +23,6 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import ModalUseTerms from '../../UI/ModalUseTerms';
 import FiatOrders from '../../UI/FiatOnRampAggregator';
 import {
   showTransactionNotification,
@@ -53,9 +52,13 @@ import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { USE_TERMS } from '../../../constants/storage';
+import { USE_TERMS, TRUE } from '../../../constants/storage';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 
@@ -78,7 +81,6 @@ const Main = (props) => {
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
-  const [showUseTermsModal, setShowUseTermsModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -86,6 +88,8 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const lockManager = useRef();
   const removeConnectionStatusListener = useRef();
+
+  const navigation = useNavigation();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
@@ -204,10 +208,46 @@ const Main = (props) => {
     if (skipCheckbox) toggleRemindLater();
   };
 
-  const fetchTermsOfUse = async () => {
-    const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
-    if (!isUseTermsAccepted) setShowUseTermsModal(true);
+  const onConfirmUseTerms = async () => {
+    await AsyncStorage.setItem(USE_TERMS, TRUE);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
+      value: AppConstants.TERMS_ACCEPTED,
+    });
   };
+
+  const useTermsDisplayed = () => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
+      value: AppConstants.TERMS_DISPLAYED,
+    });
+  };
+
+  const fetchTermsOfUse = useCallback(async () => {
+    const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
+    if (!isUseTermsAccepted)
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.MODAL_MANDATORY,
+        params: {
+          buttonText: strings('terms_of_use_modal.accept_cta'),
+          checkboxText: strings(
+            'terms_of_use_modal.terms_of_use_check_description',
+          ),
+          headerTitle: strings('terms_of_use_modal.title'),
+          onAccept: onConfirmUseTerms,
+          footerHelpText: strings(
+            'terms_of_use_modal.accept_helper_description',
+          ),
+          body: {
+            source: 'WebView',
+            uri: 'https://consensys.net/terms-of-use/',
+          },
+          onRender: useTermsDisplayed,
+        },
+      });
+  }, [navigation]);
+
+  useEffect(() => {
+    fetchTermsOfUse();
+  }, [fetchTermsOfUse]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -328,9 +368,6 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
-        {showUseTermsModal && (
-          <ModalUseTerms onDismiss={() => setShowUseTermsModal(false)} />
-        )}
         <RootRPCMethodsUI navigation={props.navigation} />
       </View>
     </React.Fragment>

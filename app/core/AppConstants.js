@@ -147,4 +147,6 @@ export default {
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
+  TERMS_DISPLAYED: 'ToU Displayed',
+  TERMS_ACCEPTED: 'ToU Accepted',
 };

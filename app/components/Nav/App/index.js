@@ -59,6 +59,7 @@ import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMe
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 
 const Stack = createStackNavigator();
 /**
@@ -363,6 +364,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.MODAL_CONFIRMATION}
         component={ModalConfirmation}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_MANDATORY}
+        component={ModalMandatory}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen

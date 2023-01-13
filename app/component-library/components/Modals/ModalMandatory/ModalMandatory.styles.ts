@@ -2,11 +2,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { fontStyles } from '../../../../styles/common';
-import Device from '../../../../util/device';
 import { scale } from 'react-native-size-matters';
-
-const screenHeight = Device.getDeviceHeight();
-const maxItemHeight = screenHeight - 200;
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -22,35 +18,38 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     screen: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
       justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.overlay.default,
+      marginHorizontal: 16,
     },
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-    },
-    bodyContainer: {
-      maxHeight: maxItemHeight,
-      marginHorizontal: 16,
-      marginTop: 16,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: 16,
-      marginHorizontal: 16,
     },
     headerText: {
       ...fontStyles.bold,
       fontSize: scale(18),
       color: colors.text.default,
+    },
+    bodyContainer: {
+      marginHorizontal: 16,
+      marginTop: 16,
+    },
+    checkboxContainer: {
+      flexDirection: 'row',
+      marginTop: 16,
+    },
+    checkboxText: {
+      ...fontStyles.bold,
+      marginLeft: 8,
+      fontSize: scale(14),
+      flex: 1,
+      textAlign: 'justify',
     },
     confirmButtonContainer: {
       justifyContent: 'center',

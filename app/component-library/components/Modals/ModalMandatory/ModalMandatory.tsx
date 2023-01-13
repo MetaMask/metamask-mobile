@@ -1,23 +1,45 @@
-import React from 'react';
-import { View } from 'react-native';
-import ElevatedView from 'react-native-elevated-view';
+// Third party dependencies
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { WebView } from 'react-native-webview';
+import { useNavigation } from '@react-navigation/native';
+
+// External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
 import Text from '../../Texts/Text';
-import stylesheet from './ModalMandatory.styles';
 import { useStyles } from '../../../hooks';
 import { useTheme } from '../../../../util/theme';
-import { ModalMandatoryI } from './ModalMandatory.types';
+import ReusableModal from '../../../../components/UI/ReusableModal';
+import Checkbox from '../../../../component-library/components/Checkbox';
 
-const ModalMandatory = ({
-  headerTitle,
-  footerHelpText,
-  buttonDisabled = false,
-  buttonText,
-  children,
-  onPress,
-}: ModalMandatoryI) => {
+// Internal dependencies
+import { MandatoryModalProps } from './ModalMandatory.types';
+import stylesheet from './ModalMandatory.styles';
+
+const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
+  const { height: screenHeight } = useWindowDimensions();
+  const navigation = useNavigation();
+
+  const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(false);
+  const handleSelect = () => {
+    setIsCheckboxSelected(!isCheckboxSelected);
+  };
+
+  const {
+    headerTitle,
+    footerHelpText,
+    buttonText,
+    body,
+    onAccept,
+    checkboxText,
+    onRender,
+  } = route.params;
+
+  useEffect(() => {
+    if (onRender) onRender();
+  }, [onRender]);
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -25,20 +47,43 @@ const ModalMandatory = ({
     </View>
   );
 
+  const onPress = () => {
+    if (onAccept) onAccept();
+
+    navigation.goBack();
+  };
+
   return (
-    <ElevatedView style={styles.screen}>
+    <ReusableModal style={styles.screen}>
       <View style={styles.modal}>
         {renderHeader()}
+
         <View style={styles.bodyContainer}>
-          {children}
+          {body.source === 'WebView' ? (
+            <View style={{ height: screenHeight / 2 }}>
+              <WebView source={{ uri: body.uri }} />
+            </View>
+          ) : (
+            body.component()
+          )}
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={handleSelect}
+            activeOpacity={1}
+          >
+            <Checkbox isSelected={isCheckboxSelected} />
+
+            <Text style={styles.checkboxText}>{checkboxText}</Text>
+          </TouchableOpacity>
+
           <View style={styles.confirmButtonContainer}>
             <ButtonPrimary
               label={buttonText}
-              disabled={buttonDisabled}
+              disabled={!isCheckboxSelected}
               style={{
                 ...styles.confirmButton,
                 ...{
-                  backgroundColor: buttonDisabled
+                  backgroundColor: !isCheckboxSelected
                     ? colors.primary.muted
                     : colors.primary.default,
                 },
@@ -51,7 +96,7 @@ const ModalMandatory = ({
           </View>
         </View>
       </View>
-    </ElevatedView>
+    </ReusableModal>
   );
 };
 
