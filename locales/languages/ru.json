@@ -421,7 +421,9 @@
     "select_all": "Выбрать все",
     "permissions": "Разрешения",
     "disconnect": "Отключить",
-    "disconnect_all_accounts": "Отключить все счета"
+    "disconnect_all_accounts": "Отключить все счета",
+    "revoke": "Отозвано",
+    "revoke_all": "Отозвать все"
   },
   "toast": {
     "connected_and_active": "подключен и активен.",

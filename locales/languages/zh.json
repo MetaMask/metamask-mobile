@@ -421,7 +421,9 @@
     "select_all": "全部选择",
     "permissions": "权限",
     "disconnect": "断开连接",
-    "disconnect_all_accounts": "断开所有账户的连接"
+    "disconnect_all_accounts": "断开所有账户的连接",
+    "revoke": "撤销",
+    "revoke_all": "全部撤销"
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",

@@ -421,7 +421,9 @@
     "select_all": "Tümünü seç",
     "permissions": "İzinler",
     "disconnect": "Bağlantıyı kes",
-    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes"
+    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes",
+    "revoke": "İptal et",
+    "revoke_all": "Tümünü iptal et"
   },
   "toast": {
     "connected_and_active": "bağlandı ve aktif.",
