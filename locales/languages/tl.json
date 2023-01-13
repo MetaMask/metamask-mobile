@@ -657,7 +657,15 @@
     "keep_credential_safe": "Panatilihing ligtas ang iyong {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Pribadong Key"
+    "private_key_text": "Pribadong Key",
+    "got_it": "Nakuha ko",
+    "learn_more": "Matuto pa"
+  },
+  "screenshot_deterrent": {
+    "title": "Alerto sa kaligtasan",
+    "description": "Ang mga screenshot ay hindi ligtas na paraan para masubaybayan ang iyong {{credentialName}}. Iimbak ito sa ibang lugar na walang online na back-up upang mapanatiling ligtas ang iyong account.",
+    "srp_text": "Secret Recovery Phrase",
+    "priv_key_text": "Private Key"
   },
   "password_reset": {
     "password_title": "Password",
@@ -695,10 +703,17 @@
     "allow_camera_dialog_message": "Kailangan namin ang iyong pahintulot na mag-scan ng mga QR code",
     "scanning": "nagsa-scan...",
     "ok": "Ok",
+    "continue": "Magpatuloy",
     "cancel": "Kanselahin",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Mukhang sinusubukan mong mag-scan ng QR code, kailangan mong i-unlock ang iyong wallet para magamit ito.",
-    "attempting_sync_from_wallet_error": "Mukhang sinusubukan mong mag-sync sa extension. Para magawa ito, kakailanganin mong burahin ang iyong kasalukuyang wallet. \n\nSa oras na mgabura o mag-install ka ng bagong bersyon ng app, piliin ang opsyong \"I-sync gamit ang MetaMask Extension\". Mahalaga! Bago burahin ang iyong wallet, tiyaking na-back up mo ang iyong Secret Recovery Phrase."
+    "attempting_sync_from_wallet_error": "Mukhang sinusubukan mong mag-sync sa extension. Para magawa ito, kakailanganin mong burahin ang iyong kasalukuyang wallet. \n\nSa oras na mgabura o mag-install ka ng bagong bersyon ng app, piliin ang opsyong \"I-sync gamit ang MetaMask Extension\". Mahalaga! Bago burahin ang iyong wallet, tiyaking na-back up mo ang iyong Secret Recovery Phrase.",
+    "not_allowed_error_title": "I-enable ang access sa camera",
+    "not_allowed_error_desc": "Kailangan ng access sa camera para mag-scan ng QR code na nauugnay sa isang address ng account o address ng kontrata",
+    "unrecognized_address_qr_code_title": "Hindi nakikilalang QR Code",
+    "unrecognized_address_qr_code_desc": "Paumanhin, ang QR code na ito ay hindi nauugnay sa isang address ng account o isang address ng kontrata.",
+    "url_redirection_alert_title": "Bibisitahin mo ang isang panlabas na link",
+    "url_redirection_alert_desc": "Maaaring gamitin ang mga link upang subukang manlinlang o mag-phish ng mga tao, kaya siguraduhing bisitahin lamang ang mga website na pinagkakatiwalaan mo."
   },
   "action_view": {
     "cancel": "Kanselahin",

@@ -17,14 +17,15 @@ import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
@@ -39,8 +40,6 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
-
-const { BNToHex, hexToBN } = util;
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -432,7 +431,7 @@ class Approve extends PureComponent {
       await KeyringController.resetQRKeyringState();
       await TransactionController.approveTransaction(transaction.id);
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED,
+        MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
     } catch (error) {
@@ -445,7 +444,7 @@ class Approve extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
       this.setState({ transactionHandled: false });
@@ -457,7 +456,7 @@ class Approve extends PureComponent {
     const { TransactionController } = Engine.context;
     TransactionController.cancelTransaction(this.props.transaction.id);
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED,
+      MetaMetricsEvents.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
     this.props.toggleApproveModal(false);
@@ -479,7 +478,7 @@ class Approve extends PureComponent {
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEvent(
-          ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
         );
       });
     }
@@ -530,7 +529,13 @@ class Approve extends PureComponent {
   };
 
   updateTransactionState = (gas) => {
-    this.setState({ eip1559GasTransaction: gas, legacyGasTransaction: gas });
+    const gasError = this.validateGas(gas.totalMaxHex || gas.totalHex);
+
+    this.setState({
+      eip1559GasTransaction: gas,
+      legacyGasTransaction: gas,
+      gasError,
+    });
   };
 
   render = () => {
@@ -545,7 +550,7 @@ class Approve extends PureComponent {
       eip1559GasObject,
       eip1559GasTransaction,
       legacyGasObject,
-      legacyGasTransaction,
+      gasError,
     } = this.state;
 
     const {
@@ -624,9 +629,7 @@ class Approve extends PureComponent {
                 review={this.review}
               >
                 <ApproveTransactionReview
-                  gasError={
-                    eip1559GasTransaction.error || legacyGasTransaction.error
-                  }
+                  gasError={gasError}
                   onCancel={this.onCancel}
                   onConfirm={this.onConfirm}
                   over={over}

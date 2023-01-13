@@ -32,8 +32,8 @@ class AddCustomImportToken {
         await Gestures.tap(this.symbolField);
     }
 
-    async typeCustomTokenSymbol(symbol){
-        await Gestures.tap(this.symbolField);
+    async tapTokenSymbolFieldAndDismissKeyboard(){
+        await this.tapTokenSymbolField();
         await driver.pause(2000);
         await driver.hideKeyboard();
     }

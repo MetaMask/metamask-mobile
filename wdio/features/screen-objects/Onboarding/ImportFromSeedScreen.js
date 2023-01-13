@@ -69,10 +69,10 @@ class ImportFromSeed {
   async isAlertTextVisible(text){
     const message = await driver.getAlertText();
     try {
-      expect(message.includes(text.trim())).toBe(true);      
+      expect(message.includes(text.trim())).toBe(true);
     } catch (error) {
       console.log(`Not able to get device alert text: `);
-    }    
+    }
   }
 
   async tapOkInAlertMessage(){

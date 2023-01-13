@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @ChainScenarios
 Feature: Blockchain Networks
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
@@ -46,7 +46,7 @@ Feature: Blockchain Networks
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
     When I tap on the Add button
-    And I dismiss the network education modal
+    And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
     Examples:
       | Network | rpcUrl                                | ChainID | Symbol |
@@ -93,7 +93,7 @@ Feature: Blockchain Networks
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
     When I tap on the Add button
-    And I dismiss the network education modal
+    And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the burger menu
     And I tap on "Settings" in the menu

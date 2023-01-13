@@ -46,33 +46,34 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
   }
 };
 
-const CustomActionButton: React.FC<Props & React.ComponentProps<StyledButton>> =
-  ({ customActionButton, isLoading, ...props }: Props) => {
-    const themeKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
-    const { backgroundColor, textColor, value } = customActionButton[themeKey];
-    return (
-      <StyledButton
-        type="confirm"
-        style={{ color: textColor }}
-        containerStyle={[
-          styles.container,
-          {
-            backgroundColor,
-          },
-        ]}
-        {...props}
-      >
-        {isLoading ? (
-          <ActivityIndicator size={'small'} />
-        ) : (
-          <>
-            {value.map((textOrImage) =>
-              renderButtonValue(textOrImage, textColor),
-            )}
-          </>
-        )}
-      </StyledButton>
-    );
-  };
+const CustomActionButton: React.FC<
+  Props & React.ComponentProps<StyledButton>
+> = ({ customActionButton, isLoading, ...props }: Props) => {
+  const themeKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
+  const { backgroundColor, textColor, value } = customActionButton[themeKey];
+  return (
+    <StyledButton
+      type="confirm"
+      style={{ color: textColor }}
+      containerStyle={[
+        styles.container,
+        {
+          backgroundColor,
+        },
+      ]}
+      {...props}
+    >
+      {isLoading ? (
+        <ActivityIndicator size={'small'} />
+      ) : (
+        <>
+          {value.map((textOrImage) =>
+            renderButtonValue(textOrImage, textColor),
+          )}
+        </>
+      )}
+    </StyledButton>
+  );
+};
 
 export default CustomActionButton;
