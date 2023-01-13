@@ -11,9 +11,21 @@ import { createPaymentMethodsNavDetails } from '../PaymentMethods';
 import Routes from '../../../../../constants/navigation/Routes';
 
 function render(Component: React.ComponentType) {
-  return renderScreen(Component, {
-    name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
-  });
+  return renderScreen(
+    Component,
+    {
+      name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: { provider: { type: 'mainnet', chainId: 1 } },
+          },
+        },
+      },
+    },
+  );
 }
 
 const mockSetSelectedRegion = jest.fn();
@@ -74,22 +86,35 @@ jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockPop = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    setOptions: mockSetOptions,
-    dangerouslyGetParent: () => ({
-      pop: mockPop,
-    }),
-  }),
+  useNavigation: () => {
+    const actualUseNavigation = jest.requireActual(
+      '@react-navigation/native',
+    ).useNavigation;
+
+    return {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions.mockImplementation(
+        actualUseNavigation().setOptions,
+      ),
+      dangerouslyGetParent: () => ({
+        pop: mockPop,
+      }),
+    };
+  },
 }));
+
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('Regions View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetOptions.mockClear();
+    mockPop.mockClear();
+    mockTrackEvent.mockClear();
     (
       mockuseFiatOnRampSDKInitialValues.setSelectedRegion as jest.Mock
     ).mockClear();
@@ -177,6 +202,19 @@ describe('Regions View', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createPaymentMethodsNavDetails(),
     );
+  });
+
+  it('navigates and tracks event on cancel button press', async () => {
+    mockUseFiatOnRampSDKValues = {
+      ...mockuseFiatOnRampSDKInitialValues,
+    };
+    const rendered = render(Regions);
+    fireEvent.press(rendered.getByRole('button', { name: 'Cancel' }));
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+      chain_id_destination: '1',
+      location: 'Region Screen',
+    });
   });
 
   it('has continue button disabled', async () => {
