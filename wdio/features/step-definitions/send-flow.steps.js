@@ -89,6 +89,8 @@ Then(/^I have a saved contact "([^"]*)?" on the contacts view/, async (name) => 
 });
 
 Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
+    const timeout = 2000;
+    await driver.pause(timeout);
     await Contacts.tapOnText(name);
 });
 

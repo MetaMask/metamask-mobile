@@ -33,7 +33,7 @@ class WalletAccountModal {
   }
 
   async isAccountNameLabelEqualTo(expected) {
-    const textFromElement = await this.accountNameLabelText;
+    const textFromElement = await this.accountNameLabelInput;
     const accountName = await textFromElement.getText();
     await expect(accountName).toContain(expected);
   }

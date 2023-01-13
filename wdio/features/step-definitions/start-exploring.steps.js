@@ -1,14 +1,12 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
-import EnableAutomaticSecurityChecksScreen from '../screen-objects/EnableSecurityChecksScreen';
 
 Given(/^the onboarding wizard is visible on wallet view$/, async () => {
-  await EnableAutomaticSecurityChecksScreen.tapNoThanksButton();
   await OnboardingWizardModal.isVisible();
 });
 
-When(/^I tap on "([^"]*)" button$/, async (text) => {
+When(/^On the onboarding wizard I tap on "([^"]*)" button$/, async (text) => {
   switch (text) {
     case 'Take a Tour':
       await OnboardingWizardModal.tapTakeTourButton();

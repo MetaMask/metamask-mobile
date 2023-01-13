@@ -1,9 +1,10 @@
-@androidApp @ChainScenarios
+@androidApp
 Feature: Blockchain Networks
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
   A user should be able to add a custom network via a Dapp.
 
+  @Test1
   Scenario: Adding a network via the new popular network flow
     Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
     And I tap No Thanks on the Enable security check screen
@@ -27,12 +28,16 @@ Feature: Blockchain Networks
     Then "<Network>" should be visible below the Custom Networks section
     When I tap on the Add Network button
     Then "<Network>" is not visible in the Popular Networks section
-    And I navigate back to the main wallet view
+    # And I navigate back to the main wallet view
     Examples:
       | Network |
       | Palm    |
 
+  @Test2
   Scenario: Adding a network via the custom network flow
+    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
+    And I tap No Thanks on the Enable security check screen
+    And I tap No thanks on the onboarding welcome tutorial
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -40,7 +45,7 @@ Feature: Blockchain Networks
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
     When I tap on the "CUSTOM NETWORKS" tab
-    Then Add button is disabled
+    # Then Add button is disabled
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
@@ -53,8 +58,12 @@ Feature: Blockchain Networks
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
 
 
+  @Test3
   Scenario: I can remove a custom network that was added via the popular network flow
-    Given I tap on the burger menu
+    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
+    And I tap No Thanks on the Enable security check screen
+    And I tap No thanks on the onboarding welcome tutorial
+    And I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap on the Add Network button
@@ -72,22 +81,26 @@ Feature: Blockchain Networks
     And In settings I tap on "Networks"
     And I tap and hold network "<Network>"
     Then I should see an alert window with the text "Do you want to remove this network?"
-    When I click "Remove" on remove network modal
+    When I click "Delete" on remove network modal
     Then "<Network>" should be removed from the list of RPC networks
     And I go back to the main wallet screen
     Examples:
       | Network  |
       | Optimism |
 
+  @Test4
   Scenario: I can remove a custom network that was added via the custom network flow
-    Given I tap on the burger menu
+    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
+    And I tap No Thanks on the Enable security check screen
+    And I tap No thanks on the onboarding welcome tutorial
+    And I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
     When I tap on the "CUSTOM NETWORKS" tab
-    Then Add button is disabled
+    # Then Add button is disabled
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field

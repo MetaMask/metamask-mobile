@@ -31,7 +31,6 @@ class WelcomeScreen {
   async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
-    await driver.pause(20000);
   }
 
   async verifyCarouselTitle(key) {

@@ -13,11 +13,10 @@ import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModa
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 50000;
+  const setTimeout = 12000;
   await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.swipeUp();
   await MetaMetricsScreen.tapIAgreeButton();
   const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);

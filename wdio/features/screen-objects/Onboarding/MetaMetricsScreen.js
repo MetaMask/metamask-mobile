@@ -12,6 +12,7 @@ class MetaMetricsScreen {
   }
 
   async swipeUp(){
+    // eslint-disable-next-line no-undef
     await driver.pause(5000);
     await Gestures.swipe(
       { x: 200, y: 1000 },

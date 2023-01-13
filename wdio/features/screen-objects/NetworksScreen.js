@@ -174,7 +174,7 @@ class NetworksScreen {
     }
 
     async tapOptionInSettings(text) {
-       await Gestures.tapTextByXpath(text);
+       await Gestures.longPress(Selectors.getXpathElementByText(text), 200);
     }
 
     async isNetworknameDisplayed(network) {
