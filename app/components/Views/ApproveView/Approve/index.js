@@ -467,6 +467,15 @@ class Approve extends PureComponent {
       title: strings('notifications.approved_tx_rejected_title'),
       description: strings('notifications.wc_description'),
     });
+
+    try {
+      const { TransactionController } = Engine.context;
+      TransactionController.cancelTransaction(this.props.transaction.id);
+    } catch {
+      this.setState({ transactionHandled: false });
+    } finally {
+      this.props.toggleApproveModal(false);
+    }
   };
 
   review = () => {
