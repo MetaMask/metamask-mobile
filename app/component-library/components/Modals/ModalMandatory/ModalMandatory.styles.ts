@@ -1,8 +1,8 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle, Dimensions } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
-import { fontStyles } from '../../../../styles/common';
-import { scale } from 'react-native-size-matters';
+
+const screenHeight = Dimensions.get('window').height;
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -14,54 +14,45 @@ import { scale } from 'react-native-size-matters';
  */
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
+  const { colors, typography } = theme;
 
   return StyleSheet.create({
     screen: {
       justifyContent: 'center',
-      marginHorizontal: 16,
     },
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 16,
+      padding: 16,
+      marginHorizontal: 16,
     },
     headerText: {
-      ...fontStyles.bold,
-      fontSize: scale(18),
       color: colors.text.default,
+      ...(typography.sHeadingMD as TextStyle),
+      textAlign: 'center',
+      marginBottom: 16,
     },
-    bodyContainer: {
-      marginHorizontal: 16,
-      marginTop: 16,
-    },
+    webView: { height: screenHeight / 2 },
     checkboxContainer: {
       flexDirection: 'row',
       marginTop: 16,
     },
     checkboxText: {
-      ...fontStyles.bold,
       marginLeft: 8,
-      fontSize: scale(14),
       flex: 1,
-      textAlign: 'justify',
-    },
-    confirmButtonContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginHorizontal: 16,
-      backgroundColor: colors.background.default,
+      color: colors.text.default,
+      ...(typography.sBodyMDBold as TextStyle),
     },
     confirmButton: {
-      width: '100%',
       marginTop: 16,
     },
-    footerHelpText: { marginVertical: 16, fontSize: scale(12) },
+    footerHelpText: {
+      marginTop: 16,
+      marginBottom: 4,
+      textAlign: 'center',
+      color: colors.text.alternative,
+      ...(typography.sBodySM as TextStyle),
+    },
   });
 };
 

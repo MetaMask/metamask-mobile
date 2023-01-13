@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 
@@ -19,7 +19,6 @@ import stylesheet from './ModalMandatory.styles';
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
-  const { height: screenHeight } = useWindowDimensions();
   const navigation = useNavigation();
 
   const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(false);
@@ -38,63 +37,54 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   } = route.params;
 
   useEffect(() => {
-    if (onRender) onRender();
+    onRender?.();
   }, [onRender]);
 
   const renderHeader = () => (
-    <View style={styles.header}>
-      <Text style={styles.headerText}>{headerTitle}</Text>
-    </View>
+    <Text style={styles.headerText}>{headerTitle}</Text>
   );
 
   const onPress = () => {
-    if (onAccept) onAccept();
+    onAccept?.();
 
     navigation.goBack();
   };
+
+  const renderWebView = (uri: string) => (
+    <View style={styles.webView}>
+      <WebView source={{ uri: uri }} />
+    </View>
+  );
 
   return (
     <ReusableModal style={styles.screen}>
       <View style={styles.modal}>
         {renderHeader()}
-
-        <View style={styles.bodyContainer}>
-          {body.source === 'WebView' ? (
-            <View style={{ height: screenHeight / 2 }}>
-              <WebView source={{ uri: body.uri }} />
-            </View>
-          ) : (
-            body.component()
-          )}
-          <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={handleSelect}
-            activeOpacity={1}
-          >
-            <Checkbox isSelected={isCheckboxSelected} />
-
-            <Text style={styles.checkboxText}>{checkboxText}</Text>
-          </TouchableOpacity>
-
-          <View style={styles.confirmButtonContainer}>
-            <ButtonPrimary
-              label={buttonText}
-              disabled={!isCheckboxSelected}
-              style={{
-                ...styles.confirmButton,
-                ...{
-                  backgroundColor: !isCheckboxSelected
-                    ? colors.primary.muted
-                    : colors.primary.default,
-                },
-              }}
-              onPress={onPress}
-            />
-            {footerHelpText ? (
-              <Text style={styles.footerHelpText}>{footerHelpText}</Text>
-            ) : null}
-          </View>
-        </View>
+        {body.source === 'WebView' ? renderWebView(body.uri) : body.component()}
+        <TouchableOpacity
+          style={styles.checkboxContainer}
+          onPress={handleSelect}
+          activeOpacity={1}
+        >
+          <Checkbox isSelected={isCheckboxSelected} />
+          <Text style={styles.checkboxText}>{checkboxText}</Text>
+        </TouchableOpacity>
+        <ButtonPrimary
+          label={buttonText}
+          disabled={!isCheckboxSelected}
+          style={{
+            ...styles.confirmButton,
+            ...{
+              backgroundColor: !isCheckboxSelected
+                ? colors.primary.muted
+                : colors.primary.default,
+            },
+          }}
+          onPress={onPress}
+        />
+        {!!footerHelpText ? (
+          <Text style={styles.footerHelpText}>{footerHelpText}</Text>
+        ) : null}
       </View>
     </ReusableModal>
   );
