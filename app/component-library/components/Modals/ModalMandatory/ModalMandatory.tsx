@@ -1,15 +1,16 @@
 // Third party dependencies
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
 import Text from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 import { useTheme } from '../../../../util/theme';
-import ReusableModal from '../../../../components/UI/ReusableModal';
+import ReusableModal, {
+  ReusableModalRef,
+} from '../../../../components/UI/ReusableModal';
 import Checkbox from '../../../../component-library/components/Checkbox';
 
 // Internal dependencies
@@ -19,7 +20,7 @@ import stylesheet from './ModalMandatory.styles';
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
-  const navigation = useNavigation();
+  const modalRef = useRef<ReusableModalRef>(null);
 
   const [isCheckboxSelected, setIsCheckboxSelected] = useState<boolean>(false);
   const handleSelect = () => {
@@ -45,9 +46,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   );
 
   const onPress = () => {
-    onAccept?.();
-
-    navigation.goBack();
+    modalRef.current?.dismissModal(onAccept);
   };
 
   const renderWebView = (uri: string) => (
@@ -57,7 +56,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   );
 
   return (
-    <ReusableModal style={styles.screen}>
+    <ReusableModal ref={modalRef} style={styles.screen}>
       <View style={styles.modal}>
         {renderHeader()}
         {body.source === 'WebView' ? renderWebView(body.uri) : body.component()}
