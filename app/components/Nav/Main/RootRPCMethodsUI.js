@@ -717,13 +717,12 @@ const RootRPCMethodsUI = (props) => {
             } = requestData;
 
             // TODO: get the accounts values
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.PERMISSION_REQUEST_STARTED,
-              {
-                totalAccounts: 0,
-                connectedAccounts: 0,
-              },
-            );
+            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+              totalAccounts: 0,
+              connectedAccounts: 0,
+              //TODO: this property will change the name in the future.
+              source: 'PERMISSION',
+            });
 
             props.navigation.navigate(
               ...createAccountConnectNavDetails({

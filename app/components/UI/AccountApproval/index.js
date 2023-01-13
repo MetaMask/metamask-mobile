@@ -123,6 +123,8 @@ class AccountApproval extends PureComponent {
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
+        //TODO: this property will change name in the future
+        source: 'mm sdk / wc',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {

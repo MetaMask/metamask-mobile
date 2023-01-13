@@ -115,9 +115,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
       // TODO: verify if the request was sucessfully cancelled, and then emit the event
-      AnalyticsV2.trackEvent(MetaMetricsEvents.PERMISSION_REQUEST_CANCELLED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         totalAccounts: 1,
         connectedAccounts: 1,
+        //TODO: this property will change name in the future
+        source: 'permission system',
       });
     },
     [Engine.context.PermissionController],
@@ -148,9 +150,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
-      AnalyticsV2.trackEvent(MetaMetricsEvents.PERMISSION_REQUEST_COMPLETED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         totalAccounts: 1,
         connectedAccounts: 1,
+        //TODO: this property will change name in the future
+        source: 'permission system',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
