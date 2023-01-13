@@ -4,14 +4,13 @@ import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScr
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import Accounts from '../helpers/Accounts';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
-import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkEducationModal';
-import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
+import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
+import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   const setTimeout = 50000;
@@ -25,13 +24,6 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
   await ImportFromSeedScreen.clickImportButton();
-});
-
-Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
-  await OnboardingWizardModal.isVisible();
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
-  await OnboardingWizardModal.tapNoThanksButton();
 });
 
 When(/^I tap on the Add a Network button/, async () => {
@@ -214,7 +206,7 @@ Then(/^I tap on network "([^"]*)?" on networks screen/, async (network) => {
   await NetworksScreen.tapOnNetwork(network);
 });
 
-Then(/^I switch to "([^"]*)?" in the network list modal /, async () => {
+Then(/^I switch to "([^"]*)?" in the network list modal /, async (text) => {
     const setTimeout = 1500;
     await driver.pause(setTimeout);
     await NetworkListModal.changeNetwork(text);

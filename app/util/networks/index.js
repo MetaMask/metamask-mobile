@@ -6,21 +6,27 @@ import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 
 import AppConstants from '../../core/AppConstants';
 import {
-  MAINNET,
-  ROPSTEN,
-  KOVAN,
-  RINKEBY,
   GOERLI,
-  RPC,
+  KOVAN,
+  MAINNET,
   NETWORKS_CHAIN_ID,
+  RINKEBY,
+  ROPSTEN,
+  RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
-import { toLowerCaseEquals } from './../general';
-import { fastSplit } from '../../util/number';
-import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
+import { toLowerCaseEquals } from '../general';
+import { fastSplit } from '../number';
+import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
+import {
+  GOERLI_TEST_NETWORK_OPTION,
+  KOVAN_NETWORK_OPTION,
+  RINKEBY_NETWORK_OPTION,
+  ROPSTEN_NETWORK_OPTION,
+} from '../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
 
@@ -60,6 +66,7 @@ const NetworkList = {
     color: '#ff4a8d',
     networkType: 'ropsten',
     imageSource: ropstenLogo,
+    testId: ROPSTEN_NETWORK_OPTION,
   },
   [KOVAN]: {
     name: 'Kovan Test Network',
@@ -70,6 +77,7 @@ const NetworkList = {
     color: '#7057ff',
     networkType: 'kovan',
     imageSource: kovanLogo,
+    testId: KOVAN_NETWORK_OPTION,
   },
   [RINKEBY]: {
     name: 'Rinkeby Test Network',
@@ -80,6 +88,7 @@ const NetworkList = {
     color: '#f6c343',
     networkType: 'rinkeby',
     imageSource: rinkebyLogo,
+    testId: RINKEBY_NETWORK_OPTION,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -90,6 +99,7 @@ const NetworkList = {
     color: '#3099f2',
     networkType: 'goerli',
     imageSource: goerliLogo,
+    testId: GOERLI_TEST_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',

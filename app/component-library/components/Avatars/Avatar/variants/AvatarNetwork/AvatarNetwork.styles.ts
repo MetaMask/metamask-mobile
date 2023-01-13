@@ -32,7 +32,7 @@ const styleSheet = (params: {
     : {};
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
-    label: size === AvatarSize.Xs ? { lineHeight: 16 } : { bottom: 2 },
+    label: size === AvatarSize.Xs ? { lineHeight: 16 } : { bottom: 4 },
     image: {
       flex: 1,
       height: undefined,

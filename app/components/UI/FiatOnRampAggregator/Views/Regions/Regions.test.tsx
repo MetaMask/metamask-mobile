@@ -1,25 +1,32 @@
 import React from 'react';
 import { Country } from '@consensys/on-ramp-sdk';
-import render from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
-import { IFiatOnRampSDK } from '../../sdk';
+import { OnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import { fireEvent } from '@testing-library/react-native';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods';
+import Routes from '../../../../../constants/navigation/Routes';
+
+function render(Component: React.ComponentType) {
+  return renderScreen(Component, {
+    name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+  });
+}
 
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<IFiatOnRampSDK> = {
+const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
 };
 
-let mockUseFiatOnRampSDKValues: Partial<IFiatOnRampSDK> = {
+let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
   ...mockuseFiatOnRampSDKInitialValues,
 };
 
@@ -101,12 +108,12 @@ describe('Regions View', () => {
   });
 
   it('calls setOptions when rendering', async () => {
-    render(<Regions />);
+    render(Regions);
     expect(mockSetOptions).toBeCalledTimes(1);
   });
 
   it('renders correctly', async () => {
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -115,7 +122,7 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       isFetching: true,
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -124,7 +131,7 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       data: null,
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -133,12 +140,12 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       selectedRegion: mockRegionsData[0] as Country,
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
   it('renders regions modal when pressing select button', async () => {
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     const selectRegionButton = rendered.getByRole('button', {
       name: 'Select your region',
     });
@@ -147,7 +154,7 @@ describe('Regions View', () => {
   });
 
   it('calls setSelectedRegion when pressing a region', async () => {
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     const regionToPress = mockRegionsData[0] as Region;
     const regionButton = rendered.getByRole('button', {
       name: regionToPress.name,
@@ -161,7 +168,7 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       selectedRegion: mockRegionsData[0] as Country,
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     fireEvent.press(
       rendered.getByRole('button', {
         name: 'Continue',
@@ -173,7 +180,7 @@ describe('Regions View', () => {
   });
 
   it('has continue button disabled', async () => {
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     const continueButton = rendered.getByRole('button', {
       name: 'Continue',
     });
@@ -185,7 +192,7 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       unsupportedRegion: mockRegionsData[1] as Region,
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -194,7 +201,7 @@ describe('Regions View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -203,7 +210,7 @@ describe('Regions View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     fireEvent.press(
       rendered.getByRole('button', {
         name: 'Return to Home Screen',
@@ -217,7 +224,7 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       error: 'Test error',
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
 
@@ -226,7 +233,7 @@ describe('Regions View', () => {
       ...mockuseRegionsInitialValues,
       error: 'Test error',
     };
-    const rendered = render(<Regions />);
+    const rendered = render(Regions);
     fireEvent.press(
       rendered.getByRole('button', {
         name: 'Try again',

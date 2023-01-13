@@ -1,12 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-
-// TODO: Convert into typescript and correctly type optionals
-const Text = BaseText as any;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
