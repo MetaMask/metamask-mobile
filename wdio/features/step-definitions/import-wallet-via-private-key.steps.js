@@ -3,7 +3,6 @@ import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
 import ImportSuccessScreen from '../screen-objects/ImportSuccessScreen';
 import WalletAccountModal from "../screen-objects/Modals/WalletAccountModal.js";
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 
 When(/^I tap on Import an account/, async () => {
     await driver.pause(setTimeout);  

@@ -4,8 +4,8 @@ import { useTheme } from '../../../util/theme';
 import styles from './Title.styles';
 
 interface TitleProps extends React.ComponentPropsWithoutRef<typeof Text> {
-  centered: boolean;
-  hero: boolean;
+  centered?: boolean;
+  hero?: boolean;
 }
 
 const Title: React.FC<TitleProps> = ({
