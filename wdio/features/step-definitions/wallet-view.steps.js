@@ -7,9 +7,6 @@ When(/^I tap burger icon/, async () => {
     await WalletMainScreen.tapBurgerIcon();
 });
 
-Then(/^I tap on the navbar network title button/, async () => {
-    await WalletMainScreen.tapNetworkNavBar();
-});
     
 When(/^I tap Import Tokens/, async () => {
     const setTimeout = 1500; //added to run on physical device
