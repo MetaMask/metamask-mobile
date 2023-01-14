@@ -97,7 +97,7 @@ const GetStarted: React.FC = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout scrollable>
       <ScreenLayout.Body>
         <ScrollView contentContainerStyle={styles.container}>
           <ScreenLayout.Content>
