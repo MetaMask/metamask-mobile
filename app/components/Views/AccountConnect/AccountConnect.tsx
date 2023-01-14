@@ -269,7 +269,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
     const selectedAccount = accounts.find(
-      (account) => account.address === selectedAddress,
+      (account) =>
+        safeToChecksumAddress(account.address) ===
+        safeToChecksumAddress(selectedAddress),
     );
     const ensName = ensByAccountAddress[selectedAddress];
     const defaultSelectedAccount: Account | undefined = selectedAccount
