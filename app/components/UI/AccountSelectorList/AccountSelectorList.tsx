@@ -12,7 +12,7 @@ import Cell, {
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress } from '../../../util/address';
+import { formatAddress, safeToChecksumAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -104,7 +104,8 @@ const AccountSelectorList = ({
               const account = accounts.find(
                 ({ isSelected: isAccountSelected, address: accountAddress }) =>
                   selectedAddressOverride
-                    ? selectedAddressOverride === accountAddress
+                    ? safeToChecksumAddress(selectedAddressOverride) ===
+                      safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
               let nextActiveAddress = account.address;
@@ -206,7 +207,8 @@ const AccountSelectorList = ({
       const selectedAddressOverride = selectedAddresses?.[0];
       const account = accounts.find(({ isSelected, address }) =>
         selectedAddressOverride
-          ? selectedAddressOverride === address
+          ? safeToChecksumAddress(selectedAddressOverride) ===
+            safeToChecksumAddress(address)
           : isSelected,
       );
       accountListRef?.current?.scrollToOffset({
