@@ -4,13 +4,25 @@ import fiatOrderReducer, {
   addAuthenticationUrl,
   addFiatCustomIdData,
   addFiatOrder,
+  chainIdSelector,
+  fiatOrdersGetStartedAgg,
+  fiatOrdersPaymentMethodSelectorAgg,
+  fiatOrdersRegionSelectorAgg,
+  getActivationKeys,
+  getAuthenticationUrls,
+  getCustomOrderIds,
+  getHasOrders,
+  getOrders,
+  getPendingOrders,
   getProviderName,
   initialState,
+  makeOrderIdSelector,
   removeActivationKey,
   removeAuthenticationUrl,
   removeFiatCustomIdData,
   removeFiatOrder,
   resetFiatOrders,
+  selectedAddressSelector,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
@@ -447,6 +459,718 @@ describe('fiatOrderReducer', () => {
         },
       ],
     );
+  });
+});
+
+describe('selectors', () => {
+  describe('chainIdSelector', () => {
+    it('should return the chainId', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '56',
+              },
+            },
+          },
+        },
+      };
+
+      expect(chainIdSelector(state)).toBe('56');
+    });
+  });
+
+  describe('selectedAddressSelector', () => {
+    it('should return the selected address', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              selectedAddress: '0x12345678',
+            },
+          },
+        },
+      };
+
+      expect(selectedAddressSelector(state)).toBe('0x12345678');
+    });
+  });
+
+  describe('fiatOrdersRegionSelectorAgg', () => {
+    it('should return the selected region', () => {
+      const state = {
+        fiatOrders: {
+          ...initialState,
+          selectedRegionAgg: {
+            id: '/region/cl',
+            name: 'Chile',
+          },
+        },
+      };
+
+      expect(fiatOrdersRegionSelectorAgg(state)).toEqual({
+        id: '/region/cl',
+        name: 'Chile',
+      });
+    });
+  });
+
+  describe('fiatOrdersPaymentMethodSelectorAgg', () => {
+    it('should return the selected payment method id', () => {
+      const state = {
+        fiatOrders: {
+          ...initialState,
+          selectedPaymentMethodAgg: '/payment-method/test-payment-method',
+        },
+      };
+
+      expect(fiatOrdersPaymentMethodSelectorAgg(state)).toEqual(
+        '/payment-method/test-payment-method',
+      );
+    });
+  });
+
+  describe('fiatOrdersGetStartedAgg', () => {
+    it('should return the get started state', () => {
+      const state = {
+        fiatOrders: {
+          ...initialState,
+          getStartedAgg: true,
+        },
+      };
+
+      expect(fiatOrdersGetStartedAgg(state)).toEqual(true);
+    });
+  });
+
+  describe('getOrders', () => {
+    it('should return the orders by address and chainId', () => {
+      const state1 = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '56',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x4567',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+
+      const state2 = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+
+      expect(getOrders(state1)).toHaveLength(2);
+      expect(getOrders(state1).map((o) => o.id)).toEqual([
+        'test-56-order-1',
+        'test-56-order-3',
+      ]);
+      expect(getOrders(state2)).toHaveLength(1);
+      expect(getOrders(state2).map((o) => o.id)).toEqual(['test-1-order-2']);
+    });
+
+    it('it should return empty array by default', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {},
+      };
+
+      expect(getOrders(state)).toEqual([]);
+    });
+  });
+
+  describe('getPendingOrders', () => {
+    it('should return the orders by address and chainId and state pending', () => {
+      const state1 = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '56',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x4567',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              state: 'PENDING',
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              state: 'PENDING',
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+
+      const state2 = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              state: 'PENDING',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+
+      expect(getPendingOrders(state1)).toHaveLength(2);
+      expect(getPendingOrders(state1).map((o) => o.id)).toEqual([
+        'test-56-order-1',
+        'test-56-order-3',
+      ]);
+      expect(getPendingOrders(state2)).toHaveLength(1);
+      expect(getPendingOrders(state2).map((o) => o.id)).toEqual([
+        'test-1-order-2',
+      ]);
+    });
+
+    it('it should return empty array by default', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {},
+      };
+
+      expect(getPendingOrders(state)).toEqual([]);
+    });
+  });
+
+  describe('customOrdersSelector', () => {
+    it('should return the custom order ids by address and chainId', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '56',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x4567',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          customOrderIds: [
+            {
+              id: 'test-56-order-1',
+              chainId: '56',
+              account: '0x4567',
+            },
+            {
+              id: 'test-1-order-1',
+              chainId: '1',
+              account: '0x4567',
+            },
+            {
+              id: 'test-56-order-2',
+              chainId: '56',
+              account: '0x4564',
+            },
+            {
+              id: 'test-56-order-3',
+              chainId: '56',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+
+      expect(getCustomOrderIds(state)).toHaveLength(2);
+      expect(getCustomOrderIds(state).map((c) => c.id)).toEqual([
+        'test-56-order-1',
+        'test-56-order-3',
+      ]);
+    });
+
+    it('it should return empty array by default', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {},
+      };
+
+      expect(getCustomOrderIds(state)).toEqual([]);
+    });
+  });
+
+  describe('makeOrderIdSelector', () => {
+    it('should make selector and return the correct order id', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              state: 'PENDING',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+      const selector = makeOrderIdSelector('test-56-order-2');
+      expect(selector).toBeInstanceOf(Function);
+      expect(selector(state)?.id).toBe('test-56-order-2');
+    });
+  });
+
+  describe('getHasOrders', () => {
+    it('should return true only if there are orders', () => {
+      const state1 = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '1',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              state: 'PENDING',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+      const state2 = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              provider: {
+                chainId: '56',
+              },
+            },
+            PreferencesController: {
+              selectedAddress: '0x1234',
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: '0x4567',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              state: 'PENDING',
+              network: '1',
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: '0x1234',
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: '0x4567',
+            },
+          ],
+        },
+      };
+      expect(getHasOrders(state1)).toBe(true);
+      expect(getHasOrders(state2)).toBe(false);
+    });
+  });
+
+  describe('getActivationKeys', () => {
+    it('should return activation keys', () => {
+      const state = {
+        fiatOrders: {
+          ...initialState,
+          activationKeys: [
+            { key: 'test-activation-key-1', active: true },
+            { key: 'test-activation-key-2', active: false },
+          ],
+        },
+      };
+      expect(getActivationKeys(state)).toStrictEqual([
+        { key: 'test-activation-key-1', active: true },
+        { key: 'test-activation-key-2', active: false },
+      ]);
+    });
+    it('should return empty array by default', () => {
+      const state = {
+        fiatOrders: {},
+      };
+      expect(getActivationKeys(state)).toStrictEqual([]);
+    });
+  });
+
+  describe('getAuthenticationUrls', () => {
+    it('should return authentication urls', () => {
+      const state = {
+        fiatOrders: {
+          ...initialState,
+          authenticationUrls: [
+            'test-authentication-url-1',
+            'test-authentication-url-2',
+          ],
+        },
+      };
+      expect(getAuthenticationUrls(state)).toStrictEqual([
+        'test-authentication-url-1',
+        'test-authentication-url-2',
+      ]);
+    });
+    it('should return empty array by default', () => {
+      const state = {
+        fiatOrders: {},
+      };
+      expect(getAuthenticationUrls(state)).toStrictEqual([]);
+    });
   });
 });
 
