@@ -23,7 +23,7 @@ const styleSheet = (params: { theme: Theme; vars: CardStyleSheetVars }) => {
     base: Object.assign(
       {
         padding: 16,
-        borderRadius: 8,
+        borderRadius: 4,
         backgroundColor: colors.background.default,
         borderWidth: 1,
         borderColor: colors.border.default,
