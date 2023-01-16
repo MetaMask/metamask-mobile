@@ -23,7 +23,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { hexToBN } from '@metamask/controller-utils';
-import { fromTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
 import {
   getTicker,
   getNormalizedTxState,
@@ -75,6 +75,9 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
+import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
+import {getAccountBalance} from '../../../util/dappTransactions';
+
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -636,7 +639,10 @@ class ApproveTransactionReview extends PureComponent {
       fetchingUpdateDone,
     } = this.state;
     const {
+      accounts,
+      selectedAddress,
       primaryCurrency,
+      tokenBalances,
       gasError,
       activeTabUrl,
       transaction: { origin, from },
@@ -670,6 +676,10 @@ class ApproveTransactionReview extends PureComponent {
       !gasEstimateType ||
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
+      const userEnteredCustomSpend = false
+      const selectedBalance = accounts[selectedAddress].balance
+      const confirmBalance = getAccountBalance(selectedBalance)
 
     return (
       <>
@@ -776,6 +786,30 @@ class ApproveTransactionReview extends PureComponent {
                 />
                 <View style={styles.paddingHorizontal}>
                   <View style={styles.section}>
+                  {userEnteredCustomSpend ? (
+                        <TransactionReview
+                        gasSelected={gasSelected}
+                        primaryCurrency={primaryCurrency}
+                        hideTotal
+                        noMargin
+                        onEdit={this.edit}
+                        chainId={this.props.chainId}
+                        onUpdatingValuesStart={onUpdatingValuesStart}
+                        onUpdatingValuesEnd={onUpdatingValuesEnd}
+                        animateOnChange={animateOnChange}
+                        isAnimating={isAnimating}
+                        gasEstimationReady={gasEstimationReady}
+                        legacy={!showFeeMarket}
+                        gasObject={
+                          !showFeeMarket ? legacyGasObject : eip1559GasObject
+                        }
+                        updateTransactionState={updateTransactionState}
+                        onlyGas
+                        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                      />
+                  ) : (
+                    <CustomSpendCap ticker={tokenSymbol} dappProposedValue={originalApproveAmount} accountBalance={confirmBalance} domain={host} onInputChanged={(val) => console.log(val, 'val')} />
+                  )}
                     <TransactionReview
                       gasSelected={gasSelected}
                       primaryCurrency={primaryCurrency}
@@ -1066,6 +1100,7 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: getTokenList(state),
+  tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 });
 
 const mapDispatchToProps = (dispatch) => ({
