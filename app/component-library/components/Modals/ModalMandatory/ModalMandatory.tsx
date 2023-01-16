@@ -51,7 +51,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   const renderWebView = (uri: string) => (
     <View style={styles.webView}>
-      <WebView source={{ uri: uri }} />
+      <WebView source={{ uri }} />
     </View>
   );
 
@@ -81,7 +81,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           }}
           onPress={onPress}
         />
-        {!!footerHelpText ? (
+        {footerHelpText ? (
           <Text style={styles.footerHelpText}>{footerHelpText}</Text>
         ) : null}
       </View>

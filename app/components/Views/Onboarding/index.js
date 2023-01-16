@@ -38,15 +38,9 @@ import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import AppConstants from '../../../core/AppConstants';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import {
-  EXISTING_USER,
-  METRICS_OPT_IN,
-  TRUE,
-  USE_TERMS,
-} from '../../../constants/storage';
+import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
@@ -244,50 +238,10 @@ class Onboarding extends PureComponent {
     );
   };
 
-  onConfirmUseTerms = async () => {
-    await AsyncStorage.setItem(USE_TERMS, TRUE);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
-      value: AppConstants.TERMS_ACCEPTED,
-    });
-  };
-
-  useTermsDisplayed = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
-      value: AppConstants.TERMS_DISPLAYED,
-    });
-  };
-
-  fetchTermsOfUse = async () => {
-    const { navigation } = this.props;
-    const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
-    if (!isUseTermsAccepted) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.MODAL_MANDATORY,
-        params: {
-          buttonText: strings('terms_of_use_modal.accept_cta'),
-          checkboxText: strings(
-            'terms_of_use_modal.terms_of_use_check_description',
-          ),
-          headerTitle: strings('terms_of_use_modal.title'),
-          onAccept: this.onConfirmUseTerms,
-          footerHelpText: strings(
-            'terms_of_use_modal.accept_helper_description',
-          ),
-          body: {
-            source: 'WebView',
-            uri: 'https://consensys.net/terms-of-use/',
-          },
-          onRender: this.useTermsDisplayed,
-        },
-      });
-    }
-  };
-
   componentDidMount() {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
-    this.fetchTermsOfUse();
 
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
