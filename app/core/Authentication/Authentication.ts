@@ -342,7 +342,12 @@ class AuthenticationService {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
       const password = credentials?.password;
-      if (!password) throw new Error('Password does not exist');
+      if (!password)
+        throw new AuthenticationError(
+          'Password does not exist when calling SecureKeychain.getGenericPassword',
+          'appTriggeredAuth failed to login',
+          this.authData,
+        );
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
     } catch (e: any) {
