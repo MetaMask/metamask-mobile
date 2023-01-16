@@ -51,12 +51,12 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   const renderWebView = (uri: string) => (
     <View style={styles.webView}>
-      <WebView source={{ uri }} />
+      <WebView nestedScrollEnabled source={{ uri }} />
     </View>
   );
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
+    <ReusableModal ref={modalRef} style={styles.screen} isDismissable={false}>
       <View style={styles.modal}>
         {renderHeader()}
         {body.source === 'WebView' ? renderWebView(body.uri) : body.component()}
