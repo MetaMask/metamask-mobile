@@ -268,6 +268,8 @@ const AssetDetails = (props: Props) => {
       ? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
       : undefined;
 
+      // console.log(tokenBalances, 'tokenBalances')
+      // console.log(tokenBalances[address], 'tokenBalances[address]')
     if (balance === undefined && balanceFiat === undefined) {
       // Couldn't load balance
       return renderWarningBanner();

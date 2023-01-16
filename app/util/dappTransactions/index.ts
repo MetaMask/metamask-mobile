@@ -1,4 +1,4 @@
-import { isBN, hexToBN } from '../number';
+import { isBN, hexToBN, renderFromWei } from '../number';
 import { safeToChecksumAddress } from '../address';
 import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';
@@ -291,3 +291,9 @@ export const handleGetGasLimit = async (
   const { gas } = await estimateGas({}, transaction);
   setTransactionObject({ gas: hexToBN(gas) as BN });
 };
+
+export const getAccountBalance = (balance: any) => {
+    const weiBalance = hexToBN(balance);
+    const accountBalance = `${renderFromWei(weiBalance)}`;
+    return accountBalance;
+}
