@@ -1,7 +1,6 @@
 @androidApp
 Feature: Exploring Wizard
 
-@ExploreSkip
   Scenario: A user should be able to tap the Skip button and the onboarding tutorial modal should disappear
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
@@ -18,7 +17,6 @@ Feature: Exploring Wizard
     Then the onboarding wizard is no longer visible
     And the "Skip" button is no longer visible
 
-@ExploreStartExplore 
 Scenario: A user should be able to go through the start exploring tutorial
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen

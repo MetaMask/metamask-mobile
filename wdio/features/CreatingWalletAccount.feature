@@ -11,7 +11,6 @@ Feature: Creating account in wallet
         Given I am on the wallet view
         When I tap on the Identicon
         Then the account list should be visible
-        # When I tap on Create a new account
         When I tap on button with text "Create a new account"
         Then Account named "Account 2" is created
         And I tap on button with text "Account 2"
