@@ -43,6 +43,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { allowedToBuy } from '../../FiatOnRampAggregator';
+import {
+  selectNetwork,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -703,7 +707,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
@@ -711,7 +715,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   transaction: getNormalizedTxState(state),
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   primaryCurrency: state.settings.primaryCurrency,
   showCustomNonce: state.settings.showCustomNonce,
   nativeCurrency:

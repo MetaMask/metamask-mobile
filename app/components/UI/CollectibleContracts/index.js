@@ -31,6 +31,10 @@ import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { IMPORT_NFT_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -256,16 +260,14 @@ const CollectibleContracts = ({
 
   return (
     <View style={styles.wrapper} testID={'collectible-contracts'}>
-      {networkType === MAINNET &&
-        !nftDetectionDismissed &&
-        !useNftDetection && (
-          <View style={styles.emptyView}>
-            <CollectibleDetectionModal
-              onDismiss={dismissNftInfo}
-              navigation={navigation}
-            />
-          </View>
-        )}
+      {networkType === MAINNET && !nftDetectionDismissed && !useNftDetection && (
+        <View style={styles.emptyView}>
+          <CollectibleDetectionModal
+            onDismiss={dismissNftInfo}
+            navigation={navigation}
+          />
+        </View>
+      )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
       {renderFooter()}
     </View>
@@ -321,8 +323,8 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   useNftDetection:

@@ -20,6 +20,7 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -63,10 +64,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     (state: any) =>
       state.engine.backgroundState.PreferencesController.useTokenDetection,
   );
-  const chainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
+  const chainId = useSelector(selectChainId);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {

@@ -42,6 +42,10 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { isTestNet } from '../../../util/networks';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -407,8 +411,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   swapsIsLive: swapsLivenessSelector(state),
   swapsTokens: swapsTokensObjectSelector(state),
   tokenList: getTokenList(state),

@@ -9,6 +9,7 @@ import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { selectNetwork } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -160,7 +161,7 @@ Contacts.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
 });
 
 export default connect(mapStateToProps)(Contacts);

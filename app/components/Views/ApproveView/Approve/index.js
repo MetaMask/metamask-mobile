@@ -40,6 +40,11 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -705,7 +710,7 @@ class Approve extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   accountsLength: Object.keys(
@@ -713,7 +718,7 @@ const mapStateToProps = (state) => ({
   ).length,
   tokensLength: state.engine.backgroundState.TokensController.tokens.length,
   primaryCurrency: state.settings.primaryCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   gasEstimateType:
@@ -725,7 +730,7 @@ const mapStateToProps = (state) => ({
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

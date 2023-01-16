@@ -35,6 +35,7 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { selectTicker } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -118,10 +119,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Current provider ticker
    */
-  const ticker = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.ticker,
-  );
+  const ticker = useSelector(selectTicker);
   /**
    * Current onboarding wizard step
    */

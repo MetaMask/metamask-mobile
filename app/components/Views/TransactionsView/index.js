@@ -19,6 +19,11 @@ import {
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -41,9 +46,7 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const network = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.network,
-  );
+  const network = useSelector(selectNetwork);
 
   const filterTransactions = useCallback(
     (network) => {
@@ -213,8 +216,8 @@ const mapStateToProps = (state) => ({
   tokens: state.engine.backgroundState.TokensController.tokens,
   identities: state.engine.backgroundState.PreferencesController.identities,
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

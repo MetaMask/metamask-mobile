@@ -45,6 +45,10 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -744,7 +748,7 @@ class Transactions extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
@@ -772,7 +776,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
 });
 
 Transactions.contextType = ThemeContext;

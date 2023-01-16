@@ -68,6 +68,7 @@ import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
 import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
+import { selectProviderType } from '../../../../selectors/networkController';
 
 const isIos = Device.isIos();
 
@@ -1180,7 +1181,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  type: state.engine.backgroundState.NetworkController.provider.type,
+  type: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -48,6 +48,10 @@ import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -875,8 +879,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   tokens: state.engine.backgroundState.TokensController.tokens,
   primaryCurrency: state.settings.primaryCurrency,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   tokenList: getTokenListArray(state),
 });
 

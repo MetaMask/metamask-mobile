@@ -42,6 +42,7 @@ import {
 } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -502,7 +503,7 @@ CollectibleOverview.propTypes = {
 };
 
 const mapStateToProps = (state, props) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   isInFavorites: isCollectibleInFavoritesSelector(state, props.collectible),

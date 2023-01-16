@@ -66,6 +66,12 @@ import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import createStyles from './styles';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -903,17 +909,17 @@ const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
   ).length,
   tokensLength: state.engine.backgroundState.TokensController.tokens.length,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  network: state.engine.backgroundState.NetworkController.network,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  network: selectNetwork(state),
+  chainId: selectChainId(state),
   tokenList: getTokenList(state),
 });
 

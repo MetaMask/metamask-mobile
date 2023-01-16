@@ -33,6 +33,7 @@ import {
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from '../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
+import { selectNetwork } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -476,7 +477,7 @@ const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
 });
 
 export default connect(mapStateToProps)(AccountList);

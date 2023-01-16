@@ -58,6 +58,10 @@ import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -848,13 +852,13 @@ RootRPCMethodsUI.propTypes = {
 const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   approveModalVisible: state.modals.approveModalVisible,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

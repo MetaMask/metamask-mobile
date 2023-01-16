@@ -48,6 +48,10 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -570,8 +574,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   showHexData: state.settings.showHexData,
   transaction: getNormalizedTxState(state),
   browser: state.browser,

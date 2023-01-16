@@ -53,6 +53,7 @@ import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
+import { selectProviderType } from '../../../selectors/networkController';
 
 const Stack = createStackNavigator();
 
@@ -384,7 +385,7 @@ Main.propTypes = {
 const mapStateToProps = (state) => ({
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   network: state.engine.backgroundState.NetworkController,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });

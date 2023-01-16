@@ -72,6 +72,7 @@ import {
   SHARE_OPTION,
   SWITCH_NETWORK_OPTION,
 } from '../../../../wdio/features/testIDs/BrowserScreen/OptionMenu.testIds';
+import { selectNetwork } from '../../../selectors/networkController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1518,7 +1519,7 @@ const mapStateToProps = (state) => ({
   approvedHosts: state.privacy.approvedHosts,
   bookmarks: state.bookmarks,
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
   privacyMode: state.privacy.privacyMode,

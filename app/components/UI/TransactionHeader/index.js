@@ -12,6 +12,10 @@ import { renderShortAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { useTheme } from '../../../util/theme';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import {
+  selectNickname,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -217,8 +221,8 @@ TransactionHeader.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  nickname: state.engine.backgroundState.NetworkController.provider.nickname,
+  networkType: selectProviderType(state),
+  nickname: selectNickname(state),
 });
 
 export default connect(mapStateToProps)(TransactionHeader);

@@ -79,6 +79,11 @@ import {
   AMOUNT_SCREEN_CARET_DROP_DOWN,
 } from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  selectChainId,
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1297,12 +1302,12 @@ const mapStateToProps = (state, ownProps) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,

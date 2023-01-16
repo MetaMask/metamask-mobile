@@ -1,4 +1,5 @@
 import { swapsUtils } from '@metamask/swaps-controller';
+import { selectChainId } from '../../../selectors/networkController';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { connect } from 'react-redux';
@@ -79,7 +80,7 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
 
 const mapStateToProps = (state) => ({
   isLive: swapsLivenessSelector(state),
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

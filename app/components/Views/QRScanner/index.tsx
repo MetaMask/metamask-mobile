@@ -38,6 +38,7 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
+import { selectChainId } from '../../../selectors/networkController';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -62,10 +63,7 @@ const QRScanner = () => {
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
 
-  const currentChainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
+  const currentChainId = useSelector(selectChainId);
 
   const goBack = useCallback(() => {
     navigation.goBack();

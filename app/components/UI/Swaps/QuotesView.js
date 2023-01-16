@@ -78,6 +78,10 @@ import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 import { isQRHardwareAccount } from '../../../util/address';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -2319,8 +2323,8 @@ SwapsQuotesView.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:

@@ -84,6 +84,7 @@ import {
   DRAWER_VIEW_SETTINGS_TEXT_ID,
   DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
+import { selectTicker } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1494,7 +1495,7 @@ const mapStateToProps = (state) => ({
   receiveModalVisible: state.modals.receiveModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   tokenBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,

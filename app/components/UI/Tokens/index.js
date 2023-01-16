@@ -33,6 +33,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { IMPORT_TOKEN_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -461,7 +462,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:

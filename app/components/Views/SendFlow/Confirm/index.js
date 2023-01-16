@@ -90,6 +90,12 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1397,13 +1403,13 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   transaction: getNormalizedTxState(state),
   selectedAsset: state.transaction.selectedAsset,

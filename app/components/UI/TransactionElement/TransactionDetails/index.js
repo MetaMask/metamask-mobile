@@ -31,6 +31,10 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -421,13 +425,13 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = (state) => ({
   network: state.engine.backgroundState.NetworkController,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens.reduce(
     (tokens, token) => {
       tokens[token.address] = token;
