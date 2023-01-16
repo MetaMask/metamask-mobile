@@ -7,7 +7,6 @@ Feature: Importing account in wallet
         And I tap No thanks on the onboarding welcome tutorial
 
     Scenario Outline: Import an account using a valid private key
-        Given I am on the wallet view
         When I tap on the Identicon
         Then the account list should be visible
         When I tap on Import an account
@@ -21,7 +20,6 @@ Feature: Importing account in wallet
             | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 |
 
     Scenario Outline: Import an account using an invalid private key
-        Given I am on the wallet view
         When I tap on the Identicon
         Then the account list should be visible
         When I tap on Import an account

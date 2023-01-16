@@ -18,7 +18,7 @@ Feature: Exploring Wizard
     Then the onboarding wizard is no longer visible
     And the "Skip" button is no longer visible
 
-@ExploreStartExplore
+@ExploreStartExplore 
 Scenario: A user should be able to go through the start exploring tutorial
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen

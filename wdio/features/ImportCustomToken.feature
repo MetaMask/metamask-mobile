@@ -1,7 +1,7 @@
 @androidApp @ChainScenarios
 Feature: Adding a custom token to your wallet
 
-    Scenario: Import account
+    Scenario: User imports account
         Given I have imported my wallet
         And I tap No Thanks on the Enable security check screen
         And I tap No thanks on the onboarding welcome tutorial
@@ -23,14 +23,22 @@ Feature: Adding a custom token to your wallet
 
     Scenario: Importing Custom tokens
         When I tap on the navbar network title button
-        And I tap on <NETWORK> on Networks list to switch
-        And I tap on Got it in the network education modal
+        And I tap on Goerli Test Network on Networks list to switch
+        And I tap on Got it in the network education modal        #Check if this is a design change, Got it does not appear if network selected before
         When I tap Import Tokens
-        And I type <TOKENADDRESS> into token Address field
+        And I type <FIRSTOKEN> into token Address field
+        Then The Token Symbol is displayed
+        When I tap on the Import button
+        Then I should see "Imported Token" toast message
+        When I tap on the navbar network title button
+        And I tap on AVAX Fuji on Networks list to switch
+        # And I tap on Got it in the network education modal        #ignored
+        When I tap Import Tokens
+        And I type <SECONDTOKEN> into token Address field
         Then The Token Symbol is displayed
         When I tap on the Import button
         Then I should see "Imported Token" toast message
         Examples:
-            | NETWORK             | TOKENADDRESS                               |
-            | Goerli Test Network | 0x326C977E6efc84E512bB9C30f76E30c160eD06FB |
-            | AVAX Fuji           | 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846 |
+            | FIRSTOKEN                                  | SECONDTOKEN                                |
+            | 0x326C977E6efc84E512bB9C30f76E30c160eD06FB | 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846 |
+

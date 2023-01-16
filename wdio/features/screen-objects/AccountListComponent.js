@@ -30,7 +30,7 @@ class AccountListComponent {
   }
 
   async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);
+    await Gestures.tap(this.createAccountButton);
   }
 
   async tapImportAccountButton() {
@@ -43,6 +43,14 @@ class AccountListComponent {
 
   async isAccountTwoCheckedIconDisplayed() {
     await expect(await this.accountTwoCheckedIcon).toBeDisplayed();
+  }
+
+  async isNewAccountDisplayed(accountName){
+    await this.isTextDisplayed(accountName);
+  }
+
+  async isTextDisplayed(text){
+    await expect(await Selectors.getXpathElementByText(text)).toBeDisplayed();
   }
 
   async tapAccount(account) {

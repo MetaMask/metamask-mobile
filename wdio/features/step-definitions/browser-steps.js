@@ -61,7 +61,7 @@ Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
   await BrowserScreen.tapNavbarHamburgerButton();
   await DrawerViewScreen.tapWalletButton();
   await WalletAccountModal.isAccountOverview();
-  await WalletAccountModal.isAccountNameLabelEqualTo(text);
+  await WalletAccountModal.isAccountNameEqualTo(text);
   await WalletMainScreen.tapBurgerIcon();
   await DrawerViewScreen.tapBrowserButton();
 });

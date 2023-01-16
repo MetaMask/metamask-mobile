@@ -56,8 +56,10 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
 });
 
 Then(/^"([^"]*)?" carousel item is displayed/, async (text) => {
+  const setTimeout = 20000;
   switch (text) {
     case 'Welcome to MetaMask':
+  await driver.pause(setTimeout);
       await WelcomeScreen.verifyCarouselTitle(1);
       break;
     case 'Manage your digital assets':
@@ -76,8 +78,10 @@ When(/^I swipe left on the carousel/, async () => {
 });
 
 When(/^I tap "([^"]*)"/, async (text) => {
+  const setTimeout = 20000;
   switch (text) {
     case 'Get started':
+      await driver.pause(setTimeout);
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':

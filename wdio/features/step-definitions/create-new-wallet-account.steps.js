@@ -1,9 +1,12 @@
+/* global driver */
+
 import {Given, Then, When} from '@wdio/cucumber-framework';
 
 import AccountListComponent from '../screen-objects/AccountListComponent';
 
 import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
+
 
 
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
@@ -15,7 +18,8 @@ When(/^I tap on the Identicon/, async () => { // should be in a commons-step fil
 });
 
 When(/^the account list should be visible/, async () => { // should be in a common-step file
-  await driver.pause(3000);
+  const setTimeOut = 3000;
+  await driver.pause(setTimeOut);
   await AccountListComponent.isVisible();
 });
 
@@ -24,15 +28,28 @@ Then(/^I tap on Create a new account/, async () => {
 });
 
 When(/^A new account is created/, async () => {
-  await driver.pause(2000);
+  const setTimeOut = 2000;
+  await driver.pause(setTimeOut);
   await AddCustomImportTokensScreen.tapImportButton();
 });
 
 Then(/^I am on the new account/, async () => {
-  await driver.pause(2500);
+  const setTimeOut = 2500;
+  await driver.pause(setTimeOut);
   WalletAccountModal.isAccountNameLabelEqualTo('Account 2'); // this can be better
 });
+
+Then(/^Account named "([^"]*)?" is created/, async (contactName) => {
+  await AccountListComponent.isNewAccountDisplayed(contactName);
+
+});
+
 Then(/^I dismiss the account list/, async () => {
-  await driver.pause(2500);
+  const setTimeOut = 2500;
+  await driver.pause(setTimeOut);
   await driver.touchPerform([{action: 'tap', options: {x: 100, y: 200}}]);
+});
+
+Then(/^the account name on main wallet screen should now read "([^"]*)"$/, async (text) => {
+  await WalletAccountModal.isAccountNameEqualTo(text);
 });

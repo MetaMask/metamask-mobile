@@ -3,12 +3,12 @@ Feature: Blockchain Networks
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
   A user should be able to add a custom network via a Dapp.
-
-  @Test1
-  Scenario: Adding a network via the new popular network flow
-    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
+  Background: Import existing wallet
+  Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+
+  Scenario: Adding a network via the new popular network flow
     When I tap on the navbar network title button
     And I tap on the Add a Network button
     Then "POPULAR" tab is displayed on networks screen
@@ -33,11 +33,7 @@ Feature: Blockchain Networks
       | Network |
       | Palm    |
 
-  @Test2
   Scenario: Adding a network via the custom network flow
-    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
-    And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -58,11 +54,7 @@ Feature: Blockchain Networks
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
 
 
-  @Test3
   Scenario: I can remove a custom network that was added via the popular network flow
-    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
-    And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
     And I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -88,11 +80,7 @@ Feature: Blockchain Networks
       | Network  |
       | Optimism |
 
-  @Test4
   Scenario: I can remove a custom network that was added via the custom network flow
-    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
-    And I tap No Thanks on the Enable security check screen
-    And I tap No thanks on the onboarding welcome tutorial
     And I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
