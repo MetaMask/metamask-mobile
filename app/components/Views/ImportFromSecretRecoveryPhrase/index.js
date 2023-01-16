@@ -220,8 +220,8 @@ const ImportFromSecretRecoveryPhrase = ({
           setLoading(false);
         } else {
           setLoading(false);
-          setError(error.toString());
-          Logger.log('Error with seed phrase import', error);
+          setError(error.message);
+          Logger.log('Error with seed phrase import', error.message);
         }
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
