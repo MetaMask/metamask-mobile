@@ -28,9 +28,9 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
+import { scale } from 'react-native-size-matters';
 import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
