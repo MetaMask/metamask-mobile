@@ -179,7 +179,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
 
-  // On Ramp Aggregator
+  // On Ramp
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   ONRAMP_REGION_SELECTED = 'On-ramp Region Selected',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
@@ -194,11 +194,11 @@ enum EVENT_NAME {
   ONRAMP_PURCHASE_FAILED = 'On-ramp Purchase Failed',
   ONRAMP_PURCHASE_CANCELLED = 'On-ramp Purchase Cancelled',
   ONRAMP_PURCHASE_DETAILS_VIEWED = 'On-ramp Purchase Details Viewed',
-
-  // On Ramp
   ONRAMP_EXTERNAL_LINK_CLICKED = 'External Link Clicked',
   ONRAMP_QUOTE_ERROR = 'On-ramp Quote Error',
   ONRAMP_ERROR = 'On-ramp Error',
+  ONRAMP_SETTINGS_CLICKED = 'On-ramp Settings Clicked',
+  ONRAMP_REGION_RESET = 'On-ramp Region Reset',
 
   ACCOUNTS = 'Accounts',
   AUTH = 'Auth',
@@ -453,6 +453,8 @@ const events = {
   ),
   ONRAMP_QUOTE_ERROR: generateOpt(EVENT_NAME.ONRAMP_QUOTE_ERROR),
   ONRAMP_ERROR: generateOpt(EVENT_NAME.ONRAMP_ERROR),
+  ONRAMP_SETTINGS_CLICKED: generateOpt(EVENT_NAME.ONRAMP_SETTINGS_CLICKED),
+  ONRAMP_REGION_RESET: generateOpt(EVENT_NAME.ONRAMP_REGION_RESET),
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
   ),
