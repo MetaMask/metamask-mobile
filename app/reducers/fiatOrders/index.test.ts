@@ -1,10 +1,12 @@
 import fiatOrderReducer, {
   addFiatCustomIdData,
+  getProviderName,
   initialState,
   removeFiatCustomIdData,
   updateFiatCustomIdData,
 } from '.';
-import { CustomIdData, Action } from './types';
+import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
+import { CustomIdData, Action, FiatOrder } from './types';
 
 const dummyCustomOrderIdData1: CustomIdData = {
   id: '123',
@@ -144,5 +146,40 @@ describe('fiatOrderReducer', () => {
       dummyCustomOrderIdData1,
       dummyCustomOrderIdData3,
     ]);
+  });
+});
+
+describe('getProviderName', () => {
+  it.each`
+    provider                               | providerName
+    ${FIAT_ORDER_PROVIDERS.WYRE}           | ${'Wyre'}
+    ${FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY} | ${'Wyre'}
+    ${FIAT_ORDER_PROVIDERS.TRANSAK}        | ${'Transak'}
+    ${FIAT_ORDER_PROVIDERS.MOONPAY}        | ${'MoonPay'}
+    ${FIAT_ORDER_PROVIDERS.AGGREGATOR}     | ${'Test Provider'}
+  `('should return the correct provider name', ({ provider, providerName }) => {
+    const dummyData = {
+      provider: {
+        name: 'Test Provider',
+      },
+    } as Partial<FiatOrder['data']>;
+    expect(getProviderName(provider, dummyData as FiatOrder['data'])).toEqual(
+      providerName,
+    );
+  });
+
+  it('should return the correct provider name for unknown provider', () => {
+    expect(
+      getProviderName(
+        'unknown provider' as FIAT_ORDER_PROVIDERS,
+        {} as FiatOrder['data'],
+      ),
+    ).toEqual('unknown provider');
+  });
+
+  it('should return ... for missing aggregator provider', () => {
+    expect(
+      getProviderName(FIAT_ORDER_PROVIDERS.AGGREGATOR, {} as FiatOrder['data']),
+    ).toEqual('...');
   });
 });
