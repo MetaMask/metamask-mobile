@@ -30,6 +30,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
+import { scale } from 'react-native-size-matters';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -77,7 +78,7 @@ const createStyles = (colors) =>
     },
     skipText: {
       ...fontStyles.normal,
-      fontSize: 12,
+      fontSize: scale(10),
       color: colors.primary.default,
     },
   });
