@@ -62,13 +62,14 @@ const ContractBoxBase = ({
     <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
       <View style={styles.rowContainer}>
         <View style={styles.imageContainer}>
-          {contractLocalImage ? (
+          {contractLocalImage && (
             <Avatar
               variant={AvatarVariants.Token}
               size={AvatarSize.Md}
               imageSource={contractLocalImage}
             />
-          ) : tokenSymbol ? (
+          )}
+          {tokenSymbol ? (
             <Text variant={TextVariants.lBodyMDBold}>{tokenSymbol}</Text>
           ) : (
             <Identicon address={contractAddress} diameter={25} />

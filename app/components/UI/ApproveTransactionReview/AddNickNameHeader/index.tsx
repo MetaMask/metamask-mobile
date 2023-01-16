@@ -21,7 +21,6 @@ const Header = (props: HeaderProps) => {
     iconStyle,
   } = props;
 
-  const handlePress = () => closeModal();
   return (
     <View style={headerWrapperStyle}>
       <Text style={headerTextStyle}>
@@ -33,7 +32,7 @@ const Header = (props: HeaderProps) => {
         name={'close'}
         size={20}
         style={iconStyle}
-        onPress={handlePress}
+        onPress={() => closeModal()}
       />
     </View>
   );

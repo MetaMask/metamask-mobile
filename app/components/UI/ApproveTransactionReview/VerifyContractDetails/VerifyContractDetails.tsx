@@ -76,7 +76,7 @@ const VerifyContractDetails = ({
       <Text style={styles.description}>
         <Text variant={TextVariants.sBodyMD} style={styles.text}>
           {strings('confirmation.token_allowance.protect_from_scams')}
-        </Text>{' '}
+        </Text>
       </Text>
       <View>
         <Text variant={TextVariants.lBodySM} style={styles.title}>
@@ -90,7 +90,7 @@ const VerifyContractDetails = ({
             contractPetName={tokenNickname}
             onCopyAddress={() => copyAddress(tokenAddress)}
             onExportAddress={() => toggleBlockExplorer(tokenAddress)}
-            contractLocalImage={!tokenImage ? null : { uri: tokenImage }}
+            contractLocalImage={tokenImage && { uri: tokenImage }}
             tokenSymbol={tokenSymbolFirstLetter}
             hasBlockExplorer={Boolean(hasBlockExplorer)}
             onContractPress={() => showNickname(tokenAddress)}
