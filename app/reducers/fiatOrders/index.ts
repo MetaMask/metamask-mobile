@@ -36,7 +36,9 @@ export const setFiatOrdersRegionAGG = (region: Region | null) => ({
   type: ACTIONS.FIAT_SET_REGION_AGG,
   payload: region,
 });
-export const setFiatOrdersPaymentMethodAGG = (paymentMethodId: string) => ({
+export const setFiatOrdersPaymentMethodAGG = (
+  paymentMethodId: string | null,
+) => ({
   type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
   payload: paymentMethodId,
 });
@@ -260,6 +262,10 @@ const fiatOrderReducer: (
       const orders = state.orders;
       const order = action.payload;
       const index = findOrderIndex(order.provider, order.id, state.orders);
+      if (index === -1) {
+        return state;
+      }
+
       return {
         ...state,
         orders: [...orders.slice(0, index), ...orders.slice(index + 1)],
