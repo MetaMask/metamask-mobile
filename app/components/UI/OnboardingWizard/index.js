@@ -80,7 +80,7 @@ const createStyles = (colors) =>
     },
     skipText: {
       ...fontStyles.normal,
-      fontSize: 12,
+      fontSize: scale(10),
       color: colors.primary.default,
     },
   });

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentMethod from '../components/PaymentMethod';
 import { useFiatOnRampSDK } from '../sdk';
@@ -25,7 +25,6 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { createAmountToBuyNavDetails } from './AmountToBuy';
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 interface PaymenthMehodsParams {
@@ -210,7 +209,7 @@ const PaymentMethods = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout scrollable>
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>

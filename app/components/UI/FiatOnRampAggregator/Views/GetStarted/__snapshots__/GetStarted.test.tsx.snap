@@ -299,7 +299,7 @@ exports[`GetStarted renders correctly 1`] = `
                         }
                       }
                     >
-                      <View
+                      <RCTScrollView
                         style={
                           Array [
                             Object {
@@ -310,234 +310,236 @@ exports[`GetStarted renders correctly 1`] = `
                           ]
                         }
                       >
-                        <View
-                          style={
-                            Array [
-                              Object {
-                                "flex": 1,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <RCTScrollView
-                            contentContainerStyle={
-                              Object {
-                                "flexGrow": 1,
-                                "justifyContent": "center",
-                              }
-                            }
-                          >
-                            <View>
-                              <View
-                                style={
-                                  Array [
-                                    Object {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "center",
-                                    }
-                                  }
-                                >
-                                  <Image
-                                    source={
-                                      Object {
-                                        "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  Array [
-                                    Object {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      Object {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      Object {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontWeight": "600",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  Array [
-                                    Object {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      Object {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      Object {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontWeight": "600",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  Less gas fees to pay, and numerous networks, tokens, and payment methods supported
-                                </Text>
-                              </View>
-                            </View>
-                          </RCTScrollView>
-                        </View>
                         <View>
                           <View
                             style={
                               Array [
                                 Object {
-                                  "padding": 15,
+                                  "flex": 1,
                                 },
-                                undefined,
                                 undefined,
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              activeOpacity={0.2}
-                              onPress={[Function]}
-                              style={
-                                Array [
-                                  Array [
-                                    Object {
-                                      "borderRadius": 100,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    Object {
-                                      "backgroundColor": "#037DD6",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                            <RCTScrollView
+                              contentContainerStyle={
+                                Object {
+                                  "flexGrow": 1,
+                                  "justifyContent": "center",
+                                }
                               }
-                              testID="get-started-button"
                             >
-                              <Text
-                                style={
-                                  Array [
-                                    Object {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
+                              <View>
+                                <View
+                                  style={
                                     Array [
                                       Object {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      source={
+                                        Object {
+                                          "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    Array [
+                                      Object {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        Object {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontWeight": "600",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.
+                                  </Text>
+                                </View>
+                                <View
+                                  style={
+                                    Array [
+                                      Object {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        Object {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontWeight": "600",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    Less gas fees to pay, and numerous networks, tokens, and payment methods supported
+                                  </Text>
+                                </View>
+                              </View>
+                            </RCTScrollView>
+                          </View>
+                          <View>
+                            <View
+                              style={
+                                Array [
+                                  Object {
+                                    "padding": 15,
+                                  },
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                activeOpacity={0.2}
+                                onPress={[Function]}
+                                style={
+                                  Array [
+                                    Array [
+                                      Object {
+                                        "borderRadius": 100,
+                                        "justifyContent": "center",
+                                        "padding": 15,
                                       },
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "backgroundColor": "#037DD6",
+                                        "minHeight": 50,
                                       },
                                       undefined,
                                     ],
                                     null,
                                   ]
                                 }
+                                testID="get-started-button"
                               >
-                                Get started
-                              </Text>
-                            </TouchableOpacity>
+                                <Text
+                                  style={
+                                    Array [
+                                      Object {
+                                        "color": "#007aff",
+                                        "fontSize": 17,
+                                        "fontWeight": "500",
+                                        "textAlign": "center",
+                                      },
+                                      null,
+                                      Array [
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontSize": 14,
+                                          "fontWeight": "600",
+                                          "textAlign": "center",
+                                        },
+                                        Object {
+                                          "color": "#FCFCFC",
+                                        },
+                                        undefined,
+                                      ],
+                                      null,
+                                    ]
+                                  }
+                                >
+                                  Get started
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
-                      </View>
+                      </RCTScrollView>
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1263,7 +1265,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -1323,7 +1325,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },

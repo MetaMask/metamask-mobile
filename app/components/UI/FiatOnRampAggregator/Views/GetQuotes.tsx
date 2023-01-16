@@ -35,7 +35,7 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import InfoAlert from '../components/InfoAlert';
 import SkeletonText from '../components/SkeletonText';
 import Box from '../components/Box';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import BaseListItem from '../../../Base/ListItem';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -55,7 +55,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { createCheckoutNavDetails } from './Checkout';
 
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 
 interface GetQuotesParams {
