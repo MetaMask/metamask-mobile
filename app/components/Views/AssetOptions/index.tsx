@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -63,9 +64,7 @@ const AssetOptions = (props: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
-  const provider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const provider = useSelector(selectProviderConfig);
   const frequentRpcList = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,

@@ -4,7 +4,7 @@ import { EngineState } from './types';
 const selectNetworkControllerState = (state: EngineState) =>
   state?.engine?.backgroundState?.NetworkController;
 
-const selectProviderConfig = createSelector(
+export const selectProviderConfig = createSelector(
   selectNetworkControllerState,
   (networkControllerState) => networkControllerState?.provider,
 );
@@ -25,6 +25,10 @@ export const selectProviderType = createSelector(
 export const selectNickname = createSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig?.nickname,
+);
+export const selectRpcTarget = createSelector(
+  selectProviderConfig,
+  (providerConfig) => providerConfig.rpcTarget,
 );
 export const selectNetwork = createSelector(
   selectNetworkControllerState,

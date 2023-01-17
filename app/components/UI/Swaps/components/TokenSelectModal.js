@@ -44,7 +44,10 @@ import TokenImportModal from './TokenImportModal';
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -562,7 +565,7 @@ const mapStateToProps = (state) => ({
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   chainId: selectChainId(state),
-  provider: state.engine.backgroundState.NetworkController.provider,
+  provider: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
 });

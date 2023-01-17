@@ -73,6 +73,7 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1108,7 +1109,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  provider: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,

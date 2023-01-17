@@ -84,7 +84,10 @@ import {
   DRAWER_VIEW_SETTINGS_TEXT_ID,
   DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
-import { selectTicker } from '../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1504,7 +1507,7 @@ const mapStateToProps = (state) => ({
   currentRoute: getCurrentRoute(state),
   networkOnboarding: state.networkOnboarded.networkState,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
-  networkProvider: state.engine.backgroundState.NetworkController.provider,
+  networkProvider: selectProviderConfig(state),
   switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 

@@ -25,6 +25,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -421,7 +422,7 @@ class NetworksSettings extends PureComponent {
 NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  provider: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

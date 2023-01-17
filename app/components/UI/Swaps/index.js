@@ -69,7 +69,10 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -973,7 +976,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  provider: state.engine.backgroundState.NetworkController.provider,
+  provider: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   chainId: selectChainId(state),

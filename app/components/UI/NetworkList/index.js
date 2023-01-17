@@ -36,6 +36,7 @@ import {
 import ImageIcon from '../ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -430,7 +431,7 @@ export class NetworkList extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  provider: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

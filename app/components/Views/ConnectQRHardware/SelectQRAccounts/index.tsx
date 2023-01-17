@@ -20,6 +20,7 @@ import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 
 interface ISelectQRAccountsProps {
   canUnlock: boolean;
@@ -99,9 +100,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
   const { colors } = useTheme();
   const styles = createStyle(colors);
   const navigation = useNavigation();
-  const provider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const provider = useSelector(selectProviderConfig);
   const frequentRpcList = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
