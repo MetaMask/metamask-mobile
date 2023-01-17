@@ -222,17 +222,29 @@ class TransactionReview extends PureComponent {
     dappSuggestedGasWarning: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
-    gasError: PropTypes.string,
+    /**
+     * Transaction error
+     */
+    gasError: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     /**
      * Returns the selected gas type
      * @returns {string}
      */
     gasSelected: PropTypes.string,
+    /**
+     * gas object for calculating the gas transaction cost
+     */
     gasObject: PropTypes.object,
+    /**
+     * update gas transaction state to parent
+     */
     updateTransactionState: PropTypes.func,
     eip1559GasTransaction: PropTypes.object,
-    dappSuggestedEIP1559Gas: PropTypes.any,
-    dappSuggestedGasPrice: PropTypes.any,
+    /**
+     * dapp suggested fees
+     */
+    dappSuggestedEIP1559Gas: PropTypes.string,
+    dappSuggestedGasPrice: PropTypes.string,
   };
 
   state = {
@@ -454,6 +466,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedEIP1559Gas,
       gasError,
     } = this.props;
+
     const {
       actionKey,
       error,

@@ -200,7 +200,6 @@ class TransactionEditor extends PureComponent {
       this.setState(
         {
           ready: true,
-          stopUpdateGas: false,
           advancedGasInserted: Boolean(dappSuggestedGasPrice),
           gasSelected: dappSuggestedGasPrice ? null : gasSelected,
           gasSelectedTemp,
@@ -274,10 +273,7 @@ class TransactionEditor extends PureComponent {
     const gasEstimateTypeChanged =
       prevProps.gasEstimateType !== this.props.gasEstimateType;
 
-    if (
-      (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
-      gasEstimateTypeChanged
-    ) {
+    if (!this.state.advancedGasInserted || gasEstimateTypeChanged) {
       if (
         this.props.gasFeeEstimates &&
         transaction.gas &&
@@ -531,7 +527,6 @@ class TransactionEditor extends PureComponent {
 
   calculateTempGasFee = (selected) => {
     this.setState({
-      stopUpdateGas: !selected,
       gasSelectedTemp: selected,
       gasSelected: selected,
       advancedGasInserted: !selected,
@@ -540,7 +535,6 @@ class TransactionEditor extends PureComponent {
 
   calculateTempGasFeeLegacy = (selected) => {
     this.setState({
-      stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
   };
@@ -548,7 +542,6 @@ class TransactionEditor extends PureComponent {
   saveGasEdition = (eip1559GasTransaction, eip1559GasObject) => {
     this.setState(
       {
-        stopUpdateGas: false,
         dappSuggestedGasPrice: null,
         dappSuggestedEIP1559Gas: null,
         eip1559GasTransaction,
@@ -575,7 +568,6 @@ class TransactionEditor extends PureComponent {
 
     this.setState(
       {
-        stopUpdateGas: false,
         gasSelected,
         gasSelectedTemp: gasSelected,
         advancedGasInserted: !gasSelected,
@@ -590,7 +582,6 @@ class TransactionEditor extends PureComponent {
 
   cancelGasEdition = () => {
     this.setState({
-      stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
     });
     this.props.onModeChange?.('review');
