@@ -1,13 +1,8 @@
 import { createSelector } from 'reselect';
 import { EngineState } from './types';
 
-const selectBackgroundState = (state: EngineState) =>
-  state?.engine?.backgroundState;
-
-const selectNetworkControllerState = createSelector(
-  selectBackgroundState,
-  (backgroundState) => backgroundState?.NetworkController,
-);
+const selectNetworkControllerState = (state: EngineState) =>
+  state?.engine?.backgroundState?.NetworkController;
 
 const selectProviderConfig = createSelector(
   selectNetworkControllerState,
