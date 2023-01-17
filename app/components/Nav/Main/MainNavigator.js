@@ -61,6 +61,7 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
 import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
 import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
+import { QuizInfoModal, QuizQuestionModal } from '../../Views/QuizModal';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
@@ -570,6 +571,18 @@ const ConnectQRHardwareFlow = () => (
   </Stack.Navigator>
 );
 
+const SeedPhraseQuiz = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      gestureEnabled: false,
+    }}
+  >
+    <Stack.Screen name="QuizInfoModal" component={QuizInfoModal} />
+    <Stack.Screen name="QuizQuestionModal" component={QuizQuestionModal} />
+  </Stack.Navigator>
+);
+
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -627,6 +640,7 @@ const MainNavigator = () => (
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
     />
+    <Stack.Screen name="SeedPhraseQuiz" component={SeedPhraseQuiz} />
   </Stack.Navigator>
 );
 
