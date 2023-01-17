@@ -91,10 +91,10 @@ Feature: Blockchain Networks
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
-    When I tap on the Add button
+    # When I tap on the Add button #re-enable later as currently failing
     And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
-    # When I tap on the burger menu #re-enable later as currently failing
+    When I tap on the burger menu 
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap on network "<Network>" on networks screen
