@@ -52,7 +52,6 @@ Feature: Blockchain Networks
       | Network | rpcUrl                                | ChainID | Symbol |
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
 
-  @wip
   Scenario: I can remove a custom network that was added via the popular network flow
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
