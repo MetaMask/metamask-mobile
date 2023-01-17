@@ -373,7 +373,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -429,7 +429,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -1263,7 +1263,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -1323,7 +1323,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },

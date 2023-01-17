@@ -1929,7 +1929,7 @@
       "best_price": "best price",
       "from_the": "from the",
       "top_liquidity": "top liquidity sources every time.",
-      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better.",
+      "fee_is_applied": "The fee of {{fee}} is automatically factored into this quote. You pay it in exchange for a license to use MetaMask's liquidity provider information aggregation software.",
       "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
     "enable": {

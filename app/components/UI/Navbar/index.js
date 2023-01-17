@@ -18,6 +18,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -1438,7 +1439,7 @@ export function getFiatOnRampAggNavbar(
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
-      fontSize: 14,
+      fontSize: scale(11),
       ...fontStyles.normal,
     },
     headerStyle: {
@@ -1447,7 +1448,7 @@ export function getFiatOnRampAggNavbar(
       elevation: 0,
     },
     headerTitleStyle: {
-      fontSize: 20,
+      fontSize: 18,
       ...fontStyles.normal,
       color: themeColors.text.default,
       ...(!showBack && { textAlign: 'center' }),
@@ -1458,6 +1459,8 @@ export function getFiatOnRampAggNavbar(
   const leftActionText = strings('navigation.back');
 
   const leftAction = () => navigation.pop();
+
+  const navigationCancelText = strings('navigation.cancel');
 
   return {
     headerTitle: () => (
@@ -1488,9 +1491,7 @@ export function getFiatOnRampAggNavbar(
         }}
         style={styles.closeButton}
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
+        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
