@@ -369,8 +369,7 @@ class Settings extends PureComponent {
 
   storeCredentials = async (password, enabled, type) => {
     try {
-      //Undefined is being pass to reset the generic password
-      await Authentication.storePassword(undefined, undefined);
+      await Authentication.resetPassword();
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 

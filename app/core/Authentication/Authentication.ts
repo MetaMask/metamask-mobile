@@ -144,7 +144,7 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     // Restore vault with empty password
     await KeyringController.submitPassword('');
-    await SecureKeychain.resetGenericPassword();
+    await this.resetPassword();
   };
 
   /**
@@ -185,6 +185,18 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
+  };
+
+  resetPassword = async () => {
+    try {
+      await SecureKeychain.resetGenericPassword();
+    } catch (error) {
+      throw new AuthenticationError(
+        `resetPassword failed when calling SecureKeychain.resetGenericPassword with ${error}`,
+        'Authentication.resetPassword',
+        this.authData,
+      );
+    }
   };
 
   /**
@@ -342,12 +354,13 @@ class AuthenticationService {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
       const password = credentials?.password;
-      if (!password)
+      if (!password) {
         throw new AuthenticationError(
           'Password does not exist when calling SecureKeychain.getGenericPassword',
           'appTriggeredAuth failed to login',
           this.authData,
         );
+      }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
     } catch (e: any) {
@@ -366,7 +379,7 @@ class AuthenticationService {
    */
   lockApp = async (reset = true): Promise<void> => {
     const { KeyringController }: any = Engine.context;
-    if (reset) await SecureKeychain.resetGenericPassword();
+    if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }

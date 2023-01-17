@@ -329,7 +329,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        const currentVersion = getVersion();
+        const currentVersion = await getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
