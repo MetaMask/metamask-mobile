@@ -54,9 +54,6 @@ interface IRevealPrivateCredentialProps {
   navBarDisabled: boolean;
 }
 
-/**
- * View that displays private account information as private key or seed phrase
- */
 const RevealPrivateCredential = ({
   navigation,
   credentialName,
