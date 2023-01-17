@@ -4,7 +4,7 @@ import fiatOrderReducer, {
   removeFiatCustomIdData,
   updateFiatCustomIdData,
 } from '.';
-import { CustomIdData } from './types';
+import { CustomIdData, Action } from './types';
 
 const dummyCustomOrderIdData1: CustomIdData = {
   id: '123',
@@ -34,7 +34,7 @@ const dummyCustomOrderIdData3: CustomIdData = {
 
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
-    expect(fiatOrderReducer(undefined, {})).toEqual(initialState);
+    expect(fiatOrderReducer(undefined, {} as Action)).toEqual(initialState);
   });
 
   it('should add a custom order id object', () => {
@@ -95,7 +95,7 @@ describe('fiatOrderReducer', () => {
       updateFiatCustomIdData({
         ...updateFiatCustomIdData,
         id: 'does not exist',
-      }),
+      } as CustomIdData),
     );
 
     expect(stateWithCustomOrderId2updated.customOrderIds).toEqual([

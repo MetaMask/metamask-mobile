@@ -1,4 +1,4 @@
-@iosApp @androidApp
+@androidApp @ChainScenarios
 Feature: New wallet flow
 
    Scenario: Onboarding New walllet

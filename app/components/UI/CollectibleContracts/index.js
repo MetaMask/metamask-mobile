@@ -14,7 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
@@ -150,7 +150,7 @@ const CollectibleContracts = ({
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+      Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
   };
@@ -256,14 +256,16 @@ const CollectibleContracts = ({
 
   return (
     <View style={styles.wrapper} testID={'collectible-contracts'}>
-      {networkType === MAINNET && !nftDetectionDismissed && !useNftDetection && (
-        <View style={styles.emptyView}>
-          <CollectibleDetectionModal
-            onDismiss={dismissNftInfo}
-            navigation={navigation}
-          />
-        </View>
-      )}
+      {networkType === MAINNET &&
+        !nftDetectionDismissed &&
+        !useNftDetection && (
+          <View style={styles.emptyView}>
+            <CollectibleDetectionModal
+              onDismiss={dismissNftInfo}
+              navigation={navigation}
+            />
+          </View>
+        )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
       {renderFooter()}
     </View>

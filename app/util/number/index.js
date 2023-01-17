@@ -4,11 +4,12 @@
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
-import { util } from '@metamask/controllers';
+import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
+export { BNToHex, hexToBN };
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -39,15 +40,6 @@ const baseChange = {
   dec: (n) => new BigNumber(n).toString(10),
   BN: (n) => new BN(n.toString(16)),
 };
-/**
- * Converts a BN object to a hex string with a '0x' prefix
- *
- * @param {Object} value - BN instance to convert to a hex string
- * @returns {string} - '0x'-prefixed hex string
- */
-export function BNToHex(value) {
-  return util.BNToHex(value);
-}
 
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
@@ -322,16 +314,6 @@ export function renderFromWei(value, decimalsToShow = 5) {
  */
 export function calcTokenValueToSend(value, decimals) {
   return value ? (value * Math.pow(10, decimals)).toString(16) : 0;
-}
-
-/**
- * Converts a hex string to a BN object
- *
- * @param {string} value - Number represented as a hex string
- * @returns {Object} - A BN instance
- */
-export function hexToBN(value) {
-  return util.hexToBN(value);
 }
 
 /**

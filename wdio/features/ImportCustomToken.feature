@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @ChainScenarios
 Feature: Adding a custom token to your wallet
 
     Scenario: Import account

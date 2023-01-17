@@ -28,7 +28,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -254,11 +254,11 @@ function SwapsAmountView({
               chain_id: chainId,
             };
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               {},
             );
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               parameters,
               true,
             );

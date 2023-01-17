@@ -33,6 +33,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -43,10 +44,13 @@ import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
   PRIVATENETWORK,
+  RPC,
 } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
-import sanitizeUrl from '../../../../../util/sanitizeUrl';
+import sanitizeUrl, {
+  compareSanitizedUrl,
+} from '../../../../../util/sanitizeUrl';
 import {
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
@@ -54,6 +58,7 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
+import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
@@ -162,6 +167,9 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
       fontSize: 14,
     },
+    tabLabelStyle: {
+      fontSize: scale(11),
+    },
     popularNetworkImage: {
       width: 20,
       height: 20,
@@ -173,7 +181,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     icon: {
-      marginRight: 16,
+      marginRight: moderateScale(12, 1.5),
       marginTop: 4,
     },
     button: {
@@ -231,6 +239,10 @@ class NetworkSettings extends PureComponent {
      * Checks if adding custom mainnet.
      */
     isCustomMainnet: PropTypes.bool,
+    /**
+     * NetworkController povider object
+     */
+    provider: PropTypes.object,
   };
 
   state = {
@@ -547,7 +559,7 @@ class NetworkSettings extends PureComponent {
         symbol: ticker,
       };
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       this.props.showNetworkOnboardingAction({
@@ -752,10 +764,16 @@ class NetworkSettings extends PureComponent {
   };
 
   removeRpcUrl = () => {
-    const { navigation } = this.props;
-    this.switchToMainnet();
+    const { navigation, provider } = this.props;
+    const { rpcUrl } = this.state;
+    if (
+      compareSanitizedUrl(rpcUrl, provider.rpcTarget) &&
+      provider.type === RPC
+    ) {
+      this.switchToMainnet();
+    }
     const { PreferencesController } = Engine.context;
-    PreferencesController.removeFromFrequentRpcList(this.state.rpcUrl);
+    PreferencesController.removeFromFrequentRpcList(rpcUrl);
     navigation.goBack();
   };
 
@@ -1018,6 +1036,7 @@ class NetworkSettings extends PureComponent {
             this.customNetwork(network)
           ) : (
             <ScrollableTabView
+              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;
@@ -1089,6 +1108,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
+  provider: state.engine.backgroundState.NetworkController.provider,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
