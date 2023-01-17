@@ -260,14 +260,16 @@ const CollectibleContracts = ({
 
   return (
     <View style={styles.wrapper} testID={'collectible-contracts'}>
-      {networkType === MAINNET && !nftDetectionDismissed && !useNftDetection && (
-        <View style={styles.emptyView}>
-          <CollectibleDetectionModal
-            onDismiss={dismissNftInfo}
-            navigation={navigation}
-          />
-        </View>
-      )}
+      {networkType === MAINNET &&
+        !nftDetectionDismissed &&
+        !useNftDetection && (
+          <View style={styles.emptyView}>
+            <CollectibleDetectionModal
+              onDismiss={dismissNftInfo}
+              navigation={navigation}
+            />
+          </View>
+        )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
       {renderFooter()}
     </View>
