@@ -718,6 +718,7 @@ class TransactionEditor extends PureComponent {
                 eip1559GasTransaction={eip1559GasTransaction}
                 updateTransactionState={this.updateTransactionState}
                 gasError={this.state.gasError}
+                onlyGas
               />
               {/** View fixes layout issue after removing <CustomGas/> */}
               <View />
@@ -756,6 +757,7 @@ class TransactionEditor extends PureComponent {
                 gasEstimateType,
                 networkType,
               )}
+              onlyGas
             />
           ) : (
             <EditGasFeeLegacy
@@ -783,6 +785,7 @@ class TransactionEditor extends PureComponent {
                 networkType,
               )}
               selectedGasObject={selectedLegacyGasObject}
+              onlyGas
             />
           ))}
       </React.Fragment>

@@ -57,6 +57,7 @@ const EditGasFee1559 = ({
   onlyGas,
   dappSuggestedGasPrice,
   dappSuggestedEIP1559Gas,
+  transactionState,
 }: EditGasFee1559UpdateProps) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
@@ -92,6 +93,7 @@ const EditGasFee1559 = ({
     gasObject,
     dappSuggestedGasPrice,
     dappSuggestedEIP1559Gas,
+    transactionState,
   });
 
   const {

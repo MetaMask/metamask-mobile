@@ -533,6 +533,7 @@ class TransactionReview extends PureComponent {
                       gasObject={gasObject}
                       eip1559GasTransaction={eip1559GasTransaction}
                       multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                      onlyGas
                     />
                   </View>
                 </ScrollView>

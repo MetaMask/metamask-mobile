@@ -1255,7 +1255,7 @@ export const parseTransactionLegacy = (
     });
     const transferValue = renderFromTokenMinimalUnit(rawAmountString, decimals);
     const transactionValue = `${transferValue} ${symbol}`;
-    const exchangeRate = contractExchangeRates[address];
+    const exchangeRate = contractExchangeRates?.[address];
     const transactionFeeFiatNumber = weiToFiatNumber(
       weiTransactionFee,
       conversionRate,

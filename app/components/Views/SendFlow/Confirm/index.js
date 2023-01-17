@@ -898,7 +898,8 @@ class Confirm extends PureComponent {
   };
 
   renderCustomGasModalEIP1559 = () => {
-    const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
+    const { primaryCurrency, chainId, gasFeeEstimates, transactionState } =
+      this.props;
     const {
       gasSelected,
       isAnimating,
@@ -955,6 +956,7 @@ class Confirm extends PureComponent {
             analyticsParams={this.getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
             selectedGasObject={selectedGasObject}
+            transactionState={transactionState}
             onlyGas={false}
           />
         </KeyboardAwareScrollView>
@@ -1148,6 +1150,7 @@ class Confirm extends PureComponent {
       network,
       chainId,
       gasEstimateType,
+      transactionState,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1296,6 +1299,7 @@ class Confirm extends PureComponent {
             legacy={!showFeeMarket}
             onlyGas={false}
             multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+            transactionState={transactionState}
           />
           {showCustomNonce && (
             <CustomNonce

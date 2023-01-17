@@ -5,6 +5,7 @@ import { fromWei } from '../../util/number';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
+  getNormalizedTxState,
 } from '../../util/transactions';
 import {
   UseGasTransactionProps,
@@ -58,7 +59,7 @@ export const useDataStore = () => {
       state.engine.backgroundState.AccountTrackerController.accounts,
       state.engine.backgroundState.TokenBalancesController.contractBalances,
       state.engine.backgroundState.NetworkController.provider.ticker,
-      state.transaction,
+      getNormalizedTxState(state),
       state.transaction.selectedAsset,
       state.settings.showCustomNonce,
     ],
@@ -67,7 +68,7 @@ export const useDataStore = () => {
 
   return {
     gasFeeEstimates,
-    transactionState: transaction,
+    transaction,
     gasEstimateType,
     contractExchangeRates,
     conversionRate,
@@ -99,7 +100,8 @@ export const getEIP1559TransactionData = ({
     if (
       !gas ||
       !gasFeeEstimates ||
-      !transactionState ||
+      !contractExchangeRates ||
+      !conversionRate ||
       !currentCurrency ||
       !nativeCurrency
     ) {
@@ -174,13 +176,14 @@ export const useGasTransaction = ({
   multiLayerL1FeeTotal,
   dappSuggestedEIP1559Gas,
   dappSuggestedGasPrice,
+  transactionState,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
 
   const {
     gasFeeEstimates,
-    transactionState,
+    transaction,
     gasEstimateType,
     contractExchangeRates,
     conversionRate,
@@ -197,7 +200,7 @@ export const useGasTransaction = ({
 
   const {
     transaction: { gas: transactionGas },
-  } = transactionState;
+  } = transaction;
 
   let initialGas;
   if (dappSuggestedEIP1559Gas) {
@@ -217,10 +220,7 @@ export const useGasTransaction = ({
       suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
     };
   } else {
-    initialGas = {
-      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
-      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
-    };
+    initialGas = gasFeeEstimates[gasSelected];
   }
 
   const suggestedGasLimit =

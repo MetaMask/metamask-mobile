@@ -42,6 +42,7 @@ const TransactionReviewCard = ({
   totalConversion,
   totalNative,
   gasFeeNative,
+  transactionState,
 }: TransactionReviewCardProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -65,6 +66,7 @@ const TransactionReviewCard = ({
     multiLayerL1FeeTotal,
     dappSuggestedGasPrice,
     dappSuggestedEIP1559Gas,
+    transactionState,
   });
 
   const {
