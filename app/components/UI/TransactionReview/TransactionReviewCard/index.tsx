@@ -316,7 +316,7 @@ const TransactionReviewCard = ({
                               gasFeeNative,
                             )
                           : switchNativeCurrencyDisplayOptions(
-                              renderableGasFeeMinConversion,
+                              totalConversion,
                               renderableGasFeeMinNative,
                             )}
                       </Text>

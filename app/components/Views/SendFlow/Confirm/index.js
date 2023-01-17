@@ -965,8 +965,13 @@ class Confirm extends PureComponent {
   };
 
   renderCustomGasModalLegacy = () => {
-    const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } =
-      this.props;
+    const {
+      primaryCurrency,
+      transactionState,
+      chainId,
+      gasEstimateType,
+      gasFeeEstimates,
+    } = this.props;
     const { legacyGasObject, gasSelected, isAnimating, animateOnChange } =
       this.state;
 
@@ -1012,6 +1017,7 @@ class Confirm extends PureComponent {
             view={'SendTo (Confirm)'}
             onlyGas={false}
             selectedGasObject={selectedGasObject}
+            transactionState={transactionState}
           />
         </KeyboardAwareScrollView>
       </Modal>

@@ -56,6 +56,7 @@ const EditGasFeeLegacy = ({
   view,
   onlyGas,
   selectedGasObject,
+  transactionState,
 }: EditGasFeeLegacyUpdateProps) => {
   const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
@@ -79,6 +80,7 @@ const EditGasFeeLegacy = ({
     gasSelected: selectedOption,
     legacy: true,
     gasObject,
+    transactionState,
   });
 
   const getAnalyticsParams = useCallback(() => {

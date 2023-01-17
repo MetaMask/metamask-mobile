@@ -220,7 +220,10 @@ export const useGasTransaction = ({
       suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
     };
   } else {
-    initialGas = gasFeeEstimates[gasSelected];
+    initialGas = gasFeeEstimates[gasSelected] || {
+      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
+    };
   }
 
   const suggestedGasLimit =
