@@ -1,9 +1,10 @@
 # Changelog
 
+## Current Main Branch
+
 ## 5.13.0 - Jan 17, 2022
 - [#5381](https://github.com/MetaMask/metamask-mobile/pull/5381): [UPDATE] Bumped contract-metadata to 2.1.0
 - [#5424](https://github.com/MetaMask/metamask-mobile/pull/5424): [IMPROVEMENT] Add Screenshot Warning to ImportPrivateKey
-- [#5426](https://github.com/MetaMask/metamask-mobile/pull/5426): [FIX] Revert unwanted changes to .iyarc and project.pbxproj
 - [#4670](https://github.com/MetaMask/metamask-mobile/pull/4670): [FEAT] Screenshot Warning
 - [#5422](https://github.com/MetaMask/metamask-mobile/pull/5422): [UPDATE] Add custom network and Import custom token
 - [#5376](https://github.com/MetaMask/metamask-mobile/pull/5376): [IMPROVEMENT] Include L1 fee in the Send flow and on the tx detail page for Optimism
