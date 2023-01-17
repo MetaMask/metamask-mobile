@@ -4,6 +4,12 @@ import configureMockStore from 'redux-mock-store';
 import { RevealPrivateCredential } from './';
 import { Provider } from 'react-redux';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -36,6 +42,6 @@ describe('RevealPrivateCredential', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
