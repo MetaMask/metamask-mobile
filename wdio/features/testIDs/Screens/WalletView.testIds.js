@@ -6,6 +6,7 @@ export const HAMBURGER_MENU_BUTTON = 'hamburger-menu-button-wallet';
 export const SEND_BUTTON_ID = 'token-send-button';
 export const IMPORT_NFT_BUTTON_ID = 'import-collectible-button';
 export const IMPORT_TOKEN_BUTTON_ID = 'import-token-button';
+export const MAIN_WALLET_VIEW_VIA_TOKENS_ID = 'tokens';
 
 export const WALLET_ACCOUNT_ICON = 'wallet-account-identicon';
 export const WALLET_ACCOUNT_NAME_LABEL_TEXT = 'edit-account-label';
