@@ -84,6 +84,7 @@ class Engine {
    * Creates a CoreController instance
    */
   constructor(initialState = {}) {
+    /* console.log("INFURA KEY",  process.env.MM_INFURA_PROJECT_ID); */
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(

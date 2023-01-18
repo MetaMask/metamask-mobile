@@ -27,10 +27,6 @@ export interface AccountSelectorParams {
    * @param balance - The ticker balance of an account in wei and hex string format.
    */
   checkBalanceError?: UseAccountsParams['checkBalanceError'];
-  /**
-   * fromView: add description
-   */
-  fromView: string;
 }
 
 /**

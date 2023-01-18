@@ -224,11 +224,7 @@ class AccountOverview extends PureComponent {
   openAccountSelector = () => {
     const { onboardingWizard, navigation } = this.props;
     !onboardingWizard &&
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
-          fromView: Routes.WALLET.HOME,
-        }),
-      );
+      navigation.navigate(...createAccountSelectorNavDetails({}));
   };
 
   isAccountLabelDefined = (accountLabel) =>

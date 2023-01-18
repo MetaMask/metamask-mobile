@@ -18,6 +18,7 @@ import SheetBottom, {
 } from '../../../component-library/components/Sheet/SheetBottom';
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -90,6 +91,29 @@ const AccountConnect = (props: AccountConnectProps) => {
     [origin],
   );
 
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  /* const nonTestnetNetworks = useSelector( */
+  /*   (state: any) => */
+  /*     state.engine.backgroundState.PreferencesController.frequentRpcList */
+  /*       .length + 1, */
+  /* ); */
+
+  const permittedAccountsList = useSelector((state: any) => {
+    const permissionsControllerState =
+      state.engine.backgroundState.PermissionController;
+    const permittedAcc = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    return permittedAcc;
+  }, isEqual);
+
   /**
    * Get image url from favicon api.
    */
@@ -114,15 +138,16 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
-      // TODO: verify if the request was sucessfully cancelled, and then emit the event
+
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
-        totalAccounts: 1,
-        connectedAccounts: 1,
+        totalAccounts: accountsLength,
+        // TODO: cancelling a request should not send connected accounts properties
+        /* connectedAccounts: permittedAccountsList.length, */
         //TODO: this property will change name in the future
         source: 'permission system',
       });
     },
-    [Engine.context.PermissionController],
+    [Engine.context.PermissionController, accountsLength],
   );
 
   const handleConnect = useCallback(async () => {
@@ -151,8 +176,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         request,
       );
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
-        totalAccounts: 1,
-        connectedAccounts: 1,
+        totalAccounts: accountsLength,
+        connectedAccounts: permittedAccountsList.length,
         //TODO: this property will change name in the future
         source: 'permission system',
       });
@@ -192,6 +217,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
+    accountsLength,
+    permittedAccountsList.length,
   ]);
 
   const handleCreateAccount = useCallback(

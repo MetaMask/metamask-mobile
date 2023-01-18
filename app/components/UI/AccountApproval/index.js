@@ -116,15 +116,21 @@ class AccountApproval extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, chainId, selectedAddress } = this.props;
+      const {
+        currentPageInformation,
+        chainId,
+        selectedAddress,
+        accountsLength,
+      } = this.props;
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
+        totalAccounts: accountsLength,
         //TODO: this property will change name in the future
-        source: 'mm sdk / wc',
+        source: 'SDK or WalletConnect',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {

@@ -60,6 +60,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const nonTestnetNetworks = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList
+        .length + 1,
+  );
+
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
@@ -108,6 +122,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     (callback?: () => void) => sheetRef?.current?.hide?.(callback),
     [sheetRef],
   );
+  const metricsSource = 'Browser Tab/Permission UI';
 
   // Checks if anymore accounts are connected to the dapp. Auto dismiss sheet if none are connected.
   useEffect(() => {
@@ -164,16 +179,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        //TODO: should we keep both events?
-        AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
-          totalAccounts: 1,
-          connectedAccounts: 1,
-          totalMainnetNetworks: 1,
-        });
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
           {},
         );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+          source: metricsSource,
+          number_of_accounts: accounts?.length,
+        });
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
       } finally {
@@ -219,6 +232,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accountAddress: newActiveAddress,
         accountAvatarType,
       });
+      const totalAccounts = accountsLength;
+      // TODO: confirm this value is the newly added accounts or total connected accounts
+      const connectedAccounts = connectedAccountLength;
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
+        totalAccounts,
+        connectedAccounts,
+        totalMainnetNetworks: nonTestnetNetworks,
+      });
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {
@@ -232,6 +253,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ensByAccountAddress,
     toastRef,
     accountAvatarType,
+    accountsLength,
+    nonTestnetNetworks,
   ]);
 
   useEffect(() => {
@@ -241,7 +264,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
-          hideSheet();
+          hideSheet(() => {
+            AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+              source: metricsSource,
+              number_of_accounts: accounts?.length,
+            });
+          });
           break;
         }
         case USER_INTENT.Create:
@@ -283,6 +311,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hideSheet,
     handleCreateAccount,
     handleConnect,
+    accounts?.length,
   ]);
 
   const renderConnectedScreen = useCallback(

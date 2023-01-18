@@ -23,7 +23,6 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
@@ -579,7 +578,11 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(route, themeColors) {
+export function getBrowserViewNavbarOptions(
+  route,
+  themeColors,
+  rightButtonAnalyticsEvent,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -597,13 +600,8 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
 
   const handleUrlPress = () => route.params?.showUrlModal?.();
 
-  const handleAccountRightButtonPress = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
-      activeConnectedDapp: false,
-      totalAccounts: 1,
-      connectedAccounts: 1,
-      mainnetNetworksAmount: 0,
-    });
+  const handleAccountRightButtonPress = (permittedAccounts, currentUrl) => {
+    rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
     route.params?.setAccountsPermissionsVisible();
   };
 

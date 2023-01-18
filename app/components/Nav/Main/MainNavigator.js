@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
+import { NetworksChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -62,6 +64,9 @@ import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getActiveTabUrl } from 'app/util/transactions';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { isEqual } from 'lodash';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -196,13 +201,45 @@ const HomeTabs = () => {
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
+  const accountsLength = useSelector(
+    (state) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const chainId = useSelector((state) => {
+    const provider = state.engine.backgroundState.NetworkController.provider;
+    return NetworksChainId[provider.type];
+  });
+
+  const amountOfBrowserOpenTabs = useSelector(
+    (state) => state.browser.tabs.length,
+  );
+
+  /* tabs: state.browser.tabs, */
+  /* activeTab: state.browser.activeTab, */
+  const activeConnectedDapp = useSelector((state) => {
+    const activeTabUrl = getActiveTabUrl(state);
+
+    const permissionsControllerState =
+      state.engine.backgroundState.PermissionController;
+    const hostname = new URL(activeTabUrl).hostname;
+    const permittedAcc = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    return permittedAcc;
+  }, isEqual);
+  const connectedAccounts = 1;
+
   const options = {
     home: {
       tabBarLabel: 'Wallet',
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
-          totalAccounts: 1,
-          chain_id: 1,
+          totalAccounts: accountsLength,
+          chain_id: chainId,
         });
       },
     },
@@ -210,12 +247,13 @@ const HomeTabs = () => {
       tabBarLabel: 'Browser',
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-          totalAccounts: 1,
-          chain_id: 1,
+          totalAccounts: accountsLength,
+          chain_id: chainId,
+          // TODO: Add an event when coming from a deeplink & it lands on the browser
           source: 'Navigation Tab',
-          connectedAccounts: 1,
-          activeConnectedDapp: false,
-          numOpenTabs: 1,
+          connectedAccounts,
+          activeConnectedDapp,
+          numOpenTabs: amountOfBrowserOpenTabs,
         });
       },
     },

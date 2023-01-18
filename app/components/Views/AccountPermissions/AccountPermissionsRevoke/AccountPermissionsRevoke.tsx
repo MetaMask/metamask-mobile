@@ -32,6 +32,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
+import { useSelector } from 'react-redux';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -48,6 +49,23 @@ const AccountPermissionsRevoke = ({
   const { styles } = useStyles(styleSheet, {});
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
+
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const nonTestnetNetworks = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList
+        .length + 1,
+  );
+
+  const totalAccounts = accountsLength;
+  const connectedAccounts = permittedAddresses.length;
+  const totalMainnetNetworks = nonTestnetNetworks;
 
   const revokeAllAccounts = useCallback(
     async () => {
@@ -149,6 +167,14 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                   });
                 }
+                AnalyticsV2.trackEvent(
+                  MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+                  {
+                    totalAccounts,
+                    connectedAccounts,
+                    totalMainnetNetworks,
+                  },
+                );
               }
             }}
             label={strings('accounts.revoke')}
