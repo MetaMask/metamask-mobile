@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Text,
   InteractionManager,
-  Platform
+  Platform,
 } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';

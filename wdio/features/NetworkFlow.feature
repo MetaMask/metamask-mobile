@@ -76,7 +76,6 @@ Feature: Blockchain Networks
       | Network  |
       | Optimism |
 
-@wip
   Scenario: I can remove a custom network that was added via the custom network flow
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
@@ -89,6 +88,7 @@ Feature: Blockchain Networks
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
+    When I tap on the Add button
     And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the burger menu 

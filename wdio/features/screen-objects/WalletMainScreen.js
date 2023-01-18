@@ -94,7 +94,7 @@ class WalletMainScreen {
   }
 
   async tapNFTTab(){
-    await Gestures.tapTextByXpath("NFTs");
+    await Gestures.tapTextByXpath('NFTs');
   }
   async tapIdenticon(){
     await Gestures.tap(this.Identicon);
