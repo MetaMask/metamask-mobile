@@ -1,10 +1,10 @@
-@androidApp 
+@androidApp @regression
 Feature: Blockchain Networks
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
   A user should be able to add a custom network via a Dapp.
   Background: Import wallet
- Given I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
 
@@ -91,7 +91,7 @@ Feature: Blockchain Networks
     When I tap on the Add button
     And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
-    When I tap on the burger menu 
+    When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap on network "<Network>" on networks screen

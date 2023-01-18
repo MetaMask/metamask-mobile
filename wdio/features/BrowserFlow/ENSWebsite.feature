@@ -1,8 +1,8 @@
-@androidApp
+@androidApp @regression
 Feature: This feature file covers ENS website in browser.
 
   Scenario: ENS website loads correctly
-  Navigate to ENS website using browser address bar.
+    Navigate to ENS website using browser address bar.
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial

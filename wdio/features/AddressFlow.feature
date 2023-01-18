@@ -1,4 +1,4 @@
-@androidApp @ChainScenarios
+@androidApp @ChainScenarios @regression
 Feature: Address
   You can saved an ENS name to your address book
   The contacts you saved on network A does not carry over to network B

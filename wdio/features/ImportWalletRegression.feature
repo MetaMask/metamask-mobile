@@ -1,4 +1,4 @@
-@iosApp @androidApp @ChainScenarios
+@iosApp @androidApp @ChainScenarios @regression
 Feature: Import Wallet Regression
     Users can use the app to import an existing wallet or create a new one.
 
