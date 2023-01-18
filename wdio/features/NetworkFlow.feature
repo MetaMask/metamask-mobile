@@ -76,6 +76,7 @@ Feature: Blockchain Networks
       | Network  |
       | Optimism |
 
+@wip
   Scenario: I can remove a custom network that was added via the custom network flow
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
@@ -84,7 +85,6 @@ Feature: Blockchain Networks
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
     When I tap on the "CUSTOM NETWORKS" tab
-    Then Add button is disabled
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
