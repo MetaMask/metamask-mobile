@@ -326,6 +326,15 @@ class DeeplinkManager {
             params?.autosign,
             origin,
           );
+        } else if (
+          urlObj.href.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DAPP}`)
+        ) {
+          const newUrl = urlObj.href.replace(
+            `${PREFIXES.METAMASK}${ACTIONS.DAPP}/`,
+            PREFIXES[ACTIONS.DAPP],
+          );
+
+          this.parse(newUrl, { browserCallBack });
         }
 
         break;
