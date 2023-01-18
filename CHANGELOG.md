@@ -1,6 +1,59 @@
 # Changelog
 
 ## Current Main Branch
+- [#5431](https://github.com/MetaMask/metamask-mobile/pull/5431): 5.13.0
+- [#5535](https://github.com/MetaMask/metamask-mobile/pull/5535): Add content for "Add friction to revealing SRP"
+- [#5538](https://github.com/MetaMask/metamask-mobile/pull/5538): E2e appium test failure fix
+- [#5537](https://github.com/MetaMask/metamask-mobile/pull/5537): On-ramp: Update snapshots
+- [#5444](https://github.com/MetaMask/metamask-mobile/pull/5444): Fix unecessary executions of useEffect
+- [#5506](https://github.com/MetaMask/metamask-mobile/pull/5506): On-ramp: Add NavBar tests to GetStarted and Regions Views
+- [#5495](https://github.com/MetaMask/metamask-mobile/pull/5495): chore: copy update for metamask fee on swaps
+- [#5525](https://github.com/MetaMask/metamask-mobile/pull/5525): On-ramp: add fiatOrders reducer tests
+- [#5521](https://github.com/MetaMask/metamask-mobile/pull/5521): On-ramp: Remove unused state and fix initial state
+- [#5487](https://github.com/MetaMask/metamask-mobile/pull/5487): On-ramp: Use themeAppearance
+- [#5530](https://github.com/MetaMask/metamask-mobile/pull/5530): [IMPROVEMENT] Refactor RevealPrivateCredential View
+- [#5526](https://github.com/MetaMask/metamask-mobile/pull/5526): On-ramp: Add on-ramp utils tests
+- [#5531](https://github.com/MetaMask/metamask-mobile/pull/5531): Refactor SeedPhraseVideo to mount player after transition
+- [#5522](https://github.com/MetaMask/metamask-mobile/pull/5522): On-ramp: Remove scrollable prop from views and update snapshots
+- [#5524](https://github.com/MetaMask/metamask-mobile/pull/5524): On-ramp: Add order processor tests
+- [#4881](https://github.com/MetaMask/metamask-mobile/pull/4881): Translation - release-5.7-snapshot
+- [#5512](https://github.com/MetaMask/metamask-mobile/pull/5512): Remove redundant browser feature file
+- [#5511](https://github.com/MetaMask/metamask-mobile/pull/5511): On-ramp: Rename applePay hook to useApplePay
+- [#5499](https://github.com/MetaMask/metamask-mobile/pull/5499): Remove duplicate property
+- [#5496](https://github.com/MetaMask/metamask-mobile/pull/5496): [REVERT] Onramp - Remove Text as any ocurrences
+- [#5474](https://github.com/MetaMask/metamask-mobile/pull/5474): [IMPROVEMENT] Screenshot deterrent alert
+- [#5489](https://github.com/MetaMask/metamask-mobile/pull/5489): Renaming Step files to include ".steps"
+- [#5460](https://github.com/MetaMask/metamask-mobile/pull/5460): E2e test/browser flow
+- [#5488](https://github.com/MetaMask/metamask-mobile/pull/5488): Add Browserstack step to Bitrise
+- [#5486](https://github.com/MetaMask/metamask-mobile/pull/5486): Add providerValues to renderScreen
+- [#5484](https://github.com/MetaMask/metamask-mobile/pull/5484): Final Commit
+- [#5483](https://github.com/MetaMask/metamask-mobile/pull/5483): Add renderScreen test util
+- [#5476](https://github.com/MetaMask/metamask-mobile/pull/5476): README.md: update "Install the Android NDK"
+- [#5479](https://github.com/MetaMask/metamask-mobile/pull/5479): Mount SeedPhraseVideo Video Player after transition
+- [#5475](https://github.com/MetaMask/metamask-mobile/pull/5475): Fix import of `isEIP1559Transaction`
+- [#5473](https://github.com/MetaMask/metamask-mobile/pull/5473): On-ramp: upgrade on-ramp-sdk to v1.6.1
+- [#5465](https://github.com/MetaMask/metamask-mobile/pull/5465): [strings] vault corruption recovery strings
+- [#5433](https://github.com/MetaMask/metamask-mobile/pull/5433): Add WebdriverIO test reports and Browserstack Integration
+- [#5270](https://github.com/MetaMask/metamask-mobile/pull/5270): Migrate to new controller packages
+- [#5470](https://github.com/MetaMask/metamask-mobile/pull/5470): Add revoke copy to translations
+- [#5449](https://github.com/MetaMask/metamask-mobile/pull/5449): [IMPROVEMENT] Remove deeplink warning for SDK and SDK as dependency
+- [#5455](https://github.com/MetaMask/metamask-mobile/pull/5455): On-Ramp: Settings and Activation Keys
+- [#5468](https://github.com/MetaMask/metamask-mobile/pull/5468): [FIX] Screenshot deterrent analytics
+- [#5462](https://github.com/MetaMask/metamask-mobile/pull/5462): On-ramp: Remove unused constants
+- [#5413](https://github.com/MetaMask/metamask-mobile/pull/5413): On-ramp: Refactor Regions view to componentization
+- [#5440](https://github.com/MetaMask/metamask-mobile/pull/5440): Approval error when insufficient balance
+- [#5459](https://github.com/MetaMask/metamask-mobile/pull/5459): remove extra zero balance account potentially created from seeking ahead
+- [#5454](https://github.com/MetaMask/metamask-mobile/pull/5454): [IMPROVEMENT] Refactor Analytics Events
+- [#5453](https://github.com/MetaMask/metamask-mobile/pull/5453): [IMPROVEMENT] Use "ModalConfirmation" component for the QR Reader security alert
+- [#5447](https://github.com/MetaMask/metamask-mobile/pull/5447): [IMPROVEMENT] Refactor "Screenshot Deterrent" for Android
+- [#5436](https://github.com/MetaMask/metamask-mobile/pull/5436): On-ramp: Refactor fiatOrders reducer to TypeScript
+- [#5451](https://github.com/MetaMask/metamask-mobile/pull/5451): [IMPROVEMENT] Add translations to "Screenshot Deterrent" feature
+- [#5452](https://github.com/MetaMask/metamask-mobile/pull/5452): Update CHANGELOG
+- [#5428](https://github.com/MetaMask/metamask-mobile/pull/5428): Add accessibilityRole button to StyledButton
+- [#5437](https://github.com/MetaMask/metamask-mobile/pull/5437): On-ramp: Move useSDKMethod to its own file
+- [#5448](https://github.com/MetaMask/metamask-mobile/pull/5448): [IMPROVEMENT] Add translations to "Safe QR" feature
+- [#5219](https://github.com/MetaMask/metamask-mobile/pull/5219): [FIX] Update selected network when delete network manually inserted
+- [#5430](https://github.com/MetaMask/metamask-mobile/pull/5430): Remove Text as any occurrences
 
 ## 5.13.0 - Jan 17, 2022
 - [#5381](https://github.com/MetaMask/metamask-mobile/pull/5381): [UPDATE] Bumped contract-metadata to 2.1.0
