@@ -141,7 +141,7 @@ exports[`Regions View renders correctly 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -219,7 +219,7 @@ exports[`Regions View renders correctly 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -2473,7 +2473,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -2551,7 +2551,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -3065,7 +3065,7 @@ exports[`Regions View renders correctly with error 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -3143,7 +3143,7 @@ exports[`Regions View renders correctly with error 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -3731,7 +3731,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -3809,7 +3809,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -4323,7 +4323,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -4401,7 +4401,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -4989,7 +4989,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -5067,7 +5067,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -7319,7 +7319,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -7397,7 +7397,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -9645,7 +9645,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -9721,7 +9721,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }

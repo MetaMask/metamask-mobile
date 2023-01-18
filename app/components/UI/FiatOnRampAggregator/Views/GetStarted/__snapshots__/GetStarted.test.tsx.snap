@@ -141,7 +141,7 @@ exports[`GetStarted renders correctly 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -219,7 +219,7 @@ exports[`GetStarted renders correctly 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -794,7 +794,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -872,7 +872,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
@@ -1220,7 +1220,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     Object {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 18,
+                      "fontSize": 30,
                       "fontWeight": "400",
                     }
                   }
@@ -1298,7 +1298,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     Object {
                       "color": "#037DD6",
                       "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
                   }
