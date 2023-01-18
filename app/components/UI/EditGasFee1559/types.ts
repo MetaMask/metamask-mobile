@@ -1,4 +1,7 @@
-import { GasFeeOptions } from '../../../core/GasPolling/types';
+import {
+  GasFeeOptions,
+  TransactionStateProps,
+} from '../../../core/GasPolling/types';
 
 export interface RenderInputProps {
   updateOption:
@@ -10,7 +13,7 @@ export interface RenderInputProps {
       }
     | undefined;
 }
-export interface EditGasFee1559UpdateProps {
+export interface EditGasFee1559Props {
   /**
    * The selected gas value (low, medium, high)
    */
@@ -104,6 +107,10 @@ export interface EditGasFee1559UpdateProps {
     suggestedGasLimit: string;
   };
   onlyGas?: boolean;
-  dappSuggestedGasPrice?: any;
-  dappSuggestedEIP1559Gas?: any;
+  dappSuggestedEIP1559Gas?: {
+    maxFeePerGas: string;
+    maxPriorityFeePerGas: string;
+  };
+  dappSuggestedGasPrice?: string;
+  transactionState?: TransactionStateProps;
 }

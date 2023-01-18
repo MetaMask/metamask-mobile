@@ -191,6 +191,6 @@ describe('GetEIP1559TransactionData', () => {
 describe('useDataStore', () => {
   it('should return the data store', () => {
     const result = useDataStore();
-    expect(result.conversionRate).toEqual(1);
+    expect(result.currentCurrency).toEqual(1);
   });
 });

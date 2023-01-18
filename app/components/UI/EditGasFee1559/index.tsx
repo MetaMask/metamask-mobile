@@ -26,7 +26,7 @@ import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import createStyles from './styles';
-import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
+import { EditGasFee1559Props, RenderInputProps } from './types';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -58,7 +58,7 @@ const EditGasFee1559 = ({
   dappSuggestedGasPrice,
   dappSuggestedEIP1559Gas,
   transactionState,
-}: EditGasFee1559UpdateProps) => {
+}: EditGasFee1559Props) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
     value: '',

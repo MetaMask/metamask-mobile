@@ -139,9 +139,9 @@ class TransactionEditor extends PureComponent {
     eip1559GasObject: {},
     legacyGasObject: {},
     dappSuggestedGasPrice: '',
-    dappSuggestedEIP1559Gas: '',
+    dappSuggestedEIP1559Gas: {},
     legacyGasTransaction: {},
-    gasError: undefined,
+    gasError: null,
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {

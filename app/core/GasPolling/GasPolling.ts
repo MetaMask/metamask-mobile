@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import Engine from '../Engine';
 import { fromWei } from '../../util/number';
@@ -7,11 +6,8 @@ import {
   parseTransactionLegacy,
   getNormalizedTxState,
 } from '../../util/transactions';
-import {
-  UseGasTransactionProps,
-  GetEIP1559TransactionDataProps,
-  LegacyProps,
-} from './types';
+import { UseGasTransactionProps, EIP1559Props, LegacyProps } from './types';
+import Logger from '../../util/Logger';
 
 /**
  *
@@ -37,7 +33,6 @@ export const stopGasPolling = () => {
 export const useDataStore = () => {
   const [
     gasFeeEstimates,
-    gasEstimateType,
     contractExchangeRates,
     conversionRate,
     currentCurrency,
@@ -51,7 +46,6 @@ export const useDataStore = () => {
   ] = useSelector(
     (state: any) => [
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
       state.engine.backgroundState.TokenRatesController.contractExchangeRates,
       state.engine.backgroundState.CurrencyRateController.conversionRate,
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -69,7 +63,6 @@ export const useDataStore = () => {
   return {
     gasFeeEstimates,
     transaction,
-    gasEstimateType,
     contractExchangeRates,
     conversionRate,
     currentCurrency,
@@ -83,7 +76,7 @@ export const useDataStore = () => {
 };
 
 /**
- * @param {GetEIP1559TransactionDataProps} props
+ * @param {EIP1559Props} props
  * @returns parsed transaction data for EIP1559 transactions.
  */
 export const getEIP1559TransactionData = ({
@@ -95,7 +88,7 @@ export const getEIP1559TransactionData = ({
   currentCurrency,
   nativeCurrency,
   onlyGas,
-}: GetEIP1559TransactionDataProps) => {
+}: EIP1559Props) => {
   try {
     if (
       !gas ||
@@ -105,7 +98,7 @@ export const getEIP1559TransactionData = ({
       !currentCurrency ||
       !nativeCurrency
     ) {
-      return 'Incomplete data for EIP1559 transaction';
+      throw new Error('Insufficient data for transaction');
     }
 
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
@@ -127,7 +120,7 @@ export const getEIP1559TransactionData = ({
 
     return parsedTransactionEIP1559;
   } catch (error) {
-    return 'Error parsing transaction data';
+    Logger.error(error as Error, 'Unable to parse transaction data');
   }
 };
 
@@ -146,22 +139,26 @@ export const getLegacyTransactionData = ({
   onlyGas,
   multiLayerL1FeeTotal,
 }: LegacyProps) => {
-  const parsedTransationData = parseTransactionLegacy(
-    {
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      transactionState,
-      ticker,
-      selectedGasFee: {
-        ...gas,
+  try {
+    const parsedTransationData = parseTransactionLegacy(
+      {
+        contractExchangeRates,
+        conversionRate,
+        currentCurrency,
+        transactionState,
+        ticker,
+        selectedGasFee: {
+          ...gas,
+        },
+        multiLayerL1FeeTotal,
       },
-      multiLayerL1FeeTotal,
-    },
-    { onlyGas },
-  );
+      { onlyGas },
+    );
 
-  return parsedTransationData;
+    return parsedTransationData;
+  } catch (error) {
+    Logger.error(error as Error, 'Unable to parse transaction data');
+  }
 };
 
 /**
@@ -178,25 +175,15 @@ export const useGasTransaction = ({
   dappSuggestedGasPrice,
   transactionState,
 }: UseGasTransactionProps) => {
-  const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
-    useState<string>('');
-
   const {
     gasFeeEstimates,
     transaction,
-    gasEstimateType,
     contractExchangeRates,
     conversionRate,
     currentCurrency,
     nativeCurrency,
     ticker,
   } = useDataStore();
-
-  useEffect(() => {
-    if (gasEstimateType !== gasEstimateTypeChange) {
-      updateGasEstimateTypeChange(gasEstimateType);
-    }
-  }, [gasEstimateType, gasEstimateTypeChange]);
 
   const {
     transaction: { gas: transactionGas },
@@ -220,7 +207,7 @@ export const useGasTransaction = ({
       suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
     };
   } else {
-    initialGas = gasFeeEstimates[gasSelected] || {
+    initialGas = gasFeeEstimates[gasSelected ?? ''] || {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
     };
@@ -229,14 +216,17 @@ export const useGasTransaction = ({
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
+  const legacyGasLimit = gasObject?.legacyGasLimit || suggestedGasLimit;
+  const legacyGasPrice =
+    gasFeeEstimates[gasSelected ?? ''] ||
+    gasObject?.suggestedGasPrice ||
+    gasFeeEstimates?.gasPrice;
+
   if (legacy) {
     return getLegacyTransactionData({
       gas: {
-        suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
-        suggestedGasPrice:
-          gasFeeEstimates[gasSelected] ||
-          gasObject?.suggestedGasPrice ||
-          gasFeeEstimates?.gasPrice,
+        suggestedGasLimit: legacyGasLimit,
+        suggestedGasPrice: legacyGasPrice,
       },
       contractExchangeRates,
       conversionRate,
@@ -245,6 +235,7 @@ export const useGasTransaction = ({
       ticker,
       onlyGas,
       multiLayerL1FeeTotal,
+      nativeCurrency,
     });
   }
 

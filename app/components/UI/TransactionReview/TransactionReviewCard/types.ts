@@ -1,3 +1,4 @@
+import { TransactionStateProps } from '../../../../core/GasPolling/types';
 export interface TransactionReviewCardProps {
   /**
    * Selected primary currency
@@ -77,6 +78,7 @@ export interface TransactionReviewCardProps {
   totalConversion?: string;
   totalNative?: string;
   gasFeeNative?: string;
+  transactionState?: TransactionStateProps;
 }
 
 export interface SkeletonProps {
