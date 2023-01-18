@@ -116,8 +116,16 @@ export default NetworkList;
 export const getAllNetworks = () =>
   NetworkListKeys.filter((name) => name !== RPC);
 
+/**
+ * Checks if network is default mainnet.
+ *
+ * @param {string} networkType - Type of network.
+ * @returns If the network is default mainnet.
+ */
+export const isDefaultMainnet = (networkType) => networkType === MAINNET;
+
 export const isMainNet = (network) =>
-  network?.provider?.type === MAINNET || network === String(1);
+  isDefaultMainnet(network?.provider?.type) || network === String(1);
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
@@ -323,14 +331,17 @@ export const getNetworkNameFromProvider = (provider) => {
 };
 
 /**
- * Gets the image source given the chain ID.
+ * Gets the image source given both the network type and the chain ID.
  *
- * @param {string} chainId - ChainID of the network.
+ * @param {object} params - Params that contains information about the network.
+ * @param {string} params.networkType - Type of network from the provider.
+ * @param {string} params.chainId - ChainID of the network.
  * @returns {Object} - Image source of the network.
  */
-export const getNetworkImageSource = (chainId) => {
+export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
-  if (defaultNetwork) {
+  const isDefaultEthMainnet = isDefaultMainnet(networkType);
+  if (defaultNetwork && isDefaultEthMainnet) {
     return defaultNetwork.imageSource;
   }
   const popularNetwork = PopularList.find(

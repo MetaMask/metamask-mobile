@@ -147,8 +147,12 @@ const Wallet = ({ navigation }: any) => {
   );
 
   const networkImageSource = useMemo(
-    () => getNetworkImageSource(networkProvider.chainId),
-    [networkProvider.chainId],
+    () =>
+      getNetworkImageSource({
+        networkType: networkProvider.type,
+        chainId: networkProvider.chainId,
+      }),
+    [networkProvider],
   );
 
   /**

@@ -157,7 +157,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
             {ticker === undefined ? (
               <>
                 <View style={styles.unknownWrapper}>
-                  <Text style={styles.unknownText}>?</Text>
+                  <Text style={styles.unknownText}>{nickname?.[0] || '?'}</Text>
                 </View>
                 <Text style={styles.tokenText}>
                   {`${nickname}` ||

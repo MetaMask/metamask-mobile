@@ -28,7 +28,7 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
-import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 
 import { Colors } from '../../../../util/theme/models';
@@ -80,9 +80,8 @@ const Quote: React.FC<Props> = ({
   isLoading,
   highlighted,
 }: Props) => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
   const {
     networkFee = 0,
     providerFee = 0,
@@ -139,13 +138,13 @@ const Quote: React.FC<Props> = ({
               accessibilityLabel={quote.provider?.name}
             >
               <View style={styles.title}>
-                {quote.provider?.logos?.[logoKey] ? (
+                {quote.provider?.logos?.[themeAppearance] ? (
                   <RemoteImage
                     style={{
                       width: quote.provider.logos.width,
                       height: quote.provider.logos.height,
                     }}
-                    source={{ uri: quote.provider?.logos?.[logoKey] }}
+                    source={{ uri: quote.provider?.logos?.[themeAppearance] }}
                   />
                 ) : (
                   <Title>{quote?.provider?.name}</Title>
