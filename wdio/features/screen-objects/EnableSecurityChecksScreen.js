@@ -11,7 +11,7 @@ class EnableAutomaticSecurityChecksScreen {
     }
 
     async tapNoThanksButton(){
-        await Gestures.tap(this.noThanksButton);
+        await Gestures.waitAndTap(this.noThanksButton);
     }
 
     async isVisible() {

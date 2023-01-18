@@ -40,7 +40,6 @@ Feature: Blockchain Networks
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
     When I tap on the "CUSTOM NETWORKS" tab
-    # Then Add button is disabled #re-enable later as currently failing
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
@@ -90,7 +89,6 @@ Feature: Blockchain Networks
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
-    # When I tap on the Add button #re-enable later as currently failing
     And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the burger menu 
