@@ -6,7 +6,7 @@ const selectNetworkControllerState = (state: EngineState) =>
 
 export const selectProviderConfig = createSelector(
   selectNetworkControllerState,
-  (networkControllerState) => networkControllerState?.provider,
+  (networkControllerState) => networkControllerState?.providerConfig,
 );
 
 export const selectTicker = createSelector(

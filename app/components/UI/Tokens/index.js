@@ -331,7 +331,7 @@ class Tokens extends PureComponent {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
         tokens: detectedTokens.map(
           (token) => `${token.symbol} - ${token.address}`,
@@ -391,7 +391,7 @@ class Tokens extends PureComponent {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
       });
       this.setState({ isAddTokenEnabled: true });
@@ -424,7 +424,7 @@ class Tokens extends PureComponent {
           asset_type: 'token',
           tokens: [`${symbol} - ${tokenAddress}`],
           chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
+            NetworkController?.state?.providerConfig?.chainId,
           ),
         }),
       );

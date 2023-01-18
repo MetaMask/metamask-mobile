@@ -273,7 +273,7 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
-    const { type } = network.provider;
+    const { type } = network.providerConfig;
     if (
       (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
       showDeprecatedAlert

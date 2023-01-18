@@ -72,7 +72,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    this.chainIdSent = Engine.context.NetworkController.state.provider.chainId;
+    this.chainIdSent =
+      Engine.context.NetworkController.state.providerConfig.chainId;
     this.networkVersionSent = Engine.context.NetworkController.state.network;
 
     // This will only be used for WalletConnect for now
@@ -177,8 +178,8 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   getProviderNetworkState({ network }) {
-    const networkType = Engine.context.NetworkController.state.provider.type;
-    const networkProvider = Engine.context.NetworkController.state.provider;
+    const { providerConfig } = Engine.context.NetworkController.state;
+    const networkType = providerConfig.type;
 
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -187,7 +188,7 @@ export class BackgroundBridge extends EventEmitter {
     if (isInitialNetwork) {
       chainId = NetworksChainId[networkType];
     } else if (networkType === 'rpc') {
-      chainId = networkProvider.chainId;
+      chainId = providerConfig.chainId;
     }
     if (chainId && !chainId.startsWith('0x')) {
       // Convert to hex

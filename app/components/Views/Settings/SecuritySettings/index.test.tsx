@@ -21,7 +21,7 @@ const initialState = {
         keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
         },
       },

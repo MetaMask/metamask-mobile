@@ -358,7 +358,7 @@ class ApproveTransactionReview extends PureComponent {
       } = this.props;
       const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );

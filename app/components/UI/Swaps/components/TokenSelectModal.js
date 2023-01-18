@@ -140,7 +140,7 @@ function TokenSelectModal({
   conversionRate,
   tokenExchangeRates,
   chainId,
-  provider,
+  providerConfig,
   frequentRpcList,
   balances,
 }) {
@@ -148,7 +148,7 @@ function TokenSelectModal({
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(provider, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -543,9 +543,9 @@ TokenSelectModal.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * Current Network provider
+   * Current network provider configuration
    */
-  provider: PropTypes.object,
+  providerConfig: PropTypes.object,
   /**
    * Frequent RPC list from PreferencesController
    */
@@ -565,7 +565,7 @@ const mapStateToProps = (state) => ({
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   chainId: selectChainId(state),
-  provider: selectProviderConfig(state),
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
 });

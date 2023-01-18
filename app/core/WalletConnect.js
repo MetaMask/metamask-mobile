@@ -276,7 +276,8 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId = Engine.context.NetworkController.state.provider.chainId;
+    const chainId =
+      Engine.context.NetworkController.state.providerConfig.chainId;
     const selectedAddress =
       Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
     const approveData = {

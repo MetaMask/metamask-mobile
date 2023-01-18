@@ -197,7 +197,7 @@ class TransactionDetails extends PureComponent {
   componentDidMount = () => {
     const {
       network: {
-        provider: { rpcTarget, type },
+        providerConfig: { rpcTarget, type },
       },
       frequentRpcList,
     } = this.props;
@@ -217,7 +217,7 @@ class TransactionDetails extends PureComponent {
       transactionObject: { networkID },
       transactionDetails: { transactionHash },
       network: {
-        provider: { type },
+        providerConfig: { type },
       },
       close,
     } = this.props;

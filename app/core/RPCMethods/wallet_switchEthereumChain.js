@@ -61,7 +61,7 @@ const wallet_switchEthereumChain = async ({
     (rpc) => rpc.chainId === chainIdDecimal,
   );
   if (existingNetworkRPC || existingNetworkDefault) {
-    const currentChainId = NetworkController.state.provider.chainId;
+    const currentChainId = NetworkController.state.providerConfig.chainId;
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;
