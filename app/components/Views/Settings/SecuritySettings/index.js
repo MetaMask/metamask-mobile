@@ -311,7 +311,6 @@ class Settings extends PureComponent {
     passcodeChoice: false,
     showHint: false,
     hintText: '',
-    showVideo: false,
   };
 
   autolockOptions = [
@@ -407,10 +406,6 @@ class Settings extends PureComponent {
         hintText: manualBackup,
       });
     }
-
-    InteractionManager.runAfterInteractions(() => {
-      this.setState({ showVideo: true });
-    });
 
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
@@ -673,10 +668,7 @@ class Settings extends PureComponent {
           </Text>
         </Text>
 
-        <SeedPhraseVideo
-          onClose={this.onBack}
-          showVideo={this.state.showVideo}
-        />
+        <SeedPhraseVideo onClose={this.onBack} />
 
         <Text style={styles.desc}>
           {strings(
