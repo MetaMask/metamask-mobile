@@ -26,6 +26,11 @@ export default class WalletView {
     await TestHelpers.tap(DRAWER_BUTTON_ID);
   }
 
+  static async tapBrowser() {
+    await TestHelpers.tapByText('Browser');
+    await TestHelpers.delay(1000);
+  }
+
   static async tapNetworksButtonOnNavBar() {
     await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
   }
@@ -33,7 +38,7 @@ export default class WalletView {
     await TestHelpers.tapByText('NFTs');
   }
   static async tapTokensTab() {
-    await TestHelpers.tapByText('TOKENS');
+    await TestHelpers.tapByText('Tokens');
   }
 
   static async tapImportNFTButton() {

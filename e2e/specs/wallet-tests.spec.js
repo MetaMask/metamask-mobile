@@ -135,6 +135,7 @@ describe('Wallet Tests', () => {
     await DrawerView.tapAccountCaretButton();
 
     await AccountListView.isVisible();
+    await AccountListView.swipeOnAccounts();
     await AccountListView.tapAccountByName('Account 1');
 
     await WalletView.tapDrawerButton();
