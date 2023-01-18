@@ -8,7 +8,7 @@ import {
 } from '../testIDs/Components/OnboardingWizard.testIds';
 
 import { WALLET_VIEW_BURGER_ICON_ID,
-        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON }
+        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON, MAIN_WALLET_VIEW_VIA_TOKENS_ID }
 from '../testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
@@ -53,6 +53,10 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
   }
 
+  get mainWalletView() {
+    return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
+  }
+
   async tapSettings() {
     await Gestures.tap(this.drawerSettings);
   }
@@ -90,7 +94,7 @@ class WalletMainScreen {
   }
 
   async tapNFTTab(){
-    await Gestures.tapTextByXpath("NFTs");
+    await Gestures.tapTextByXpath('NFTs');
   }
   async tapIdenticon(){
     await Gestures.tap(this.Identicon);
@@ -120,6 +124,10 @@ class WalletMainScreen {
 
   async isOnboardingWizardVisible() {
     await expect(this.wizardContainer).toBeDisplayed();
+  }
+
+  async isMainWalletViewVisible() {
+    await expect(this.mainWalletView).toBeDisplayed();
   }
 }
 
