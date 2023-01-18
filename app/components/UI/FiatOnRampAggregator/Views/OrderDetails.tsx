@@ -22,7 +22,6 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
-import { selectProviderConfig } from '../../../../selectors/networkController';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -35,11 +34,6 @@ export const createOrderDetailsNavDetails =
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
-  const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
   const params = useParams<OrderDetailsParams>();
   const order = useSelector(makeOrderIdSelector(params.orderId));
   const { colors } = useTheme();
@@ -120,11 +114,7 @@ const OrderDetails = () => {
       >
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <OrderDetail
-              order={order}
-              providerConfig={providerConfig}
-              frequentRpcList={frequentRpcList}
-            />
+            <OrderDetail order={order} />
           </ScreenLayout.Content>
         </ScreenLayout.Body>
         <ScreenLayout.Footer>

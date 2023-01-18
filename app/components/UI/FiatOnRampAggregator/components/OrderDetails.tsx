@@ -20,7 +20,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../util/number';
 import { FiatOrder, getProviderName } from '../../../../reducers/fiatOrders';
-import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
+import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';
 import { PROVIDER_LINKS } from '../types';
@@ -170,21 +170,9 @@ interface Props {
    * Object that represents the current route info like params passed to it
    */
   order: FiatOrder;
-  /**
-   * Current network provider configuration
-   */
-  providerConfig: any;
-  /**
-   * Frequent RPC list from PreferencesController
-   */
-  frequentRpcList: any;
 }
 
-const OrderDetails: React.FC<Props> = ({
-  order,
-  providerConfig,
-  frequentRpcList,
-}: Props) => {
+const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const {
     data,
     state,
@@ -199,7 +187,7 @@ const OrderDetails: React.FC<Props> = ({
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer();
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const amountOut = Number(amount) - Number(cryptoFee);

@@ -66,16 +66,13 @@ import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
 import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
-import useBlockExplorer from './utils/useBlockExplorer';
+import useBlockExplorer from '../../hooks/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -171,8 +168,6 @@ function SwapsAmountView({
   accounts,
   selectedAddress,
   chainId,
-  providerConfig,
-  frequentRpcList,
   balances,
   tokensWithBalance,
   tokensTopAssets,
@@ -188,7 +183,7 @@ function SwapsAmountView({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer();
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -944,17 +939,9 @@ SwapsAmountView.propTypes = {
    */
   setHasOnboarded: PropTypes.func,
   /**
-   * Current network provider configuration
-   */
-  providerConfig: PropTypes.object,
-  /**
    * Chain Id
    */
   chainId: PropTypes.string,
-  /**
-   * Frequent RPC list from PreferencesController
-   */
-  frequentRpcList: PropTypes.array,
   /**
    * Function to set liveness
    */
@@ -975,9 +962,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
   chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),

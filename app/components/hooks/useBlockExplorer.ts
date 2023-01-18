@@ -1,14 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import etherscanLink from '@metamask/etherscan-link';
-import { RPC } from '../../../../constants/network';
+import { RPC } from '../../constants/network';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerName,
-} from '../../../../util/networks';
-import { strings } from '../../../../../locales/i18n';
-import { getEtherscanBaseUrl } from '../../../../util/etherscan';
+} from '../../util/networks';
+import { strings } from '../../../locales/i18n';
+import { getEtherscanBaseUrl } from '../../util/etherscan';
 
-function useBlockExplorer(providerConfig, frequentRpcList) {
+function useBlockExplorer() {
+  const providerConfig = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
+
   const [explorer, setExplorer] = useState({
     name: '',
     value: null,
@@ -64,7 +73,7 @@ function useBlockExplorer(providerConfig, frequentRpcList) {
 
   const tx = useCallback(
     (hash) => {
-      if (!explorer.isValid) {
+      if (!explorer.isValid || !explorer.value) {
         return '';
       }
 
@@ -77,7 +86,7 @@ function useBlockExplorer(providerConfig, frequentRpcList) {
   );
   const account = useCallback(
     (address) => {
-      if (!explorer.isValid) {
+      if (!explorer.isValid || !explorer.value) {
         return '';
       }
 
@@ -90,7 +99,7 @@ function useBlockExplorer(providerConfig, frequentRpcList) {
   );
   const token = useCallback(
     (address) => {
-      if (!explorer.isValid) {
+      if (!explorer.isValid || !explorer.value) {
         return '';
       }
 

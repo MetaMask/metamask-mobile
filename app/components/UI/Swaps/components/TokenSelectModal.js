@@ -41,14 +41,11 @@ import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from './TokenIcon';
 import Alert from '../../../Base/Alert';
-import useBlockExplorer from '../utils/useBlockExplorer';
+import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -141,15 +138,13 @@ function TokenSelectModal({
   conversionRate,
   tokenExchangeRates,
   chainId,
-  providerConfig,
-  frequentRpcList,
   balances,
 }) {
   const navigation = useNavigation();
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer();
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -543,14 +538,6 @@ TokenSelectModal.propTypes = {
    * Chain Id
    */
   chainId: PropTypes.string,
-  /**
-   * Current network provider configuration
-   */
-  providerConfig: PropTypes.object,
-  /**
-   * Frequent RPC list from PreferencesController
-   */
-  frequentRpcList: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -566,9 +553,6 @@ const mapStateToProps = (state) => ({
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   chainId: selectChainId(state),
-  providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);
