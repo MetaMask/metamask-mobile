@@ -56,6 +56,9 @@ const PersonalSign = ({
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
 
+  const { colors }: any = useTheme();
+  const styles = createStyles(colors);
+
   const getAnalyticsParams = () => {
     try {
       const { NetworkController }: any = Engine.context;
@@ -75,15 +78,7 @@ const PersonalSign = ({
     }
   };
 
-  const showWalletConnectNotification = (
-    messageParams = {
-      origin: '',
-      data: '',
-      from: '',
-      metamaskId: '',
-    },
-    confirmation = false,
-  ) => {
+  const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
@@ -109,14 +104,14 @@ const PersonalSign = ({
       cleanMessageParams,
     );
     PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
-    showWalletConnectNotification(messageParams, true);
+    showWalletConnectNotification(true);
   };
 
   const rejectMessage = () => {
     const { PersonalMessageManager }: any = Engine.context;
     const messageId = messageParams.metamaskId;
     PersonalMessageManager.rejectMessage(messageId);
-    showWalletConnectNotification(messageParams);
+    showWalletConnectNotification(false);
   };
 
   const cancelSignature = () => {
@@ -147,14 +142,15 @@ const PersonalSign = ({
     }
   };
 
-  const getStyles = () => {
-    const { colors }: any = useTheme();
-    return createStyles(colors);
+  const shouldTruncateMessage = (e: any) => {
+    if (e.nativeEvent.lines.length > 5) {
+      setTruncateMessage(true);
+      return;
+    }
+    setTruncateMessage(false);
   };
 
   const renderMessageText = () => {
-    const styles = getStyles();
-
     const textChild = hexToText(messageParams.data)
       .split('\n')
       .map((line, i) => (
@@ -192,16 +188,6 @@ const PersonalSign = ({
     }
     return messageText;
   };
-
-  const shouldTruncateMessage = (e: any) => {
-    if (e.nativeEvent.lines.length > 5) {
-      setTruncateMessage(true);
-      return;
-    }
-    setTruncateMessage(false);
-  };
-
-  const styles = getStyles();
 
   const rootView = showExpandedMessage ? (
     <ExpandedMessage

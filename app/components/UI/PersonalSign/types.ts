@@ -24,20 +24,20 @@ export interface PersonalSignProps {
    * Object containing current page title and url
    */
   currentPageInformation: {
-    analytics: {
+    analytics?: {
       request_platform: string;
       request_source: string;
     };
-    icon: string;
+    icon?: string;
     title: string;
     url: string;
   };
   /**
    * Hides or shows the expanded signing message
    */
-  toggleExpandedMessage: () => void;
+  toggleExpandedMessage?: () => void;
   /**
    * Indicated whether or not the expanded message is shown
    */
-  showExpandedMessage: boolean;
+  showExpandedMessage?: boolean;
 }
