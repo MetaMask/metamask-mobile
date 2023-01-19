@@ -1,4 +1,4 @@
-import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import AppConstants from '../../../../core/AppConstants';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
 import { SDK } from '../sdk';
@@ -24,7 +24,7 @@ export function createCustomOrderIdData(
 
 export default async function processCustomOrderIdData(
   customOrderIdData: CustomIdData,
-) {
+): Promise<[CustomIdData, Order | null]> {
   const now = Date.now();
 
   /**

@@ -10,7 +10,10 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../../../styles/common';
+import {
+  fontStyles,
+  colors as staticColors,
+} from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, {
@@ -30,16 +33,24 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { MAINNET, PRIVATENETWORK, RPC } from '../../../../../constants/network';
+import {
+  DEFAULT_MAINNET_CUSTOM_NAME,
+  MAINNET,
+  PRIVATENETWORK,
+  RPC,
+} from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
-import sanitizeUrl from '../../../../../util/sanitizeUrl';
+import sanitizeUrl, {
+  compareSanitizedUrl,
+} from '../../../../../util/sanitizeUrl';
 import {
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
@@ -47,6 +58,7 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
+import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
@@ -57,6 +69,10 @@ import {
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -74,6 +90,10 @@ const createStyles = (colors) =>
     scrollWrapper: {
       flex: 1,
       paddingVertical: 12,
+    },
+    onboardingInput: {
+      borderColor: staticColors.transparent,
+      padding: 0,
     },
     input: {
       ...fontStyles.normal,
@@ -147,6 +167,9 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
       fontSize: 14,
     },
+    tabLabelStyle: {
+      fontSize: scale(11),
+    },
     popularNetworkImage: {
       width: 20,
       height: 20,
@@ -158,11 +181,14 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     icon: {
-      marginRight: 16,
+      marginRight: moderateScale(12, 1.5),
       marginTop: 4,
     },
     button: {
       flex: 1,
+    },
+    disabledButton: {
+      backgroundColor: colors.primary.muted,
     },
     cancel: {
       marginRight: 8,
@@ -209,6 +235,14 @@ class NetworkSettings extends PureComponent {
      * Indicates whether third party API mode is enabled
      */
     thirdPartyApiMode: PropTypes.bool,
+    /**
+     * Checks if adding custom mainnet.
+     */
+    isCustomMainnet: PropTypes.bool,
+    /**
+     * NetworkController povider object
+     */
+    provider: PropTypes.object,
   };
 
   state = {
@@ -240,10 +274,13 @@ class NetworkSettings extends PureComponent {
 
   updateNavBar = () => {
     const { navigation, route } = this.props;
+    const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getNavigationOptionsTitle(
-        strings('app_settings.networks_title'),
+        isCustomMainnet
+          ? strings('app_settings.networks_default_title')
+          : strings('app_settings.networks_title'),
         navigation,
         route?.params?.isFullScreenModal,
         colors,
@@ -251,9 +288,23 @@ class NetworkSettings extends PureComponent {
     );
   };
 
+  /**
+   * Gets the custom mainnet RPC URL from the frequent RPC list.
+   *
+   * @returns Custom mainnet RPC URL.
+   */
+  getCustomMainnetRPCURL = () => {
+    const { frequentRpcList } = this.props;
+    const networkInformation = frequentRpcList.find(
+      ({ chainId: id }) => String(id) === String(Networks.mainnet.chainId),
+    );
+    return networkInformation?.rpcUrl || '';
+  };
+
   componentDidMount = () => {
     this.updateNavBar();
     const { route, frequentRpcList } = this.props;
+    const isCustomMainnet = route.params?.isCustomMainnet;
     const network = route.params?.network;
     const initialPage = route.params?.initialPage;
     initialPage && this.tabView.goToPage(initialPage);
@@ -270,6 +321,11 @@ class NetworkSettings extends PureComponent {
         editable = false;
         rpcUrl = allNetworksblockExplorerUrl + network;
         ticker = strings('unit.eth');
+        // Override values if UI is updating custom mainnet RPC URL.
+        if (isCustomMainnet) {
+          nickname = DEFAULT_MAINNET_CUSTOM_NAME;
+          rpcUrl = this.getCustomMainnetRPCURL();
+        }
       } else {
         const networkInformation = frequentRpcList.find(
           ({ rpcUrl }) => rpcUrl === network,
@@ -427,7 +483,13 @@ class NetworkSettings extends PureComponent {
       enableAction,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState } = this.props;
+    const { navigation, networkOnboardedState, route } = this.props;
+    const isCustomMainnet = route.params?.isCustomMainnet;
+    // This must be defined before PreferencesController.addToFrequentRpcList.
+    const prevRPCURL = isCustomMainnet
+      ? this.getCustomMainnetRPCURL()
+      : route.params?.network;
+
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
@@ -449,7 +511,8 @@ class NetworkSettings extends PureComponent {
     const nativeToken = ticker || PRIVATENETWORK;
     const networkType = nickname || rpcUrl;
     const networkUrl = sanitizeUrl(rpcUrl);
-    const showNetworkOnboarding = isOnboarded;
+    // Prevent the network switch modal from showing post onboarding.
+    const showNetworkOnboarding = isCustomMainnet ? false : isOnboarded;
 
     const formChainId = stateChainId.trim().toLowerCase();
 
@@ -479,6 +542,13 @@ class NetworkSettings extends PureComponent {
           blockExplorerUrl,
         },
       );
+      // TODO: PreferencesController.addToFrequentRpcList only compares RPC urls to determine if a network should be updated or added.
+      // Temporary solution is to manually remove the existing network using the old RPC URL.
+      const isRPCDifferent = url.href !== prevRPCURL;
+      if ((editable || isCustomMainnet) && isRPCDifferent) {
+        // Only remove from frequent list if RPC URL is different.
+        PreferencesController.removeFromFrequentRpcList(prevRPCURL);
+      }
       NetworkController.setRpcTarget(
         formattedHref,
         decimalChainId,
@@ -487,15 +557,12 @@ class NetworkSettings extends PureComponent {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: formattedHref,
         chain_id: decimalChainId,
         source: 'Custom network form',
         symbol: ticker,
-        block_explorer_url: blockExplorerUrl,
-        network_name: nickname || RPC,
       };
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       this.props.showNetworkOnboardingAction({
@@ -504,7 +571,9 @@ class NetworkSettings extends PureComponent {
         nativeToken,
         showNetworkOnboarding,
       });
-      navigation.navigate('WalletView');
+      isCustomMainnet
+        ? navigation.navigate('OptinMetrics')
+        : navigation.navigate('WalletView');
     }
   };
 
@@ -641,7 +710,12 @@ class NetworkSettings extends PureComponent {
   };
 
   onRpcUrlChange = async (url) => {
-    await this.setState({ rpcUrl: url, validatedRpcURL: false });
+    await this.setState({
+      rpcUrl: url,
+      validatedRpcURL: false,
+      warningRpcUrl: undefined,
+      warningChainId: undefined,
+    });
     this.getCurrentState();
   };
 
@@ -693,10 +767,16 @@ class NetworkSettings extends PureComponent {
   };
 
   removeRpcUrl = () => {
-    const { navigation } = this.props;
-    this.switchToMainnet();
+    const { navigation, provider } = this.props;
+    const { rpcUrl } = this.state;
+    if (
+      compareSanitizedUrl(rpcUrl, provider.rpcTarget) &&
+      provider.type === RPC
+    ) {
+      this.switchToMainnet();
+    }
     const { PreferencesController } = Engine.context;
-    PreferencesController.removeFromFrequentRpcList(this.state.rpcUrl);
+    PreferencesController.removeFromFrequentRpcList(rpcUrl);
     navigation.goBack();
   };
 
@@ -714,6 +794,8 @@ class NetworkSettings extends PureComponent {
       enableAction,
       inputWidth,
     } = this.state;
+    const { route } = this.props;
+    const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
       this.context.themeAppearance || themeAppearanceLight;
@@ -730,6 +812,17 @@ class NetworkSettings extends PureComponent {
         return hideKeyFromUrl(isNetworkPrePopulated.rpcUrl);
       }
     };
+    const inputStyle = [
+      styles.input,
+      inputWidth,
+      isCustomMainnet ? styles.onboardingInput : undefined,
+    ];
+    const isRPCEditable = isCustomMainnet || editable;
+    const isActionDisabled =
+      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+    const rpcActionStyle = isActionDisabled
+      ? { ...styles.button, ...styles.disabledButton }
+      : styles.button;
 
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
@@ -745,7 +838,7 @@ class NetworkSettings extends PureComponent {
               {strings('app_settings.network_name_label')}
             </Text>
             <TextInput
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={nickname}
@@ -766,7 +859,7 @@ class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
-              editable={editable}
+              editable={isRPCEditable}
               onChangeText={this.onRpcUrlChange}
               onBlur={this.validateRpcUrl}
               placeholder={strings('app_settings.network_rpc_placeholder')}
@@ -786,7 +879,7 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputChainId}
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={chainId}
@@ -811,7 +904,7 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputSymbol}
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={ticker}
@@ -829,7 +922,7 @@ class NetworkSettings extends PureComponent {
             </Text>
             <TextInput
               ref={this.inputBlockExplorerURL}
-              style={[styles.input, inputWidth]}
+              style={inputStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
               value={blockExplorerUrl}
@@ -844,52 +937,55 @@ class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
           </View>
-          {(addMode || editable) && (
-            <View style={styles.buttonsWrapper}>
-              {editable ? (
-                <View style={styles.editableButtonsContainer}>
-                  <StyledButton
-                    type="danger"
-                    onPress={this.removeRpcUrl}
-                    testID={REMOVE_NETWORK_BUTTON}
-                    containerStyle={[styles.button, styles.cancel]}
-                  >
-                    <CustomText centered red>
-                      {strings('app_settings.delete')}
-                    </CustomText>
-                  </StyledButton>
-                  <StyledButton
-                    type="confirm"
-                    onPress={this.addRpcUrl}
-                    testID={ADD_NETWORKS_ID}
-                    containerStyle={[styles.button, styles.confirm]}
-                    disabled={
-                      !enableAction ||
-                      this.disabledByRpcUrl() ||
-                      this.disabledByChainId()
-                    }
-                  >
-                    {strings('app_settings.network_save')}
-                  </StyledButton>
-                </View>
-              ) : (
-                <View style={styles.buttonsContainer}>
-                  <StyledButton
-                    type="confirm"
-                    onPress={this.addRpcUrl}
-                    testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
-                    containerStyle={styles.syncConfirm}
-                    disabled={
-                      !enableAction ||
-                      this.disabledByRpcUrl() ||
-                      this.disabledByChainId()
-                    }
-                  >
-                    {strings('app_settings.network_add')}
-                  </StyledButton>
-                </View>
-              )}
-            </View>
+          {isCustomMainnet ? (
+            <Button
+              variant={ButtonVariants.Primary}
+              onPress={this.addRpcUrl}
+              style={rpcActionStyle}
+              label={strings('app_settings.networks_default_cta')}
+              size={ButtonSize.Lg}
+              disabled={isActionDisabled}
+            />
+          ) : (
+            (addMode || editable) && (
+              <View style={styles.buttonsWrapper}>
+                {editable ? (
+                  <View style={styles.editableButtonsContainer}>
+                    <StyledButton
+                      type="danger"
+                      onPress={this.removeRpcUrl}
+                      testID={REMOVE_NETWORK_BUTTON}
+                      containerStyle={[styles.button, styles.cancel]}
+                    >
+                      <CustomText centered red>
+                        {strings('app_settings.delete')}
+                      </CustomText>
+                    </StyledButton>
+                    <StyledButton
+                      type="confirm"
+                      onPress={this.addRpcUrl}
+                      testID={ADD_NETWORKS_ID}
+                      containerStyle={[styles.button, styles.confirm]}
+                      disabled={isActionDisabled}
+                    >
+                      {strings('app_settings.network_save')}
+                    </StyledButton>
+                  </View>
+                ) : (
+                  <View style={styles.buttonsContainer}>
+                    <StyledButton
+                      type="confirm"
+                      onPress={this.addRpcUrl}
+                      testID={ADD_CUSTOM_RPC_NETWORK_BUTTON_ID}
+                      containerStyle={styles.syncConfirm}
+                      disabled={isActionDisabled}
+                    >
+                      {strings('app_settings.network_add')}
+                    </StyledButton>
+                  </View>
+                )}
+              </View>
+            )
           )}
         </KeyboardAwareScrollView>
       </SafeAreaView>
@@ -943,6 +1039,7 @@ class NetworkSettings extends PureComponent {
             this.customNetwork(network)
           ) : (
             <ScrollableTabView
+              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;
@@ -1014,6 +1111,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
+  provider: state.engine.backgroundState.NetworkController.provider,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,

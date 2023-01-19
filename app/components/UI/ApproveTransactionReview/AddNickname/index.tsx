@@ -10,7 +10,9 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import StyledButton from '../../StyledButton';
@@ -118,17 +120,7 @@ interface AddNicknameProps {
   type: string;
 }
 
-const getAnalyticsParams = () => {
-  try {
-    const { NetworkController } = Engine.context as any;
-    const { type } = NetworkController?.state?.provider || {};
-    return {
-      network_name: type,
-    };
-  } catch (error) {
-    return {};
-  }
-};
+const getAnalyticsParams = () => ({});
 
 const AddNickname = (props: AddNicknameProps) => {
   const {
@@ -159,7 +151,7 @@ const AddNickname = (props: AddNicknameProps) => {
     });
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED,
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       getAnalyticsParams(),
     );
   };
@@ -174,7 +166,7 @@ const AddNickname = (props: AddNicknameProps) => {
     );
     onUpdateContractNickname();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_NICKNAME,
+      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );
   };

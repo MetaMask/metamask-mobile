@@ -2,7 +2,9 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
-import { util } from '@metamask/controllers';
+import { query, isSmartContractCode } from '@metamask/controller-utils';
+// TODO: Update after this function has been exported from the package
+import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -31,6 +33,7 @@ import {
   decGWEIToHexWEI,
   getValueFromWeiHex,
   formatETHFee,
+  sumHexWEIs,
 } from '../conversions';
 import {
   addEth,
@@ -293,9 +296,9 @@ export async function isSmartContractAddress(address, chainId) {
   }
   const { TransactionController } = Engine.context;
   const code = address
-    ? await util.query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(TransactionController.ethQuery, 'getCode', [address])
     : undefined;
-  const isSmartContract = util.isSmartContractCode(code);
+  const isSmartContract = isSmartContractCode(code);
   return isSmartContract;
 }
 
@@ -1175,15 +1178,21 @@ export const parseTransactionLegacy = (
     },
     ticker,
     selectedGasFee,
+    multiLayerL1FeeTotal,
   },
   { onlyGas } = {},
 ) => {
   const gasLimit = new BN(selectedGasFee.suggestedGasLimit);
   const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
-  const weiTransactionFee =
+  let weiTransactionFee =
     gasLimit &&
     gasLimit.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+  if (multiLayerL1FeeTotal) {
+    weiTransactionFee = hexToBN(
+      sumHexWEIs([BNToHex(weiTransactionFee), multiLayerL1FeeTotal]),
+    );
+  }
 
   const suggestedGasPriceHex = decGWEIToHexWEI(
     selectedGasFee.suggestedGasPrice,
@@ -1296,7 +1305,7 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
     let gasPrice = transaction.transaction.gasPrice;
     const transactionToCheck = transaction.transaction;
 
-    if (util.isEIP1559Transaction(transactionToCheck)) {
+    if (isEIP1559Transaction(transactionToCheck)) {
       gasPrice = transactionToCheck.maxFeePerGas;
     }
 

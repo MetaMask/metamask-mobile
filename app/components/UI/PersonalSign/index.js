@@ -6,12 +6,14 @@ import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { util } from '@metamask/controllers';
+import { hexToText } from '@metamask/controller-utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -83,14 +85,13 @@ class PersonalSign extends PureComponent {
     try {
       const { currentPageInformation, selectedAddress } = this.props;
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         sign_type: 'personal',
         ...currentPageInformation?.analytics,
@@ -102,7 +103,7 @@ class PersonalSign extends PureComponent {
 
   componentDidMount = () => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
   };
@@ -151,7 +152,7 @@ class PersonalSign extends PureComponent {
   cancelSignature = () => {
     this.rejectMessage();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
     this.props.onCancel();
@@ -161,14 +162,14 @@ class PersonalSign extends PureComponent {
     try {
       await this.signMessage();
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );
         this.props.onCancel();
@@ -191,8 +192,7 @@ class PersonalSign extends PureComponent {
     const { truncateMessage } = this.state;
     const styles = this.getStyles();
 
-    const textChild = util
-      .hexToText(messageParams.data)
+    const textChild = hexToText(messageParams.data)
       .split('\n')
       .map((line, i) => (
         <Text
