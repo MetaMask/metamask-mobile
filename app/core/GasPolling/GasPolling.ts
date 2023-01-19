@@ -90,14 +90,7 @@ export const getEIP1559TransactionData = ({
   onlyGas,
 }: EIP1559Props) => {
   try {
-    if (
-      !gas ||
-      !gasFeeEstimates ||
-      !contractExchangeRates ||
-      !conversionRate ||
-      !currentCurrency ||
-      !nativeCurrency
-    ) {
+    if (!gas || !gasFeeEstimates || !currentCurrency || !nativeCurrency) {
       throw new Error('Insufficient data for transaction');
     }
 
