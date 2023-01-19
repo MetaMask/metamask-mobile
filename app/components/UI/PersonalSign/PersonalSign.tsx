@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
@@ -59,7 +59,7 @@ const PersonalSign = ({
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
-  const getAnalyticsParams = () => {
+  const getAnalyticsParams = useCallback(() => {
     try {
       const { NetworkController }: any = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
@@ -76,7 +76,14 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  };
+  }, [currentPageInformation, selectedAddress]);
+
+  useEffect(() => {
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      getAnalyticsParams(),
+    );
+  }, [getAnalyticsParams]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
