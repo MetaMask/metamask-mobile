@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
     screen: { justifyContent: 'center' },
     // eslint-disable-next-line react-native/no-color-literals
     modal: {
-      backgroundColor: 'blue',
+      backgroundColor: colors.background.default,
       borderRadius: 10,
       marginHorizontal: 16,
     },
