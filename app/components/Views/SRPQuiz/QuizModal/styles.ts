@@ -13,9 +13,24 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       borderRadius: 10,
       marginHorizontal: 16,
+      minHeight: 426,
     },
     bodyContainer: {
       padding: 24,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center', //Centered vertically
+      marginTop: 20,
+      marginHorizontal: 20,
+    },
+    headerText: {
+      textAlign: 'center',
+      flex: 4,
+    },
+    icon: {
+      flex: 1,
     },
   });
 };

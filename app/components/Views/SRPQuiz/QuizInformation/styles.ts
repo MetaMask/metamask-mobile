@@ -17,6 +17,17 @@ const styleSheet = (params: { theme: Theme }) => {
     bodyContainer: {
       padding: 24,
     },
+    title: {
+      textAlign: 'center',
+      marginVertical: 12,
+    },
+    content: {
+      textAlign: 'center',
+      marginVertical: 12,
+    },
+    button: {
+      marginVertical: 12,
+    },
   });
 };
 
