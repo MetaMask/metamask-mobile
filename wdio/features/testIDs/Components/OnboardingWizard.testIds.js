@@ -6,7 +6,7 @@ export const ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID = 'onboarding-wizard-back-but
 export const ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID = 'onboarding-wizard-next-button';
 
 export const ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON =
-  'onboarding-wizard-back-button';
+  'onboarding-wizard-skip-button';
 
 export const ONBOARDING_WIZARD_YOUR_ACCOUNTS_DESC_1 = 'This is your first account, total value, and its unique public address (0x...).';
 

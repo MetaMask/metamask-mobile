@@ -3,16 +3,27 @@ import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
-import { TEST_ID_GET_STARTED_BUTTON } from './GetStarted.constants';
 import { Region } from '../../types';
 import { OnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createRegionsNavDetails } from '../Regions/Regions';
 
 function render(Component: React.ComponentType) {
-  return renderScreen(Component, {
-    name: Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED,
-  });
+  return renderScreen(
+    Component,
+    {
+      name: Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: { provider: { type: 'mainnet', chainId: 1 } },
+          },
+        },
+      },
+    },
+  );
 }
 
 const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
@@ -30,26 +41,40 @@ let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockPop = jest.fn();
+const mockTrackEvent = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    setOptions: mockSetOptions,
-    reset: mockReset,
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
+      reset: mockReset,
+      dangerouslyGetParent: () => ({
+        pop: mockPop,
+      }),
+    }),
+  };
+});
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
   useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
 }));
 
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 describe('GetStarted', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetOptions.mockClear();
     mockReset.mockClear();
+    mockPop.mockClear();
+    mockTrackEvent.mockClear();
     (mockuseFiatOnRampSDKInitialValues.setGetStarted as jest.Mock).mockClear();
   });
 
@@ -84,14 +109,27 @@ describe('GetStarted', () => {
     expect(mockSetOptions).toBeCalledTimes(1);
   });
 
-  it('navigates on button press', async () => {
+  it('navigates on get started button press', async () => {
     mockUseFiatOnRampSDKValues = {
       ...mockuseFiatOnRampSDKInitialValues,
     };
     const rendered = render(GetStarted);
-    fireEvent.press(rendered.getByTestId(TEST_ID_GET_STARTED_BUTTON));
+    fireEvent.press(rendered.getByRole('button', { name: 'Get started' }));
     expect(mockNavigate).toHaveBeenCalledWith(...createRegionsNavDetails());
     expect(mockUseFiatOnRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
+  });
+
+  it('navigates and tracks event on cancel button press', async () => {
+    mockUseFiatOnRampSDKValues = {
+      ...mockuseFiatOnRampSDKInitialValues,
+    };
+    const rendered = render(GetStarted);
+    fireEvent.press(rendered.getByRole('button', { name: 'Cancel' }));
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+      chain_id_destination: '1',
+      location: 'Get Started Screen',
+    });
   });
 
   it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
