@@ -32,30 +32,33 @@ const QuizContent = ({
   };
 
   return (
-    <View style={styles.bodyContainer}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <>
+        <View style={styles.header}>
+          <View style={styles.spacer} />
+          <Text variant={TextVariants.sHeadingSM} style={styles.headerText}>
+            {header}
+          </Text>
+          <Icon
+            size={IconSize.Xs}
+            name={IconName.CloseOutline}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </View>
+        {icon ? icon() : null}
         <Text
-          variant={TextVariants.sHeadingSMRegular}
-          style={styles.headerText}
+          variant={TextVariants.sHeadingLG}
+          style={{ ...styles.title, ...title.style }}
         >
-          {header}
+          {title.content}
         </Text>
-        <Icon
-          size={IconSize.Xs}
-          name={IconName.CloseOutline}
-          color={colors.icon.default}
-          style={styles.icon}
-        />
-      </View>
-      {icon ? icon() : null}
-      <Text variant={TextVariants.sHeadingLG} style={styles.title}>
-        {title}
-      </Text>
-      {content ? (
-        <Text variant={TextVariants.sBodyMD} style={styles.content}>
-          {content}
-        </Text>
-      ) : null}
+        {content ? (
+          <Text variant={TextVariants.sBodyMD} style={styles.content}>
+            {content}
+          </Text>
+        ) : null}
+      </>
       <View style={styles.bottomContainer}>
         {buttons.map((btn, idx) => (
           <Button
@@ -71,6 +74,7 @@ const QuizContent = ({
           variant={ButtonVariants.Tertiary}
           onPress={openSupportArticle}
           label={strings('srp_security_quiz.learn_more')}
+          style={styles.button}
         />
       </View>
     </View>
