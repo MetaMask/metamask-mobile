@@ -14,6 +14,8 @@ const Routes = {
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
+    SETTINGS: 'OnRampSettings',
+    ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
   LEDGER_CONNECT_FLOW: {
     ID: 'LedgerConnectFlow',

@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { KeyringTypes, util } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+import { hexToText } from '@metamask/controller-utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -233,8 +234,7 @@ class PersonalSign extends PureComponent {
     const { truncateMessage } = this.state;
     const styles = this.getStyles();
 
-    const textChild = util
-      .hexToText(messageParams.data)
+    const textChild = hexToText(messageParams.data)
       .split('\n')
       .map((line, i) => (
         <Text

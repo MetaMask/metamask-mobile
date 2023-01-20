@@ -19,18 +19,28 @@ class Selectors {
     }
   }
 
+  static async getElementsByPlatform(id) {
+    return driver.$$(`//*[@content-desc='${id}']`);
+  }
+
   static async getXpathElementByText(text) {
-    const element = await $(`//android.widget.TextView[@text='${text}']`);
+    const element = await $(`//*[@text='${text}']`);
     return await element;
   }
 
   static async getXpathElementByContentDescription(text) {
-    const element = await $(`//android.view.ViewGroup[@content-desc='${text}']`);
+    const element = await $(
+      `//android.view.ViewGroup[@content-desc='${text}']`,
+    );
     return await element;
   }
 
   static async getXpathElementByResourceId(text) {
     return await $(`//*[@resource-id='${text}']`);
+  }
+
+  static async getElementByCss(css) {
+    return await $(css);
   }
 }
 

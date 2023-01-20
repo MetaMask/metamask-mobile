@@ -1,7 +1,6 @@
 /* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-
 import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS_TEXT, } from '../testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
@@ -9,11 +8,12 @@ import {
 } from '../testIDs/Components/OnboardingWizard.testIds';
 
 import { WALLET_VIEW_BURGER_ICON_ID,
-        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON } 
+        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON, MAIN_WALLET_VIEW_VIA_TOKENS_ID }
 from '../testIDs/Screens/WalletView.testIds';
-import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
-class WalletMainScreen {
 
+import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
+
+class WalletMainScreen {
   get wizardContainer() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
   }
@@ -53,6 +53,10 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
   }
 
+  get mainWalletView() {
+    return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
+  }
+
   async tapSettings() {
     await Gestures.tap(this.drawerSettings);
   }
@@ -72,9 +76,11 @@ class WalletMainScreen {
   async tapBurgerButton() {
     await Gestures.tap(this.HamburgerButton);
   }
+
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.ImportToken);
   }
+
   async tapImportNFTButton() {
     await Gestures.swipe(
       { x: 100, y: 500 },
@@ -88,12 +94,12 @@ class WalletMainScreen {
   }
 
   async tapNFTTab(){
-    await Gestures.tapTextByXpath("NFTs");
+    await Gestures.tapTextByXpath('NFTs');
   }
   async tapIdenticon(){
     await Gestures.tap(this.Identicon);
   }
-  
+
   async tapNetworkNavBar() {
     const timeOut = 3000;
     await driver.pause(timeOut);
@@ -108,7 +114,7 @@ class WalletMainScreen {
   async isNetworkNameCorrect(network) {
     const textFromElement = await this.networkNavBarWalletTitle;
     const networkName = await textFromElement.getText();
-    await expect(networkName).toContain(network);
+    expect(networkName).toContain(network);
   }
 
   async isTokenTextVisible(token){
@@ -118,6 +124,10 @@ class WalletMainScreen {
 
   async isOnboardingWizardVisible() {
     await expect(this.wizardContainer).toBeDisplayed();
+  }
+
+  async isMainWalletViewVisible() {
+    await expect(this.mainWalletView).toBeDisplayed();
   }
 }
 

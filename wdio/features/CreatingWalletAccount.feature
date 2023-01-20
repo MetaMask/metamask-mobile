@@ -1,5 +1,6 @@
-Feature: Creating account in wallet
+@androidApp @ChainScenarios
 
+Feature: Creating account in wallet
     Scenario: Import account
         Given I have imported my wallet
         # Given I have created my wallet

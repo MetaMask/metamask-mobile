@@ -179,7 +179,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
 
-  // On Ramp Aggregator
+  // On Ramp
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   ONRAMP_REGION_SELECTED = 'On-ramp Region Selected',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
@@ -194,11 +194,11 @@ enum EVENT_NAME {
   ONRAMP_PURCHASE_FAILED = 'On-ramp Purchase Failed',
   ONRAMP_PURCHASE_CANCELLED = 'On-ramp Purchase Cancelled',
   ONRAMP_PURCHASE_DETAILS_VIEWED = 'On-ramp Purchase Details Viewed',
-
-  // On Ramp
   ONRAMP_EXTERNAL_LINK_CLICKED = 'External Link Clicked',
   ONRAMP_QUOTE_ERROR = 'On-ramp Quote Error',
   ONRAMP_ERROR = 'On-ramp Error',
+  ONRAMP_SETTINGS_CLICKED = 'On-ramp Settings Clicked',
+  ONRAMP_REGION_RESET = 'On-ramp Region Reset',
 
   ACCOUNTS = 'Accounts',
   AUTH = 'Auth',
@@ -246,6 +246,18 @@ enum EVENT_NAME {
   SCREENSHOT_WARNING = 'Screenshot Warning Displayed',
   SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
   SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
+
+  // Reveal SRP Quiz
+  SRP_REVEAL_QUIZ_PROMPT_SEEN = 'SRP reveal quiz prompt seen',
+  SRP_REVEAL_START_CTA_SELECTED = 'SRP reveal get started CTA selected',
+  SRP_REVEAL_FIRST_QUESTION_SEEN = 'SRP reveal first question seen',
+  SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER = 'SRP reveal first question answered incorrectly',
+  SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER = 'SRP reveal first question answered correctly',
+  SRP_REVEAL_SECOND_QUESTION_SEEN = 'SRP reveal second question seen',
+  SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER = 'SRP reveal second question answered incorrectly',
+  SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER = 'SRP reveal second question answered correctly',
+  REVEAL_SRP = 'Reveal SRP',
+  SRP_COPIED = 'SRP copied',
 }
 
 const events = {
@@ -450,6 +462,8 @@ const events = {
   ),
   ONRAMP_QUOTE_ERROR: generateOpt(EVENT_NAME.ONRAMP_QUOTE_ERROR),
   ONRAMP_ERROR: generateOpt(EVENT_NAME.ONRAMP_ERROR),
+  ONRAMP_SETTINGS_CLICKED: generateOpt(EVENT_NAME.ONRAMP_SETTINGS_CLICKED),
+  ONRAMP_REGION_RESET: generateOpt(EVENT_NAME.ONRAMP_REGION_RESET),
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
   ),
@@ -477,6 +491,32 @@ const events = {
   SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
   SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
   SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
+  SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
+  ),
+  SRP_REVEAL_START_CTA_SELECTED: generateOpt(
+    EVENT_NAME.SRP_REVEAL_START_CTA_SELECTED,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_SEEN,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_SEEN,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
+  ),
+  REVEAL_SRP: generateOpt(EVENT_NAME.REVEAL_SRP),
+  SRP_COPIED: generateOpt(EVENT_NAME.SRP_COPIED),
 };
 
 /**

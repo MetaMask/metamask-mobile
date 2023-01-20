@@ -32,15 +32,13 @@ export const updateFiatOrder = (order: FiatOrder) => ({
   type: ACTIONS.FIAT_UPDATE_ORDER,
   payload: order,
 });
-export const setFiatOrdersCountry = (countryCode: string) => ({
-  type: ACTIONS.FIAT_SET_COUNTRY,
-  payload: countryCode,
-});
 export const setFiatOrdersRegionAGG = (region: Region | null) => ({
   type: ACTIONS.FIAT_SET_REGION_AGG,
   payload: region,
 });
-export const setFiatOrdersPaymentMethodAGG = (paymentMethodId: string) => ({
+export const setFiatOrdersPaymentMethodAGG = (
+  paymentMethodId: string | null,
+) => ({
   type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
   payload: paymentMethodId,
 });
@@ -67,6 +65,21 @@ export const addAuthenticationUrl = (authenticationUrl: string) => ({
 export const removeAuthenticationUrl = (authenticationUrl: string) => ({
   type: ACTIONS.FIAT_REMOVE_AUTHENTICATION_URL,
   payload: authenticationUrl,
+});
+export const addActivationKey = (activationKey: string) => ({
+  type: ACTIONS.FIAT_ADD_ACTIVATION_KEY,
+  payload: activationKey,
+});
+export const removeActivationKey = (activationKey: string) => ({
+  type: ACTIONS.FIAT_REMOVE_ACTIVATION_KEY,
+  payload: activationKey,
+});
+export const updateActivationKey = (
+  activationKey: string,
+  active: boolean,
+) => ({
+  type: ACTIONS.FIAT_UPDATE_ACTIVATION_KEY,
+  payload: { key: activationKey, active },
 });
 
 /**
@@ -102,10 +115,6 @@ export const getProviderName = (
   }
 };
 
-const INITIAL_SELECTED_REGION = null;
-const INITIAL_GET_STARTED = false;
-const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
-
 const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
@@ -115,10 +124,6 @@ export const chainIdSelector: (state: RootState) => string = (
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
 ) => state.engine.backgroundState.PreferencesController.selectedAddress;
-export const fiatOrdersCountrySelector: (
-  state: RootState,
-) => FiatOrdersState['selectedCountry'] = (state: RootState) =>
-  state.fiatOrders.selectedCountry;
 export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>
@@ -185,6 +190,11 @@ export const getAuthenticationUrls: (
 ) => FiatOrdersState['authenticationUrls'] = (state: RootState) =>
   state.fiatOrders.authenticationUrls || [];
 
+export const getActivationKeys: (
+  state: RootState,
+) => FiatOrdersState['activationKeys'] = (state: RootState) =>
+  state.fiatOrders.activationKeys || [];
+
 export const getHasOrders = createSelector(
   getOrders,
   (orders) => orders.length > 0,
@@ -193,12 +203,11 @@ export const getHasOrders = createSelector(
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
-  selectedCountry: 'US',
-  // initial state for fiat on-ramp aggregator
-  selectedRegionAgg: INITIAL_SELECTED_REGION,
-  selectedPaymentMethodAgg: INITIAL_PAYMENT_METHOD,
-  getStartedAgg: INITIAL_GET_STARTED,
+  selectedRegionAgg: null,
+  selectedPaymentMethodAgg: null,
+  getStartedAgg: false,
   authenticationUrls: [],
+  activationKeys: [],
 };
 
 const findOrderIndex = (
@@ -253,6 +262,10 @@ const fiatOrderReducer: (
       const orders = state.orders;
       const order = action.payload;
       const index = findOrderIndex(order.provider, order.id, state.orders);
+      if (index === -1) {
+        return state;
+      }
+
       return {
         ...state,
         orders: [...orders.slice(0, index), ...orders.slice(index + 1)],
@@ -265,12 +278,6 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedAgg: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_COUNTRY: {
-      return {
-        ...state,
-        selectedCountry: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {
@@ -362,6 +369,59 @@ const fiatOrderReducer: (
         ],
       };
     }
+    case ACTIONS.FIAT_ADD_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const key = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index !== -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [...state.activationKeys, { key, active: true }],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const key = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [
+          ...activationKeys.slice(0, index),
+          ...activationKeys.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_UPDATE_ACTIVATION_KEY: {
+      const activationKeys = state.activationKeys;
+      const { key, active } = action.payload;
+      const index = activationKeys.findIndex(
+        (activationKey) => activationKey.key === key,
+      );
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        activationKeys: [
+          ...activationKeys.slice(0, index),
+          {
+            ...activationKeys[index],
+            active,
+          },
+          ...activationKeys.slice(index + 1),
+        ],
+      };
+    }
+
     default: {
       return state;
     }

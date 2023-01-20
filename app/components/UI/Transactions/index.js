@@ -29,11 +29,8 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  CANCEL_RATE,
-  KeyringTypes,
-  SPEED_UP_RATE,
-} from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';

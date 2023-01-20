@@ -1,4 +1,4 @@
-@iosApp @androidApp
+@iosApp @androidApp @ChainScenarios
 Feature: Lock and Reset Wallet
 
     Scenario: Import wallet
