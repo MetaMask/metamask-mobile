@@ -139,7 +139,7 @@ class TransactionEditor extends PureComponent {
     eip1559GasObject: {},
     legacyGasObject: {},
     dappSuggestedGasPrice: '',
-    dappSuggestedEIP1559Gas: {},
+    dappSuggestedEIP1559Gas: null,
     legacyGasTransaction: {},
     gasError: null,
   };

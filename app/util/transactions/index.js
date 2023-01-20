@@ -1107,7 +1107,7 @@ export const parseTransactionEIP1559 = (
     });
     const tokenAmount = renderFromTokenMinimalUnit(rawAmountString, decimals);
 
-    const exchangeRate = contractExchangeRates[address];
+    const exchangeRate = contractExchangeRates?.[address];
 
     [
       renderableTotalMinNative,
