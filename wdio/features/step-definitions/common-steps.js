@@ -1,5 +1,5 @@
 /* global driver */
-import { Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then} from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';

@@ -1,7 +1,3 @@
-/* global driver */
-import Gestures from '../helpers/Gestures';
-import Selectors from '../helpers/Selectors';
-
 class CommonScreen {
 
     async isTextDisplayed(text) {
