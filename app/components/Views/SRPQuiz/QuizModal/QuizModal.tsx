@@ -10,7 +10,8 @@ import Icon, {
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 
-import { QuizStage } from '../quizStructure';
+import { QuizStage } from '../types';
+import { quiz } from '../quizStructure';
 import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
 
@@ -20,6 +21,10 @@ const QuizModal = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
+
+  const dismissModal = () => {
+    modalRef.current?.dismissModal();
+  };
 
   const wrongAnswerIcon = useCallback(
     () => (
@@ -46,8 +51,6 @@ const QuizModal = () => {
   );
 
   const goToRevealPrivateCredential = () => {
-    // AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
-    // AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'seed_phrase',
     });
@@ -58,9 +61,9 @@ const QuizModal = () => {
       case QuizStage.introduction:
         return (
           <QuizContent
-            header={strings('srp_security_quiz.title')}
+            header={quiz.introduction.header}
             title={{
-              content: strings('srp_security_quiz.introduction'),
+              content: quiz.introduction.title,
             }}
             buttons={[
               {
@@ -69,43 +72,41 @@ const QuizModal = () => {
                 variant: ButtonVariants.Primary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
       case QuizStage.questionOne:
         return (
           <QuizContent
-            header={`1 ${strings('srp_security_quiz.of')} 2`}
+            header={quiz.questionOne.header}
             title={{
-              content: strings('srp_security_quiz.question_one.question'),
+              content: quiz.questionOne.content,
             }}
             buttons={[
               {
-                label: strings('srp_security_quiz.question_one.wrong_answer'),
+                label: quiz.questionOne.answers.incorrect,
                 onPress: () => setStage(QuizStage.wrongAnswerQuestionOne),
                 variant: ButtonVariants.Secondary,
               },
               {
-                label: strings('srp_security_quiz.question_one.right_answer'),
+                label: quiz.questionOne.answers.correct,
                 onPress: () => setStage(QuizStage.rightAnswerQuestionOne),
                 variant: ButtonVariants.Secondary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
       case QuizStage.rightAnswerQuestionOne:
         return (
           <QuizContent
-            header={`1 ${strings('srp_security_quiz.of')} 2`}
+            header={quiz.questionOneCorrectInformation.header}
             icon={rightAnswerIcon}
             title={{
-              content: strings(
-                'srp_security_quiz.question_one.right_answer_title',
-              ),
+              content: quiz.questionOneCorrectInformation.title,
               style: styles.rightText,
             }}
-            content={strings(
-              'srp_security_quiz.question_one.right_answer_description',
-            )}
+            content={quiz.questionOneCorrectInformation.description}
             buttons={[
               {
                 label: strings('srp_security_quiz.continue'),
@@ -113,22 +114,19 @@ const QuizModal = () => {
                 variant: ButtonVariants.Primary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
       case QuizStage.wrongAnswerQuestionOne:
         return (
           <QuizContent
-            header={`1 ${strings('srp_security_quiz.of')} 2`}
+            header={quiz.questionOneIncorrectInformation.header}
             icon={wrongAnswerIcon}
             title={{
-              content: strings(
-                'srp_security_quiz.question_one.wrong_answer_title',
-              ),
+              content: quiz.questionOneIncorrectInformation.title,
               style: styles.wrongText,
             }}
-            content={strings(
-              'srp_security_quiz.question_one.wrong_answer_description',
-            )}
+            content={quiz.questionOneIncorrectInformation.description}
             buttons={[
               {
                 label: strings('srp_security_quiz.try_again'),
@@ -136,43 +134,41 @@ const QuizModal = () => {
                 variant: ButtonVariants.Primary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
       case QuizStage.questionTwo:
         return (
           <QuizContent
-            header={`2 ${strings('srp_security_quiz.of')} 2`}
+            header={quiz.questionTwo.header}
             title={{
-              content: strings('srp_security_quiz.question_two.question'),
+              content: quiz.questionTwo.content,
             }}
             buttons={[
               {
-                label: strings('srp_security_quiz.question_two.right_answer'),
+                label: quiz.questionTwo.answers.correct,
                 onPress: () => setStage(QuizStage.rightAnswerQuestionTwo),
                 variant: ButtonVariants.Secondary,
               },
               {
-                label: strings('srp_security_quiz.question_two.wrong_answer'),
+                label: quiz.questionTwo.answers.incorrect,
                 onPress: () => setStage(QuizStage.wrongAnswerQuestionTwo),
                 variant: ButtonVariants.Secondary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
       case QuizStage.rightAnswerQuestionTwo:
         return (
           <QuizContent
-            header={`2 ${strings('srp_security_quiz.of')} 2`}
+            header={quiz.questionTwoCorrectInformation.header}
             icon={rightAnswerIcon}
             title={{
-              content: strings(
-                'srp_security_quiz.question_two.right_answer_title',
-              ),
+              content: quiz.questionTwoCorrectInformation.title,
               style: styles.rightText,
             }}
-            content={strings(
-              'srp_security_quiz.question_two.right_answer_description',
-            )}
+            content={quiz.questionTwoCorrectInformation.description}
             buttons={[
               {
                 label: strings('srp_security_quiz.continue'),
@@ -180,22 +176,19 @@ const QuizModal = () => {
                 variant: ButtonVariants.Primary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
       case QuizStage.wrongAnswerQuestionTwo:
         return (
           <QuizContent
-            header={`2 ${strings('srp_security_quiz.of')} 2`}
+            header={quiz.questionTwoIncorrectInformation.header}
             icon={wrongAnswerIcon}
             title={{
-              content: strings(
-                'srp_security_quiz.question_two.wrong_answer_title',
-              ),
+              content: quiz.questionTwoIncorrectInformation.title,
               style: styles.wrongText,
             }}
-            content={strings(
-              'srp_security_quiz.question_two.wrong_answer_description',
-            )}
+            content={quiz.questionTwoIncorrectInformation.description}
             buttons={[
               {
                 label: strings('srp_security_quiz.try_again'),
@@ -203,6 +196,7 @@ const QuizModal = () => {
                 variant: ButtonVariants.Primary,
               },
             ]}
+            dismiss={dismissModal}
           />
         );
     }
