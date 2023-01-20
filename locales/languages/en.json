@@ -71,6 +71,7 @@
     "get_started": "Get started"
   },
   "onboarding_wizard": {
+    "skip_tutorial": "Skip Tutorial",
     "coachmark": {
       "action_back": "No, Thanks",
       "action_next": "Take the tour",
