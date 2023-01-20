@@ -8,7 +8,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 import Modal from 'react-native-modal';
 import { BN } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import Engine from '../../../core/Engine';
 import {
@@ -139,25 +139,25 @@ const RootRPCMethodsUI = (props) => {
           TransactionController.state.transactions.find(
             ({ id }) => id === approvalTransactionMetaId,
           );
-        const ethBalance = await util.query(
+        const ethBalance = await query(
           TransactionController.ethQuery,
           'getBalance',
           [props.selectedAddress],
         );
-        const receipt = await util.query(
+        const receipt = await query(
           TransactionController.ethQuery,
           'getTransactionReceipt',
           [transactionMeta.transactionHash],
         );
 
-        const currentBlock = await util.query(
+        const currentBlock = await query(
           TransactionController.ethQuery,
           'getBlockByHash',
           [receipt.blockHash, false],
         );
         let approvalReceipt;
         if (approvalTransaction?.transactionHash) {
-          approvalReceipt = await util.query(
+          approvalReceipt = await query(
             TransactionController.ethQuery,
             'getTransactionReceipt',
             [approvalTransaction.transactionHash],

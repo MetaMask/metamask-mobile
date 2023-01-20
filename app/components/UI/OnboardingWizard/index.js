@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import {
   MetaMetricsEvents,
@@ -29,6 +30,9 @@ import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import { trackEvent } from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
+import { scale } from 'react-native-size-matters';
+import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -76,7 +80,7 @@ const createStyles = (colors) =>
     },
     skipText: {
       ...fontStyles.normal,
-      fontSize: 12,
+      fontSize: scale(10),
       color: colors.primary.default,
     },
   });
@@ -182,6 +186,10 @@ const OnboardingWizard = (props) => {
           <TouchableOpacity
             style={[styles.skipButtonContainer, styles.skipButton]}
             onPress={closeOnboardingWizard}
+            {...generateTestId(
+              Platform,
+              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
+            )}
           >
             <Text style={styles.skipText}>
               {strings('onboarding_wizard.skip_tutorial')}

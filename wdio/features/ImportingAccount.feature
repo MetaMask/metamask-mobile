@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @ChainScenarios
 Feature: Importing account in wallet
 
     Scenario: Import account

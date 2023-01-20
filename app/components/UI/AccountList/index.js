@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import PropTypes from 'prop-types';
 import {
   Alert,
@@ -335,7 +335,7 @@ class AccountList extends PureComponent {
   getAccounts() {
     const { accounts, identities, selectedAddress, keyrings, getBalanceError } =
       this.props;
-    // This is a temporary fix until we can read the state from @metamask/controllers
+    // This is a temporary fix until we can read the state from @metamask/keyring-controller
     const allKeyrings =
       keyrings && keyrings.length
         ? keyrings

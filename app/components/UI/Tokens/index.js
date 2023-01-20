@@ -30,8 +30,10 @@ import Text from '../../Base/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { IMPORT_TOKEN_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
-
+import {
+  IMPORT_TOKEN_BUTTON_ID,
+  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -442,7 +444,10 @@ class Tokens extends PureComponent {
     const themeAppearance = this.context.themeAppearance;
 
     return (
-      <View style={styles.wrapper} testID={'tokens'}>
+      <View
+        style={styles.wrapper}
+        {...generateTestId(Platform, MAIN_WALLET_VIEW_VIA_TOKENS_ID)}
+      >
         {tokens && tokens.length ? this.renderList() : this.renderEmpty()}
         <ActionSheet
           ref={this.createActionSheetRef}

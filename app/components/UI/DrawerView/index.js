@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ScrollView } from 'react-native-gesture-handler';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import URL from 'url-parse';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -75,10 +75,13 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
+import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
+  DRAWER_VIEW_BROWSER_TEXT_ID,
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
+  DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
 
 const createStyles = (colors) =>
@@ -187,8 +190,8 @@ const createStyles = (colors) =>
       marginLeft: 5,
     },
     buttonText: {
-      paddingLeft: 8,
-      fontSize: 15,
+      paddingLeft: scale(4),
+      fontSize: scale(13),
       color: colors.primary.default,
       ...fontStyles.normal,
     },
@@ -196,6 +199,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      padding: scale(2),
     },
     buttonIcon: {
       marginTop: 0,
@@ -977,6 +981,7 @@ class DrawerView extends PureComponent {
           selectedIcon: this.getSelectedIcon('globe'),
           action: this.goToBrowser,
           routeNames: ['BrowserView', 'AddBookmark'],
+          testID: DRAWER_VIEW_BROWSER_TEXT_ID,
         },
         {
           name: strings('drawer.wallet'),
@@ -990,6 +995,7 @@ class DrawerView extends PureComponent {
             'AddAsset',
             'Collectible',
           ],
+          testID: DRAWER_VIEW_WALLET_TEXT_ID,
         },
         {
           name: strings('drawer.transaction_activity'),

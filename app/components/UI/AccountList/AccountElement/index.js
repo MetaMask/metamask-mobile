@@ -1,7 +1,13 @@
 import React, { PureComponent } from 'react';
 import Identicon from '../../Identicon';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
@@ -9,7 +15,12 @@ import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  ACCOUNT_LIST_ACCOUNT_NAMES,
+  ACCOUNT_LIST_CHECK_ICON,
+} from '../../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';
@@ -132,9 +143,15 @@ class AccountElement extends PureComponent {
     } = this.props.item;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const nameId = name.replace(' ', '-');
 
     const selected = isSelected ? (
-      <Icon name="check-circle" size={30} color={colors.primary.default} />
+      <Icon
+        name="check-circle"
+        size={30}
+        color={colors.primary.default}
+        {...generateTestId(Platform, `${ACCOUNT_LIST_CHECK_ICON}-${nameId}`)}
+      />
     ) : null;
     const tag =
       isImported || isQRHardware ? (
@@ -161,7 +178,11 @@ class AccountElement extends PureComponent {
           <Identicon address={address} diameter={38} />
           <View style={styles.accountInfo}>
             <View style={styles.accountMain}>
-              <Text numberOfLines={1} style={[styles.accountLabel]}>
+              <Text
+                numberOfLines={1}
+                style={[styles.accountLabel]}
+                {...generateTestId(Platform, ACCOUNT_LIST_ACCOUNT_NAMES)}
+              >
                 {isDefaultAccountName(name) && ens ? ens : name}
               </Text>
               <View style={styles.accountBalanceWrapper}>

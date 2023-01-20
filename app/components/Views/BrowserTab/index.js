@@ -8,6 +8,7 @@ import {
   Linking,
   BackHandler,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
@@ -67,6 +68,16 @@ import {
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  ADD_FAVORITES_OPTION,
+  MENU_ID,
+  NEW_TAB_OPTION,
+  OPEN_IN_BROWSER_OPTION,
+  RELOAD_OPTION,
+  SHARE_OPTION,
+  SWITCH_NETWORK_OPTION,
+} from '../../../../wdio/features/testIDs/BrowserScreen/OptionMenu.testIds';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1162,7 +1173,11 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="refresh" size={15} style={styles.optionIcon} />
           </View>
-          <Text style={styles.optionText} numberOfLines={2}>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, RELOAD_OPTION)}
+          >
             {strings('browser.reload')}
           </Text>
         </Button>
@@ -1171,7 +1186,11 @@ export const BrowserTab = (props) => {
             <View style={styles.optionIconWrapper}>
               <Icon name="star" size={16} style={styles.optionIcon} />
             </View>
-            <Text style={styles.optionText} numberOfLines={2}>
+            <Text
+              style={styles.optionText}
+              numberOfLines={2}
+              {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
+            >
               {strings('browser.add_to_favorites')}
             </Text>
           </Button>
@@ -1180,7 +1199,11 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
           </View>
-          <Text style={styles.optionText} numberOfLines={2}>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, SHARE_OPTION)}
+          >
             {strings('browser.share')}
           </Text>
         </Button>
@@ -1188,7 +1211,11 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="expand" size={16} style={styles.optionIcon} />
           </View>
-          <Text style={styles.optionText} numberOfLines={2}>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
+          >
             {strings('browser.open_in_browser')}
           </Text>
         </Button>
@@ -1229,6 +1256,7 @@ export const BrowserTab = (props) => {
                   ? styles.optionsWrapperAndroid
                   : styles.optionsWrapperIos,
               ]}
+              {...generateTestId(Platform, MENU_ID)}
             >
               <Button onPress={onNewTabPress} style={styles.option}>
                 <View style={styles.optionIconWrapper}>
@@ -1238,7 +1266,11 @@ export const BrowserTab = (props) => {
                     style={styles.optionIcon}
                   />
                 </View>
-                <Text style={styles.optionText} numberOfLines={1}>
+                <Text
+                  style={styles.optionText}
+                  numberOfLines={1}
+                  {...generateTestId(Platform, NEW_TAB_OPTION)}
+                >
                   {strings('browser.new_tab')}
                 </Text>
               </Button>
@@ -1251,7 +1283,11 @@ export const BrowserTab = (props) => {
                     style={styles.optionIcon}
                   />
                 </View>
-                <Text style={styles.optionText} numberOfLines={2}>
+                <Text
+                  style={styles.optionText}
+                  numberOfLines={2}
+                  {...generateTestId(Platform, SWITCH_NETWORK_OPTION)}
+                >
                   {strings('browser.switch_network')}
                 </Text>
               </Button>

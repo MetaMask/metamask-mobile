@@ -1,30 +1,34 @@
 import {
   AccountTrackerController,
-  AddressBookController,
   AssetsContractController,
   TokenListController,
-  ControllerMessenger,
-  ComposableController,
   CurrencyRateController,
-  KeyringController,
-  PersonalMessageManager,
-  MessageManager,
-  NetworkController,
-  PhishingController,
-  PreferencesController,
   TokenBalancesController,
   TokenRatesController,
-  Transaction,
-  TransactionController,
-  TypedMessageManager,
-  WalletDevice,
-  GasFeeController,
   TokensController,
   NftController,
   TokenDetectionController,
   NftDetectionController,
-  ApprovalController,
-} from '@metamask/controllers';
+} from '@metamask/assets-controllers';
+import { AddressBookController } from '@metamask/address-book-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import { ComposableController } from '@metamask/composable-controller';
+import { KeyringController } from '@metamask/keyring-controller';
+import {
+  PersonalMessageManager,
+  MessageManager,
+  TypedMessageManager,
+} from '@metamask/message-manager';
+import { NetworkController } from '@metamask/network-controller';
+import { PhishingController } from '@metamask/phishing-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
+import {
+  Transaction,
+  TransactionController,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import { GasFeeController } from '@metamask/gas-fee-controller';
+import { ApprovalController } from '@metamask/approval-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
@@ -90,7 +94,7 @@ class Engine {
 
       const networkControllerOpts = {
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        state: initialState.networkController,
+        state: initialState.NetworkController,
         messenger: this.controllerMessenger.getRestricted({
           name: 'NetworkController',
           allowedEvents: [],

@@ -9,7 +9,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import { fontStyles } from '../../../../styles/common';
 import { MetaMetricsEvents } from '../../../../core/Analytics';

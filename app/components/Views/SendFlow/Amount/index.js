@@ -17,7 +17,7 @@ import { BN } from 'ethereumjs-util';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { fontStyles } from '../../../../styles/common';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -53,9 +53,10 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
+import { hexToBN, BNToHex } from '@metamask/controller-utils';
+import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { trackLegacyEvent } from '../../../../util/analyticsV2';
-import ErrorMessage from '../ErrorMessage';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
@@ -79,8 +80,6 @@ import {
   AMOUNT_SCREEN_CARET_DROP_DOWN,
 } from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-const { hexToBN, BNToHex } = util;
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 

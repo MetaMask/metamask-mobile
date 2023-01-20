@@ -17,6 +17,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { scale } from 'react-native-size-matters';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import NavbarTitle from '../NavbarTitle';
@@ -1462,7 +1463,7 @@ export function getFiatOnRampAggNavbar(
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
-      fontSize: 14,
+      fontSize: scale(11),
       ...fontStyles.normal,
     },
     headerStyle: {
@@ -1471,7 +1472,7 @@ export function getFiatOnRampAggNavbar(
       elevation: 0,
     },
     headerTitleStyle: {
-      fontSize: 20,
+      fontSize: 18,
       ...fontStyles.normal,
       color: themeColors.text.default,
       ...(!showBack && { textAlign: 'center' }),
@@ -1483,6 +1484,8 @@ export function getFiatOnRampAggNavbar(
 
   const leftAction = () => navigation.pop();
 
+  const navigationCancelText = strings('navigation.cancel');
+
   return {
     headerTitle: () => (
       <NavbarTitle title={headerTitle} disableNetwork translate={false} />
@@ -1491,7 +1494,11 @@ export function getFiatOnRampAggNavbar(
       if (!showBack) return <View />;
 
       return Device.isAndroid() ? (
-        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={leftAction}
+          style={styles.backButton}
+          accessibilityRole="button"
+        >
           <IonicIcon
             name={'md-arrow-back'}
             size={24}
@@ -1499,7 +1506,11 @@ export function getFiatOnRampAggNavbar(
           />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+        <TouchableOpacity
+          onPress={leftAction}
+          style={styles.closeButton}
+          accessibilityRole="button"
+        >
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
         </TouchableOpacity>
       );
@@ -1511,10 +1522,9 @@ export function getFiatOnRampAggNavbar(
           onCancel?.();
         }}
         style={styles.closeButton}
+        accessibilityRole="button"
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
+        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,

@@ -11,7 +11,7 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { util } from '@metamask/controllers';
+import { hexToBN } from '@metamask/controller-utils';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -66,8 +66,6 @@ import createStyles from './styles';
 import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
 import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/features/testIDs/Screens/AddressBook.testids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-const { hexToBN } = util;
 
 const dummy = () => true;
 

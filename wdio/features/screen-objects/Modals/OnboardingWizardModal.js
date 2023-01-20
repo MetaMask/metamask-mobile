@@ -12,64 +12,87 @@ import {
   ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1,
   ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_2,
   ONBOARDING_WIZARD_EXPLORE_BROWSER_DESC,
-  ONBOARDING_WIZARD_SEARCH_DESC
+  ONBOARDING_WIZARD_SEARCH_DESC,
 } from '../../testIDs/Components/OnboardingWizard.testIds';
 
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class OnboardingWizardModal {
-
   get onBoardingWizardContainer() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
+    );
   }
 
   get onBoardingWizardNoThanksButton() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID);
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+    );
   }
 
   get onBoardingWizardBackButton() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_BACK_BUTTON)
+    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_BACK_BUTTON);
   }
 
   get onBoardingWizardTakeTourButton() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID);
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
+    );
   }
 
   get onBoardingWizardYourAccountDesc1() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_YOUR_ACCOUNTS_DESC_1);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_YOUR_ACCOUNTS_DESC_1,
+    );
   }
 
   get onBoardingWizardYourAccountDesc2() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_YOUR_ACCOUNTS_DESC_2);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_YOUR_ACCOUNTS_DESC_2,
+    );
   }
 
   get onBoardingWizardSkipTutorialButton() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON);
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
+    );
   }
 
   get onBoardingWizardGotItButton() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
+    );
   }
 
   get onBoardingWizardEditAccountNameDesc1() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_1);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_1,
+    );
   }
 
   get onBoardingWizardEditAccountNameDesc2() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_2);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_2,
+    );
   }
 
   get onBoardingWizardMainNavDesc1() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1,
+    );
   }
 
   get onBoardingWizardMainNavDesc2() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_2);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_2,
+    );
   }
 
   get onBoardingWizardExploreBrowserDesc() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_EXPLORE_BROWSER_DESC);
+    return Selectors.getXpathElementByText(
+      ONBOARDING_WIZARD_EXPLORE_BROWSER_DESC,
+    );
   }
 
   get onBoardingWizardSearchDesc() {
@@ -89,7 +112,7 @@ class OnboardingWizardModal {
   }
 
   async isHeaderDisplayedByXPath(text) {
-    await expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
+    await expect(await Selectors.getXpathElementByText(text)).toBeDisplayed();
   }
 
   async isYourAccountDesc1Displayed() {
