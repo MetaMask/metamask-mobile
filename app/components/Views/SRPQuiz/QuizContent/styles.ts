@@ -15,7 +15,22 @@ const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: 16,
     },
     bodyContainer: {
-      padding: 24,
+      padding: 15,
+      alignItems: 'center',
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center', //Centered vertically
+      marginBottom: 20,
+      // marginHorizontal: 20,
+    },
+    headerText: {
+      textAlign: 'center',
+      flex: 1,
+    },
+    icon: {
+      // flex:1,
     },
     title: {
       textAlign: 'center',
@@ -24,9 +39,14 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       textAlign: 'center',
       marginVertical: 12,
+      width: '100%',
+    },
+    bottomContainer: {
+      width: '100%',
     },
     button: {
-      marginVertical: 12,
+      marginVertical: 7,
+      width: '100%',
     },
   });
 };
