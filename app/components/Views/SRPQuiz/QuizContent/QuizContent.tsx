@@ -15,6 +15,7 @@ import Text, {
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import stylesheet from './styles';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const QuizContent = ({
   header,
@@ -22,6 +23,7 @@ const QuizContent = ({
   content,
   icon,
   buttons,
+  dismiss,
 }: IQuizInformationProps) => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
@@ -39,12 +41,14 @@ const QuizContent = ({
           <Text variant={TextVariants.sHeadingSM} style={styles.headerText}>
             {header}
           </Text>
-          <Icon
-            size={IconSize.Xs}
-            name={IconName.CloseOutline}
-            color={colors.icon.default}
-            style={styles.icon}
-          />
+          <TouchableOpacity onPress={dismiss}>
+            <Icon
+              size={IconSize.Xs}
+              name={IconName.CloseOutline}
+              color={colors.icon.default}
+              style={styles.icon}
+            />
+          </TouchableOpacity>
         </View>
         {icon ? icon() : null}
         <Text
