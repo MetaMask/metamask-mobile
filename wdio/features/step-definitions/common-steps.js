@@ -1,5 +1,5 @@
 /* global driver */
-import { Given } from '@wdio/cucumber-framework';
+import { Given, Then, When} from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -7,15 +7,19 @@ import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
 
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import CommonScreen from '../screen-objects/CommonScreen';
+
+
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-
+import Gestures from '../../features/helpers/Gestures';
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
-  await driver.pause(22000); //TODO: Needs a smarter set timeout
+  await driver.pause(10000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -45,7 +49,7 @@ Given(/^I have created my wallet$/, async () => { // should be in a common step 
   await CreateNewWalletScreen.selectRemindMeLater();
   await CreateNewWalletScreen.isAccountCreated();
   await CreateNewWalletScreen.isNotVisible();
-
+  await WalletMainScreen.isMainWalletViewVisible();
 });
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
@@ -53,4 +57,44 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   const setTimeout = 1500;
   await driver.pause(setTimeout);
   await OnboardingWizardModal.tapNoThanksButton();
+});
+
+Then(/^I tap button "([^"]*)?" on (.*) (.*) view/, async (button, screen, type) => {
+  const timeout = 1000;
+    await driver.pause(timeout);
+    await Gestures.tapTextByXpath(button);
+    screen = null;
+    type = null;
+});
+
+Then(/^I tap button "([^"]*)?" to navigate to (.*) view/, async (button, screen) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await Gestures.tapTextByXpath(button);
+  screen = null;
+});
+
+Then(/^(.*) "([^"]*)?" is displayed on (.*) (.*) view/, async (elementType, text, type, screen) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
+  elementType = null;
+  type = null;
+  screen = null;
+});
+
+Then(/^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/, async (elementType, textElement, type, screen) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextElementNotDisplayed(textElement);
+  // eslint-disable-next-line no-console
+  elementType = null;
+  type = null;
+  screen = null;
+});
+
+Then(/^I am on the main wallet view/, async () => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await WalletMainScreen.isMainWalletViewVisible();
 });

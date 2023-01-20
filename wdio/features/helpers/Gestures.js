@@ -130,6 +130,13 @@ class Gestures {
     await elem.setValue(text, +'\n');
   }
 
+  static async setValueWithoutTap(element, text) { //Some instances typeText above does not work because of tap
+    const elem = await element;
+    await elem.waitForDisplayed();
+    await elem.clearValue();
+    await elem.setValue(text, +'\n');
+  }
+
   /**
    * Check if an element is visible and if not wipe up a portion of the screen to
    * check if it visible after x amount of scrolls

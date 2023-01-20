@@ -21,16 +21,16 @@ class ImportAccountScreen{
     get privateKeyInputBox(){
         return Selectors.getElementByPlatform(PRIVATE_KEY_INPUT_BOX_ID);
     }
-    
-    
+
+
     async typePrivateKeyAndDismissKeyboard(privateKey){
         await Gestures.typeText(this.privateKeyInputBox, privateKey);
         await driver.pause(2500);
     }
 
     async tapImportButton(){
-        await Gestures.tapTextByXpath("Import Account"); // TO DISMISS KEYBOARD
-        await Gestures.tapTextByXpath("IMPORT"); // NEARLY IMPOSSIBLE TO TAP BY ID. HAVE TO USE TEXT
+        await Gestures.tapTextByXpath('Import Account'); // TO DISMISS KEYBOARD
+        await Gestures.tapTextByXpath('IMPORT'); // NEARLY IMPOSSIBLE TO TAP BY ID. HAVE TO USE TEXT
 
     }
     async isAlertTextVisible(text){ 
@@ -38,8 +38,9 @@ class ImportAccountScreen{
         // the ImportAccountScreen class
         const message = await driver.getAlertText();
         try {
-          expect(message.includes(text.trim())).toBe(true);      
+          expect(message.includes(text.trim())).toBe(true);
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.log(`Not able to get device alert text: `);
         }    
       }

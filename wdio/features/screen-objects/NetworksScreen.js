@@ -9,7 +9,8 @@ import {INPUT_CHAIN_ID_FIELD,
     BLOCK_EXPLORER_FIELD,
     REMOVE_NETWORK_BUTTON,
     NETWORK_BACK_ARROW_BUTTON_ID,
-    NAV_ANDROID_BACK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
+    NAV_ANDROID_BACK_BUTTON,
+    NETWORK_SCREEN_CLOSE_ICON } from '../testIDs/Screens/NetworksScreen.testids';
 
 class NetworksScreen {
 
@@ -61,6 +62,11 @@ class NetworksScreen {
         return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
     }
 
+    get closeNetworkScreen() {
+        return Selectors.getElementByPlatform(NETWORK_SCREEN_CLOSE_ICON);
+    }
+
+    NETWORK_SCREEN_CLOSE_ICON
     async isPopularNetworksTabVisible() {
         await expect(this.getPopularNetworksTab).toBeDisplayed();
     }
@@ -188,6 +194,10 @@ class NetworksScreen {
 
     async tapBackButtonInSettingsScreen() {
         await Gestures.tap(this.settingsPageAndroidBackButton);
+    }
+
+    async tapCloseNetworkScreen() {
+        await Gestures.tap(this.closeNetworkScreen);
     }
 }
 
