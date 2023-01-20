@@ -41,7 +41,7 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
 
   // Check on mount
   useEffect(() => {
-    if (isSwapsAllowed(chainId) && !isLive && !hasMountChecked) {
+    if (isSwapsAllowed(chainId) && !isLive) {
       setHasMountChecked(true);
       checkLiveness();
     }
