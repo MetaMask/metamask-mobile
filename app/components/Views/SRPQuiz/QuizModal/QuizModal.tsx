@@ -21,23 +21,37 @@ const QuizModal = () => {
   const { colors } = theme;
   const navigation = useNavigation();
 
-  const wrongAnswerIcon = () => (
-    <Icon
-      size={IconSize.Xl}
-      name={IconName.DangerFilled}
-      color={colors.error.default}
-      // style={styles.icon}
-    />
+  const wrongAnswerIcon = useCallback(
+    () => (
+      <Icon
+        size={IconSize.Xl}
+        name={IconName.DangerFilled}
+        color={colors.error.default}
+      />
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
-  const rightAnswerIcon = () => (
-    <Icon
-      size={IconSize.Xl}
-      name={IconName.CheckCircleOnFilled}
-      color={colors.success.default}
-      // style={styles.icon}
-    />
+  const rightAnswerIcon = useCallback(
+    () => (
+      <Icon
+        size={IconSize.Xl}
+        name={IconName.CheckCircleOnFilled}
+        color={colors.success.default}
+      />
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
+
+  const goToRevealPrivateCredential = () => {
+    // AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
+    // AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
+    navigation.navigate('RevealPrivateCredentialView', {
+      privateCredentialName: 'seed_phrase',
+    });
+  };
 
   const quizPage = useCallback(() => {
     switch (stage) {
@@ -162,7 +176,7 @@ const QuizModal = () => {
             buttons={[
               {
                 label: strings('srp_security_quiz.continue'),
-                onPress: () => navigation.navigate('FiatOnRampAggregator'),
+                onPress: goToRevealPrivateCredential,
                 variant: ButtonVariants.Primary,
               },
             ]}
@@ -193,7 +207,7 @@ const QuizModal = () => {
         );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
+  }, [navigation, stage, rightAnswerIcon, wrongAnswerIcon]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
