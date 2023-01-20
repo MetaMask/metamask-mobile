@@ -1,11 +1,15 @@
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+
 export interface IQuizInformationProps {
   title: string;
-  btnLabel: string;
-  onContinuePress: () => void;
+  buttons: {
+    onPress: () => void;
+    label: string;
+    variant: ButtonVariants;
+  }[];
   header?: string;
   content?: string;
   icon?: any;
-  styles?: any;
 }
 
 export interface Question {
