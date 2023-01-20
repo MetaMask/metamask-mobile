@@ -326,10 +326,8 @@ class AccountOverview extends PureComponent {
 
   onSend = () => {
     const { newAssetTransaction, navigation, ticker } = this.props;
-    // newAssetTransaction(getEther(ticker));
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-    });
+    newAssetTransaction(getEther(ticker));
+    navigation.navigate('SendFlowView');
   };
 
   onBuy = () => {
