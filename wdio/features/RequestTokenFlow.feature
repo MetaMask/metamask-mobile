@@ -26,7 +26,6 @@ Feature: Request Token
     When I tap button "Receive" on the main wallet view
     Then Text "Scan address to receive payment" is displayed on Q-R code view
     When I tap button "Request Payment" on Recieve Modal view
-    # Then the Request view should appear
     And I tap on button with text "<TokenName>"
     And I type "3" into the Request Amount field
     When I tap button "Reset" on Request Amount view
