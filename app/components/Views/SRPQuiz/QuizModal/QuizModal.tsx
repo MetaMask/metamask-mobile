@@ -1,11 +1,8 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
-// import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import ReusableModal, { ReusableModalRef } from '../../../UI/ReusableModal';
-import Text, {
-  TextVariants,
-} from '../../../../component-library/components/Texts/Text';
-import Button, { ButtonSize, ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconSize,
   IconName,
@@ -14,7 +11,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 
 import { QuizStage } from '../quizStructure';
-import { QuizInformation } from '../QuizInformation';
+import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
 
 const QuizModal = () => {
@@ -22,7 +19,7 @@ const QuizModal = () => {
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
-  // const navigation = useNavigation();
+  const navigation = useNavigation();
 
   const wrongAnswerIcon = () => (
     <Icon
@@ -46,61 +43,135 @@ const QuizModal = () => {
     switch (stage) {
       case QuizStage.introduction:
         return (
-          <QuizInformation
-            styles={styles.bodyContainer}
-            header={'Header 1'}
+          <QuizContent
+            header={strings('srp_security_quiz.title')}
             title={strings('srp_security_quiz.introduction')}
-            content={'Content 1'}
-            btnLabel={strings('srp_security_quiz.get_started')}
-            onContinuePress={() => setStage(QuizStage.questionOne)}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.get_started'),
+                onPress: () => setStage(QuizStage.questionOne),
+                variant: ButtonVariants.Primary,
+              },
+            ]}
           />
         );
       case QuizStage.questionOne:
         return (
-          <QuizInformation
-            styles={styles.bodyContainer}
-            header={'Header 2'}
-            title={'Title 2'}
-            content={'Content 2'}
-            btnLabel={strings('srp_security_quiz.get_started')}
-            onContinuePress={() => setStage(QuizStage.questionTwo)}
+          <QuizContent
+            header={`1 ${strings('srp_security_quiz.of')} 2`}
+            title={strings('srp_security_quiz.question_one.question')}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.question_one.wrong_answer'),
+                onPress: () => setStage(QuizStage.wrongAnswerQuestionOne),
+                variant: ButtonVariants.Secondary,
+              },
+              {
+                label: strings('srp_security_quiz.question_one.right_answer'),
+                onPress: () => setStage(QuizStage.rightAnswerQuestionOne),
+                variant: ButtonVariants.Secondary,
+              },
+            ]}
           />
         );
       case QuizStage.rightAnswerQuestionOne:
-        return <View />;
+        return (
+          <QuizContent
+            header={`1 ${strings('srp_security_quiz.of')} 2`}
+            icon={rightAnswerIcon}
+            title={strings('srp_security_quiz.question_one.right_answer_title')}
+            content={strings(
+              'srp_security_quiz.question_one.right_answer_description',
+            )}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.continue'),
+                onPress: () => setStage(QuizStage.questionTwo),
+                variant: ButtonVariants.Primary,
+              },
+            ]}
+          />
+        );
       case QuizStage.wrongAnswerQuestionOne:
-        return <View />;
+        return (
+          <QuizContent
+            header={`1 ${strings('srp_security_quiz.of')} 2`}
+            icon={wrongAnswerIcon}
+            title={strings('srp_security_quiz.question_one.wrong_answer_title')}
+            content={strings(
+              'srp_security_quiz.question_one.wrong_answer_description',
+            )}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.try_again'),
+                onPress: () => setStage(QuizStage.questionOne),
+                variant: ButtonVariants.Primary,
+              },
+            ]}
+          />
+        );
       case QuizStage.questionTwo:
-        return <View />;
+        return (
+          <QuizContent
+            header={`2 ${strings('srp_security_quiz.of')} 2`}
+            title={strings('srp_security_quiz.question_two.question')}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.question_two.right_answer'),
+                onPress: () => setStage(QuizStage.rightAnswerQuestionTwo),
+                variant: ButtonVariants.Secondary,
+              },
+              {
+                label: strings('srp_security_quiz.question_two.wrong_answer'),
+                onPress: () => setStage(QuizStage.wrongAnswerQuestionTwo),
+                variant: ButtonVariants.Secondary,
+              },
+            ]}
+          />
+        );
       case QuizStage.rightAnswerQuestionTwo:
-        return <View />;
+        return (
+          <QuizContent
+            header={`2 ${strings('srp_security_quiz.of')} 2`}
+            icon={rightAnswerIcon}
+            title={strings('srp_security_quiz.question_two.right_answer_title')}
+            content={strings(
+              'srp_security_quiz.question_two.right_answer_description',
+            )}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.continue'),
+                onPress: () => navigation.navigate('FiatOnRampAggregator'),
+                variant: ButtonVariants.Primary,
+              },
+            ]}
+          />
+        );
       case QuizStage.wrongAnswerQuestionTwo:
-        return <View />;
+        return (
+          <QuizContent
+            header={`2 ${strings('srp_security_quiz.of')} 2`}
+            icon={wrongAnswerIcon}
+            title={strings('srp_security_quiz.question_two.wrong_answer_title')}
+            content={strings(
+              'srp_security_quiz.question_two.wrong_answer_description',
+            )}
+            buttons={[
+              {
+                label: strings('srp_security_quiz.try_again'),
+                onPress: () => setStage(QuizStage.questionTwo),
+                variant: ButtonVariants.Primary,
+              },
+            ]}
+          />
+        );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={styles.modal}>
-        <View style={styles.header}>
-          <Text
-            variant={TextVariants.sHeadingSMRegular}
-            style={styles.headerText}
-          >
-            header
-          </Text>
-          <Icon
-            size={IconSize.Xs}
-            name={IconName.CloseOutline}
-            color={colors.icon.default}
-            style={styles.icon}
-          />
-        </View>
-        {wrongAnswerIcon()}
-        {rightAnswerIcon()}
-        {quizPage()}
-      </View>
+      <View style={styles.modal}>{quizPage()}</View>
     </ReusableModal>
   );
 };
