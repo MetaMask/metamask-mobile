@@ -64,6 +64,7 @@ import {
 } from '../../../../constants/test-ids';
 import ClearCookiesSection from './Sections/ClearCookiesSection';
 import { LEARN_MORE_URL } from '../../../../constants/urls';
+import Routes from '../../../../constants/navigation/Routes';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
@@ -721,7 +722,7 @@ class Settings extends PureComponent {
         ) : (
           <StyledButton
             type="normal"
-            onPress={this.goToRevealPrivateCredential}
+            onPress={this.openSRPQuiz}
             containerStyle={styles.confirm}
             testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
           >
@@ -1101,6 +1102,13 @@ class Settings extends PureComponent {
         </View>
       </>
     );
+  };
+
+  openSRPQuiz = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    });
   };
 
   render = () => {
