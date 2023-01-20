@@ -3,7 +3,7 @@ import { utils } from 'ethers';
 import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
-
+import networksWithImages from 'images/image-icons';
 import AppConstants from '../../core/AppConstants';
 import {
   GOERLI,
@@ -142,6 +142,23 @@ export const isMultiLayerFeeNetwork = (chainId) =>
 
 export const getNetworkName = (id) =>
   NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
+
+/**
+ * Gets the test network image icon.
+ *
+ * @param {string} networkType - Type of network.
+ * @returns - Image of test network or undefined.
+ */
+export const getTestNetImage = (networkType) => {
+  if (
+    networkType === ROPSTEN ||
+    networkType === GOERLI ||
+    networkType === KOVAN ||
+    networkType === RINKEBY
+  ) {
+    return networksWithImages?.[networkType.toUpperCase()];
+  }
+};
 
 export const isTestNet = (networkId) => {
   const networkName = getNetworkName(networkId);
@@ -350,6 +367,7 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
   if (popularNetwork) {
     return popularNetwork.rpcPrefs.imageSource;
   }
+  return getTestNetImage(networkType);
 };
 
 // The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers

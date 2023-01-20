@@ -215,6 +215,7 @@ class NetworksSettings extends PureComponent {
             >
               <View style={styles.network}>
                 {isCustomRPC &&
+                  // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
                   (image ? (
                     <ImageIcons image={image} style={styles.networkIcon} />
                   ) : (
@@ -225,13 +226,19 @@ class NetworksSettings extends PureComponent {
                       size={AvatarSize.Xs}
                     />
                   ))}
-                {!isCustomRPC && (
-                  <View
-                    style={[styles.networkIcon, { backgroundColor: image }]}
-                  >
-                    <Text style={styles.text}>{name[0]}</Text>
-                  </View>
-                )}
+                {!isCustomRPC &&
+                  (image ? (
+                    <ImageIcons
+                      image={network.toUpperCase()}
+                      style={styles.networkIcon}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.networkIcon, { backgroundColor: image }]}
+                    >
+                      <Text style={styles.text}>{name[0]}</Text>
+                    </View>
+                  ))}
                 <Text style={styles.networkLabel}>{name}</Text>
                 {!isCustomRPC && (
                   <FontAwesome
