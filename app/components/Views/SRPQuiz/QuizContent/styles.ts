@@ -3,14 +3,11 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { colors } = theme;
 
   return StyleSheet.create({
     screen: { justifyContent: 'center' },
-    // eslint-disable-next-line react-native/no-color-literals
     modal: {
-      backgroundColor: 'blue',
       borderRadius: 10,
       marginHorizontal: 16,
     },
@@ -21,9 +18,8 @@ const styleSheet = (params: { theme: Theme }) => {
     header: {
       flexDirection: 'row',
       justifyContent: 'center',
-      alignItems: 'center', //Centered vertically
+      alignItems: 'center',
       marginBottom: 20,
-      // marginHorizontal: 20,
     },
     headerText: {
       textAlign: 'center',
@@ -47,7 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     bottomContainer: {
       width: '100%',
-      // justifyContent: 'flex-end',
       marginTop: 25,
       marginBottom: 10,
     },

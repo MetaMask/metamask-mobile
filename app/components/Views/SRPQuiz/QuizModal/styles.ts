@@ -3,7 +3,6 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { colors } = theme;
 
   return StyleSheet.create({
