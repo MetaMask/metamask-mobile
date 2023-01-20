@@ -45,7 +45,9 @@ const QuizModal = () => {
         return (
           <QuizContent
             header={strings('srp_security_quiz.title')}
-            title={strings('srp_security_quiz.introduction')}
+            title={{
+              content: strings('srp_security_quiz.introduction'),
+            }}
             buttons={[
               {
                 label: strings('srp_security_quiz.get_started'),
@@ -59,7 +61,9 @@ const QuizModal = () => {
         return (
           <QuizContent
             header={`1 ${strings('srp_security_quiz.of')} 2`}
-            title={strings('srp_security_quiz.question_one.question')}
+            title={{
+              content: strings('srp_security_quiz.question_one.question'),
+            }}
             buttons={[
               {
                 label: strings('srp_security_quiz.question_one.wrong_answer'),
@@ -79,7 +83,12 @@ const QuizModal = () => {
           <QuizContent
             header={`1 ${strings('srp_security_quiz.of')} 2`}
             icon={rightAnswerIcon}
-            title={strings('srp_security_quiz.question_one.right_answer_title')}
+            title={{
+              content: strings(
+                'srp_security_quiz.question_one.right_answer_title',
+              ),
+              style: styles.rightText,
+            }}
             content={strings(
               'srp_security_quiz.question_one.right_answer_description',
             )}
@@ -97,7 +106,12 @@ const QuizModal = () => {
           <QuizContent
             header={`1 ${strings('srp_security_quiz.of')} 2`}
             icon={wrongAnswerIcon}
-            title={strings('srp_security_quiz.question_one.wrong_answer_title')}
+            title={{
+              content: strings(
+                'srp_security_quiz.question_one.wrong_answer_title',
+              ),
+              style: styles.wrongText,
+            }}
             content={strings(
               'srp_security_quiz.question_one.wrong_answer_description',
             )}
@@ -114,7 +128,9 @@ const QuizModal = () => {
         return (
           <QuizContent
             header={`2 ${strings('srp_security_quiz.of')} 2`}
-            title={strings('srp_security_quiz.question_two.question')}
+            title={{
+              content: strings('srp_security_quiz.question_two.question'),
+            }}
             buttons={[
               {
                 label: strings('srp_security_quiz.question_two.right_answer'),
@@ -134,7 +150,12 @@ const QuizModal = () => {
           <QuizContent
             header={`2 ${strings('srp_security_quiz.of')} 2`}
             icon={rightAnswerIcon}
-            title={strings('srp_security_quiz.question_two.right_answer_title')}
+            title={{
+              content: strings(
+                'srp_security_quiz.question_two.right_answer_title',
+              ),
+              style: styles.rightText,
+            }}
             content={strings(
               'srp_security_quiz.question_two.right_answer_description',
             )}
@@ -152,7 +173,12 @@ const QuizModal = () => {
           <QuizContent
             header={`2 ${strings('srp_security_quiz.of')} 2`}
             icon={wrongAnswerIcon}
-            title={strings('srp_security_quiz.question_two.wrong_answer_title')}
+            title={{
+              content: strings(
+                'srp_security_quiz.question_two.wrong_answer_title',
+              ),
+              style: styles.wrongText,
+            }}
             content={strings(
               'srp_security_quiz.question_two.wrong_answer_description',
             )}

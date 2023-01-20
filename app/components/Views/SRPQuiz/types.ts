@@ -1,7 +1,10 @@
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 export interface IQuizInformationProps {
-  title: string;
+  title: {
+    content: string;
+    style?: any;
+  };
   buttons: {
     onPress: () => void;
     label: string;
