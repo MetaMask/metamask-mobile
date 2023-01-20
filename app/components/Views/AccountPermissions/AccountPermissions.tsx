@@ -213,25 +213,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.Import: {
-          hideSheet(() => {
-            navigation.navigate('ImportPrivateKeyView');
-            // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-              {},
-            );
-          });
+          navigation.navigate('ImportPrivateKeyView');
+          // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            {},
+          );
+
           break;
         }
         case USER_INTENT.ConnectHW: {
-          hideSheet(() => {
-            navigation.navigate('ConnectQRHardwareFlow');
-            // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-              {},
-            );
-          });
+          navigation.navigate('ConnectQRHardwareFlow');
+          // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+
           break;
         }
       }

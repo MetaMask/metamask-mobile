@@ -63,6 +63,9 @@ import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import AssetOptions from '../../Views/AssetOptions';
+import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -425,6 +428,30 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
+  const ImportPrivateKeyView = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+      <Stack.Screen
+        name="ImportPrivateKeySuccess"
+        component={ImportPrivateKeySuccess}
+      />
+    </Stack.Navigator>
+  );
+
+  const ConnectQRHardwareFlow = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+    </Stack.Navigator>
+  );
+
   return (
     // do not render unless a route is defined
     (route && (
@@ -472,6 +499,16 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
+            />
+            <Stack.Screen
+              name="ImportPrivateKeyView"
+              component={ImportPrivateKeyView}
+              options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name="ConnectQRHardwareFlow"
+              component={ConnectQRHardwareFlow}
+              options={{ animationEnabled: true }}
             />
           </Stack.Navigator>
         </NavigationContainer>
