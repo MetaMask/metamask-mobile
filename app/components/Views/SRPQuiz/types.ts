@@ -3,11 +3,11 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 export enum QuizStage {
   introduction = 'introduction',
   questionOne = 'question-one',
-  wrongAnswerQuestionOne = 'wrong-answer-questoin-one',
-  rightAnswerQuestionOne = 'right-answer-questoin-one',
+  wrongAnswerQuestionOne = 'wrong-answer-question-one',
+  rightAnswerQuestionOne = 'right-answer-question-one',
   questionTwo = 'question-two',
-  wrongAnswerQuestionTwo = 'wrong-answer-questoin-two',
-  rightAnswerQuestionTwo = 'right-answer-questoin-two',
+  wrongAnswerQuestionTwo = 'wrong-answer-question-two',
+  rightAnswerQuestionTwo = 'right-answer-question-two',
 }
 
 export interface IQuizInformationProps {
