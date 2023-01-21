@@ -1,6 +1,6 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ConnectionStatus } from '@metamask/sdk-communication-layer';
-import { Connection } from '../../../core/SDKConnect/SDKConnect';
+import SDKConnect, { Connection } from '../../../core/SDKConnect/SDKConnect';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Logger from '../../../util/Logger';
@@ -60,32 +60,22 @@ export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
 
   return (
     <View style={styles.container}>
-      {/* <Text>{connection.originatorInfo?.platform}</Text>
+      <Text>{connection.originatorInfo?.platform}</Text>
       <Text>{connection.originatorInfo?.title}</Text>
-      <Text>{connection.originatorInfo?.url}</Text> */}
+      <Text>{connection.originatorInfo?.url}</Text>
       <Text>{connection.channelId}</Text>
-      {/* <Text>
-        MM Private Key:{' '}
-        <Text style={styles.textData}>
-          {connection.getKeyInfo()?.encryptionKey}
-        </Text>
-      </Text>
-      <Text>
-        MM Public Key:{' '}
-        <Text style={styles.textData}>
-          {connection.getKeyInfo()?.decryptionKey}
-        </Text>
-      </Text>
-      <Text>
-        Dapp Public Key:{' '}
-        <Text style={styles.textData}>
-          {connection.getKeyInfo()?.otherPubKey}
-        </Text>
-      </Text>
       <Text>
         Expiration: {connection.remote.getChannelConfig()?.validUntil}
       </Text>
-      <Text>Status: {connection.getConnectionStatus()}</Text> */}
+      <Text>Status: {connection.remote.getConnectionStatus()}</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          Logger.log('request to redirects', connection.requestsToRedirect);
+        }}
+      >
+        <Text style={styles.buttonText}>Requests Redirect</Text>
+      </TouchableOpacity>
       {hasResumeAction && (
         <TouchableOpacity
           style={styles.button}
@@ -110,8 +100,7 @@ export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
         <TouchableOpacity
           style={[styles.button, styles.removeButton]}
           onPress={() => {
-            // SDKConnect.removeChannel(connection.channelId);
-            Logger.log(`TODO`);
+            SDKConnect.removeChannel(connection.channelId);
           }}
         >
           <Text style={styles.buttonText}>Remove</Text>

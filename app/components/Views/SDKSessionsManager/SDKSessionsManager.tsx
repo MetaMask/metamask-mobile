@@ -59,9 +59,6 @@ const SDKSessionsManager = (props: Props) => {
       `SDKSEssionManager::refreshSDKState connectedList=${connectedList.length} connectionsList=${connectionList.length}`,
       _connections,
     );
-    connectedList.forEach((session) => {
-      Logger.log(`session: ${session.channelId}`);
-    });
     setConnections(connectionList);
     setConnected(connectedList);
   };
@@ -69,18 +66,11 @@ const SDKSessionsManager = (props: Props) => {
   useEffect(() => {
     // should listen for changes in connection state -- switch to redux
     refreshSDKState();
-    // SDKConnect.addEventListener((eventName: string) => {
-    //   Logger.log(`event: ${eventName}`);
-    //   refreshSDKState();
-    // });
+    SDKConnect.registerEventListener((eventName: string) => {
+      Logger.log(`event: ${eventName}`);
+      refreshSDKState();
+    });
   }, []);
-
-  // useEffect(() => {
-  //   Logger.log(
-  //     `SDKSessionManager::useEffect connections | connect change`,
-  //     connections,
-  //   );
-  // }, [connections]);
 
   return (
     <View style={styles.wrapper}>
@@ -145,8 +135,7 @@ const SDKSessionsManager = (props: Props) => {
               backgroundColor: 'blue',
             }}
             onPress={() => {
-              SDKConnect.disconnectAll();
-              refreshSDKState();
+              SDKConnect.removeAll();
             }}
           >
             <Text

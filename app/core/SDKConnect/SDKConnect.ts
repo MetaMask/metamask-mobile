@@ -1,51 +1,67 @@
-import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import {
-  RemoteCommunication,
+  CommunicationLayerMessage,
+  CommunicationLayerPreference,
   ConnectionStatus,
-  KeyInfo,
   MessageType,
   OriginatorInfo,
-  CommunicationLayerPreference,
-  CommunicationLayerMessage,
+  RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
-import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
-import AppConstants from '../AppConstants';
-import Minimizer from 'react-native-minimizer';
 import BackgroundTimer from 'react-native-background-timer';
-import Engine from '../Engine';
-import { WalletDevice } from '@metamask/transaction-controller';
 import DefaultPreference from 'react-native-default-preference';
+import AppConstants from '../AppConstants';
 
-import {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  RTCView,
-  MediaStream,
-  MediaStreamTrack,
-  mediaDevices,
-  registerGlobals,
-} from 'react-native-webrtc';
+import { WalletDevice } from '@metamask/transaction-controller';
 import { AppState } from 'react-native';
+import Minimizer from 'react-native-minimizer';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
+import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import Engine from '../Engine';
+import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
+
 import { EventEmitter2 } from 'eventemitter2';
+import {
+  mediaDevices,
+  MediaStream,
+  MediaStreamTrack,
+  registerGlobals,
+  RTCIceCandidate,
+  RTCPeerConnection,
+  RTCSessionDescription,
+  RTCView,
+} from 'react-native-webrtc';
+
+export interface SDKSessions {
+  [id: string]: ConnectionProps;
+}
+export interface ConnectedSessions {
+  [id: string]: Connection;
+}
+
+export interface ApprovedHosts {
+  [host: string]: string;
+}
+
+export interface approveHostProps {
+  host: string;
+  hostname: string;
+}
+
+export const TIMEOUT_PAUSE_CONNECTIONS = 20000;
+
+export type SDKEventListener = (event: string) => void;
 
 export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 
-const TIMEOUT_PAUSE_CONNECTIONS = 20000;
-
-const webrtc = {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  RTCView,
-  MediaStream,
-  MediaStreamTrack,
-  mediaDevices,
-  registerGlobals,
+export const CONNECTION_CONFIG = {
+  serverUrl: 'https://af75-1-36-226-145.ap.ngrok.io',
+  platform: 'metamask-mobile',
+  context: 'mm-mobile',
+  sdkRemoteOrigin: 'MMSDKREMOTE::',
+  unknownParam: 'UNKNOWN',
 };
-const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
+
+export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   eth_requestAccounts: true,
   eth_sendTransaction: true,
   eth_signTransaction: true,
@@ -59,22 +75,22 @@ const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_switchEthereumChain: true,
 };
 
+const webrtc = {
+  RTCPeerConnection,
+  RTCIceCandidate,
+  RTCSessionDescription,
+  RTCView,
+  MediaStream,
+  MediaStreamTrack,
+  mediaDevices,
+  registerGlobals,
+};
+
 export interface ConnectionProps {
   id: string;
   otherPublicKey: string;
   origin: string;
   reconnect?: boolean;
-}
-
-export interface SDKSessions {
-  [id: string]: ConnectionProps;
-}
-export interface ConnectedSessions {
-  [id: string]: Connection;
-}
-
-export interface ApprovedHosts {
-  [host: string]: string;
 }
 
 export enum Sources {
@@ -83,29 +99,6 @@ export enum Sources {
   'nodejs' = 'nodejs',
   'unity' = 'unity',
 }
-
-export type SDKEventListener = (event: string) => void;
-
-let connections: { [id: string]: ConnectionProps } = {};
-const connected: { [id: string]: Connection } = {};
-
-// Temporary hosts for now, persistance will be worked on for future versions
-let approvedHosts: { [host: string]: string } = {};
-
-const approveHost = ({
-  host,
-  hostname,
-}: {
-  host: string;
-  hostname: string;
-}) => {
-  approvedHosts[host] = hostname;
-
-  DefaultPreference.set(
-    AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-    JSON.stringify(approvedHosts),
-  );
-};
 
 const parseSource = (source: string) => {
   if ((Object as any).values(Sources).includes(source)) return source;
@@ -133,20 +126,31 @@ export class Connection extends EventEmitter2 {
   isReady = false;
   backgroundBridge?: BackgroundBridge;
 
-  constructor({ id, otherPublicKey, origin, reconnect }: ConnectionProps) {
+  constructor({
+    id,
+    otherPublicKey,
+    origin,
+    reconnect,
+    approveHost,
+    approvedHosts,
+  }: ConnectionProps & {
+    approveHost: ({ host, hostname }: approveHostProps) => void;
+    approvedHosts: ApprovedHosts;
+  }) {
     super();
+
     this.origin = origin;
     this.channelId = id;
     this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
 
     this.remote = new RemoteCommunication({
-      platform: 'metamask-mobile',
+      platform: CONNECTION_CONFIG.platform,
+      communicationServerUrl: CONNECTION_CONFIG.serverUrl,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
-      communicationServerUrl: 'https://af75-1-36-226-145.ap.ngrok.io',
       otherPublicKey,
       webRTCLib: webrtc,
-      reconnect,
-      context: 'metamask-mobile',
+      reconnect: true,
+      context: CONNECTION_CONFIG.context,
       enableDebug: true,
       ecies: {
         enabled: true,
@@ -193,8 +197,7 @@ export class Connection extends EventEmitter2 {
           `Connection::on::clients_Ready initialize BackgroundBridge`,
           originatorInfo,
         );
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+
         this.backgroundBridge = new BackgroundBridge({
           webview: null,
           url: originatorInfo?.url,
@@ -214,10 +217,15 @@ export class Connection extends EventEmitter2 {
               getApprovedHosts: () => approvedHosts,
               setApprovedHosts: () => null,
               approveHost: (hostname) =>
-                approveHost({ host: this.host, hostname }), //props.approveHost,
+                approveHost({ host: this.host, hostname }),
               // Website info
-              url: { current: originatorInfo?.url },
-              title: { current: originatorInfo?.title },
+              url: {
+                current: originatorInfo?.url ?? CONNECTION_CONFIG.unknownParam,
+              },
+              title: {
+                current:
+                  originatorInfo?.title ?? CONNECTION_CONFIG.unknownParam,
+              },
               icon: { current: undefined },
               // Bookmarks
               isHomepage: () => false,
@@ -229,12 +237,16 @@ export class Connection extends EventEmitter2 {
               isWalletConnect: false,
               analytics: {
                 isRemoteConn: true,
-                platform: parseSource(originatorInfo?.platform),
+                platform: parseSource(
+                  originatorInfo?.platform ?? CONNECTION_CONFIG.unknownParam,
+                ),
               },
               toggleUrlModal: () => null,
               injectHomePageScripts: () => null,
             }),
           isMainFrame: true,
+          isWalletConnect: false,
+          wcRequestActions: undefined,
         });
 
         this.isReady = true;
@@ -335,21 +347,14 @@ export class Connection extends EventEmitter2 {
   removeConnection() {
     this.isReady = false;
     this.disconnect();
-    delete connected[this.channelId];
-    this.backgroundBridge?.onDisconnect?.();
-    delete connections[this.channelId];
-    delete approvedHosts[this.host];
-    DefaultPreference.set(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-      JSON.stringify(approvedHosts),
-    );
-    DefaultPreference.set(
-      AppConstants.MM_SDK.SDK_CONNECTIONS,
-      JSON.stringify(connections),
-    );
+    this.backgroundBridge?.onDisconnect();
   }
 
   sendMessage(msg: any) {
+    Logger.log(
+      `Connection::sendMessage requestsToRedirect`,
+      this.requestsToRedirect,
+    );
     this.remote.sendMessage(msg);
     if (!this.requestsToRedirect[msg?.data?.id]) return;
     delete this.requestsToRedirect[msg?.data?.id];
@@ -388,19 +393,19 @@ export class SDKConnect {
       `SDKConnect::connectToChannel() id=${id}, origin=${origin}`,
       otherPublicKey,
     );
-    connected[id] = new Connection({
+    SDKConnect.connected[id] = new Connection({
       id,
       otherPublicKey,
       origin,
-      // approveHost,
-      // approvedHosts: SDKConnect.approvedHosts,
+      approveHost: SDKConnect._approveHost,
+      approvedHosts: SDKConnect.approvedHosts,
     });
-    connections[id] = { id, otherPublicKey, origin };
+    SDKConnect.connections[id] = { id, otherPublicKey, origin };
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
-      JSON.stringify(connections),
+      JSON.stringify(SDKConnect.connections),
     );
-    connected[id].on(
+    SDKConnect.connected[id].remote.on(
       MessageType.CONNECTION_STATUS,
       (connectionStatus: ConnectionStatus) => {
         this._connectionStatusHandler({ channelId: id, connectionStatus });
@@ -420,21 +425,21 @@ export class SDKConnect {
     ]);
 
     if (connectionsStorage) {
-      connections = JSON.parse(connectionsStorage);
+      SDKConnect.connections = JSON.parse(connectionsStorage);
     }
 
     if (approvedHostsStorage) {
-      approvedHosts = JSON.parse(approvedHostsStorage);
+      SDKConnect.approvedHosts = JSON.parse(approvedHostsStorage);
     }
 
-    for (const id in connections) {
-      connected[id] = new Connection({
-        ...connections[id],
+    for (const id in SDKConnect.connections) {
+      SDKConnect.connected[id] = new Connection({
+        ...SDKConnect.connections[id],
         reconnect: true,
-        // approveHost,
-        // approvedHosts: approvedHosts,
+        approveHost: SDKConnect._approveHost,
+        approvedHosts: SDKConnect.approvedHosts,
       });
-      connected[id].on(
+      SDKConnect.connected[id].on(
         MessageType.CONNECTION_STATUS,
         (connectionStatus: ConnectionStatus) => {
           SDKConnect._connectionStatusHandler({
@@ -448,13 +453,9 @@ export class SDKConnect {
   }
 
   //FIXME replace with a hook methods
-  static addEventListener(listener: SDKEventListener) {
-    //TODO remove after debugging session persistence
-    if (SDKConnect.sdkEventListeners.length === 1) {
-      SDKConnect.sdkEventListeners[0] = listener;
-    } else {
-      SDKConnect.sdkEventListeners.push(listener);
-    }
+  static registerEventListener(listener: SDKEventListener) {
+    //TODO remove after debugging session persistence, refactor with a hook
+    SDKConnect.sdkEventListeners.push(listener);
   }
 
   private static _connectionStatusHandler({
@@ -464,14 +465,15 @@ export class SDKConnect {
     channelId: string;
     connectionStatus: ConnectionStatus;
   }) {
-    if (connectionStatus === ConnectionStatus.DISCONNECTED) {
+    if (connectionStatus === ConnectionStatus.TERMINATED) {
       Logger.log(`SHOULD DISCONNECT channel=${channelId} HERE`);
-      // connected[channelId].removeConnection();
+      SDKConnect.removeChannel(channelId);
     }
     SDKConnect.emit(connectionStatus);
   }
 
   private static emit(eventName: string) {
+    Logger.log(`SDKConnect::emit() event ${eventName}`);
     SDKConnect.sdkEventListeners.forEach((listener) => {
       listener(eventName);
     });
@@ -481,26 +483,26 @@ export class SDKConnect {
     Logger.log(`SDKConnect::pause()`);
     if (SDKConnect.paused) return;
 
-    for (const id in connected) {
-      connected[id].pause();
+    for (const id in SDKConnect.connected) {
+      SDKConnect.connected[id].pause();
     }
     SDKConnect.paused = true;
   }
 
   static removeChannel(channelId: string) {
-    if (connected[channelId]) {
-      connected[channelId].removeConnection();
-      delete connected[channelId];
-      delete connections[channelId];
+    if (SDKConnect.connected[channelId]) {
+      SDKConnect.connected[channelId].removeConnection();
+      delete SDKConnect.connected[channelId];
+      delete SDKConnect.connections[channelId];
       // TODO update
-      // delete approvedHosts[this.host];
+      // delete SDKConnect.approvedHosts[this.host];
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-        JSON.stringify(approvedHosts),
+        JSON.stringify(SDKConnect.approvedHosts),
       );
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_CONNECTIONS,
-        JSON.stringify(connections),
+        JSON.stringify(SDKConnect.connections),
       );
       SDKConnect.emit('disconnect');
     }
@@ -508,29 +510,21 @@ export class SDKConnect {
 
   static removeAll() {
     Logger.log(`SDKConnect::removeAll()`);
-    for (const id in connected) {
-      SDKConnect.removeChannel(id);
-    }
-    SDKConnect.emit('removeAll');
-  }
-
-  static disconnectAll() {
-    Logger.log(`SDKConnect::removeAll()`);
-    for (const id in connected) {
+    for (const id in SDKConnect.connected) {
       SDKConnect.removeChannel(id);
     }
     SDKConnect.emit('removeAll');
   }
 
   static getConnections() {
-    return connections;
+    return SDKConnect.connections;
   }
 
   static getConnected() {
-    return connected;
+    return SDKConnect.connected;
   }
 
-  private static handleAppState(appState: string) {
+  private static _handleAppState(appState: string) {
     Logger.log(
       `SDKConnect::handleAppState() state has changed paused=${SDKConnect.paused}`,
       appState,
@@ -579,10 +573,19 @@ export class SDKConnect {
     }
   }
 
+  private static _approveHost({ host, hostname }: approveHostProps) {
+    SDKConnect.approvedHosts[host] = hostname;
+
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+      JSON.stringify(SDKConnect.approvedHosts),
+    );
+  }
+
   static async init() {
     Logger.log(`SDKConnect::init set listeners and reconnect`);
-    AppState.removeEventListener('change', this.handleAppState);
-    AppState.addEventListener('change', this.handleAppState);
+    AppState.removeEventListener('change', SDKConnect._handleAppState);
+    AppState.addEventListener('change', SDKConnect._handleAppState);
     SDKConnect.reconnect();
   }
 }

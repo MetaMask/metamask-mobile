@@ -112,7 +112,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   };
 
   const clearMMSDKConnections = async () => {
-    SDKConnect.disconnectAll();
+    SDKConnect.removeAll();
     await DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify({}),
