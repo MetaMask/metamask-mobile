@@ -96,7 +96,7 @@ const AccountRightButton = ({
       ) : (
         <Avatar
           variant={AvatarVariants.Network}
-          size={AvatarSize.Xs}
+          size={AvatarSize.Md}
           name={networkName}
           imageSource={networkImageSource}
         />
