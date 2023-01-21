@@ -61,6 +61,7 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
   "include": [
+    "./declarations.d.ts",
     "app/**/*",
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest"
