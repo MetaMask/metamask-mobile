@@ -227,7 +227,8 @@ const Main = (props) => {
   useEffect(() => {
     if (
       prevNetworkProvider.current &&
-      networkProvider.chainId !== prevNetworkProvider.current.chainId
+      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
+        networkProvider.type !== prevNetworkProvider.current.type)
     ) {
       const { type, chainId } = networkProvider;
       const networkImage = getNetworkImageSource({
