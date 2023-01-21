@@ -44,7 +44,7 @@ const createStyles = (
 
 export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
   const { colors } = useTheme();
-  const status = connection.RemoteConn.getConnectionStatus();
+  const status = connection.remote.getConnectionStatus();
   const styles = createStyles(colors, status);
 
   const hasPauseAction =

@@ -66,7 +66,7 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
-import SDKSessionsManager from '../../Views/SDKSessionsManager';
+import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
