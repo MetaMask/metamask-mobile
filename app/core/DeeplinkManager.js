@@ -19,7 +19,7 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from './SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 class DeeplinkManager {

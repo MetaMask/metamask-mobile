@@ -64,7 +64,7 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOnRampAggregator';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import createStyles from './styles';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;

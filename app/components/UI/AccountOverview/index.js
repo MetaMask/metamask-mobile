@@ -355,7 +355,7 @@ class AccountOverview extends PureComponent {
       const ens = await doENSReverseLookup(account.address, network);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
-    } catch {}
+    } catch { }
   };
 
   render() {
@@ -508,6 +508,26 @@ class AccountOverview extends PureComponent {
                 />
               )}
             </View>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={() => {
+                const { navigation } = this.props;
+                navigation.navigate('SDKSessionsManagerView');
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                Manage sessions
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>

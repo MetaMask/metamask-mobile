@@ -1,12 +1,17 @@
-import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
-import RemoteCommunication, {
+import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import {
+  RemoteCommunication,
+  ConnectionStatus,
+  KeyInfo,
+  MessageType,
+  OriginatorInfo,
   CommunicationLayerPreference,
 } from '@metamask/sdk-communication-layer';
-import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
-import AppConstants from './AppConstants';
+import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
+import AppConstants from '../AppConstants';
 import Minimizer from 'react-native-minimizer';
 import BackgroundTimer from 'react-native-background-timer';
-import Engine from './Engine';
+import Engine from '../Engine';
 import { WalletDevice } from '@metamask/transaction-controller';
 import DefaultPreference from 'react-native-default-preference';
 
@@ -21,7 +26,8 @@ import {
   registerGlobals,
 } from 'react-native-webrtc';
 import { AppState } from 'react-native';
-import Device from '../util/device';
+import Device from '../../util/device';
+import Logger from '../../util/Logger';
 
 export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 
@@ -51,13 +57,32 @@ const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_switchEthereumChain: true,
 };
 
-interface ConnectionProps {
+export interface ConnectionProps {
   id: string;
   otherPublicKey: string;
-  commLayer: CommunicationLayerPreference;
   origin: string;
   reconnect?: boolean;
 }
+
+export interface SDKSessions {
+  [id: string]: ConnectionProps;
+}
+export interface ConnectedSessions {
+  [id: string]: Connection;
+}
+
+export interface ApprovedHosts {
+  [host: string]: string;
+}
+
+export enum Sources {
+  'web-desktop' = 'web-desktop',
+  'web-mobile' = 'web-mobile',
+  'nodejs' = 'nodejs',
+  'unity' = 'unity',
+}
+
+export type SDKEventListener = (event: string) => void;
 
 let connections: { [id: string]: ConnectionProps } = {};
 const connected: { [id: string]: Connection } = {};
@@ -80,13 +105,6 @@ const approveHost = ({
   );
 };
 
-enum Sources {
-  'web-desktop' = 'web-desktop',
-  'web-mobile' = 'web-mobile',
-  'nodejs' = 'nodejs',
-  'unity' = 'unity',
-}
-
 const parseSource = (source: string) => {
   if ((Object as any).values(Sources).includes(source)) return source;
   return 'undefined';
@@ -103,7 +121,7 @@ const waitForKeychainUnlocked = async () => {
   }
 };
 
-class Connection {
+export class Connection {
   channelId;
   RemoteConn;
   requestsToRedirect: { [request: string]: boolean } = {};
@@ -112,23 +130,24 @@ class Connection {
   isReady = false;
   backgroundBridge: BackgroundBridge | undefined;
 
-  constructor({
-    id,
-    otherPublicKey,
-    commLayer,
-    origin,
-    reconnect,
-  }: ConnectionProps) {
+  constructor({ id, otherPublicKey, origin, reconnect }: ConnectionProps) {
     this.origin = origin;
     this.channelId = id;
     this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
 
     this.RemoteConn = new RemoteCommunication({
       platform: 'metamask-mobile',
-      commLayer,
+      communicationLayerPreference: CommunicationLayerPreference.SOCKET,
+      communicationServerUrl: 'https://af75-1-36-226-145.ap.ngrok.io',
       otherPublicKey,
       webRTCLib: webrtc,
       reconnect,
+      context: 'metamask-mobile',
+      enableDebug: true,
+      ecies: {
+        enabled: true,
+        debug: true,
+      },
     });
 
     this.requestsToRedirect = {};
@@ -136,11 +155,16 @@ class Connection {
     this.sendMessage = this.sendMessage.bind(this);
 
     this.RemoteConn.on('clients_disconnected', () => {
-      this.removeConnection();
+      Logger.log(`Connection::on::clients_disconnected `);
     });
 
     if (reconnect) {
       this.RemoteConn.on('clients_waiting_to_join', () => {
+        // Always disconnect - this should not happen, DAPP should always init the connection.
+        // A new channelId should be created after connection is removed.
+        Logger.log(
+          `Connection::on 'clients_waiting_to_join' removing connection`,
+        );
         this.removeConnection();
       });
     }
@@ -191,9 +215,10 @@ class Connection {
         isMainFrame: true,
       });
 
-      this.RemoteConn.on('message', async ({ message }) => {
+      this.RemoteConn.on('message', async (message) => {
         await waitForKeychainUnlocked();
 
+        Logger.log(`received msg`, message);
         if (METHODS_TO_REDIRECT[message?.method]) {
           this.requestsToRedirect[message?.id] = true;
         }
@@ -291,19 +316,13 @@ class Connection {
 
 const SDKConnect = {
   reconnected: false,
-  async connectToChannel({
-    id,
-    commLayer,
-    otherPublicKey,
-    origin,
-  }: ConnectionProps) {
+  async connectToChannel({ id, otherPublicKey, origin }: ConnectionProps) {
     connected[id] = new Connection({
       id,
-      commLayer,
       otherPublicKey,
       origin,
     });
-    connections[id] = { id, commLayer, otherPublicKey, origin };
+    connections[id] = { id, otherPublicKey, origin };
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify(connections),
@@ -347,6 +366,12 @@ const SDKConnect = {
     for (const id in connected) {
       connected[id].removeConnection();
     }
+  },
+  getConnections() {
+    return connections;
+  },
+  getConnected() {
+    return connected;
   },
   handleAppState(appState: string) {
     if (appState === 'active') {

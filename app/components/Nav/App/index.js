@@ -48,7 +48,7 @@ import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import SDKConnect from '../../../core/SDKConnect';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';

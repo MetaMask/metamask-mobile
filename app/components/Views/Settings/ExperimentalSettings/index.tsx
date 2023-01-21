@@ -5,7 +5,7 @@ import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ActionModal from '../../../../components/UI/ActionModal';
-import SDKConnect from '../../../../core/SDKConnect';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../../util/theme';
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../../../core/AppConstants';
