@@ -20,7 +20,7 @@ export const ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_1 = 'Why not give your ac
 
 export const ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_2 = 'Long tap now to edit account name.';
 
-export const ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1 = 'Tap here to access your Wallet, Browser, and Transaction activity.';
+export const ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1 = 'You can access Transaction history, Settings, and Support from this menu.';
 
 export const ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_2 = 'You can take more actions with your accounts & access MetaMask settings.';
 

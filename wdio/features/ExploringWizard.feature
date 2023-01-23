@@ -1,4 +1,4 @@
-@androidApp 
+@androidApp
 Feature: Exploring wizard
 
   Scenario: A user should be able to go through the start exploring tutorial
@@ -18,7 +18,7 @@ Feature: Exploring wizard
     When I enter "Big Bank" for account name
     Then the account nickname should read "Big Bank"
     When On the onboarding wizard I tap on "Got it" button
-    Then the tutorial modal heading should read "Main Navigation"
+    Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the burger menu.
     And I should see the "Skip Tutorial" button
     When On the onboarding wizard I tap on "Got it" button
@@ -26,7 +26,7 @@ Feature: Exploring wizard
     And there should be an explanation of the what the purpose of the browser.
     And I should see the "Skip Tutorial" button
     When On the onboarding wizard I tap on "Back" button
-    Then the tutorial modal heading should read "Main Navigation"
+    Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the burger menu.
     And I should see the "Skip Tutorial" button
     When On the onboarding wizard I tap on "Got it" button
