@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @ChainScenarios
 Feature: This feature file covers the option menu in the browser.
 
   Scenario: Reload options

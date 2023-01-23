@@ -67,6 +67,7 @@ const InfoAlert: React.FC<Props> = ({
   providerSupport,
 }: Props) => {
   const { colors, themeAppearance } = useTheme();
+
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
 

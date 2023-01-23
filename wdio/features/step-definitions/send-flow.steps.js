@@ -4,6 +4,7 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBook from '../screen-objects/AddressBook';
 import Contacts from '../screen-objects/Contacts';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
 
 Given(/^I enter address "([^"]*)?" in the sender's input box/, async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
@@ -28,7 +29,7 @@ Then(/^I proceed to the amount view/, async () => {
 });
 
 Then(/^I am on the wallet view/, async () => {
-    await SendScreen.tapCancelButton();
+    await WalletMainScreen.isMainWalletViewVisible();
 });
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
