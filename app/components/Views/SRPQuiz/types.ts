@@ -1,3 +1,4 @@
+import { ImageSourcePropType } from 'react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 export enum QuizStage {
@@ -22,6 +23,7 @@ export interface IQuizInformationProps {
   }[];
   dismiss: () => void;
   header?: string;
+  image?: ImageSourcePropType;
   content?: string;
   icon?: any;
 }

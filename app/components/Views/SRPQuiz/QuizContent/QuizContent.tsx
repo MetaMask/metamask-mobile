@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Image } from 'react-native';
 import { IQuizInformationProps } from '../types';
 import Icon, {
   IconSize,
@@ -19,6 +19,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const QuizContent = ({
   header,
+  image,
   title,
   content,
   icon,
@@ -51,6 +52,7 @@ const QuizContent = ({
           </TouchableOpacity>
         </View>
         {icon ? icon() : null}
+        {image ? <Image source={image} /> : null}
         <Text
           variant={TextVariants.sHeadingLG}
           style={{ ...styles.title, ...title.style }}
