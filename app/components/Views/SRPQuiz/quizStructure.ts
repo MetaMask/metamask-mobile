@@ -36,7 +36,7 @@ export const quiz = {
   },
   questionTwo: {
     header: headers.questionTwo,
-    content: strings('srp_security_quiz.question_one.question'),
+    content: strings('srp_security_quiz.question_two.question'),
     answers: {
       correct: strings('srp_security_quiz.question_two.right_answer'),
       incorrect: strings('srp_security_quiz.question_two.wrong_answer'),
