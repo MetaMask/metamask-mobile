@@ -4096,6 +4096,37 @@
   resolved "https://registry.yarnpkg.com/@log4js-node/log4js-api/-/log4js-api-1.0.2.tgz#7a8143fb33f077df3e579dca7f18fea74a02ec8b"
   integrity sha512-6SJfx949YEWooh/CUPpJ+F491y4BYJmknz4hUN1+RHvKoUEynKbRmhnwbk/VLmh4OthLLDNCyWXfbh4DG1cTXA==
 
+"@logtail/browser@^0.1.15":
+  version "0.1.15"
+  resolved "https://registry.yarnpkg.com/@logtail/browser/-/browser-0.1.15.tgz#0a60f062e18847807c4719cec4c8f9de2e3de20a"
+  integrity sha512-pLqY3HOKgbTyD+S5j2WA22M+I8AhZ+ZZW0iYZpO/PGtkzCkztI/ZK4GwyRmHpXylpNtoyjh+9AVfeO1t0SlwQw==
+  dependencies:
+    "@logtail/core" "^0.1.15"
+    "@logtail/tools" "^0.1.15"
+    cross-fetch "^3.0.4"
+
+"@logtail/core@^0.1.15":
+  version "0.1.15"
+  resolved "https://registry.yarnpkg.com/@logtail/core/-/core-0.1.15.tgz#fed2584afca4b16935f85c7ad354e2e7613c36d3"
+  integrity sha512-ORyn4VcbVtCNDIYOLFe8SscCbL1gb69xWyve1A5nn47yS3oOXUWfRrbfbMCZgrqmJqFrw5IQdqIk8rq30jAXdw==
+  dependencies:
+    "@logtail/tools" "^0.1.15"
+    "@logtail/types" "^0.1.15"
+
+"@logtail/tools@^0.1.15":
+  version "0.1.15"
+  resolved "https://registry.yarnpkg.com/@logtail/tools/-/tools-0.1.15.tgz#8476b081fe27264f469007fffc9efadcba3d9c3d"
+  integrity sha512-xg3fibF05Q7fv1KEQ4wIkfq+oLeMWj0Jju4sc/1Cs2/ycMe0vLYONVk3Y7ZZl6CG9qJ5ezGcBE4teWYwJkNmMw==
+  dependencies:
+    "@logtail/types" "^0.1.15"
+
+"@logtail/types@^0.1.15":
+  version "0.1.15"
+  resolved "https://registry.yarnpkg.com/@logtail/types/-/types-0.1.15.tgz#af7ba20da2c9bf2f9be78ee1b974997dfbbce0b3"
+  integrity sha512-RL12CP1Ilqj3Eo8CdXioHpo/j3UinDPQp+qgOBDX0+er+D6yaR5U2lPlA4LVsivALc/MWEIiGQdPYH1yWD7HPw==
+  dependencies:
+    js "^0.1.0"
+
 "@mapbox/node-pre-gyp@^1.0.0":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.10.tgz#8e6735ccebbb1581e5a7e652244cadc8a844d03c"
@@ -9853,6 +9884,13 @@ commander@^9.0.0:
   version "9.4.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-9.4.1.tgz#d1dd8f2ce6faf93147295c0df13c7c21141cfbdd"
   integrity sha512-5EEkTNyHNGFPD2H+c/dXXfQZYa/scCKasxWcXJaWnNJ99pnQN9Vnmqow+p+PlFPE63Q6mThaZws1T+HxfpgtPw==
+
+commander@~1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-1.1.1.tgz#50d1651868ae60eccff0a2d9f34595376bc6b041"
+  integrity sha512-71Rod2AhcH3JhkBikVpNd0pA+fWsmAaVoti6OR38T76chA7vE3pSerS0Jor4wDw+tOueD2zLVvFOw5H0Rcj7rA==
+  dependencies:
+    keypress "0.1.x"
 
 commander@~2.13.0:
   version "2.13.0"
@@ -16252,6 +16290,13 @@ js2xmlparser2@^0.2.0, js2xmlparser2@^0.x:
   resolved "https://registry.yarnpkg.com/js2xmlparser2/-/js2xmlparser2-0.2.0.tgz#a7ca2089b83d02331d631892dd6743864125033f"
   integrity sha512-SzFGc1hQqzpDcalKmrM5gobSMGRSRg2lgaZrHGIfowrmd8+uaI+PWW62jcCGIqI+b4wdyYK0VKMhvVtJfkD0cg==
 
+js@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/js/-/js-0.1.0.tgz#e1d0afd55ea39c2b28da304e8143eaf2c133f366"
+  integrity sha512-ZBbGYOpact8QAH9RprFWL4RAESYwbDodxiuDjOnzwzzk9pBzKycoifGuUrHHcDixE/eLMKPHRaXenTgu1qXBqA==
+  dependencies:
+    commander "~1.1.1"
+
 jsbi@^3.1.5:
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/jsbi/-/jsbi-3.2.5.tgz#b37bb90e0e5c2814c1c2a1bcd8c729888a2e37d6"
@@ -16513,6 +16558,11 @@ keymirror@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/keymirror/-/keymirror-0.1.1.tgz#918889ea13f8d0a42e7c557250eee713adc95c35"
   integrity sha1-kYiJ6hP40KQufFVyUO7nE63JXDU=
+
+keypress@0.1.x:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/keypress/-/keypress-0.1.0.tgz#4a3188d4291b66b4f65edb99f806aa9ae293592a"
+  integrity sha512-x0yf9PL/nx9Nw9oLL8ZVErFAk85/lslwEP7Vz7s5SI1ODXZIgit3C5qyWjw4DxOuO/3Hb4866SQh28a1V1d+WA==
 
 keyv@3.0.0:
   version "3.0.0"

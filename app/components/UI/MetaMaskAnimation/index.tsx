@@ -6,6 +6,9 @@ import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../../wdio/features/testIDs/Components/MetaMaskAnimation.testIds';
+import { Logtail } from '@logtail/browser';
+
+const logtail = new Logtail('QAszNMAsinmVdwbMLNPpRfr6');
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -70,9 +73,9 @@ const MetaMaskAnimation = ({
   const wordmark = useAssetFromTheme(wordmarkLight, wordmarkDark);
 
   useEffect(() => {
-    console.time('MetaMaskAnimation');
+    const timer = new Date().getTime();
     return () => {
-      console.timeEnd('MetaMaskAnimation');
+      logtail.log(`MetaMaskAnimation: ${new Date().getTime() - timer}ms`);
     };
   }, []);
 

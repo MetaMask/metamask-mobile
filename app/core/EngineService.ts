@@ -3,6 +3,9 @@ import AppConstants from './AppConstants';
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+import { Logtail } from '@logtail/browser';
+
+const logtail = new Logtail('QAszNMAsinmVdwbMLNPpRfr6');
 
 class EngineService {
   private engineInitialized = false;
@@ -13,7 +16,7 @@ class EngineService {
    * @param store - Redux store
    */
   initalizeEngine = (store: any) => {
-    console.time('Engine initialization');
+    const timer = new Date().getTime();
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
@@ -77,7 +80,9 @@ class EngineService {
           update_bg_state_cb,
         );
     });
-    console.timeEnd('Engine initialization');
+    logtail.info(
+      `EngineService initalizeEngine took ${new Date().getTime() - timer}ms`,
+    );
   };
 }
 

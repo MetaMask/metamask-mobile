@@ -59,6 +59,9 @@ import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMe
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import { Logtail } from '@logtail/browser';
+
+const logtail = new Logtail('QAszNMAsinmVdwbMLNPpRfr6');
 
 const Stack = createStackNavigator();
 /**
@@ -215,8 +218,8 @@ const App = ({ userLoggedIn }) => {
   }, [handleDeeplink]);
 
   useEffect(() => {
+    const timer = new Date().getTime();
     if (navigator) {
-      console.time('DeepLink init');
       // Initialize deep link manager
       SharedDeeplinkManager.init({
         navigation: {
@@ -245,29 +248,29 @@ const App = ({ userLoggedIn }) => {
         });
       }
       prevNavigator.current = navigator;
-      console.timeEnd('DeepLink init');
+      logtail.log(`Navigation initialized in: ${new Date().getTime() - timer}`);
     }
   }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
-      console.time('Analytics init');
+      const timer = new Date().getTime();
       await Analytics.init();
-      console.timeEnd('Analytics init');
+      logtail.log(`Analytics initialized in: ${new Date().getTime() - timer}`);
     };
 
     initAnalytics();
   }, []);
 
   useEffect(() => {
-    console.time('SDK init');
+    const timer = new Date().getTime();
     SDKConnect.init();
-    console.timeEnd('SDK init');
+    logtail.log(`SDKConnect initialized in: ${new Date().getTime() - timer}`);
   }, []);
 
   useEffect(() => {
     async function checkExisting() {
-      console.time('checkExisting');
+      const timer = new Date().getTime();
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -276,7 +279,7 @@ const App = ({ userLoggedIn }) => {
       if (!existingUser) {
         triggerCheckedAuth();
       }
-      console.timeEnd('checkExisting');
+      logtail.log(`Existing user check in: ${new Date().getTime() - timer}`);
     }
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
@@ -284,7 +287,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
-      console.time('startApp');
+      const timer = new Date().getTime();
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         const currentVersion = getVersion();
@@ -308,7 +311,7 @@ const App = ({ userLoggedIn }) => {
       } catch (error) {
         Logger.error(error);
       }
-      console.timeEnd('startApp');
+      logtail.log('App version check in', new Date().getTime() - timer);
     }
 
     startApp();

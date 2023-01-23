@@ -104,6 +104,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
+    "@logtail/browser": "^0.1.15",
     "@metamask/address-book-controller": "^1.0.1",
     "@metamask/approval-controller": "^1.0.1",
     "@metamask/assets-controllers": "^1.0.0",
@@ -453,7 +454,7 @@
     "vm": "vm-browserify"
   },
   "engines": {
-    "node": "^16.9.0",
+    "node": "^14.0.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
