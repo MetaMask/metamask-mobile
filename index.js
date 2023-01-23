@@ -5,6 +5,7 @@ import 'react-native-url-polyfill/auto';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+import 'react-native-console-time-polyfill';
 
 import { setupSentry } from './app/util/sentryUtils';
 setupSentry();

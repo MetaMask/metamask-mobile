@@ -216,6 +216,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     if (navigator) {
+      console.time('DeepLink init');
       // Initialize deep link manager
       SharedDeeplinkManager.init({
         navigation: {
@@ -244,23 +245,29 @@ const App = ({ userLoggedIn }) => {
         });
       }
       prevNavigator.current = navigator;
+      console.timeEnd('DeepLink init');
     }
   }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
+      console.time('Analytics init');
       await Analytics.init();
+      console.timeEnd('Analytics init');
     };
 
     initAnalytics();
   }, []);
 
   useEffect(() => {
+    console.time('SDK init');
     SDKConnect.init();
+    console.timeEnd('SDK init');
   }, []);
 
   useEffect(() => {
     async function checkExisting() {
+      console.time('checkExisting');
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -269,6 +276,7 @@ const App = ({ userLoggedIn }) => {
       if (!existingUser) {
         triggerCheckedAuth();
       }
+      console.timeEnd('checkExisting');
     }
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
@@ -276,6 +284,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
+      console.time('startApp');
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         const currentVersion = getVersion();
@@ -299,6 +308,7 @@ const App = ({ userLoggedIn }) => {
       } catch (error) {
         Logger.error(error);
       }
+      console.timeEnd('startApp');
     }
 
     startApp();

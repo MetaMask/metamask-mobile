@@ -13,6 +13,7 @@ class EngineService {
    * @param store - Redux store
    */
   initalizeEngine = (store: any) => {
+    console.time('Engine initialization');
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
@@ -76,6 +77,7 @@ class EngineService {
           update_bg_state_cb,
         );
     });
+    console.timeEnd('Engine initialization');
   };
 }
 

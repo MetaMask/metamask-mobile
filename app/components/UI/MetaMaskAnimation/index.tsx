@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Animated, Dimensions, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
@@ -68,6 +68,13 @@ const MetaMaskAnimation = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const wordmark = useAssetFromTheme(wordmarkLight, wordmarkDark);
+
+  useEffect(() => {
+    console.time('MetaMaskAnimation');
+    return () => {
+      console.timeEnd('MetaMaskAnimation');
+    };
+  }, []);
 
   return (
     <View style={styles.main}>
