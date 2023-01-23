@@ -256,7 +256,7 @@ const App = ({ userLoggedIn }) => {
       console.timeEnd('Analytics init');
     };
 
-    initAnalytics();
+    //initAnalytics();
   }, []);
 
   useEffect(() => {
@@ -265,22 +265,21 @@ const App = ({ userLoggedIn }) => {
     console.timeEnd('SDK init');
   }, []);
 
-  useEffect(() => {
-    async function checkExisting() {
-      console.time('checkExisting');
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      const route = !existingUser
-        ? Routes.ONBOARDING.ROOT_NAV
-        : Routes.ONBOARDING.LOGIN;
-      setRoute(route);
-      if (!existingUser) {
-        triggerCheckedAuth();
-      }
-      console.timeEnd('checkExisting');
+  const checkExisting = useCallback(async () => {
+    console.time('checkExisting');
+    const existingUser = await AsyncStorage.getItem(EXISTING_USER); // this is slow on android
+    const route = !existingUser
+      ? Routes.ONBOARDING.ROOT_NAV
+      : Routes.ONBOARDING.LOGIN;
+    setRoute(route);
+    if (!existingUser) {
+      triggerCheckedAuth();
     }
+    console.timeEnd('checkExisting');
+  }, [triggerCheckedAuth]);
+  useEffect(() => {
     checkExisting();
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, []);
+  }, [checkExisting]);
 
   useEffect(() => {
     async function startApp() {
@@ -440,7 +439,7 @@ const App = ({ userLoggedIn }) => {
             />
           </Stack.Navigator>
         </NavigationContainer>
-        {renderSplash()}
+        {/* renderSplash() */}
         <Toast ref={toastRef} />
       </>
     )) ||

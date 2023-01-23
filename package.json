@@ -453,7 +453,7 @@
     "vm": "vm-browserify"
   },
   "engines": {
-    "node": "^16.9.0",
+    "node": "^14.0.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
