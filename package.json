@@ -149,7 +149,7 @@
     "@metamask/design-tokens": "^1.9.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^1.0.0",
-    "@metamask/keyring-controller": "^1.0.1",
+    "@metamask/keyring-controller": "1.0.1-preview.7e443ef",
     "@metamask/message-manager": "^1.0.1",
     "@metamask/network-controller": "^1.0.0",
     "@metamask/phishing-controller": "^1.1.0",
