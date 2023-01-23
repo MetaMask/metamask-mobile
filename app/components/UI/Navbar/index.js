@@ -32,6 +32,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_VIEW_BURGER_ICON_ID,
   HAMBURGER_MENU_BUTTON,
+  NAVBAR_NETWORK_BUTTON,
 } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
@@ -958,7 +959,7 @@ export function getWalletNavbarOptions(
           label={networkName}
           imageSource={networkImageSource}
           onPress={onPressTitle}
-          testID={'open-networks-button'}
+          {...generateTestId(Platform, NAVBAR_NETWORK_BUTTON)}
         />
       </View>
     ),

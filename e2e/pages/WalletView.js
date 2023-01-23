@@ -6,11 +6,11 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
+  NAVBAR_NETWORK_BUTTON,
 } from '../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
-const NETWORKS_BUTTON_ID = 'open-networks-button';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
 export default class WalletView {
@@ -32,7 +32,7 @@ export default class WalletView {
   }
 
   static async tapNetworksButtonOnNavBar() {
-    await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
+    await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
   }
   static async tapNftTab() {
     await TestHelpers.tapByText('NFTs');
