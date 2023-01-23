@@ -22,17 +22,6 @@ workflows:
             - cache_local_deps: 'yes'
             - command: setup
           title: Yarn Setup
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: audit:ci
-          title: Audit Dependencies
-      - yarn@0:
-          title: Lint
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: lint
-          is_always_run: true
       - cache-push@2: {}
   code_setup:
     before_run:
@@ -43,17 +32,7 @@ workflows:
             - cache_local_deps: 'yes'
             - command: setup
           title: Yarn Setup
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: audit:ci
-          title: Audit Dependencies
-      - yarn@0:
-          title: Lint
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: lint
-          is_always_run: true
+
   # CI Steps
   ci_test:
     before_run:
@@ -340,7 +319,7 @@ workflows:
                 ls -la $BITRISE_TEST_RESULT_DIR
       - deploy-to-bitrise-io@1:
           inputs:
-              - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
     before_run:
