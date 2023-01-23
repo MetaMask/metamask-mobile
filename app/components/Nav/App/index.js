@@ -311,7 +311,7 @@ const App = ({ userLoggedIn }) => {
       } catch (error) {
         Logger.error(error);
       }
-      logtail.log('App version check in', new Date().getTime() - timer);
+      logtail.log(`Existing user check in: ${new Date().getTime() - timer}`);
     }
 
     startApp();
