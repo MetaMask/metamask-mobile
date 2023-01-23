@@ -1,3 +1,5 @@
+import Selectors from '../helpers/Selectors';
+
 class CommonScreen {
 
     async isTextDisplayed(text) {

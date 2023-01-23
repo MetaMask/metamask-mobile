@@ -63,34 +63,24 @@ Then(/^I tap button "([^"]*)?" on (.*) (.*) view/, async (button, screen, type) 
   const timeout = 1000;
     await driver.pause(timeout);
     await Gestures.tapTextByXpath(button);
-    screen = null;
-    type = null;
 });
 
 Then(/^I tap button "([^"]*)?" to navigate to (.*) view/, async (button, screen) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await Gestures.tapTextByXpath(button);
-  screen = null;
 });
 
 Then(/^(.*) "([^"]*)?" is displayed on (.*) (.*) view/, async (elementType, text, type, screen) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);
-  elementType = null;
-  type = null;
-  screen = null;
 });
 
 Then(/^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/, async (elementType, textElement, type, screen) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextElementNotDisplayed(textElement);
-  // eslint-disable-next-line no-console
-  elementType = null;
-  type = null;
-  screen = null;
 });
 
 Then(/^I am on the main wallet view/, async () => {

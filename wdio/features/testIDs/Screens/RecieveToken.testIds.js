@@ -15,5 +15,3 @@ export const REQUEST_AMOUNT_INPUT =
 
   export const PAYMENT_REQUEST_QR_CODE_CLOSE_ICON =
   'payment-request-qrcode-close-button';
-  
-  

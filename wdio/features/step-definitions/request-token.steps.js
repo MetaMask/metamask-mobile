@@ -1,8 +1,7 @@
 /* global driver */
 
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import { Then, When } from '@wdio/cucumber-framework';
 import RequestTokenScreen from '../../features/screen-objects/RequestTokenScreen';
-import WalletMainScreen from '../screen-objects/WalletMainScreen';
 
 Then(/^I tap on the close payment request icon/, async () => {
     const timeout = 1000;
@@ -14,10 +13,10 @@ When(/^I type "([^"]*)?" into the Request Amount field/, async (amount) => {
    await RequestTokenScreen.typeAmountInRequest(amount);
 });
 
-Then(/^I type "([^"]*)?" in the Search Assets field/, async (searchReq) => {
+Then(/^I type "([^"]*)?" in the Search Assets field/, async (seaarchRequest) => {
     const timeout = 1000;
     await driver.pause(timeout);
-    await RequestTokenScreen.inputSearchRequestField(searchReq);
+    await RequestTokenScreen.inputSearchRequestField(seaarchRequest);
 });
 
 Then(/^I tap on the back button on the request view/, async () => {

@@ -66,7 +66,6 @@ class NetworksScreen {
         return Selectors.getElementByPlatform(NETWORK_SCREEN_CLOSE_ICON);
     }
 
-    NETWORK_SCREEN_CLOSE_ICON
     async isPopularNetworksTabVisible() {
         await expect(this.getPopularNetworksTab).toBeDisplayed();
     }

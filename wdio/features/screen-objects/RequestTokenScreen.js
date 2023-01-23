@@ -1,7 +1,9 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import {REQUEST_AMOUNT_INPUT, PAYMENT_REQUEST_CLOSE_BUTTON, 
-    REQUEST_SEARCH_ASSET_INPUT, 
+import {
+    REQUEST_AMOUNT_INPUT,
+    PAYMENT_REQUEST_CLOSE_BUTTON,
+    REQUEST_SEARCH_ASSET_INPUT,
     REQUEST_SEARCH_RESULTS_BACK_BUTTON,
     REQUEST_SEARCH_SCREEN,
     PAYMENT_REQUEST_QR_CODE_CLOSE_ICON
@@ -60,7 +62,7 @@ class RequestTokenScreen {
     async searchResultsIsVisible() {
        expect(await (this.requestSearchScreen)).toBeDisplayed();
     }
-    
+
     async closeQRPayment() {
         await Gestures.tap(this.closeRequestPaymentQRIcon);
      }
