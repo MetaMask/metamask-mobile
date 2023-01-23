@@ -8,6 +8,10 @@ import NotificationManager from '../../core/NotificationManager';
 /* eslint-disable import/no-namespace */
 import * as themeUtils from '../theme';
 
+const mockThemeUtils = themeUtils;
+const mockNotificationManager = NotificationManager;
+const mockEngine = Engine;
+
 Enzyme.configure({ adapter: new Adapter() });
 
 jest.useFakeTimers();
@@ -62,16 +66,17 @@ jest.mock('react-native-fs', () => ({
 Date.now = jest.fn(() => 123);
 
 jest.mock('../../core/NotificationManager', () => ({
-  init: () => NotificationManager.init({}),
+  init: () => mockNotificationManager.init({}),
   getTransactionToView: () => null,
-  setTransactionToView: (id) => NotificationManager.setTransactionToView(id),
+  setTransactionToView: (id) =>
+    mockNotificationManager.setTransactionToView(id),
   gotIncomingTransaction: () => null,
 }));
 
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 jest.mock('../../core/Engine', () => ({
-  init: () => Engine.init({}),
+  init: () => mockEngine.init({}),
   context: {
     KeyringController: {
       keyring: {
@@ -89,7 +94,7 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-const keychainMock = {
+const mockKeychain = {
   SECURITY_LEVEL_ANY: 'MOCK_SECURITY_LEVEL_ANY',
   SECURITY_LEVEL_SECURE_SOFTWARE: 'MOCK_SECURITY_LEVEL_SECURE_SOFTWARE',
   SECURITY_LEVEL_SECURE_HARDWARE: 'MOCK_SECURITY_LEVEL_SECURE_HARDWARE',
@@ -106,7 +111,7 @@ const keychainMock = {
   getSupportedBiometryType: jest.fn().mockReturnValue('FaceID'),
 };
 
-jest.mock('react-native-keychain', () => keychainMock);
+jest.mock('react-native-keychain', () => mockKeychain);
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
   BranchSubscriber: () => {
@@ -115,9 +120,7 @@ jest.mock('react-native-branch', () => ({
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('react-native-search-api', () => 'SearchApi');
-jest.mock('react-native-reanimated', () =>
-  require('react-native-reanimated/mock'),
-);
+jest.mock('react-native-reanimated', () => 'Reanimated');
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock(
   '@react-native-async-storage/async-storage',
@@ -195,8 +198,8 @@ jest.mock('react-redux', () => ({
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 jest.mock('../../util/theme', () => ({
-  ...themeUtils,
-  useAppThemeFromContext: () => themeUtils.mockTheme,
+  ...mockThemeUtils,
+  useAppThemeFromContext: () => mockThemeUtils.mockTheme,
 }));
 
 jest.mock('@segment/analytics-react-native', () => ({
@@ -209,5 +212,5 @@ jest.mock('@segment/analytics-react-native', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
-global.__reanimatedWorkletInit = jest.fn();
+// require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
+// global.__reanimatedWorkletInit = jest.fn();
