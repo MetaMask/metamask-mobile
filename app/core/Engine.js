@@ -196,7 +196,7 @@ class Engine {
       });
 
       const tokenListController = new TokenListController({
-        chainId: networkController.provider.chainId,
+        chainId: networkController.state.provider.chainId,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
