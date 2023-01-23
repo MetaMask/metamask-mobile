@@ -319,12 +319,16 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     if (!isAuthChecked) {
+      logtail.log(`Not authenticated, checking...: ${new Date()}`);
       return;
     }
+    logtail.log(`Auth checked in: ${new Date()}`);
     const startAnimation = async () => {
+      const timer = new Date().getTime();
       await new Promise((res) => setTimeout(res, 50));
       animation?.current?.play();
       animationName?.current?.play();
+      logtail.log(`Animation after play: ${new Date().getTime() - timer}`);
     };
     startAnimation();
   }, [isAuthChecked]);
