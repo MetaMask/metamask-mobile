@@ -205,7 +205,7 @@ export class NetworkList extends PureComponent {
       onClose(false);
     }
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: String(Networks[type].chainId),
+      chain_id: type,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,
     });
