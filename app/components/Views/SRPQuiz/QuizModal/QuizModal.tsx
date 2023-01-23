@@ -9,6 +9,8 @@ import Icon, {
 } from '../../../../component-library/components/Icon';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
+import analyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { QuizStage } from '../types';
 import { quiz } from '../quizStructure';
@@ -59,6 +61,10 @@ const QuizModal = () => {
   const quizPage = useCallback(() => {
     switch (stage) {
       case QuizStage.introduction:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.introduction.header}
@@ -68,7 +74,13 @@ const QuizModal = () => {
             buttons={[
               {
                 label: strings('srp_security_quiz.get_started'),
-                onPress: () => setStage(QuizStage.questionOne),
+                onPress: () => {
+                  analyticsV2.trackEvent(
+                    MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED,
+                    {},
+                  );
+                  setStage(QuizStage.questionOne);
+                },
                 variant: ButtonVariants.Primary,
               },
             ]}
@@ -76,6 +88,10 @@ const QuizModal = () => {
           />
         );
       case QuizStage.questionOne:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.questionOne.header}
@@ -98,6 +114,10 @@ const QuizModal = () => {
           />
         );
       case QuizStage.rightAnswerQuestionOne:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.questionOneCorrectInformation.header}
@@ -118,6 +138,10 @@ const QuizModal = () => {
           />
         );
       case QuizStage.wrongAnswerQuestionOne:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.questionOneIncorrectInformation.header}
@@ -138,6 +162,10 @@ const QuizModal = () => {
           />
         );
       case QuizStage.questionTwo:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.questionTwo.header}
@@ -160,6 +188,10 @@ const QuizModal = () => {
           />
         );
       case QuizStage.rightAnswerQuestionTwo:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.questionTwoCorrectInformation.header}
@@ -180,6 +212,10 @@ const QuizModal = () => {
           />
         );
       case QuizStage.wrongAnswerQuestionTwo:
+        analyticsV2.trackEvent(
+          MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
+          {},
+        );
         return (
           <QuizContent
             header={quiz.questionTwoIncorrectInformation.header}
