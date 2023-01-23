@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Linking } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { IQuizInformationProps } from '../types';
 import Icon, {
   IconSize,
@@ -15,7 +16,7 @@ import Text, {
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import stylesheet from './styles';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { SRP_GUIDE_URL } from '../../../../constants/urls';
 
 const QuizContent = ({
   header,
@@ -30,8 +31,7 @@ const QuizContent = ({
   const { colors } = theme;
 
   const openSupportArticle = () => {
-    // eslint-disable-next-line no-console
-    console.log('execute openSupportArticle method');
+    Linking.openURL(SRP_GUIDE_URL);
   };
 
   return (
