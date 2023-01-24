@@ -154,13 +154,6 @@ class NetworksScreen {
         await Gestures.tapTextByXpath(text);
     }
 
-    async swipeUp(){
-       // await driver.pause(5000);
-        await Gestures.swipe(
-          { x: 200, y: 100 },
-        );
-      }
-
     async isButtonTextVisibleByXpath(text) {
        expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
     }

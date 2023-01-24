@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 /* global driver */
-import {Then } from '@wdio/cucumber-framework';
+import { Then } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import Contacts from '../screen-objects/Contacts';
 import AddContact from '../screen-objects/AddContact';

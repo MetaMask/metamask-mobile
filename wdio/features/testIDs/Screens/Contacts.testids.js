@@ -10,3 +10,4 @@ export const CONTACT_NAME_INPUT =
 
   export const CONTACT_EDIT_BUTTON =
   'contact-edit-button';
+  export const CONTACTS_CONTAINER_ID = 'contacts-screen'

@@ -53,7 +53,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
       | TestAlias   |
 
   Scenario: A user can add a contact on the contacts view and edit the saved contact
-    When I am on the contacts view
+    Given I am on the contacts view
     And I tap on the "Add contact" button
     And I input "<ContactName>" into the contact name field
     And I input "<AddressName>" in the Address field

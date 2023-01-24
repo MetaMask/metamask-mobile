@@ -1,5 +1,5 @@
 /* global driver */
-import {When, Then } from '@wdio/cucumber-framework';
+import { When, Then } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import SendScreen from '../screen-objects/SendScreen';
 
