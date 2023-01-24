@@ -25,7 +25,11 @@ import {
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
+import TransactionTypes from '../../core/TransactionTypes';
 
+const {
+  ASSET: { ERC721 },
+} = TransactionTypes;
 /**
  * Returns full checksummed address
  *
@@ -464,3 +468,24 @@ export async function getAddress(toAccount, network) {
   }
   return null;
 }
+export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
+  const { AssetsContractController } = Engine.context;
+  const tokenData = await AssetsContractController.getTokenStandardAndDetails(
+    tokenAddress,
+    userAddress,
+    tokenId,
+  );
+  const { standard, name, symbol, decimals } = tokenData;
+  if (standard === ERC721) {
+    return {
+      name,
+      symbol,
+      standard,
+    };
+  }
+  return {
+    symbol,
+    decimals,
+    standard,
+  };
+};

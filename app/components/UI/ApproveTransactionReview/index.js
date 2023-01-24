@@ -15,6 +15,7 @@ import {
   safeToChecksumAddress,
   renderShortAddress,
   getAddressAccountType,
+  getTokenDetails,
 } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -31,7 +32,9 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
+  isSmartContractAddress,
 } from '../../../util/transactions';
+import TransactionTypes from '../../../core/TransactionTypes';
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
@@ -54,7 +57,7 @@ import {
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
-import Text from '../../Base/Text';
+// import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -66,11 +69,19 @@ import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import createStyles from './styles';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Text, {
+  TextVariants,
+} from '../../../component-library/components/Texts/Text';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
+
+const {
+  ASSET: { ERC20, ERC721 },
+} = TransactionTypes;
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
@@ -214,6 +225,7 @@ class ApproveTransactionReview extends PureComponent {
      * eip1559 gas object for calculating eip1559 transaction
      */
     eip1559GasObject: PropTypes.object,
+    showBlockExplorer: PropTypes.func,
   };
 
   state = {
@@ -233,6 +245,8 @@ class ApproveTransactionReview extends PureComponent {
     showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
+    tokenType: ERC20,
+    fetchingUpdateDone: false,
   };
 
   customSpendLimitInput = React.createRef();
@@ -268,7 +282,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data },
+      transaction: { origin, to, data, from },
       tokenList,
     } = this.props;
     const { AssetsContractController } = Engine.context;
@@ -283,16 +297,34 @@ class ApproveTransactionReview extends PureComponent {
       host = getHost(origin);
     }
 
-    let tokenSymbol, tokenDecimals;
+    const { spenderAddress, encodedAmount } = decodeApproveData(data);
+    const encodedValue = hexToBN(encodedAmount).toString();
+
+    let tokenSymbol, tokenDecimals, tokenName, tokenType;
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
       try {
-        //if erc721 token, get tokenSymbol and tokenName 
-        tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
-          to,
+        const isContract = await isSmartContractAddress(
+          spenderAddress,
+          chainId,
         );
-        tokenSymbol = await AssetsContractController.getERC721AssetSymbol(to);
-        const tokenName = await AssetsContractController.getERC721AssetName(to)
+        if (!isContract) {
+          const tokenDetails = await getTokenDetails(to, from, encodedValue);
+          if (tokenDetails?.standard === ERC721) {
+            tokenName = tokenDetails.name;
+            tokenSymbol = tokenDetails.symbol;
+            tokenType = tokenDetails.standard;
+          } else {
+            tokenDecimals = tokenDetails.decimals;
+            tokenSymbol = tokenDetails.symbol;
+            tokenType = tokenDetails.standard;
+          }
+        } else {
+          tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
+            to,
+          );
+          tokenSymbol = await AssetsContractController.getERC721AssetSymbol(to);
+        }
       } catch (e) {
         tokenSymbol = 'ERC20 Token';
         tokenDecimals = 18;
@@ -301,11 +333,12 @@ class ApproveTransactionReview extends PureComponent {
       tokenSymbol = contract.symbol;
       tokenDecimals = contract.decimals;
     }
-    const { spenderAddress, encodedAmount } = decodeApproveData(data);
+
     const approveAmount = fromTokenMinimalUnit(
       hexToBN(encodedAmount),
       tokenDecimals,
     );
+
     const { name: method } = await getMethodData(data);
     const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
@@ -315,9 +348,16 @@ class ApproveTransactionReview extends PureComponent {
         method,
         originalApproveAmount: approveAmount,
         tokenSymbol,
-        token: { symbol: tokenSymbol, decimals: tokenDecimals },
+        token: {
+          symbol: tokenSymbol,
+          decimals: tokenDecimals,
+          tokenName,
+          tokenId: encodedValue,
+        },
         spenderAddress,
         encodedAmount,
+        tokenType,
+        fetchingUpdateDone: true,
         spendLimitCustomValue: minTokenAllowance,
       },
       () => {
@@ -585,7 +625,10 @@ class ApproveTransactionReview extends PureComponent {
       spenderAddress,
       originalApproveAmount,
       customSpendAmount,
+      tokenType,
       multiLayerL1FeeTotal,
+      token,
+      fetchingUpdateDone,
     } = this.state;
     const {
       primaryCurrency,
@@ -605,6 +648,7 @@ class ApproveTransactionReview extends PureComponent {
       legacyGasObject,
       eip1559GasObject,
       updateTransactionState,
+      showBlockExplorer,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -637,10 +681,21 @@ class ApproveTransactionReview extends PureComponent {
               `spend_limit_edition.${
                 originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
               }`,
-              { tokenSymbol },
             )}
+            <ButtonLink onPress={showBlockExplorer}>
+              <Text variant={TextVariants.sHeadingLG}>
+                {!fetchingUpdateDone && ` token`}
+              </Text>
+              <Text variant={TextVariants.sHeadingMD}>
+                {fetchingUpdateDone &&
+                  (tokenType === ERC721
+                    ? ` ${token?.tokenName} (#${token?.tokenId})`
+                    : ` ${tokenSymbol}`)}
+              </Text>
+            </ButtonLink>
           </Text>
-          {originalApproveAmount && (
+
+          {tokenType !== ERC721 && originalApproveAmount && (
             <View style={styles.tokenAccess}>
               <Text bold style={styles.tokenKey}>
                 {` ${strings('spend_limit_edition.access_up_to')} `}
@@ -655,14 +710,17 @@ class ApproveTransactionReview extends PureComponent {
               </Text>
             </View>
           )}
-          <TouchableOpacity
-            style={styles.actionTouchable}
-            onPress={this.toggleEditPermission}
-          >
-            <Text reset style={styles.editPermissionText}>
-              {strings('spend_limit_edition.edit_permission')}
-            </Text>
-          </TouchableOpacity>
+
+          {fetchingUpdateDone && tokenType !== ERC721 && (
+            <TouchableOpacity
+              style={styles.actionTouchable}
+              onPress={this.toggleEditPermission}
+            >
+              <Text reset style={styles.editPermissionText}>
+                {strings('spend_limit_edition.edit_permission')}
+              </Text>
+            </TouchableOpacity>
+          )}
           <Text reset style={styles.explanation}>
             {`${strings(
               `spend_limit_edition.${
