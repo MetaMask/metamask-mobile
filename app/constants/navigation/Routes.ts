@@ -43,6 +43,7 @@ const Routes = {
   },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
+    REVEAL_PRIV_CREDENTIAL: 'RevealPrivateCredentialView',
   },
 };
 

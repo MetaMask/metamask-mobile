@@ -11,6 +11,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import analyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Routes from '../../../../constants/navigation/Routes';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
@@ -50,7 +51,7 @@ const QuizModal = () => {
   );
 
   const goToRevealPrivateCredential = () => {
-    navigation.navigate('RevealPrivateCredentialView', {
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIV_CREDENTIAL, {
       privateCredentialName: 'seed_phrase',
     });
   };
