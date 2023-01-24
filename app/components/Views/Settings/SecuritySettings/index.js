@@ -1007,13 +1007,8 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const {
-      seedphraseBackedUp,
-      hintText,
-      biometryType,
-      biometryChoice,
-      loading,
-    } = this.state;
+    const { hintText, biometryType, biometryChoice, loading } = this.state;
+    const { seedphraseBackedUp } = this.props;
     const { styles } = this.getStyles();
 
     if (loading)
