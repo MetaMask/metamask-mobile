@@ -35,8 +35,7 @@ const QuizModal = () => {
         color={colors.error.default}
       />
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [colors.error.default],
   );
 
   const rightAnswerIcon = useCallback(
@@ -47,8 +46,7 @@ const QuizModal = () => {
         color={colors.success.default}
       />
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [colors.success.default],
   );
 
   const goToRevealPrivateCredential = () => {
