@@ -8,10 +8,8 @@ import {
   ScrollView,
   View,
   ActivityIndicator,
-  TouchableOpacity,
   Keyboard,
   InteractionManager,
-  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
@@ -20,7 +18,6 @@ import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
-import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
 import {
   clearHosts,
@@ -49,25 +46,22 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
-import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
-  REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../constants/test-ids';
 import ClearCookiesSection from './Sections/ClearCookiesSection';
-import { LEARN_MORE_URL } from '../../../../constants/urls';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
 import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
+import { ProtectYourWallet } from './Sections';
 
 const isIos = Device.isIos();
 
@@ -194,14 +188,6 @@ const Heading = ({ children, first }) => {
     <View style={[styles.setting, first && styles.firstSetting]}>
       <Text style={[styles.title, styles.heading]}>{children}</Text>
     </View>
-  );
-};
-
-const WarningIcon = () => {
-  const { colors } = useTheme();
-
-  return (
-    <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
   );
 };
 
@@ -654,92 +640,6 @@ class Settings extends PureComponent {
 
   onBack = () => this.props.navigation.goBack();
 
-  renderProtectYourWalletSection = () => {
-    const { seedphraseBackedUp } = this.props;
-    const { hintText } = this.state;
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={[styles.setting, styles.firstSetting]}>
-        <Text style={[styles.title, styles.bump]}>
-          {!seedphraseBackedUp ? (
-            <>
-              <WarningIcon />{' '}
-            </>
-          ) : null}
-          <Text style={[styles.title, styles.bump]}>
-            {strings('app_settings.protect_title')}
-          </Text>
-        </Text>
-
-        <SeedPhraseVideo
-          onClose={this.onBack}
-          showVideo={this.state.showVideo}
-        />
-
-        <Text style={styles.desc}>
-          {strings(
-            seedphraseBackedUp
-              ? 'app_settings.protect_desc'
-              : 'app_settings.protect_desc_no_backup',
-          )}
-        </Text>
-
-        {!seedphraseBackedUp && (
-          <TouchableOpacity onPress={() => Linking.openURL(LEARN_MORE_URL)}>
-            <Text style={styles.learnMore}>
-              {strings('app_settings.learn_more')}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <SettingsNotification isWarning={!seedphraseBackedUp}>
-          <Text
-            style={[
-              styles.warningText,
-              seedphraseBackedUp
-                ? styles.warningTextGreen
-                : styles.warningTextRed,
-              styles.marginLeft,
-            ]}
-          >
-            {strings(
-              seedphraseBackedUp
-                ? 'app_settings.seedphrase_backed_up'
-                : 'app_settings.seedphrase_not_backed_up',
-            )}
-          </Text>
-          {hintText && seedphraseBackedUp ? (
-            <TouchableOpacity style={styles.viewHint} onPress={this.toggleHint}>
-              <Text style={[styles.warningText, styles.warningBold]}>
-                {strings('app_settings.view_hint')}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-        </SettingsNotification>
-
-        {!seedphraseBackedUp ? (
-          <StyledButton
-            type="blue"
-            onPress={this.goToBackup}
-            containerStyle={styles.confirm}
-          >
-            {strings('app_settings.back_up_now')}
-          </StyledButton>
-        ) : (
-          <StyledButton
-            type="normal"
-            onPress={this.goToRevealPrivateCredential}
-            containerStyle={styles.confirm}
-            testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
-          >
-            {strings('reveal_credential.seed_phrase_title')}
-          </StyledButton>
-        )}
-      </View>
-    );
-  };
-
   renderPasswordSection = () => {
     const { styles } = this.getStyles();
     return (
@@ -1112,7 +1012,13 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const { biometryType, biometryChoice, loading } = this.state;
+    const {
+      seedphraseBackedUp,
+      hintText,
+      biometryType,
+      biometryChoice,
+      loading,
+    } = this.state;
     const { styles } = this.getStyles();
 
     if (loading)
@@ -1132,7 +1038,10 @@ class Settings extends PureComponent {
       >
         <View style={styles.inner}>
           <Heading first>{strings('app_settings.security_heading')}</Heading>
-          {this.renderProtectYourWalletSection()}
+          <ProtectYourWallet
+            srpBackedup={seedphraseBackedUp}
+            hintText={hintText}
+          />
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
           {biometryType && this.renderBiometricOptionsSection()}
