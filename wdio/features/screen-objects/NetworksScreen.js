@@ -110,6 +110,7 @@ class NetworksScreen {
     }
 
     async typeIntoCHAINIDInputField(text) {
+        await driver.touchPerform([{action: 'tap', options: {x: 399, y: 400}}]); // this eliminates some flakiness. The keyboard sometimes blocks the RPC url input
         await Gestures.typeText(this.inputChainIdField, text);
     }
 
