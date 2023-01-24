@@ -1,7 +1,6 @@
 /* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
-import DrawerViewScreen from '../screen-objects/DrawerViewScreen';
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
 import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen';
@@ -14,10 +13,11 @@ import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import AccountListComponent from '../screen-objects/AccountListComponent';
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
   await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
   await AddressBarScreen.tapUrlCancelButton();
 });
@@ -27,7 +27,7 @@ Given(/^I am on the browser view$/, async () => {
 });
 
 When(/^I input "([^"]*)" in the search field$/, async (text) => {
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
   await AddressBarScreen.editUrlInput(text);
 });
 
@@ -43,27 +43,10 @@ Then(/^Uniswap exchange page is a suggestion listed$/, async () => {
   await AddressBarScreen.isUniswapSuggestionDisplayed();
 });
 
-Then(/^the browser view is on Uniswap Page$/, async () => {
-  await ExternalWebsitesScreen.isUniswapPageDisplayed();
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains('https://app.uniswap.org/');
-  await AddressBarScreen.tapUrlCancelButton();
-});
-
-Then(/^the browser view is on Home MetaMask website$/, async () => {
-  await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
-  await AddressBarScreen.tapUrlCancelButton();
-});
-
 Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
-  await BrowserScreen.tapNavbarHamburgerButton();
-  await DrawerViewScreen.tapWalletButton();
+  await TabBarModal.tapWalletButton();
   await WalletAccountModal.isAccountOverview();
   await WalletAccountModal.isAccountNameLabelEqualTo(text);
-  await WalletMainScreen.tapBurgerIcon();
-  await DrawerViewScreen.tapBrowserButton();
 });
 
 Then(/^active wallet is connected to Uniswap$/, async () => {
@@ -83,7 +66,7 @@ Then(/^select account component is displayed$/, async () => {
 });
 
 When(/^I navigate to "([^"]*)"$/, async (text) => {
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
   await AddressBarScreen.editUrlInput(text);
   await AddressBarScreen.submitUrlWebsite();
 });
@@ -137,13 +120,13 @@ When(/^I tap on "([^"]*)" on the Add Favorite Screen$/, async (text) => {
 });
 
 Then(/^the "([^"]*)?" is displayed in the browser tab$/, async (text) => {
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
   await AddressBarScreen.isUrlValueContains(text);
   await AddressBarScreen.tapUrlCancelButton();
 });
 
 Then(/^the favorite is not added on the home "([^"]*)" page$/, async (text) => {
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
   await AddressBarScreen.editUrlInput(text);
   await AddressBarScreen.tapHomeSuggestionButton();
   await ExternalWebsitesScreen.tapHomeFavoritesButton();
@@ -198,7 +181,7 @@ When(/^I tap on the Return button from the error page$/, async () => {
 });
 
 When(/^I tap on address bar$/, async () => {
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
 });
 
 Then(/^browser address bar input view is displayed$/, async () => {
@@ -216,11 +199,6 @@ Then(/^browser address bar input view is no longer displayed$/, async () => {
 
 When(/^I input "([^"]*)" in address field$/, async (text) => {
   await AddressBarScreen.editUrlInput(text);
-});
-
-When(/^I tap on device Go or Next button$/, async () => {
-  await driver.pressKeyCode(66);
-  await AddressBarScreen.tapUrlCancelButton();
 });
 
 When(/^I tap on the back arrow control button$/, async () => {
@@ -245,7 +223,7 @@ Then(/^multi browser tab view is displayed$/, async () => {
 });
 
 Then(/^new browser tab is displayed on "([^"]*)"$/, async (text) => {
-  await BrowserScreen.tapUrlNavBar();
+  await BrowserScreen.tapUrlBar();
   await AddressBarScreen.isUrlValueContains(text);
   await AddressBarScreen.tapUrlCancelButton();
 });
@@ -378,8 +356,7 @@ When(/^I select "([^"]*)" network option$/, async (option) => {
 });
 
 Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
-  await BrowserScreen.tapOptionButton();
-  await OptionMenuModal.tapSwitchOption();
+  await BrowserScreen.tapNetworkAvatarIcon();
 
   switch (option) {
     case 'Goerli':
@@ -393,8 +370,11 @@ Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
 });
 
 Given(/^I navigate to the browser$/, async () => {
-  await WalletMainScreen.tapBurgerIcon();
-  await DrawerViewScreen.tapBrowserButton();
+  await TabBarModal.tapBrowserButton();
+  await BrowserScreen.isScreenContentDisplayed();
+  await driver.getContext();
+  await driver.switchContext('WEBVIEW_io.metamask.qa');
+  await driver.getContext();
 });
 
 When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
@@ -411,17 +391,26 @@ Then(/^browser address view is displayed$/, async () => {
   await AddressBarScreen.isAddressInputViewDisplayed();
 });
 
-Then(/^the browser view is on the Reddit website$/, async () => {
-  await ExternalWebsitesScreen.isRedditIconDisplayed();
-  await BrowserScreen.tapUrlNavBar();
-  await AddressBarScreen.isUrlValueContains('reddit.com');
-  await AddressBarScreen.tapUrlCancelButton();
-});
 Then(/^I should close the address view$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
 });
 
 Then(/^the created account is selected$/, async () => {
-  await AccountListComponent.isAccountTwoCheckedIconDisplayed();
+  await AccountListComponent.isAccountTwoSelected();
   await AccountListComponent.tapAccount('Account 2');
+});
+When(/^I tap on the Network Icon$/, async () => {
+  await BrowserScreen.tapNetworkAvatarIcon();
+});
+Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
+  if (url === 'https://www.reddit.com/') {
+    await ExternalWebsitesScreen.isRedditIconDisplayed();
+  }
+
+  await BrowserScreen.tapUrlBar();
+  await AddressBarScreen.isUrlValueContains(url);
+  await AddressBarScreen.tapUrlCancelButton();
+});
+When(/^I tap on the account icon on the Wallet screen$/, async () => {
+  await WalletMainScreen.tapIdenticon();
 });
