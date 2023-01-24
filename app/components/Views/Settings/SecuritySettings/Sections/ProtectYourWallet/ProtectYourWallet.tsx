@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -22,16 +22,15 @@ import Routes from '../../../../../../constants/navigation/Routes';
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
-  hintText: any;
+  hintText: string;
+  toggleHint: () => void;
 }
 
 const ProtectYourWallet = ({
   srpBackedup,
   hintText,
+  toggleHint,
 }: IProtectYourWalletProps) => {
-  const [showHint, setShowHint] = useState<boolean>(false);
-
-  const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -39,8 +38,6 @@ const ProtectYourWallet = ({
   const WarningIcon = () => (
     <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
   );
-
-  const toggleHint = () => setShowHint(!showHint);
 
   const goToRevealPrivateCredential = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
