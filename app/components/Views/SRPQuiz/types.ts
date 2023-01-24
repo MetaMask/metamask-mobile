@@ -27,13 +27,3 @@ export interface IQuizInformationProps {
   content?: string;
   icon?: any;
 }
-
-export interface Question {
-  content: string;
-  answers: Answer[];
-}
-
-export interface Answer {
-  content: string;
-  correct: boolean;
-}
