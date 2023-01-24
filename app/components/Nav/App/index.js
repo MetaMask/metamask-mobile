@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
@@ -26,7 +26,7 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
-import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
+// import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
@@ -161,11 +161,11 @@ const OnboardingRootNav = () => (
 const App = ({ userLoggedIn }) => {
   const animation = useRef(null);
   const animationName = useRef(null);
-  const opacity = useRef(new Animated.Value(1)).current;
+  // const opacity = useRef(new Animated.Value(1)).current;
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
-  const [animationPlayed, setAnimationPlayed] = useState();
+  // const [animationPlayed, setAnimationPlayed] = useState();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
@@ -310,7 +310,7 @@ const App = ({ userLoggedIn }) => {
   //     } catch (error) {
   //       Logger.error(error);
   //     }
-  //     logtail.log(`Existing user check in: ${new Date().getTime() - timer}ms`);
+  //     logtail.log(`StartApp version: ${new Date().getTime() - timer}ms`);
   //   }
   //
   //   startApp();
@@ -338,30 +338,30 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
-  const onAnimationFinished = useCallback(() => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start(() => {
-      setAnimationPlayed(true);
-    });
-  }, [opacity]);
+  // const onAnimationFinished = useCallback(() => {
+  //   Animated.timing(opacity, {
+  //     toValue: 0,
+  //     duration: 300,
+  //     useNativeDriver: true,
+  //     isInteraction: false,
+  //   }).start(() => {
+  //     setAnimationPlayed(true);
+  //   });
+  // }, [opacity]);
 
-  const renderSplash = () => {
-    if (!animationPlayed) {
-      return (
-        <MetaMaskAnimation
-          animation={animation}
-          animationName={animationName}
-          opacity={opacity}
-          onAnimationFinish={onAnimationFinished}
-        />
-      );
-    }
-    return null;
-  };
+  // const renderSplash = () => {
+  //   if (!animationPlayed) {
+  //     return (
+  //       <MetaMaskAnimation
+  //         animation={animation}
+  //         animationName={animationName}
+  //         opacity={opacity}
+  //         onAnimationFinish={onAnimationFinished}
+  //       />
+  //     );
+  //   }
+  //   return null;
+  // };
 
   const RootModalFlow = () => (
     <Stack.Navigator
@@ -446,7 +446,6 @@ const App = ({ userLoggedIn }) => {
             />
           </Stack.Navigator>
         </NavigationContainer>
-        {renderSplash()}
         <Toast ref={toastRef} />
       </>
     )) ||
