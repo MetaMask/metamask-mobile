@@ -56,12 +56,15 @@ import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
 } from '../../../../constants/test-ids';
-import ClearCookiesSection from './Sections/ClearCookiesSection';
-import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
-import DeleteWalletData from './Sections/DeleteWalletData';
-import RememberMeOptionSection from './Sections/RememberMeOptionSection';
-import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
-import { ProtectYourWallet } from './Sections';
+import {
+  ClearCookiesSection,
+  DeleteMetaMetricsData,
+  DeleteWalletData,
+  RememberMeOptionSection,
+  AutomaticSecurityChecks,
+  ProtectYourWallet,
+} from './Sections';
+import Routes from '../../../../constants/navigation/Routes';
 
 const isIos = Device.isIos();
 
@@ -81,9 +84,6 @@ const createStyles = (colors) =>
       paddingTop: 4,
       marginTop: -4,
     },
-    bump: {
-      marginBottom: 10,
-    },
     heading: {
       fontSize: 24,
       lineHeight: 30,
@@ -95,12 +95,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
-    },
-    learnMore: {
-      ...fontStyles.normal,
-      color: colors.primary.default,
-      fontSize: 14,
-      lineHeight: 20,
     },
     switchElement: {
       marginTop: 18,
@@ -155,25 +149,6 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    warningText: {
-      color: colors.text.default,
-      fontSize: 12,
-      flex: 1,
-      ...fontStyles.normal,
-    },
-    warningTextRed: {
-      color: colors.text.default,
-    },
-    warningTextGreen: {
-      color: colors.text.default,
-    },
-    warningBold: {
-      ...fontStyles.bold,
-      color: colors.primary.default,
-    },
-    viewHint: {
-      padding: 5,
     },
     switch: {
       alignSelf: 'flex-start',
@@ -562,32 +537,15 @@ class Settings extends PureComponent {
     }
   };
 
-  goToRevealPrivateCredential = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
-    this.props.navigation.navigate('RevealPrivateCredentialView', {
-      privateCredentialName: 'seed_phrase',
-    });
-  };
-
   goToExportPrivateKey = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
-    this.props.navigation.navigate('RevealPrivateCredentialView', {
+    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       privateCredentialName: 'private_key',
     });
   };
 
   selectLockTime = (lockTime) => {
     this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
-  goToBackup = () => {
-    this.props.navigation.navigate('AccountBackupStep1B');
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
-        source: 'Settings',
-      });
-    });
   };
 
   resetPassword = () => {
@@ -632,8 +590,6 @@ class Settings extends PureComponent {
       />
     );
   };
-
-  onBack = () => this.props.navigation.goBack();
 
   renderPasswordSection = () => {
     const { styles } = this.getStyles();
@@ -1031,6 +987,7 @@ class Settings extends PureComponent {
           <ProtectYourWallet
             srpBackedup={seedphraseBackedUp}
             hintText={hintText}
+            toggleHint={this.toggleHint}
           />
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
