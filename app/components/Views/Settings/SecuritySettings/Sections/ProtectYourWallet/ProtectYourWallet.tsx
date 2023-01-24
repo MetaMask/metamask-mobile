@@ -18,6 +18,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';
 import { REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID } from '../../../../../../constants/test-ids';
 import { createStyles } from './styles';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -33,6 +34,7 @@ const ProtectYourWallet = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const navigation = useNavigation();
 
   const WarningIcon = () => (
     <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
@@ -43,13 +45,13 @@ const ProtectYourWallet = ({
   const goToRevealPrivateCredential = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
-    navigation.navigate('RevealPrivateCredentialView', {
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       privateCredentialName: 'seed_phrase',
     });
   };
 
   const goToBackup = () => {
-    navigation.navigate('AccountBackupStep1B');
+    navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
         source: 'Settings',
