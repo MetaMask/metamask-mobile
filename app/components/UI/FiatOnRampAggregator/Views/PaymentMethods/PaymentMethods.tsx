@@ -45,7 +45,6 @@ const PaymentMethods = () => {
 
   const {
     setSelectedRegion,
-    selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
@@ -197,9 +196,9 @@ const PaymentMethods = () => {
               >
                 <PaymentMethod
                   payment={payment}
-                  highlighted={payment.id === selectedPaymentMethodId}
+                  highlighted={payment.id === currentPaymentMethod?.id}
                   onPress={
-                    payment.id === selectedPaymentMethodId
+                    payment.id === currentPaymentMethod?.id
                       ? undefined
                       : () => handlePaymentMethodPress(payment.id)
                   }
@@ -222,7 +221,7 @@ const PaymentMethods = () => {
             <StyledButton
               type={'confirm'}
               onPress={handleContinueToAmount}
-              disabled={!selectedPaymentMethodId}
+              disabled={!currentPaymentMethod}
             >
               {strings(
                 'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
