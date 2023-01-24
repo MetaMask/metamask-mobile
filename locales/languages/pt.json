@@ -953,8 +953,6 @@
     "minimum": "1,00 {{tokenSymbol}} no mínimo",
     "cancel": "Cancelar",
     "approve": "Aprovar",
-    "allow_to_access": "Permitir acesso ao seu {{tokenSymbol}}?",
-    "allow_to_address_access": "Dar a este endereço acesso ao seu {{tokenSymbol}}?",
     "you_trust_this_site": "Ao conceder permissão, você permite que o contrato a seguir acesse seus fundos.",
     "you_trust_this_address": "Você confia neste endereço? Ao conceder esta permissão, você permitirá que este endereço acesse seus fundos.",
     "edit_permission": "Editar permissão",

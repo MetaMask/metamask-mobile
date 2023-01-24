@@ -953,8 +953,6 @@
     "minimum": "Minimum 1.00 {{tokenSymbol}}",
     "cancel": "İptal",
     "approve": "Onayla",
-    "allow_to_access": "{{tokenSymbol}} token'ına erişime izin verilsin mi?",
-    "allow_to_address_access": "Bu adresin {{tokenSymbol}} alanına erişim sağlamasına izin ver?",
     "you_trust_this_site": "İzin vererek aşağıdaki sözleşmenin bakiyene erişmesine izin vereceksin.",
     "you_trust_this_address": "Bu adrese güveniyor musunuz? Bu izni vererek bu adresin paranıza erişim sağlamasına izin veriyorsunuz.",
     "edit_permission": "İzni düzenle",

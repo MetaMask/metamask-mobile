@@ -717,8 +717,6 @@
     "minimum": "최소 1.00 {{tokenSymbol}}",
     "cancel": "취소",
     "approve": "승인",
-    "allow_to_access": "이 사이트에 {{tokenSymbol}} 액세스 권한을 부여할까요?",
-    "allow_to_address_access": "이 주소의 {{tokenSymbol}} 액세스를 허용할까요?",
     "you_trust_this_site": "이 사이트를 신뢰하세요? 이 권한을 부여하면 자금에 대한 이 사이트의 액세스를 허용하게 됩니다.",
     "you_trust_this_address": "이 주소를 신뢰하세요? 이 권한을 부여하면 자금에 대한 이 주소의 액세스를 허용하게 됩니다.",
     "edit_permission": "권한 편집",

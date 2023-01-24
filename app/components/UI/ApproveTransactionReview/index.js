@@ -57,7 +57,6 @@ import {
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
-// import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -80,7 +79,7 @@ const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 let intervalIdForEstimatedL1Fee;
 
 const {
-  ASSET: { ERC20, ERC721 },
+  ASSET: { ERC721 },
 } = TransactionTypes;
 
 /**
@@ -245,7 +244,7 @@ class ApproveTransactionReview extends PureComponent {
     showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
-    tokenType: ERC20,
+    tokenType: undefined,
     fetchingUpdateDone: false,
   };
 
@@ -300,7 +299,7 @@ class ApproveTransactionReview extends PureComponent {
     const { spenderAddress, encodedAmount } = decodeApproveData(data);
     const encodedValue = hexToBN(encodedAmount).toString();
 
-    let tokenSymbol, tokenDecimals, tokenName, tokenType;
+    let tokenSymbol, tokenDecimals, tokenName, tokenStandard;
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
       try {
@@ -313,11 +312,11 @@ class ApproveTransactionReview extends PureComponent {
           if (tokenDetails?.standard === ERC721) {
             tokenName = tokenDetails.name;
             tokenSymbol = tokenDetails.symbol;
-            tokenType = tokenDetails.standard;
+            tokenStandard = tokenDetails.standard;
           } else {
             tokenDecimals = tokenDetails.decimals;
             tokenSymbol = tokenDetails.symbol;
-            tokenType = tokenDetails.standard;
+            tokenStandard = tokenDetails.standard;
           }
         } else {
           tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
@@ -356,7 +355,7 @@ class ApproveTransactionReview extends PureComponent {
         },
         spenderAddress,
         encodedAmount,
-        tokenType,
+        tokenType: tokenStandard,
         fetchingUpdateDone: true,
         spendLimitCustomValue: minTokenAllowance,
       },
@@ -676,23 +675,33 @@ class ApproveTransactionReview extends PureComponent {
               url: activeTabUrl,
             }}
           />
-          <Text reset style={styles.title} testID={'allow-access'}>
+          <Text
+            variant={TextVariants.lHeadingMD}
+            style={styles.title}
+            testID={'allow-access'}
+          >
             {strings(
               `spend_limit_edition.${
                 originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
               }`,
+            )}{' '}
+            {!fetchingUpdateDone && (
+              <Text variant={TextVariants.lHeadingMD}>
+                {strings('spend_limit_edition.token')}
+              </Text>
             )}
-            <ButtonLink onPress={showBlockExplorer}>
-              <Text variant={TextVariants.sHeadingLG}>
-                {!fetchingUpdateDone && ` token`}
-              </Text>
-              <Text variant={TextVariants.sHeadingMD}>
-                {fetchingUpdateDone &&
-                  (tokenType === ERC721
-                    ? ` ${token?.tokenName} (#${token?.tokenId})`
-                    : ` ${tokenSymbol}`)}
-              </Text>
-            </ButtonLink>
+            {tokenType === ERC721 ? (
+              <ButtonLink onPress={showBlockExplorer}>
+                <Text
+                  variant={TextVariants.sHeadingMD}
+                  style={styles.buttonColor}
+                >
+                  {token?.tokenName} (#{token?.tokenId})
+                </Text>
+              </ButtonLink>
+            ) : (
+              <Text variant={TextVariants.sHeadingMD}>{tokenSymbol}</Text>
+            )}
           </Text>
 
           {tokenType !== ERC721 && originalApproveAmount && (
@@ -845,6 +854,8 @@ class ApproveTransactionReview extends PureComponent {
       originalApproveAmount,
       spendLimitUnlimitedSelected,
       spendLimitCustomValue,
+      token,
+      tokenType,
     } = this.state;
     const {
       transaction: { to, data },
@@ -864,6 +875,8 @@ class ApproveTransactionReview extends PureComponent {
         allowance={allowance}
         tokenSymbol={tokenSymbol}
         data={data}
+        tokenId={token?.tokenId}
+        tokenType={tokenType}
         method={method}
         displayViewData={viewData}
       />
