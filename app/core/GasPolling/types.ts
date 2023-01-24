@@ -61,7 +61,7 @@ export interface TransactionStateProps {
 
 interface GasObject {
   legacyGasLimit?: string;
-  suggestedGasPrice?: any;
+  suggestedGasPrice?: string;
   suggestedGasLimit?: string;
   suggestedMaxFeePerGas?: string;
   suggestedMaxPriorityFeePerGas?: string;
@@ -122,7 +122,7 @@ export interface LegacyProps extends TransactionSharedProps {
   currentCurrency: string;
   transactionState: any;
   ticker: string;
-  suggestedGasPrice?: any;
+  suggestedGasPrice?: string;
   suggestedGasLimit?: string;
   onlyGas?: boolean;
   multiLayerL1FeeTotal?: string;
