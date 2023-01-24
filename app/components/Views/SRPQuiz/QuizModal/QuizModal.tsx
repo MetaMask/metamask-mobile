@@ -23,9 +23,6 @@ const QuizModal = () => {
   const { colors } = theme;
   const navigation = useNavigation();
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const imageSrc = require('../../../../images/srp-quiz-intro.png');
-
   const dismissModal = () => {
     modalRef.current?.dismissModal();
   };
@@ -70,7 +67,6 @@ const QuizModal = () => {
         return (
           <QuizContent
             header={strings('srp_security_quiz.title')}
-            image={imageSrc}
             title={{
               content: strings('srp_security_quiz.introduction'),
             }}
