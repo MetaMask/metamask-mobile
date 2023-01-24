@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import RevealPrivateCredential from '../RevealPrivateCredential';
+import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
 import { ScrollView } from 'react-native-gesture-handler';

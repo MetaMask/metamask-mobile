@@ -2189,5 +2189,32 @@
     "description": "Votre adresse IP peut être divulguée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée.",
     "primary_action": "Activer l’identification automatique de failles de sécurité",
     "secondary_action": "Non merci"
+  },
+  "srp_security_quiz": {
+    "title": "Quiz sur la sécurité",
+    "introduction": "Pour révéler votre Phrase secrète de récupération, vous devez répondre correctement à deux questions",
+    "get_started": "Commencer",
+    "learn_more": "En savoir plus",
+    "try_again": "Réessayer",
+    "continue": "Continuer",
+    "of": "sur",
+    "question_one": {
+      "question": "Si vous perdez votre Phrase secrète de récupération, MetaMask...",
+      "right_answer": "Ne pourra pas vous aider",
+      "wrong_answer": "Pourra la récupérer pour vous",
+      "right_answer_title": "En effet ! Personne ne peut vous aider à récupérer votre Phrase secrète de récupération.",
+      "right_answer_description": "Gravez-la sur une plaque en métal ou inscrivez-la sur plusieurs bouts de papier et cachez-les dans différents endroits secrets pour ne jamais la perdre. Si vous la perdez, il n'y a aucun moyen de la récupérer.",
+      "wrong_answer_title": "C'est faux ! Personne ne peut vous aider à récupérer votre Phrase secrète de récupération.",
+      "wrong_answer_description": "Personne ne peut vous aider à récupérer votre Phrase secrète de récupération si jamais vous la perdez. "
+    },
+    "question_two": {
+      "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre Phrase secrète de récupération...",
+      "right_answer": "Ne la lui fournissez pas, car cette personne essaie de vous arnaquer.",
+      "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre Phrase secrète de récupération avec qui que ce soit.",
+      "right_answer_description": "Toute personne qui vous demande votre Phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer. ",
+      "wrong_answer": "Vous devez la lui fournir",
+      "wrong_answer_title": "C'est faux ! Vous ne devez jamais partager votre Phrase secrète de récupération avec qui que ce soit.",
+      "wrong_answer_description": "Toute personne qui vous demande votre Phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer. "
+    }
   }
 }
