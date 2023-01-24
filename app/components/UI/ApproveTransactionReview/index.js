@@ -79,7 +79,7 @@ const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 let intervalIdForEstimatedL1Fee;
 
 const {
-  ASSET: { ERC721 },
+  ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
 
 /**
@@ -309,7 +309,7 @@ class ApproveTransactionReview extends PureComponent {
         );
         if (!isContract) {
           const tokenDetails = await getTokenDetails(to, from, encodedValue);
-          if (tokenDetails?.standard === ERC721) {
+          if (tokenDetails?.standard === (ERC721 || ERC1155)) {
             tokenName = tokenDetails.name;
             tokenSymbol = tokenDetails.symbol;
             tokenStandard = tokenDetails.standard;
@@ -690,7 +690,7 @@ class ApproveTransactionReview extends PureComponent {
                 {strings('spend_limit_edition.token')}
               </Text>
             )}
-            {tokenType === ERC721 ? (
+            {tokenType === (ERC721 || ERC1155) ? (
               <ButtonLink onPress={showBlockExplorer}>
                 <Text
                   variant={TextVariants.sHeadingMD}
@@ -707,7 +707,7 @@ class ApproveTransactionReview extends PureComponent {
             )}
           </Text>
 
-          {tokenType !== ERC721 && originalApproveAmount && (
+          {tokenType !== (ERC721 || ERC1155) && originalApproveAmount && (
             <View style={styles.tokenAccess}>
               <Text bold style={styles.tokenKey}>
                 {` ${strings('spend_limit_edition.access_up_to')} `}
@@ -723,7 +723,7 @@ class ApproveTransactionReview extends PureComponent {
             </View>
           )}
 
-          {fetchingUpdateDone && tokenType !== ERC721 && (
+          {fetchingUpdateDone && tokenType !== (ERC721 || ERC1155) && (
             <TouchableOpacity
               style={styles.actionTouchable}
               onPress={this.toggleEditPermission}
