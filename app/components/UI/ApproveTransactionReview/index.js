@@ -696,7 +696,10 @@ class ApproveTransactionReview extends PureComponent {
                   variant={TextVariants.sHeadingMD}
                   style={styles.buttonColor}
                 >
-                  {token?.tokenName} (#{token?.tokenId})
+                  {token?.tokenName ||
+                    token?.symbol ||
+                    strings(`spend_limit_edition.nft`)}{' '}
+                  (#{token?.tokenId})
                 </Text>
               </ButtonLink>
             ) : (
