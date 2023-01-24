@@ -221,6 +221,7 @@ const HomeTabs = () => {
   /* activeTab: state.browser.activeTab, */
   const activeConnectedDapp = useSelector((state) => {
     const activeTabUrl = getActiveTabUrl(state);
+    if (!activeTabUrl) return [];
 
     const permissionsControllerState =
       state.engine.backgroundState.PermissionController;

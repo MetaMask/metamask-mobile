@@ -72,6 +72,8 @@ const Browser = (props) => {
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
   const permittedAccountsList = useSelector((state) => {
+    if (!activeTab) return [];
+
     const permissionsControllerState =
       state.engine.backgroundState.PermissionController;
     const hostname = new URL(activeTab.url).hostname;
