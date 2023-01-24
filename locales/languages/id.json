@@ -2212,5 +2212,32 @@
     "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan.",
     "primary_action": "Aktifkan pemeriksaan keamanan otomatis",
     "secondary_action": "Tidak, terima kasih"
+  },
+  "srp_security_quiz": {
+    "title": "Kuis keamanan",
+    "introduction": "Untuk mengungkapkan Frasa Pemulihan Rahasia, Anda perlu menjawab dua pertanyaan dengan benar",
+    "get_started": "Mulai",
+    "learn_more": "Selengkapnya",
+    "try_again": "Coba lagi",
+    "continue": "Lanjutkan",
+    "of": "dari",
+    "question_one": {
+      "question": "Jika Anda kehilangan Frasa Pemulihan Rahasia, MetaMask...",
+      "right_answer": "Tidak dapat membantu Anda",
+      "wrong_answer": "Dapat mengembalikannya untuk Anda",
+      "right_answer_title": "Benar! Tidak ada yang dapat membantu mengembalikan Frasa Pemulihan Rahasia Anda",
+      "right_answer_description": "Catat, ukir pada logam, atau simpan di beberapa tempat rahasia agar Anda tidak pernah kehilangan. Jika Anda kehilangan, maka akan hilang selamanya.",
+      "wrong_answer_title": "Salah! Tidak ada yang dapat membantu mengembalikan Frasa Pemulihan Rahasia Anda",
+      "wrong_answer_description": "Jika Anda kehilangan Frasa Pemulihan Rahasia, maka akan hilang selamanya. Tidak ada yang dapat membantu Anda mengembalikannya, apa pun yang mereka katakan."
+    },
+    "question_two": {
+      "question": "Jika ada yang menanyakan Frasa Pemulihan Rahasia Anda, bahkan agen pendukung,...",
+      "right_answer": "Anda ditipu",
+      "right_answer_title": "Benar! Membagikan Frasa Pemulihan Rahasia bukanlah ide yang baik",
+      "right_answer_description": "Siapa pun yang mengaku membutuhkan Frasa Pemulihan Rahasia, mereka berbohong kepada Anda. Jika membaginya, mereka akan mencuri aset Anda.",
+      "wrong_answer": "Anda harus memberikannya kepada mereka",
+      "wrong_answer_title": "Tidak! Jangan pernah membagikan Frasa Pemulihan Rahasia kepada siapa pun",
+      "wrong_answer_description": "Siapa pun yang mengaku membutuhkan Frasa Pemulihan Rahasia, mereka berbohong kepada Anda. Jika membaginya, mereka akan mencuri aset Anda."
+    }
   }
 }

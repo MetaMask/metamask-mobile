@@ -2212,5 +2212,32 @@
     "description": "Verificar atualizações automaticamente pode expor seu endereço IP aos servidores do GitHub. Isso apenas indica que o seu endereço IP está usando a MetaMask. Nenhuma outra informação ou endereços de conta são expostos.",
     "primary_action": "Ativar verificações automáticas de segurança",
     "secondary_action": "Não, obrigado"
+  },
+  "srp_security_quiz": {
+    "title": "Quiz de segurança",
+    "introduction": "Para revelar sua Frase de Recuperação Secreta, você precisa responder corretamente duas perguntas",
+    "get_started": "Começar",
+    "learn_more": "Saiba mais",
+    "try_again": "Tentar novamente",
+    "continue": "Continuar",
+    "of": "de",
+    "question_one": {
+      "question": "Se você perder sua Frase de Recuperação Secreta, a MetaMask...",
+      "right_answer": "Não poderá ajudar",
+      "wrong_answer": "Poderá recuperá-la para você",
+      "right_answer_title": "Certo! Ninguém pode ajudar a recuperar sua Frase de Recuperação Secreta",
+      "right_answer_description": "Anote-a, grave em metal ou guarde-a em diversos lugares secretos para que nunca a perca. Se perdê-la, é para sempre.",
+      "wrong_answer_title": "Errado! Ninguém consegue recuperar sua Frase de Recuperação Secreta",
+      "wrong_answer_description": "Se perder sua Frase de Recuperação Secreta, é para sempre. Ninguém consegue recuperá-la, não importa o que digam. "
+    },
+    "question_two": {
+      "question": "Se alguém, até mesmo um atendente do suporte, pedir sua Frase de Recuperação Secreta...",
+      "right_answer": "Você estará sendo vítima de um golpe",
+      "right_answer_title": "Correto! Compartilhar sua Frase de Recuperação Secreta nunca é uma boa ideia",
+      "right_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados. ",
+      "wrong_answer": "Você deverá revelar",
+      "wrong_answer_title": "Não! Não compartilhe sua Frase de Recuperação Secreta com ninguém, nunca",
+      "wrong_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados. "
+    }
   }
 }

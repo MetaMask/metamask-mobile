@@ -2212,5 +2212,32 @@
     "description": "自动检查更新可能会将您的IP地址暴露给GitHub服务器。这仅显示您的IP地址正在使用MetaMask。其他信息或账户地址不会暴露。",
     "primary_action": "启用自动安全检查",
     "secondary_action": "不，谢谢"
+  },
+  "srp_security_quiz": {
+    "title": "安全问答",
+    "introduction": "要查看助记词，您需要答对两个问题",
+    "get_started": "开始",
+    "learn_more": "了解详情",
+    "try_again": "再试一次",
+    "continue": "继续",
+    "of": "/",
+    "question_one": {
+      "question": "如果您丢失了助记词，MetaMask......",
+      "right_answer": "无法帮助您",
+      "wrong_answer": "可以为您找回来",
+      "right_answer_title": "答对了！没有人能够帮您找回您的助记词",
+      "right_answer_description": "将它写下来、刻在金属上，或保存在多个秘密位置，这样您就不会丢失它。如果丢失了，它就会永远消失。",
+      "wrong_answer_title": "答错了！没有人能够帮您找回您的助记词",
+      "wrong_answer_description": "如果您丢失了助记词，它就会永远消失。没有人能够帮您找回它，无论他们说什么。 "
+    },
+    "question_two": {
+      "question": "如果有人（即使是技术支持人员）查问您的助记词......",
+      "right_answer": "就是在对您进行诈骗",
+      "right_answer_title": "答对了！分享您的助记词绝对不是个好主意",
+      "right_answer_description": "任何声称需要您的助记词的人都是在骗您。如果您与他们分享助记词，他们就会偷窃您的资产。",
+      "wrong_answer": "您应该交给他们",
+      "wrong_answer_title": "不！永远不要与任何人分享您的助记词",
+      "wrong_answer_description": "任何声称需要您的助记词的人都是在骗您。如果您与他们分享助记词，他们就会偷窃您的资产。"
+    }
   }
 }
