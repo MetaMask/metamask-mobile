@@ -70,5 +70,12 @@ class SendScreen {
     async isChangedContactNameVisible(contactName){
        expect(await Selectors.getXpathElementByText(contactName)).toBeDisplayed();
     }
+
+    async isContactNameVisible(contact) {
+      expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
+   }
+    async isDeletedContactNameNotVisible(contact) {
+      expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
+   }
 }
 export default new SendScreen();
