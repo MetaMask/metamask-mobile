@@ -37,12 +37,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
-import {
-  EXISTING_USER,
-  CURRENT_APP_VERSION,
-  LAST_APP_VERSION,
-} from '../../../constants/storage';
-import { getVersion } from 'react-native-device-info';
+import { EXISTING_USER } from '../../../constants/storage';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
@@ -248,7 +243,9 @@ const App = ({ userLoggedIn }) => {
         });
       }
       prevNavigator.current = navigator;
-      logtail.log(`Navigation initialized in: ${new Date().getTime() - timer}`);
+      logtail.log(
+        `Navigation initialized in: ${new Date().getTime() - timer}ms`,
+      );
     }
   }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
@@ -256,7 +253,9 @@ const App = ({ userLoggedIn }) => {
     const initAnalytics = async () => {
       const timer = new Date().getTime();
       await Analytics.init();
-      logtail.log(`Analytics initialized in: ${new Date().getTime() - timer}`);
+      logtail.log(
+        `Analytics initialized in: ${new Date().getTime() - timer}ms`,
+      );
     };
 
     initAnalytics();
@@ -265,7 +264,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     const timer = new Date().getTime();
     SDKConnect.init();
-    logtail.log(`SDKConnect initialized in: ${new Date().getTime() - timer}`);
+    logtail.log(`SDKConnect initialized in: ${new Date().getTime() - timer}ms`);
   }, []);
 
   useEffect(() => {
@@ -279,43 +278,43 @@ const App = ({ userLoggedIn }) => {
       if (!existingUser) {
         triggerCheckedAuth();
       }
-      logtail.log(`Existing user check in: ${new Date().getTime() - timer}`);
+      logtail.log(`Existing user check in: ${new Date().getTime() - timer}ms`);
     }
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
 
-  useEffect(() => {
-    async function startApp() {
-      const timer = new Date().getTime();
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      try {
-        const currentVersion = getVersion();
-        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-        if (currentVersion !== savedVersion) {
-          if (savedVersion)
-            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
-        }
-
-        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
-        if (!lastVersion) {
-          if (existingUser) {
-            // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
-          } else {
-            // Setting last version to current version so that it's not treated as an update
-            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
-          }
-        }
-      } catch (error) {
-        Logger.error(error);
-      }
-      logtail.log(`Existing user check in: ${new Date().getTime() - timer}`);
-    }
-
-    startApp();
-  }, []);
+  // useEffect(() => {
+  //   async function startApp() {
+  //     const timer = new Date().getTime();
+  //     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+  //     try {
+  //       const currentVersion = getVersion();
+  //       const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+  //       if (currentVersion !== savedVersion) {
+  //         if (savedVersion)
+  //           await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
+  //         await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+  //       }
+  //
+  //       const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+  //       if (!lastVersion) {
+  //         if (existingUser) {
+  //           // Setting last version to first version if user exists and lastVersion does not, to simulate update
+  //           await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+  //         } else {
+  //           // Setting last version to current version so that it's not treated as an update
+  //           await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       Logger.error(error);
+  //     }
+  //     logtail.log(`Existing user check in: ${new Date().getTime() - timer}ms`);
+  //   }
+  //
+  //   startApp();
+  // }, []);
 
   useEffect(() => {
     if (!isAuthChecked) {
@@ -328,7 +327,7 @@ const App = ({ userLoggedIn }) => {
       await new Promise((res) => setTimeout(res, 50));
       animation?.current?.play();
       animationName?.current?.play();
-      logtail.log(`Animation after play: ${new Date().getTime() - timer}`);
+      logtail.log(`Animation after play: ${new Date().getTime() - timer}ms`);
     };
     startAnimation();
   }, [isAuthChecked]);
