@@ -110,6 +110,7 @@ class NetworksScreen {
     }
 
     async typeIntoCHAINIDInputField(text) {
+        await driver.touchPerform([{action: 'tap', options: {x: 399, y: 1053}}]); // this eliminates some flakiness. The keyboard sometimes blocks the RPC url input
         await Gestures.typeText(this.inputChainIdField, text);
     }
 
@@ -152,6 +153,13 @@ class NetworksScreen {
     async tapRemoveNetworkButton(text) {
         await Gestures.tapTextByXpath(text);
     }
+
+    async swipeUp(){
+       // await driver.pause(5000);
+        await Gestures.swipe(
+          { x: 200, y: 100 },
+        );
+      }
 
     async isButtonTextVisibleByXpath(text) {
        expect(await (Selectors.getXpathElementByText(text))).toBeDisplayed();
