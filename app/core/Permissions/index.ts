@@ -120,26 +120,18 @@ export const addPermittedAccounts = (
   return newSortedAccounts[0].address;
 };
 
-export const removePermittedAccount = (hostname: string, account: string) => {
+export const removePermittedAccounts = (
+  hostname: string,
+  accounts: string[],
+) => {
   const { PermissionController } = Engine.context;
-
   const existing = PermissionController.getCaveat(
     hostname,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
   );
-  const existingPermittedAccountAddresses = existing.value.map(
-    ({ address }: { address: string }) => address,
-  );
-
-  if (!existingPermittedAccountAddresses.includes(account)) {
-    throw new Error(
-      `eth_accounts permission for hostname "${hostname}" already does not permit account "${account}".`,
-    );
-  }
-
   const remainingAccounts = existing.value.filter(
-    ({ address }: { address: string }) => address !== account,
+    ({ address }: { address: string }) => !accounts.includes(address),
   );
 
   if (remainingAccounts.length === 0) {
@@ -157,11 +149,11 @@ export const removePermittedAccount = (hostname: string, account: string) => {
   }
 };
 
-export const removeAccountFromPermissions = async (address: string) => {
+export const removeAccountsFromPermissions = async (addresses: string[]) => {
   const { PermissionController } = Engine.context;
   for (const subject in PermissionController.state.subjects) {
     try {
-      removePermittedAccount(subject, address);
+      removePermittedAccounts(subject, addresses);
     } catch (e) {
       Logger.log(
         e,

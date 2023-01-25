@@ -16,7 +16,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { ButtonTertiaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
-import { removePermittedAccount } from '../../../../core/Permissions';
+import { removePermittedAccounts } from '../../../../core/Permissions';
 import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import {
@@ -37,7 +37,6 @@ const AccountPermissionsRevoke = ({
   isLoading,
   permittedAddresses,
   onSetPermissionsScreen,
-  onDismissSheet,
   hostname,
   favicon,
   secureIcon,
@@ -54,17 +53,12 @@ const AccountPermissionsRevoke = ({
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
         );
-        onDismissSheet();
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [{ label: strings('toast.revoked_all') }],
-        });
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
       }
     },
     /* eslint-disable-next-line */
-    [onDismissSheet, hostname, toastRef],
+    [hostname],
   );
 
   const renderSheetAction = useCallback(
@@ -123,7 +117,7 @@ const AccountPermissionsRevoke = ({
                     accounts,
                     ensByAccountAddress,
                   });
-                  removePermittedAccount(hostname, address);
+                  removePermittedAccounts(hostname, [address]);
                   labelOptions.push(
                     {
                       label: `\n${newActiveAccountName} `,
@@ -139,7 +133,7 @@ const AccountPermissionsRevoke = ({
                   });
                 } else {
                   // Just disconnect
-                  removePermittedAccount(hostname, address);
+                  removePermittedAccounts(hostname, [address]);
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
                     labelOptions,

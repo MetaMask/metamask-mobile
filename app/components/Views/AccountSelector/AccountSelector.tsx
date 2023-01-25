@@ -58,7 +58,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     });
   };
 
-  const onRemoveAccount = useCallback(
+  const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
       const { PreferencesController } = Engine.context;
       nextActiveAddress &&
@@ -136,7 +136,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       <SheetHeader title={strings('accounts.accounts_title')} />
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
-        onRemoveAccount={onRemoveAccount}
+        onRemoveImportedAccount={onRemoveImportedAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}

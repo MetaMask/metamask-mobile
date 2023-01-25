@@ -94,6 +94,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+  const previousPermittedAccounts = useRef<string[]>();
+  const previousIdentitiesListSize = useRef<number>();
+  const identitiesMap = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -102,6 +108,35 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     (callback?: () => void) => sheetRef?.current?.hide?.(callback),
     [sheetRef],
   );
+
+  // Checks if anymore accounts are connected to the dapp. Auto dismiss sheet if none are connected.
+  useEffect(() => {
+    if (
+      previousPermittedAccounts.current === undefined &&
+      permittedAccountsByHostname.length === 0
+    ) {
+      // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
+      hideSheet();
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: strings('toast.revoked_all') }],
+      });
+      previousPermittedAccounts.current = permittedAccountsByHostname.length;
+    }
+  }, [permittedAccountsByHostname, hideSheet, toastRef]);
+
+  // Refreshes selected addresses based on the addition and removal of accounts.
+  useEffect(() => {
+    const identitiesAddressList = Object.keys(identitiesMap);
+    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
+      // Clean up selected addresses that are no longer part of identities.
+      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
+        identitiesAddressList.includes(address),
+      );
+      setSelectedAddresses(updatedSelectedAddresses);
+      previousIdentitiesListSize.current = identitiesAddressList.length;
+    }
+  }, [identitiesMap, selectedAddresses]);
 
   const accountsFilteredByPermissions = useMemo(() => {
     const accountsByPermittedStatus: Record<
@@ -310,7 +345,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress={ensByAccountAddress}
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
-        onDismissSheet={hideSheet}
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
@@ -323,7 +357,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       permittedAccountsByHostname,
       accountsFilteredByPermissions,
       setPermissionsScreen,
-      hideSheet,
       favicon,
       hostname,
       secureIcon,

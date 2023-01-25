@@ -101,16 +101,6 @@ const AccountPermissionsConnected = ({
     ],
   );
 
-  /**
-   * Permission removal is already handled in AccountSelectorList.
-   */
-  const onRemoveAccount = useCallback(
-    () =>
-      // Check if the deleted account is the only account.
-      accounts.length === 1 && onDismissSheet(),
-    [accounts, onDismissSheet],
-  );
-
   const switchNetwork = useCallback(() => {
     dispatch(toggleNetworkModal(false));
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
@@ -157,7 +147,6 @@ const AccountPermissionsConnected = ({
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
-        onRemoveAccount={onRemoveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
