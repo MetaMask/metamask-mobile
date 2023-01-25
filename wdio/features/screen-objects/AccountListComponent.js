@@ -3,10 +3,10 @@ import Selectors from '../helpers/Selectors';
 import {
   ACCOUNT_LIST_ACCOUNT_TWO_SELECTED,
   ACCOUNT_LIST_ID,
+  CELL_TITLE_TEST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from '../testIDs/Components/AccountListComponent.testIds';
-import { CELL_TITLE_TEST_ID } from '../../../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
 
 class AccountListComponent {
   get accountListContainer() {

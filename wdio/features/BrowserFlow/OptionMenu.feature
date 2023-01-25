@@ -1,4 +1,4 @@
-@androidApp @ChainScenarios
+@androidApp
 Feature: This feature file covers the option menu in the browser.
 
   Background: The user navigates to the Browser screen
@@ -27,7 +27,7 @@ Feature: This feature file covers the option menu in the browser.
 
   Scenario: Switch network options
     When I tap on the Network Icon
-    And I select "Goerli" network option
+    And I select "GOERLI TESTNET" network option
     Then "Goerli" is selected for MMM app
 
   Scenario: New Tab options
