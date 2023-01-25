@@ -10,7 +10,27 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
-const ScreenshotDeterrent = ({
+const ScreenshotDeterrentWithNoNavigation = ({
+  enabled,
+}: {
+  enabled: boolean;
+}) => {
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [enabled]);
+
+  return <View />;
+};
+
+const ScreenshotDeterrentWithNavigation = ({
   enabled,
   isSRP,
 }: {
@@ -68,5 +88,20 @@ const ScreenshotDeterrent = ({
 
   return <View />;
 };
+
+const ScreenshotDeterrent = ({
+  enabled,
+  isSRP,
+  hasNavigation = true,
+}: {
+  enabled: boolean;
+  isSRP: boolean;
+  hasNavigation: boolean;
+}) =>
+  hasNavigation ? (
+    <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />
+  ) : (
+    <ScreenshotDeterrentWithNoNavigation enabled={enabled} />
+  );
 
 export default ScreenshotDeterrent;

@@ -540,12 +540,12 @@ const RevealPrivateCredential = ({
         </>
       </ActionView>
       {renderModal(isPrivateKey(), privateCredentialName)}
-      {navigation && (
-        <ScreenshotDeterrent
-          enabled={unlocked}
-          isSRP={privateCredentialName !== PRIVATE_KEY}
-        />
-      )}
+
+      <ScreenshotDeterrent
+        enabled={unlocked}
+        isSRP={privateCredentialName !== PRIVATE_KEY}
+        hasNavigation={!!navigation}
+      />
     </SafeAreaView>
   );
 };
