@@ -210,7 +210,7 @@ class ErrorBoundary extends Component {
   };
 
   getErrorMessage = () =>
-    `View: ${this.props.view}\n${this.state.error.toString()}`;
+    `View: ${this.props.view}\n${this.state?.error?.toString()}`;
 
   copyErrorToClipboard = async () => {
     await ClipboardManager.setString(this.getErrorMessage());
@@ -233,7 +233,7 @@ class ErrorBoundary extends Component {
     return this.state.backupSeedphrase ? (
       <RevealPrivateCredential
         navBarDisabled
-        privateCredentialName={'seed_phrase'}
+        credentialName={'seed_phrase'}
         cancel={this.cancelExportSeedphrase}
       />
     ) : this.state.error ? (
