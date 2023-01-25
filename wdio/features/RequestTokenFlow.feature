@@ -11,9 +11,9 @@ Feature: Request Token
     And I tap on the Add a Network button
     When I tap on network "BNB Smart Chain" to add it
     Then the network approval modal should appear
-    When I tap button "Approve" on Approval Modal view
+    When I tap on button with text "Approve"
     Then the network approval modal has button "Switch Network" displayed
-    When I tap button "Close" on Approval Modal view
+    When I tap on button with text "Close"
     And I close the networks screen view
     Then I am on the main wallet view
 
@@ -23,16 +23,16 @@ Feature: Request Token
     And I tap on <Network> on Networks list to switch
     And I tap on Got it in the network education modal
     Then I see <Network> visible in the top navigation bar
-    When I tap button "Receive" on the main wallet view
-    Then Text "Scan address to receive payment" is displayed on Q-R code view
-    When I tap button "Request Payment" on Recieve Modal view
+    When I tap on button with text "Receive"
+    Then "Scan address to receive payment" is visible
+    When I tap on button with text "Request Payment"
     And I tap on button with text "<TokenName>"
     And I type "3" into the Request Amount field
-    When I tap button "Reset" on Request Amount view
-    Then Text "3" is not displayed on Request Amount view
+    When I tap on button with text "Reset"
+    Then "3" is not displayed
     When I type "12" into the Request Amount field
-    And I tap button "Next" to navigate to Send view
-    Then Text "Your request link is ready to send!" is displayed on Send Link view
+    And I tap on button with text "Next"
+    Then "Your request link is ready to send!" is visible
     And I tap on the close payment request icon
     Examples:
       | Network               | TokenName |
@@ -43,23 +43,23 @@ Feature: Request Token
   Scenario Outline: User requests ERC-20 token
     When I tap on the navbar network title button
     And I tap on <Network> on Networks list to switch
-    And I tap button "Receive" on the main wallet view
-    Then Text "Scan address to receive payment" is displayed on Q-R code view
-    When I tap button "Request Payment" to navigate to Request view
+    And I tap on button with text "Receive"
+    Then "Scan address to receive payment" is visible
+    When I tap on button with text "Request Payment"
     And I type "<TokenID>" in the Search Assets field
-    Then A Button "<FirstTokenName>" is displayed on Request Search view
-    When I tap button "<FirstTokenName>" on Search Results view
-    Then Text "<TokenID>" is displayed on Request Amount view
+    Then "<FirstTokenName>" is visible
+    When I tap on button with text "<FirstTokenName>"
+    Then "<TokenID>" is visible
     When I tap on the back button on the request view
     Then I am taken back to the Request Search view
     When I type "<SecondTokenID>" in the Search Assets field
-    Then Button "<SecondTokenName>" is displayed on Request Search view
-    When I tap button "<SecondTokenName>" on Search Results view
+    Then "<SecondTokenName>" is visible
+    When I tap on button with text "<SecondTokenName>"
     And I type "5" into the Request Amount field
-    And I tap button "Next" to navigate to Send view
-    Then Text "Your request link is ready to send!" is displayed on Send Link view
-    And I tap button "QR Code" on Search Results view
-    Then Text "Payment Request QR Code" is displayed on QR Code view
+    And I tap on button with text "Next"
+    Then "Your request link is ready to send!" is visible
+    And I tap on button with text "QR Code"
+    Then "Payment Request QR Code" is visible
     And I close the request screen
     Examples:
       | Network               | TokenID | FirstTokenName     | SecondTokenID | SecondTokenName |

@@ -12,12 +12,11 @@ import CommonScreen from '../screen-objects/CommonScreen';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import Gestures from '../../features/helpers/Gestures';
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
-  await driver.pause(22000); //TODO: Needs a smarter set timeout
+  // await driver.pause(22000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -57,28 +56,16 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   await OnboardingWizardModal.tapNoThanksButton();
 });
 
-Then(/^I tap button "([^"]*)?" on (.*) (.*) view/, async (button, screen, type) => {
-  const timeout = 1000;
-    await driver.pause(timeout);
-    await Gestures.tapTextByXpath(button);
-});
-
-Then(/^I tap button "([^"]*)?" to navigate to (.*) view/, async (button, screen) => {
-  const timeout = 1000;
-  await driver.pause(timeout);
-  await Gestures.tapTextByXpath(button);
-});
-
-Then(/^(.*) "([^"]*)?" is displayed on (.*) (.*) view/, async (elementType, text, type, screen) => {
+Then(/^"([^"]*)?" is visible/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);
 });
 
-Then(/^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/, async (elementType, textElement, type, screen) => {
+Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
-  await CommonScreen.isTextElementNotDisplayed(textElement);
+  await CommonScreen.isTextElementNotDisplayed(text);
 });
 
 Then(/^I am on the main wallet view/, async () => {
