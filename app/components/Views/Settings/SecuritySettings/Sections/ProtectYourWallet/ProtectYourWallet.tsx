@@ -8,7 +8,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import StyledButton from '../../../../../UI/StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 import SettingsNotification from '../../../../../UI/SettingsNotification';
 import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -111,22 +114,22 @@ const ProtectYourWallet = ({
         ) : null}
       </SettingsNotification>
       {!srpBackedup ? (
-        <StyledButton
-          type="blue"
+        <Button
+          label={strings('app_settings.back_up_now')}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
           onPress={goToBackup}
-          containerStyle={styles.confirm}
-        >
-          {strings('app_settings.back_up_now')}
-        </StyledButton>
+          style={styles.confirm}
+        />
       ) : (
-        <StyledButton
-          type="normal"
+        <Button
+          label={strings('reveal_credential.seed_phrase_title')}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
           onPress={goToRevealPrivateCredential}
-          containerStyle={styles.confirm}
+          style={styles.confirm}
           testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
-        >
-          {strings('reveal_credential.seed_phrase_title')}
-        </StyledButton>
+        />
       )}
     </View>
   );
