@@ -1,6 +1,6 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
+import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 
 Given(/^the onboarding wizard is visible on wallet view$/, async () => {
   await OnboardingWizardModal.isVisible();
@@ -26,11 +26,11 @@ When(/^On the onboarding wizard I tap on "([^"]*)" button$/, async (text) => {
 });
 
 When(/^I tap and hold on the account Name$/, async () => {
-  await WalletAccountModal.longPressAccountNameLabel();
+  await WalletMainScreen.longPressAccountNameLabel();
 });
 
 When(/^I enter "([^"]*)" for account name$/, async (text) => {
-  await WalletAccountModal.editAccountNameLabel(text);
+  await WalletMainScreen.editAccountNameLabel(text);
 });
 
 Then(/^the tutorial modal heading should read "([^"]*)"$/, async (text) => {
@@ -64,11 +64,11 @@ Then(
 );
 
 Then(/^I should be able to edit the account Name$/, async () => {
-  await WalletAccountModal.isAccountNameLabelEditable();
+  await WalletMainScreen.isAccountNameLabelEditable();
 });
 
 Then(/^the account nickname should read "([^"]*)"$/, async (text) => {
-  await WalletAccountModal.isAccountInputLabelEqualTo(text);
+  await WalletMainScreen.isAccountInputLabelEqualTo(text);
 });
 
 Then(

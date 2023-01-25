@@ -3,7 +3,6 @@ import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import DrawerViewScreen from '../screen-objects/DrawerViewScreen';
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
-import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
 import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 import ExternalWebsitesScreen from '../screen-objects/BrowserObject/ExternalWebsitesScreen';
@@ -60,8 +59,8 @@ Then(/^the browser view is on Home MetaMask website$/, async () => {
 Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
   await BrowserScreen.tapNavbarHamburgerButton();
   await DrawerViewScreen.tapWalletButton();
-  await WalletAccountModal.isAccountOverview();
-  await WalletAccountModal.isAccountNameLabelEqualTo(text);
+  await WalletMainScreen.isAccountOverview();
+  await WalletMainScreen.isAccountNameLabelEqualTo(text);
   await WalletMainScreen.tapBurgerIcon();
   await DrawerViewScreen.tapBrowserButton();
 });
