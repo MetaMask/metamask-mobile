@@ -71,7 +71,7 @@ const LedgerConfirmationModal = ({
   const connectLedger = () => {
     try {
       ledgerLogicToRun(async () => {
-        await KeyringController.unlockDefaultLedgerAccount();
+        await KeyringController.unlockLedgerDefaultAccount();
         await onConfirmation();
       });
     } catch (_e) {

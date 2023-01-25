@@ -131,7 +131,7 @@ const LedgerConnect = () => {
   const connectLedger = () => {
     setLoading(true);
     ledgerLogicToRun(async () => {
-      const account = await KeyringController.unlockDefaultLedgerAccount();
+      const account = await KeyringController.unlockLedgerDefaultAccount();
       await AccountTrackerController.syncBalanceWithAddresses([account]);
 
       navigation.dispatch(StackActions.popToTop());
@@ -220,6 +220,7 @@ const LedgerConnect = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ledgerError]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.connectLedgerWrapper}>
