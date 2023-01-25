@@ -707,32 +707,36 @@ class ApproveTransactionReview extends PureComponent {
             )}
           </Text>
 
-          {tokenType !== (ERC721 || ERC1155) && originalApproveAmount && (
-            <View style={styles.tokenAccess}>
-              <Text bold style={styles.tokenKey}>
-                {` ${strings('spend_limit_edition.access_up_to')} `}
-              </Text>
-              <Text numberOfLines={4} style={styles.tokenValue}>
-                {` ${
-                  customSpendAmount
-                    ? formatNumber(customSpendAmount)
-                    : originalApproveAmount &&
-                      formatNumber(originalApproveAmount)
-                } ${tokenSymbol}`}
-              </Text>
-            </View>
-          )}
+          {tokenType !== ERC721 &&
+            tokenType !== ERC1155 &&
+            originalApproveAmount && (
+              <View style={styles.tokenAccess}>
+                <Text bold style={styles.tokenKey}>
+                  {` ${strings('spend_limit_edition.access_up_to')} `}
+                </Text>
+                <Text numberOfLines={4} style={styles.tokenValue}>
+                  {` ${
+                    customSpendAmount
+                      ? formatNumber(customSpendAmount)
+                      : originalApproveAmount &&
+                        formatNumber(originalApproveAmount)
+                  } ${tokenSymbol}`}
+                </Text>
+              </View>
+            )}
 
-          {fetchingUpdateDone && tokenType !== (ERC721 || ERC1155) && (
-            <TouchableOpacity
-              style={styles.actionTouchable}
-              onPress={this.toggleEditPermission}
-            >
-              <Text reset style={styles.editPermissionText}>
-                {strings('spend_limit_edition.edit_permission')}
-              </Text>
-            </TouchableOpacity>
-          )}
+          {fetchingUpdateDone &&
+            tokenType !== ERC721 &&
+            tokenType !== ERC1155 && (
+              <TouchableOpacity
+                style={styles.actionTouchable}
+                onPress={this.toggleEditPermission}
+              >
+                <Text reset style={styles.editPermissionText}>
+                  {strings('spend_limit_edition.edit_permission')}
+                </Text>
+              </TouchableOpacity>
+            )}
           <Text reset style={styles.explanation}>
             {`${strings(
               `spend_limit_edition.${
