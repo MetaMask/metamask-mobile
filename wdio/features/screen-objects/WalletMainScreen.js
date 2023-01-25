@@ -20,8 +20,6 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../testIDs/Screens/WalletView.testIds';
 
-import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
-
 class WalletMainScreen {
   get wizardContainer() {
     return Selectors.getElementByPlatform(
@@ -60,10 +58,6 @@ class WalletMainScreen {
 
   get networkNavBarWalletTitle() {
     return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORKS_TEXT);
-  }
-
-  get drawerSettings() {
-    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
   }
 
   get mainWalletView() {

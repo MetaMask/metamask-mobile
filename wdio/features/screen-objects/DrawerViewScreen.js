@@ -5,6 +5,7 @@ import {
   DRAWER_VIEW_BROWSER_TEXT_ID,
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_WALLET_TEXT_ID,
+  DRAWER_VIEW_SETTINGS_TEXT_ID
 } from '../testIDs/Screens/DrawerView.testIds';
 
 class DrawerViewScreen {
@@ -20,8 +21,16 @@ class DrawerViewScreen {
     return Selectors.getElementByPlatform(DRAWER_VIEW_WALLET_TEXT_ID);
   }
 
+  get drawerSettings() {
+    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
+  }
+
   async tapNavBarItemLock() {
     await Gestures.waitAndTap(this.lockNavBarItem);
+  }
+
+  async tapSettings() {
+    await Gestures.tap(this.drawerSettings);
   }
 
   async tapYesOnDeviceAlert() {
