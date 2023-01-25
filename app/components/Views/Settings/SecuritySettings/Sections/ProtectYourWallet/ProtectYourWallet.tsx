@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import {
   View,
   Text,
@@ -35,11 +35,11 @@ const ProtectYourWallet = ({
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  const WarningIcon = () => (
+  const WarningIcon = (): ReactElement => (
     <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
   );
 
-  const goToRevealPrivateCredential = () => {
+  const goToRevealPrivateCredential = (): void => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
@@ -47,7 +47,7 @@ const ProtectYourWallet = ({
     });
   };
 
-  const goToBackup = () => {
+  const goToBackup = (): void => {
     navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
@@ -56,7 +56,7 @@ const ProtectYourWallet = ({
     });
   };
 
-  const onBack = () => navigation.goBack();
+  const onBack = (): void => navigation.goBack();
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
