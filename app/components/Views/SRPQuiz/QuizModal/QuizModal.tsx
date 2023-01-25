@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ReusableModal, { ReusableModalRef } from '../../../UI/ReusableModal';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
@@ -12,6 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 import analyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
+import { SRP_GUIDE_URL } from '../../../../constants/urls';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
@@ -26,6 +27,10 @@ const QuizModal = () => {
 
   const dismissModal = () => {
     modalRef.current?.dismissModal();
+  };
+
+  const openSupportArticle = () => {
+    Linking.openURL(SRP_GUIDE_URL);
   };
 
   const wrongAnswerIcon = useCallback(
@@ -50,11 +55,11 @@ const QuizModal = () => {
     [colors.success.default],
   );
 
-  const goToRevealPrivateCredential = () => {
+  const goToRevealPrivateCredential = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIV_CREDENTIAL, {
       privateCredentialName: 'seed_phrase',
     });
-  };
+  }, [navigation]);
 
   const quizPage = useCallback(() => {
     switch (stage) {
@@ -81,6 +86,11 @@ const QuizModal = () => {
                 },
                 variant: ButtonVariants.Primary,
               },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
+              },
             ]}
             dismiss={dismissModal}
           />
@@ -106,6 +116,11 @@ const QuizModal = () => {
                 label: strings('srp_security_quiz.question_one.right_answer'),
                 onPress: () => setStage(QuizStage.rightAnswerQuestionOne),
                 variant: ButtonVariants.Secondary,
+              },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
               },
             ]}
             dismiss={dismissModal}
@@ -135,6 +150,11 @@ const QuizModal = () => {
                 onPress: () => setStage(QuizStage.questionTwo),
                 variant: ButtonVariants.Primary,
               },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
+              },
             ]}
             dismiss={dismissModal}
           />
@@ -163,6 +183,11 @@ const QuizModal = () => {
                 onPress: () => setStage(QuizStage.questionOne),
                 variant: ButtonVariants.Primary,
               },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
+              },
             ]}
             dismiss={dismissModal}
           />
@@ -188,6 +213,11 @@ const QuizModal = () => {
                 label: strings('srp_security_quiz.question_two.wrong_answer'),
                 onPress: () => setStage(QuizStage.wrongAnswerQuestionTwo),
                 variant: ButtonVariants.Secondary,
+              },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
               },
             ]}
             dismiss={dismissModal}
@@ -217,6 +247,11 @@ const QuizModal = () => {
                 onPress: goToRevealPrivateCredential,
                 variant: ButtonVariants.Primary,
               },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
+              },
             ]}
             dismiss={dismissModal}
           />
@@ -244,6 +279,11 @@ const QuizModal = () => {
                 label: strings('srp_security_quiz.try_again'),
                 onPress: () => setStage(QuizStage.questionTwo),
                 variant: ButtonVariants.Primary,
+              },
+              {
+                label: strings('srp_security_quiz.learn_more'),
+                onPress: openSupportArticle,
+                variant: ButtonVariants.Tertiary,
               },
             ]}
             dismiss={dismissModal}
