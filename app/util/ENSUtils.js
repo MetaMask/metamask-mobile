@@ -2,6 +2,7 @@ import Engine from '../core/Engine';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
+import {EMPTYADDRESS} from '../constants/transaction'
 
 /**
  * Utility class with the single responsibility
@@ -44,6 +45,7 @@ export async function doENSLookup(ensName, network) {
     this.ens = new ENS({ provider, network });
     try {
       const resolvedAddress = await this.ens.lookup(ensName);
+      if(resolvedAddress === EMPTYADDRESS) return
       return resolvedAddress;
       // eslint-disable-next-line no-empty
     } catch (e) {}
