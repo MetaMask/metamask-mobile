@@ -1,17 +1,13 @@
 /* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
-import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
-import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
-import Accounts from '../helpers/Accounts';
+import DrawerView from '../screen-objects/DrawerViewScreen'
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
-import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
+
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
-
+import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.clickAddNetworks();
@@ -82,7 +78,7 @@ Then(/^I tap on the burger menu/, async () => {
 Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
   switch (option) {
     case 'Settings':
-      await WalletMainScreen.tapSettings();
+      await DrawerView.tapSettings();
       break;
     default:
       throw new Error('Option not found');

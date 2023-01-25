@@ -16,8 +16,6 @@ import { WALLET_VIEW_BURGER_ICON_ID,
         WALLET_ACCOUNT_NAME_LABEL_TEXT, }
 from '../testIDs/Screens/WalletView.testIds';
 
-import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
-
 class WalletMainScreen {
   get wizardContainer() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
@@ -54,10 +52,6 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORKS_TEXT);
   }
 
-  get drawerSettings() {
-    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
-  }
-
   get mainWalletView() {
     return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
   }
@@ -80,10 +74,6 @@ class WalletMainScreen {
 
   async editAccountNameLabel(text) {
     await Gestures.typeText(this.accountNameLabelInput, text);
-  }
-
-  async tapSettings() {
-    await Gestures.tap(this.drawerSettings);
   }
 
   async tapSendIcon(text){
