@@ -7,8 +7,15 @@ import { Logtail } from '@logtail/browser';
 
 const logtail = new Logtail('QAszNMAsinmVdwbMLNPpRfr6');
 
+type IController = {
+  name: string;
+  key?: string;
+  lazy?: boolean;
+}
+
 class EngineService {
   private engineInitialized = false;
+  private lazyControlers: IController[] = [];
 
   /**
    * Initializer for the EngineService
@@ -16,14 +23,13 @@ class EngineService {
    * @param store - Redux store
    */
   initalizeEngine = (store: any) => {
-    const timer = new Date().getTime();
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
 
     Engine.init(state);
-
-    const controllers = [
+    
+    const controllers: IController[] = [
       { name: 'AccountTrackerController' },
       { name: 'AddressBookController' },
       { name: 'AssetsContractController' },
@@ -34,7 +40,7 @@ class EngineService {
       { name: 'KeyringController' },
       { name: 'AccountTrackerController' },
       { name: 'NetworkController' },
-      { name: 'PhishingController' },
+      { name: 'PhishingController', lazy: true },
       { name: 'PreferencesController' },
       { name: 'TokenBalancesController' },
       { name: 'TokenRatesController' },
@@ -59,6 +65,9 @@ class EngineService {
       },
     ];
 
+    // Save lazy controllers for later
+    this.lazyControlers = controllers.filter((controller) => controller.lazy);
+
     Engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
@@ -66,24 +75,38 @@ class EngineService {
       }
     });
 
-    controllers.forEach((controller) => {
-      const { name, key = undefined } = controller;
-      const update_bg_state_cb = () =>
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
-      if (name !== 'NetworkController')
-        !key
-          ? Engine.context[name].subscribe(update_bg_state_cb)
-          : Engine.controllerMessenger.subscribe(key, update_bg_state_cb);
-      else
-        Engine.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          update_bg_state_cb,
-        );
-    });
-    logtail.info(
-      `EngineService initalizeEngine took ${new Date().getTime() - timer}ms`,
-    );
+    controllers
+      .filter((controller) => !controller.lazy)
+      .forEach((controller) => 
+      this.subscribeControllerBackgroundState(controller, store, Engine));
   };
+
+  subscribeControllerBackgroundState = (controller: IController, store: any, engine: any) => {
+    const update_bg_state_cb = () =>
+      store.dispatch({ type: UPDATE_BG_STATE_KEY, key: controller.name });
+
+    if (controller.name === 'NetworkController') {
+      engine.controllerMessenger.subscribe(
+        AppConstants.NETWORK_STATE_CHANGE_EVENT,
+        update_bg_state_cb,
+      );
+      return;
+    }
+
+    if (controller.key) {
+      engine.controllerMessenger.subscribe(controller.key, update_bg_state_cb)
+      return;
+    }
+
+    engine.context[controller.name].subscribe(update_bg_state_cb);
+  }
+
+  setupLazyControllers = (store: any) => {
+    const Engine = UntypedEngine as any;
+    this.lazyControlers.forEach((controller) => {
+      this.subscribeControllerBackgroundState(controller, store, Engine);
+    });
+  }
 }
 
 /**

@@ -112,7 +112,7 @@ const persistConfig = {
   version,
   blacklist: ['onboarding'],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,

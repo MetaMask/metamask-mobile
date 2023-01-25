@@ -26,12 +26,9 @@ export default class Root extends PureComponent {
     foxCode: 'null',
   };
 
-  errorHandler = (error, stackTrace) => {
-    Logger.error(error, stackTrace);
-  };
-
   constructor(props) {
     super(props);
+    console.log(`Root constructor at ${new Date().toISOString()}`);
     if (props.foxCode === '') {
       Logger.error('WARN - foxCode is an empty string');
     }
@@ -43,21 +40,24 @@ export default class Root extends PureComponent {
 
   render = () => (
     <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        <ConnectedRoot />
-      </PersistGate>
+      <ConnectedRoot />
     </Provider>
   );
 }
 
 const ConnectedRoot = () => {
+  console.log('ConnectedRoot');
   const theme = useAppTheme();
+
+  function errorHandler(error, stackTrace) {
+    Logger.error(error, stackTrace);
+  };
 
   return (
     <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
         <ToastContextWrapper>
-          <ErrorBoundary onError={this.errorHandler} view="Root">
+          <ErrorBoundary onError={errorHandler} view="Root">
             <App />
           </ErrorBoundary>
         </ToastContextWrapper>

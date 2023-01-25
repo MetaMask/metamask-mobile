@@ -1,7 +1,10 @@
 import './shim.js';
 
+import { startNetworkLogging } from 'react-native-network-logger';
 import 'react-native-gesture-handler';
 import 'react-native-url-polyfill/auto';
+import { Logtail } from '@logtail/browser';
+const logtail = new Logtail('QAszNMAsinmVdwbMLNPpRfr6');
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
@@ -75,4 +78,7 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 /**
  * Application entry point responsible for registering root component
  */
+console.log(`App started at ${new Date().toISOString()}`);
+logtail.log(`App started at ${new Date().toISOString()}`);
+startNetworkLogging();
 AppRegistry.registerComponent(name, () => Root);

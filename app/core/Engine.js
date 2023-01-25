@@ -52,6 +52,9 @@ import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from '../core/Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+import { Logtail } from "@logtail/browser";
+
+const logtail = new Logtail("QAszNMAsinmVdwbMLNPpRfr6");
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -323,7 +326,6 @@ class Engine {
         new PersonalMessageManager(),
         new MessageManager(),
         networkController,
-        phishingController,
         preferencesController,
         new TokenBalancesController(
           {

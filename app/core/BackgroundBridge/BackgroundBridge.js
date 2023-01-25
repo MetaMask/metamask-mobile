@@ -42,6 +42,7 @@ export class BackgroundBridge extends EventEmitter {
     getApprovedHosts,
     remoteConnHost,
   }) {
+    console.log('BackgroundBridge constructor');
     super();
     this.url = url;
     this.hostname = new URL(url).hostname;

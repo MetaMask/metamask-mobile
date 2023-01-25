@@ -5,8 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Linking } from 'react-native';
+import { NavigationContainer, CommonActions, useNavigation } from '@react-navigation/native';
+import { Animated, Linking, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
@@ -26,7 +26,7 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
-// import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
+import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
@@ -37,7 +37,12 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
-import { EXISTING_USER } from '../../../constants/storage';
+import {
+  EXISTING_USER,
+  CURRENT_APP_VERSION,
+  LAST_APP_VERSION,
+} from '../../../constants/storage';
+import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
@@ -55,8 +60,59 @@ import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import { Logtail } from '@logtail/browser';
+import NetworkLogger from 'react-native-network-logger';
 
 const logtail = new Logtail('QAszNMAsinmVdwbMLNPpRfr6');
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  button: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#6200ee',
+  },
+  active: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  buttoText: {
+    color: '#fff',
+    fontSize: 24,
+    textAlign: 'center',
+  },
+});
+
+const FloatingButton = ({ navigator }) => {
+  const [isOpened, setIsOpened] = useState(false);
+
+  const navigateToModal = () => {
+    if (!isOpened) {
+      navigator.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: 'NetworkInspector',
+      })
+    } else {
+      navigator.goBack();
+    }
+    setIsOpened(!isOpened);
+  }
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={[styles.button]}
+        onPress={navigateToModal}
+    >
+        <Text style={styles.buttoText}>?</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const Stack = createStackNavigator();
 /**
@@ -161,11 +217,11 @@ const OnboardingRootNav = () => (
 const App = ({ userLoggedIn }) => {
   const animation = useRef(null);
   const animationName = useRef(null);
-  // const opacity = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
-  // const [animationPlayed, setAnimationPlayed] = useState();
+  const [animationPlayed, setAnimationPlayed] = useState();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
@@ -243,19 +299,15 @@ const App = ({ userLoggedIn }) => {
         });
       }
       prevNavigator.current = navigator;
-      logtail.log(
-        `Navigation initialized in: ${new Date().getTime() - timer}ms`,
-      );
+      logtail.log(`Navigation initialized in: ${new Date().getTime() - timer}ms`);
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
+  }, [dispatch, frequentRpcList, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
       const timer = new Date().getTime();
       await Analytics.init();
-      logtail.log(
-        `Analytics initialized in: ${new Date().getTime() - timer}ms`,
-      );
+      logtail.log(`Analytics initialized in: ${new Date().getTime() - timer}ms`);
     };
 
     initAnalytics();
@@ -284,37 +336,37 @@ const App = ({ userLoggedIn }) => {
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
 
-  // useEffect(() => {
-  //   async function startApp() {
-  //     const timer = new Date().getTime();
-  //     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-  //     try {
-  //       const currentVersion = getVersion();
-  //       const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-  //       if (currentVersion !== savedVersion) {
-  //         if (savedVersion)
-  //           await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-  //         await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
-  //       }
-  //
-  //       const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
-  //       if (!lastVersion) {
-  //         if (existingUser) {
-  //           // Setting last version to first version if user exists and lastVersion does not, to simulate update
-  //           await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
-  //         } else {
-  //           // Setting last version to current version so that it's not treated as an update
-  //           await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       Logger.error(error);
-  //     }
-  //     logtail.log(`StartApp version: ${new Date().getTime() - timer}ms`);
-  //   }
-  //
-  //   startApp();
-  // }, []);
+  useEffect(() => {
+    async function startApp() {
+      const timer = new Date().getTime();
+      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      try {
+        const currentVersion = getVersion();
+        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+        if (currentVersion !== savedVersion) {
+          if (savedVersion)
+            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
+          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+        }
+
+        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+        if (!lastVersion) {
+          if (existingUser) {
+            // Setting last version to first version if user exists and lastVersion does not, to simulate update
+            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+          } else {
+            // Setting last version to current version so that it's not treated as an update
+            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+          }
+        }
+      } catch (error) {
+        Logger.error(error);
+      }
+      logtail.log(`StartApp version: ${new Date().getTime() - timer}ms`);
+    }
+
+    startApp();
+  }, []);
 
   useEffect(() => {
     if (!isAuthChecked) {
@@ -338,30 +390,30 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
-  // const onAnimationFinished = useCallback(() => {
-  //   Animated.timing(opacity, {
-  //     toValue: 0,
-  //     duration: 300,
-  //     useNativeDriver: true,
-  //     isInteraction: false,
-  //   }).start(() => {
-  //     setAnimationPlayed(true);
-  //   });
-  // }, [opacity]);
+  const onAnimationFinished = useCallback(() => {
+    Animated.timing(opacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+      isInteraction: false,
+    }).start(() => {
+      setAnimationPlayed(true);
+    });
+  }, [opacity]);
 
-  // const renderSplash = () => {
-  //   if (!animationPlayed) {
-  //     return (
-  //       <MetaMaskAnimation
-  //         animation={animation}
-  //         animationName={animationName}
-  //         opacity={opacity}
-  //         onAnimationFinish={onAnimationFinished}
-  //       />
-  //     );
-  //   }
-  //   return null;
-  // };
+  const renderSplash = () => {
+    if (!animationPlayed) {
+      return (
+        <MetaMaskAnimation
+          animation={animation}
+          animationName={animationName}
+          opacity={opacity}
+          onAnimationFinish={onAnimationFinished}
+        />
+      );
+    }
+    return null;
+  };
 
   const RootModalFlow = () => (
     <Stack.Navigator
@@ -393,8 +445,14 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
         component={EnableAutomaticSecurityChecksModal}
       />
+      <Stack.Screen
+        name={'NetworkInspector'}
+        component={NetworkLogger}
+      />
     </Stack.Navigator>
   );
+
+  console.log('route', route);
 
   return (
     // do not render unless a route is defined
@@ -446,6 +504,8 @@ const App = ({ userLoggedIn }) => {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        {renderSplash()}
+        <FloatingButton navigator={navigator} />
         <Toast ref={toastRef} />
       </>
     )) ||
