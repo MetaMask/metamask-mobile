@@ -290,8 +290,14 @@ const QuizModal = () => {
           />
         );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, stage, rightAnswerIcon, wrongAnswerIcon]);
+  }, [
+    stage,
+    rightAnswerIcon,
+    styles.rightText,
+    styles.wrongText,
+    wrongAnswerIcon,
+    goToRevealPrivateCredential,
+  ]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
