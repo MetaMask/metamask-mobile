@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.12.3",
+  "version": "5.13.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -99,7 +99,7 @@
     "**/node-fetch": "^2.6.7",
     "**/node-notifier": "^8.0.1",
     "**/lodash": "^4.17.21",
-    "**/ua-parser-js": "^0.7.24",
+    "**/ua-parser-js": "^0.7.33",
     "**/elliptic": "^6.5.4",
     "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
@@ -281,6 +281,7 @@
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
     "react-native-share": "7.3.7",
+    "react-native-size-matters": "0.4.0",
     "react-native-skeleton-placeholder": "^5.0.0",
     "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee",
     "react-native-step-indicator": "^1.0.3",

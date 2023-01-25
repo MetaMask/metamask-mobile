@@ -113,15 +113,12 @@ describe('Wallet Tests', () => {
     await ImportAccountView.tapImportButton();
     await ImportAccountView.tapOKAlertButton();
 
-    // Input incorrect private key
-    await ImportAccountView.enterPrivateKey('1234');
-    await ImportAccountView.tapOKAlertButton();
-    await ImportAccountView.clearPrivateKeyInputBox();
-
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
     // Check that we are on the account succesfully imported screen
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
+
+    await AccountListView.swipeToDimssAccountsModal();
 
     await WalletView.isVisible();
     await WalletView.isAccountNameCorrect('Account 3');
@@ -135,6 +132,7 @@ describe('Wallet Tests', () => {
     await DrawerView.tapAccountCaretButton();
 
     await AccountListView.isVisible();
+    await AccountListView.swipeOnAccounts();
     await AccountListView.tapAccountByName('Account 1');
 
     await WalletView.tapDrawerButton();

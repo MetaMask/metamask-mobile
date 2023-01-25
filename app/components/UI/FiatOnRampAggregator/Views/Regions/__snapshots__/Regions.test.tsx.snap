@@ -51,10 +51,11 @@ exports[`Regions View renders correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -97,31 +98,135 @@ exports[`Regions View renders correctly 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -211,8 +316,6 @@ exports[`Regions View renders correctly 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -327,7 +430,7 @@ exports[`Regions View renders correctly 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -374,7 +477,7 @@ exports[`Regions View renders correctly 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -487,7 +590,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -839,7 +942,7 @@ exports[`Regions View renders correctly 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -885,7 +988,7 @@ exports[`Regions View renders correctly 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -935,7 +1038,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -980,7 +1083,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1243,7 +1346,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1293,7 +1396,7 @@ exports[`Regions View renders correctly 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -1557,7 +1660,7 @@ exports[`Regions View renders correctly 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -1598,7 +1701,7 @@ exports[`Regions View renders correctly 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -1713,7 +1816,7 @@ exports[`Regions View renders correctly 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -1754,7 +1857,7 @@ exports[`Regions View renders correctly 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -2022,7 +2125,7 @@ exports[`Regions View renders correctly 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -2068,7 +2171,7 @@ exports[`Regions View renders correctly 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -2118,7 +2221,7 @@ exports[`Regions View renders correctly 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -2163,7 +2266,7 @@ exports[`Regions View renders correctly 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -2280,10 +2383,11 @@ exports[`Regions View renders correctly while loading 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -2326,31 +2430,135 @@ exports[`Regions View renders correctly while loading 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2440,8 +2648,6 @@ exports[`Regions View renders correctly while loading 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -2769,10 +2975,11 @@ exports[`Regions View renders correctly with error 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -2815,31 +3022,135 @@ exports[`Regions View renders correctly with error 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2929,8 +3240,6 @@ exports[`Regions View renders correctly with error 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -3107,7 +3416,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -3167,7 +3476,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -3332,10 +3641,11 @@ exports[`Regions View renders correctly with no data 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -3378,31 +3688,135 @@ exports[`Regions View renders correctly with no data 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -3492,8 +3906,6 @@ exports[`Regions View renders correctly with no data 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -3821,10 +4233,11 @@ exports[`Regions View renders correctly with sdkError 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -3867,31 +4280,135 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -3981,8 +4498,6 @@ exports[`Regions View renders correctly with sdkError 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -4159,7 +4674,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -4219,7 +4734,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                       Object {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
@@ -4384,10 +4899,11 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -4430,31 +4946,135 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -4544,8 +5164,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -4660,7 +5278,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -4707,7 +5325,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -4820,7 +5438,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -5170,7 +5788,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -5216,7 +5834,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -5266,7 +5884,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -5311,7 +5929,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -5574,7 +6192,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -5624,7 +6242,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -5888,7 +6506,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -5929,7 +6547,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -6044,7 +6662,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -6085,7 +6703,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -6353,7 +6971,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -6399,7 +7017,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -6449,7 +7067,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -6494,7 +7112,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -6611,10 +7229,11 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -6657,31 +7276,135 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             }
           >
             <View
+              collapsable={false}
+              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              nativeID="animatedComponent"
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -6771,8 +7494,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -6887,7 +7608,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -6934,7 +7655,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -7047,7 +7768,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -7395,7 +8116,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -7441,7 +8162,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -7491,7 +8212,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -7536,7 +8257,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -7799,7 +8520,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -7849,7 +8570,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -8113,7 +8834,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -8154,7 +8875,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -8269,7 +8990,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -8310,7 +9031,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -8578,7 +9299,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -8624,7 +9345,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -8674,7 +9395,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -8719,7 +9440,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -8836,10 +9557,11 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": Object {
                   "height": 0.5,
                   "width": 0,
@@ -8885,28 +9607,128 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
               pointerEvents="box-none"
               style={
                 Object {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                nativeID="animatedComponent"
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   Object {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+                testID="navbar-title-text"
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Buy Crypto Tokens
+                </Text>
+                <View
+                  style={
+                    Object {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 100,
+                          "height": 5,
+                          "marginRight": 5,
+                          "marginTop": 4,
+                          "width": 5,
+                        },
+                        Object {
+                          "backgroundColor": "#3cc29e",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Object {
+                        "color": "#535A61",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                      }
+                    }
+                    testID="navbar-title-networks"
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  Object {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
                   }
                 }
               >
-                Region
-              </Text>
+                <Text
+                  style={
+                    Object {
+                      "color": "#037DD6",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -8996,8 +9818,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
           }
         >
           <View
-            collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -9112,7 +9932,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -9159,7 +9979,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 Object {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
@@ -9272,7 +10092,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -9620,7 +10440,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -9666,7 +10486,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -9716,7 +10536,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -9761,7 +10581,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -10020,7 +10840,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -10070,7 +10890,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             Object {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontSize": 30,
                                               "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
@@ -10334,7 +11154,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -10375,7 +11195,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -10490,7 +11310,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -10531,7 +11351,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 Object {
                                                                   "color": "#24272A",
                                                                   "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
+                                                                  "fontSize": 30,
                                                                   "fontWeight": "400",
                                                                   "marginVertical": 2,
                                                                 },
@@ -10795,7 +11615,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -10841,7 +11661,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                   Object {
                                                     "color": "#24272A",
                                                     "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
+                                                    "fontSize": 30,
                                                     "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
@@ -10891,7 +11711,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
@@ -10936,7 +11756,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                     Object {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
-                                                      "fontSize": 14,
+                                                      "fontSize": 30,
                                                       "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },

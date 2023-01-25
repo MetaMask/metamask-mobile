@@ -31,6 +31,12 @@ import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
 import USER_INTENT from '../../../../constants/permissions';
 
+import {
+  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
+  CANCEL_BUTTON_ID,
+  CONNECT_BUTTON_ID,
+} from '../../../../../app/constants/test-ids';
+
 const AccountConnectSingle = ({
   defaultSelectedAccount,
   onSetScreen,
@@ -103,6 +109,7 @@ const AccountConnectSingle = ({
           }}
           size={ButtonSize.Lg}
           style={styles.button}
+          testID={CANCEL_BUTTON_ID}
         />
         <View style={styles.buttonSeparator} />
         <Button
@@ -114,6 +121,7 @@ const AccountConnectSingle = ({
           }}
           size={ButtonSize.Lg}
           style={styles.button}
+          testID={CONNECT_BUTTON_ID}
         />
       </View>
     ),
@@ -159,7 +167,7 @@ const AccountConnectSingle = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
-      <View style={styles.body}>
+      <View style={styles.body} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
         <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}

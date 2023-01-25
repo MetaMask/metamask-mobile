@@ -84,23 +84,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [onCreateNewAccount, setIsLoading]);
 
   const openImportAccount = useCallback(() => {
-    sheetRef.current?.hide(() => {
-      navigation.navigate('ImportPrivateKeyView');
-      // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-        {},
-      );
-    });
+    navigation.navigate('ImportPrivateKeyView');
+    // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
     onOpenImportAccount?.();
   }, [onOpenImportAccount, navigation]);
 
   const openConnectHardwareWallet = useCallback(() => {
-    sheetRef.current?.hide(() => {
-      navigation.navigate('ConnectQRHardwareFlow');
-      // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
-    });
+    navigation.navigate('ConnectQRHardwareFlow');
+    // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
     onOpenConnectHardwareWallet?.();
   }, [onOpenConnectHardwareWallet, navigation]);
 

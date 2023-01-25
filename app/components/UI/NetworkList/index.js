@@ -34,7 +34,10 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import Avatar, {
+  AvatarVariants,
+  AvatarSize,
+} from '../../../component-library/components/Avatars/Avatar';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
@@ -279,10 +282,14 @@ export class NetworkList extends PureComponent {
           {selected}
         </View>
         {isCustomRpc &&
-          (image ? (
-            <ImageIcon image={image} style={styles.networkIcon} />
-          ) : (
-            <AvatarNetwork name={name} style={styles.networkIcon} />
+          // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
+          (image ? null : (
+            <Avatar
+              variant={AvatarVariants.Network}
+              name={name}
+              style={styles.networkIcon}
+              size={AvatarSize.Xs}
+            />
           ))}
         {!isCustomRpc &&
           (image ? (

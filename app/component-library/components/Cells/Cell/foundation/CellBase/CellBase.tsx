@@ -22,7 +22,6 @@ import {
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
-import { ACCOUNT_LIST_ACCOUNT_NAMES } from '../../../../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const CellBase = ({
   style,
@@ -49,7 +48,7 @@ const CellBase = ({
           numberOfLines={1}
           variant={TextVariants.sHeadingSMRegular}
           testID={CELL_TITLE_TEST_ID}
-          {...generateTestId(Platform, ACCOUNT_LIST_ACCOUNT_NAMES)}
+          {...generateTestId(Platform, CELL_TITLE_TEST_ID)}
         >
           {title}
         </Text>

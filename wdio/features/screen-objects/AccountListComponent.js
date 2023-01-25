@@ -1,12 +1,12 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  ACCOUNT_LIST_ACCOUNT_NAMES,
   ACCOUNT_LIST_ACCOUNT_TWO_SELECTED,
   ACCOUNT_LIST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from '../testIDs/Components/AccountListComponent.testIds';
+import { CELL_TITLE_TEST_ID } from '../../../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
 
 class AccountListComponent {
   get accountListContainer() {
@@ -22,7 +22,7 @@ class AccountListComponent {
   }
 
   get accountsListed() {
-    return Selectors.getElementsByPlatform(ACCOUNT_LIST_ACCOUNT_NAMES);
+    return Selectors.getElementsByPlatform(CELL_TITLE_TEST_ID);
   }
 
   get accountTwoSelected() {
@@ -35,10 +35,6 @@ class AccountListComponent {
 
   async tapImportAccountButton() {
     await Gestures.waitAndTap(this.importAccountButton);
-  }
-
-  async isVisible() {
-    await expect(this.accountListContainer).toBeDisplayed();
   }
 
   async isAccountTwoSelected() {
@@ -54,6 +50,10 @@ class AccountListComponent {
       }
       return true;
     });
+  }
+
+  async isComponentDisplayed() {
+    await expect(await this.accountListContainer).toBeDisplayed();
   }
 }
 

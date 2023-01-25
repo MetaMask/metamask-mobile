@@ -6,7 +6,10 @@ import AvatarAccount, {
   AvatarAccountType,
 } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import Avatar, {
+  AvatarVariants,
+  AvatarSize,
+} from '../../../component-library/components/Avatars/Avatar';
 import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
@@ -58,8 +61,12 @@ const AccountRightButton = ({
   );
 
   const networkImageSource = useMemo(
-    () => getNetworkImageSource(networkProvider.chainId),
-    [networkProvider.chainId],
+    () =>
+      getNetworkImageSource({
+        networkType: networkProvider.type,
+        chainId: networkProvider.chainId,
+      }),
+    [networkProvider],
   );
 
   const renderAvatarAccount = () => (
@@ -87,7 +94,12 @@ const AccountRightButton = ({
           renderAvatarAccount()
         )
       ) : (
-        <AvatarNetwork name={networkName} imageSource={networkImageSource} />
+        <Avatar
+          variant={AvatarVariants.Network}
+          size={AvatarSize.Md}
+          name={networkName}
+          imageSource={networkImageSource}
+        />
       )}
     </TouchableOpacity>
   );

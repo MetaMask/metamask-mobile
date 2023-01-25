@@ -4,7 +4,7 @@ import {
   PaymentCustomActionButton,
   TextOrImage,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useAssetFromTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import StyledButton from '../../StyledButton';
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
@@ -49,8 +49,9 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
 const CustomActionButton: React.FC<
   Props & React.ComponentProps<StyledButton>
 > = ({ customActionButton, isLoading, ...props }: Props) => {
-  const themeKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
-  const { backgroundColor, textColor, value } = customActionButton[themeKey];
+  const { themeAppearance } = useTheme();
+  const { backgroundColor, textColor, value } =
+    customActionButton[themeAppearance];
   return (
     <StyledButton
       type="confirm"

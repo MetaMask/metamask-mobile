@@ -50,10 +50,11 @@ const AccountPermissionsConnected = ({
     () => getNetworkNameFromProvider(networkController.provider),
     [networkController.provider],
   );
-  const networkImageSource = useMemo(
-    () => getNetworkImageSource(networkController.provider.chainId),
-    [networkController.provider.chainId],
-  );
+  const networkImageSource = useMemo(() => {
+    const { type, chainId } = networkController.provider;
+    return getNetworkImageSource({ networkType: type, chainId });
+  }, [networkController.provider]);
+
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 

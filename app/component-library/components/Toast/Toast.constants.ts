@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { AvatarAccountType } from '../Avatars/AvatarAccount';
+import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 
 export const TEST_ACCOUNT_ADDRESS =
   '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092';

@@ -227,9 +227,14 @@ const Main = (props) => {
   useEffect(() => {
     if (
       prevNetworkProvider.current &&
-      networkProvider.chainId !== prevNetworkProvider.current.chainId
+      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
+        networkProvider.type !== prevNetworkProvider.current.type)
     ) {
-      const networkImage = getNetworkImageSource(networkProvider.chainId);
+      const { type, chainId } = networkProvider;
+      const networkImage = getNetworkImageSource({
+        networkType: type,
+        chainId,
+      });
       const networkName = getNetworkNameFromProvider(networkProvider);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,

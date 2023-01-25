@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { scale } from 'react-native-size-matters';
 import {
   TouchableOpacity,
   View,
@@ -39,7 +40,7 @@ const createStyles = (colors) =>
       marginTop: Device.isIos() ? 4 : 5,
     },
     title: {
-      fontSize: 18,
+      fontSize: scale(14),
       ...fontStyles.normal,
       color: colors.text.default,
     },
@@ -122,7 +123,7 @@ class NavbarTitle extends PureComponent {
         onPress={this.openNetworkList}
         style={styles.wrapper}
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
-        testID={'open-networks-button'}
+        testID={'navbar-title-text'}
       >
         {title ? (
           <Text numberOfLines={1} style={styles.title}>

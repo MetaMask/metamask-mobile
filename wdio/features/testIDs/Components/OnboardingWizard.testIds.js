@@ -6,7 +6,7 @@ export const ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID = 'onboarding-wizard-back-but
 export const ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID = 'onboarding-wizard-next-button';
 
 export const ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON =
-  'onboarding-wizard-back-button';
+  'onboarding-wizard-skip-button';
 
 export const ONBOARDING_WIZARD_YOUR_ACCOUNTS_DESC_1 = 'This is your first account, total value, and its unique public address (0x...).';
 
@@ -20,7 +20,7 @@ export const ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_1 = 'Why not give your ac
 
 export const ONBOARDING_WIZARD_EDIT_ACCOUNTS_NAME_DESC_2 = 'Long tap now to edit account name.';
 
-export const ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1 = 'Tap here to access your Wallet, Browser, and Transaction activity.';
+export const ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_1 = 'You can access Transaction history, Settings, and Support from this menu.';
 
 export const ONBOARDING_WIZARD_MAIN_NAVIGATION_DESC_2 = 'You can take more actions with your accounts & access MetaMask settings.';
 

@@ -161,7 +161,7 @@ const AccountSelectorList = ({
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type !== KeyringTypes.hd,
+              imported: type === KeyringTypes.simple,
               isSelected: isSelectedAccount,
               index,
             });

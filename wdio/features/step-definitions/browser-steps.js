@@ -62,7 +62,7 @@ When(
 );
 
 Then(/^select account component is displayed$/, async () => {
-  await AccountListComponent.isVisible();
+  await AccountListComponent.isComponentDisplayed();
 });
 
 When(/^I navigate to "([^"]*)"$/, async (text) => {
@@ -372,9 +372,6 @@ Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
 Given(/^I navigate to the browser$/, async () => {
   await TabBarModal.tapBrowserButton();
   await BrowserScreen.isScreenContentDisplayed();
-  await driver.getContext();
-  await driver.switchContext('WEBVIEW_io.metamask.qa');
-  await driver.getContext();
 });
 
 When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {

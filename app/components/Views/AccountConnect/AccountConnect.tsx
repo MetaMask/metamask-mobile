@@ -221,27 +221,19 @@ const AccountConnect = (props: AccountConnectProps) => {
           break;
         }
         case USER_INTENT.Import: {
-          hideSheet(() => {
-            cancelPermissionRequest(permissionRequestId);
-            navigation.navigate('ImportPrivateKeyView');
-            // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-              {},
-            );
-          });
+          navigation.navigate('ImportPrivateKeyView');
+          // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            {},
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
-          hideSheet(() => {
-            cancelPermissionRequest(permissionRequestId);
-            navigation.navigate('ConnectQRHardwareFlow');
-            // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-              {},
-            );
-          });
+          navigation.navigate('ConnectQRHardwareFlow');
+          // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
+          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+
           break;
         }
       }

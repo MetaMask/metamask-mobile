@@ -1,7 +1,15 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, InteractionManager } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  InteractionManager,
+  Platform,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -18,10 +26,14 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
+import ElevatedView from 'react-native-elevated-view';
+import { useTheme } from '../../../util/theme';
+import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import Device from '../../../util/device';
 
-const createStyles = () =>
+const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
     root: {
       top: 0,
@@ -37,6 +49,31 @@ const createStyles = () =>
       flex: 1,
       backgroundColor: importedColors.transparent,
     },
+    smallSkipWrapper: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      bottom: Device.isIos() ? 25 : 30,
+    },
+    largeSkipWrapper: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      bottom: Device.isIos() && Device.isIphoneX() ? 93 : 61,
+    },
+    skipButtonContainer: {
+      height: 30,
+      width: 120,
+      borderRadius: 15,
+      backgroundColor: colors.background.default,
+    },
+    skipButton: {
+      backgroundColor: colors.background.default,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    skipText: {
+      ...typography.sBodyMD,
+      color: colors.primary.default,
+    },
   });
 
 const OnboardingWizard = (props) => {
@@ -48,7 +85,8 @@ const OnboardingWizard = (props) => {
     isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
-  const styles = createStyles();
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
@@ -120,6 +158,30 @@ const OnboardingWizard = (props) => {
       style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
+      {step !== 1 && (
+        <ElevatedView
+          elevation={10}
+          style={[
+            Device.isSmallDevice()
+              ? styles.smallSkipWrapper
+              : styles.largeSkipWrapper,
+            styles.skipButtonContainer,
+          ]}
+        >
+          <TouchableOpacity
+            style={[styles.skipButtonContainer, styles.skipButton]}
+            onPress={closeOnboardingWizard}
+            {...generateTestId(
+              Platform,
+              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
+            )}
+          >
+            <Text style={styles.skipText}>
+              {strings('onboarding_wizard.skip_tutorial')}
+            </Text>
+          </TouchableOpacity>
+        </ElevatedView>
+      )}
     </Modal>
   );
 };
