@@ -156,6 +156,9 @@ class AuthenticationService {
     password: string,
     authType: AUTHENTICATION_TYPE,
   ): Promise<void> => {
+    console.trace('vault/ Authentication.storePassword', password, {
+      authType,
+    });
     try {
       switch (authType) {
         case AUTHENTICATION_TYPE.BIOMETRIC:
@@ -188,6 +191,7 @@ class AuthenticationService {
   };
 
   resetPassword = async () => {
+    console.trace('vault/ Authentication.resetPassword');
     try {
       await SecureKeychain.resetGenericPassword();
     } catch (error) {
@@ -202,7 +206,10 @@ class AuthenticationService {
   /**
    * Fetches the password from the keychain using the auth method it was origonally stored
    */
-  getPassword = async () => await SecureKeychain.getGenericPassword();
+  getPassword = async () => {
+    console.trace('vault/ Authentication.getPassword');
+    await SecureKeychain.getGenericPassword();
+  };
 
   /**
    * Checks the authetincation type configured in the previous login
@@ -215,6 +222,10 @@ class AuthenticationService {
     );
     const passcodePreviouslyDisabled = await AsyncStorage.getItem(
       PASSCODE_DISABLED,
+    );
+
+    console.log(
+      `vault/ Authentication.checkAuthenticationMethod biometryType: ${biometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}`,
     );
 
     if (
@@ -387,8 +398,14 @@ class AuthenticationService {
     this.dispatchLogout();
   };
 
-  getType = async (): Promise<AuthData> =>
-    await this.checkAuthenticationMethod();
+  getType = async (): Promise<AuthData> => {
+    console.log('vault/ calling Authentication.getType');
+    const result = await this.checkAuthenticationMethod();
+    console.log('vault/ Authentication.getType is:', { result });
+    return result;
+  };
+
+  getAuthData = (): AuthData => this.authData;
 }
 // eslint-disable-next-line import/prefer-default-export
 export const Authentication = new AuthenticationService();
