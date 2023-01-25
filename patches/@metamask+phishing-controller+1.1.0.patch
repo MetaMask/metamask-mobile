@@ -1,20 +1,17 @@
 diff --git a/node_modules/@metamask/phishing-controller/dist/PhishingController.js b/node_modules/@metamask/phishing-controller/dist/PhishingController.js
-index be85782..3756186 100644
+index be85782..456935a 100644
 --- a/node_modules/@metamask/phishing-controller/dist/PhishingController.js
 +++ b/node_modules/@metamask/phishing-controller/dist/PhishingController.js
-@@ -202,10 +202,14 @@ _PhishingController_inProgressUpdate = new WeakMap(), _PhishingController_instan
+@@ -202,10 +202,11 @@ _PhishingController_inProgressUpdate = new WeakMap(), _PhishingController_instan
          if (metamaskConfigLegacy) {
              configs.push(metamaskConfig);
          }
-+
-+        // Create a Set for more efficient checking when filtering phishfortHotlist.
-+        const blocklistSet = new Set(metamaskConfig.blocklist);
 +
          // Correctly shaping PhishFort config.
          const phishfortConfig = {
              allowlist: [],
 -            blocklist: (phishfortHotlist || []).filter((i) => !metamaskConfig.blocklist.includes(i)),
-+            blocklist: (phishfortHotlist || []).filter(i => !blocklistSet.has(i)),
++            blocklist: phishfortHotlist,
              fuzzylist: [],
              tolerance: 0,
              name: `PhishFort`,
