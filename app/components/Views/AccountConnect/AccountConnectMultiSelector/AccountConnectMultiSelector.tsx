@@ -37,16 +37,6 @@ const AccountConnectMultiSelector = ({
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const onRemoveAccount = useCallback(
-    ({ removedAddress }: { removedAddress: string }) => {
-      const newSelectedAccountAddresses = [...selectedAddresses];
-      const selectedAddressIndex = selectedAddresses.indexOf(removedAddress);
-      newSelectedAccountAddresses.splice(selectedAddressIndex, 1);
-      onSelectAddress(newSelectedAccountAddresses);
-    },
-    [selectedAddresses, onSelectAddress],
-  );
-
   const onSelectAccount = useCallback(
     (accAddress) => {
       const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
@@ -188,7 +178,6 @@ const AccountConnectMultiSelector = ({
         selectedAddresses={selectedAddresses}
         isMultiSelect
         isRemoveAccountEnabled
-        onRemoveAccount={onRemoveAccount}
         isAutoScrollEnabled={isAutoScrollEnabled}
       />
       {renderSheetActions()}

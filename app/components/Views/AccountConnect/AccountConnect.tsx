@@ -65,6 +65,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+  const previousIdentitiesListSize = useRef<number>();
+  const identitiesMap = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
@@ -92,6 +97,19 @@ const AccountConnect = (props: AccountConnectProps) => {
     const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
     return { uri: iconUrl };
   }, [hostname]);
+
+  // Refreshes selected addresses based on the addition and removal of accounts.
+  useEffect(() => {
+    const identitiesAddressList = Object.keys(identitiesMap);
+    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
+      // Clean up selected addresses that are no longer part of identities.
+      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
+        identitiesAddressList.includes(address),
+      );
+      setSelectedAddresses(updatedSelectedAddresses);
+      previousIdentitiesListSize.current = identitiesAddressList.length;
+    }
+  }, [identitiesMap, selectedAddresses]);
 
   const cancelPermissionRequest = useCallback(
     (requestId) => {

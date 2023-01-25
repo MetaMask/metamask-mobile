@@ -23,9 +23,9 @@ export interface AccountSelectorListProps
    */
   onSelectAccount?: (address: string, isSelected: boolean) => void;
   /**
-   * Optional callback to trigger when account is removed.
+   * Optional callback to trigger when imported account is removed.
    */
-  onRemoveAccount?: (params: {
+  onRemoveImportedAccount?: (params: {
     removedAddress: string;
     nextActiveAddress: string;
   }) => void;

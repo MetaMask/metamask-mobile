@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
-import { removeAccountFromPermissions } from '../../../core/Permissions';
+import { removeAccountsFromPermissions } from '../../../core/Permissions';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
@@ -27,7 +27,7 @@ import styleSheet from './AccountSelectorList.styles';
 
 const AccountSelectorList = ({
   onSelectAccount,
-  onRemoveAccount,
+  onRemoveImportedAccount,
   accounts,
   ensByAccountAddress,
   isLoading = false,
@@ -114,15 +114,15 @@ const AccountSelectorList = ({
                 nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
               // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
-              // If needed, place PreferencesController.setSelectedAddress in onRemoveAccount callback.
-              onRemoveAccount?.({
+              // If needed, place PreferencesController.setSelectedAddress in onRemoveImportedAccount callback.
+              onRemoveImportedAccount?.({
                 removedAddress: address,
                 nextActiveAddress,
               });
               await Engine.context.KeyringController.removeAccount(address);
               // Revocation of accounts from PermissionController is needed whenever accounts are removed.
               // If there is an instance where this is not the case, this logic will need to be updated.
-              removeAccountFromPermissions(address);
+              removeAccountsFromPermissions([address]);
             },
           },
         ],
@@ -130,7 +130,12 @@ const AccountSelectorList = ({
       );
     },
     /* eslint-disable-next-line */
-    [accounts, onRemoveAccount, isRemoveAccountEnabled, selectedAddresses],
+    [
+      accounts,
+      onRemoveImportedAccount,
+      isRemoveAccountEnabled,
+      selectedAddresses,
+    ],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
