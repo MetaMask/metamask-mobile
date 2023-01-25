@@ -344,7 +344,7 @@ Then(
 
 When(/^I select "([^"]*)" network option$/, async (option) => {
   switch (option) {
-    case 'GOERLI TESTNET':
+    case 'Goerli':
       await NetworkListModal.tapGoerliTestNetwork();
       break;
     default:
