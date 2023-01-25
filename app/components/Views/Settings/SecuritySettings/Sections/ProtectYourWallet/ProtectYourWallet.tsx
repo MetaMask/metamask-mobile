@@ -1,7 +1,6 @@
 import React, { ReactElement } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Linking,
   InteractionManager,
@@ -12,6 +11,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import SettingsNotification from '../../../../../UI/SettingsNotification';
 import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -63,13 +63,13 @@ const ProtectYourWallet = ({
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
-      <Text style={[styles.title, styles.bump]}>
+      <Text style={{ ...styles.title, ...styles.bump }}>
         {!srpBackedup ? (
           <>
             <WarningIcon />{' '}
           </>
         ) : null}
-        <Text style={[styles.title, styles.bump]}>
+        <Text style={{ ...styles.title, ...styles.bump }}>
           {strings('app_settings.protect_title')}
         </Text>
       </Text>
@@ -93,21 +93,28 @@ const ProtectYourWallet = ({
       )}
 
       <SettingsNotification isWarning={!srpBackedup}>
-        <Text
-          style={[
-            styles.warningText,
-            srpBackedup ? styles.warningTextGreen : styles.warningTextRed,
-          ]}
-        >
-          {strings(
-            srpBackedup
-              ? 'app_settings.seedphrase_backed_up'
-              : 'app_settings.seedphrase_not_backed_up',
-          )}
-        </Text>
+        {srpBackedup ? (
+          <Text
+            style={{
+              ...styles.warningText,
+              ...styles.warningTextGreen,
+            }}
+          >
+            {strings('app_settings.seedphrase_backed_up')}
+          </Text>
+        ) : (
+          <Text
+            style={{
+              ...styles.warningText,
+              ...styles.warningTextRed,
+            }}
+          >
+            {strings('app_settings.seedphrase_not_backed_up')}
+          </Text>
+        )}
         {hintText && srpBackedup ? (
           <TouchableOpacity style={styles.viewHint} onPress={toggleHint}>
-            <Text style={[styles.warningText, styles.warningBold]}>
+            <Text style={{ ...styles.warningText, ...styles.warningBold }}>
               {strings('app_settings.view_hint')}
             </Text>
           </TouchableOpacity>
