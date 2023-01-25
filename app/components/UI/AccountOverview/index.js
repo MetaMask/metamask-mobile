@@ -50,6 +50,7 @@ import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  ACCOUNT_OVERVIEW_ID,
 } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
@@ -391,7 +392,7 @@ class AccountOverview extends PureComponent {
           keyboardShouldPersistTaps={'never'}
           style={styles.scrollView}
           contentContainerStyle={styles.wrapper}
-          testID={'account-overview'}
+          {...generateTestId(Platform, ACCOUNT_OVERVIEW_ID)}
         >
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity

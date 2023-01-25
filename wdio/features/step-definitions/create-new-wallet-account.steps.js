@@ -6,9 +6,6 @@ import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokens
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 
 
-import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
-
-
 When(/^I tap on the Identicon/, async () => { // should be in a commons-step file
   await driver.pause(setTimeout);
   await WalletMainScreen.tapIdenticon();
@@ -30,7 +27,7 @@ When(/^A new account is created/, async () => {
 
 Then(/^I am on the new account/, async () => {
   await driver.pause(2500);
-  WalletAccountModal.isAccountNameLabelEqualTo('Account 2'); // this can be better
+  WalletMainScreen.isAccountNameLabelEqualTo('Account 2'); // this can be better
 });
 Then(/^I dismiss the account list/, async () => {
   await driver.pause(2500);

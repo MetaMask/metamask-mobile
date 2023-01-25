@@ -8,7 +8,12 @@ import {
 } from '../testIDs/Components/OnboardingWizard.testIds';
 
 import { WALLET_VIEW_BURGER_ICON_ID,
-        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON, MAIN_WALLET_VIEW_VIA_TOKENS_ID }
+        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,
+        IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON, 
+        MAIN_WALLET_VIEW_VIA_TOKENS_ID,
+        ACCOUNT_OVERVIEW_ID,
+        WALLET_ACCOUNT_NAME_LABEL_INPUT,
+        WALLET_ACCOUNT_NAME_LABEL_TEXT, }
 from '../testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
@@ -55,6 +60,26 @@ class WalletMainScreen {
 
   get mainWalletView() {
     return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
+  }
+
+  get accountNameLabelText() {
+    return Selectors.getElementByPlatform(WALLET_ACCOUNT_NAME_LABEL_TEXT);
+  }
+
+  get accountNameLabelInput() {
+    return Selectors.getElementByPlatform(WALLET_ACCOUNT_NAME_LABEL_INPUT);
+  }
+
+  get walletAccountOverview() {
+    return Selectors.getXpathElementByResourceId(ACCOUNT_OVERVIEW_ID);
+  }
+
+  async longPressAccountNameLabel() {
+    await Gestures.longPress(this.accountNameLabelText, 1000);
+  }
+
+  async editAccountNameLabel(text) {
+    await Gestures.typeText(this.accountNameLabelInput, text);
   }
 
   async tapSettings() {
@@ -129,6 +154,27 @@ class WalletMainScreen {
   async isMainWalletViewVisible() {
     await expect(this.mainWalletView).toBeDisplayed();
   }
+
+  async isAccountNameLabelEditable() {
+    await expect(this.accountNameLabelInput).toBeDisplayed();
+  }
+
+  async isAccountNameLabelEqualTo(expected) {
+    const textFromElement = await this.accountNameLabelText;
+    const accountName = await textFromElement.getText();
+    await expect(accountName).toContain(expected);
+  }
+
+  async isAccountInputLabelEqualTo(expected) {
+    const textFromElement = await this.accountNameLabelInput;
+    const accountName = await textFromElement.getText();
+    await expect(accountName).toContain(expected);
+  }
+
+  async isAccountOverview() {
+    await expect(await this.walletAccountOverview).toBeDisplayed();
+  }
+
 }
 
 export default new WalletMainScreen();
