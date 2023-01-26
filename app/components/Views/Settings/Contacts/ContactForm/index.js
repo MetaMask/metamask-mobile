@@ -31,6 +31,12 @@ import {
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createQRScannerNavDetails } from '../../../QRScanner';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  CONTACT_NAME_INPUT,
+  CONTACT_ADD_BUTTON,
+  CONTACT_ADDRESS_INPUT,
+} from '../../../../../../wdio/features/testIDs/Screens/Contacts.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -134,9 +140,9 @@ class ContactForm extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Network provider type as mainnet
+     * Network chainId
      */
-    providerType: PropTypes.string,
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -217,7 +223,7 @@ class ContactForm extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (address) => {
-    const { network, addressBook, identities, providerType } = this.props;
+    const { network, addressBook, identities, chainId } = this.props;
 
     const {
       addressError,
@@ -230,7 +236,7 @@ class ContactForm extends PureComponent {
       network,
       addressBook,
       identities,
-      providerType,
+      chainId,
     });
 
     this.setState({
@@ -360,7 +366,7 @@ class ContactForm extends PureComponent {
               ]}
               value={name}
               onSubmitEditing={this.jumpToAddressInput}
-              testID={'contact-name-input'}
+              {...generateTestId(Platform, CONTACT_NAME_INPUT)}
               keyboardAppearance={themeAppearance}
             />
 
@@ -385,7 +391,7 @@ class ContactForm extends PureComponent {
                   value={toEnsName || address}
                   ref={this.addressInput}
                   onSubmitEditing={this.jumpToMemoInput}
-                  testID={'contact-address-input'}
+                  {...generateTestId(Platform, CONTACT_ADDRESS_INPUT)}
                   keyboardAppearance={themeAppearance}
                 />
                 {toEnsName && toEnsAddress && (
@@ -454,7 +460,7 @@ class ContactForm extends PureComponent {
                     type={'confirm'}
                     disabled={!addressReady || !name || !!addressError}
                     onPress={this.saveContact}
-                    testID={'contact-add-contact-button'}
+                    testID={CONTACT_ADD_BUTTON}
                   >
                     {strings(`address_book.${mode}_contact`)}
                   </StyledButton>
@@ -499,7 +505,7 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
   network: state.engine.backgroundState.NetworkController.network,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(ContactForm);

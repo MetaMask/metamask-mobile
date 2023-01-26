@@ -1,6 +1,6 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
@@ -9,6 +9,7 @@ import {
   isSafeChainId,
 } from '../../util/networks';
 import URL from 'url-parse';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
 
 const waitForInteraction = async () =>
@@ -125,12 +126,9 @@ const wallet_addEthereumChain = async ({
     }
 
     const analyticsParams = {
-      rpc_url: existingNetwork?.rpcUrl,
       chain_id: _chainId,
       source: 'Custom Network API',
       symbol: existingNetwork?.ticker,
-      block_explorer_url: existingNetwork?.blockExplorerUrl,
-      network_name: 'rpc',
       ...analytics,
     };
 
@@ -147,7 +145,7 @@ const wallet_addEthereumChain = async ({
       });
     } catch (e) {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED,
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParams,
       );
       throw ethErrors.provider.userRejectedRequest();
@@ -161,10 +159,7 @@ const wallet_addEthereumChain = async ({
       existingNetwork.nickname,
     );
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED,
-      analyticsParams,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;
@@ -263,17 +258,14 @@ const wallet_addEthereumChain = async ({
   requestData.alert = alert;
 
   const analyticsParamsAdd = {
-    rpc_url: firstValidRPCUrl,
     chain_id: chainIdDecimal,
     source: 'Custom Network API',
     symbol: ticker,
-    block_explorer_url: firstValidBlockExplorerUrl,
-    network_name: 'rpc',
     ...analytics,
   };
 
   AnalyticsV2.trackEvent(
-    AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED,
+    MetaMetricsEvents.NETWORK_REQUESTED,
     analyticsParamsAdd,
   );
 
@@ -284,7 +276,7 @@ const wallet_addEthereumChain = async ({
     });
   } catch (e) {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED,
+      MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
       analyticsParamsAdd,
     );
     throw ethErrors.provider.userRejectedRequest();
@@ -300,10 +292,7 @@ const wallet_addEthereumChain = async ({
     },
   );
 
-  AnalyticsV2.trackEvent(
-    AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
-    analyticsParamsAdd,
-  );
+  AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
   await waitForInteraction();
 

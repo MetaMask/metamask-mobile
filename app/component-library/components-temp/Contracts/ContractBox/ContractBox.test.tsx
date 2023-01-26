@@ -9,6 +9,7 @@ import {
   CONTRACT_LOCAL_IMAGE,
   CONTRACT_COPY_ADDRESS,
   CONTRACT_EXPORT_ADDRESS,
+  CONTRACT_ON_PRESS,
 } from './ContractBox.constants';
 
 describe('ContractBox', () => {
@@ -20,6 +21,7 @@ describe('ContractBox', () => {
         contractLocalImage={CONTRACT_LOCAL_IMAGE}
         onCopyAddress={CONTRACT_COPY_ADDRESS}
         onExportAddress={CONTRACT_EXPORT_ADDRESS}
+        onContractPress={CONTRACT_ON_PRESS}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(

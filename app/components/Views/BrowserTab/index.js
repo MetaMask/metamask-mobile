@@ -8,6 +8,7 @@ import {
   Linking,
   BackHandler,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
@@ -41,8 +42,8 @@ import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -61,6 +62,16 @@ import {
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  ADD_FAVORITES_OPTION,
+  MENU_ID,
+  NEW_TAB_OPTION,
+  OPEN_IN_BROWSER_OPTION,
+  RELOAD_OPTION,
+  SHARE_OPTION,
+  SWITCH_NETWORK_OPTION,
+} from '../../../../wdio/features/testIDs/BrowserScreen/OptionMenu.testIds';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -366,7 +377,7 @@ export const BrowserTab = (props) => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
+      Analytics.trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
     });
   }, [dismissTextSelectionIfNeeded, showOptions]);
 
@@ -406,6 +417,15 @@ export const BrowserTab = (props) => {
    */
   const isAllowedUrl = useCallback((hostname) => {
     const { PhishingController } = Engine.context;
+
+    // Update phishing configuration if it is out-of-date
+    const phishingListsAreOutOfDate = PhishingController.isOutOfDate();
+    if (phishingListsAreOutOfDate) {
+      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+      // down network requests. The configuration is updated for the next request.
+      PhishingController.updatePhishingLists();
+    }
+
     const phishingControllerTestResult = PhishingController.test(hostname);
 
     // Only assign the if the hostname is on the block list
@@ -777,7 +797,7 @@ export const BrowserTab = (props) => {
   );
 
   const trackEventSearchUsed = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
       option_chosen: 'Search on URL',
       number_of_tabs: undefined,
     });
@@ -860,7 +880,7 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_HOME);
   };
 
   /**
@@ -1023,7 +1043,7 @@ export const BrowserTab = (props) => {
    * Track new tab event
    */
   const trackNewTabEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
       option_chosen: 'Browser Options',
       number_of_tabs: undefined,
     });
@@ -1033,7 +1053,7 @@ export const BrowserTab = (props) => {
    * Track add site to favorites event
    */
   const trackAddToFavoritesEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_ADD_FAVORITES, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
       dapp_name: title.current || '',
       dapp_url: url.current || '',
     });
@@ -1043,26 +1063,23 @@ export const BrowserTab = (props) => {
    * Track share site event
    */
   const trackShareEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SHARE_SITE);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
   };
 
   /**
    * Track change network event
    */
   const trackSwitchNetworkEvent = ({ from }) => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK,
-      {
-        from_chain_id: from,
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
+      from_chain_id: from,
+    });
   };
 
   /**
    * Track reload site event
    */
   const trackReloadEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_RELOAD);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
   };
 
   /**
@@ -1099,7 +1116,7 @@ export const BrowserTab = (props) => {
       },
     });
     trackAddToFavoritesEvent();
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
   };
 
   /**
@@ -1126,7 +1143,7 @@ export const BrowserTab = (props) => {
         error,
       ),
     );
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
   };
 
   /**
@@ -1150,7 +1167,11 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="refresh" size={15} style={styles.optionIcon} />
           </View>
-          <Text style={styles.optionText} numberOfLines={2}>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, RELOAD_OPTION)}
+          >
             {strings('browser.reload')}
           </Text>
         </Button>
@@ -1159,7 +1180,11 @@ export const BrowserTab = (props) => {
             <View style={styles.optionIconWrapper}>
               <Icon name="star" size={16} style={styles.optionIcon} />
             </View>
-            <Text style={styles.optionText} numberOfLines={2}>
+            <Text
+              style={styles.optionText}
+              numberOfLines={2}
+              {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
+            >
               {strings('browser.add_to_favorites')}
             </Text>
           </Button>
@@ -1168,7 +1193,11 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
           </View>
-          <Text style={styles.optionText} numberOfLines={2}>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, SHARE_OPTION)}
+          >
             {strings('browser.share')}
           </Text>
         </Button>
@@ -1176,7 +1205,11 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="expand" size={16} style={styles.optionIcon} />
           </View>
-          <Text style={styles.optionText} numberOfLines={2}>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
+          >
             {strings('browser.open_in_browser')}
           </Text>
         </Button>
@@ -1217,6 +1250,7 @@ export const BrowserTab = (props) => {
                   ? styles.optionsWrapperAndroid
                   : styles.optionsWrapperIos,
               ]}
+              {...generateTestId(Platform, MENU_ID)}
             >
               <Button onPress={onNewTabPress} style={styles.option}>
                 <View style={styles.optionIconWrapper}>
@@ -1226,7 +1260,11 @@ export const BrowserTab = (props) => {
                     style={styles.optionIcon}
                   />
                 </View>
-                <Text style={styles.optionText} numberOfLines={1}>
+                <Text
+                  style={styles.optionText}
+                  numberOfLines={1}
+                  {...generateTestId(Platform, NEW_TAB_OPTION)}
+                >
                   {strings('browser.new_tab')}
                 </Text>
               </Button>
@@ -1239,7 +1277,11 @@ export const BrowserTab = (props) => {
                     style={styles.optionIcon}
                   />
                 </View>
-                <Text style={styles.optionText} numberOfLines={2}>
+                <Text
+                  style={styles.optionText}
+                  numberOfLines={2}
+                  {...generateTestId(Platform, SWITCH_NETWORK_OPTION)}
+                >
                   {strings('browser.switch_network')}
                 </Text>
               </Button>

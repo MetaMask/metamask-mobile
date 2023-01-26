@@ -1,4 +1,4 @@
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import { toLowerCaseEquals } from '../util/general';
@@ -300,6 +300,32 @@ export const migrations = {
     };
     return state;
   },
+  12: (state) => {
+    const {
+      allCollectibles,
+      allCollectibleContracts,
+      ignoredCollectibles,
+      ...unexpectedCollectiblesControllerState
+    } = state.engine.backgroundState.CollectiblesController;
+    state.engine.backgroundState.NftController = {
+      ...unexpectedCollectiblesControllerState,
+      allNfts: allCollectibles,
+      allNftContracts: allCollectibleContracts,
+      ignoredNfts: ignoredCollectibles,
+    };
+    delete state.engine.backgroundState.CollectiblesController;
+
+    state.engine.backgroundState.NftDetectionController =
+      state.engine.backgroundState.CollectibleDetectionController;
+    delete state.engine.backgroundState.CollectibleDetectionController;
+
+    state.engine.backgroundState.PreferencesController.useNftDetection =
+      state.engine.backgroundState.PreferencesController.useCollectibleDetection;
+    delete state.engine.backgroundState.PreferencesController
+      .useCollectibleDetection;
+
+    return state;
+  },
 };
 
-export const version = 11;
+export const version = 12;

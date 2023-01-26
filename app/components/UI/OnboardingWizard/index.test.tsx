@@ -9,6 +9,9 @@ const initialState = {
   wizard: {
     step: 1,
   },
+  security: {
+    isAutomaticSecurityChecksModalOpen: false,
+  },
 };
 const store = mockStore(initialState);
 

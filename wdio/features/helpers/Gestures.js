@@ -65,7 +65,7 @@ const Actions = {
   RELEASE: 'release',
 };
 
-class Gestures  {
+class Gestures {
   static async waitAndTap(element) {
     const elem = await element;
     await elem.waitForDisplayed();
@@ -90,26 +90,36 @@ class Gestures  {
         break;
       case 'MOVETO':
         (await elem).touchAction(Actions.MOVETO);
-          break;
-      default:
-        throw new Error('Tap type not found');
-  }
-}
-
-  static async tapTextByXpath(text, tapType = 'TAP') {
-    switch (tapType) {
-      case 'TAP':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.TAP);
-        break;
-      case 'LONGPRESS':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.LONGPRESS);
-        break;
-      case 'RELEASE':
-        (await Selectors.getXpathElementByText(text)).touchAction(Actions.RELEASE);
         break;
       default:
         throw new Error('Tap type not found');
     }
+  }
+
+  static async tapTextByXpath(text, tapType = 'TAP') {
+    const elem = (await Selectors.getXpathElementByText(text));
+    switch (tapType) {
+      case 'TAP':
+        await elem.touchAction(Actions.TAP);
+        break;
+      case 'LONGPRESS':
+        await elem.touchAction(Actions.LONGPRESS);
+        break;
+      case 'RELEASE':
+        await elem.touchAction(Actions.RELEASE);
+        break;
+      default:
+        throw new Error('Tap type not found');
+    }
+  }
+
+  static async longPress(element, waitTime) {
+    const elem = await element;
+    (await elem).touchAction([
+      Actions.PRESS,
+      { action: Actions.WAIT, ms: waitTime },
+      Actions.RELEASE
+    ])
   }
 
   static async typeText(element, text) {

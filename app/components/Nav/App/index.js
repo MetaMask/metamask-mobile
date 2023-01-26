@@ -58,6 +58,7 @@ import Toast, {
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -117,6 +118,7 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -258,7 +260,7 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    async function checkExsiting() {
+    async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -268,15 +270,15 @@ const App = ({ userLoggedIn }) => {
         triggerCheckedAuth();
       }
     }
-
-    checkExsiting();
-  });
+    checkExisting();
+    /* eslint-disable react-hooks/exhaustive-deps */
+  }, []);
 
   useEffect(() => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        const currentVersion = await getVersion();
+        const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)

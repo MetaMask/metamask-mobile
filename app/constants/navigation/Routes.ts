@@ -1,4 +1,5 @@
 const Routes = {
+  WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
@@ -13,6 +14,8 @@ const Routes = {
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
+    SETTINGS: 'OnRampSettings',
+    ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
   QR_SCANNER: 'QRScanner',
   MODAL: {
@@ -30,12 +33,19 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    MANUAL_BACKUP: {
+      STEP_3: 'ManualBackupStep3',
+    },
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
   },
+  ACCOUNT_BACKUP: {
+    STEP_1_B: 'AccountBackupStep1B',
+  },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
   },
 };
 

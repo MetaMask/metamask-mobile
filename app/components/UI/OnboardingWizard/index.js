@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
@@ -21,11 +22,18 @@ import DefaultPreference from 'react-native-default-preference';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import Device from '../../../util/device';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
+import { scale } from 'react-native-size-matters';
+import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -73,7 +81,7 @@ const createStyles = (colors) =>
     },
     skipText: {
       ...fontStyles.normal,
-      fontSize: 12,
+      fontSize: scale(10),
       color: colors.primary.default,
     },
   });
@@ -84,6 +92,7 @@ const OnboardingWizard = (props) => {
     navigation,
     wizard: { step },
     coachmarkRef,
+    isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
@@ -97,16 +106,11 @@ const OnboardingWizard = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(0);
     drawerRef?.current?.dismissDrawer?.();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_SKIPPED,
-        {
-          tutorial_step_count: step,
-          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
-        },
-      );
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_COMPLETED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
+        tutorial_step_count: step,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
+      });
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
     });
   };
 
@@ -154,6 +158,10 @@ const OnboardingWizard = (props) => {
     return setOnboardingWizardStep(step - 1);
   };
 
+  if (isAutomaticSecurityChecksModalOpen) {
+    return null;
+  }
+
   return (
     <Modal
       animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
@@ -164,7 +172,6 @@ const OnboardingWizard = (props) => {
       transparent
       onBackButtonPress={getBackButtonBehavior}
       style={styles.root}
-      coverScreen={false}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (
@@ -180,6 +187,10 @@ const OnboardingWizard = (props) => {
           <TouchableOpacity
             style={[styles.skipButtonContainer, styles.skipButton]}
             onPress={closeOnboardingWizard}
+            {...generateTestId(
+              Platform,
+              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
+            )}
           >
             <Text style={styles.skipText}>
               {strings('onboarding_wizard.skip_tutorial')}
@@ -197,6 +208,8 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   wizard: state.wizard,
+  isAutomaticSecurityChecksModalOpen:
+    state.security.isAutomaticSecurityChecksModalOpen,
 });
 
 OnboardingWizard.propTypes = {
@@ -216,6 +229,10 @@ OnboardingWizard.propTypes = {
    * Coachmark ref to get position
    */
   coachmarkRef: PropTypes.object,
+  /**
+   * Boolean that determines if the user has selected the automatic security check option
+   */
+  isAutomaticSecurityChecksModalOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);

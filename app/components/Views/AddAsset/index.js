@@ -11,9 +11,9 @@ import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
-import { isMainNet } from '../../../util/networks';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { MAINNET } from '../../../constants/network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -59,6 +59,10 @@ class AddAsset extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
+     * Network type
+     */
+    networkType: PropTypes.string,
+    /**
      * Chain id
      */
     chainId: PropTypes.string,
@@ -69,7 +73,7 @@ class AddAsset extends PureComponent {
     /**
      * Boolean to show if NFT detection is enabled
      */
-    useCollectibleDetection: PropTypes.bool,
+    useNftDetection: PropTypes.bool,
   };
 
   updateNavBar = () => {
@@ -123,20 +127,21 @@ class AddAsset extends PureComponent {
       },
       navigation,
       chainId,
-      useCollectibleDetection,
+      useNftDetection,
+      networkType,
     } = this.props;
     const { dismissNftInfo } = this.state;
     const isTokenDetectionSupported =
-      controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
+      isTokenDetectionSupportedForNetwork(chainId);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (
       <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-        {isMainNet(chainId) &&
+        {networkType === MAINNET &&
           assetType !== 'token' &&
           !dismissNftInfo &&
-          !useCollectibleDetection && (
+          !useNftDetection && (
             <View style={styles.infoWrapper}>
               <CollectibleDetectionModal
                 onDismiss={this.dismissNftInfo}
@@ -178,9 +183,10 @@ class AddAsset extends PureComponent {
 AddAsset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
+  networkType: state.engine.backgroundState.NetworkController.provider.type,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
 });
 
 export default connect(mapStateToProps)(AddAsset);

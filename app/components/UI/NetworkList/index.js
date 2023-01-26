@@ -9,6 +9,7 @@ import {
   Text,
   View,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +19,9 @@ import Networks, {
 } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
@@ -26,11 +29,13 @@ import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import getImage from '../../../util/getImage';
 import {
+  NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -199,8 +204,7 @@ export class NetworkList extends PureComponent {
         Engine.refreshTransactionHistory();
       }, 1000);
 
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
-      network_name: type,
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: String(Networks[type].chainId),
       source: 'Settings',
     });
@@ -214,13 +218,7 @@ export class NetworkList extends PureComponent {
     const { frequentRpcList } = this.props;
     const { NetworkController, CurrencyRateController } = Engine.context;
     const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
-    const {
-      rpcUrl,
-      chainId,
-      ticker,
-      nickname,
-      rpcPrefs: { blockExplorerUrl },
-    } = rpc;
+    const { rpcUrl, chainId, ticker, nickname } = rpc;
     const useRpcName = nickname || sanitizeUrl(rpcUrl);
     const useTicker = ticker || PRIVATENETWORK;
     this.handleNetworkSelected(useRpcName, useTicker, sanitizeUrl(rpcUrl));
@@ -236,13 +234,10 @@ export class NetworkList extends PureComponent {
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED, {
-      rpc_url: rpcUrl,
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
       source: 'Settings',
       symbol: ticker,
-      block_explorer_url: blockExplorerUrl,
-      network_name: 'rpc',
     });
   };
 
@@ -259,6 +254,7 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
+    testId,
   ) => {
     const styles = this.getStyles();
 
@@ -267,8 +263,14 @@ export class NetworkList extends PureComponent {
         style={styles.network}
         key={`network-${i}`}
         onPress={() => onPress(network)} // eslint-disable-line
+        {...generateTestId(Platform, testId)}
       >
-        <View style={styles.selected}>{selected}</View>
+        <View
+          {...generateTestId(Platform, `${testId}-selected`)}
+          style={styles.selected}
+        >
+          {selected}
+        </View>
         {isCustomRpc &&
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
@@ -294,7 +296,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
+      const { color, name, testId } = Networks[network];
       const isCustomRpc = false;
       const selected =
         provider.type === network ? (
@@ -308,6 +310,7 @@ export class NetworkList extends PureComponent {
         i,
         network,
         isCustomRpc,
+        testId,
       );
     });
   };
@@ -319,12 +322,16 @@ export class NetworkList extends PureComponent {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getImage(chainId);
       const isCustomRpc = true;
-      const selected =
-        provider.rpcTarget === rpcUrl && provider.type === RPC ? (
+      const rpcTargetHref =
+        provider.rpcTarget && new URL(provider.rpcTarget)?.href;
+      const rpcURL = new URL(rpcUrl);
+      const isSameRPC = rpcTargetHref === rpcURL.href;
+      const selectedIcon =
+        isSameRPC && provider.type === RPC ? (
           <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
-        selected,
+        selectedIcon,
         this.onSetRpcTarget,
         name,
         image,
@@ -339,7 +346,8 @@ export class NetworkList extends PureComponent {
     const { provider } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
-    const isMainnet =
+    // Do not check using chainId. This check needs to specifically use `mainnet`.
+    const checkIcon =
       provider.type === MAINNET ? (
         <Icon name="check" size={15} color={colors.icon.default} />
       ) : null;
@@ -355,7 +363,7 @@ export class NetworkList extends PureComponent {
         >
           <View style={styles.networkWrapper}>
             <View style={[styles.selected, styles.mainnetSelected]}>
-              {isMainnet}
+              {checkIcon}
             </View>
             <ImageIcon image="ETHEREUM" style={styles.networkIcon} />
             <View style={styles.networkInfo}>
@@ -398,6 +406,7 @@ export class NetworkList extends PureComponent {
             name={'ios-close'}
             size={30}
             style={styles.closeIcon}
+            {...generateTestId(Platform, NETWORK_LIST_CLOSE_ICON)}
           />
         </View>
         <ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>

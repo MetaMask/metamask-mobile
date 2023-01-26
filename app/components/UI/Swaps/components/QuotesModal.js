@@ -146,7 +146,7 @@ function QuotesModal({
   quoteValues,
   showOverallValue,
   ticker,
-  multiLayerL1FeeTotal,
+  multiLayerL1ApprovalFeeTotal,
 }) {
   const bestOverallValue =
     quoteValues?.[quotes[0].aggregator]?.overallValueOfQuote ?? 0;
@@ -225,10 +225,13 @@ function QuotesModal({
     }
   }, [displayDetails, selectedDetailsQuote]);
 
-  const selectedDetailsQuoteValuesEthFee = calculateEthFeeForMultiLayer({
-    multiLayerL1FeeTotal,
-    ethFee: selectedDetailsQuoteValues?.ethFee,
-  });
+  let selectedDetailsQuoteValuesEthFee = selectedDetailsQuoteValues?.ethFee;
+  if (multiLayerL1ApprovalFeeTotal) {
+    selectedDetailsQuoteValuesEthFee = calculateEthFeeForMultiLayer({
+      multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
+      ethFee: selectedDetailsQuoteValuesEthFee,
+    });
+  }
 
   return (
     <Modal
@@ -393,10 +396,13 @@ function QuotesModal({
                       const { aggregator } = quote;
                       const isSelected = aggregator === selectedQuote;
                       const quoteValue = quoteValues[aggregator];
-                      const quoteEthFee = calculateEthFeeForMultiLayer({
-                        multiLayerL1FeeTotal,
-                        ethFee: quoteValue?.ethFee,
-                      });
+                      let quoteEthFee = quoteValue?.ethFee;
+                      if (multiLayerL1ApprovalFeeTotal) {
+                        quoteEthFee = calculateEthFeeForMultiLayer({
+                          multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
+                          ethFee: quoteEthFee,
+                        });
+                      }
                       return (
                         <TouchableOpacity
                           key={aggregator}
@@ -515,7 +521,7 @@ QuotesModal.propTypes = {
   ticker: PropTypes.string,
   quoteValues: PropTypes.object,
   showOverallValue: PropTypes.bool,
-  multiLayerL1FeeTotal: PropTypes.string,
+  multiLayerL1ApprovalFeeTotal: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

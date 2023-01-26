@@ -147,7 +147,9 @@
     "wrong_password_error": "오류: 디크립트에 실패했습니다",
     "wrong_password_error_android": "오류: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "오류: 이전 볼트가 없으면 잠금을 해제할 수 없습니다.",
-    "clean_vault_error": "저장 공간 부족으로 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치하고 비밀 복구 구문으로 복원을 진행하세요."
+    "clean_vault_error": "저장 공간 부족으로 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치하고 비밀 복구 구문으로 복원을 진행하세요.",
+    "security_alert_title": "보안 알림",
+    "security_alert_desc": "계속하려면, 비밀번호를 켜거나 또는 귀하의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)"
   },
   "enter_password": {
     "title": "비밀번호를 입력하세요",
@@ -282,6 +284,23 @@
     "no_collectibles": "귀하의 NFT가 보이지 않나요?",
     "no_available_tokens": "토큰이 보이지 않나요?",
     "add_tokens": "토큰 불러오기",
+    "tokens_detected_in_account": "계정에서 {{tokenCount}}개의 신규 {{tokensLabel}} 발견됨",
+    "token_toast": {
+      "tokens_imported_title": "가져온 토큰",
+      "tokens_imported_desc": "{{tokenSymbols}} 가져오기 성공",
+      "token_imported_title": "가져온 토큰",
+      "token_imported_desc": "{{tokenSymbol}} 가져오기 성공",
+      "tokens_hidden_title": "토큰 숨기기",
+      "tokens_hidden_desc": "지갑에서 감지된 토큰 숨기기",
+      "token_hidden_title": "토큰 숨기기",
+      "token_hidden_desc": "{{tokenSymbol}} 토큰 숨기기"
+    },
+    "hide_token": {
+      "title": "토큰을 숨기시겠습니까?",
+      "desc": "이후에 '토큰 불러오기'에서 토큰을 검색하면 이 토큰을 다시 추가할 수 있습니다.",
+      "cancel_cta": "취소",
+      "confirm_cta": "확인"
+    },
     "no_tokens": "토큰이 없습니다!",
     "no_nfts_yet": "아직 NFT가 없습니다",
     "nfts_autodetection_title": "NFT 감지",
@@ -294,14 +313,14 @@
     "deposit_button": "예금",
     "copy_address": "복사",
     "collectible_action_title": "콜렉티블 옵션",
+    "remove_token_title": "이 토큰을 숨기시겠습니까?",
     "remove_collectible_title": "이 콜렉티블을 제거하시겠습니까?",
     "refresh_metadata": "메타 데이터 새로 고침",
     "token_removal_issue_title": "토큰 제거 과정에서 문제가 발생했습니다.",
     "token_removal_issue_desc": "토큰을 제거하는 동안 문제가 발생했습니다. 다시 시도하세요.",
-    "token_removed_title": "토큰이 제거되었습니다!",
-    "token_removed_desc": "생각이 바뀌면, \"토큰 불러오기\"를 눌러 다시 추가할 수 있습니다",
     "collectible_removed_title": "콜렉티블이 제거되었습니다!",
     "collectible_removed_desc": "생각이 바뀌면, \"NFT 불러오기\"를 눌러 다시 추가할 수 있습니다",
+    "remove": "숨기기",
     "cancel": "취소",
     "yes": "예",
     "private_key_detected": "개인 키가 감지되었습니다",
@@ -310,6 +329,19 @@
     "logout_to_import_seed": "비밀 복구 구문을 불러오려면 먼저 로그아웃해야 합니다.",
     "ready_to_explore": "블록 체인 애플리케이션 탐색을 시작할 준비가 되셨습니까?",
     "unable_to_load": "잔고를 가져올 수 없습니다"
+  },
+  "asset_details": {
+    "token": "토큰",
+    "amount": "토큰 수량",
+    "address": "토큰 계약 주소",
+    "decimal": "토큰 십진수",
+    "network": "네트워크",
+    "lists": "토큰 목록",
+    "hide_cta": "토큰 숨기기",
+    "options": {
+      "view_on_block": "블록 탐색기에서 보기",
+      "token_details": "토큰 상세 정보"
+    }
   },
   "activity_view": {
     "title": "활동"
@@ -330,11 +362,15 @@
       "cancel_add_collectible": "취소",
       "add_collectible": "불러오기"
     },
-    "warning_body_description": "기존 토큰의 가짜 버전을 만드는 것을 포함하여 누구나 토큰을 만들 수 있습니다",
-    "warning_link": "사기와 보안 위험에 대해 더 알아보기.",
-    "security_tips": "보안 팁",
-    "token_detection_feature": "신규! 향상된 토큰 감지 기능을 실험 기능으로 이더리움 메인넷에서 이용할 수 있습니다.",
-    "token_detection_link": "설정에서 활성화할 수 있습니다."
+    "banners": {
+      "search_desc": "개선된 토큰 감지 기능은 현재 {{network}} 네트워크에서 사용할 수 있습니다. ",
+      "search_link": "설정에서 이를 활성화할 수 있습니다.",
+      "custom_warning_desc": "기존 토큰의 가짜 버전 생성을 포함해 누구나 토큰을 생성할 수 있습니다. 다음에 대해 자세히 알아보세요:",
+      "custom_warning_link": "사기 및 보안 위험.",
+      "custom_info_desc": "이 네트워크에서는 아직 토큰 감지 기능을 사용할 수 없습니다. 토큰을 직접 가져오고 해당 토큰을 신뢰할 수 있는지 반드시 확인하세요. 다음에 대해 자세히 알아보세요: ",
+      "custom_info_link": "토큰 사기 및 보안 위험.",
+      "custom_security_tips": "보안 팁"
+    }
   },
   "terms_and_conditions": {
     "title": "이용 약관",
@@ -360,6 +396,7 @@
   "token": {
     "token_symbol": "토큰 기호",
     "token_address": "토큰 주소",
+    "token_decimal": "토큰 십진수",
     "search_tokens_placeholder": "토큰 검색",
     "address_cant_be_empty": "토큰 주소는 비워둘 수 없습니다.",
     "address_must_be_valid": "토큰 주소는 유효한 주소여야 합니다.",
@@ -438,6 +475,7 @@
     "search_engine": "검색 엔진",
     "new_RPC_URL": "신규 RPC 네트워크",
     "state_logs": "상태 로그",
+    "add_network_title": "네트워크 추가",
     "auto_lock": "자동 잠금",
     "auto_lock_desc": "앱이 자동으로 잠기기 전까지 걸리는 시간을 선택하세요.",
     "state_logs_desc": "이렇게 하면 MetaMask에서 발생할 수 있는 문제를 디버깅하는 데 도움이 됩니다. 햄버거 아이콘 > 피드백 보내기로 문의하시거나 또는 기존 문의 티켓이 있으면, 해당 티켓으로 회신하여 MetaMask 지원 서비스로 보내주시기 바랍니다.",
@@ -575,6 +613,11 @@
     "theme_os": "시스템",
     "theme_light": "밝게",
     "theme_dark": "어둡게",
+    "mainnet": "메인넷",
+    "test_network_name": "테스트 네트워크",
+    "custom_network_name": "사용자 정의 네트워크",
+    "popular": "인기",
+    "delete": "삭제",
     "network_exists": "이 네트워크는 이미 추가되었습니다.",
     "delete_metrics_title": "MetaMetrics 데이터 삭제",
     "delete_metrics_description_part_one": "지갑에 연결된 MetaMetrics 데이터 기록이 삭제됩니다.",
@@ -635,8 +678,8 @@
       "{{credentialName}} 사용자 이름으로 ",
       "계정과 자금에 완전히 액세스할 수 있습니다.\n\n이 정보를 아무에게도 알려주지 마세요.\n",
       "지갑과 자금에 완전히 액세스할 수 있습니다.\n\n이 정보를 아무에게도 알려주지 마세요.\n",
-      "MetaMask의 지원팀은 이러한 정보를 절대로 묻지 않습니다, ",
-      "오히려 피싱 사기꾼들이 요구할 수 있으니 주의가 필요합니다."
+      "MetaMask 지원팀은 이러한 정보를 절대로 묻지 않습니다, ",
+      "정보를 요구하는 경우 피싱 사기일 수 있습니다."
     ],
     "seed_phrase": "비밀 복구 구문",
     "private_key": "개인 키",
@@ -647,6 +690,8 @@
     "seed_phrase_copied_time": "(1분간 저장됨)",
     "private_key_copied": "개인 키가 클립보드에 임시 저장되었습니다",
     "private_key_copied_time": "(1분간 저장됨)",
+    "private_key_copied_ios": "개인 키를 임시로 클립보드에 복사했습니다\n",
+    "private_key_copied_android": "개인 키를 클립보드에 복사했습니다\n",
     "warning_incorrect_password": "잘못된 비밀번호",
     "unknown_error": "계정을 잠금 해제할 수 없습니다. 다시 시도해 주세요.",
     "hardware_error": "하드웨어 지갑 계정입니다. 개인 키를 내보낼 수 없습니다.",
@@ -657,7 +702,15 @@
     "keep_credential_safe": "{{credentialName}} 정보를 안전하게 보관하세요",
     "srp_abbreviation_text": "SRP",
     "srp_text": "비밀 복구 구문",
-    "private_key_text": "비공개 키"
+    "private_key_text": "비공개 키",
+    "got_it": "확인",
+    "learn_more": "자세히 알아보기"
+  },
+  "screenshot_deterrent": {
+    "title": "안전 경고",
+    "description": "스크린숏은 {{credentialName}}을(를) 안전하게 추적할 수 있는 방법이 아닙니다. 온라인으로는 백업되지 않는 다른 곳에 보관하셔야 계정을 안전하게 유지할 수 있습니다.",
+    "srp_text": "비밀 복구 구문",
+    "priv_key_text": "비공개 키"
   },
   "password_reset": {
     "password_title": "비밀번호",
@@ -678,7 +731,8 @@
     "were_unable": "잔고를",
     "balance": "불러올 수 없습니다. 지원 문서를 확인하고",
     "troubleshooting_missing": "사라진 잔고에 대한 문제 해결을",
-    "for_help": "요청하세요."
+    "for_help": "요청하세요.",
+    "troubleshoot": "문제 해결"
   },
   "account_details": {
     "title": "계정 상세 내역",
@@ -688,6 +742,28 @@
     "account_copied_to_clipboard": "공개 주소가 클립보드에 복사되었습니다",
     "share_public_key": "내 개인 키 공유:"
   },
+  "detected_tokens": {
+    "title": "{{tokenCount}}개의 신규 토큰 발견됨",
+    "title_plural": "{{tokenCount}}개의 신규 토큰 발견됨",
+    "import_cta": "({{tokenCount}}) 불러오기",
+    "hide_cta": "모두 숨기기",
+    "token_address": "토큰 주소: ",
+    "token_lists": "토큰 목록: {{listNames}}",
+    "token_more": "{{remainingListCount}}개 추가",
+    "confirm": {
+      "cancel_cta": "취소",
+      "confirm_cta": "확인",
+      "import": {
+        "title": "선택한 토큰을 불러올까요?",
+        "desc": "선택한 토큰만 지갑에 표시됩니다. 토큰 검색을 통해 언제든지 나중에 숨긴 토큰도 불러올 수 있습니다."
+      },
+      "hide": {
+        "title": "확실한가요?",
+        "desc": "토큰을 숨기면 지갑에 표시되지 않습니다. 하지만 이를 검색하여 추가할 수 있습니다."
+      }
+    },
+    "address_copied_to_clipboard": "토큰 주소가 클립보드에 복사됨"
+  },
   "qr_scanner": {
     "invalid_qr_code_title": "잘못된 QR 코드",
     "invalid_qr_code_message": "스캔하려 하는 QR 코드가 유효하지 않습니다.",
@@ -695,10 +771,17 @@
     "allow_camera_dialog_message": "QR 코드를 스캔하기 위해서는 권한이 필요합니다",
     "scanning": "스캔 중...",
     "ok": "확인",
+    "continue": "계속",
     "cancel": "취소",
     "error": "오류",
     "attempting_to_scan_with_wallet_locked": "QR 코드를 스캔하시는 것 같습니다. 먼저 지갑을 잠금 해제하세요.",
-    "attempting_sync_from_wallet_error": "확장 프로그램과의 동기화를 시도하시는 것 같습니다. 이를 위해서는 현재 지갑을 지워야 합니다. \n\n 신규 버전 앱을 지우거나 재설치하고 나면 \"MetaMask 확장 프로그램과 동기화\" 옵션을 선택하세요. 중요!: 지갑을 지우기 전에 비밀 복구 구문을 반드시 백업하세요."
+    "attempting_sync_from_wallet_error": "확장 프로그램과의 동기화를 시도하시는 것 같습니다. 이를 위해서는 현재 지갑을 지워야 합니다. \n\n 신규 버전 앱을 지우거나 재설치하고 나면 \"MetaMask 확장 프로그램과 동기화\" 옵션을 선택하세요. 중요!: 지갑을 지우기 전에 비밀 복구 구문을 반드시 백업하세요.",
+    "not_allowed_error_title": "카메라 접근 허용",
+    "not_allowed_error_desc": "계정 주소나 연락처 주소와 연동된 QR 코드를 스캔하려면 카메라 접근을 허용해야 합니다",
+    "unrecognized_address_qr_code_title": "읽을 수 없는 QR 코드",
+    "unrecognized_address_qr_code_desc": "죄송합니다. 이 QR 코드는 계정 주소나 연락처 주소와 연계되어 있지 않습니다.",
+    "url_redirection_alert_title": "이제 외부 링크로 이동합니다.",
+    "url_redirection_alert_desc": "링크는 피싱이나 사기에 도용될 수 있습니다. 신뢰할 수 있는 웹사이트만 방문하시기 바랍니다."
   },
   "action_view": {
     "cancel": "취소",
@@ -739,6 +822,8 @@
     "insufficient": "자금 부족",
     "insufficient_amount": "이 거래를 계속 진행하려면 {{amount}}만큼의 {{tokenSymbol}}토큰이 더 필요합니다.",
     "buy_more_eth": "ETH 추가 구매",
+    "buy_more": "추가 구매",
+    "go_to_faucet": "포시트로 이동하기",
     "get_ether": "{{networkName}} 네트워크를 위해 이더를 추가하세요.",
     "insufficient_tokens": "{{token}} 부족",
     "invalid_address": "잘못된 주소",
@@ -810,14 +895,15 @@
     "contains_zero_width": "에 너비가 0인 문자가 있습니다.",
     "dapp_suggested_gas": "이 가스요금은 %{origin}에 의해 제안된 것입니다. 이것은 기존의 가스 예측 시스템을 사용하며 부정확할 수 있습니다. 그러나 이 가스요금을 수정하면 거래에 문제가 생길 수 있습니다. 질문이 있으시면 %{origin}에 문의하세요.",
     "dapp_suggested_eip1559_gas": "이 가스요금은 %{origin}에 의해 제안된 것입니다. 이를 무시하면 거래에 문제가 생길 수 있습니다. 질문이 있으시면 %{origin}에 문의하세요.",
-    "address_invalid": "수신자 주소가 잘못되었습니다",
+    "address_invalid": "수신인 주소가 올바르지 않습니다.",
     "ens_not_found": "이 이름에 설정된 주소가 없습니다.",
     "unknown_qr_code": "잘못된 QR 코드입니다. 다시 시도하세요.",
     "invalid_qr_code_sync": "잘못된 QR 코드입니다. 하드웨어 지갑의 동기화 QR 코드를 스캔하세요.",
     "no_camera_permission": "카메라가 허용되지 않았습니다. 권한 허용 후 다시 시도하세요.",
     "invalid_qr_code_sign": "잘못된 QR 코드입니다. 하드웨어를 확인하고 다시 시도하세요.",
     "no_camera_permission_android": "진행하려면 MetaMask에서 카메라를 허용해야 합니다. 시스템 설정을 변경해야 할 수도 있습니다.",
-    "mismatched_qr_request_id": "일치하지 않는 거래 데이터입니다. 키스톤으로 하단의 QR 코드에 서명하고 '서명 받기'를 누르세요."
+    "mismatched_qr_request_id": "일치하지 않는 거래 데이터입니다. 키스톤으로 하단의 QR 코드에 서명하고 '서명 받기'를 누르세요.",
+    "hex_data_copied": "헥사 데이터를 클립보드에 복사했습니다"
   },
   "custom_gas": {
     "total": "총",
@@ -870,7 +956,8 @@
     "close": "종료",
     "all_set": "설정 완료!",
     "all_set_desc": "이 사이트에 대한 권한을 성공적으로 설정했습니다.",
-    "must_be_at_least": "최소 {{allowance}} 이상이어야 합니다"
+    "must_be_at_least": "최소 {{allowance}} 이상이어야 합니다",
+    "access_up_to": "최대 액세스:"
   },
   "browser": {
     "title": "브라우저",
@@ -1046,7 +1133,39 @@
     "other_networks": "다른 네트워크",
     "close": "종료",
     "status_ok": "모든 시스템이 작동합니다",
-    "status_not_ok": "네트워크에 문제가 있습니다"
+    "status_not_ok": "네트워크에 문제가 있습니다",
+    "want_to_add_network": "이 네트워크를 추가하시겠습니까?",
+    "network_infomation": "이렇게 하면 MetaMask 내에서 이 네트워크를 사용할 수 있습니다",
+    "network_endorsement": "MetaMask는 커스텀 네트워크나 해당 네트워크의 보안을 보증하지 않습니다.",
+    "learn_about": "다음에 대해 자세히 알아보기:",
+    "network_risk": "사기 및 네트워크 보안 위험",
+    "network_display_name": "이름 표시",
+    "network_chain_id": "체인 ID",
+    "network_rpc_url": "네트워크 URL",
+    "view_details": "세부 정보 보기",
+    "network_details": "네트워크 세부 정보",
+    "network_currency_symbol": "통화 기호",
+    "network_block_explorer_url": "블록 익스플로러 URL",
+    "search": "이전에 추가된 네트워크 검색",
+    "add": "추가",
+    "cancel": "취소",
+    "approve": "승인",
+    "malicious_network_warning": "악성 네트워크 공급업체는 블록체인 상태를 거짓으로 보고하고 네트워크 활동을 기록할 수 있습니다. 신뢰하는 커스텀 네트워크만 추가하세요.",
+    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "network_warning_title": "네트워크 정보",
+    "network_warning_desc": "이 네트워크 연결은 타사 서비스를 이용합니다. 연결의 신뢰성이 낮거나 타사가 활동을 추적할 수 있습니다.",
+    "learn_more": "더 보기",
+    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "switch_network": "네트워크 전환",
+    "new_network": "신규 네트워크 추가됨",
+    "network_name": "{{networkName}} 네트워크",
+    "network_added": "을(를) 네트워크 셀렉터에서 사용할 수 있습니다.",
+    "provider": "공급업체는 사용자의 지갑에 잔액을 보고하고 트랜잭션을 성실히 브로드캐스트할 것으로 신뢰됩니다.",
+    "no_match": "검색 결과가 없습니다.",
+    "empty_popular_networks": "모든 인기 네트워크를 추가했습니다. 더 많은 네트워크를 발견할 수 있습니다",
+    "add_other_network_here": "여기에서 확인하세요.",
+    "you_can": "또는 다음을 확인하세요:",
+    "add_network": "네트워크를 직접 추가할 수도 있습니다."
   },
   "select": {
     "cancel": "취소",
@@ -1474,7 +1593,7 @@
     "no_countries_result": "“{{searchString}}”와(과) 일치하는 지원 국가가 확인되지 않음",
     "wyre_loading_rates": " ",
     "fast_no_registration": "등록이 필요 없어 빠릅니다.",
-    "debit_credit_card_required": "직불카드 또는 신용카드. 애플 캐시는 지원되지 않습니다.",
+    "debit_credit_card_required": "직불카드 또는 신용카드를 입력하세요. Apple Cash는 지원되지 않습니다.",
     "select_card_country": "(귀하가 위치한 곳이 아닌) 카드가 등록된 국가를 선택하세요.",
     "search_country": "국가 검색",
     "wyre_countries": "55개국 이상에서 사용할 수 있습니다. 수수료 및 한도액은 국가에 따라 다릅니다.",
@@ -1598,9 +1717,11 @@
     "no_providers_available": "공급업체가 없습니다.",
     "try_different_amount_to_buy_input": "다른 결제 방법을 선택하시거나 원하는 구매량을 늘리거나 줄이세요!",
     "webview_received_error": "WebView 수신 오류 코드: {{code}}",
+    "no_tokens_available_title": "사용 가능한 토큰 없음",
     "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
-    "try_different_region": "Try a different region",
-    "return_home": "Return to Home Screen",
+    "change_payment_method": "결제 방법 변경",
+    "try_different_region": "다른 지역을 시도하세요",
+    "return_home": "홈 화면으로 돌아가기",
     "region": {
       "buy_crypto_tokens": "암호화폐 토큰 구매",
       "title": "지역을 선택하세요",
@@ -1617,33 +1738,35 @@
       "unsupported_link": "고객 지원 문서"
     },
     "order_details": {
-      "details_main": "Order Details",
-      "successful": "Order Successful!",
-      "your": "Your",
-      "available_in_account": "is now available in your account",
-      "crypto": "crypto",
-      "failed": "Order Failed",
-      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
-      "the_provider": "the provider",
-      "processing": "Processing Order",
-      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
-      "processing_bank_description": "Bank transfers typically take a few business days",
-      "details": "Order details",
-      "via": "via",
-      "purchase_amount": "Purchase Amount Total",
-      "etherscan": "View full details on",
-      "another_purchase": "Make another purchase",
-      "questions": "Questions?",
-      "contact": "Contact",
-      "support": "Support",
-      "id": "Order ID",
-      "date_and_time": "Date and Time",
-      "payment_method": "Payment Method",
-      "token_amount": "Token Amount",
-      "exchange_rate": "Exchange Rate",
-      "total_fees": "Total Fees",
-      "amount": "Amount",
-      "a_block_explorer": "a block explorer"
+      "details_main": "주문 세부 정보",
+      "successful": "주문 성공",
+      "your": "내",
+      "available_in_account": "(을)를 계정에서 확인할 수 있습니다",
+      "crypto": "암호화폐",
+      "failed": "주문 실패",
+      "cancelled": "주문 취소됨",
+      "failed_description": "오류가 발생해 {{provider}}(이)가 주문을 완료하지 못했습니다. 나중에 다시 시도하거나 다른 공급업체를 이용하세요.",
+      "the_provider": "공급업체",
+      "processing": "주문 처리 중",
+      "processing_card_description": "신용카드/직불카드 구매는 보통 몇 분가량 소요됩니다",
+      "processing_bank_description": "은행 송금은 보통 영업일 기준 며칠정도가 소요됩니다",
+      "details": "주문 세부 정보",
+      "via": "방법:",
+      "purchase_amount": "총 구매 금액",
+      "etherscan": "다음에서 전체 세부 정보 보기:",
+      "another_purchase": "추가 구매",
+      "questions": "질문이 있으신가요?",
+      "contact_support": "문의하기",
+      "support": "지원",
+      "view_order_status": "{{provider}}에서 주문 현황 보기",
+      "id": "주문 ID",
+      "date_and_time": "날짜 및 시간",
+      "payment_method": "결제 방법",
+      "token_amount": "토큰 수량",
+      "exchange_rate": "환율",
+      "total_fees": "총 수수료",
+      "amount": "금액",
+      "a_block_explorer": "블록 익스플로러"
     }
   },
   "swaps": {
@@ -1855,6 +1978,17 @@
     "copied_clipboard": "클립보드에 복사되었습니다",
     "ok": "확인"
   },
+  "whats_new": {
+    "title": "새롭게 바뀐 사항을 확인하세요",
+    "feature_token_detection_title": "토큰 감지 기능이 개선되었습니다",
+    "feature_token_detection_description": "개선된 토큰 감지 기능은 현재 Ethereum Mainnet, Polygon, BSC 및 Avalanche 네트워크에서 사용할 수 있습니다. 더 많은 네트워크가 지원될 예정입니다!\n\n토큰은 타사 토큰 목록에서 소싱하고 있습니다. 2개 이상의 목록에 등재된 토큰은 자동으로 감지됩니다.\n\n토큰 감지 기능은 기본으로 활성화되어 있습니다. 기능은 설정에서 비활성화할 수 있습니다.",
+    "feature_token_detection_button_text": "설정으로 이동하기",
+    "feature_token_security_title_1": "사기 및 보안 위험",
+    "feature_token_security_description_1": "토큰은 누구나 만들 수 있기에 이름이 중복될 수도 있습니다. 신뢰할 수 없거나 이용한 적이 없는 토큰이 표시될 경우 주의해 주세요.",
+    "feature_token_security_title_2": "길게 눌러 토큰 숨기기",
+    "feature_token_security_description_2": "MetaMask 모바일 앱에서는 언제든지 토큰을 길게 누르고 '숨기기(Hide)'를 선택하여 토큰을 숨길 수 있습니다.",
+    "feature_token_security_button_text": "시작하기!"
+  },
   "invalid_network": {
     "title": "맞춤 네트워크용 체인 ID \n %{network}\n네트워크를 다시 입력해야 합니다.",
     "message": "악의적이고 오류가 있는 네트워크 제공자로부터 자신을 보호하려면 체인 ID가 모든 맞춤 네트워크에 꼭 필요합니다.",
@@ -1905,10 +2039,10 @@
     "learn_more": {
       "title": "어떻게 선택해야 하나요?",
       "intro": "올바른 가스요금 선택은 거래 유형과 거래의 중요성에 달려 있습니다.",
-      "high_label": "높음",
-      "high_text": "이는 (스와프 같이) 시간에 민감한 거래에 가장 좋습니다. 성공적인 거래의 가능성을 증가시키기 때문입니다. 스와프를 처리하는 데 시간이 너무 오래 걸리면 거래에 실패하고 가스요금의 일부를 잃을 수 있습니다.",
-      "medium_label": "중간",
-      "medium_text": "중간 가스요금은 송금, 인출 또는 기타 시간에 민감하지 않은 거래에 적합합니다. 이 설정은 대부분 성공적인 거래로 이어집니다.",
+      "aggressive_label": "Aggresive",
+      "aggressive_text": "변동성이 높은 시장에서도 체결 가능성이 높습니다. 인기 NFT 드랍 둥으로 인한 네트워크 트래픽 급증을 커버하려면 Aggressive를 사용하세요.",
+      "market_label": "Market",
+      "market_text": "현재 시장 가격으로 빠르게 처리하려면 Market을 사용하세요.",
       "low_label": "낮음",
       "low_text": "낮은 가스요금은 중요하지 않은 거래나 네트워크 트래픽이 매우 낮은 경우에만 사용해야 합니다. 수수료가 낮으면 거래가 성공할 때(또는 성공할 것인지)를 예측하기 어려울 수 있습니다.",
       "link": "가스 맞춤에 대해 더 자세히 알아보세요."
@@ -1931,6 +2065,9 @@
     "low": "낮음",
     "medium": "중간",
     "high": "높음",
+    "market": "Market",
+    "aggressive": "Aggresive",
+    "low_fee_warning": "처리 시간을 기록하세요. 추후 트랜잭션은 이 트랜잭션 뒤 대기열에 추가됩니다.",
     "edit_priority": "우선 순위 수정",
     "speed_up_transaction": "거래 속도 향상",
     "cancel_transaction": "거래 취소",
@@ -2013,8 +2150,12 @@
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "자동 토큰 감지 활성화",
     "token_detection_mainnet_title": "토큰 감지가 활성화되어 여러 토큰이 자동으로 지갑에 나타납니다.",
-    "token_detection_mainnet_link": "또한 수동으로 토큰을 추가할 수도 있습니다.",
+    "token_detection_mainnet_link": "수동으로 토큰을 추가할 수도 있습니다.",
     "or": "또는"
+  },
+  "download_files": {
+    "error": "첨부파일 다운로드에 실패했습니다.",
+    "unknownError": "알 수 없는 오류가 발생했습니다"
   },
   "remember_me": {
     "enable_remember_me": "로그인 정보 저장",
@@ -2025,6 +2166,13 @@
     "placeholder": "비밀번호",
     "description": "이 기능을 끄면 지금부터 비밀번호를 사용하여 MetaMask를 잠금 해제해야 합니다.",
     "action": "로그인 정보 저장 끄기"
+  },
+  "dapp_connect": {
+    "warning": "이 기능을 사용하려면 앱을 최신 버전으로 업데이트하세요"
+  },
+  "confirmation_modal": {
+    "cancel_cta": "취소",
+    "confirm_cta": "확인"
   },
   "automatic_security_checks": {
     "title": "자동 보안 점검",
@@ -2041,5 +2189,32 @@
     "description": "업데이트를 위한 자동 보안 점검의 경우 GitHub 서버에 IP 주소가 노출될 수 있습니다. 이때 노출되는 정보는 해당 IP 주소가 MetaMask를 사용한다는 사실뿐입니다. 다른 정보나 계정 주소는 노출되지 않습니다.",
     "primary_action": "자동 보안 확인 활성화",
     "secondary_action": "괜찮습니다"
+  },
+  "srp_security_quiz": {
+    "title": "보안 퀴즈",
+    "introduction": "비밀 복구 구문을 찾으려면 두 가지 질문에 올바르게 답해야 합니다",
+    "get_started": "시작하기",
+    "learn_more": "자세히 알아보기",
+    "try_again": "다시 시도",
+    "continue": "계속",
+    "of": "/",
+    "question_one": {
+      "question": "비밀 복구 구문을 분실하시면 MetaMask가...",
+      "right_answer": "도와드릴 수 없습니다",
+      "wrong_answer": "찾아드릴 수 있습니다",
+      "right_answer_title": "맞습니다! 아무도 본인의 비밀 복구 구문을 복구할 수 없습니다",
+      "right_answer_description": "따라서 이를 적거나, 금속 등에 새기거나, 여러 비밀 장소에 보관하여 절대로 잃어버리지 않도록 하세요. 한 번 잃어버리면 영원히 찾을 수 없습니다.",
+      "wrong_answer_title": "아닙니다! 아무도 본인의 비밀 복구 구문을 복구할 수 없습니다",
+      "wrong_answer_description": "비밀 복구 구문은 한 번 잃어버리면 영원히 찾을 수 없습니다. 누가 뭐라고 해도 아무도 이를 찾아드리지 못합니다."
+    },
+    "question_two": {
+      "question": "누군가, 심지어 고객 센터 직원이라고 해도 여러분의 비밀 복구 구문을 물어본다면...",
+      "right_answer": "이는 반드시 사기입니다",
+      "right_answer_title": "맞습니다! 비밀 복구 구문은 아무와도 공유하면 안 됩니다",
+      "right_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다. ",
+      "wrong_answer": "주어야 합니다",
+      "wrong_answer_title": "맞습니다! 비밀 복구 구문은 절대로 아무와도 공유하면 안 됩니다",
+      "wrong_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다. "
+    }
   }
 }

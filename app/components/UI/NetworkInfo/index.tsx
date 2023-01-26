@@ -4,17 +4,19 @@ import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { MAINNET, RPC } from '../../../constants/network';
+import { RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/features/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
+import { isMainnetByChainId } from '../../../util/networks';
+
 const createStyles = (colors: {
   background: { default: string };
   text: { default: string };
@@ -131,7 +133,8 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
-    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
+    isTokenDetectionSupportedForNetwork(chainId);
+  const isMainnet = isMainnetByChainId(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {
@@ -174,7 +177,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
                 >
                   {type === RPC
                     ? `${nickname}`
-                    : type === MAINNET
+                    : isMainnet
                     ? `${type}`
                     : `${strings('network_information.testnet_network', {
                         type,
