@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 
-export const createStyles = (colors: any) =>
+export default (colors: any) =>
   StyleSheet.create({
     messageText: {
       fontSize: 14,

@@ -16,7 +16,7 @@ import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
-import { createStyles } from './styles';
+import createStyles from './styles';
 
 /**
  * Component that supports personal_sign
