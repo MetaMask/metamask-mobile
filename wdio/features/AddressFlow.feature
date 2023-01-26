@@ -1,4 +1,4 @@
-@androidApp @ChainScenarios @wip
+@androidApp @ChainScenarios
 Feature: Adding addresses to contacts via address book modal and the contacts screen
 
   A user should see the correct warning when trying to send funds to a contract address
