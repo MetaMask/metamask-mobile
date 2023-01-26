@@ -42,14 +42,14 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   isDanger?: boolean;
   /**
-   * Optional param to control buttonWidth.
+   * Optional param to control widthType.
    */
-  buttonWidth?: ButtonWidthTypes | number;
+  width?: ButtonWidthTypes | number;
 }
 /**
  * Style sheet input parameters.
  */
 export type ButtonBaseStyleSheetVars = Pick<
   ButtonBaseProps,
-  'style' | 'size' | 'labelColor' | 'buttonWidth'
+  'style' | 'size' | 'labelColor' | 'width'
 >;

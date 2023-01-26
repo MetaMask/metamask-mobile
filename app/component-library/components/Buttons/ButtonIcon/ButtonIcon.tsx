@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Icon, { IconSize } from '../../Icon';
+import Icon from '../../Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -15,6 +15,7 @@ import {
   ButtonIconSizes,
 } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
+import { ICON_SIZE_BY_BUTTON_ICON_SIZE } from './ButtonIcon.constants';
 
 const ButtonIcon = ({
   iconName,
@@ -72,7 +73,11 @@ const ButtonIcon = ({
       activeOpacity={0.5}
       {...props}
     >
-      <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
+      <Icon
+        name={iconName}
+        size={ICON_SIZE_BY_BUTTON_ICON_SIZE[size]}
+        color={iconColor}
+      />
     </TouchableOpacity>
   );
 };

@@ -21,14 +21,14 @@ const ButtonBase = ({
   onPress,
   style,
   labelColor,
-  buttonWidth = ButtonWidthTypes.Auto,
+  width = ButtonWidthTypes.Auto,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     size,
     labelColor,
-    buttonWidth,
+    width,
   });
   return (
     <TouchableOpacity

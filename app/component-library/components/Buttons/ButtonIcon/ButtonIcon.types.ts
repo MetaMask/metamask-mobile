@@ -2,7 +2,7 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../Icon/Icon.types';
+import { IconProps, IconSize } from '../../Icon/Icon.types';
 
 /**
  * Size variants of ButtonIcon.
@@ -11,6 +11,13 @@ export enum ButtonIconSizes {
   Sm = '24',
   Lg = '32',
 }
+
+/**
+ * Mapping of IconSize by ButtonIconSize.
+ */
+export type IconSizeByButtonIconSize = {
+  [key in ButtonIconSizes]: IconSize;
+};
 
 /**
  * Variants of ButtonIcon.

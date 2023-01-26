@@ -11,9 +11,19 @@ import { IconName } from '../../Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
-import { ButtonIconVariants, ButtonIconProps } from './ButtonIcon.types';
+import {
+  ButtonIconVariants,
+  ButtonIconProps,
+  ButtonIconSizes,
+} from './ButtonIcon.types';
 
 export const getButtonIconStoryProps = (): ButtonIconProps => {
+  const sizeSelector = select(
+    'size',
+    ButtonIconSizes,
+    ButtonIconSizes.Lg,
+    storybookPropsGroupID,
+  );
   const iconNameSelector = select(
     'iconName',
     IconName,
@@ -32,6 +42,7 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
     iconName: iconNameSelector,
     disabled: disabledSelector,
     onPress: () => console.log("I'm clicked!"),
+    size: sizeSelector,
   };
 };
 

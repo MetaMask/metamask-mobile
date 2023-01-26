@@ -20,18 +20,18 @@ const styleSheet = (params: {
   vars: ButtonBaseStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, size, labelColor, buttonWidth } = vars;
+  const { style, size, labelColor, width } = vars;
   const isAutoSize: boolean = size === ButtonSize.Auto;
-  let finalWidth;
-  switch (buttonWidth) {
+  let widthObject;
+  switch (width) {
     case ButtonWidthTypes.Auto:
-      finalWidth = ButtonWidthTypes.Auto;
+      widthObject = { alignSelf: 'baseline' };
       break;
     case ButtonWidthTypes.Full:
-      finalWidth = '100%';
+      widthObject = { alignSelf: 'stretch' };
       break;
     default:
-      finalWidth = Number(buttonWidth);
+      widthObject = { width };
   }
 
   return StyleSheet.create({
@@ -40,10 +40,11 @@ const styleSheet = (params: {
         flexDirection: 'row',
         backgroundColor: theme.colors.background.alternative,
         height: isAutoSize ? size : Number(size),
-        width: finalWidth,
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: isAutoSize ? 0 : Number(size) / 2,
+        paddingHorizontal: isAutoSize ? 0 : 16,
+        ...widthObject,
       } as ViewStyle,
       style,
     ) as ViewStyle,
