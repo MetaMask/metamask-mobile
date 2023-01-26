@@ -10,7 +10,7 @@ export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID =
   '**/XCUIElementTypeOther[`label == "New Password"`][6]';
 export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID =
   '**/XCUIElementTypeOther[`label == "Confirm password"`][5]';
-  export const IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID =
+export const IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID =
   'import-from-seed-screen-seed-password-strength-id';
-  export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID =
+export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID =
   'import-from-seed-screen-seed-password-match-icon-id';

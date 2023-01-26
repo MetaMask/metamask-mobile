@@ -59,19 +59,21 @@ When(/^I select approve/, async () => {
   await NetworkApprovalModal.tapApproveButton();
 });
 
-When(/^the network approval modal has button "([^"]*)?" displayed/, async (buttons) => {
-
-  switch (buttons) {
-    case 'Switch Network':
-      await NetworkApprovalModal.isApproveNetworkButton();
-      break;
-    case 'Close':
-      await NetworkApprovalModal.isCloseNetworkButton();
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-});
+When(
+  /^the network approval modal has button "([^"]*)?" displayed/,
+  async (buttons) => {
+    switch (buttons) {
+      case 'Switch Network':
+        await NetworkApprovalModal.isApproveNetworkButton();
+        break;
+      case 'Close':
+        await NetworkApprovalModal.isCloseNetworkButton();
+        break;
+      default:
+        throw new Error('Condition not found');
+    }
+  },
+);
 
 When(/^I tap on Switch network/, async () => {
   await NetworkApprovalModal.tapSwitchToNetwork();
@@ -82,9 +84,12 @@ When(/^I am back to the wallet view/, async () => {
   await WalletMainScreen.isVisible();
 });
 
-When(/^I should see the added network name "([^"]*)?" in the top navigation bar/, async (network) => {
-  await WalletMainScreen.isNetworkNameCorrect(network);
-});
+When(
+  /^I should see the added network name "([^"]*)?" in the top navigation bar/,
+  async (network) => {
+    await WalletMainScreen.isNetworkNameCorrect(network);
+  },
+);
 
 Then(/^I tap on the burger menu/, async () => {
   const setTimeout = 1500;
@@ -108,17 +113,23 @@ Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await driver.pause(setTimeout);
 });
 
-Then(/^"([^"]*)?" should be visible below the Custom Networks section/, async (network) => {
-  await NetworksScreen.isNetworkVisible(network);
-});
+Then(
+  /^"([^"]*)?" should be visible below the Custom Networks section/,
+  async (network) => {
+    await NetworksScreen.isNetworkVisible(network);
+  },
+);
 
 Then(/^I tap on the Add Network button/, async () => {
   await NetworksScreen.tapAddNetworkButton();
 });
 
-Then(/^"([^"]*)?" is not visible in the Popular Networks section/, async (network) => {
-  await NetworksScreen.isNetworkNotVisible(network);
-});
+Then(
+  /^"([^"]*)?" is not visible in the Popular Networks section/,
+  async (network) => {
+    await NetworksScreen.isNetworkNotVisible(network);
+  },
+);
 
 Then(/^I tap on the "([^"]*)?" tab/, async (netWorkTab) => {
   switch (netWorkTab) {
@@ -179,7 +190,7 @@ Then(/^Add button is disabled/, async () => {
 });
 
 Then(/^I tap on the Add button/, async () => {
-  await driver.hideKeyboard();// hides keyboard so it can view elements below
+  await driver.hideKeyboard(); // hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
   const setTimeout = 1500;
@@ -198,20 +209,22 @@ When(/^I click "([^"]*)?" on remove network modal/, async (text) => {
   await NetworksScreen.tapRemoveNetworkButton(text);
 });
 
-Then(/^"([^"]*)?" should be removed from the list of RPC networks/, async (network) => {
-  await NetworksScreen.isNetworkRemoved(network);
-});
+Then(
+  /^"([^"]*)?" should be removed from the list of RPC networks/,
+  async (network) => {
+    await NetworksScreen.isNetworkRemoved(network);
+  },
+);
 
 Then(/^I tap on network "([^"]*)?" on networks screen/, async (network) => {
   await NetworksScreen.tapOnNetwork(network);
 });
 
 Then(/^I switch to "([^"]*)?" in the network list modal /, async (text) => {
-    const setTimeout = 1500;
-    await driver.pause(setTimeout);
-    await NetworkListModal.changeNetwork(text);
-  });
-
+  const setTimeout = 1500;
+  await driver.pause(setTimeout);
+  await NetworkListModal.changeNetwork(text);
+});
 
 Then(/^a "([^"]*)?" button should be visible/, async (buttons) => {
   switch (buttons) {

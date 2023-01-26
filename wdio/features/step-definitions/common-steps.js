@@ -11,7 +11,6 @@ import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletS
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 
-
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
@@ -28,7 +27,8 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.clickImportButton();
 });
 
-Given(/^I have created my wallet$/, async () => { // should be in a common step file
+Given(/^I have created my wallet$/, async () => {
+  // should be in a common step file
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
   await driver.pause(13000); //TODO: Needs a smarter set timeout
@@ -45,7 +45,6 @@ Given(/^I have created my wallet$/, async () => { // should be in a common step 
   await CreateNewWalletScreen.selectRemindMeLater();
   await CreateNewWalletScreen.isAccountCreated();
   await CreateNewWalletScreen.isNotVisible();
-
 });
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {

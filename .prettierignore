@@ -10,4 +10,3 @@ node_modules
 CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
 /storybook/storyLoader.js
-wdio
