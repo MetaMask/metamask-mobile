@@ -115,6 +115,7 @@ export default {
       //Don't need to add any parameter
     } else {
       // Setting a password without a type does not save it
+      console.log('vault/ setGenericPassword else', password, type);
       return await this.resetGenericPassword();
     }
 

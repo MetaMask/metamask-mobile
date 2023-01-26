@@ -185,6 +185,12 @@ class AuthenticationService {
             SecureKeychain.TYPES.REMEMBER_ME,
           );
           break;
+        case AUTHENTICATION_TYPE.PASSWORD:
+          await SecureKeychain.setGenericPassword(password, undefined);
+          break;
+        default:
+          await SecureKeychain.setGenericPassword(password, undefined);
+          break;
       }
     } catch (error) {
       throw new AuthenticationError(
@@ -222,6 +228,7 @@ class AuthenticationService {
    * @returns @AuthData
    */
   checkAuthenticationMethod = async (): Promise<AuthData> => {
+    console.log('vault/ calling Authentication.checkAuthenticationMethod');
     const biometryType: any = await SecureKeychain.getSupportedBiometryType();
     const biometryPreviouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -419,8 +426,6 @@ class AuthenticationService {
     console.log('vault/ Authentication.getType is:', { result });
     return result;
   };
-
-  getAuthData = (): AuthData => this.authData;
 }
 // eslint-disable-next-line import/prefer-default-export
 export const Authentication = new AuthenticationService();

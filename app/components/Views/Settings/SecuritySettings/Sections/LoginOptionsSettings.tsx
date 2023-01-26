@@ -30,8 +30,7 @@ const LoginOptionsSettings = ({
 
   useEffect(() => {
     const getOptions = async () => {
-      const authType = await Authentication.getAuthData();
-      // const authType = await Authentication.getType();
+      const authType = await Authentication.getType();
       console.log('vault/ LoginOptionsSettings authType', authType);
       const previouslyDisabled = await AsyncStorage.getItem(
         BIOMETRY_CHOICE_DISABLED,
