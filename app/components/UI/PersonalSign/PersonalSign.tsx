@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { View, Text, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -17,25 +16,7 @@ import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    messageText: {
-      fontSize: 14,
-      color: colors.text.default,
-      ...fontStyles.normal,
-      textAlign: 'center',
-    },
-    messageTextColor: {
-      color: colors.text.default,
-    },
-    textLeft: {
-      textAlign: 'left',
-    },
-    messageWrapper: {
-      marginBottom: 4,
-    },
-  });
+import { createStyles } from './styles';
 
 /**
  * Component that supports personal_sign
@@ -59,7 +40,16 @@ const PersonalSign = ({
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
-  const getAnalyticsParams = useCallback(() => {
+  interface AnalyticsParams {
+    account_type?: string;
+    dapp_host_name?: string;
+    dapp_url?: string;
+    chain_id?: string;
+    sign_type?: string;
+    [key: string]: string | undefined;
+  }
+
+  const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const { NetworkController }: any = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
