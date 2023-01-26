@@ -277,12 +277,22 @@ class DeeplinkManager {
         wcCleanUrl = url.replace('wc://wc?uri=', '');
         if (!WalletConnect.isValidUri(wcCleanUrl)) return;
 
-        WalletConnect.newSession(
-          wcCleanUrl,
-          params?.redirect,
-          params?.autosign,
-          origin,
-        );
+        const { KeyringController } = Engine.context;
+        const createSession = () => {
+          WalletConnect.newSession(
+            wcCleanUrl,
+            params?.redirect,
+            params?.autosign,
+            origin,
+          );
+        }
+
+        if (KeyringController.isUnlocked()) {
+          createSession();
+        } else {
+          KeyringController.once('unlock', createSession);
+        }
+
         break;
 
       case PROTOCOLS.ETHEREUM:
