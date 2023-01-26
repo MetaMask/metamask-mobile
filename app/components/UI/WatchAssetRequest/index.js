@@ -16,6 +16,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -94,7 +95,7 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
-  const { asset } = suggestedAssetMeta;
+  const { asset, interactingAddress } = suggestedAssetMeta;
   let [balance] = useTokenBalance(asset.address, selectedAddress);
   balance = renderFromTokenMinimalUnit(balance, asset.decimals);
   const { colors } = useTheme();
@@ -130,7 +131,11 @@ const WatchAssetRequest = ({
 
   const onConfirmPress = async () => {
     const { TokensController } = Engine.context;
-    await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
+    await TokensController.acceptWatchAsset(
+      suggestedAssetMeta.id,
+      // TODO - Ideally, this is already checksummed.
+      safeToChecksumAddress(interactingAddress),
+    );
     onConfirm && onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
