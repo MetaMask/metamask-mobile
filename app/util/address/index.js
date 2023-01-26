@@ -476,7 +476,7 @@ export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
     tokenId,
   );
   const { standard, name, symbol, decimals } = tokenData;
-  if (standard === (ERC721 || ERC1155)) {
+  if (standard === ERC721 || standard === ERC1155) {
     return {
       name,
       symbol,

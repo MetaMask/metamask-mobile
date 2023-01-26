@@ -79,7 +79,7 @@ const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 let intervalIdForEstimatedL1Fee;
 
 const {
-  ASSET: { ERC721, ERC1155 },
+  ASSET: { ERC721, ERC1155, ERC20 },
 } = TransactionTypes;
 
 /**
@@ -308,15 +308,19 @@ class ApproveTransactionReview extends PureComponent {
           chainId,
         );
         if (!isContract) {
-          const tokenDetails = await getTokenDetails(to, from, encodedValue);
-          if (tokenDetails?.standard === (ERC721 || ERC1155)) {
-            tokenName = tokenDetails.name;
-            tokenSymbol = tokenDetails.symbol;
-            tokenStandard = tokenDetails.standard;
+          const { standard, name, decimals, symbol } = await getTokenDetails(
+            to,
+            from,
+            encodedValue,
+          );
+          if (standard === ERC721 || standard === ERC1155) {
+            tokenName = name;
+            tokenSymbol = symbol;
+            tokenStandard = standard;
           } else {
-            tokenDecimals = tokenDetails.decimals;
-            tokenSymbol = tokenDetails.symbol;
-            tokenStandard = tokenDetails.standard;
+            tokenDecimals = decimals;
+            tokenSymbol = symbol;
+            tokenStandard = standard;
           }
         } else {
           tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
@@ -690,7 +694,10 @@ class ApproveTransactionReview extends PureComponent {
                 {strings('spend_limit_edition.token')}
               </Text>
             )}
-            {tokenType === (ERC721 || ERC1155) ? (
+            {tokenType === ERC20 && (
+              <Text variant={TextVariants.sHeadingMD}>{tokenSymbol}</Text>
+            )}
+            {(tokenType === ERC721 || tokenType === ERC1155) && (
               <ButtonLink onPress={showBlockExplorer}>
                 <Text
                   variant={TextVariants.sHeadingMD}
@@ -702,8 +709,6 @@ class ApproveTransactionReview extends PureComponent {
                   (#{token?.tokenId})
                 </Text>
               </ButtonLink>
-            ) : (
-              <Text variant={TextVariants.sHeadingMD}>{tokenSymbol}</Text>
             )}
           </Text>
 

@@ -858,7 +858,7 @@ SPEC CHECKSUMS:
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNReanimated: 87b8ebc519c424d07d70439c407ba660f3bf4001
+  RNReanimated: bf67dfc065f98100de183bfa1b677461ee6aa18f
   RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce
