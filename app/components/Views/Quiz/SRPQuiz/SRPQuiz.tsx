@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, Linking } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ReusableModal, { ReusableModalRef } from '../../../UI/ReusableModal';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
@@ -28,6 +28,13 @@ const SRPQuiz = () => {
   const dismissModal = (): void => {
     modalRef.current?.dismissModal();
   };
+
+  useEffect(() => {
+    AppState.addEventListener('change', dismissModal);
+    return () => {
+      AppState.removeEventListener('change', dismissModal);
+    };
+  }, []);
 
   const openSupportArticle = (): void => {
     Linking.openURL(SRP_GUIDE_URL);
