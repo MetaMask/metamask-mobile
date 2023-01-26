@@ -1,4 +1,4 @@
-@androidApp @ChainScenarios
+@androidApp @ChainScenarios @wip
 Feature: Adding addresses to contacts via address book modal and the contacts screen
 
   A user should see the correct warning when trying to send funds to a contract address
@@ -27,7 +27,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
   Scenario: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
     When On the Main Wallet view I tap "Send"
     When I enter address "<Address>" in the sender's input box
-    And I tap on button with text "Add this address to your address book"
+    And I tap button "Add this address to your address book" on Send Token view
     Then On the Address book modal Cancel button is enabled
     When I enter in a contact name "<ContactName>"
     Then the Save button becomes enabled

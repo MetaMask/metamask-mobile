@@ -1,5 +1,5 @@
 /* global driver */
-import { Given } from '@wdio/cucumber-framework';
+import { Given, Then } from '@wdio/cucumber-framework';
 import Accounts from '../../helpers/Accounts';
 import WelcomeScreen from '../../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../../screen-objects/Onboarding/OnboardingScreen';
@@ -7,6 +7,8 @@ import MetaMetricsScreen from '../../screen-objects/Onboarding/MetaMetricsScreen
 import ImportFromSeedScreen from '../../screen-objects/Onboarding/ImportFromSeedScreen';
 
 import CreateNewWalletScreen from '../../screen-objects/Onboarding/CreateNewWalletScreen.js';
+import WalletMainScreen from '../../screen-objects/WalletMainScreen';
+import CommonScreen from '../../screen-objects/CommonScreen';
 
 import SkipAccountSecurityModal from '../../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../../screen-objects/Modals/OnboardingWizardModal.js';
@@ -31,7 +33,7 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I have created my wallet$/, async () => { // should be in a common step file
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
-  await driver.pause(13000); //TODO: Needs a smarter set timeout
+  await driver.pause(22000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -67,4 +69,25 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
   const setTimeout = 1500;
   await driver.pause(setTimeout);
   await OnboardingWizardModal.tapNoThanksButton();
+});
+
+Then(/^I tap button "([^"]*)?" on (.*) (.*) view/, async (button, screen, type) => {
+  await CommonScreen.tapOnText(button);
+});
+
+Then(/^I tap button "([^"]*)?" to navigate to (.*) view/, async (button, screen) => {
+  await CommonScreen.tapOnText(button);
+});
+
+//Implement steps
+Then(/^(.*) "([^"]*)?" is displayed on (.*) (.*) view/, async (elementType, text, type, screen) => {
+  await CommonScreen.isTextDisplayed(text);
+});
+
+Then(/^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/, async (elementType, textElement, type, screen) => {
+  await CommonScreen.isTextElementNotDisplayed(textElement);
+});
+
+Then(/^I am on the main wallet view/, async () => {
+  await WalletMainScreen.isMainWalletViewVisible();
 });
