@@ -25,6 +25,8 @@ import { useTheme } from '../../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../../constants/qr';
 import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
+import { removeAccountsFromPermissions } from '../../../../core/Permissions';
+import { safeToChecksumAddress } from '../../../../util/address';
 
 interface IConnectQRHardwareProps {
   navigation: any;
@@ -250,12 +252,17 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   );
 
   const onUnlock = useCallback(async () => {
+    const { PreferencesController } = Engine.context as any;
     resetError();
     setBlockingModalVisible(true);
+    const importedAccountAddresses = [];
     try {
       for (const account of checkedAccounts) {
-        await KeyringController.unlockQRHardwareWalletAccount(account);
+        const accountAddress =
+          await KeyringController.unlockQRHardwareWalletAccount(account);
+        importedAccountAddresses.push(accountAddress);
       }
+      PreferencesController.setSelectedAddress(importedAccountAddresses[0]);
     } catch (err) {
       Logger.log('Error: Connecting QR hardware wallet', err);
     }
@@ -264,8 +271,18 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [KeyringController, checkedAccounts, navigation, resetError]);
 
   const onForget = useCallback(async () => {
+    const { PreferencesController } = Engine.context as any;
     resetError();
-    await KeyringController.forgetQRDevice();
+    // removedAccounts and remainingAccounts are not checksummed here.
+    const { removedAccounts, remainingAccounts } =
+      await KeyringController.forgetQRDevice();
+    PreferencesController.setSelectedAddress(
+      remainingAccounts[remainingAccounts.length - 1],
+    );
+    const checksummedRemovedAccounts = removedAccounts.map(
+      safeToChecksumAddress,
+    );
+    removeAccountsFromPermissions(checksummedRemovedAccounts);
     navigation.goBack();
   }, [KeyringController, navigation, resetError]);
 

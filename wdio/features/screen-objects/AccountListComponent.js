@@ -37,14 +37,6 @@ class AccountListComponent {
     await Gestures.waitAndTap(this.importAccountButton);
   }
 
-  async isVisible() {
-    await expect(this.accountListContainer).toBeDisplayed();
-  }
-
-  async isAccountTwoCheckedIconDisplayed() {
-    await expect(await this.accountTwoCheckedIcon).toBeDisplayed();
-  }
-
   async tapAccount(account) {
     const elements = await this.accountsListed;
     await elements.every(async (element) => {
@@ -54,6 +46,17 @@ class AccountListComponent {
       }
       return true;
     });
+  }
+
+  async isVisible() {
+    await expect(this.accountListContainer).toBeDisplayed();
+  }
+  async isNotVisible() {
+    await expect(this.accountListContainer).not.toBeDisplayed();
+  }
+
+  async isAccountTwoCheckedIconDisplayed() {
+    await expect(await this.accountTwoCheckedIcon).toBeDisplayed();
   }
 }
 

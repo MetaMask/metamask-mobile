@@ -22,11 +22,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import {
-  clearHosts,
-  setPrivacyMode,
-  setThirdPartyApiMode,
-} from '../../../../actions/privacy';
+import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import {
   fontStyles,
   colors as importedColors,
@@ -219,14 +215,6 @@ Heading.propTypes = {
 class Settings extends PureComponent {
   static propTypes = {
     /**
-     * Indicates whether privacy mode is enabled
-     */
-    privacyMode: PropTypes.bool,
-    /**
-     * Called to toggle privacy mode
-     */
-    setPrivacyMode: PropTypes.func,
-    /**
      * Called to toggle set party api mode
      */
     setThirdPartyApiMode: PropTypes.func,
@@ -242,14 +230,6 @@ class Settings extends PureComponent {
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
-    /**
-     * Map of hostnames with approved account access
-     */
-    approvedHosts: PropTypes.object,
-    /**
-     * Called to clear all hostnames with account access
-     */
-    clearHosts: PropTypes.func,
     /**
      * Array of visited websites
      */
@@ -519,17 +499,14 @@ class Settings extends PureComponent {
   };
 
   clearApprovals = () => {
-    this.props.clearHosts();
+    const { PermissionController } = Engine.context;
+    PermissionController?.clearState?.();
     this.toggleClearApprovalsModal();
   };
 
   clearBrowserHistory = () => {
     this.props.clearBrowserHistory();
     this.toggleClearBrowserHistoryModal();
-  };
-
-  togglePrivacy = (value) => {
-    this.props.setPrivacyMode(value);
   };
 
   toggleThirdPartyAPI = (value) => {
@@ -861,7 +838,6 @@ class Settings extends PureComponent {
   };
 
   renderClearPrivacySection = () => {
-    const { approvedHosts } = this.props;
     const { styles } = this.getStyles();
 
     return (
@@ -878,7 +854,6 @@ class Settings extends PureComponent {
         <StyledButton
           type="normal"
           onPress={this.toggleClearApprovalsModal}
-          disabled={Object.keys(approvedHosts).length === 0}
           containerStyle={styles.confirm}
         >
           {strings('app_settings.clear_privacy_title')}
@@ -907,33 +882,6 @@ class Settings extends PureComponent {
         >
           {strings('app_settings.clear_browser_history_desc')}
         </StyledButton>
-      </View>
-    );
-  };
-
-  renderPrivacyModeSection = () => {
-    const { privacyMode } = this.props;
-    const { styles, colors } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'privacy-mode-section'}>
-        <Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.privacy_mode_desc')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={privacyMode}
-            onValueChange={this.togglePrivacy}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
       </View>
     );
   };
@@ -1137,7 +1085,6 @@ class Settings extends PureComponent {
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
-          {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
@@ -1156,10 +1103,8 @@ class Settings extends PureComponent {
 Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  approvedHosts: state.privacy.approvedHosts,
   browserHistory: state.browser.history,
   lockTime: state.settings.lockTime,
-  privacyMode: state.privacy.privacyMode,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -1177,9 +1122,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   clearBrowserHistory: () => dispatch(clearHistory()),
-  clearHosts: () => dispatch(clearHosts()),
   setLockTime: (lockTime) => dispatch(setLockTime(lockTime)),
-  setPrivacyMode: (enabled) => dispatch(setPrivacyMode(enabled)),
   setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
   passwordSet: () => dispatch(passwordSet()),
 });

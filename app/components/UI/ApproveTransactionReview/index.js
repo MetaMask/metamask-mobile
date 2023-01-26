@@ -81,10 +81,6 @@ class ApproveTransactionReview extends PureComponent {
 
   static propTypes = {
     /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
      * Callback triggered when this transaction is cancelled
      */
     onCancel: PropTypes.func,
@@ -344,12 +340,7 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const {
-        activeTabUrl,
-        transaction,
-        onSetAnalyticsParams,
-        selectedAddress,
-      } = this.props;
+      const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
       const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
@@ -358,7 +349,7 @@ class ApproveTransactionReview extends PureComponent {
       );
       const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
       const params = {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
         dapp_url: isDapp ? activeTabUrl : undefined,
         chain_id: chainId,
@@ -598,7 +589,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin },
+      transaction: { origin, from },
       network,
       over,
       gasEstimateType,
@@ -715,7 +706,7 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View style={styles.paddingHorizontal}>
-                <AccountInfoCard />
+                <AccountInfoCard fromAddress={from} />
                 <View style={styles.section}>
                   <TransactionReview
                     gasSelected={gasSelected}
@@ -846,7 +837,7 @@ class ApproveTransactionReview extends PureComponent {
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
+      this.props.navigation.navigate(Routes.BROWSER.VIEW, {
         newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
@@ -857,7 +848,7 @@ class ApproveTransactionReview extends PureComponent {
     const { host, spenderAddress } = this.state;
     const {
       activeTabUrl,
-      transaction: { origin },
+      transaction: { origin, from },
       QRState,
     } = this.props;
     const styles = this.getStyles();
@@ -877,6 +868,7 @@ class ApproveTransactionReview extends PureComponent {
           showHint={false}
           showCancelButton
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     );
@@ -901,8 +893,6 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(

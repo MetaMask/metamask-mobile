@@ -55,7 +55,30 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AccountSelector from '../../../components/Views/AccountSelector';
+import AccountConnect from '../../../components/Views/AccountConnect';
+import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
+import DetectedTokens from '../../Views/DetectedTokens';
+import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
+import AssetOptions from '../../Views/AssetOptions';
+// import ImportPrivateKey from '../../Views/ImportPrivateKey';
+// import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+// import ConnectQRHardware from '../../Views/ConnectQRHardware';
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+    cardStyleInterpolator: () => ({
+      overlayStyle: {
+        opacity: 0,
+      },
+    }),
+  },
+  animationEnabled: false,
+};
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
@@ -129,7 +152,7 @@ const OnboardingNav = () => (
 const SimpleWebviewScreen = () => (
   <Stack.Navigator mode={'modal'}>
     <Stack.Screen
-      name="SimpleWebview"
+      name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
       options={SimpleWebview.navigationOptions}
     />
@@ -153,7 +176,7 @@ const OnboardingRootNav = () => (
       header={null}
     />
     <Stack.Screen
-      name="Webview"
+      name={Routes.WEBVIEW.MAIN}
       header={null}
       component={SimpleWebviewScreen}
     />
@@ -347,15 +370,22 @@ const App = ({ userLoggedIn }) => {
     return null;
   };
 
-  const RootModalFlow = () => (
+  const DetectedTokensFlow = () => (
     <Stack.Navigator
       mode={'modal'}
-      screenOptions={{
-        headerShown: false,
-        cardStyle: { backgroundColor: importedColors.transparent },
-        animationEnabled: false,
-      }}
+      screenOptions={clearStackNavigatorOptions}
+      initialRouteName={'DetectedTokens'}
     >
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+      <Stack.Screen
+        name={'DetectedTokensConfirmation'}
+        component={DetectedTokensConfirmation}
+      />
+    </Stack.Navigator>
+  );
+
+  const RootModalFlow = () => (
+    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
@@ -366,9 +396,27 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_SELECTOR}
+        component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_CONNECT}
+        component={AccountConnect}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+        component={AccountPermissions}
+      />
+      <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
         component={TurnOffRememberMeModal}
       />
+      <Stack.Screen
+        name={'AssetHideConfirmation'}
+        component={AssetHideConfirmation}
+      />
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
       <Stack.Screen
         name={Routes.MODAL.UPDATE_NEEDED}
         component={UpdateNeeded}
@@ -379,6 +427,30 @@ const App = ({ userLoggedIn }) => {
       />
     </Stack.Navigator>
   );
+
+  // const ImportPrivateKeyView = () => (
+  //   <Stack.Navigator
+  //     screenOptions={{
+  //       headerShown: false,
+  //     }}
+  //   >
+  //     <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+  //     <Stack.Screen
+  //       name="ImportPrivateKeySuccess"
+  //       component={ImportPrivateKeySuccess}
+  //     />
+  //   </Stack.Navigator>
+  // );
+
+  // const ConnectQRHardwareFlow = () => (
+  //   <Stack.Navigator
+  //     screenOptions={{
+  //       headerShown: false,
+  //     }}
+  //   >
+  //     <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+  //   </Stack.Navigator>
+  // );
 
   return (
     // do not render unless a route is defined
@@ -428,6 +500,16 @@ const App = ({ userLoggedIn }) => {
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
             />
+            {/* <Stack.Screen
+              name="ImportPrivateKeyView"
+              component={ImportPrivateKeyView}
+              options={{ animationEnabled: true }}
+            /> */}
+            {/* <Stack.Screen
+              name="ConnectQRHardwareFlow"
+              component={ConnectQRHardwareFlow}
+              options={{ animationEnabled: true }}
+            /> */}
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}

@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -48,10 +47,6 @@ const createStyles = (colors) =>
 class PersonalSign extends PureComponent {
   static propTypes = {
     /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
@@ -79,6 +74,7 @@ class PersonalSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
+    fromAddress: PropTypes.string,
   };
 
   state = {
@@ -87,13 +83,16 @@ class PersonalSign extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, selectedAddress } = this.props;
+      const {
+        currentPageInformation,
+        messageParams: { from },
+      } = this.props;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(from),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
@@ -132,7 +131,7 @@ class PersonalSign extends PureComponent {
   };
 
   signMessage = async () => {
-    const { messageParams, selectedAddress } = this.props;
+    const { messageParams, fromAddress } = this.props;
     const { KeyringController, PersonalMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const cleanMessageParams = await PersonalMessageManager.approveMessage(
@@ -157,7 +156,7 @@ class PersonalSign extends PureComponent {
       );
     };
 
-    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+    const isLedgerAccount = isHardwareAccount(fromAddress, [
       KeyringTypes.ledger,
     ]);
 
@@ -285,6 +284,7 @@ class PersonalSign extends PureComponent {
       currentPageInformation,
       toggleExpandedMessage,
       showExpandedMessage,
+      messageParams: { from },
     } = this.props;
     const styles = this.getStyles();
 
@@ -304,6 +304,7 @@ class PersonalSign extends PureComponent {
         toggleExpandedMessage={toggleExpandedMessage}
         truncateMessage={this.state.truncateMessage}
         type="personalSign"
+        fromAddress={from}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
       </SignatureRequest>
@@ -314,9 +315,4 @@ class PersonalSign extends PureComponent {
 
 PersonalSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(PersonalSign);
+export default PersonalSign;

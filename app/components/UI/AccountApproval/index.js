@@ -202,7 +202,7 @@ class AccountApproval extends PureComponent {
   };
 
   render = () => {
-    const { currentPageInformation } = this.props;
+    const { currentPageInformation, selectedAddress } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -212,7 +212,7 @@ class AccountApproval extends PureComponent {
         <Text style={styles.intro}>{strings('accountApproval.action')}</Text>
         <Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
         <View style={styles.accountCardWrapper}>
-          <AccountInfoCard />
+          <AccountInfoCard fromAddress={selectedAddress} />
         </View>
         <View style={styles.actionContainer}>
           <StyledButton

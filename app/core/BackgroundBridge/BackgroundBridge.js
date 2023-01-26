@@ -337,6 +337,14 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
+    const permissionController = Engine.context.PermissionController;
+
+    engine.push(
+      permissionController.createPermissionMiddleware({
+        origin,
+      }),
+    );
+
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;

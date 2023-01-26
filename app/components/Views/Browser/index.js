@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { connect } from 'react-redux';
+import React, { useEffect, useRef, useContext } from 'react';
+import { connect, useSelector } from 'react-redux';
 import { View, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import {
@@ -17,8 +17,16 @@ import Device from '../../../util/device';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import getAccountNameWithENS from '../../../util/accounts';
+import { useAccounts } from '../../../components/hooks/useAccounts';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { strings } from '../../../../locales/i18n';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -40,16 +48,20 @@ const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
   } = props;
-  const { drawerRef } = useContext(DrawerContext);
   const previousTabs = useRef(null);
   const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
+  const browserUrl = props.route?.params?.url;
+  const prevSiteHostname = useRef(browserUrl);
+  const { accounts, ensByAccountAddress } = useAccounts();
+  const accountAvatarType = useSelector((state) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   useEffect(
-    () => {
-      navigation.setOptions(
-        getBrowserViewNavbarOptions(navigation, route, drawerRef, colors),
-      );
-    },
+    () => navigation.setOptions(getBrowserViewNavbarOptions(route, colors)),
     /* eslint-disable-next-line */
     [navigation, route, colors],
   );
@@ -77,6 +89,46 @@ const Browser = (props) => {
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
   };
+
+  const hasAccounts = useRef(Boolean(accounts.length));
+
+  useEffect(() => {
+    const checkIfActiveAccountChanged = async () => {
+      const hostname = new URL(browserUrl).hostname;
+      const permittedAccounts = await getPermittedAccounts(hostname);
+      const activeAccountAddress = permittedAccounts?.[0];
+      if (activeAccountAddress) {
+        const accountName = getAccountNameWithENS({
+          accountAddress: activeAccountAddress,
+          accounts,
+          ensByAccountAddress,
+        });
+        // Show active account toast
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Account,
+          labelOptions: [
+            {
+              label: `${accountName} `,
+              isBold: true,
+            },
+            { label: strings('toast.now_active') },
+          ],
+          accountAddress: activeAccountAddress,
+          accountAvatarType,
+        });
+      }
+    };
+
+    // Handle when the Browser initially mounts and when url changes.
+    if (accounts.length && browserUrl) {
+      const hostname = new URL(browserUrl).hostname;
+      if (prevSiteHostname.current !== hostname || !hasAccounts.current) {
+        checkIfActiveAccountChanged();
+      }
+      hasAccounts.current = true;
+      prevSiteHostname.current = hostname;
+    }
+  }, [browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
 
   // componentDidMount
   useEffect(
@@ -312,5 +364,7 @@ Browser.propTypes = {
    */
   route: PropTypes.object,
 };
+
+export { default as createBrowserNavDetails } from './Browser.types';
 
 export default connect(mapStateToProps, mapDispatchToProps)(Browser);

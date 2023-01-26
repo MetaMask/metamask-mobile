@@ -444,7 +444,30 @@
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
-    "yes_remove_it": "Ja, entfernen"
+    "yes_remove_it": "Ja, entfernen",
+    "accounts_title": "Konten",
+    "connect_account_title": "Konto verbinden",
+    "connect_accounts_title": "Konten verbinden",
+    "connected_accounts_title": "Verbundene Konten",
+    "connect_description": "Konto-Adresse, Guthaben, Aktivitäten teilen und dieser Seite erlauben, Transaktionen einzuleiten.",
+    "connect_multiple_accounts": "Mehrere Konten verbinden",
+    "connect_more_accounts": "Mehr Konten verbinden",
+    "cancel": "Abbrechen",
+    "connect": "Verbinden",
+    "connect_with_count": "{{countLabel}} verbinden",
+    "select_all": "\nAlle auswählen",
+    "permissions": "Berechtigungen",
+    "disconnect": "Verbindung trennen",
+    "disconnect_all_accounts": "Alle Konten trennen",
+    "revoke": "Widerrufen",
+    "revoke_all": "Alle widerrufen"
+  },
+  "toast": {
+    "connected_and_active": "verbunden und aktiv.",
+    "now_active": "jetzt aktiv.",
+    "revoked": "widerrufen.",
+    "revoked_all": "Alle Konten widerrufen.",
+    "accounts_connected": "Konten verbunden."
   },
   "connect_qr_hardware": {
     "title": "Eine QR-basierte Hardware-Wallet verknüpfen",
