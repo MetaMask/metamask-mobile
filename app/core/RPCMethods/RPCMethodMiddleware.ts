@@ -326,10 +326,14 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
+        const { TransactionController } = Engine.context;
         return RPCMethods.eth_sendTransaction({
-          next,
+          hostname,
           req,
           res,
+          sendTransaction: TransactionController.addTransaction.bind(
+            TransactionController,
+          ),
           validateAccountAndChainId: async ({
             from,
             chainId,
