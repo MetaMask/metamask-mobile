@@ -111,23 +111,8 @@ class Engine {
       };
 
       const networkController = new NetworkController(networkControllerOpts);
-      networkController.providerConfig = {
-        getAccounts: (
-          end: (arg0: null, arg1: any[]) => void,
-          payload: { hostname: string | number },
-        ) => {
-          const { approvedHosts } = store.getState();
-          const isEnabled = approvedHosts[payload.hostname];
-          const { KeyringController } = this.context;
-          const isUnlocked = KeyringController.isUnlocked();
-          const selectedAddress =
-            this.context.PreferencesController.state.selectedAddress;
-          end(
-            null,
-            isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : [],
-          );
-        },
-      };
+      // This still needs to be set because it has the side-effect of initializing the provider
+      networkController.providerConfig = {};
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
