@@ -58,7 +58,7 @@ const SRPQuiz = () => {
   const goToRevealPrivateCredential = useCallback((): void => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
-    navigation.navigate(Routes.SETTINGS.REVEAL_PRIV_CREDENTIAL, {
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       privateCredentialName: 'seed_phrase',
     });
   }, [navigation]);
