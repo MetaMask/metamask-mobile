@@ -17,6 +17,7 @@ import {
 
 export default class AddCustomTokenView {
   static async tapImportButton() {
+    //await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
     await TestHelpers.tapByText('IMPORT');
   }
 
@@ -41,6 +42,10 @@ export default class AddCustomTokenView {
 
   static async tapTokenSymbolText() {
     await TestHelpers.tapByText('Token Symbol');
+  }
+
+  static async scrollDownOnImportCustomTokens() {
+    await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
   }
 
   static async typeTokenAddress(address) {
