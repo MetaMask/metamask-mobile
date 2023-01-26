@@ -1,18 +1,18 @@
 /* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
-import WalletMainScreen from '../../screen-objects/WalletMainScreen';
-import DrawerViewScreen from '../../screen-objects/DrawerViewScreen';
-import BrowserScreen from '../../screen-objects/BrowserObject/BrowserScreen';
-import AddFavoriteScreen from '../../screen-objects/BrowserObject/AddFavoriteScreen';
-import AddressBarScreen from '../../screen-objects/BrowserObject/AddressBarScreen';
-import ExternalWebsitesScreen from '../../screen-objects/BrowserObject/ExternalWebsitesScreen';
-import OptionMenuModal from '../../screen-objects/BrowserObject/OptionMenuModal';
-import MultiTabScreen from '../../screen-objects/BrowserObject/MultiTabScreen';
-import AccountApprovalModal from '../../screen-objects/Modals/AccountApprovalModal';
-import AndroidNativeModals from '../../screen-objects/Modals/AndroidNativeModals';
-import NetworkListModal from '../../screen-objects/Modals/NetworkListModal';
-import NetworkEducationModal from '../../screen-objects/Modals/NetworkEducationModal';
-import AccountListComponent from '../../screen-objects/AccountListComponent';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import DrawerViewScreen from '../screen-objects/DrawerViewScreen';
+import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
+import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen';
+import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
+import ExternalWebsitesScreen from '../screen-objects/BrowserObject/ExternalWebsitesScreen';
+import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
+import MultiTabScreen from '../screen-objects/BrowserObject/MultiTabScreen';
+import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal';
+import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
+import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
+import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
+import AccountListComponent from '../screen-objects/AccountListComponent';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();

@@ -1,7 +1,7 @@
 /* global driver */
 import { When, Then } from '@wdio/cucumber-framework';
-import WalletMainScreen from '../../screen-objects/WalletMainScreen.js';
-import SendScreen from '../../screen-objects/SendScreen';
+import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
+import SendScreen from '../screen-objects/SendScreen';
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
     const timeout = 1500;

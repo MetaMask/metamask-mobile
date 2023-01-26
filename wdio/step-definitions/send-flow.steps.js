@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-unused-vars
 /* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import SendScreen from '../../screen-objects/SendScreen';
-import AddressBookModal from '../../screen-objects/Modals/AddressBookModal';
+import SendScreen from '../screen-objects/SendScreen';
+import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
     await AddressBookModal.isCancelButtonEnabled();

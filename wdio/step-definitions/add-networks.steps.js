@@ -1,13 +1,13 @@
 /* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import DrawerView from '../../screen-objects/DrawerViewScreen'
-import WalletMainScreen from '../../screen-objects/WalletMainScreen';
-import NetworksScreen from '../../screen-objects/NetworksScreen';
+import DrawerView from '../screen-objects/DrawerViewScreen'
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import NetworksScreen from '../screen-objects/NetworksScreen';
 
-import NetworkApprovalModal from '../../screen-objects/Modals/NetworkApprovalModal';
-import NetworkEducationModal from '../../screen-objects/Modals/NetworkEducationModal';
-import NetworkListModal from '../../screen-objects/Modals/NetworkListModal';
-import AddNetworksModal from '../../screen-objects/Modals/AddNetworksModal';
+import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
+import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
+import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
+import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.clickAddNetworks();

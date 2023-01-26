@@ -1,17 +1,17 @@
 /* global driver */
 import { Given, Then } from '@wdio/cucumber-framework';
-import Accounts from '../../helpers/Accounts';
-import WelcomeScreen from '../../screen-objects/Onboarding/OnboardingCarousel';
-import OnboardingScreen from '../../screen-objects/Onboarding/OnboardingScreen';
-import MetaMetricsScreen from '../../screen-objects/Onboarding/MetaMetricsScreen';
-import ImportFromSeedScreen from '../../screen-objects/Onboarding/ImportFromSeedScreen';
+import Accounts from '../helpers/Accounts';
+import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
+import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
+import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
+import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
 
-import CreateNewWalletScreen from '../../screen-objects/Onboarding/CreateNewWalletScreen.js';
-import WalletMainScreen from '../../screen-objects/WalletMainScreen';
-import CommonScreen from '../../screen-objects/CommonScreen';
+import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import CommonScreen from '../screen-objects/CommonScreen';
 
-import SkipAccountSecurityModal from '../../screen-objects/Modals/SkipAccountSecurityModal.js';
-import OnboardingWizardModal from '../../screen-objects/Modals/OnboardingWizardModal.js';
+import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
+import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 
 
 Given(/^I have imported my wallet$/, async () => {
