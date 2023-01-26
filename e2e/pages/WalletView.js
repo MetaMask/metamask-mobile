@@ -7,7 +7,10 @@ import {
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
+  NFT_TAB_CONTAINER_ID,
 } from '../../wdio/features/testIDs/Screens/WalletView.testIds';
+
+import { TOKEN_CONTAINER_ID } from '../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
@@ -39,6 +42,13 @@ export default class WalletView {
   }
   static async tapTokensTab() {
     await TestHelpers.tapByText('Tokens');
+  }
+  static async scrollDownOnNFTsTab() {
+    await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'up', 'slow', 0.6);
+  }
+
+  static async scrollUpOnNFTsTab() {
+    await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'down', 'slow', 0.6);
   }
 
   static async tapImportNFTButton() {

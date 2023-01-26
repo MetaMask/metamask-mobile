@@ -169,6 +169,7 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
     // Tap on COLLECTIBLES tab
     await WalletView.tapNftTab();
+    await WalletView.scrollDownOnNFTsTab();
     // Tap on the add collectibles button
     await WalletView.tapImportNFTButton();
 
@@ -198,6 +199,8 @@ describe('Wallet Tests', () => {
     await WalletView.tapOnNFTInWallet('Refinable721');
 
     await WalletView.isNFTNameVisible('Refinable721 #179');
+
+    await WalletView.scrollUpOnNFTsTab();
   });
 
   it('should switch back to Mainnet network', async () => {
@@ -274,6 +277,7 @@ describe('Wallet Tests', () => {
     await AddCustomTokenView.typeTokenAddress(BLT_TOKEN_ADDRESS);
     await AddCustomTokenView.tapTokenSymbolInputBox();
     await AddCustomTokenView.tapTokenSymbolText();
+    await AddCustomTokenView.scrollDownOnImportCustomTokens();
     await AddCustomTokenView.tapCustomTokenImportButton();
 
     // Check that we are on the wallet screen
