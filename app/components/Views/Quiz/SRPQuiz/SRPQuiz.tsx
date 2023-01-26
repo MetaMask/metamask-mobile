@@ -9,7 +9,7 @@ import Icon, {
 } from '../../../../component-library/components/Icon';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
-import analyticsV2 from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';
@@ -56,13 +56,15 @@ const SRPQuiz = () => {
   );
 
   const goToRevealPrivateCredential = useCallback((): void => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIV_CREDENTIAL, {
       privateCredentialName: 'seed_phrase',
     });
   }, [navigation]);
 
   const introduction = useCallback(() => {
-    analyticsV2.trackEvent(MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN, {});
     return (
       <QuizContent
         header={strings('srp_security_quiz.title')}
@@ -73,7 +75,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.get_started'),
             onPress: () => {
-              analyticsV2.trackEvent(
+              AnalyticsV2.trackEvent(
                 MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED,
                 {},
               );
@@ -93,7 +95,7 @@ const SRPQuiz = () => {
   }, []);
 
   const questionOne = useCallback((): Element => {
-    analyticsV2.trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN,
       {},
     );
@@ -126,7 +128,7 @@ const SRPQuiz = () => {
   }, []);
 
   const rightAnswerQuestionOne = useCallback((): Element => {
-    analyticsV2.trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
       {},
     );
@@ -159,7 +161,7 @@ const SRPQuiz = () => {
   }, [rightAnswerIcon, styles.rightText]);
 
   const wrongAnswerQuestionOne = useCallback((): Element => {
-    analyticsV2.trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
       {},
     );
@@ -192,7 +194,7 @@ const SRPQuiz = () => {
   }, [styles.wrongText, wrongAnswerIcon]);
 
   const questionTwo = useCallback((): Element => {
-    analyticsV2.trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN,
       {},
     );
@@ -225,7 +227,7 @@ const SRPQuiz = () => {
   }, []);
 
   const rightAnswerQuestionTwo = useCallback((): Element => {
-    analyticsV2.trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
       {},
     );
@@ -258,7 +260,7 @@ const SRPQuiz = () => {
   }, [goToRevealPrivateCredential, rightAnswerIcon, styles.rightText]);
 
   const wrongAnswerQuestionTwo = useCallback((): Element => {
-    analyticsV2.trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
       {},
     );

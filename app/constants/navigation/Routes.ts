@@ -41,9 +41,12 @@ const Routes = {
   SEND_FLOW: {
     SEND_TO: 'SendTo',
   },
+  ACCOUNT_BACKUP: {
+    STEP_1_B: 'AccountBackupStep1B',
+  },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
-    REVEAL_PRIV_CREDENTIAL: 'RevealPrivateCredentialView',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
   },
 };
 
