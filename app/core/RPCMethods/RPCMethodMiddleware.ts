@@ -570,9 +570,13 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         try {
+          const permittedAccounts = await getPermittedAccounts(hostname);
+          // This should return the current active account on the Dapp.
+          const interactingAddress = permittedAccounts?.[0];
           const watchAssetResult = await TokensController.watchAsset(
             { address, symbol, decimals, image },
             type,
+            interactingAddress,
           );
           await watchAssetResult.result;
           res.result = true;
