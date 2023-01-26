@@ -158,7 +158,6 @@ Then(/^the RPC URL input box is visible/, async () => {
 
 Then(/^I type "([^"]*)?" into the RPC url field/, async (data) => {
   await NetworksScreen.typeIntoRPCURLField(data);
-  
 });
 
 Then(/^the Chain ID input box is visible/, async () => {

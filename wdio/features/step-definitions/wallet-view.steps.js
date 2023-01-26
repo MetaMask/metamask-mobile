@@ -4,9 +4,9 @@ import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import SendScreen from '../screen-objects/SendScreen';
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
-    const timeout = 1500;
-    await driver.pause(timeout);
-    await SendScreen.tapOnText(text); // we need to rework this. Either have all test actions follow this pattern or not
+  const timeout = 1500;
+  await driver.pause(timeout);
+  await SendScreen.tapOnText(text); // we need to rework this. Either have all test actions follow this pattern or not
 });
 
 When(/^I tap burger icon/, async () => {
@@ -42,5 +42,5 @@ Then(/^I am on the wallet screen/, async () => {
   await WalletMainScreen.isVisible();
 });
 Then(/^I am on the wallet view/, async () => {
-    await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.isMainWalletViewVisible();
 });

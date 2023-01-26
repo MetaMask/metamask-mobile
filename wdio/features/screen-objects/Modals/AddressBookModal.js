@@ -1,11 +1,8 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import {
-   ENTER_ALIAS_INPUT_BOX_ID,
-} from '../../testIDs/Screens/AddressBook.testids';
+import { ENTER_ALIAS_INPUT_BOX_ID } from '../../testIDs/Screens/AddressBook.testids';
 
 class AddressBookModal {
-
   async fillAddressAliasField(text) {
     await Gestures.typeText(this.addressInputField, text);
   }
