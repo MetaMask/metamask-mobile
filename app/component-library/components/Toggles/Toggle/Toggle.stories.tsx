@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 
 // Third party dependencies.
-import React, { useState } from 'react';
+import React from 'react';
 import { boolean } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
@@ -14,15 +14,10 @@ import Toggle from './Toggle';
 import { ToggleProps } from './Toggle.types';
 
 export const getToggleStoryProps = (): ToggleProps => {
-  const [value, setValue] = useState(false);
   const disabled = boolean('disabled', false, storybookPropsGroupID);
 
   return {
-    value,
     disabled,
-    onValueChange: () => {
-      setValue(!value);
-    },
   };
 };
 
