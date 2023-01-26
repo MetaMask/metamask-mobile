@@ -1,7 +1,7 @@
 /* global driver */
 import { When, Then } from '@wdio/cucumber-framework';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
-import SendScreen from '../screen-objects/SendScreen';
+import WalletMainScreen from '../../screen-objects/WalletMainScreen.js';
+import SendScreen from '../../screen-objects/SendScreen';
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
     const timeout = 1500;
@@ -22,14 +22,14 @@ When(/^I tap Import Tokens/, async () => {
 });
 
 When(/^I tap NFTs Tab/, async () => {
-    const setTimeout = 1500; 
-    await driver.pause(setTimeout);  
+    const setTimeout = 1500;
+    await driver.pause(setTimeout);
     await WalletMainScreen.tapNFTTab();
 });
 
 Then(/^I tap Import NFTs/, async () => {
-    const setTimeout = 1500; 
-    await driver.pause(setTimeout);  
+    const setTimeout = 1500;
+    await driver.pause(setTimeout);
     await WalletMainScreen.tapImportNFTButton();
 });
 
@@ -38,7 +38,7 @@ Then(/^I tap on the navbar network title button/, async () => {
 });
 
 Then(/^I am on the wallet screen/, async () => {
-    await driver.pause(2000);  
+    await driver.pause(2000);
     await WalletMainScreen.isVisible();
 });
 Then(/^I am on the wallet view/, async () => {

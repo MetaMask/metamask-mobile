@@ -1,6 +1,6 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import { dirname } from 'path';
-import LoginScreen from '../screen-objects/LoginScreen';
+import LoginScreen from '../../screen-objects/Onboarding/LoginScreen';
 
 Then(/^Login screen is displayed/, async () => {
     await LoginScreen.isLoginScreenVisible();

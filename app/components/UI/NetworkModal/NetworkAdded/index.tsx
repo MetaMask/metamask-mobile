@@ -7,7 +7,7 @@ import { useTheme } from '../../../../util/theme';
 import {
   NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,
   NEW_NETWORK_ADDED_CLOSE_BUTTON,
-} from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 const createStyles = (colors: any) =>
   StyleSheet.create({
     buttonView: {

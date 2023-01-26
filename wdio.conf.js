@@ -29,14 +29,14 @@ export const config = {
   specs: ['./wdio/features/**/*.feature'],
   suites: {
     browserFlow: [
-      './wdio/features/BrowserFlow/AddFavorite.feature',
-      './wdio/features/BrowserFlow/AddressBar.feature',
-      './wdio/features/BrowserFlow/ENSWebsite.feature',
-      './wdio/features/BrowserFlow/InvalidURL.feature',
-      './wdio/features/BrowserFlow/NavigationControls.feature',
-      './wdio/features/BrowserFlow/OptionMenu.feature',
-      './wdio/features/BrowserFlow/PhishingDetection.feature',
-      './wdio/features/BrowserFlow/SwitchAccount.feature',
+      // './wdio/features/BrowserFlow/*.feature',
+      // './wdio/features/BrowserFlow/AddressBar.feature',
+      // './wdio/features/BrowserFlow/ENSWebsite.feature',
+      // './wdio/features/BrowserFlow/InvalidURL.feature',
+      // './wdio/features/BrowserFlow/NavigationControls.feature',
+      // './wdio/features/BrowserFlow/OptionMenu.feature',
+      // './wdio/features/BrowserFlow/PhishingDetection.feature',
+      // './wdio/features/BrowserFlow/SwitchAccount.feature',
     ],
   },
   // Patterns to exclude.

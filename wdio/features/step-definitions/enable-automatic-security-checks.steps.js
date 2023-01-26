@@ -1,5 +1,5 @@
 import { When } from '@wdio/cucumber-framework';
-import EnableAutomaticSecurityChecksScreen from '../screen-objects/EnableSecurityChecksScreen';
+import EnableAutomaticSecurityChecksScreen from '../../screen-objects/EnableSecurityChecksScreen';
 
 When(/^I tap No Thanks on the Enable security check screen/, async () => {
     await EnableAutomaticSecurityChecksScreen.tapNoThanksButton();

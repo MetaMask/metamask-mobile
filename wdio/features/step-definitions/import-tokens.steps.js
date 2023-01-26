@@ -1,6 +1,6 @@
 import {When, Then } from '@wdio/cucumber-framework';
-import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
+import AddCustomImportTokensScreen from '../../screen-objects/AddCustomImportTokensScreen.js';
+import WalletMainScreen from '../../screen-objects/WalletMainScreen.js';
 
 let setTimeout = 1500; //added to run on physical device
 

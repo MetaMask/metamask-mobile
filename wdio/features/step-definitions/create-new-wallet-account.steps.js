@@ -1,9 +1,9 @@
 import {Given, Then, When} from '@wdio/cucumber-framework';
 
-import AccountListComponent from '../screen-objects/AccountListComponent';
+import AccountListComponent from '../../screen-objects/AccountListComponent';
 
-import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
+import AddCustomImportTokensScreen from '../../screen-objects/AddCustomImportTokensScreen.js';
+import WalletMainScreen from '../../screen-objects/WalletMainScreen.js';
 
 
 When(/^I tap on the Identicon/, async () => { // should be in a commons-step file

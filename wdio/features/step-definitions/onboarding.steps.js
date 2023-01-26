@@ -1,16 +1,16 @@
 /* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
-import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
-import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
-import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
+import ImportFromSeedScreen from '../../screen-objects/Onboarding/ImportFromSeedScreen.js';
+import CreateNewWalletScreen from '../../screen-objects/Onboarding/CreateNewWalletScreen.js';
+import WalletMainScreen from '../../screen-objects/WalletMainScreen.js';
+import MetaMetricsScreen from '../../screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingScreen from '../../screen-objects/Onboarding/OnboardingScreen.js';
+import WelcomeScreen from '../../screen-objects/Onboarding/OnboardingCarousel.js';
 
-import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
-import AddressBarScreen from "../screen-objects/BrowserObject/AddressBarScreen";
+import SkipAccountSecurityModal from '../../screen-objects/Modals/SkipAccountSecurityModal.js';
+import OnboardingWizardModal from '../../screen-objects/Modals/OnboardingWizardModal.js';
+import BrowserScreen from '../../screen-objects/BrowserObject/BrowserScreen';
+import AddressBarScreen from "../../screen-objects/BrowserObject/AddressBarScreen";
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/

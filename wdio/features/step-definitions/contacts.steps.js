@@ -1,9 +1,9 @@
 // eslint-disable-next-line no-unused-vars
 /* global driver */
 import { Then } from '@wdio/cucumber-framework';
-import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
-import Contacts from '../screen-objects/Contacts';
-import AddContact from '../screen-objects/AddContact';
+import AddressBookModal from '../../screen-objects/Modals/AddressBookModal';
+import Contacts from '../../screen-objects/Contacts';
+import AddContact from '../../screen-objects/AddContact';
 
 Then(/^I am on the contacts view/, async () => {
     await Contacts.isContactsScreenDisplayed();

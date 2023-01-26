@@ -1,6 +1,6 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
+import OnboardingWizardModal from '../../screen-objects/Modals/OnboardingWizardModal.js';
+import WalletMainScreen from '../../screen-objects/WalletMainScreen.js';
 
 Given(/^the onboarding wizard is visible on wallet view$/, async () => {
   await OnboardingWizardModal.isVisible();
