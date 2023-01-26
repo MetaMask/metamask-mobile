@@ -63,10 +63,6 @@ const AccountPermissionsRevoke = ({
         .length + 1,
   );
 
-  const totalAccounts = accountsLength;
-  const connectedAccounts = permittedAddresses.length;
-  const totalMainnetNetworks = nonTestnetNetworks;
-
   const revokeAllAccounts = useCallback(
     async () => {
       try {
@@ -76,9 +72,9 @@ const AccountPermissionsRevoke = ({
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
           {
-            totalAccounts: 1,
-            connectedAccounts: 1,
-            totalMainnetNetworks: 1,
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: permittedAddresses.length,
+            number_of_networks: nonTestnetNetworks,
           },
         );
       } catch (e) {
@@ -170,9 +166,9 @@ const AccountPermissionsRevoke = ({
                 AnalyticsV2.trackEvent(
                   MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
                   {
-                    totalAccounts,
-                    connectedAccounts,
-                    totalMainnetNetworks,
+                    number_of_accounts: accountsLength,
+                    number_of_accounts_connected: permittedAddresses.length,
+                    number_of_networks: nonTestnetNetworks,
                   },
                 );
               }

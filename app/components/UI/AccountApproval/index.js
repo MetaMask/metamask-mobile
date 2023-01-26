@@ -128,9 +128,8 @@ class AccountApproval extends PureComponent {
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
-        totalAccounts: accountsLength,
-        //TODO: this property will change name in the future
-        source: 'SDK or WalletConnect',
+        number_of_accounts: accountsLength,
+        source: 'SDK / WalletConnect',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {

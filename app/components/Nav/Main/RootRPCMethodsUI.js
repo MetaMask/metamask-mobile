@@ -718,11 +718,8 @@ const RootRPCMethodsUI = (props) => {
 
             const totalAccounts = props.accountsLength;
 
-            // TODO: get the accounts values
             AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-              totalAccounts,
-              // connectedAccounts wont be present on this event
-              //TODO: this property will change the name in the future.
+              number_of_accounts: totalAccounts,
               source: 'PERMISSION SYSTEM',
             });
 

@@ -86,14 +86,9 @@ const Browser = (props) => {
 
   const handleRightTopButtonAnalyticsEvent = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
-      //TODO: maintaining this here just for context for when prod team replies back about some of the concerns raised
-      //  this value will always be true
-      activeConnectedDapp: true,
-      totalAccounts: accountsLength,
-      connectedAccounts: permittedAccountsList.length,
-      //TODO: maintaining this here just for context for when prod team replies back about some of the concerns raised
-      // why whould we need mainnet accounts for?
-      mainnetNetworksAmount: nonTestnetNetworks,
+      number_of_accounts: accountsLength,
+      number_of_accounts_connected: permittedAccountsList.length,
+      number_of_networks: nonTestnetNetworks,
     });
   };
 

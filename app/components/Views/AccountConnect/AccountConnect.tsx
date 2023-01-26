@@ -140,10 +140,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
 
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
-        totalAccounts: accountsLength,
-        // TODO: cancelling a request should not send connected accounts properties
-        /* connectedAccounts: permittedAccountsList.length, */
-        //TODO: this property will change name in the future
+        number_of_accounts: accountsLength,
         source: 'permission system',
       });
     },
@@ -176,9 +173,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         request,
       );
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
-        totalAccounts: accountsLength,
-        connectedAccounts: permittedAccountsList.length,
-        //TODO: this property will change name in the future
+        number_of_accounts: accountsLength,
+        number_of_accounts_connected: permittedAccountsList.length,
         source: 'permission system',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];

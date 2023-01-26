@@ -236,9 +236,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       // TODO: confirm this value is the newly added accounts or total connected accounts
       const connectedAccounts = connectedAccountLength;
       AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
-        totalAccounts,
-        connectedAccounts,
-        totalMainnetNetworks: nonTestnetNetworks,
+        number_of_accounts: totalAccounts,
+        number_of_accounts_connected: connectedAccounts,
+        number_of_networks: nonTestnetNetworks,
       });
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');

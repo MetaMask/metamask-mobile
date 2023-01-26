@@ -232,14 +232,13 @@ const HomeTabs = () => {
     );
     return permittedAcc;
   }, isEqual);
-  const connectedAccounts = 1;
 
   const options = {
     home: {
       tabBarLabel: 'Wallet',
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
-          totalAccounts: accountsLength,
+          number_of_accounts: accountsLength,
           chain_id: chainId,
         });
       },
@@ -248,13 +247,11 @@ const HomeTabs = () => {
       tabBarLabel: 'Browser',
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-          totalAccounts: accountsLength,
+          number_of_accounts: accountsLength,
           chain_id: chainId,
-          // TODO: Add an event when coming from a deeplink & it lands on the browser
           source: 'Navigation Tab',
-          connectedAccounts,
-          activeConnectedDapp,
-          numOpenTabs: amountOfBrowserOpenTabs,
+          active_connected_dapp: activeConnectedDapp,
+          number_of_open_tabs: amountOfBrowserOpenTabs,
         });
       },
     },
