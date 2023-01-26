@@ -18,7 +18,8 @@ const Routes = {
     ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
   HW: {
-    CONNECT: 'ConnectQRHardwareFlow',
+    CONNECT: 'ConnectHardwareWalletFlow',
+    SELECT_DEVICE: 'SelectHardwareWallet',
   },
   LEDGER_CONNECT_FLOW: {
     ID: 'LedgerConnectFlow',

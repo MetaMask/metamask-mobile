@@ -562,7 +562,7 @@ const LedgerConnectFlow = ({ navigation }) => (
 const ConnectHardwareWalletFlow = () => (
   <Stack.Navigator name="ConnectHardwareWallet">
     <Stack.Screen
-      name="SelectHardwareWallet"
+      name={Routes.HW.SELECT_DEVICE}
       component={SelectHardwareWallet}
       options={SelectHardwareWallet.navigationOptions}
     />
@@ -639,7 +639,7 @@ const MainNavigator = () => (
       component={LedgerTransactionModal}
     />
     <Stack.Screen
-      name="ConnectHardwareWalletFlow"
+      name={Routes.HW.CONNECT}
       component={ConnectHardwareWalletFlow}
     />
     <Stack.Screen

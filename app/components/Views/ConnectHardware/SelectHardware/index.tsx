@@ -20,6 +20,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -81,7 +82,7 @@ const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
-  const { KeyringController } = Engine.context;
+  const { KeyringController } = Engine.context as any;
 
   useEffect(() => {
     navigation.setOptions(
@@ -95,7 +96,7 @@ const SelectHardwareWallet = () => {
   }, [navigation, colors]);
 
   const navigateToConnectQRWallet = () => {
-    navigation.navigate('ConnectQRHardwareFlow');
+    navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
   };
 
   const navigateToConnectLedger = async () => {
@@ -103,10 +104,10 @@ const SelectHardwareWallet = () => {
     const accounts = await ledgerKeyring.getAccounts();
 
     if (accounts.length === 0) {
-      navigation.navigate('LedgerConnectFlow');
+      navigation.navigate(Routes.HW.CONNECT_LEDGER);
     } else {
-      navigation.navigate('LedgerAccountInfo', {
-        screen: 'LedgerAccountInfo',
+      navigation.navigate(Routes.HW.LEDGER_ACCOUNT, {
+        screen: Routes.HW.LEDGER_ACCOUNT,
         params: {
           accounts,
         },

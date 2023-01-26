@@ -856,25 +856,6 @@ class DrawerView extends PureComponent {
     this.props.onCloseDrawer();
   };
 
-  // onAccountChange = () => {
-  //   setTimeout(() => {
-  //     this.toggleAccountsModal();
-  //     this.hideDrawer();
-  //   }, 300);
-  // };
-
-  // onImportAccount = () => {
-  //   this.toggleAccountsModal();
-  //   this.props.navigation.navigate('ImportPrivateKeyView');
-  //   this.hideDrawer();
-  // };
-
-  // onConnectHardware = () => {
-  //   this.toggleAccountsModal();
-  //   this.props.navigation.navigate('ConnectHardwareWalletFlow');
-  //   this.hideDrawer();
-  // };
-
   hasBlockExplorer = (providerType) => {
     const { frequentRpcList } = this.props;
     if (providerType === RPC) {
