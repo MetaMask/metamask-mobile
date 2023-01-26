@@ -17,6 +17,9 @@ const Routes = {
     SETTINGS: 'OnRampSettings',
     ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
+  HW: {
+    CONNECT: 'ConnectQRHardwareFlow',
+  },
   LEDGER_CONNECT_FLOW: {
     ID: 'LedgerConnectFlow',
     LEDGER_CONNECT: 'LedgerConnect',

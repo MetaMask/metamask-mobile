@@ -26,6 +26,7 @@ import {
 } from './AccountSelector.constants';
 import { AccountSelectorProps } from './AccountSelector.types';
 import styles from './AccountSelector.styles';
+import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const {
@@ -91,7 +92,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [onOpenImportAccount, navigation]);
 
   const openConnectHardwareWallet = useCallback(() => {
-    navigation.navigate('ConnectQRHardwareFlow');
+    navigation.navigate(Routes.HW.CONNECT);
     // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
     AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
     onOpenConnectHardwareWallet?.();
