@@ -27,34 +27,57 @@ const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddlewa
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
-const { NOTIFICATION_NAMES } = AppConstants;
+const { CONNECTION_TYPE, NOTIFICATION_NAMES } = AppConstants;
+
+/**
+ * Options for a connection between the background and the browser.
+ *
+ * @typedef {object} BrowserConnectionOptions
+ * @property {boolean} isMainFrame - Whether the connection is with the parent browser window, or a subframe (e.g. an iframe).
+ * @property {CONNECTION_TYPE.BROWSER} type - The connection type.
+ * @property {string} url - The URL of the connected website.
+ * @property {object} webview - A React ref to the WebView component.
+ */
+
+/**
+ * Options for a connection between the background and a remote source.
+ *
+ * @typedef {object} RemoteConnectionOptions
+ * @property {Function} getApprovedHosts - Returns a list of all approved hosts.
+ * @property {string} remoteConnHost - The host used for this connection.
+ * @property {CONNECTION_TYPE.REMOTE} type - The connection type.
+ * @property {Function} sendMessage - Sends a message over this connection.
+ * @property {string} url - The URL of the remote source.
+ */
+
+/**
+ * Options for a connection between the background and WalletConnect.
+ *
+ * @typedef {object} WalletConnectConnectionOptions
+ * @property {CONNECTION_TYPE.WALLET_CONNECT} type - The connection type.
+ * @property {string} url - The URL for this WalletConnect session.
+ * @property {object} wcRequestActions - A set of functions for managing the WalletConnect session.
+ */
+
+/**
+ * Background connection options.
+ *
+ * @typedef {BrowserConnectionOptions | RemoteConnectionOptions | WalletConnectConnectionOptions} ConnectionOptions
+ */
 
 export class BackgroundBridge extends EventEmitter {
-  constructor({
-    webview,
-    url,
-    getRpcMethodMiddleware,
-    isMainFrame,
-    isRemoteConn,
-    sendMessage,
-    isWalletConnect,
-    wcRequestActions,
-    getApprovedHosts,
-    remoteConnHost,
-    isMMSDK,
-  }) {
+  /**
+   * Background bridge constructor.
+   *
+   * @param {object} options - Background bridge options.
+   * @param {Function} getRpcMethodMiddleware - Returns the set of middleware to use for this background connection.
+   * @param {ConnectionOptions} - Options for this background connection.
+   */
+  constructor({ getRpcMethodMiddleware, connectionOptions }) {
     super();
-    this.url = url;
-    // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.hostname = new URL(url).hostname;
-    this.remoteConnHost = remoteConnHost;
-    this.isMainFrame = isMainFrame;
-    this.isWalletConnect = isWalletConnect;
-    this.isMMSDK = isMMSDK;
-    this.isRemoteConn = isRemoteConn;
-    this._webviewRef = webview && webview.current;
+    this.connectionOptions = connectionOptions;
+    this.hostname = new URL(connectionOptions.url).hostname;
     this.disconnected = false;
-    this.getApprovedHosts = getApprovedHosts;
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -67,11 +90,22 @@ export class BackgroundBridge extends EventEmitter {
 
     this.setProviderAndBlockTracker({ provider, blockTracker });
 
-    this.port = isRemoteConn
-      ? new RemotePort(sendMessage)
-      : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+    let portStream;
+    if (connectionOptions.type === CONNECTION_TYPE.WALLET_CONNECT) {
+      this.port = new WalletConnectPort(connectionOptions.wcRequestActions);
+      portStream = new MobilePortStream(this.port);
+    } else if (connectionOptions.type === CONNECTION_TYPE.REMOTE) {
+      this.port = new RemotePort(connectionOptions.sendMessage);
+      portStream = new MobilePortStream(this.port);
+    } else if (connectionOptions.type === CONNECTION_TYPE.BROWSER) {
+      this.port = new Port(
+        connectionOptions.webview.current,
+        connectionOptions.isMainFrame,
+      );
+      portStream = new MobilePortStream(this.port, connectionOptions.url);
+    } else {
+      throw new Error(`Invalid connection type: '${connectionOptions.type}'`);
+    }
 
     this.engine = null;
 
@@ -83,13 +117,14 @@ export class BackgroundBridge extends EventEmitter {
     this.addressSent =
       Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 
-    const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing
     const mux = setupMultiplex(portStream);
     // connect features
     this.setupProviderConnection(
       mux.createStream(
-        isWalletConnect ? 'walletconnect-provider' : 'metamask-provider',
+        connectionOptions.type === CONNECTION_TYPE.WALLET_CONNECT
+          ? 'walletconnect-provider'
+          : 'metamask-provider',
       ),
     );
 
@@ -104,7 +139,7 @@ export class BackgroundBridge extends EventEmitter {
 
     this.on('update', this.onStateUpdate);
 
-    if (this.isRemoteConn) {
+    if (connectionOptions.type === CONNECTION_TYPE.REMOTE) {
       const memState = this.getState();
       const publicState = this.getProviderNetworkState(memState);
       const selectedAddress = memState.selectedAddress;
@@ -136,7 +171,7 @@ export class BackgroundBridge extends EventEmitter {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
-    if (this.isRemoteConn) {
+    if (this.connectionOptions.type === CONNECTION_TYPE.REMOTE) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
       // In case we want to send, use  new structure
       /*const memState = this.getState();
@@ -162,7 +197,7 @@ export class BackgroundBridge extends EventEmitter {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
-    if (this.isRemoteConn) {
+    if (this.connectionOptions.type === CONNECTION_TYPE.REMOTE) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
       // In case we want to send, use  new structure
       /*this.sendNotification({
@@ -213,8 +248,13 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   notifySelectedAddressChanged(selectedAddress) {
-    if (this.isRemoteConn) {
-      if (!this.getApprovedHosts?.()?.[this.remoteConnHost]) return;
+    if (this.connectionOptions.type === CONNECTION_TYPE.REMOTE) {
+      if (
+        !this.connectionOptions.getApprovedHosts()[
+          this.connectionOptions.remoteConnHost
+        ]
+      )
+        return;
     }
     this.sendNotification({
       method: NOTIFICATION_NAMES.accountsChanged,
@@ -242,8 +282,8 @@ export class BackgroundBridge extends EventEmitter {
       this.notifyChainChanged(publicState);
     }
 
-    // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect || this.isRemoteConn) {
+    // THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
+    if (this.connectionOptions.type !== CONNECTION_TYPE.BROWSER) {
       if (this.addressSent !== memState.selectedAddress) {
         this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);
@@ -336,13 +376,13 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.hostname,
+        hostname: origin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
 
     // TODO - Remove this condition when WalletConnect and MMSDK uses Permission System.
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    if (this.connectionOptions.type === CONNECTION_TYPE.BROWSER) {
       const permissionController = Engine.context.PermissionController;
       engine.push(
         permissionController.createPermissionMiddleware({

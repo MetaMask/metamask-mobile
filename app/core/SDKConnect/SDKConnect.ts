@@ -474,13 +474,13 @@ export class Connection extends EventEmitter2 {
       return;
     }
     this.backgroundBridge = new BackgroundBridge({
-      webview: null,
-      isMMSDK: true,
-      url: originatorInfo?.url,
-      isRemoteConn: true,
-      sendMessage: this.sendMessage,
-      getApprovedHosts: () => this.getApprovedHosts('backgroundBridge'),
-      remoteConnHost: this.host,
+      connectionOptions: {
+        getApprovedHosts: () => this.getApprovedHosts('backgroundBridge'),
+        remoteConnHost: this.host,
+        type: AppConstants.CONNECTION_TYPE.REMOTE,
+        sendMessage: this.sendMessage,
+        url: originatorInfo?.url,
+      },
       getRpcMethodMiddleware: ({
         getProviderState,
       }: {
@@ -531,9 +531,6 @@ export class Connection extends EventEmitter2 {
           toggleUrlModal: () => null,
           injectHomePageScripts: () => null,
         }),
-      isMainFrame: true,
-      isWalletConnect: false,
-      wcRequestActions: undefined,
     });
   }
 
