@@ -10,10 +10,16 @@ const generateOpt = (
   action?: ACTIONS,
   description?: DESCRIPTION,
 ): IMetaMetricsEvent => {
-  if (action && description) {
-    return { name, properties: { action, name: description } };
+  if (action || description) {
+    return {
+      category: name,
+      properties: {
+        ...(action && { action }),
+        ...(description && { name: description }),
+      },
+    };
   }
-  return { name };
+  return { category: name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
