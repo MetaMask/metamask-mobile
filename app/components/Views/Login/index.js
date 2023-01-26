@@ -249,7 +249,10 @@ class Login extends PureComponent {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     //Setup UI to handle Biometric
-    const { type } = await Authentication.getAuthData();
+    // const { type } = await Authentication.getAuthData();
+    console.log('vault/ Login calling Authentication.getType()');
+    const { type } = await Authentication.getType();
+    console.log('vault/ Login calling Authentication.getType returned:', type);
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
@@ -365,6 +368,7 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
+      console.log('vault/ Login tryBiometric calling appTriggeredAuth');
       await Authentication.appTriggeredAuth(this.props.selectedAddress);
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);

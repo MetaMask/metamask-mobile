@@ -115,6 +115,7 @@ const ImportFromSecretRecoveryPhrase = ({
     updateNavBar();
 
     const setBiometricsOption = async () => {
+      console.log('vault/ ImportFromSRP calling Authentication.getType');
       const { type } = await Authentication.getType();
       const previouslyDisabled = await AsyncStorage.getItem(
         BIOMETRY_CHOICE_DISABLED,

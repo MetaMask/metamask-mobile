@@ -295,6 +295,7 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
+    console.log('vault/ ChoosePassword calling Authentication.getType');
     const { type } = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
