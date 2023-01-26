@@ -1,11 +1,10 @@
-import Gestures from '../helpers/Gestures';
-import Selectors from '../helpers/Selectors';
-import { ENTER_ALIAS_INPUT_BOX_ID } from '../testIDs/Screens/AddressBook.testids';
+import Gestures from '../../helpers/Gestures';
+import Selectors from '../../helpers/Selectors';
+import {
+   ENTER_ALIAS_INPUT_BOX_ID,
+} from '../../testIDs/Screens/AddressBook.testids';
 
-class AddressBook {
-  get addressInputField() {
-    return Selectors.getElementByPlatform(ENTER_ALIAS_INPUT_BOX_ID);
-  }
+class AddressBookModal {
 
   async fillAddressAliasField(text) {
     await Gestures.typeText(this.addressInputField, text);
@@ -31,4 +30,4 @@ class AddressBook {
     expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
   }
 }
-export default new AddressBook();
+export default new AddressBookModal();

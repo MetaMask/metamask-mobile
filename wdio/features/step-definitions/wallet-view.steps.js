@@ -1,6 +1,13 @@
 /* global driver */
 import { When, Then } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
+import SendScreen from '../screen-objects/SendScreen';
+
+Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
+    const timeout = 1500;
+    await driver.pause(timeout);
+    await SendScreen.tapOnText(text); // we need to rework this. Either have all test actions follow this pattern or not
+});
 
 When(/^I tap burger icon/, async () => {
   const setTimeout = 1500; //added to run on physical device
@@ -33,4 +40,7 @@ Then(/^I tap on the navbar network title button/, async () => {
 Then(/^I am on the wallet screen/, async () => {
   await driver.pause(2000);
   await WalletMainScreen.isVisible();
+});
+Then(/^I am on the wallet view/, async () => {
+    await WalletMainScreen.isMainWalletViewVisible();
 });

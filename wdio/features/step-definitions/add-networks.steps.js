@@ -158,6 +158,7 @@ Then(/^the RPC URL input box is visible/, async () => {
 
 Then(/^I type "([^"]*)?" into the RPC url field/, async (data) => {
   await NetworksScreen.typeIntoRPCURLField(data);
+  
 });
 
 Then(/^the Chain ID input box is visible/, async () => {
@@ -262,10 +263,9 @@ Then(/^I navigate back to the main wallet view/, async () => {
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
+  await driver.pause(2500);
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(setTimeout);
+  await driver.pause(2500);
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
 
