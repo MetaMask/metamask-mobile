@@ -565,13 +565,7 @@ export const BrowserTab = (props) => {
       handleNotAllowedUrl(urlToGo);
       return null;
     },
-    [
-      firstUrlLoaded,
-      handleIpfsContent,
-      isAllowedUrl,
-      isHomepage,
-      props.defaultProtocol,
-    ],
+    [firstUrlLoaded, handleIpfsContent, isAllowedUrl],
   );
 
   /**
