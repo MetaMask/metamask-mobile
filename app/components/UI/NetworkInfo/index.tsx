@@ -197,7 +197,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               imageSource={networkImageSource}
             />
             <Text
-              style={styles.tokenText}
+              style={[styles.tokenText, styles.capitalizeText]}
               testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
             >
               {getNetworkName()}

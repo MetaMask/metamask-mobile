@@ -283,14 +283,15 @@ export class NetworkList extends PureComponent {
         </View>
         {isCustomRpc &&
           // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
-          (image ? null : (
+          (image ? (
             <Avatar
               variant={AvatarVariants.Network}
               name={name}
+              imageSource={image}
               style={styles.networkIcon}
               size={AvatarSize.Xs}
             />
-          ))}
+          ) : null)}
         {!isCustomRpc &&
           (image ? (
             <ImageIcon
