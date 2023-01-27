@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import TypedSign from './';
+import TypedSign from './TypedSign';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 

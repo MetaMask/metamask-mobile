@@ -413,7 +413,6 @@ const RootRPCMethodsUI = (props) => {
       )}
       {signType === 'typed' && (
         <TypedSign
-          navigation={props.navigation}
           messageParams={signMessageParams}
           onCancel={onSignAction}
           onConfirm={onSignAction}
