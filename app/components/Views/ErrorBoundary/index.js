@@ -232,9 +232,9 @@ class ErrorBoundary extends Component {
   render() {
     return this.state.backupSeedphrase ? (
       <RevealPrivateCredential
-        navBarDisabled
         credentialName={'seed_phrase'}
         cancel={this.cancelExportSeedphrase}
+        errorBoundaryView={this.props.view}
       />
     ) : this.state.error ? (
       <Fallback
