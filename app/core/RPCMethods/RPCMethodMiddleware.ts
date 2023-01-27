@@ -322,6 +322,15 @@ export const getRpcMethodMiddleware = ({
       },
       eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
+      eth_getTransactionCount: async () => {
+        const blockTag = req.params[1];
+
+        if (blockTag === 'pending') {
+          res.result = Engine.context.TransactionController.getNextNonce();
+        } else {
+          next();
+        }
+      },
       eth_sendTransaction: async () => {
         checkTabActive();
         return RPCMethods.eth_sendTransaction({
