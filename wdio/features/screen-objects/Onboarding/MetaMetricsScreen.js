@@ -1,6 +1,10 @@
 /* global $ */
 import Gestures from '../../helpers/Gestures';
-import { OPTIN_METRICS_I_AGREE_BUTTON_ID,OPTIN_METRICS_NO_THANKS_BUTTON_ID, OPTIN_METRICS_TITLE_ID } from '../../testIDs/Screens/OptinMetricsScreen.testIds';
+import {
+  OPTIN_METRICS_I_AGREE_BUTTON_ID,
+  OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+  OPTIN_METRICS_TITLE_ID,
+} from '../../testIDs/Screens/OptinMetricsScreen.testIds';
 
 class MetaMetricsScreen {
   get screenTitle() {
@@ -11,12 +15,9 @@ class MetaMetricsScreen {
     await expect(this.screenTitle).toBeDisplayed();
   }
 
-  async swipeUp(){
+  async swipeUp() {
     await driver.pause(5000);
-    await Gestures.swipe(
-      { x: 200, y: 1000 },
-      { x: 200, y: 10 },
-    );
+    await Gestures.swipe({ x: 200, y: 1000 }, { x: 200, y: 10 });
   }
 
   async tapIAgreeButton() {
@@ -34,4 +35,3 @@ class MetaMetricsScreen {
 }
 
 export default new MetaMetricsScreen();
-

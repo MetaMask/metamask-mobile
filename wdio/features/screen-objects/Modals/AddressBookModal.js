@@ -1,37 +1,30 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import {
-   ENTER_ALIAS_INPUT_BOX_ID,
-} from '../../testIDs/Screens/AddressBook.testids';
+import { ENTER_ALIAS_INPUT_BOX_ID } from '../../testIDs/Screens/AddressBook.testids';
 
 class AddressBookModal {
+  async fillAddressAliasField(text) {
+    await Gestures.typeText(this.addressInputField, text);
+  }
 
-   get addressInputField() {
-      return Selectors.getElementByPlatform(ENTER_ALIAS_INPUT_BOX_ID);
-   }
+  async isCancelButtonEnabled() {
+    expect(await Selectors.getXpathElementByText('Cancel')).toBeEnabled();
+  }
 
-   async fillAddressAliasField(text) {
-      await Gestures.typeText(this.addressInputField, text);
-   }
+  async isSaveButtonEnabled() {
+    expect(await Selectors.getXpathElementByText('Save')).toBeEnabled();
+  }
 
-   async isCancelButtonEnabled() {
-      expect(await Selectors.getXpathElementByText('Cancel')).toBeEnabled();
-   }
+  async tapOnSaveButton() {
+    await Gestures.tap(await Selectors.getXpathElementByText('Save'));
+  }
 
-   async isSaveButtonEnabled() {
-      expect(await Selectors.getXpathElementByText('Save')).toBeEnabled();
-   }
+  async isContactNameVisible(contact) {
+    expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
+  }
 
-   async tapOnSaveButton() {
-      await Gestures.tap(await Selectors.getXpathElementByText('Save'));
-   }
-
-   async isContactNameVisible(contact) {
-      expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
-   }
-
-   async isDeletedContactNameNotVisible(contact) {
-      expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
-   }
+  async isDeletedContactNameNotVisible(contact) {
+    expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
+  }
 }
 export default new AddressBookModal();

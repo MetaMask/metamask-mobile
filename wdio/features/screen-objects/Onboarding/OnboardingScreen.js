@@ -9,9 +9,8 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 class OnBoardingScreen {
-
   // selectors ====================================
-  get title () {
+  get title() {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
@@ -20,11 +19,15 @@ class OnBoardingScreen {
   }
 
   get seedButton() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID);
+    return Selectors.getElementByPlatform(
+      WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
+    );
   }
 
   get createNewWalletButton() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
+    return Selectors.getElementByPlatform(
+      WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
+    );
   }
 
   get termsAndConditionsButton() {
@@ -32,13 +35,17 @@ class OnBoardingScreen {
   }
 
   get importWalletButton() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID);
+    return Selectors.getElementByPlatform(
+      WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
+    );
   }
   get newWalletButton() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
+    return Selectors.getElementByPlatform(
+      WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
+    );
   }
 
-// functions and assertions ======================================
+  // functions and assertions ======================================
 
   async isScreenTitleVisible() {
     await expect(this.title).toBeDisplayed();
@@ -64,11 +71,9 @@ class OnBoardingScreen {
     await Gestures.tap(this.importWalletButton);
   }
 
-  async tapCreateNewWalletButton(){
+  async tapCreateNewWalletButton() {
     await Gestures.tap(this.newWalletButton);
   }
-
-
 }
 
 export default new OnBoardingScreen();
