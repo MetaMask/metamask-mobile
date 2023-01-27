@@ -12,14 +12,14 @@ const generateOpt = (
 ): IMetaMetricsEvent => {
   if (action || description) {
     return {
-      category: name,
+      name,
       properties: {
         ...(action && { action }),
         ...(description && { name: description }),
       },
     };
   }
-  return { category: name };
+  return { name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
