@@ -3,7 +3,8 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 import {
-  GOERLI_TEST_NETWORK_OPTION, NETWORK_LIST_CLOSE_ICON,
+  GOERLI_TEST_NETWORK_OPTION,
+  NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
 } from '../../testIDs/Components/NetworkListModal.TestIds';
 

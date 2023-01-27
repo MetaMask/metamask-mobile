@@ -1,43 +1,55 @@
 /* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS_TEXT, } from '../testIDs/Screens/WalletScreen-testIds.js';
+import {
+  WALLET_CONTAINER_ID,
+  NAVBAR_TITLE_NETWORKS_TEXT,
+} from '../testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
 } from '../testIDs/Components/OnboardingWizard.testIds';
 
-import { WALLET_VIEW_BURGER_ICON_ID,
-        HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON, MAIN_WALLET_VIEW_VIA_TOKENS_ID }
-from '../testIDs/Screens/WalletView.testIds';
+import {
+  WALLET_VIEW_BURGER_ICON_ID,
+  HAMBURGER_MENU_BUTTON,
+  IMPORT_NFT_BUTTON_ID,
+  IMPORT_TOKEN_BUTTON_ID,
+  WALLET_ACCOUNT_ICON,
+  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
+} from '../testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from '../testIDs/Screens/DrawerView.testIds';
 
 class WalletMainScreen {
   get wizardContainer() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_CONTAINER_ID);
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
+    );
   }
 
   get noThanks() {
-    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID);
+    return Selectors.getElementByPlatform(
+      ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+    );
   }
 
   get burgerIcon() {
     return Selectors.getElementByPlatform(WALLET_VIEW_BURGER_ICON_ID);
   }
 
-  get ImportToken(){
+  get ImportToken() {
     return Selectors.getElementByPlatform(IMPORT_TOKEN_BUTTON_ID);
   }
 
-  get ImportNFT(){
+  get ImportNFT() {
     return Selectors.getElementByPlatform(IMPORT_NFT_BUTTON_ID);
   }
 
   get HamburgerButton() {
     return Selectors.getElementByPlatform(HAMBURGER_MENU_BUTTON);
   }
-  get Identicon(){
+  get Identicon() {
     return Selectors.getElementByPlatform(WALLET_ACCOUNT_ICON);
   }
 
@@ -61,7 +73,7 @@ class WalletMainScreen {
     await Gestures.tap(this.drawerSettings);
   }
 
-  async tapSendIcon(text){
+  async tapSendIcon(text) {
     await Gestures.tapTextByXpath(text);
   }
 
@@ -82,21 +94,20 @@ class WalletMainScreen {
   }
 
   async tapImportNFTButton() {
-    await Gestures.swipe(
-      { x: 100, y: 500 },
-      { x: 100, y: 10 },
-    );
+    await Gestures.swipe({ x: 100, y: 500 }, { x: 100, y: 10 });
     await Gestures.waitAndTap(this.ImportNFT);
   }
 
   async tapBurgerButtonByXpath() {
-    await Gestures.tap(await Selectors.getXpathElementByContentDescription(this.HamburgerButton));
+    await Gestures.tap(
+      await Selectors.getXpathElementByContentDescription(this.HamburgerButton),
+    );
   }
 
-  async tapNFTTab(){
+  async tapNFTTab() {
     await Gestures.tapTextByXpath('NFTs');
   }
-  async tapIdenticon(){
+  async tapIdenticon() {
     await Gestures.tap(this.Identicon);
   }
 
@@ -117,7 +128,7 @@ class WalletMainScreen {
     expect(networkName).toContain(network);
   }
 
-  async isTokenTextVisible(token){
+  async isTokenTextVisible(token) {
     const tokenText = Selectors.getXpathElementByText(token);
     await expect(tokenText).toBeDisplayed();
   }
