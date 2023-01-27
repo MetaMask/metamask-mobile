@@ -5,75 +5,86 @@ import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
-    await AddressBookModal.isCancelButtonEnabled();
+  await AddressBookModal.isCancelButtonEnabled();
 });
 
 Then(/^I see a Save button which is disabled/, async () => {
-    await AddressBookModal.isSaveButtonDisabled();
+  await AddressBookModal.isSaveButtonDisabled();
 });
 
 Then(/^I enter in a contact name "([^"]*)?"/, async (text) => {
-    await AddressBookModal.fillAddressAliasField(text);
+  await AddressBookModal.fillAddressAliasField(text);
 });
 
 Then(/^the Save button becomes enabled/, async () => {
-    await AddressBookModal.isSaveButtonEnabled();
+  await AddressBookModal.isSaveButtonEnabled();
 });
 
 Then(/^I tap the Save button/, async () => {
-    await AddressBookModal.tapOnSaveButton();
+  await AddressBookModal.tapOnSaveButton();
 });
 
-Given(/^I enter address "([^"]*)?" in the sender's input box/, async (address) => {
+Given(
+  /^I enter address "([^"]*)?" in the sender's input box/,
+  async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
-});
+  },
+);
 
 Given(/^I should see a warning message "([^"]*)?"/, async (message) => {
-    await SendScreen.isSendWarningMessageVisible(message);
+  await SendScreen.isSendWarningMessageVisible(message);
 });
 
 When(/^I see a button with text "([^"]*)?"/, async (text) => {
-    await SendScreen.isTextVisible(text);
+  await SendScreen.isTextVisible(text);
 });
 
 Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
-    const timeout = 1000;
-    await driver.pause(timeout);
-    await SendScreen.tapOnText(text);
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await SendScreen.tapOnText(text);
 });
 
 Then(/^I proceed to the amount view/, async () => {
-    await SendScreen.isAmountScreenDisplayed();
+  await SendScreen.isAmountScreenDisplayed();
 });
 
-Then(/^the contact name "([^"]*)?" appears in the senders input box above the contact address/, async (contactName) => {
+Then(
+  /^the contact name "([^"]*)?" appears in the senders input box above the contact address/,
+  async (contactName) => {
     await SendScreen.isContactNameVisible(contactName);
-});
+  },
+);
 
 Then(/^I navigate to the main wallet screen/, async () => {
-    await SendScreen.tapCancelButton();
+  await SendScreen.tapCancelButton();
 });
 
-Then(/^I should see the edited name "([^"]*)?" contact under Recents on the send screen/, async (name) => {
+Then(
+  /^I should see the edited name "([^"]*)?" contact under Recents on the send screen/,
+  async (name) => {
     await SendScreen.isChangedContactNameVisible(name);
-});
+  },
+);
 
 Then(/^I navigate to the main wallet view from Send screen/, async () => {
-    await SendScreen.tapCancelButton();
+  await SendScreen.tapCancelButton();
 });
 
-
-Then(/^I go back to the main wallet screen from the send flow screen/, async () => {
+Then(
+  /^I go back to the main wallet screen from the send flow screen/,
+  async () => {
     await SendScreen.tapCancelButton();
-});
+  },
+);
 
 Then(/^I navigate back to main wallet screen/, async () => {
-    await SendScreen.tapCancelButton();
+  await SendScreen.tapCancelButton();
 });
 
-Then(/^I enter invalid address "([^"]*)?" into senders input field/, async (address) => {
+Then(
+  /^I enter invalid address "([^"]*)?" into senders input field/,
+  async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
-});
-
-
-
+  },
+);

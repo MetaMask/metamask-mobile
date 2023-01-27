@@ -27,7 +27,6 @@ class Accounts {
       password: SHORT_PASSWORD,
     };
   }
-
 }
 
 export default Accounts;
