@@ -259,6 +259,12 @@ class Login extends PureComponent {
     const passcodePreviouslyDisabled = await AsyncStorage.getItem(
       PASSCODE_DISABLED,
     );
+
+    console.log('vault/ Login previouslyDisabled:', previouslyDisabled);
+    console.log(
+      'vault/ Login passcodePreviouslyDisabled:',
+      passcodePreviouslyDisabled,
+    );
     if (type === AUTHENTICATION_TYPE.BIOMETRIC)
       this.setState({
         biometryType: type,
@@ -438,6 +444,14 @@ class Login extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
+    const shouldHideBiometricAccessoryButton = !(
+      this.state.biometryChoice &&
+      this.state.biometryType &&
+      this.state.hasBiometricCredentials
+    );
+    console.log(
+      `vault/ Login render. shouldHideBiometricAccessoryButton: ${shouldHideBiometricAccessoryButton}, biometryChoice: ${this.state.biometryChoice}, biometryType: ${this.state.biometryType}, hasBiometricCredentials: ${this.state.hasBiometricCredentials}`,
+    );
 
     return (
       <ErrorBoundary view="Login">
@@ -484,13 +498,7 @@ class Login extends PureComponent {
                   renderRightAccessory={() => (
                     <BiometryButton
                       onPress={this.tryBiometric}
-                      hidden={
-                        !(
-                          this.state.biometryChoice &&
-                          this.state.biometryType &&
-                          this.state.hasBiometricCredentials
-                        )
-                      }
+                      hidden={shouldHideBiometricAccessoryButton}
                       type={this.state.biometryType}
                     />
                   )}

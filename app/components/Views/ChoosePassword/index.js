@@ -554,8 +554,10 @@ class ChoosePassword extends PureComponent {
   updateBiometryChoice = async (biometryChoice) => {
     if (!biometryChoice) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
     } else {
       await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await AsyncStorage.removeItem(PASSCODE_DISABLED);
     }
     this.setState({ biometryChoice });
   };
