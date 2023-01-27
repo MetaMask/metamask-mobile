@@ -26,11 +26,12 @@ import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
   getHost,
-  getUrlObj,
+  prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
   getAlertMessage,
   allowLinkOpen,
+  getUrlObj,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -313,7 +314,8 @@ export const BrowserTab = (props) => {
    */
   const isHomepage = useCallback((checkUrl = null) => {
     const currentPage = checkUrl || url.current;
-    const { host: currentHost } = getUrlObj(currentPage);
+    const prefixedUrl = prefixUrlWithProtocol(currentPage);
+    const { host: currentHost } = getUrlObj(prefixedUrl);
     return currentHost === HOMEPAGE_HOST;
   }, []);
 
@@ -527,10 +529,9 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
-      const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
-      const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
-      const { hostname, query, pathname } = new URL(sanitizedURL);
-      let urlToGo = sanitizedURL;
+      const prefixedUrl = prefixUrlWithProtocol(url);
+      const { hostname, query, pathname } = new URL(prefixedUrl);
+      let urlToGo = prefixedUrl;
       urlToGo = sanitizeUrlInput(urlToGo);
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
@@ -559,7 +560,7 @@ export const BrowserTab = (props) => {
         }
 
         setProgress(0);
-        return sanitizedURL;
+        return prefixedUrl;
       }
       handleNotAllowedUrl(urlToGo);
       return null;
