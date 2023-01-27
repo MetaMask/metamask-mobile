@@ -10,10 +10,16 @@ const generateOpt = (
   action?: ACTIONS,
   description?: DESCRIPTION,
 ): IMetaMetricsEvent => {
-  if (action && description) {
-    return { name, properties: { action, name: description } };
+  if (action || description) {
+    return {
+      category: name,
+      properties: {
+        ...(action && { action }),
+        ...(description && { name: description }),
+      },
+    };
   }
-  return { name };
+  return { category: name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
@@ -246,6 +252,18 @@ enum EVENT_NAME {
   SCREENSHOT_WARNING = 'Screenshot Warning Displayed',
   SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
   SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
+
+  // Reveal SRP Quiz
+  SRP_REVEAL_QUIZ_PROMPT_SEEN = 'SRP reveal quiz prompt seen',
+  SRP_REVEAL_START_CTA_SELECTED = 'SRP reveal get started CTA selected',
+  SRP_REVEAL_FIRST_QUESTION_SEEN = 'SRP reveal first question seen',
+  SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER = 'SRP reveal first question answered incorrectly',
+  SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER = 'SRP reveal first question answered correctly',
+  SRP_REVEAL_SECOND_QUESTION_SEEN = 'SRP reveal second question seen',
+  SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER = 'SRP reveal second question answered incorrectly',
+  SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER = 'SRP reveal second question answered correctly',
+  REVEAL_SRP = 'Reveal SRP',
+  SRP_COPIED = 'SRP copied',
 }
 
 const events = {
@@ -479,6 +497,32 @@ const events = {
   SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
   SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
   SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
+  SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
+  ),
+  SRP_REVEAL_START_CTA_SELECTED: generateOpt(
+    EVENT_NAME.SRP_REVEAL_START_CTA_SELECTED,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_SEEN,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_SEEN,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
+  ),
+  REVEAL_SRP: generateOpt(EVENT_NAME.REVEAL_SRP),
+  SRP_COPIED: generateOpt(EVENT_NAME.SRP_COPIED),
 };
 
 /**
