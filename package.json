@@ -99,7 +99,7 @@
     "**/node-fetch": "^2.6.7",
     "**/node-notifier": "^8.0.1",
     "**/lodash": "^4.17.21",
-    "**/ua-parser-js": "^0.7.24",
+    "**/ua-parser-js": "^0.7.33",
     "**/elliptic": "^6.5.4",
     "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
