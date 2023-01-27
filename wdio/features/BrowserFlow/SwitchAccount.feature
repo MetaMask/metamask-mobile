@@ -10,15 +10,20 @@ Feature: This feature file cover the switch account on the browser flow.
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser
     And I am on Home MetaMask website
+
     When I input "Uniswap" in the search field
     Then Uniswap exchange page is a suggestion listed
+
     When I tap on Uniswap exchange page on the suggestion list
     Then the browser view is on Uniswap Page
+
     When I connect my active wallet to the Uniswap exchange page
     Then active wallet is connected to Uniswap
     And "Account 1" is the active wallet account
+
     When I tap on the account icon located in the upper right of the browser view
     Then select account component is displayed
+
     When I tap on Create a new account
     Then the created account is selected
     And "Account 2" is the active wallet account
