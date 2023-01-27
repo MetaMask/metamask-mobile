@@ -1,7 +1,6 @@
 # Changelog
 
 ## Current Main Branch
-- [#5431](https://github.com/MetaMask/metamask-mobile/pull/5431): 5.13.0
 - [#5535](https://github.com/MetaMask/metamask-mobile/pull/5535): Add content for "Add friction to revealing SRP"
 - [#5538](https://github.com/MetaMask/metamask-mobile/pull/5538): E2e appium test failure fix
 - [#5537](https://github.com/MetaMask/metamask-mobile/pull/5537): On-ramp: Update snapshots
@@ -26,7 +25,7 @@
 - [#5460](https://github.com/MetaMask/metamask-mobile/pull/5460): E2e test/browser flow
 - [#5488](https://github.com/MetaMask/metamask-mobile/pull/5488): Add Browserstack step to Bitrise
 - [#5486](https://github.com/MetaMask/metamask-mobile/pull/5486): Add providerValues to renderScreen
-- [#5484](https://github.com/MetaMask/metamask-mobile/pull/5484): Final Commit
+- [#5484](https://github.com/MetaMask/metamask-mobile/pull/5484): Isolate e2e-Appium Feature scenarios
 - [#5483](https://github.com/MetaMask/metamask-mobile/pull/5483): Add renderScreen test util
 - [#5476](https://github.com/MetaMask/metamask-mobile/pull/5476): README.md: update "Install the Android NDK"
 - [#5479](https://github.com/MetaMask/metamask-mobile/pull/5479): Mount SeedPhraseVideo Video Player after transition
