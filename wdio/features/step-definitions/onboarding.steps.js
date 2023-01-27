@@ -10,7 +10,7 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
-import AddressBarScreen from "../screen-objects/BrowserObject/AddressBarScreen";
+import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/

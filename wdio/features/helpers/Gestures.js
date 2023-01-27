@@ -97,7 +97,7 @@ class Gestures {
   }
 
   static async tapTextByXpath(text, tapType = 'TAP') {
-    const elem = (await Selectors.getXpathElementByText(text));
+    const elem = await Selectors.getXpathElementByText(text);
     switch (tapType) {
       case 'TAP':
         await elem.touchAction(Actions.TAP);
@@ -118,8 +118,8 @@ class Gestures {
     (await elem).touchAction([
       Actions.PRESS,
       { action: Actions.WAIT, ms: waitTime },
-      Actions.RELEASE
-    ])
+      Actions.RELEASE,
+    ]);
   }
 
   static async typeText(element, text) {
@@ -216,9 +216,9 @@ class Gestures {
     const anchorPercentage = 50;
 
     const { width, height } = await driver.getWindowSize();
-    const anchor = height * anchorPercentage / 100;
-    const startPoint = width * startPercentage / 100;
-    const endPoint = width * endPercentage / 100;
+    const anchor = (height * anchorPercentage) / 100;
+    const startPoint = (width * startPercentage) / 100;
+    const endPoint = (width * endPercentage) / 100;
     await driver.touchPerform([
       {
         action: 'press',
