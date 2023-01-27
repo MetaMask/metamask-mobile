@@ -40,7 +40,8 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     modalRef.current?.dismissModal(onConfirm);
   };
 
-  const handleModalDismiss = (hasPendingAction: boolean) => !hasPendingAction && onCancel?.();
+  const handleModalDismiss = (hasPendingAction: boolean) =>
+    !hasPendingAction && onCancel?.();
 
   const renderHeader = () => (
     <Text style={styles.headerLabel} variant={TextVariants.sHeadingMD}>
