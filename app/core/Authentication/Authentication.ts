@@ -238,7 +238,7 @@ class AuthenticationService {
     );
 
     console.log(
-      `vault/ Authentication.checkAuthenticationMethod biometryType: ${biometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}`,
+      `vault/ Authentication.checkAuthenticationMethod biometryType: ${biometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}, authData: ${this.authData}`,
     );
 
     if (
@@ -248,7 +248,8 @@ class AuthenticationService {
       return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
     } else if (
       biometryType &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE) &&
+      this.authData.type !== AUTHENTICATION_TYPE.PASSWORD
     ) {
       return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
     } else if (await SecureKeychain.getGenericPassword()) {
