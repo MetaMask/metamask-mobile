@@ -52,7 +52,7 @@ class MetaMetrics implements IMetaMetrics {
   constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    // this.#init();
+    this.#init();
   }
 
   // PRIVATE METHODS
@@ -108,6 +108,7 @@ class MetaMetrics implements IMetaMetrics {
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
     this.#segmentClient.identify(this.#metametricsId, userTraits as UserTraits);
+    this.#segmentClient.flush();
   }
 
   /**
