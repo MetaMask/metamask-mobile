@@ -6,14 +6,13 @@ import {
   I_UNDERSTAND_BUTTON_ID,
   SUBMIT_BUTTON,
   REMIND_LATER_BUTTON_ID,
-  PROTECT_YOUR_WALLET_CONTAINER_ID
+  PROTECT_YOUR_WALLET_CONTAINER_ID,
 } from '../../testIDs/Screens/WalletSetupScreen.testIds';
 import { SKIP_BUTTON } from '../../testIDs/Components/SkipAccountSecurityModalTestIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 class CreateNewWalletScren {
-
   // selectors ====================================
   get description() {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_DESCRIPTION_ID);
@@ -29,7 +28,7 @@ class CreateNewWalletScren {
   get skipButton() {
     return Selectors.getElementByPlatform(SKIP_BUTTON);
   }
-  
+
   get remindMeLaterButton() {
     return Selectors.getElementByPlatform(REMIND_LATER_BUTTON_ID);
   }
@@ -61,12 +60,12 @@ class CreateNewWalletScren {
     await Gestures.tap(this.newWalletSubmitButton);
   }
 
-  async selectRemindMeLater(){
+  async selectRemindMeLater() {
     await driver.pause(2000);
     await Gestures.tap(this.remindMeLaterButton);
   }
 
-  async isAccountCreated(){
+  async isAccountCreated() {
     await driver.pause(5000);
     await expect(this.secureWalletScreen).toBeDisplayed();
   }
@@ -79,11 +78,11 @@ class CreateNewWalletScren {
     await expect(this.termsAndConditionsButton).toBeDisplayed();
   }
 
-  async isNewAccountScreenFieldsVisible(){
-  await expect(this.newWalletPasswordField).toBeDisplayed();
+  async isNewAccountScreenFieldsVisible() {
+    await expect(this.newWalletPasswordField).toBeDisplayed();
   }
 
-  async isNotVisible(){
+  async isNotVisible() {
     await expect(this.SECURE_WALLET_SCREEN).not.toBeDisplayed();
   }
 }

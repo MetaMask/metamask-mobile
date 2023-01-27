@@ -1636,6 +1636,13 @@
   dependencies:
     "@cucumber/messages" "^19.0.0"
 
+"@cucumber/gherkin@^24.1.0":
+  version "24.1.0"
+  resolved "https://registry.yarnpkg.com/@cucumber/gherkin/-/gherkin-24.1.0.tgz#ca2dcbe11f5f7d7f30fd073280550bd6eca2363c"
+  integrity sha512-B48XrUod4y3SoXe6mv12q7U1zThUNSK3yHSm/hBJCJZ6RJUJhFk3FVMN/83qOEbsYZe6iG9v+4L1Myf8/q8C6g==
+  dependencies:
+    "@cucumber/messages" "^19.1.4"
+
 "@cucumber/gherkin@~22.0.0":
   version "22.0.0"
   resolved "https://registry.yarnpkg.com/@cucumber/gherkin/-/gherkin-22.0.0.tgz#93b271fd116e2164c33adc5ccd9257bba74f03a7"
@@ -1671,7 +1678,7 @@
     reflect-metadata "0.1.13"
     uuid "8.3.2"
 
-"@cucumber/messages@19.1.4", "@cucumber/messages@^19.0.0":
+"@cucumber/messages@19.1.4", "@cucumber/messages@^19.0.0", "@cucumber/messages@^19.1.4":
   version "19.1.4"
   resolved "https://registry.yarnpkg.com/@cucumber/messages/-/messages-19.1.4.tgz#5cefc47cac3004c0bc38d42933042ec248bb747c"
   integrity sha512-Pksl0pnDz2l1+L5Ug85NlG6LWrrklN9qkMxN5Mv+1XZ3T6u580dnE6mVaxjJRdcOq4tR17Pc0RqIDZMyVY1FlA==
@@ -19610,6 +19617,15 @@ prettier-linter-helpers@^1.0.0:
   dependencies:
     fast-diff "^1.1.2"
 
+prettier-plugin-gherkin@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-gherkin/-/prettier-plugin-gherkin-1.1.1.tgz#b42a84b30c1371c823fefa3a7ef240eb2d0a538a"
+  integrity sha512-mOV7Us8mtR8NubLfObPWwUFX9ly5R6tTXZoIgY+Vem9b66aZ6avdWSFE14lKHPr72G3qwlL3mUHtBZfc4Isbew==
+  dependencies:
+    "@cucumber/gherkin" "^24.1.0"
+    "@cucumber/messages" "^19.1.4"
+    prettier "^2.7.1"
+
 prettier@^2.0.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.3.2.tgz#ef280a05ec253712e486233db5c6f23441e7342d"
@@ -19624,6 +19640,11 @@ prettier@^2.2.1:
   version "2.8.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.1.tgz#4e1fd11c34e2421bc1da9aea9bd8127cd0a35efc"
   integrity sha512-lqGoSJBQNJidqCHE80vqZJHWHRFoNYsSpP9AjFhlhi9ODCJA541svILes/+/1GM3VaL/abZi7cpFzOpdR9UPKg==
+
+prettier@^2.7.1:
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.3.tgz#ab697b1d3dd46fb4626fbe2f543afe0cc98d8632"
+  integrity sha512-tJ/oJ4amDihPoufT5sM0Z1SKEuKay8LfVAMlbbhnnkvt6BUserZylqo2PN+p9KeljLr0OHa2rXHU1T8reeoTrw==
 
 pretty-format@^26.5.2, pretty-format@^26.6.2:
   version "26.6.2"

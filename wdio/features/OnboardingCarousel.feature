@@ -1,4 +1,5 @@
-@iosApp @androidApp
+@iosApp
+@androidApp
 Feature: Onboarding
   Users can install MetaMask mobile app from the device app store and read the onboarding carousel
 
@@ -7,13 +8,17 @@ Feature: Onboarding
     and launches the app for the first time.
 
     Given I just installed MetaMask on my device
+
     When I launch MetaMask mobile app
     Then "METAMASK" is displayed
     And "Welcome to MetaMask" carousel item is displayed
+
     When I swipe left on the carousel
     Then "Manage your digital assets" carousel item is displayed
+
     When I swipe left on the carousel
     Then "Your gateway to web3" carousel item is displayed
+
     When I swipe left on the carousel
     And I tap "Get started"
     Then "Wallet setup" is displayed
