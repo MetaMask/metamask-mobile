@@ -15,7 +15,6 @@ import {
   METRICS_OPT_IN,
   METAMETRICS_ID,
   ANALYTICS_DATA_DELETION_DATE,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   MIXPANEL_METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
 } from '../../constants/storage';
@@ -24,7 +23,6 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 import {
   IMetaMetrics,
-  ISegmentClient,
   States,
   DataDeleteResponseStatus,
   UserIdentityProperties,
@@ -44,7 +42,7 @@ class MetaMetrics implements IMetaMetrics {
   // PRIVATE CLASS VARIABLES
 
   #metametricsId = '';
-  #segmentClient: ISegmentClient;
+  #segmentClient: any;
   #state: States = States.disabled;
   #deleteRegulationDate = '';
   #isDataRecorded = false;
