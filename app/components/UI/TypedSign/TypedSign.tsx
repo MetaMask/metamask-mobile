@@ -12,33 +12,8 @@ import { useTheme } from '../../../util/theme';
 import { SignatureProps } from '../../hooks/Signatures/useSignatureTypes';
 import { useNavigation } from '@react-navigation/native';
 import useMessage from '../../hooks/Signatures/useMessage';
-import { getAddressAccountType } from '../../../util/address';
-import Engine from '../../../core/Engine';
-
-const getAnalyticsParams = ({
-  currentPageInformation,
-  selectedAddress,
-  type,
-  messageParams,
-}: any) => {
-  const { NetworkController }: any = Engine.context;
-  try {
-    const { chainId } = NetworkController?.state?.provider || {};
-    const url = new URL(currentPageInformation?.url);
-
-    return {
-      account_type: getAddressAccountType(selectedAddress),
-      dapp_host_name: url?.host,
-      dapp_url: currentPageInformation?.url,
-      chain_id: chainId,
-      sign_type: type,
-      version: messageParams?.version,
-      ...currentPageInformation?.analytics,
-    };
-  } catch (error) {
-    return {};
-  }
-};
+import sanitizeString from '../../../util/string';
+import { signatureAnalytics } from '../SignatureRequest/SignatureSharedState';
 
 /**
  * Component that supports eth_signTypedData and eth_signTypedData_v3
@@ -51,6 +26,7 @@ const TypedSign = ({
   currentPageInformation,
   toggleExpandedMessage,
   showExpandedMessage,
+  messageParams: { from }
 }: SignatureProps) => {
   const [rejectMessage, signMessage] = useMessage({
     messageParams,
@@ -59,33 +35,26 @@ const TypedSign = ({
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams({
+      signatureAnalytics({
         currentPageInformation,
-        selectedAddress,
         type: 'typed',
         messageParams,
       }),
     );
-  }, [currentPageInformation, selectedAddress, messageParams]);
+  }, [currentPageInformation, messageParams]);
 
   const cancelSignature = () => {
     rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      getAnalyticsParams({
+      signatureAnalytics({
         currentPageInformation,
-        selectedAddress,
         type: 'typed',
         messageParams,
       }),
@@ -98,9 +67,8 @@ const TypedSign = ({
       signMessage();
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        getAnalyticsParams({
+        signatureAnalytics({
           currentPageInformation,
-          selectedAddress,
           type: 'typed',
           messageParams,
         }),
@@ -110,9 +78,8 @@ const TypedSign = ({
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams({
+          signatureAnalytics({
             currentPageInformation,
-            selectedAddress,
             type: 'typed',
             messageParams,
           }),
@@ -139,12 +106,13 @@ const TypedSign = ({
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
           <View>
-            <Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
+            <Text style={[styles.messageText, styles.msgKey]}>{sanitizeString(key)}:</Text>
             <View>{renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
           <Text style={styles.messageText}>
-            <Text style={styles.msgKey}>{key}:</Text> {`${obj[key]}`}
+            <Text style={styles.msgKey}>{sanitizeString(key)}:</Text>{' '}
+            {sanitizeString(`${obj[key]}`)}
           </Text>
         )}
       </View>
@@ -161,10 +129,10 @@ const TypedSign = ({
             ) => (
               <View key={`${obj.name}_${i}`}>
                 <Text style={[styles.messageText, styles.msgKey]}>
-                  {obj.name}:
+                {sanitizeString(obj.name)}:
                 </Text>
                 <Text style={styles.messageText} key={obj.name}>
-                  {` ${obj.value}`}
+                {sanitizeString(` ${obj.value}`)}
                 </Text>
               </View>
             ),
@@ -209,6 +177,7 @@ const TypedSign = ({
       currentPageInformation={currentPageInformation}
       truncateMessage={truncateMessage}
       type="typedSign"
+      fromAddress={from}
     >
       <View style={messageWrapperStyles} onLayout={shouldTruncateMessage}>
         {renderTypedMessage()}

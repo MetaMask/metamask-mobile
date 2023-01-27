@@ -17,5 +17,8 @@ exports[`TypedSign should render correctly 1`] = `
       },
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  selectedAddress=""
 />
 `;

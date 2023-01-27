@@ -25,6 +25,9 @@ describe('TypedSign', () => {
           messageParams={{
             data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
           }}
+          selectedAddress={''}
+          onCancel={() => ({})}
+          onConfirm={() => ({})}
         />
       </Provider>,
     );
