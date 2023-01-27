@@ -55,6 +55,10 @@ class AccountListComponent {
   async isComponentDisplayed() {
     await expect(await this.accountListContainer).toBeDisplayed();
   }
+
+  async isComponentNotDisplayed() {
+    await expect(await this.accountListContainer).not.toBeDisplayed();
+  }
 }
 
 export default new AccountListComponent();

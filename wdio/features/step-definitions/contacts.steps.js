@@ -11,7 +11,7 @@ Then(/^I tap on the "Add contact" button/, async () => {
   await Contacts.tapOnText('Add contact');
 });
 
-Then(/^I tap button "([^"]*)?" which is now enabled/, async () => {
+Then(/^I tap button Add contact which is now enabled/, async () => {
   await Contacts.isAddContactButtonEnabled();
   await Contacts.tapOnAddContactButton();
 });
