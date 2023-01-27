@@ -1,11 +1,12 @@
 import Engine from '../../../../core/Engine';
 import { getAddressAccountType } from '../../../../util/address';
+import { SignatureAnalayticsProps } from './types';
 
 const getSignatureAnalytics = ({
   currentPageInformation,
   type,
   messageParams,
-}: any) => {
+}: SignatureAnalayticsProps) => {
   const { NetworkController }: any = Engine.context;
   try {
     const { chainId } = NetworkController?.state?.provider || {};

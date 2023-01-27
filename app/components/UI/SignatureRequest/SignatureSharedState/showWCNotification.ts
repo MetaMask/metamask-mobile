@@ -3,12 +3,13 @@ import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../../core/SDKConnect';
+import { ShowWalletConnectProps } from './types';
 
 const showWalletConnectNotification = ({
   messageParams,
   isError,
   confirmation,
-}: any) => {
+}: ShowWalletConnectProps) => {
   if (isError) return strings('notifications.wc_signed_failed_title');
   InteractionManager.runAfterInteractions(() => {
     messageParams.origin &&

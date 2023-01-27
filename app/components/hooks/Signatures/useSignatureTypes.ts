@@ -45,19 +45,6 @@ export interface SignatureProps {
   showExpandedMessage?: boolean;
 }
 
-export interface UseAnalayticsProps {
-  currentPageInformation: any;
-  selectedAddress: string;
-  type: string;
-  messageParams?: any;
-}
-
-export interface UseWalletConnectProps {
-  confirmation: any;
-  messageParams: any;
-  isError?: any;
-}
-
 export interface UseMessageProps {
   messageParams: any;
   type: string;
