@@ -439,6 +439,11 @@ const App = ({ userLoggedIn }) => {
         name="ImportPrivateKeySuccess"
         component={ImportPrivateKeySuccess}
       />
+      <Stack.Screen
+        name={Routes.QR_SCANNER}
+        component={QRScanner}
+        header={null}
+      />
     </Stack.Navigator>
   );
 
