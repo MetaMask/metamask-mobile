@@ -26,18 +26,19 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/*.feature'],
+  specs: ['./wdio/features/*.feature',
+          './wdio/features/**/*.feature'],
   suites: {
-    browserFlow: [
-      // './wdio/features/BrowserFlow/*.feature',
-      // './wdio/features/BrowserFlow/AddressBar.feature',
-      // './wdio/features/BrowserFlow/ENSWebsite.feature',
-      // './wdio/features/BrowserFlow/InvalidURL.feature',
-      // './wdio/features/BrowserFlow/NavigationControls.feature',
-      // './wdio/features/BrowserFlow/OptionMenu.feature',
-      // './wdio/features/BrowserFlow/PhishingDetection.feature',
-      // './wdio/features/BrowserFlow/SwitchAccount.feature',
-    ],
+    // browserFlow: [
+    //   './wdio/features/BrowserFlow/*.feature',
+    //   './wdio/features/BrowserFlow/AddressBar.feature',
+    //   './wdio/features/BrowserFlow/ENSWebsite.feature',
+    //   './wdio/features/BrowserFlow/InvalidURL.feature',
+    //   './wdio/features/BrowserFlow/NavigationControls.feature',
+    //   './wdio/features/BrowserFlow/OptionMenu.feature',
+    //   './wdio/features/BrowserFlow/PhishingDetection.feature',
+    //   './wdio/features/BrowserFlow/SwitchAccount.feature',
+    // ],
   },
   // Patterns to exclude.
   exclude: [
