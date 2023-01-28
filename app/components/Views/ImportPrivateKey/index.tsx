@@ -1,15 +1,14 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Alert,
-  ActivityIndicator,
   TouchableOpacity,
   TextInput,
   Text,
   View,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
-
-import PropTypes from 'prop-types';
+import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Icon from 'react-native-vector-icons/Feather';
@@ -18,7 +17,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -31,60 +30,34 @@ import {
 /**
  * View that's displayed the first time a user receives funds
  */
-export default class ImportPrivateKey extends PureComponent {
-  static propTypes = {
-    /**
-    /* navigation object required to push and pop other views
-    */
-    navigation: PropTypes.object,
-  };
+const ImportPrivateKey = () => {
+  const [privateKey, setPrivateKey] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [inputWidth, setInputWidth] = useState(
+    Device.isAndroid() ? '99%' : undefined,
+  );
+  const navigation = useNavigation();
+  const mounted = useRef<boolean>(false);
+  const { colors, themeAppearance } = useAppTheme();
+  const styles = createStyles(colors);
 
-  state = {
-    privateKey: '',
-    loading: false,
-    inputWidth: Device.isAndroid() ? '99%' : undefined,
-  };
-
-  componentDidMount = () => {
-    this.mounted = true;
+  useEffect(() => {
+    mounted.current = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
-    this.state.inputWidth &&
+    if (inputWidth) {
       setTimeout(() => {
-        this.mounted && this.setState({ inputWidth: '100%' });
+        mounted.current && setInputWidth('100%');
       }, 100);
-  };
 
-  componentWillUnmount = () => {
-    this.mounted = false;
-  };
-
-  goNext = async () => {
-    if (this.state.privateKey === '') {
-      Alert.alert(
-        strings('import_private_key.error_title'),
-        strings('import_private_key.error_empty_message'),
-      );
-      this.setState({ loading: false });
-      return;
+      return () => {
+        mounted.current = false;
+      };
     }
+    // eslint-disable-next-line
+  }, []);
 
-    this.setState({ loading: true });
-    // Import private key
-    try {
-      await importAccountFromPrivateKey(this.state.privateKey);
-      this.props.navigation.navigate('ImportPrivateKeySuccess');
-      this.setState({ loading: false, privateKey: '' });
-    } catch (e) {
-      Alert.alert(
-        strings('import_private_key.error_title'),
-        strings('import_private_key.error_message'),
-      );
-      this.setState({ loading: false });
-    }
-  };
-
-  learnMore = () =>
-    this.props.navigation.navigate('Webview', {
+  const learnMore = () =>
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://metamask.zendesk.com/hc/en-us/articles/360015289932-What-are-imported-accounts-',
@@ -92,136 +65,164 @@ export default class ImportPrivateKey extends PureComponent {
       },
     });
 
-  onInputChange = (value) => {
-    this.setState({ privateKey: value });
+  const dismiss = () => {
+    navigation.goBack();
   };
 
-  dismiss = () => {
-    this.props.navigation.goBack(null);
+  const goNext = async (scannedPrivateKey?: string) => {
+    const privateKeyToProcess = scannedPrivateKey || privateKey;
+    if (privateKeyToProcess === '') {
+      Alert.alert(
+        strings('import_private_key.error_title'),
+        strings('import_private_key.error_empty_message'),
+      );
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    // Import private key
+    try {
+      await importAccountFromPrivateKey(privateKeyToProcess);
+      navigation.navigate('ImportPrivateKeyView', {
+        screen: 'ImportPrivateKeySuccess',
+      });
+      setLoading(false);
+      setPrivateKey('');
+    } catch (e) {
+      Alert.alert(
+        strings('import_private_key.error_title'),
+        strings('import_private_key.error_message'),
+      );
+      setLoading(false);
+    }
   };
 
-  scanPkey = () => {
-    this.props.navigation.navigate('QRScanner', {
-      onScanSuccess: (data) => {
-        if (data.private_key) {
-          this.setState({ privateKey: data.private_key }, () => {
-            this.goNext();
-          });
-        } else {
-          Alert.alert(
-            strings('import_private_key.error_title'),
-            strings('import_private_key.error_message'),
-          );
-        }
-      },
+  const onScanSuccess = (data: { private_key: string; seed: string }) => {
+    if (data.private_key) {
+      setPrivateKey(data.private_key);
+      Alert.alert(
+        strings('wallet.private_key_detected'),
+        strings('wallet.do_you_want_to_import_this_account'),
+        [
+          {
+            text: strings('wallet.cancel'),
+            onPress: () => false,
+            style: 'cancel',
+          },
+          {
+            text: strings('wallet.yes'),
+            onPress: () => goNext(data.private_key),
+          },
+        ],
+        { cancelable: false },
+      );
+    } else if (data.seed) {
+      Alert.alert(
+        strings('wallet.error'),
+        strings('wallet.logout_to_import_seed'),
+      );
+    } else {
+      Alert.alert(
+        strings('import_private_key.error_title'),
+        strings('import_private_key.error_message'),
+      );
+    }
+  };
+
+  const scanPkey = () => {
+    navigation.navigate('QRScanner', {
+      onScanSuccess,
     });
   };
 
-  render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
-
-    return (
-      <View style={styles.mainWrapper}>
-        <KeyboardAwareScrollView
-          contentContainerStyle={styles.wrapper}
-          style={styles.topOverlay}
-          testID={'first-incoming-transaction-screen'}
-          resetScrollToCoords={{ x: 0, y: 0 }}
+  return (
+    <View style={styles.mainWrapper}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.wrapper}
+        style={styles.topOverlay}
+        testID={'first-incoming-transaction-screen'}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+      >
+        <View
+          style={styles.content}
+          {...generateTestId(Platform, IMPORT_ACCOUNT_SCREEN_ID)}
         >
-          <View
-            style={styles.content}
-            {...generateTestId(Platform, IMPORT_ACCOUNT_SCREEN_ID)}
-          >
-            <TouchableOpacity
-              onPress={this.dismiss}
-              style={styles.navbarRightButton}
-            >
-              <MaterialIcon
-                name="close"
-                size={15}
-                style={styles.closeIcon}
-                {...generateTestId(
-                  Platform,
-                  CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
-                )}
-              />
-            </TouchableOpacity>
-            <View style={styles.top}>
-              <Icon name="download" style={styles.icon} />
-              <Text style={styles.title}>
-                {strings('import_private_key.title')}
-              </Text>
-              <View style={styles.dataRow}>
-                <Text style={styles.label}>
-                  {strings('import_private_key.description_one')}
-                </Text>
-              </View>
-              <View style={styles.dataRow}>
-                <Text style={styles.label} onPress={this.learnMore}>
-                  {strings('import_private_key.learn_more_here')}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.bottom}>
-              <View style={styles.subtitleText}>
-                <Text style={styles.subtitleText}>
-                  {strings('import_private_key.subtitle')}
-                </Text>
-              </View>
-              <TextInput
-                value={this.state.privateKey}
-                numberOfLines={3}
-                multiline
-                style={[
-                  styles.input,
-                  this.state.inputWidth ? { width: this.state.inputWidth } : {},
-                ]}
-                onChangeText={this.onInputChange}
-                {...generateTestId(Platform, PRIVATE_KEY_INPUT_BOX_ID)}
-                blurOnSubmit
-                onSubmitEditing={this.goNext}
-                returnKeyType={'next'}
-                placeholder={strings('import_private_key.example')}
-                placeholderTextColor={colors.text.muted}
-                autoCapitalize={'none'}
-                keyboardAppearance={themeAppearance}
-              />
-              <View style={styles.scanPkeyRow}>
-                <TouchableOpacity
-                  onPress={this.scanPkey}
-                  style={styles.scanPkey}
-                >
-                  <Text style={styles.scanPkeyText}>
-                    {strings('import_private_key.or_scan_a_qr_code')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              containerStyle={styles.button}
-              type={'confirm'}
-              onPress={this.goNext}
-              {...generateTestId(Platform, IMPORT_PRIVATE_KEY_BUTTON_ID)}
-            >
-              {this.state.loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.inverse}
-                />
-              ) : (
-                strings('import_private_key.cta_text')
+          <TouchableOpacity onPress={dismiss} style={styles.navbarRightButton}>
+            <MaterialIcon
+              name="close"
+              size={15}
+              style={styles.closeIcon}
+              {...generateTestId(
+                Platform,
+                CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
               )}
-            </StyledButton>
+            />
+          </TouchableOpacity>
+          <View style={styles.top}>
+            <Icon name="download" style={styles.icon} />
+            <Text style={styles.title}>
+              {strings('import_private_key.title')}
+            </Text>
+            <View style={styles.dataRow}>
+              <Text style={styles.label}>
+                {strings('import_private_key.description_one')}
+              </Text>
+            </View>
+            <View style={styles.dataRow}>
+              <Text style={styles.label} onPress={learnMore}>
+                {strings('import_private_key.learn_more_here')}
+              </Text>
+            </View>
           </View>
-        </KeyboardAwareScrollView>
-        <ScreenshotDeterrent enabled isSRP={false} />
-      </View>
-    );
-  }
-}
+          <View style={styles.bottom}>
+            <View style={styles.subtitleText}>
+              <Text style={styles.subtitleText}>
+                {strings('import_private_key.subtitle')}
+              </Text>
+            </View>
+            <TextInput
+              value={privateKey}
+              numberOfLines={3}
+              multiline
+              style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
+              onChangeText={setPrivateKey}
+              {...generateTestId(Platform, PRIVATE_KEY_INPUT_BOX_ID)}
+              blurOnSubmit
+              onSubmitEditing={() => goNext()}
+              returnKeyType={'next'}
+              placeholder={strings('import_private_key.example')}
+              placeholderTextColor={colors.text.muted}
+              autoCapitalize={'none'}
+              keyboardAppearance={themeAppearance}
+            />
+            <View style={styles.scanPkeyRow}>
+              <TouchableOpacity onPress={scanPkey}>
+                <Text style={styles.scanPkeyText}>
+                  {strings('import_private_key.or_scan_a_qr_code')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View style={styles.buttonWrapper}>
+          <StyledButton
+            containerStyle={styles.button}
+            type={'confirm'}
+            onPress={() => goNext()}
+            {...generateTestId(Platform, IMPORT_PRIVATE_KEY_BUTTON_ID)}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.primary.inverse} />
+            ) : (
+              strings('import_private_key.cta_text')
+            )}
+          </StyledButton>
+        </View>
+      </KeyboardAwareScrollView>
+      <ScreenshotDeterrent enabled isSRP={false} />
+    </View>
+  );
+};
 
-ImportPrivateKey.contextType = ThemeContext;
+export default ImportPrivateKey;

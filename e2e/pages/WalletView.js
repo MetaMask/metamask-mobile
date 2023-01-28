@@ -10,8 +10,6 @@ import {
   NFT_TAB_CONTAINER_ID,
 } from '../../wdio/features/testIDs/Screens/WalletView.testIds';
 
-import { TOKEN_CONTAINER_ID } from '../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
-
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
