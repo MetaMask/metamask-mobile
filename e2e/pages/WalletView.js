@@ -8,7 +8,7 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
   NFT_TAB_CONTAINER_ID,
-} from '../../wdio/features/testIDs/Screens/WalletView.testIds';
+} from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';

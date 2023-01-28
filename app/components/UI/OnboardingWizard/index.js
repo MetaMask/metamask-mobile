@@ -29,7 +29,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import ElevatedView from 'react-native-elevated-view';
 import { useTheme } from '../../../util/theme';
-import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
+import { scale } from 'react-native-size-matters';
+import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Device from '../../../util/device';
 

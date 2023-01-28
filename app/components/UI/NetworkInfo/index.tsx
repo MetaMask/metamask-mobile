@@ -10,10 +10,10 @@ import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../../wdio/features/testIDs/Components/NetworkEducationModalTestIds';
+} from '../../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
-import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import {
   isMainnetByChainId,
   getNetworkImageSource,
@@ -21,7 +21,6 @@ import {
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
-
 const createStyles = (colors: {
   background: { default: string };
   text: { default: string };
