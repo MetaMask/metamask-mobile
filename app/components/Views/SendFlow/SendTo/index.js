@@ -64,8 +64,8 @@ import {
 } from '../../../../constants/error';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
-import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
-import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/features/testIDs/Screens/AddressBook.testids';
+import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const dummy = () => true;
