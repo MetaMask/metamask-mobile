@@ -7,7 +7,7 @@ import {
     CONTACTS_CONTAINER_ID
 } from '../../features/testIDs/Screens/Contacts.testids';
 
-class Contacts {
+class AddContacts {
 
     get contactInputfield() {
         return Selectors.getElementByPlatform(CONTACT_NAME_INPUT);
@@ -56,4 +56,4 @@ class Contacts {
         await Gestures.typeText(this.contactOverviewNameInput, newName);
     }
 }
-export default new Contacts();
+export default new AddContacts();

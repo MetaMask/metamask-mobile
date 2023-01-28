@@ -1,3 +1,4 @@
+/* global driver */
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
@@ -5,9 +6,9 @@ import {
   ACCOUNT_BUTTON,
   BACK_BUTTON,
   FORWARD_BUTTON,
-  HAMBURGER_BUTTON,
   HOME_BUTTON,
   NAVBAR_TITLE_NETWORK,
+  NETWORK_AVATAR_ICON,
   OPTIONS_BUTTON,
   SCREEN_ID,
   SEARCH_BUTTON,
@@ -20,12 +21,8 @@ class BrowserScreen {
     return Selectors.getXpathElementByResourceId(SCREEN_ID);
   }
 
-  get navBarTitle() {
-    return Selectors.getXpathElementByResourceId(NAVBAR_TITLE_NETWORK);
-  }
-
-  get navbarHamburgerButton() {
-    return Selectors.getXpathElementByResourceId(HAMBURGER_BUTTON);
+  get urlBarTitle() {
+    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORK);
   }
 
   get accountIconButton() {
@@ -60,16 +57,17 @@ class BrowserScreen {
     return Selectors.getXpathElementByResourceId(SEARCH_BUTTON);
   }
 
+  get networkAvatarIcon() {
+    return Selectors.getXpathElementByResourceId(NETWORK_AVATAR_ICON);
+  }
+
   async isScreenContentDisplayed() {
     await expect(await this.container).toBeDisplayed();
   }
 
-  async tapUrlNavBar() {
-    await Gestures.waitAndTap(this.navBarTitle);
-  }
-
-  async tapNavbarHamburgerButton() {
-    await Gestures.waitAndTap(this.navbarHamburgerButton);
+  async tapUrlBar() {
+    await driver.pause(500);
+    await Gestures.waitAndTap(this.urlBarTitle);
   }
 
   async tapAccountButton() {
@@ -104,6 +102,10 @@ class BrowserScreen {
 
   async tapSearchButton() {
     await Gestures.waitAndTap(this.searchButton);
+  }
+
+  async tapNetworkAvatarIcon() {
+    await Gestures.waitAndTap(this.networkAvatarIcon);
   }
 }
 

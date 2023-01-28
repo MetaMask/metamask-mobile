@@ -12,4 +12,4 @@ Feature: This feature file covers invalid url functionality in the browser.
     Then I should see "Something went wrong" error title
     And I should see "We couldn't load that page" error message
     When I tap on the Return button from the error page
-    Then the browser view is on Home MetaMask website
+    Then the browser view is on the "https://home.metamask.io/" website

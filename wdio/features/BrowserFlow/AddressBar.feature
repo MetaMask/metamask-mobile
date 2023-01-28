@@ -15,8 +15,7 @@ Feature: This feature file covers address view functionality in the browser.
     Then address field is cleared
     When I tap on "Cancel button" in address field
     Then browser address bar input view is no longer displayed
-    And the browser view is on Home MetaMask website
+    And the browser view is on the "https://home.metamask.io/" website
     When I tap on address bar
-    And I input "reddit.com" in address field
-    And I tap on device Go or Next button
-    Then the browser view is on the Reddit website
+    And I navigate to "reddit.com"
+    Then the browser view is on the "https://www.reddit.com/" website

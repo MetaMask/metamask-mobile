@@ -140,6 +140,14 @@ export const config = {
   /** services: ['chromedriver','appium'], ***/
   services: ['appium'],
 
+  // Appium service with custom chrome driver path
+  /*services: [
+    ['appium', {
+      args: {
+        chromedriverExecutable: '',
+      }
+    }]
+  ],*/
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
   // see also: https://webdriver.io/docs/frameworks
