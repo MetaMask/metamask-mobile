@@ -349,16 +349,16 @@ class ResetPassword extends PureComponent {
     const passcodePreviouslyDisabled = await AsyncStorage.getItem(
       PASSCODE_DISABLED,
     );
-    if (authData.type === AUTHENTICATION_TYPE.PASSCODE)
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)
       this.setState({
-        biometryType: passcodeType(authData.type),
+        biometryType: passcodeType(authData.currentAuthType),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
       });
-    else if (authData.biometryType)
+    else if (authData.availableBiometryType)
       this.setState({
-        biometryType: authData.biometryType,
+        biometryType: authData.availableBiometryType,
         biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
       });
 

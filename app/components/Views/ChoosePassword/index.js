@@ -296,26 +296,26 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     console.log('vault/ ChoosePassword calling Authentication.getType');
-    const { type } = await Authentication.getType();
+    const authData = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
     const passcodePreviouslyDisabled = await AsyncStorage.getItem(
       PASSCODE_DISABLED,
     );
-
-    if (type === AUTHENTICATION_TYPE.BIOMETRIC)
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
-        biometryType: type,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-      });
-    else if (type === AUTHENTICATION_TYPE.PASSCODE)
-      this.setState({
-        biometryType: passcodeType(type),
+        biometryType: passcodeType(authData.currentAuthType),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
       });
+    } else if (authData.availableBiometryType) {
+      this.setState({
+        biometryType: authData.availableBiometryType,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+      });
+    }
     this.updateNavBar();
     setTimeout(() => {
       this.setState({

@@ -158,12 +158,12 @@ const RevealPrivateCredential = ({
     const unlockWithBiometrics = async () => {
       // Try to use biometrics to unlock
       console.log('vault/ reveal private creds calling Authentication.getType');
-      const { biometryType } = await Authentication.getType();
+      const { availableBiometryType } = await Authentication.getType();
       if (!passwordSet) {
         tryUnlockWithPassword('');
-      } else if (biometryType) {
+      } else if (availableBiometryType) {
         const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === biometryType) {
+        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
           const credentials = await Authentication.getPassword();
           if (credentials) {
             tryUnlockWithPassword(credentials.password);

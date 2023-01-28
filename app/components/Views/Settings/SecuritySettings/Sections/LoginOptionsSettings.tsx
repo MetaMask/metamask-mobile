@@ -39,12 +39,12 @@ const LoginOptionsSettings = ({
         PASSCODE_DISABLED,
       );
       if (
-        authType.type === AUTHENTICATION_TYPE.BIOMETRIC ||
-        authType.type === AUTHENTICATION_TYPE.PASSCODE
+        authType.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
       ) {
         const stateValue = Device.isAndroid()
           ? AUTHENTICATION_TYPE.BIOMETRIC
-          : authType.biometryType;
+          : authType.availableBiometryType;
         setBiometryType(stateValue);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
         setPasscodeChoice(
@@ -52,9 +52,9 @@ const LoginOptionsSettings = ({
         );
       } else {
         const stateValue =
-          Device.isAndroid() && authType.biometryType
+          Device.isAndroid() && authType.availableBiometryType
             ? AUTHENTICATION_TYPE.BIOMETRIC
-            : authType.biometryType;
+            : authType.availableBiometryType;
         setBiometryType(stateValue);
       }
     };

@@ -251,8 +251,11 @@ class Login extends PureComponent {
     //Setup UI to handle Biometric
     // const { type } = await Authentication.getAuthData();
     console.log('vault/ Login calling Authentication.getType()');
-    const { type } = await Authentication.getType();
-    console.log('vault/ Login calling Authentication.getType returned:', type);
+    const authData = await Authentication.getType();
+    console.log(
+      'vault/ Login calling Authentication.getType returned:',
+      authData,
+    );
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
@@ -265,29 +268,29 @@ class Login extends PureComponent {
       'vault/ Login passcodePreviouslyDisabled:',
       passcodePreviouslyDisabled,
     );
-    if (type === AUTHENTICATION_TYPE.BIOMETRIC)
+
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
-        biometryType: type,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-        biometryPreviouslyDisabled: !!previouslyDisabled,
-        hasBiometricCredentials: !this.props.route?.params?.params?.logout,
-      });
-    else if (type === AUTHENTICATION_TYPE.PASSCODE)
-      this.setState({
-        biometryType: passcodeType(type),
+        biometryType: passcodeType(authData.currentAuthType),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
         biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
-    else if (type === AUTHENTICATION_TYPE.REMEMBER_ME) {
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,
       });
       this.props.setAllowLoginWithRememberMe(true);
-    }
+    } else if (authData.availableBiometryType)
+      this.setState({
+        biometryType: authData.availableBiometryType,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+        biometryPreviouslyDisabled: !!previouslyDisabled,
+        hasBiometricCredentials: !this.props.route?.params?.params?.logout,
+      });
   }
 
   componentWillUnmount() {

@@ -48,8 +48,8 @@ describe('Authentication', () => {
     await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.getType();
-    expect(result.biometryType).toEqual('FaceID');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+    expect(result.availableBiometryType).toEqual('FaceID');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   it('should return a type biometric', async () => {
@@ -57,8 +57,8 @@ describe('Authentication', () => {
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
     const result = await Authentication.getType();
-    expect(result.biometryType).toEqual('FaceID');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
+    expect(result.availableBiometryType).toEqual('FaceID');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   it('should return a type passcode', async () => {
@@ -67,8 +67,8 @@ describe('Authentication', () => {
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
     await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.getType();
-    expect(result.biometryType).toEqual('Fingerprint');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
   it('should return a type password with biometric & pincode disabled', async () => {
@@ -78,8 +78,8 @@ describe('Authentication', () => {
     await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.getType();
-    expect(result.biometryType).toEqual('Fingerprint');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.REMEMBER_ME', async () => {
@@ -91,8 +91,8 @@ describe('Authentication', () => {
       false,
       true,
     );
-    expect(result.biometryType).toEqual('Fingerprint');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.PASSWORD', async () => {
@@ -105,8 +105,8 @@ describe('Authentication', () => {
       false,
       false,
     );
-    expect(result.biometryType).toEqual('Fingerprint');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.PASSCODE', async () => {
@@ -118,8 +118,8 @@ describe('Authentication', () => {
       true,
       false,
     );
-    expect(result.biometryType).toEqual('Fingerprint');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSCODE);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.BIOMETRIC', async () => {
@@ -130,8 +130,8 @@ describe('Authentication', () => {
       true,
       false,
     );
-    expect(result.biometryType).toEqual('Fingerprint');
-    expect(result.type).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
+    expect(result.availableBiometryType).toEqual('Fingerprint');
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
   });
 
   it('should return set a password using PASSWORD', async () => {

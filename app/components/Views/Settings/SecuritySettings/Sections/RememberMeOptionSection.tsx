@@ -20,7 +20,9 @@ const RememberMeOptionSection = () => {
   useEffect(() => {
     const checkIfAlreadyUsingRememberMe = async () => {
       const authType = await Authentication.getType();
-      setIsUsingRememberMe(authType.type === AUTHENTICATION_TYPE.REMEMBER_ME);
+      setIsUsingRememberMe(
+        authType.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME,
+      );
     };
     checkIfAlreadyUsingRememberMe();
   }, []);

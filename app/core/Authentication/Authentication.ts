@@ -22,12 +22,12 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
  * Holds auth data used to determine auth configuration
  */
 export interface AuthData {
-  type: AUTHENTICATION_TYPE; //Enum used to show type for authentication
-  biometryType?: BIOMETRY_TYPE;
+  currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
+  availableBiometryType?: BIOMETRY_TYPE;
 }
 
 class AuthenticationService {
-  private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
+  private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
   private store: Store | undefined = undefined;
   private static isInitialized = false;
 
@@ -229,7 +229,8 @@ class AuthenticationService {
    */
   checkAuthenticationMethod = async (): Promise<AuthData> => {
     console.log('vault/ calling Authentication.checkAuthenticationMethod');
-    const biometryType: any = await SecureKeychain.getSupportedBiometryType();
+    const availableBiometryType: any =
+      await SecureKeychain.getSupportedBiometryType();
     const biometryPreviouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
@@ -238,25 +239,37 @@ class AuthenticationService {
     );
 
     console.log(
-      `vault/ Authentication.checkAuthenticationMethod biometryType: ${biometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}, authData: ${JSON.stringify(
+      `vault/ Authentication.checkAuthenticationMethod biometryType: ${availableBiometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}, authData: ${JSON.stringify(
         this.authData,
       )}`,
     );
 
     if (
-      biometryType &&
+      availableBiometryType &&
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
     ) {
-      return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType,
+      };
     } else if (
-      biometryType &&
+      availableBiometryType &&
       !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
     ) {
-      return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
     } else if (await SecureKeychain.getGenericPassword()) {
-      return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        availableBiometryType,
+      };
     }
-    return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType };
+    return {
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType,
+    };
   };
 
   /**
@@ -268,8 +281,9 @@ class AuthenticationService {
   componentAuthenticationType = async (
     biometryChoice: boolean,
     rememberMe: boolean,
-  ) => {
-    const biometryType: any = await SecureKeychain.getSupportedBiometryType();
+  ): Promise<AuthData> => {
+    const availableBiometryType: any =
+      await SecureKeychain.getSupportedBiometryType();
     const biometryPreviouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
@@ -277,28 +291,40 @@ class AuthenticationService {
       PASSCODE_DISABLED,
     );
     console.log(
-      `vault/ Authentication.componentAuthenticationType biometryType: ${biometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}`,
+      `vault/ Authentication.componentAuthenticationType biometryType: ${availableBiometryType}, biometryPreviouslyDisabled: ${biometryPreviouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled}`,
     );
 
     if (
-      biometryType &&
+      availableBiometryType &&
       biometryChoice &&
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
     ) {
-      return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType,
+      };
     } else if (
       rememberMe &&
       this.store?.getState().security.allowLoginWithRememberMe
     ) {
-      return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+        availableBiometryType,
+      };
     } else if (
-      biometryType &&
+      availableBiometryType &&
       biometryChoice &&
       !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
     ) {
-      return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
     }
-    return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType };
+    return {
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType,
+    };
   };
 
   /**
@@ -312,7 +338,7 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.createWalletVaultAndKeychain(password);
-      await this.storePassword(password, authData?.type);
+      await this.storePassword(password, authData?.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
@@ -339,7 +365,7 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     try {
-      await this.storePassword(password, authData.type);
+      await this.storePassword(password, authData.currentAuthType);
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -367,7 +393,7 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.loginVaultCreation(password, selectedAddress);
-      await this.storePassword(password, authData.type);
+      await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       console.log('vault/ newWalletAndKeyChain', password, authData);
       this.authData = authData;
@@ -417,7 +443,7 @@ class AuthenticationService {
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
-    this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
+    this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     console.log('vault/ lockApp', this.authData);
     this.dispatchLogout();
   };

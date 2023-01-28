@@ -116,21 +116,21 @@ const ImportFromSecretRecoveryPhrase = ({
 
     const setBiometricsOption = async () => {
       console.log('vault/ ImportFromSRP calling Authentication.getType');
-      const { type } = await Authentication.getType();
+      const authData = await Authentication.getType();
       const previouslyDisabled = await AsyncStorage.getItem(
         BIOMETRY_CHOICE_DISABLED,
       );
       const passcodePreviouslyDisabled = await AsyncStorage.getItem(
         PASSCODE_DISABLED,
       );
-      if (type === AUTHENTICATION_TYPE.BIOMETRIC) {
-        setBiometryType(type);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-      } else if (type === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(type));
+      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+        setBiometryType(passcodeType(authData.currentAuthType));
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
+      } else if (authData.availableBiometryType) {
+        setBiometryType(authData.availableBiometryType);
+        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
 
