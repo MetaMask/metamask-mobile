@@ -41,23 +41,12 @@ class Contacts {
     await Gestures.tap(this.addContactButton);
   }
 
-  async fillContactNamefield(name) {
-    await Gestures.typeText(this.contactInputfield, name);
-  }
-
-  async fillAddressField(address) {
-    await Gestures.typeText(this.addressInputField, address);
-  }
-
   async tapOnText(text) {
     await Gestures.tapTextByXpath(text);
   }
 
   async tapOnEditButton() {
     await Gestures.tap(this.editButton);
-  }
-  async changeContactName(newName) {
-    await Gestures.typeText(this.contactOverviewNameInput, newName);
   }
 }
 export default new Contacts();

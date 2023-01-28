@@ -2,6 +2,7 @@
 import { Then } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import Contacts from '../screen-objects/Contacts';
+import AddContact from '../screen-objects/AddContact'
 
 Then(/^I am on the contacts view/, async () => {
   await Contacts.isContactsScreenDisplayed();
@@ -17,11 +18,11 @@ Then(/^I tap button Add contact which is now enabled/, async () => {
 });
 
 Then(/^I input "([^"]*)?" into the contact name field/, async (name) => {
-  await Contacts.fillContactNamefield(name);
+  await AddContact.fillContactNamefield(name);
 });
 
 Then(/^I input "([^"]*)?" in the Address field/, async (name) => {
-  await Contacts.fillAddressField(name);
+  await AddContact.fillAddressField(name);
 });
 
 Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
@@ -30,13 +31,13 @@ Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
 });
 
 Then(/^the saved contact "([^"]*)?" should appear/, async (contactName) => {
-  await AddressBookModal.isContactNameVisible(contactName);
+  await AddressBookModal.isContactNameVisible(contactName); // this should be a generic method
 });
 
 Then(
   /^the deleted contact "([^"]*)?" should not appear/,
   async (contactName) => {
-    await AddressBookModal.isDeletedContactNameNotVisible(contactName);
+    await AddressBookModal.isDeletedContactNameNotVisible(contactName); // this should be a generic method
   },
 );
 
@@ -54,7 +55,7 @@ Then(/I tap on Edit button to edit Saved contact details/, async () => {
 });
 
 Then(/I can edit the contact name to "([^"]*)?"/, async (name) => {
-  await Contacts.changeContactName(name);
+  await AddContact.changeContactName(name);
 });
 
 Then(
