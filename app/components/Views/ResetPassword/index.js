@@ -342,24 +342,24 @@ class ResetPassword extends PureComponent {
     const state = { view: CONFIRM_PASSWORD };
 
     console.log('vault/ ResetPassword calling Authentication.getType');
-    const authType = await Authentication.getType();
+    const authData = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
     const passcodePreviouslyDisabled = await AsyncStorage.getItem(
       PASSCODE_DISABLED,
     );
-    if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
+    if (authData.type === AUTHENTICATION_TYPE.PASSCODE)
       this.setState({
-        biometryType: authType.type,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-      });
-    else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
-      this.setState({
-        biometryType: passcodeType(authType.type),
+        biometryType: passcodeType(authData.type),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
+      });
+    else if (authData.biometryType)
+      this.setState({
+        biometryType: authData.biometryType,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
       });
 
     this.setState(state);
