@@ -405,22 +405,6 @@ class Login extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    console.log('vault/ Login updateBiometryChoice called', biometryChoice);
-    if (!biometryChoice) {
-      console.log(
-        'vault/ Login updateBiometryChoice !biometryChoice',
-        biometryChoice,
-      );
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-    } else {
-      console.log(
-        'vault/ Login updateBiometryChoice biometryChoice',
-        biometryChoice,
-      );
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-      await AsyncStorage.removeItem(PASSCODE_DISABLED);
-    }
     this.setState({ biometryChoice });
   };
 
