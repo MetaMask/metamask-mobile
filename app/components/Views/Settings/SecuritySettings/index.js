@@ -378,6 +378,10 @@ class Settings extends PureComponent {
       if (!enabled) {
         this.setState({ [type]: false });
         if (type === PASSCODE_CHOICE_STRING) {
+          console.log(
+            'vault/ SecuritySettings type === PASSCODE_CHOICE_STRING',
+            type,
+          );
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
