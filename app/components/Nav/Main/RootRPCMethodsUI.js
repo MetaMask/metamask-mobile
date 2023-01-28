@@ -402,7 +402,6 @@ const RootRPCMethodsUI = (props) => {
     >
       {signType === 'personal' && (
         <PersonalSign
-          navigation={props.navigation}
           messageParams={signMessageParams}
           onCancel={onSignAction}
           onConfirm={onSignAction}

@@ -74,11 +74,13 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
+import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
+  DRAWER_VIEW_BROWSER_TEXT_ID,
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
-} from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
@@ -187,8 +189,8 @@ const createStyles = (colors) =>
       marginLeft: 5,
     },
     buttonText: {
-      paddingLeft: 8,
-      fontSize: 15,
+      paddingLeft: scale(4),
+      fontSize: scale(13),
       color: colors.primary.default,
       ...fontStyles.normal,
     },
@@ -196,6 +198,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      padding: scale(2),
     },
     buttonIcon: {
       marginTop: 0,
@@ -949,6 +952,28 @@ class DrawerView extends PureComponent {
     }
     return [
       [
+        {
+          name: strings('drawer.browser'),
+          icon: this.getIcon('globe'),
+          selectedIcon: this.getSelectedIcon('globe'),
+          action: this.goToBrowser,
+          routeNames: ['BrowserView', 'AddBookmark'],
+          testID: DRAWER_VIEW_BROWSER_TEXT_ID,
+        },
+        {
+          name: strings('drawer.wallet'),
+          icon: this.getImageIcon('wallet'),
+          selectedIcon: this.getSelectedImageIcon('wallet'),
+          action: this.showWallet,
+          routeNames: [
+            'Wallet',
+            'WalletView',
+            'Asset',
+            'AddAsset',
+            'Collectible',
+          ],
+          testID: DRAWER_VIEW_WALLET_TEXT_ID,
+        },
         {
           name: strings('drawer.transaction_activity'),
           icon: this.getFeatherIcon('list'),
