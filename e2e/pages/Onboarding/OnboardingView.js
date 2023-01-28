@@ -1,4 +1,4 @@
-import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
+import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import TestHelpers from '../../helpers';
 const ONBOARDING_SCREEN_ID = 'onboarding-screen';
 const IMPORT_FROM_SEED_BUTTON_ID =
