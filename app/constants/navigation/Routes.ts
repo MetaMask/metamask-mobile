@@ -62,6 +62,9 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
   },
+  SNAPS: {
+    HOME: 'SnapsHome',
+  },
 };
 
 export default Routes;
