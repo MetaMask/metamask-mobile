@@ -2,7 +2,7 @@ import Selectors from '../../helpers/Selectors';
 import {
   TAB_BAR_BROWSER_BUTTON,
   TAB_BAR_WALLET_BUTTON,
-} from '../../testIDs/Components/TabBar.testIds';
+} from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 
 class TabBarModal {

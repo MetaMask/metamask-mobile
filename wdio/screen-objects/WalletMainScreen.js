@@ -14,6 +14,7 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   WALLET_ACCOUNT_ICON,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
+  NAVBAR_NETWORK_BUTTON,
 } from './testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
@@ -105,7 +106,7 @@ class WalletMainScreen {
     await Gestures.tapTextByXpath('NFTs');
   }
   async tapIdenticon() {
-    await Gestures.tap(this.Identicon);
+    await Gestures.waitAndTap(this.Identicon);
   }
 
   async tapNetworkNavBar() {
