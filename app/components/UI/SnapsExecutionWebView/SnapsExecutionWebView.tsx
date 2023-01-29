@@ -1,14 +1,14 @@
 import React, { useRef } from 'react';
-import { View, ScrollView } from 'react-native';
-import { Button } from 'react-native-share';
+import { View, ScrollView, Alert } from 'react-native';
 import WebView from 'react-native-webview';
 import { snapsState, WebviewPostMessageStream } from '../../../core/Snaps';
 import { createStyles } from './styles';
 
 import Engine from '../../../core/Engine';
 
-const TEST_SNAP_ID_ONE = 'local:http://localhost:3000/snap/';
-const TEST_SNAP_ID_TWO = 'local:http://localhost:3000/helloworldsnap/';
+const INSTALL_SUCCESS_MESSAGE = (id: string) => `Snap ${id} installed 🎉🎉🎉`;
+const INSTALL_FAILED_MESSAGE = (id: string) =>
+  `Snap ${id} failed to install 💀💀💀`;
 
 let stream: any;
 
@@ -73,16 +73,6 @@ const SnapsExecutionWebView = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Button onPress={async () => await installSnap(TEST_SNAP_ID_ONE)}>
-        Install Test Snap 1
-      </Button>
-      <Button onPress={async () => await installSnap(TEST_SNAP_ID_TWO)}>
-        Install Test Snap 2
-      </Button>
-      <Button onPress={async () => await executeTestSnap(TEST_SNAP_ID_TWO)}>
-        Test Hello World Snap
-      </Button>
-      <Button onPress={getInstalledSnaps}>Get installed snaps</Button>
       <View style={styles.webview}>
         <WebView
           ref={webviewRef}

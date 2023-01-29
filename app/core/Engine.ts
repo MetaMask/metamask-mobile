@@ -840,7 +840,7 @@ export default {
       TokensController,
       TokenDetectionController,
       NftDetectionController,
-      PermissionController,
+      SnapController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -874,7 +874,7 @@ export default {
       GasFeeController,
       TokenDetectionController,
       NftDetectionController,
-      PermissionController,
+      SnapController,
     };
   },
   get datamodel() {
