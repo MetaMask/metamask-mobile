@@ -5,15 +5,16 @@ import { StyleSheet } from 'react-native';
 export const createStyles = () =>
   StyleSheet.create({
     webview: {
-      height: 150,
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      borderColor: 'red',
+      height: 30,
+      marginBottom: 50,
+      // borderWidth: 1,
+      // borderStyle: 'dashed',
+      // borderColor: 'red',
     },
     container: {
-      flex: 1,
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      borderColor: 'green',
+      // flex: 1,
+      // borderWidth: 1,
+      // borderStyle: 'dashed',
+      // borderColor: 'green',
     },
   });
