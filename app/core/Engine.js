@@ -112,7 +112,7 @@ class Engine {
 
       const networkControllerOpts = {
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        state: initialState.NetworkController,
+        state: initialState.networkController,
         messenger: this.controllerMessenger.getRestricted({
           name: 'NetworkController',
           allowedEvents: [],
@@ -518,25 +518,20 @@ class Engine {
           },
           { interval: 10000 },
         ),
-        new TokenRatesController(
-          {
-            onTokensStateChange: (listener) =>
-              tokensController.subscribe(listener),
-            onCurrencyRateStateChange: (listener) =>
-              this.controllerMessenger.subscribe(
-                `${currencyRateController.name}:stateChange`,
-                listener,
-              ),
-            onNetworkStateChange: (listener) =>
-              this.controllerMessenger.subscribe(
-                AppConstants.NETWORK_STATE_CHANGE_EVENT,
-                listener,
-              ),
-          },
-          {
-            chainId: networkController.state.provider.chainId,
-          },
-        ),
+        new TokenRatesController({
+          onTokensStateChange: (listener) =>
+            tokensController.subscribe(listener),
+          onCurrencyRateStateChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              `${currencyRateController.name}:stateChange`,
+              listener,
+            ),
+          onNetworkStateChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+        }),
         new TransactionController({
           getNetworkState: () => networkController.state,
           onNetworkStateChange: (listener) =>

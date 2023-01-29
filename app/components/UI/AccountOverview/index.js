@@ -47,7 +47,7 @@ import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>

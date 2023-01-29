@@ -13,7 +13,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: 14,
-      flexWrap: 'wrap',
     },
     rangeInputContainer: (error) => ({
       borderColor: error ? colors.error.default : colors.border.default,

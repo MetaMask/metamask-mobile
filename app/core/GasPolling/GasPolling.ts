@@ -100,6 +100,8 @@ export const getEIP1559TransactionData = ({
       !gas ||
       !gasFeeEstimates ||
       !transactionState ||
+      !contractExchangeRates ||
+      !conversionRate ||
       !currentCurrency ||
       !nativeCurrency
     ) {

@@ -1,12 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { ScrollView, View, Text, Image, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
@@ -14,8 +7,6 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ETHEREUM_DETECTION_TITLE } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -132,10 +123,7 @@ export default class PhishingModal extends PureComponent {
         <View style={styles.phishingModalContent}>
           <View style={styles.phishingModalHeader}>
             <Icon name="warning" size={15} style={styles.warningIcon} />
-            <Text
-              style={styles.phishingModalTitle}
-              {...generateTestId(Platform, ETHEREUM_DETECTION_TITLE)}
-            >
+            <Text style={styles.phishingModalTitle}>
               {strings('phishing.ethereum_phishing_detection')}
             </Text>
           </View>

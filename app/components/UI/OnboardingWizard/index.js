@@ -18,6 +18,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 
 const createStyles = () =>

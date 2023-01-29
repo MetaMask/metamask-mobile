@@ -1929,7 +1929,7 @@
       "best_price": "best price",
       "from_the": "from the",
       "top_liquidity": "top liquidity sources every time.",
-      "fee_is_applied": "The fee of {{fee}} is automatically factored into this quote. You pay it in exchange for a license to use MetaMask's liquidity provider information aggregation software.",
+      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better.",
       "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
     "enable": {
@@ -2279,34 +2279,7 @@
     "new_wallet_needed_create_new_wallet_action": "Create a new wallet",
     "new_wallet_needed_create_try_again_action": "Try recovering wallet",
     "new_wallet_needed_description_part_one": "Something's wrong with your wallet, and you'll need to create a new one. Because your accounts are on the blockchain, they're still safe. Only the preferences, saved networks, account names, and related data saved on your device are gone.",
-    "new_wallet_needed_description_part_two": "To import your accounts to a new wallet, you'll need your Secret Recovery Phrase. If you don't have your Secret Recovery Phrase, you won't be able to import your accounts.",
+    "new_wallet_needed_description_part_two":"To import your accounts to a new wallet, you'll need your Secret Recovery Phrase. If you don't have your Secret Recovery Phrase, you won't be able to import your accounts.",
     "new_wallet_needed_description_part_three": "To keep this from happening again, be sure to always keep your MetaMask app and OS updated to the latest version."
-  },
-  "srp_security_quiz": {
-    "title": "Security quiz",
-    "introduction": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
-    "get_started": "Get started",
-    "learn_more": "Learn more",
-    "try_again": "Try again",
-    "continue": "Continue",
-    "of": "of",
-    "question_one": {
-      "question": "If you lose your Secret Recovery Phrase, MetaMask...",
-      "right_answer": "Can’t help you",
-      "wrong_answer": "Can get it back for you",
-      "right_answer_title": "Right! No one can help get your Secret Recovery Phrase back",
-      "right_answer_description": "Write it down, engrave it on metal, or keep it in multiple secret spots so you never lose it. If you lose it, it’s gone forever.",
-      "wrong_answer_title": "Wrong! No one can help get your Secret Recovery Phrase back",
-      "wrong_answer_description": "If you lose your Secret Recovery Phrase, it’s gone forever. No one can help you get it back, no matter what they might say."
-    },
-    "question_two": {
-      "question": "If anyone, even a support agent, asks for your Secret Recovery Phrase...",
-      "right_answer": "You’re being scammed",
-      "right_answer_title": "Correct! Sharing your Secret Recovery Phrase is never a good idea",
-      "right_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets.",
-      "wrong_answer": "You should give it to them",
-      "wrong_answer_title": "Nope! Never share your Secret Recovery Phrase with anyone, ever",
-      "wrong_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets."
-    }
   }
 }

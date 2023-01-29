@@ -11,13 +11,7 @@ exports[`PersonalSign should render correctly 1`] = `
   messageParams={
     Object {
       "data": "message",
-      "from": "0x0",
-      "metamaskId": "id",
-      "origin": "origin",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  selectedAddress="0x0"
 />
 `;

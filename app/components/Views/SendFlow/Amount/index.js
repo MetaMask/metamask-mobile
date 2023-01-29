@@ -77,7 +77,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   AMOUNT_SCREEN,
   AMOUNT_SCREEN_CARET_DROP_DOWN,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
+} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
