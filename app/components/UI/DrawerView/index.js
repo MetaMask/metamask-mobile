@@ -79,7 +79,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
-  DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
