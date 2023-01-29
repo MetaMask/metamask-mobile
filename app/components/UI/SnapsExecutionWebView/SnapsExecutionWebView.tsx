@@ -123,9 +123,7 @@ const SnapsExecutionWebView = () => {
       <View style={styles.webview}>
         <WebView
           ref={webviewRef}
-          source={{
-            uri: 'https://gantunesr.github.io/mobile-execution-environment/',
-          }}
+          source={{ uri: 'http://localhost:3001/' }}
           onMessage={messageFromWebview}
           onLoadEnd={setWebviewPostMessage}
           originWhitelist={['*']}
