@@ -74,6 +74,7 @@ exports[`Tabs should render correctly 1`] = `
           },
         ]
       }
+      testID="tabs_close_all"
     >
       <Text
         style={
@@ -115,6 +116,7 @@ exports[`Tabs should render correctly 1`] = `
             "width": 30,
           }
         }
+        testID="tabs_add"
       >
         <Icon
           allowFontScaling={false}
@@ -148,6 +150,7 @@ exports[`Tabs should render correctly 1`] = `
           },
         ]
       }
+      testID="tabs_done"
     >
       <Text
         style={
