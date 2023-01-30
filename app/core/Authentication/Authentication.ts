@@ -216,12 +216,9 @@ class AuthenticationService {
   };
 
   /**
-   * Fetches the password from the keychain using the auth method it was origonally stored
+   * Fetches the password from the keychain using the auth method it was originally stored
    */
-  getPassword = async () => {
-    console.trace('vault/ Authentication.getPassword');
-    await SecureKeychain.getGenericPassword();
-  };
+  getPassword = async () => await SecureKeychain.getGenericPassword();
 
   /**
    * Checks the authetincation type configured in the previous login

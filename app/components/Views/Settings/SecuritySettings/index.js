@@ -335,22 +335,33 @@ class Settings extends PureComponent {
   };
 
   setPassword = async (enabled, passwordType) => {
-    let credentials;
-    try {
-      credentials = await Authentication.getPassword();
-    } catch (error) {
-      Logger.error(error);
-    }
+    console.log(
+      'vault/ SecuritySettings setPassword called with',
+      enabled,
+      passwordType,
+    );
+    this.setState({ loading: true }, async () => {
+      let credentials;
+      try {
+        credentials = await Authentication.getPassword();
+      } catch (error) {
+        Logger.error(error);
+      }
 
-    if (credentials && credentials.password !== '') {
-      this.storeCredentials(credentials.password, enabled, passwordType);
-    } else {
-      this.props.navigation.navigate('EnterPasswordSimple', {
-        onPasswordSet: (password) => {
-          this.storeCredentials(password, enabled, passwordType);
-        },
-      });
-    }
+      if (credentials && credentials.password !== '') {
+        console.log('vault/ SecuritySettings setPassword has credentials');
+        this.storeCredentials(credentials.password, enabled, passwordType);
+      } else {
+        console.log(
+          'vault/ SecuritySettings setPassword does not have credentials, navigating to enter password',
+        );
+        this.props.navigation.navigate('EnterPasswordSimple', {
+          onPasswordSet: (password) => {
+            this.storeCredentials(password, enabled, passwordType);
+          },
+        });
+      }
+    });
   };
 
   isMainnet = () => this.props.type === MAINNET;
@@ -364,6 +375,12 @@ class Settings extends PureComponent {
   };
 
   storeCredentials = async (password, enabled, type) => {
+    console.log(
+      'vault/ SecuritySettings storeCredentials called with',
+      enabled,
+      passwordSet,
+      type,
+    );
     try {
       await Authentication.resetPassword();
 
@@ -372,6 +389,7 @@ class Settings extends PureComponent {
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
+        console.log('vault/ SecuritySettings storeCredentials not enabled');
         this.setState({ [type]: false, loading: false });
         if (type === PASSCODE_CHOICE_STRING) {
           console.log(
@@ -396,6 +414,10 @@ class Settings extends PureComponent {
         } else {
           authType = AUTHENTICATION_TYPE.PASSWORD;
         }
+        console.log(
+          'vault/ SecuritySettings storeCredentials calling Authentication.storePassword with',
+          authType,
+        );
         await Authentication.storePassword(password, authType);
       } catch (error) {
         Logger.error(error);
@@ -409,6 +431,7 @@ class Settings extends PureComponent {
 
       this.setState({ [type]: true, loading: false });
     } catch (e) {
+      console.log('vault/ SecuritySettings storeCredentials error', e);
       if (e.message === 'Invalid password') {
         Alert.alert(
           strings('app_settings.invalid_password'),
