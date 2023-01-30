@@ -12,7 +12,7 @@ import { SignatureProps } from '../../hooks/Signatures/useSignatureTypes';
 import { useNavigation } from '@react-navigation/native';
 import useMessage from '../../hooks/Signatures/useMessage';
 import sanitizeString from '../../../util/string';
-import { signatureAnalytics } from '../SignatureRequest/SignatureSharedState';
+import { signatureAnalytics } from '../SignatureRequest/Util';
 import { SignatureType, TYPED_VERSIONS } from '../../../constants/signature';
 
 /**

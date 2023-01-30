@@ -4,7 +4,6 @@ import { SignatureAnalayticsProps } from '../types';
 
 const getSignatureAnalytics = ({
   currentPageInformation,
-  selectedAddress,
   type,
   messageParams,
 }: SignatureAnalayticsProps) => {
@@ -14,7 +13,7 @@ const getSignatureAnalytics = ({
     const url = new URL(currentPageInformation?.url);
 
     return {
-      account_type: getAddressAccountType(selectedAddress),
+      account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url?.host,
       dapp_url: currentPageInformation?.url,
       chain_id: chainId,

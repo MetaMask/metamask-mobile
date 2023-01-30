@@ -1,6 +1,6 @@
 import Engine from '../../../core/Engine';
 import { UseMessageProps } from './useSignatureTypes';
-import { showWalletConnectNotification } from '../../UI/SignatureRequest/SignatureSharedState';
+import {showWalletConnectNotification} from '../../UI/SignatureRequest/Util'
 
 const useMessage = ({ messageParams, type }: UseMessageProps) => {
   const { TypedMessageManager, KeyringController }: any = Engine.context;
