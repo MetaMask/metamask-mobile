@@ -15,7 +15,7 @@ config.capabilities = [
     settings: {
       snapshotMaxDepth: 100, // Enable testID on deep nested elements
     },
-    language: 'en',
+    language: 'en'
   },
 ];
 

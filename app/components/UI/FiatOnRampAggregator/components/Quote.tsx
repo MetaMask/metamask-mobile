@@ -17,8 +17,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
+import CustomText from '../../../Base/Text';
+import CustomTitle from '../../../Base/Title';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import {
@@ -28,12 +28,14 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
-import { useTheme } from '../../../../util/theme';
+import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 
 import { Colors } from '../../../../util/theme/models';
 
 // TODO: Convert into typescript and correctly type optionals
+const Text = CustomText as any;
+const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: Colors) =>
@@ -80,8 +82,9 @@ const Quote: React.FC<Props> = ({
   isLoading,
   highlighted,
 }: Props) => {
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors);
+  const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
   const {
     networkFee = 0,
     providerFee = 0,
@@ -138,13 +141,13 @@ const Quote: React.FC<Props> = ({
               accessibilityLabel={quote.provider?.name}
             >
               <View style={styles.title}>
-                {quote.provider?.logos?.[themeAppearance] ? (
+                {quote.provider?.logos?.[logoKey] ? (
                   <RemoteImage
                     style={{
                       width: quote.provider.logos.width,
                       height: quote.provider.logos.height,
                     }}
-                    source={{ uri: quote.provider?.logos?.[themeAppearance] }}
+                    source={{ uri: quote.provider?.logos?.[logoKey] }}
                   />
                 ) : (
                   <Title>{quote?.provider?.name}</Title>

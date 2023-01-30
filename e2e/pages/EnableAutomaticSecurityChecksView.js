@@ -3,7 +3,7 @@ import TestHelpers from '../helpers';
 import {
   ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
   ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
-} from '../../wdio/screen-objects/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
+} from '../../wdio/features/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
 
 export default class EnableAutomaticSecurityChecksView {
   static async tapNoThanks() {

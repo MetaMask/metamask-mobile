@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import styles from './Regions.styles';
 
 import Text from '../../../../Base/Text';

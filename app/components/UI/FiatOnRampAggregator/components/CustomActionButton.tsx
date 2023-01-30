@@ -4,10 +4,12 @@ import {
   PaymentCustomActionButton,
   TextOrImage,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useTheme } from '../../../../util/theme';
+import { useAssetFromTheme } from '../../../../util/theme';
 import StyledButton from '../../StyledButton';
 import RemoteImage from '../../../Base/RemoteImage';
-import Text from '../../../Base/Text';
+import CustomText from '../../../Base/Text';
+// TODO: Convert into typescript and correctly type optionals
+const Text = CustomText as any;
 
 interface Props {
   customActionButton: PaymentCustomActionButton;
@@ -46,35 +48,33 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
   }
 };
 
-const CustomActionButton: React.FC<
-  Props & React.ComponentProps<StyledButton>
-> = ({ customActionButton, isLoading, ...props }: Props) => {
-  const { themeAppearance } = useTheme();
-  const { backgroundColor, textColor, value } =
-    customActionButton[themeAppearance];
-  return (
-    <StyledButton
-      type="confirm"
-      style={{ color: textColor }}
-      containerStyle={[
-        styles.container,
-        {
-          backgroundColor,
-        },
-      ]}
-      {...props}
-    >
-      {isLoading ? (
-        <ActivityIndicator size={'small'} />
-      ) : (
-        <>
-          {value.map((textOrImage) =>
-            renderButtonValue(textOrImage, textColor),
-          )}
-        </>
-      )}
-    </StyledButton>
-  );
-};
+const CustomActionButton: React.FC<Props & React.ComponentProps<StyledButton>> =
+  ({ customActionButton, isLoading, ...props }: Props) => {
+    const themeKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
+    const { backgroundColor, textColor, value } = customActionButton[themeKey];
+    return (
+      <StyledButton
+        type="confirm"
+        style={{ color: textColor }}
+        containerStyle={[
+          styles.container,
+          {
+            backgroundColor,
+          },
+        ]}
+        {...props}
+      >
+        {isLoading ? (
+          <ActivityIndicator size={'small'} />
+        ) : (
+          <>
+            {value.map((textOrImage) =>
+              renderButtonValue(textOrImage, textColor),
+            )}
+          </>
+        )}
+      </StyledButton>
+    );
+  };
 
 export default CustomActionButton;

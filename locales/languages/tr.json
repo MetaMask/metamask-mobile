@@ -147,9 +147,7 @@
     "wrong_password_error": "Hata: Şifre çözme başarısız oldu",
     "wrong_password_error_android": "Hata: error:1e000065:Şifreleme fonksiyonları:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Hata: Önceki bir vault olmadan kilidi açılamaz.",
-    "clean_vault_error": "MetaMask, depolama limitine ulaşılmasından dolayı bir hata ile karşılaştı. Yerel veriler bozuldu. Lütfen MetaMask'ı tekrar yükleyin ve Gizli Kurtarma İfadenizi kullanarak geri yükleyin.",
-    "security_alert_title": "Güvenlik Uyarısı",
-    "security_alert_desc": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gereklidir"
+    "clean_vault_error": "MetaMask, depolama limitine ulaşılmasından dolayı bir hata ile karşılaştı. Yerel veriler bozuldu. Lütfen MetaMask'ı tekrar yükleyin ve Gizli Kurtarma İfadenizi kullanarak geri yükleyin."
   },
   "enter_password": {
     "title": "Şifrenizi girin",
@@ -284,23 +282,6 @@
     "no_collectibles": "NFT'nizi görmüyor musunuz?",
     "no_available_tokens": "Tokeninizi görmüyor musunuz?",
     "add_tokens": "Tokenleri İçe Aktar",
-    "tokens_detected_in_account": "Bu hesapta {{tokenCount}} yeni {{tokensLabel}} bulundu",
-    "token_toast": {
-      "tokens_imported_title": "İçe Aktarılan Tokenler",
-      "tokens_imported_desc": "Başarılı bir şekilde içe aktarıldı: {{tokenSymbols}}",
-      "token_imported_title": "İçe Aktarılan Token",
-      "token_imported_desc": "Başarılı bir şekilde içe aktarıldı: {{tokenSymbol}}",
-      "tokens_hidden_title": "Tokenler Gizleniyor",
-      "tokens_hidden_desc": "Algılanan tokenler cüzdanınızdan gizleniyor",
-      "token_hidden_title": "Token Gizleniyor",
-      "token_hidden_desc": "{{tokenSymbol}} Gizleniyor"
-    },
-    "hide_token": {
-      "title": "Tokeni Gizle?",
-      "desc": "Gelecekte bu tokeni “Tokeni içe aktar”' öğesine gidip tokeni arayarak tekrar ekleyebilirsiniz.",
-      "cancel_cta": "İptal",
-      "confirm_cta": "Onayla"
-    },
     "no_tokens": "Tokeniniz yok!",
     "no_nfts_yet": "Henüz NFT yok",
     "nfts_autodetection_title": "NFT algılama",
@@ -313,14 +294,14 @@
     "deposit_button": "Para Yatır",
     "copy_address": "Hata",
     "collectible_action_title": "Koleksiyon Seçenekleri",
-    "remove_token_title": "Bu tokeni gizlemek istiyor musunuz?",
     "remove_collectible_title": "Bu koleksiyonu kaldırmak istiyor musunuz?",
     "refresh_metadata": "Meta Verileri Yenile",
     "token_removal_issue_title": "Token kaldırılırken sorun oldu.",
     "token_removal_issue_desc": "Token kaldırılırken bir problem oldu. Tekrar deneyin.",
+    "token_removed_title": "Token kaldırıldı!",
+    "token_removed_desc": "Fikrinizi değiştirirseniz \"Tokenleri İçe Aktar\" düğmesine dokunarak geri ekleyebilirsiniz",
     "collectible_removed_title": "Koleksiyon kaldırıldı!",
     "collectible_removed_desc": "Fikrinizi değiştirirseniz \"NFT'leri İçe Aktar\" düğmesine dokunarak geri ekleyebilirsiniz",
-    "remove": "Gizle",
     "cancel": "İptal",
     "yes": "Evet",
     "private_key_detected": "Özel anahtar algılandı",
@@ -329,19 +310,6 @@
     "logout_to_import_seed": "Bir Gizli Kurtarma İfadesini içe aktarmak için önce oturumu kapatmanız gerekiyor.",
     "ready_to_explore": "Blok zinciri uygulamalarını keşfetmeye başlamak için hazır mısınız?",
     "unable_to_load": "Bakiye yüklenmedi"
-  },
-  "asset_details": {
-    "token": "Token",
-    "amount": "Token Miktarı",
-    "address": "Token sözleşme adresi",
-    "decimal": "Token ondalığı",
-    "network": "Ağ",
-    "lists": "Token Listeleri",
-    "hide_cta": "Tokeni gizle",
-    "options": {
-      "view_on_block": "Blok gezgininde görüntüle",
-      "token_details": "Token bilgileri"
-    }
   },
   "activity_view": {
     "title": "Faaliyet"
@@ -362,15 +330,11 @@
       "cancel_add_collectible": "İPTAL",
       "add_collectible": "İÇE AKTAR"
     },
-    "banners": {
-      "search_desc": "Gelişmiş token algılama şu anda {{network}} ağında kullanılabilir. ",
-      "search_link": "Ayarlardan etkinleştirin.",
-      "custom_warning_desc": "Mevcut tokenlerin sahte sürümleri dahil olmak üzere herkes token oluşturabilir. \nDolandırıcılık ve güvenlik riskleri ",
-      "custom_warning_link": "hakkında daha fazla bilgi edinin.",
-      "custom_info_desc": "Token algılama henüz bu ağda mevcut değil. Lütfen tokeni manuel olarak içe aktarın ve ona güvendiğinden emin olun. Token dolandırıcılığı ve güvenlik riskleri ",
-      "custom_info_link": "hakkında daha fazla bilgi edinin.",
-      "custom_security_tips": "Güvenlik İpuçları"
-    }
+    "warning_body_description": "Mevcut tokenlerin sahte sürümleri dahil olmak üzere herkes token oluşturabilir.",
+    "warning_link": "Dolandırıcılık ve güvenlik riskleri hakkında daha fazla bilgi alın.",
+    "security_tips": "Güvenlik İpuçları",
+    "token_detection_feature": "Yeni! İyileştirilmiş token algılama deneysel bir özellik olarak Ethereum Ana Ağında mevcuttur.",
+    "token_detection_link": "Ayarlardan etkinleştir."
   },
   "terms_and_conditions": {
     "title": "Şart ve Koşullar",
@@ -396,7 +360,6 @@
   "token": {
     "token_symbol": "Token Sembolü",
     "token_address": "Token Adresi",
-    "token_decimal": "Token Ondalığı",
     "search_tokens_placeholder": "Token Ara",
     "address_cant_be_empty": "Token adresi boş olamaz.",
     "address_must_be_valid": "Token adresi geçerli bir adres olmalıdır.",
@@ -475,7 +438,6 @@
     "search_engine": "Arama Motoru",
     "new_RPC_URL": "Yeni RPC Ağı",
     "state_logs": "Durum Günlükleri",
-    "add_network_title": "Ağ ekle",
     "auto_lock": "Otomatik kilitle",
     "auto_lock_desc": "Uygulama otomatik olarak kilitlenmeden süre miktarını seçin.",
     "state_logs_desc": "Bu, MetaMask'ın, karşılaşabileceğiniz her sorunu çözmesine yardımcı olur. Lütfen hamburger simgesinden > Geri Bildirim Gönder kısmından MetaMask destek bölümüne gönderin veya varsa mevcut sorgunuza yanıt verin.",
@@ -613,11 +575,6 @@
     "theme_os": "Sistem",
     "theme_light": "Açık",
     "theme_dark": "Koyu",
-    "mainnet": "Ana Ağ",
-    "test_network_name": "Test ağları",
-    "custom_network_name": "Özel ağlar",
-    "popular": "Popüler",
-    "delete": "Sil",
     "network_exists": "Bu ağ zaten eklenmiş.",
     "delete_metrics_title": "MetaMetrics verilerini sil",
     "delete_metrics_description_part_one": "Bu işlem cüzdanınızla ilişkili geçmiş MetaMetrics verilerini silecek.",
@@ -690,8 +647,6 @@
     "seed_phrase_copied_time": "(1 dakika boyunca saklanır)",
     "private_key_copied": "Özel anahtar geçici olarak panoya kopyalandı",
     "private_key_copied_time": "(1 dakika boyunca saklanır)",
-    "private_key_copied_ios": "Özel anahtar geçici olarak panoya kopyalandı\n",
-    "private_key_copied_android": "Özel anahtar panoya kopyalandı\n",
     "warning_incorrect_password": "Şifre yanlış",
     "unknown_error": "Hesabınızın kilidi açılamadı. Lütfen tekrar deneyin.",
     "hardware_error": "Bu bir donanım cüzdanı hesabıdır, özel kilidinizi dışa aktaramazsınız.",
@@ -731,8 +686,7 @@
     "were_unable": "Bakiyenizi",
     "balance": "yükleyemedik. Yardım için",
     "troubleshooting_missing": "eksik bakiye sorununu giderme hakkındaki",
-    "for_help": "makaleye bakın.",
-    "troubleshoot": "Sorun Giderme"
+    "for_help": "makaleye bakın."
   },
   "account_details": {
     "title": "Hesap Bilgileri",
@@ -741,28 +695,6 @@
     "show_private_key": "Özel anahtarı göster",
     "account_copied_to_clipboard": "Halka açık adres panoya kopyalandı",
     "share_public_key": "Halka açık anahtarım paylaşılıyor: "
-  },
-  "detected_tokens": {
-    "title": "{{tokenCount}} yeni token bulundu",
-    "title_plural": "{{tokenCount}} yeni token bulundu",
-    "import_cta": "({{tokenCount}}) içe aktar",
-    "hide_cta": "Tümünü Gizle",
-    "token_address": "Token adresi: ",
-    "token_lists": "Token listeleri: {{listNames}}",
-    "token_more": " + {{remainingListCount}} daha",
-    "confirm": {
-      "cancel_cta": "İptal",
-      "confirm_cta": "Onayla",
-      "import": {
-        "title": "Seçilen tokenleri içe aktar?",
-        "desc": "Cüzdanınızda sadece seçtiğiniz tokenler gösterilecek. Dilediğiniz zaman onları arayarak gizli tokenleri içe aktarabilirsiniz."
-      },
-      "hide": {
-        "title": "Emin misiniz?",
-        "desc": "Gizlediğiniz tokenler cüzdanınızda gösterilmez. Ancak, yine de onları bulup ekleyebilirsiniz."
-      }
-    },
-    "address_copied_to_clipboard": "Token adresi hafıza panosuna kopyalandı"
   },
   "qr_scanner": {
     "invalid_qr_code_title": "QR Kodu geçersiz",
@@ -822,8 +754,6 @@
     "insufficient": "Para yetersiz",
     "insufficient_amount": "Bu işlemi tamamlamak için {{amount}}{{tokenSymbol}} daha gerekiyor.",
     "buy_more_eth": "Daha fazla ETH satın al",
-    "buy_more": "Daha Fazla Satın Al",
-    "go_to_faucet": "Faucet'e git",
     "get_ether": "{{networkName}} ağı için Ether al.",
     "insufficient_tokens": "{{token}} yetersiz",
     "invalid_address": "Geçersiz adres",
@@ -902,8 +832,7 @@
     "no_camera_permission": "Kamera izni yok. Lütfen izin verin ve tekrar deneyin",
     "invalid_qr_code_sign": "Geçersiz QR kodu. Lütfen donanımınızı kontrol edin ve tekrar deneyin.",
     "no_camera_permission_android": "Devam etmek için kameranıza MetaMask erişim izni vermeniz gerekiyor. Ayrıca sistem ayarlarınızı değiştirmeniz gerekebilir.",
-    "mismatched_qr_request_id": "Uyumsuz işlem verisi. Lütfen aşağıdaki QR koduyla imzalamak için Kilidinizi kullanın ve 'İmzayı Al' tuşuna tıklayın.",
-    "hex_data_copied": "Onaltılık verileri panoya kopyalandı"
+    "mismatched_qr_request_id": "Uyumsuz işlem verisi. Lütfen aşağıdaki QR koduyla imzalamak için Kilidinizi kullanın ve 'İmzayı Al' tuşuna tıklayın."
   },
   "custom_gas": {
     "total": "Toplam",
@@ -956,8 +885,7 @@
     "close": "Kapat",
     "all_set": "Her şey hazır!",
     "all_set_desc": "Bu site için izinleri başarılı bir şekilde ayarladın.",
-    "must_be_at_least": "En az {{allowance}} olmalıdır",
-    "access_up_to": "Erişim limiti:"
+    "must_be_at_least": "En az {{allowance}} olmalıdır"
   },
   "browser": {
     "title": "Tarayıcı",
@@ -1133,39 +1061,7 @@
     "other_networks": "Diğer Ağlar",
     "close": "Kapat",
     "status_ok": "Tüm Sistemler Faal",
-    "status_not_ok": "Ağda bazı sorunlar yaşanıyor",
-    "want_to_add_network": "Bu ağı eklemek istiyor musunuz?",
-    "network_infomation": "Bu, bu ağın MetaMask dahilinde kullanılmasına izin verir",
-    "network_endorsement": "MetaMask kişisel ağları veya onların güvenliğini ciro etmez.",
-    "learn_about": "Dolandırıcılıklar ve ağ güvenlik riskleri",
-    "network_risk": "hakkında bilgi alın",
-    "network_display_name": "Görüntü adı",
-    "network_chain_id": "Zincir Kimliği",
-    "network_rpc_url": "Ağ URL adresi",
-    "view_details": "Ayrıntıları görüntüle",
-    "network_details": "Ağ bilgileri",
-    "network_currency_symbol": "Para Birimi Sembolü",
-    "network_block_explorer_url": "Blok Gezgini URL Adresi",
-    "search": "Önceden eklenmiş ağı ara",
-    "add": "Ekle",
-    "cancel": "İptal et",
-    "approve": "Onayla",
-    "malicious_network_warning": "Kötü amaçlı bir ağ sağlayıcı blok zincirinin durumu hakkında yalan söyleyebilir ve ağ aktivitenizi kaydedebilir. Sadece güvendiğiniz özel ağları ekleyin.",
-    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
-    "network_warning_title": "Ağ Bilgileri",
-    "network_warning_desc": "Bu ağ bağlantısı üçüncü taraflara dayalıdır. Bu bağlantı daha az güvenilir olabilir ya da üçüncü tarafların aktiviteyi takip etmesini sağlayabilir.",
-    "learn_more": "Daha fazlasını öğrenin",
-    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
-    "switch_network": "Ağ değiştir",
-    "new_network": "Yeni ağ eklendi",
-    "network_name": "{{networkName}} Ağı",
-    "network_added": " artık ağ seçicide mevcut.",
-    "provider": "Size bakiyelerinizi söyleyen ve işlemlerini dürüstçe yayınlayan bir sağlayıcı güvenilirdir.",
-    "no_match": "Eşleşen sonuç bulunamadı.",
-    "empty_popular_networks": "Tüm popüler ağları eklediniz.",
-    "add_other_network_here": "Burada daha fazla ağ keşfedebilirsiniz.",
-    "you_can": "Veya",
-    "add_network": "manuel olarak daha fazla ekleyebilirsiniz."
+    "status_not_ok": "Ağda bazı sorunlar yaşanıyor"
   },
   "select": {
     "cancel": "İptal",
@@ -1717,11 +1613,9 @@
     "no_providers_available": "Sağlayıcı mevcut değil",
     "try_different_amount_to_buy_input": "Farklı bir ödeme yöntemi seçmeyi dene veya satın almak istediğin tutarı artırmayı veya azaltmayı dene!",
     "webview_received_error": "WebView şu hata durum kodunu aldı: {{code}}",
-    "no_tokens_available_title": "Token Yok",
     "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
-    "change_payment_method": "Ödeme yöntemini değiştir",
-    "try_different_region": "Farklı bir bölge deneyin",
-    "return_home": "Ana Ekrana Geri Dön",
+    "try_different_region": "Try a different region",
+    "return_home": "Return to Home Screen",
     "region": {
       "buy_crypto_tokens": "Kripto Token Satın Al",
       "title": "Bölgeni Seç",
@@ -1738,35 +1632,33 @@
       "unsupported_link": "Destek Makalesini Ziyaret Et"
     },
     "order_details": {
-      "details_main": "Emir Bilgileri",
-      "successful": "Emir Başarılı!",
-      "your": "Size ait",
-      "available_in_account": "şu anda hesabınızda",
-      "crypto": "kripto",
-      "failed": "Emir Başarısız Oldu",
-      "cancelled": "Emir İptal Edildi",
-      "failed_description": "Bir şeyler ters gitti ve {{provider}} emrinizi tamamlayamadı. Lütfen tekrar veya başka bir sağlayıcı ile deneyin.",
-      "the_provider": "sağlayıcı",
-      "processing": "Emir Gerçekleştiriliyor",
-      "processing_card_description": "Kredi Kartı/Banka Kartı satın alma işlemleri genellikle birkaç dakika sürer",
-      "processing_bank_description": "Banka transferleri genellikle birkaç iş günü sürer",
-      "details": "Emir bilgileri",
-      "via": "aracı",
-      "purchase_amount": "Satın Alınan Toplam Tutar",
-      "etherscan": "Tüm ayrıntıları şurada görüntüle",
-      "another_purchase": "Başka bir satın alma işlemi gerçekleştir",
-      "questions": "Sorularınız mı var?",
-      "contact_support": "Destek ile iletişim kurun",
-      "support": "Destek",
-      "view_order_status": "Emir durumunu {{provider}} üzerinde görüntüleyin",
-      "id": "Emir Numarası",
-      "date_and_time": "Tarih ve Saat",
-      "payment_method": "Ödeme Yöntemi",
-      "token_amount": "Token Tutarı",
-      "exchange_rate": "Dönüştürme Oranı",
-      "total_fees": "Toplam Ücretler",
-      "amount": "Tutar",
-      "a_block_explorer": "bir blok gezgini"
+      "details_main": "Order Details",
+      "successful": "Order Successful!",
+      "your": "Your",
+      "available_in_account": "is now available in your account",
+      "crypto": "crypto",
+      "failed": "Order Failed",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
+      "the_provider": "the provider",
+      "processing": "Processing Order",
+      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
+      "processing_bank_description": "Bank transfers typically take a few business days",
+      "details": "Order details",
+      "via": "via",
+      "purchase_amount": "Purchase Amount Total",
+      "etherscan": "View full details on",
+      "another_purchase": "Make another purchase",
+      "questions": "Questions?",
+      "contact": "Contact",
+      "support": "Support",
+      "id": "Order ID",
+      "date_and_time": "Date and Time",
+      "payment_method": "Payment Method",
+      "token_amount": "Token Amount",
+      "exchange_rate": "Exchange Rate",
+      "total_fees": "Total Fees",
+      "amount": "Amount",
+      "a_block_explorer": "a block explorer"
     }
   },
   "swaps": {
@@ -1978,17 +1870,6 @@
     "copied_clipboard": "Panoya kopyalandı",
     "ok": "Tamam"
   },
-  "whats_new": {
-    "title": "Yeniliklere bakın",
-    "feature_token_detection_title": "Gelişmiş token algılama burada",
-    "feature_token_detection_description": "Gelişmiş token algılama şu anda Ethereum Mainnet, Polygon, BSC, ve Avalanche ağında mevcuttur. Daha fazlası çok yakında!\n\nTokenleri 3. taraf token listelerinden alırız. İkiden fazla token listesinde yer alan tokenler otomatik olarak silinir.\n\nToken algılama özelliği varsayılan olarak AÇIK konumdadır. Ancak Ayarlar kısmından devre dışı bırakabilirsiniz.",
-    "feature_token_detection_button_text": "Ayarlarda ziyaret edin",
-    "feature_token_security_title_1": "Dolandırıcılık ve güvenlik riskleri",
-    "feature_token_security_description_1": "Tokenler herkes tarafından oluşturulabilir ve yinelenen adlara sahip olabilir. Güvenmediğiniz veya etkileşimde bulunmadığınız bir token görürseniz ona güvenmemek daha güvenlidir.",
-    "feature_token_security_title_2": "Tokenleri gizlemek için uzun bas",
-    "feature_token_security_description_2": "MetaMask mobil uygulamasında, dilediğiniz zaman tokena uzun basıp \"Gizle\" seçeneğini seçerek tokenleri gizleyebilirsiniz.",
-    "feature_token_security_button_text": "Başlayalım!"
-  },
   "invalid_network": {
     "title": "Kişisel ağ \n%{network} \niçin zincir kimliğinin yeniden girilmesi gerekiyor.",
     "message": "Sizi kötü amaçlı veya kusurlu ağ sağlayıcılarından korumak amacıyla tüm kişisel ağlarda zincir kimlikleri gerekir.",
@@ -2039,10 +1920,10 @@
     "learn_more": {
       "title": "Nasıl seçim yapmalıyım?",
       "intro": "Doğru gaz ücretinin seçilmesi işlem türüne ve bunun sizin için ne kadar önemli olduğuna bağlıdır.",
-      "aggressive_label": "Agresif",
-      "aggressive_text": "Volatil piyasalarda bile yüksek olasılık. Popüler NFT düşüşleri gibi şeyler nedeniyle ağ trafindeki dalgalanmaları kapsamak için Agresif özelliğini kullanın.",
-      "market_label": "Piyasa",
-      "market_text": "Güncel piyasa fiyatında hızlı işleme almak için Piyasa özelliğini kullanın.",
+      "high_label": "Yüksek",
+      "high_text": "Bu, zamana duyarlı işlemler (Swap işlemleri gibi) için en iyisidir çünkü başarılı işlem olasılığını artırır. Bir Swap işleminin gerçekleşmesi çok uzun sürerse başarısız olabilir ve gaz ücretinizin bir kısmını kaybetmekle sonuçlanabilir.",
+      "medium_label": "Orta",
+      "medium_text": "Orta gaz ücreti, para göndermek, para çekmek veya diğer zamana duyarlı olmayan işlemler için iyidir. Bu ayar genellikle başarılı bir işlemle sonuçlanır.",
       "low_label": "Düşük",
       "low_text": "Düşük bir gaz ücreti sadece önemli olmayan işlemler için veya ağ trafiği çok düşük olduğunda kullanılmalıdır. Daha düşük bir ücret ile işleminizin ne zaman başarılı olacağını (veya başarılı olup olmayacağını) öngörmek zor olabilir.",
       "link": "Gaz ücretini kişiselleştirme hakkında daha fazla bilgi al."
@@ -2065,9 +1946,6 @@
     "low": "Düşük",
     "medium": "Orta",
     "high": "Yüksek",
-    "market": "Piyasa",
-    "aggressive": "Agresif",
-    "low_fee_warning": "İşlem sürenizi not alın. Gelecekteki işlemler bu işlemden sonra kuyruğa alınacaktır.",
     "edit_priority": "Önceliği düzenle",
     "speed_up_transaction": "İşlemi hızlandır",
     "cancel_transaction": "İşlemi iptal et",
@@ -2153,10 +2031,6 @@
     "token_detection_mainnet_link": "Manuel olarak da ekleyebilirsiniz.",
     "or": "veya"
   },
-  "download_files": {
-    "error": "Ek indirilemedi.",
-    "unknownError": "Bilinmeyen bir hata oluştu"
-  },
   "remember_me": {
     "enable_remember_me": "Beni Hatırla özelliğini aç",
     "enable_remember_me_description": "Beni Hatırla özelliği açıldığında telefonunuza erişimi olan herkes MetaMask hesabınıza erişim sağlayabilir."
@@ -2166,13 +2040,6 @@
     "placeholder": "Parola",
     "description": "Bu seçeneği kapatırsanız şu andan itibaren MetaMask'in kilidini açmak için şifrenizi girmeniz gerekecektir.",
     "action": "Beni Hatırla özelliğini kapat"
-  },
-  "dapp_connect": {
-    "warning": "Bu özelliği kullanabilmek için lütfen uygulamayı en yeni sürüme güncelleyin."
-  },
-  "confirmation_modal": {
-    "cancel_cta": "İptal",
-    "confirm_cta": "Onayla"
   },
   "automatic_security_checks": {
     "title": "Otomatik güvenlik kontrolleri",
@@ -2189,32 +2056,5 @@
     "description": "Güncellemelerin otomatik kontrolü IP adresini GitHub sunucularında açığa çıkarabilir. Bu durum sadece IP adresinin MetaMask kullandığını gösterir. Başka hiçbir bilgi ya da hesap adresi açığa çıkmaz.",
     "primary_action": "Otomatik güvenlik kontrollerini etkinleştir",
     "secondary_action": "Hayır, teşekkürler"
-  },
-  "srp_security_quiz": {
-    "title": "Güvenlik testi",
-    "introduction": "Gizli Kurtarma İfadenizi görmek için iki soruyu doğru cevaplamanız gerekmektedir",
-    "get_started": "Başla",
-    "learn_more": "Daha fazla bilgi",
-    "try_again": "Tekrar dene",
-    "continue": "Devam",
-    "of": "/",
-    "question_one": {
-      "question": "Gizli Kurtarma İfadenizi kaybederseniz MetaMask...",
-      "right_answer": "Size yardımcı olamaz",
-      "wrong_answer": "Size onu tekrar verebilir",
-      "right_answer_title": "Doğru! Hiç kimse Gizli Kurtarma İfadenizi geri almanıza yardımcı olamaz",
-      "right_answer_description": "Bir yere yazın, bir metalin üzerine kazıyın veya asla kaybetmemeniz için birden fazla noktada saklayın. Kaybederseniz sonsuza dek kaybolur.",
-      "wrong_answer_title": "Yanlış! Hiç kimse Gizli Kurtarma İfadenizi geri almanıza yardımcı olamaz",
-      "wrong_answer_description": "Gizli Kurtarma İfadenizi kaybederseniz sonsuza dek kaybolur. Geri almanızı sağlayacağını iddia edenler olabilir ancak hiç kimse onu geri almanıza yardımcı olamaz."
-    },
-    "question_two": {
-      "question": "Herhangi birisi, bir destek temsilcisi bile sizden Gizli Kurtarma İfadenizi isterse...",
-      "right_answer": "Dolandırılıyorsunuzdur",
-      "right_answer_title": "Doğru! Gizli Kurtarma İfadenizi paylaşmak asla iyi bir fikir değildir",
-      "right_answer_description": "Gizli Kurtarma İfadenizi isteyen kişi size yalan söylüyordur. Kendisi ile paylaşırsanız varlıklarınızı çalacaktır.",
-      "wrong_answer": "Kendisine vermelisiniz",
-      "wrong_answer_title": "Hayır! Gizli Kurtarma İfadenizi asla hiç kimse ile paylaşmayın, asla",
-      "wrong_answer_description": "Gizli Kurtarma İfadenizi isteyen kişi size yalan söylüyordur. Kendisi ile paylaşırsanız varlıklarınızı çalacaktır."
-    }
   }
 }

@@ -22,15 +22,7 @@ describe('PersonalSign', () => {
       <Provider store={store}>
         <PersonalSign
           currentPageInformation={{ title: 'title', url: 'url' }}
-          messageParams={{
-            data: 'message',
-            from: '0x0',
-            origin: 'origin',
-            metamaskId: 'id',
-          }}
-          onConfirm={() => ({})}
-          onCancel={() => ({})}
-          selectedAddress="0x0"
+          messageParams={{ data: 'message' }}
         />
       </Provider>,
     );

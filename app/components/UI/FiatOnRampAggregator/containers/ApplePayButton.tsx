@@ -9,7 +9,7 @@ import {
   FiatOrder,
 } from '../../../../reducers/fiatOrders';
 import ApplePayButtonComponent from '../components/ApplePayButton';
-import useApplePay, { ABORTED } from '../hooks/useApplePay';
+import useApplePay, { ABORTED } from '../hooks/applePay';
 import useAnalytics from '../hooks/useAnalytics';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';

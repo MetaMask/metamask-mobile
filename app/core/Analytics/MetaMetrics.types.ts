@@ -48,7 +48,7 @@ export interface IMetaMetrics {
 // Represents an MetaMetrics event
 export interface IMetaMetricsEvent {
   // Event name to track
-  category: string;
+  name: string;
   properties?: {
     name?: string;
     action?: string;

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
 import scaling from '../../../util/scaling';
 import { video_source_uri, getSubtitleUri } from '../../../util/video';
@@ -19,8 +19,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const SeedPhraseVideo = ({ style, onClose }) => {
-  const [showVideo, setShowVideo] = useState(false);
+const SeedPhraseVideo = ({ style, onClose, showVideo }) => {
   const language = I18n.locale.substr(0, 2);
   const subtitle_source_tracks = [
     {
@@ -31,12 +30,6 @@ const SeedPhraseVideo = ({ style, onClose }) => {
       uri: getSubtitleUri(language),
     },
   ];
-
-  useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      setShowVideo(true);
-    });
-  }, []);
 
   return (
     <View style={styles.videoContainer}>
@@ -56,6 +49,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 SeedPhraseVideo.propTypes = {
   style: PropTypes.object,
   onClose: PropTypes.func,
+  showVideo: PropTypes.bool,
 };
 
 export default SeedPhraseVideo;

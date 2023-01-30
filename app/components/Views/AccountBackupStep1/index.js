@@ -36,7 +36,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   PROTECT_YOUR_WALLET_CONTAINER_ID,
   REMIND_LATER_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+} from '../../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
