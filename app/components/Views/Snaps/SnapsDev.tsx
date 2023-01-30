@@ -40,8 +40,8 @@ const SnapsDev = () => {
   }, [colors, navigation, snaps]);
 
   const installSuccessMsg = (id: string) => `Snap ${id} installed\n\n🎉🎉🎉`;
-  const installFailedMsg = (id: string) =>
-    `Snap ${id} failed to install\n\n💀💀💀`;
+  const installFailedMsg = (id: string, e?: string) =>
+    `Snap ${id} failed to install\n\n💀💀💀\n\n${e}`;
 
   const installSnap = async (snapId: string, origin: string): Promise<void> => {
     const { SnapController } = Engine.context as any;
@@ -53,13 +53,13 @@ const SnapsDev = () => {
         '',
       );
       if (result.error) {
-        message = installFailedMsg(snapId);
+        message = installFailedMsg(snapId, result.error);
       } else {
         message = installSuccessMsg(snapId);
         setSnapInput('');
       }
-    } catch {
-      message = installFailedMsg(snapId);
+    } catch (e: any) {
+      message = installFailedMsg(snapId, JSON.stringify(e));
     }
     Alert.alert('Snap Alert', message, [
       {
