@@ -2298,16 +2298,16 @@
       "right_answer_title": "Right! No one can help get your Secret Recovery Phrase back",
       "right_answer_description": "Write it down, engrave it on metal, or keep it in multiple secret spots so you never lose it. If you lose it, it’s gone forever.",
       "wrong_answer_title": "Wrong! No one can help get your Secret Recovery Phrase back",
-      "wrong_answer_description": "If you lose your Secret Recovery Phrase, it’s gone forever. No one can help you get it back, no matter what they might say. "
+      "wrong_answer_description": "If you lose your Secret Recovery Phrase, it’s gone forever. No one can help you get it back, no matter what they might say."
     },
     "question_two": {
       "question": "If anyone, even a support agent, asks for your Secret Recovery Phrase...",
       "right_answer": "You’re being scammed",
       "right_answer_title": "Correct! Sharing your Secret Recovery Phrase is never a good idea",
-      "right_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets. ",
+      "right_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets.",
       "wrong_answer": "You should give it to them",
       "wrong_answer_title": "Nope! Never share your Secret Recovery Phrase with anyone, ever",
-      "wrong_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets. "
+      "wrong_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets."
     }
   }
 }

@@ -33,7 +33,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
-} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {

@@ -1,6 +1,6 @@
-@androidApp @ChainScenarios
+@androidApp
+@ChainScenarios
 Feature: Adding addresses to contacts via address book modal and the contacts screen
-
   A user should see the correct warning when trying to send funds to a contract address
   A user can saved an ENS name to your address book
   The contacts you saved on network A does not carry over to network B
@@ -14,6 +14,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
   Scenario Outline: Validate invalid and valid wallet address <Case>
     When I enter address "<contractAddress>" in the sender's input box
     Then I should see a warning message "<Warning>"
+
     Examples:
       | Case            | contractAddress                            | Warning                                                                                           |
       | Invalid address | 0xB8B4EE5B1b693971eB60bDa15211570df2dB221L | Recipient address is invalid.                                                                     |
@@ -26,11 +27,14 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
 
   Scenario Outline: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
     When On the Main Wallet view I tap "Send"
+
     When I enter address "<Address>" in the sender's input box
     And I tap on button with text "Add this address to your address book"
     Then On the Address book modal Cancel button is enabled
+
     When I enter in a contact name "<ContactName>"
     Then the Save button becomes enabled
+
     When I tap the Save button
     And the contact name "<ContactName>" appears in the senders input box above the contact address
     And I navigate to the main wallet screen
@@ -38,6 +42,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
     Then the saved contact "<ContactName>" should appear
+
     Examples:
       | Address                                    | ContactName |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | TestAlias   |
@@ -48,6 +53,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And I tap on button with text "Delete"
     And I tap on button with text "Delete"
     Then the deleted contact "<ContactName>" should not appear
+
     Examples:
       | ContactName |
       | TestAlias   |
@@ -59,11 +65,14 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And I input "<AddressName>" in the Address field
     And I tap button Add contact which is now enabled
     Then the saved contact "<ContactName>" should appear
+
     When I tap on contact name "<ContactName>"
     And I tap on Edit button to edit Saved contact details
     Then I can edit the contact name to "<EditContactName>"
+
     When I tap the Edit Contact button which is enabled to confirm the change
     Then the saved contact "<EditContactName>" should appear
+
     When I go back to the main wallet screen
     And On the Main Wallet view I tap "Send"
     Then I should see the edited name "<EditContactName>" contact under Recents on the send screen
@@ -83,6 +92,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
     Then I should not see "<ContactName>" appear in the contact list
+
     Examples:
       | ContactName |
       | Birdis      |

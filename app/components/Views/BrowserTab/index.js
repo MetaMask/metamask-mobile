@@ -74,7 +74,7 @@ import {
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
-} from '../../../../wdio/features/testIDs/BrowserScreen/OptionMenu.testIds';
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;

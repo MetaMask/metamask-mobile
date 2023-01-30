@@ -15,7 +15,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NAVBAR_TITLE_NETWORK } from '../../../../wdio/features/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { NAVBAR_TITLE_NETWORK } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const getDappMainUrl = () => {
