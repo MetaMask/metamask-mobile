@@ -1,8 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import fiatOrderReducer, {
-  addActivationKey,
-  addAuthenticationUrl,
   addFiatCustomIdData,
   addFiatOrder,
   chainIdSelector,
@@ -22,13 +20,6 @@ import fiatOrderReducer, {
   removeActivationKey,
   removeAuthenticationUrl,
   removeFiatCustomIdData,
-  removeFiatOrder,
-  resetFiatOrders,
-  selectedAddressSelector,
-  setFiatOrdersGetStartedAGG,
-  setFiatOrdersPaymentMethodAGG,
-  setFiatOrdersRegionAGG,
-  updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
   updateOnRampNetworks,
@@ -191,136 +182,6 @@ const networks: AggregatorNetwork[] = [
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
     expect(fiatOrderReducer(undefined, {} as Action)).toEqual(initialState);
-  });
-
-  it('should return the current state if action missing', () => {
-    expect(
-      fiatOrderReducer(initialState, undefined as unknown as Action),
-    ).toEqual(initialState);
-  });
-
-  it('should add a fiat order', () => {
-    const stateWithOrder1 = fiatOrderReducer(
-      initialState,
-      addFiatOrder(mockOrder1),
-    );
-
-    const stateWithOrder1Again = fiatOrderReducer(
-      stateWithOrder1,
-      addFiatOrder(mockOrder1),
-    );
-
-    expect(stateWithOrder1.orders).toEqual([mockOrder1]);
-    expect(stateWithOrder1Again.orders).toEqual([mockOrder1]);
-  });
-
-  it('should update a fiat order', () => {
-    const updatedOrder = {
-      ...mockOrder1,
-      createdAt: 456,
-    };
-
-    const updatedNonExistentOrder = {
-      ...mockOrder2,
-      createdAt: 456,
-    };
-
-    const stateWithOrder1Updated = fiatOrderReducer(
-      {
-        ...initialState,
-        orders: [mockOrder1],
-      },
-      updateFiatOrder(updatedOrder),
-    );
-
-    const stateWithNonExistentOrder = fiatOrderReducer(
-      initialState,
-      updateFiatOrder(updatedNonExistentOrder),
-    );
-
-    expect(stateWithOrder1Updated.orders).toEqual([updatedOrder]);
-    expect(stateWithNonExistentOrder.orders).toEqual([]);
-  });
-
-  it('should remove a fiat order', () => {
-    const stateWithOrder1Removed = fiatOrderReducer(
-      {
-        ...initialState,
-        orders: [mockOrder1],
-      },
-      removeFiatOrder(mockOrder1),
-    );
-
-    const stateWithNonExistentOrderRemoved = fiatOrderReducer(
-      {
-        ...initialState,
-        orders: [mockOrder1],
-      },
-      removeFiatOrder(mockOrder2),
-    );
-
-    expect(stateWithOrder1Removed.orders).toEqual([]);
-    expect(stateWithNonExistentOrderRemoved.orders).toEqual([mockOrder1]);
-  });
-
-  it('should reset the state', () => {
-    const resetState = fiatOrderReducer(
-      {
-        ...initialState,
-        getStartedAgg: true,
-        orders: [mockOrder1],
-      },
-      resetFiatOrders(),
-    );
-    expect(resetState).toEqual(initialState);
-  });
-
-  it('should set get started', () => {
-    const stateWithStartedTrue = fiatOrderReducer(
-      initialState,
-      setFiatOrdersGetStartedAGG(true),
-    );
-    const stateWithStartedFalse = fiatOrderReducer(
-      stateWithStartedTrue,
-      setFiatOrdersGetStartedAGG(false),
-    );
-    expect(stateWithStartedTrue.getStartedAgg).toEqual(true);
-    expect(stateWithStartedFalse.getStartedAgg).toEqual(false);
-  });
-
-  it('should set the selected region', () => {
-    const testRegion = {
-      id: 'test-region',
-      name: 'Test Region',
-    } as Region;
-    const stateWithSelectedRegion = fiatOrderReducer(
-      initialState,
-      setFiatOrdersRegionAGG(testRegion),
-    );
-    const stateWithoutSelectedRegion = fiatOrderReducer(
-      stateWithSelectedRegion,
-      setFiatOrdersRegionAGG(null),
-    );
-
-    expect(stateWithSelectedRegion.selectedRegionAgg).toEqual(testRegion);
-    expect(stateWithoutSelectedRegion.selectedRegionAgg).toEqual(null);
-  });
-
-  it('should set the selected payment method', () => {
-    const stateWithSelectedPaymentMethod = fiatOrderReducer(
-      initialState,
-      setFiatOrdersPaymentMethodAGG('test-payment-method'),
-    );
-    const stateWithoutSelectedPaymentMethod = fiatOrderReducer(
-      stateWithSelectedPaymentMethod,
-      setFiatOrdersPaymentMethodAGG(null),
-    );
-    expect(stateWithSelectedPaymentMethod.selectedPaymentMethodAgg).toEqual(
-      'test-payment-method',
-    );
-    expect(stateWithoutSelectedPaymentMethod.selectedPaymentMethodAgg).toEqual(
-      null,
-    );
   });
 
   it('should add a custom order id object', () => {

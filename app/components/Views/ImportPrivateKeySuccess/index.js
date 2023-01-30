@@ -21,7 +21,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_SUCESS_SCREEN_ID,
   IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ImportSuccessScreen.testIds';
+} from '../../../../wdio/features/testIDs/Screens/ImportSuccessScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

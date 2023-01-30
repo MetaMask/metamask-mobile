@@ -10,6 +10,7 @@ import {
   removeFiatOrder,
   removeActivationKey,
   resetFiatOrders,
+  setFiatOrdersCountry,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
@@ -76,7 +77,7 @@ export interface FiatOrdersState {
   customOrderIds: CustomIdData[];
   networks: AggregatorNetwork[];
   selectedRegionAgg: Country | null;
-  selectedPaymentMethodAgg: string | null;
+  selectedPaymentMethodAgg: string;
   getStartedAgg: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
@@ -108,6 +109,7 @@ export type Action =
   | ReturnType<typeof addFiatOrder>
   | ReturnType<typeof removeFiatOrder>
   | ReturnType<typeof updateFiatOrder>
+  | ReturnType<typeof setFiatOrdersCountry>
   | ReturnType<typeof setFiatOrdersRegionAGG>
   | ReturnType<typeof setFiatOrdersPaymentMethodAGG>
   | ReturnType<typeof setFiatOrdersGetStartedAGG>

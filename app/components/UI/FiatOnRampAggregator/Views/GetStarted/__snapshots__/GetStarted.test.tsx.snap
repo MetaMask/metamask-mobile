@@ -1,18 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GetStarted renders correctly 1`] = `
-<View
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
   style={
     Object {
       "flex": 1,
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       Array [
         Object {
+          "backgroundColor": "#FFFFFF",
           "flex": 1,
         },
         undefined,
@@ -20,7 +21,6 @@ exports[`GetStarted renders correctly 1`] = `
     }
   >
     <View
-      pointerEvents="box-none"
       style={
         Object {
           "zIndex": 1,
@@ -246,120 +246,43 @@ exports[`GetStarted renders correctly 1`] = `
         pointerEvents="box-none"
         style={
           Object {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
+            "flex": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <RCTScrollView
+        contentContainerStyle={
+          Object {
+            "flexGrow": 1,
+            "justifyContent": "center",
           }
         }
       >
-        <View
-          collapsable={false}
-          style={
-            Object {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            Array [
-              Object {
-                "overflow": undefined,
-              },
-              Object {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            Object {
-              "close": Object {
-                "animation": "spring",
-                "config": Object {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": Object {
-                "animation": "spring",
-                "config": Object {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
+        <View>
           <View
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
             style={
-              Object {
-                "flex": 1,
-              }
+              Array [
+                Object {
+                  "padding": 15,
+                },
+                undefined,
+                undefined,
+              ]
             }
           >
             <View
-              collapsable={false}
-              forwardedRef={[Function]}
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
               style={
                 Object {
-                  "flex": 1,
-                  "transform": Array [
-                    Object {
-                      "translateX": 0,
-                    },
-                    Object {
-                      "translateX": 0,
-                    },
-                  ],
+                  "alignItems": "center",
                 }
               }
             >
-              <View
-                pointerEvents="none"
-                style={
+              <Image
+                source={
                   Object {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": Object {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
+                    "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
                   }
                 }
               />
@@ -646,26 +569,205 @@ exports[`GetStarted renders correctly 1`] = `
               </View>
             </View>
           </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "padding": 15,
+                },
+                undefined,
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  Object {
+                    "textAlign": "center",
+                  },
+                  undefined,
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "padding": 15,
+                },
+                undefined,
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  Object {
+                    "textAlign": "center",
+                  },
+                  undefined,
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontWeight": "600",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              Less gas fees to pay, and numerous networks, tokens, and payment methods supported
+            </Text>
+          </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
-  </RNCSafeAreaProvider>
-</View>
+      </RCTScrollView>
+    </View>
+    <View>
+      <View
+        style={
+          Array [
+            Object {
+              "padding": 15,
+            },
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Array [
+              Array [
+                Object {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                Object {
+                  "backgroundColor": "#037DD6",
+                  "minHeight": 50,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+          testID="get-started-button"
+        >
+          <Text
+            style={
+              Array [
+                Object {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                Array [
+                  Object {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  Object {
+                    "color": "#FCFCFC",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</RCTSafeAreaView>
 `;
 
 exports[`GetStarted renders correctly when getStarted is true 1`] = `
-<View
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
   style={
     Object {
       "flex": 1,
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       Array [
         Object {
+          "backgroundColor": "#FFFFFF",
           "flex": 1,
         },
         undefined,
@@ -1080,18 +1182,19 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
 `;
 
 exports[`GetStarted renders correctly when sdkError is present 1`] = `
-<View
+<RCTSafeAreaView
+  emulateUnlessSupported={true}
   style={
     Object {
       "flex": 1,
     }
   }
 >
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
+  <View
     style={
       Array [
         Object {
+          "backgroundColor": "#FFFFFF",
           "flex": 1,
         },
         undefined,
@@ -1099,114 +1202,45 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
     }
   >
     <View
-      pointerEvents="box-none"
       style={
-        Object {
-          "zIndex": 1,
-        }
+        Array [
+          Object {
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
       >
         <View
-          pointerEvents="box-none"
           style={
             Object {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
+              "marginTop": -100,
+              "paddingHorizontal": 60,
+              "width": "100%",
             }
           }
         >
           <View
             style={
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": Object {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          pointerEvents="box-none"
-          style={
-            Object {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              Object {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
-              Object {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "marginVertical": 1,
               }
             }
           >
-            <View
-              collapsable={false}
-              nativeID="animatedComponent"
-              pointerEvents="box-none"
+            <Text
+              allowFontScaling={false}
               style={
-                Object {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View />
-            </View>
-            <View
-              pointerEvents="box-none"
-              style={
-                Object {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
-                style={
+                Array [
                   Object {
                     "alignItems": "center",
                     "flex": 1,
@@ -1219,78 +1253,127 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   style={
                     Object {
                       "color": "#24272A",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                    }
-                  }
-                >
-                  What to Expect
-                </Text>
-                <View
-                  style={
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 18,
+                      "fontWeight": "600",
+                      "marginVertical": 3,
+                    },
                     Object {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      Array [
-                        Object {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        Object {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={
-                      Object {
-                        "color": "#535A61",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
-                        "fontWeight": "400",
-                      }
-                    }
-                    testID="navbar-title-networks"
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              nativeID="animatedComponent"
-              pointerEvents="box-none"
-              style={
-                Object {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
+                      "textAlign": "center",
+                    },
+                    undefined,
+                    undefined,
+                  ],
+                ]
               }
             >
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={[Function]}
-                style={
+              Oops, something went wrong
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "marginVertical": 1,
+              }
+            }
+          >
+            <Text
+              style={
+                Array [
                   Object {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  Object {
+                    "textAlign": "center",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  Object {
+                    "color": "#535A61",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              sdkError
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "marginTop": 30,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={0.2}
+              onPress={[Function]}
+              style={
+                Array [
+                  Array [
+                    Object {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    Object {
+                      "backgroundColor": "#037DD6",
+                      "minHeight": 50,
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    Array [
+                      Object {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      Object {
+                        "color": "#FCFCFC",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
                 }
               >
                 <Text

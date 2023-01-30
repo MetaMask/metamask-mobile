@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
@@ -19,13 +18,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  MULTI_TAB_ADD_BUTTON,
-  MULTI_TAB_CLOSE_ALL_BUTTON,
-  MULTI_TAB_DONE_BUTTON,
-  MULTI_TAB_NO_TABS_MESSAGE,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -231,10 +223,7 @@ export default class Tabs extends PureComponent {
 
     return (
       <View style={styles.noTabs}>
-        <Text
-          style={styles.noTabsTitle}
-          {...generateTestId(Platform, MULTI_TAB_NO_TABS_MESSAGE)}
-        >
+        <Text style={styles.noTabsTitle}>
           {strings('browser.no_tabs_title')}
         </Text>
         <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
@@ -287,7 +276,6 @@ export default class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={closeAllTabs}
-          {...generateTestId(Platform, MULTI_TAB_CLOSE_ALL_BUTTON)}
         >
           <Text
             style={[
@@ -302,7 +290,6 @@ export default class Tabs extends PureComponent {
           <TouchableOpacity
             style={styles.newTabIconButton}
             onPress={this.onNewTabPress}
-            {...generateTestId(Platform, MULTI_TAB_ADD_BUTTON)}
           >
             <MaterialCommunityIcon
               name="plus"
@@ -315,7 +302,6 @@ export default class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
           onPress={closeTabsView}
-          {...generateTestId(Platform, MULTI_TAB_DONE_BUTTON)}
         >
           <Text
             style={[

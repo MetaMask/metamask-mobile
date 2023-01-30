@@ -30,7 +30,7 @@ import {
   DELETE_MODAL_CANCEL_BUTTON,
   DELETE_MODAL_DELETE_MY_WALLET_PERMANENTLY,
   DELETE_MODEL_DELETE_MY_WALLET_CANCEL,
-} from '../../../../wdio/screen-objects/testIDs/Components/DeleteWalletModal.testIds';
+} from '../../../../wdio/features/testIDs/Components/DeleteWalletModal.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';

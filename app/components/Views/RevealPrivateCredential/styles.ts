@@ -24,6 +24,9 @@ export const createStyles = (colors: any) =>
       ...fontStyles.normal,
     },
     seedPhraseView: {
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border.default,
       marginTop: 10,
       alignItems: 'center',
       borderRadius: 10,

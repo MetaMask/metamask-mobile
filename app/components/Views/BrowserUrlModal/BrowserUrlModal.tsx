@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   TextInput,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -104,12 +103,7 @@ const BrowserUrlModal = () => {
               onPress={clearSearchInput}
               style={styles.clearButton}
             >
-              <Icon
-                name="times-circle"
-                size={18}
-                color={colors.icon.default}
-                {...generateTestId(Platform, URL_CLEAR_ICON)}
-              />
+              <Icon name="times-circle" size={18} color={colors.icon.default} />
             </TouchableOpacity>
           ) : null}
         </View>

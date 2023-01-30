@@ -367,22 +367,22 @@ const App = ({ userLoggedIn }) => {
   }, [navigator]);
 
   useEffect(() => {
-    async function checkExisting() {
+    async function checkExsiting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
-    checkExisting();
-    /* eslint-disable react-hooks/exhaustive-deps */
-  }, []);
+
+    checkExsiting();
+  });
 
   useEffect(() => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        const currentVersion = getVersion();
+        const currentVersion = await getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)

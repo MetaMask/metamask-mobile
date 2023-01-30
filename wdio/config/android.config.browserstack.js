@@ -12,11 +12,17 @@ config.capabilities = [
     noReset: false,
     fullReset: false,
     maxInstances: 1,
+<<<<<<< HEAD
     build: 'Android QA E2E Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
+=======
+    build: "Android QA E2E Tests",
+    device: "Google Pixel 3",
+    os_version: "9.0",
+>>>>>>> 46fb0f82c (Merge main)
     app: process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
+    'browserstack.debug': true
   },
 ];
 
@@ -29,6 +35,7 @@ config.cucumberOpts.tagExpression =
 delete config.port;
 delete config.path;
 delete config.services;
+
 
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export

@@ -8,6 +8,7 @@ import {
   ScrollView,
   View,
   ActivityIndicator,
+  TouchableOpacity,
   Keyboard,
   InteractionManager,
   Platform,
@@ -17,6 +18,7 @@ import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
+import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
 import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import {
@@ -38,6 +40,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
@@ -79,6 +82,9 @@ const createStyles = (colors) =>
       paddingTop: 4,
       marginTop: -4,
     },
+    bump: {
+      marginBottom: 10,
+    },
     heading: {
       fontSize: 24,
       lineHeight: 30,
@@ -90,6 +96,12 @@ const createStyles = (colors) =>
       fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
+    },
+    learnMore: {
+      ...fontStyles.normal,
+      color: colors.primary.default,
+      fontSize: 14,
+      lineHeight: 20,
     },
     switchElement: {
       marginTop: 18,
@@ -145,6 +157,25 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    warningText: {
+      color: colors.text.default,
+      fontSize: 12,
+      flex: 1,
+      ...fontStyles.normal,
+    },
+    warningTextRed: {
+      color: colors.text.default,
+    },
+    warningTextGreen: {
+      color: colors.text.default,
+    },
+    warningBold: {
+      ...fontStyles.bold,
+      color: colors.primary.default,
+    },
+    viewHint: {
+      padding: 5,
+    },
     switch: {
       alignSelf: 'flex-start',
     },
@@ -158,6 +189,14 @@ const Heading = ({ children, first }) => {
     <View style={[styles.setting, first && styles.firstSetting]}>
       <Text style={[styles.title, styles.heading]}>{children}</Text>
     </View>
+  );
+};
+
+const WarningIcon = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
   );
 };
 
@@ -250,6 +289,7 @@ class Settings extends PureComponent {
     analyticsEnabled: false,
     showHint: false,
     hintText: '',
+    showVideo: false,
   };
 
   scrollView = undefined;
@@ -280,6 +320,10 @@ class Settings extends PureComponent {
     this.setState({
       analyticsEnabled,
       hintText: manualBackup,
+    });
+
+    InteractionManager.runAfterInteractions(() => {
+      this.setState({ showVideo: true });
     });
 
     if (this.props.route?.params?.scrollToBottom)
@@ -718,13 +762,6 @@ class Settings extends PureComponent {
         </View>
       </>
     );
-  };
-
-  openSRPQuiz = () => {
-    const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-    });
   };
 
   render = () => {

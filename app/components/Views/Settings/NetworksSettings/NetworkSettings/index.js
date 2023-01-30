@@ -59,7 +59,6 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
-import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
@@ -69,7 +68,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -170,9 +169,6 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
       fontSize: 14,
     },
-    tabLabelStyle: {
-      fontSize: scale(11),
-    },
     popularNetworkImage: {
       width: 20,
       height: 20,
@@ -184,7 +180,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     icon: {
-      marginRight: moderateScale(12, 1.5),
+      marginRight: 16,
       marginTop: 4,
     },
     button: {
@@ -1050,7 +1046,6 @@ class NetworkSettings extends PureComponent {
             this.customNetwork(network)
           ) : (
             <ScrollableTabView
-              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;

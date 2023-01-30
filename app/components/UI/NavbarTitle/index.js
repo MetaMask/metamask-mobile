@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { scale } from 'react-native-size-matters';
 import {
   TouchableOpacity,
   View,
@@ -15,7 +14,7 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
+import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/features/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
@@ -40,7 +39,7 @@ const createStyles = (colors) =>
       marginTop: Device.isIos() ? 4 : 5,
     },
     title: {
-      fontSize: scale(14),
+      fontSize: 18,
       ...fontStyles.normal,
       color: colors.text.default,
     },

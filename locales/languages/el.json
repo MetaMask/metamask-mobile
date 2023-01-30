@@ -146,9 +146,7 @@
     "wrong_password_error": "Σφάλμα: Decrypt failed",
     "wrong_password_error_android": "Σφάλμα: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Σφάλμα: Cannot unlock without a previous vault.",
-    "clean_vault_error": "Το MetaMask αντιμετώπισε ένα σφάλμα διότι έφτασε στο όριο αποθήκευσής του. Τα τοπικά δεδομένα έχουν καταστραφεί. Παρακαλούμε εγκαταστήστε εκ νέου το MetaMask και ανακτήστε το με την Μυστική Φράση Ανάκτησης.",
-    "security_alert_title": "Ειδοποίηση Ασφαλείας",
-    "security_alert_desc": "Για να συνεχίσετε, πρέπει να ενεργοποιήσετε τον κωδικό πρόσβασης ή κάποια βιομετρική μέθοδο επαλήθευσης που υποστηρίζει η συσκευή σας (FaceID, TouchID ή Δακτυλικό αποτύπωμα)"
+    "clean_vault_error": "Το MetaMask αντιμετώπισε ένα σφάλμα διότι έφτασε στο όριο αποθήκευσής του. Τα τοπικά δεδομένα έχουν καταστραφεί. Παρακαλούμε εγκαταστήστε εκ νέου το MetaMask και ανακτήστε το με την Μυστική Φράση Ανάκτησης."
   },
   "enter_password": {
     "title": "Εισαγάγετε τον κωδικό σας",
@@ -283,6 +281,7 @@
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε τα token σας;",
     "add_tokens": "Εισαγωγή token",
+<<<<<<< HEAD
     "tokens_detected_in_account": "{{tokenCount}} νέο {{tokensLabel}} βρέθηκε σε αυτόν τον λογαριασμό",
     "token_toast": {
       "tokens_imported_title": "Token που έχουν εισαχθεί",
@@ -302,6 +301,8 @@
     },
     "add_to_get_started": "Προσθέστε κρυπτονομίσματα για να ξεκινήσετε",
     "buy_asset": "Αγοράστε {{asset}}",
+=======
+>>>>>>> 46fb0f82c (Merge main)
     "no_tokens": "Δεν έχετε καθόλου token!",
     "no_nfts_yet": "Δεν υπάρχουν ακόμη NFT",
     "nfts_autodetection_title": "Εντοπισμός NFT",
@@ -314,14 +315,14 @@
     "deposit_button": "Κατάθεση",
     "copy_address": "Αντιγράψτε",
     "collectible_action_title": "Επιλογές Συλλεκτικών",
-    "remove_token_title": "Θέλετε να αποκρύψετε αυτό το token;",
     "remove_collectible_title": "Θέλετε να αφαιρέσετε αυτό το συλλεκτικό;",
     "refresh_metadata": "Ανανέωση Μεταδεδομένων",
     "token_removal_issue_title": "Υπήρξε πρόβλημα κατά την αφαίρεση του token.",
     "token_removal_issue_desc": "Υπήρξε κάποιο πρόβλημα κατά την αφαίρεση του token. Δοκιμάστε ξανά.",
+    "token_removed_title": "Το token αφαιρέθηκε!",
+    "token_removed_desc": "Εάν αλλάξετε γνώμη, μπορείτε να το προσθέσετε και πάλι πατώντας στο «Εισαγωγή Token»",
     "collectible_removed_title": "Το Συλλεκτικό αφαιρέθηκε!",
     "collectible_removed_desc": "Εάν αλλάξετε γνώμη, μπορείτε να το προσθέσετε και πάλι πατώντας στο «Εισαγωγή NFT»",
-    "remove": "Απόκρυψη",
     "cancel": "Άκυρο",
     "yes": "Ναι",
     "private_key_detected": "Εντοπίστηκε Ιδιωτικό κλειδί",
@@ -330,19 +331,6 @@
     "logout_to_import_seed": "Πρέπει να αποσυνδεθείτε πρώτα για να εισαγάγετε μια Μυστική Φράση Ανάκτησης.",
     "ready_to_explore": "Έτοιμοι να εξερευνήσετε τις εφαρμογές του blockchain;",
     "unable_to_load": "Δεν είναι δυνατή η φόρτωση του υπολοίπου"
-  },
-  "asset_details": {
-    "token": "Token",
-    "amount": "Ποσό Token",
-    "address": "Διεύθυνση συμβολαίου token",
-    "decimal": "Δεκαδικά Ψηφία token",
-    "network": "Δίκτυο",
-    "lists": "Λίστες Token",
-    "hide_cta": "Απόκρυψη token",
-    "options": {
-      "view_on_block": "Προβολή στον εξερευνητή μπλοκ",
-      "token_details": "Λεπτομέρειες token"
-    }
   },
   "activity_view": {
     "title": "Δραστηριότητα"
@@ -363,15 +351,11 @@
       "cancel_add_collectible": "ΆΚΥΡΟ",
       "add_collectible": "ΕΙΣΑΓΩΓΉ"
     },
-    "banners": {
-      "search_desc": "Τώρα είναι διαθέσιμος ο βελτιωμένος εντοπισμός token στο δίκτυο {{network}}. ",
-      "search_link": "Ενεργοποιήστε το από τις Ρυθμίσεις.",
-      "custom_warning_desc": "Ο καθένας μπορεί να δημιουργήσει ένα token, όπως και να δημιουργήσει πλαστές εκδόσεις από υπάρχοντα token. Μάθετε περισσότερα για ",
-      "custom_warning_link": "απάτες και κινδύνους για την ασφάλεια.",
-      "custom_info_desc": "Ο εντοπισμός token δεν είναι ακόμη διαθέσιμος σε αυτό το δίκτυο. Εισαγάγετε το token με μη αυτόματο τρόπο και βεβαιωθείτε ότι το εμπιστεύεστε. Μάθετε για ",
-      "custom_info_link": "απάτες και κινδύνους για την ασφάλεια.",
-      "custom_security_tips": "Συμβουλές Ασφαλείας"
-    }
+    "warning_body_description": "Ο καθένας μπορεί να δημιουργήσει ένα token, όπως και να δημιουργήσει πλαστές εκδόσεις από υπάρχοντα token. Μάθετε περισσότερα για",
+    "warning_link": "απάτες και κινδύνους για την ασφάλεια.",
+    "security_tips": "Συμβουλές Ασφαλείας",
+    "token_detection_feature": "Νέο! Βελτιωμένος εντοπισμός token στο Ethereum Mainnet ως πειραματική λειτουργία.",
+    "token_detection_link": "Ενεργοποιήστε την από τις Ρυθμίσεις."
   },
   "terms_and_conditions": {
     "title": "Όρους και Προϋποθέσεις",
@@ -402,7 +386,6 @@
   "token": {
     "token_symbol": "Σύμβολο Token",
     "token_address": "Διεύθυνση Token",
-    "token_decimal": "Δεκαδικά Ψηφία Ακριβείας Token",
     "search_tokens_placeholder": "Αναζήτηση Token",
     "address_cant_be_empty": "Η διεύθυνση του token δεν μπορεί να είναι κενή.",
     "address_must_be_valid": "Η διεύθυνση του token πρέπει να είναι μια έγκυρη διεύθυνση.",
@@ -503,7 +486,6 @@
     "search_engine": "Μηχανή Αναζήτησης",
     "new_RPC_URL": "Νέο Δίκτυο RPC",
     "state_logs": "Μητρώα Κατάστασης",
-    "add_network_title": "Προσθήκη δικτύου",
     "auto_lock": "Αυτόματο Κλείδωμα",
     "auto_lock_desc": "Επιλέξτε χρονικό περιθώριο πριν κλειδώσει αυτόματα η εφαρμογή.",
     "state_logs_desc": "Αυτό θα βοηθήσει το MetaMask να εντοπίσει προβλήματα που ενδέχεται να αντιμετωπίσετε. Στείλτε τα στην υποστήριξη MetaMask μέσω του εικονιδίου χάμπουργκερ > Αποστολή Σχολίων ή απαντήστε στο υπάρχον αίτημα υποστήριξης, εφόσον υπάρχει.",
@@ -643,11 +625,6 @@
     "theme_os": "Σύστημα",
     "theme_light": "Ανοιχτόχρωμο",
     "theme_dark": "Σκούρο",
-    "mainnet": "Mainnet",
-    "test_network_name": "Δοκιμαστικά δίκτυα",
-    "custom_network_name": "Προσαρμοσμένα δίκτυα",
-    "popular": "Δημοφιλή",
-    "delete": "Διαγραφή",
     "network_exists": "Αυτό το δίκτυο έχει ήδη προστεθεί.",
     "delete_metrics_title": "Διαγραφή δεδομένων MetaMetrics",
     "delete_metrics_description_part_one": "Αυτό θα διαγράψει το ιστορικό δεδομένων MetaMetrics που σχετίζεται με το πορτοφόλι σας.",
@@ -753,8 +730,6 @@
     "seed_phrase_copied_time": "(αποθηκεύτηκε για 1 λεπτό)",
     "private_key_copied": "Το ιδιωτικό κλειδί αντιγράφηκε προσωρινά στο πρόχειρο",
     "private_key_copied_time": "(αποθηκεύτηκε για 1 λεπτό)",
-    "private_key_copied_ios": "Το ιδιωτικό κλειδί αντιγράφηκε προσωρινά στο πρόχειρο\n",
-    "private_key_copied_android": "Το ιδιωτικό κλειδί αντιγράφηκε στο πρόχειρο\n",
     "warning_incorrect_password": "Λανθασμένος κωδικός",
     "unknown_error": "Δεν μπορέσαμε να ξεκλειδώσουμε τον λογαριασμό σας. Παρακαλούμε δοκιμάστε πάλι.",
     "hardware_error": "Αυτός είναι ένας λογαριασμός πορτοφολιού εξοπλισμού, δεν μπορείτε να πραγματοποιήσετε εξαγωγή του ιδιωτικού σας κλειδιού.",
@@ -795,12 +770,16 @@
     "were_unable": "Δεν μπορέσαμε να φορτώσουμε το",
     "balance": "υπόλοιπό σας. Δείτε το άρθρο υποστήριξης",
     "troubleshooting_missing": "αντιμετώπιση υπολοίπων που λείπουν",
+<<<<<<< HEAD
     "for_help": "για βοήθεια.",
     "troubleshoot": "Αντιμετώπιση Προβλημάτων",
     "buy_description": "Αγοράστε κρυπτονομίσματα με μετρητά",
     "swap_description": "Ανταλλαγή μεταξύ tokens",
     "send_description": "Στείλτε κρυπτονομίσματα σε οποιονδήποτε λογαριασμό",
     "receive_description": "Λάβετε κρυπτονομίσματα"
+=======
+    "for_help": "για βοήθεια."
+>>>>>>> 46fb0f82c (Merge main)
   },
   "account_details": {
     "title": "Λεπτομέρειες Λογαριασμού",
@@ -809,28 +788,6 @@
     "show_private_key": "Προβολή ιδιωτικού κλειδιού",
     "account_copied_to_clipboard": "Η δημόσια διεύθυνση αντιγράφηκε στο πρόχειρο",
     "share_public_key": "Κοινοποίηση του δημόσιου κλειδιού μου:"
-  },
-  "detected_tokens": {
-    "title": "Βρέθηκε {{tokenCount}} νέο token",
-    "title_plural": "Βρέθηκαν {{tokenCount}} νέα token",
-    "import_cta": "Εισαγωγή {{tokenCount}}",
-    "hide_cta": "Απόκρυψη Όλων",
-    "token_address": "Διεύθυνση Token: ",
-    "token_lists": "Λίστα token: {{listNames}}",
-    "token_more": " + {{remainingListCount}} ακόμη",
-    "confirm": {
-      "cancel_cta": "Ακύρωση",
-      "confirm_cta": "Επιβεβαίωση",
-      "import": {
-        "title": "Εισαγωγή επιλεγμένων token;",
-        "desc": "Μόνο τα token που επιλέξατε θα εμφανιστούν στο πορτοφόλι σας. Μπορείτε να εισάγετε αργότερα κρυφά token αναζητώντας τα."
-      },
-      "hide": {
-        "title": "Είστε σίγουρος;",
-        "desc": "Εάν κάνετε απόκρυψη των token, δεν θα εμφανίζονται στο πορτοφόλι σας. Ωστόσο, μπορείτε ακόμα να τα προσθέσετε εάν κάνετε αναζήτηση για αυτά."
-      }
-    },
-    "address_copied_to_clipboard": "Η διεύθυνση token αντιγράφηκε στο πρόχειρο"
   },
   "qr_scanner": {
     "invalid_qr_code_title": "Λανθασμένος Κωδικός QR",
@@ -890,8 +847,6 @@
     "insufficient": "Ανεπαρκή χρήματα",
     "insufficient_amount": "Χρειάζεστε {{amount}} ακόμη {{tokenSymbol}} για να ολοκληρώσετε τη συναλλαγή.",
     "buy_more_eth": "Αγοράστε περισσότερο ETH",
-    "buy_more": "Αγοράστε περισσότερα",
-    "go_to_faucet": "Μετάβαση στην παροχή",
     "get_ether": "Πάρτε Ether για το δίκτυο {{networkName}}.",
     "insufficient_tokens": "Ανεπαρκή {{token}}",
     "invalid_address": "Μη έγκυρη διεύθυνση",
@@ -971,11 +926,15 @@
     "no_camera_permission": "Η κάμερα δεν είναι εξουσιοδοτημένη. Δώστε άδεια και προσπαθήστε ξανά",
     "invalid_qr_code_sign": "Μη έγκυρος κωδικός QR. Ελέγξτε τον εξοπλισμό σας και προσπαθήστε ξανά.",
     "no_camera_permission_android": "Για να συνεχίσετε, πρέπει να παραχωρήσετε στο MetaMask πρόσβαση στην κάμερά σας. Μπορεί επίσης να χρειαστεί να αλλάξετε τις ρυθμίσεις του συστήματός σας.",
+<<<<<<< HEAD
     "mismatched_qr_request_id": "Αντιφατικά δεδομένα συναλλαγών. Χρησιμοποιήστε το Keystone σας για να υπογράψετε τον παρακάτω κωδικό QR και πατήστε «Λήψη υπογραφής».",
     "fiat_conversion_not_available": "Οι μετατροπές σε παραστατικά χρήματα δεν είναι διαθέσιμες αυτή τη στιγμή",
     "hex_data_copied": "Τα δεκαεξαδικά δεδομένα αντιγράφηκαν στο πρόχειρο",
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
     "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη"
+=======
+    "mismatched_qr_request_id": "Αντιφατικά δεδομένα συναλλαγών. Χρησιμοποιήστε το Keystone σας για να υπογράψετε τον παρακάτω κωδικό QR και πατήστε «Λήψη υπογραφής»."
+>>>>>>> 46fb0f82c (Merge main)
   },
   "custom_gas": {
     "total": "Σύνολο",
@@ -1030,10 +989,14 @@
     "close": "Κλείσιμο",
     "all_set": "Όλα έτοιμα!",
     "all_set_desc": "Έχετε ρυθμίσει επιτυχώς τις άδειες για αυτήν την ιστοσελίδα.",
+<<<<<<< HEAD
     "must_be_at_least": "Πρέπει να είναι τουλάχιστον {{allowance}}",
     "access_up_to": "Πρόσβαση μέχρι και:",
     "spending_cap": "Ανώτατο όριο δαπανών:",
     "approve_asset": "Έγκριση περιουσιακού στοιχείου:"
+=======
+    "must_be_at_least": "Πρέπει να είναι τουλάχιστον {{allowance}}"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "browser": {
     "title": "Πρόγραμμα περιήγησης",
@@ -1189,6 +1152,7 @@
     "other_networks": "Άλλα Δίκτυα",
     "close": "Κλείσιμο",
     "status_ok": "Όλα τα Συστήματα Λειτουργούν",
+<<<<<<< HEAD
     "status_not_ok": "Το δίκτυο έχει κάποια προβλήματα",
     "want_to_add_network": "Θέλετε να προσθέσετε αυτό το δίκτυο;",
     "network_infomation": "Αυτό επιτρέπει στο δίκτυο να χρησιμοποιηθεί εντός του MetaMask",
@@ -1224,6 +1188,9 @@
     "add_network": "να προσθέσετε περισσότερα δίκτυα χειροκίνητα.",
     "deprecated_network_msg": "Λόγω των αλλαγών στο πρωτόκολλο του Ethereum: τα δοκιμαστικά δίκτυα Rinkeby, Ropsten, Kovan μπορεί να μη λειτουργούν και τόσο αξιόπιστα και θα καταργηθούν σύντομα.",
     "select_network": "Επιλέξτε ένα δίκτυο"
+=======
+    "status_not_ok": "Το δίκτυο έχει κάποια προβλήματα"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "select": {
     "cancel": "Άκυρο",
@@ -1786,11 +1753,17 @@
     "no_providers_available": "Κανένας διαθέσιμος πάροχος",
     "try_different_amount_to_buy_input": "Δοκιμάστε να επιλέξετε διαφορετική μέθοδο πληρωμής ή προσπαθήστε να αυξήσετε ή να μειώσετε το ποσό που θέλετε να αγοράσετε!",
     "webview_received_error": "Το WebView έλαβε έναν κωδικό κατάστασης σφάλματος: {{code}}",
+<<<<<<< HEAD
     "no_tokens_available_title": "Κανένα διαθέσιμο Token",
     "no_tokens_available": "Δεν υπάρχουν προς το παρόν διαθέσιμα token για αγορά στο {{network}} με την επιλεγμένη μέθοδο πληρωμής.",
     "change_payment_method": "Αλλάξτε μέθοδο πληρωμής",
     "try_different_region": "Δοκιμάστε μια άλλη περιοχή",
     "return_home": "Επιστροφή στην Αρχική Σελίδα",
+=======
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "try_different_region": "Try a different region",
+    "return_home": "Return to Home Screen",
+>>>>>>> 46fb0f82c (Merge main)
     "region": {
       "buy_crypto_tokens": "Αγορά Κρυπτονομισμάτων Token",
       "title": "Επιλέξτε την Περιοχή σας",
@@ -1807,6 +1780,7 @@
       "unsupported_link": "Επισκεφτείτε το Άρθρο Υποστήριξης"
     },
     "order_details": {
+<<<<<<< HEAD
       "details_main": "Λεπτομέρειες Εντολής",
       "successful": "Η εντολή ήταν επιτυχής!",
       "your": "Το",
@@ -1836,6 +1810,35 @@
       "total_fees": "Συνολικά Τέλη",
       "amount": "Ποσό",
       "a_block_explorer": "ένας εξερευνητής block"
+=======
+      "details_main": "Order Details",
+      "successful": "Order Successful!",
+      "your": "Your",
+      "available_in_account": "is now available in your account",
+      "crypto": "crypto",
+      "failed": "Order Failed",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
+      "the_provider": "the provider",
+      "processing": "Processing Order",
+      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
+      "processing_bank_description": "Bank transfers typically take a few business days",
+      "details": "Order details",
+      "via": "via",
+      "purchase_amount": "Purchase Amount Total",
+      "etherscan": "View full details on",
+      "another_purchase": "Make another purchase",
+      "questions": "Questions?",
+      "contact": "Contact",
+      "support": "Support",
+      "id": "Order ID",
+      "date_and_time": "Date and Time",
+      "payment_method": "Payment Method",
+      "token_amount": "Token Amount",
+      "exchange_rate": "Exchange Rate",
+      "total_fees": "Total Fees",
+      "amount": "Amount",
+      "a_block_explorer": "a block explorer"
+>>>>>>> 46fb0f82c (Merge main)
     }
   },
   "swaps": {
@@ -2048,6 +2051,7 @@
     "copied_clipboard": "Αντιγράφηκε στο πρόχειρο",
     "ok": "ΟΚ"
   },
+<<<<<<< HEAD
   "whats_new": {
     "title": "Δείτε τι νέο υπάρχει",
     "slides_button": "Αγορά κρυπτονομισμάτων",
@@ -2063,6 +2067,8 @@
     "slide_5_subtitle": "Αποφύγετε την πολύπλοκη επαλήθευση ταυτότητας",
     "slide_5_body_1": "Με την Mercuryo, τώρα μπορείτε να αγοράσετε κρυπτονομίσματα αξίας έως και 699 ευρώ χωρίς να χρειάζεται να επαληθεύσετε την ταυτότητά σας. Αυτό απλοποιεί την εμπειρία πληρωμής κρυπτονομισμάτων και κάνει πολύ πιο εύκολη την είσοδο στο σύστημα."
   },
+=======
+>>>>>>> 46fb0f82c (Merge main)
   "invalid_network": {
     "title": "Το αναγνωριστικό αλυσίδας για προσαρμοσμένο δίκτυο \n %{network} \n πρέπει να εισαχθεί ξανά.",
     "message": "Για να σας προστατέψουμε από κακόβουλους ή προβληματικούς παρόχους δικτύων, απαιτούνται πλέον τα αναγνωριστικά αλυσίδας για όλα τα προσαρμοσμένα δίκτυα.",
@@ -2113,10 +2119,10 @@
     "learn_more": {
       "title": "Πώς να διαλέξω;",
       "intro": "Η επιλογή του κατάλληλου τέλους συναλλαγής εξαρτάται από τον τύπο συναλλαγής και το πόσο σημαντική είναι για εσάς.",
-      "aggressive_label": "Επιθετικά",
-      "aggressive_text": "Μεγάλη πιθανότητα, ακόμα και σε ασταθείς αγορές. Χρησιμοποιήστε το «Επιθετικά» για να καλύψετε απότομες αυξήσεις της κίνησης στο δίκτυο που οφείλονται σε καταστάσεις όπως απότομες πτώσεις δημοφιλών NFT.",
-      "market_label": "Αγορά",
-      "market_text": "Χρησιμοποιήστε το «Αγορά» για γρήγορη επεξεργασία στην τρέχουσα τιμή αγοράς.",
+      "high_label": "Υψηλό",
+      "high_text": "Αυτό είναι καλύτερο για συναλλαγές ευαίσθητες στον χρόνο (όπως Ανταλλαγές) καθώς αυξάνει την πιθανότητα μιας επιτυχούς συναλλαγής. Εάν η επεξεργασία μιας Ανταλλαγής πάρει πολύ χρόνο, μπορεί να αποτύχει και να χάσετε μέρος των τελών συναλλαγής.",
+      "medium_label": "Μεσαίο",
+      "medium_text": "Ένα μεσαίο τέλος συναλλαγής είναι καλό για αποστολή, ανάληψη ή άλλες συναλλαγές που δεν είναι ευαίσθητες στον χρόνο. Αυτή η ρύθμιση τις περισσότερες φορές οδηγεί σε μια επιτυχημένη συναλλαγή.",
       "low_label": "Χαμηλό",
       "low_text": "Χρησιμοποιήστε Χαμηλό για να περιμένετε μια φτηνότερη τιμή. Οι υπολογισμοί χρόνου είναι αρκετά λιγότερο ακριβείς καθώς οι τιμές είναι κατά κάποιο τρόπο απρόβλεπτες.",
       "link": "Μάθετε περισσότερα σχετικά με την προσαρμογή των τελών."
@@ -2139,9 +2145,6 @@
     "low": "Χαμηλό",
     "medium": "Μεσαίο",
     "high": "Υψηλό",
-    "market": "Αγορά",
-    "aggressive": "Επιθετικά",
-    "low_fee_warning": "Σημειώστε τον χρόνο επεξεργασίας σας. Οι μελλοντικές συναλλαγές θα μπουν στη σειρά μετά από αυτή.",
     "edit_priority": "Επεξεργασία προτεραιότητας",
     "speed_up_transaction": "Επιτάχυνση συναλλαγής",
     "cancel_transaction": "Ακύρωση συναλλαγής",
@@ -2227,10 +2230,6 @@
     "token_detection_mainnet_link": "Μπορείτε επίσης να προσθέσετε token μη αυτόματα.",
     "or": "ή"
   },
-  "download_files": {
-    "error": "Η λήψη του συνημμένου απέτυχε.",
-    "unknownError": "Προέκυψε άγνωστο σφάλμα"
-  },
   "remember_me": {
     "enable_remember_me": "Δοκιμάστε να ενεργοποιήσετε το Θυμήσου με",
     "enable_remember_me_description": "Όταν το «Θυμήσου με» είναι ενεργοποιημένο, οποιοσδήποτε με πρόσβαση στο κινητό σας μπορεί να έχει πρόσβαση στον λογαριασμό σας MetaMask."
@@ -2240,13 +2239,6 @@
     "placeholder": "Κωδικός πρόσβασης",
     "description": "Εάν απενεργοποιήσετε αυτή την επιλογή, από εδώ και πέρα θα χρειάζεστε τον κωδικό πρόσβασής σας για να ξεκλειδώσετε το MetaMask.",
     "action": "Απενεργοποίηση του «Θυμήσου με»"
-  },
-  "dapp_connect": {
-    "warning": "Για να χρησιμοποιήσετε αυτή τη λειτουργία, παρακαλούμε ενημερώστε την εφαρμογή στη νεότερη έκδοση"
-  },
-  "confirmation_modal": {
-    "cancel_cta": "Ακύρωση",
-    "confirm_cta": "Επιβεβαίωση"
   },
   "automatic_security_checks": {
     "title": "Αυτόματοι έλεγχοι ασφάλειας",
@@ -2269,6 +2261,7 @@
     "description": "Ο αυτόματος έλεγχος ενημερώσεων μπορεί να εκθέσει τη διεύθυνση IP σας στους διακομιστές του GitHub. Αυτό δείχνει μόνο ότι η διεύθυνση IP σας χρησιμοποιεί το MetaMask. Δεν εκτίθενται άλλες πληροφορίες ή διευθύνσεις λογαριασμού.",
     "primary_action": "Ενεργοποίηση αυτόματων ελέγχων ασφαλείας",
     "secondary_action": "Όχι Ευχαριστώ"
+<<<<<<< HEAD
   },
   "contract_allowance": {
     "custom_spend_cap": {
@@ -2415,5 +2408,7 @@
     "add_account": "Προσθήκη λογαριασμού",
     "add_new_account": "Προσθήκη νέου λογαριασμού",
     "add_hardware_wallet": "Προσθήκη πορτοφολιού υλικού"
+=======
+>>>>>>> 46fb0f82c (Merge main)
   }
 }

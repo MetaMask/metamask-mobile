@@ -8,7 +8,6 @@ import {
   Linking,
   BackHandler,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { withNavigation } from '@react-navigation/compat';
@@ -1194,11 +1193,7 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="refresh" size={15} style={styles.optionIcon} />
           </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, RELOAD_OPTION)}
-          >
+          <Text style={styles.optionText} numberOfLines={2}>
             {strings('browser.reload')}
           </Text>
         </Button>
@@ -1207,11 +1202,7 @@ export const BrowserTab = (props) => {
             <View style={styles.optionIconWrapper}>
               <Icon name="star" size={16} style={styles.optionIcon} />
             </View>
-            <Text
-              style={styles.optionText}
-              numberOfLines={2}
-              {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
-            >
+            <Text style={styles.optionText} numberOfLines={2}>
               {strings('browser.add_to_favorites')}
             </Text>
           </Button>
@@ -1220,11 +1211,7 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
           </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, SHARE_OPTION)}
-          >
+          <Text style={styles.optionText} numberOfLines={2}>
             {strings('browser.share')}
           </Text>
         </Button>
@@ -1232,11 +1219,7 @@ export const BrowserTab = (props) => {
           <View style={styles.optionIconWrapper}>
             <Icon name="expand" size={16} style={styles.optionIcon} />
           </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
-          >
+          <Text style={styles.optionText} numberOfLines={2}>
             {strings('browser.open_in_browser')}
           </Text>
         </Button>
@@ -1267,7 +1250,6 @@ export const BrowserTab = (props) => {
                   ? styles.optionsWrapperAndroid
                   : styles.optionsWrapperIos,
               ]}
-              {...generateTestId(Platform, MENU_ID)}
             >
               <Button onPress={onNewTabPress} style={styles.option}>
                 <View style={styles.optionIconWrapper}>
@@ -1277,11 +1259,7 @@ export const BrowserTab = (props) => {
                     style={styles.optionIcon}
                   />
                 </View>
-                <Text
-                  style={styles.optionText}
-                  numberOfLines={1}
-                  {...generateTestId(Platform, NEW_TAB_OPTION)}
-                >
+                <Text style={styles.optionText} numberOfLines={1}>
                   {strings('browser.new_tab')}
                 </Text>
               </Button>

@@ -1461,7 +1461,7 @@ export function getFiatOnRampAggNavbar(
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
-      fontSize: scale(11),
+      fontSize: 14,
       ...fontStyles.normal,
     },
     headerStyle: {
@@ -1470,7 +1470,7 @@ export function getFiatOnRampAggNavbar(
       elevation: 0,
     },
     headerTitleStyle: {
-      fontSize: 18,
+      fontSize: 20,
       ...fontStyles.normal,
       color: themeColors.text.default,
       ...(!showBack && { textAlign: 'center' }),
@@ -1482,8 +1482,6 @@ export function getFiatOnRampAggNavbar(
 
   const leftAction = () => navigation.pop();
 
-  const navigationCancelText = strings('navigation.cancel');
-
   return {
     headerTitle: () => (
       <NavbarTitle title={headerTitle} disableNetwork translate={false} />
@@ -1492,11 +1490,7 @@ export function getFiatOnRampAggNavbar(
       if (!showBack) return <View />;
 
       return Device.isAndroid() ? (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.backButton}
-          accessibilityRole="button"
-        >
+        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
           <IonicIcon
             name={'md-arrow-back'}
             size={24}
@@ -1504,11 +1498,7 @@ export function getFiatOnRampAggNavbar(
           />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.closeButton}
-          accessibilityRole="button"
-        >
+        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
         </TouchableOpacity>
       );
@@ -1520,9 +1510,10 @@ export function getFiatOnRampAggNavbar(
           onCancel?.();
         }}
         style={styles.closeButton}
-        accessibilityRole="button"
       >
-        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,

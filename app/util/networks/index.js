@@ -11,13 +11,14 @@ import {
   NETWORKS_CHAIN_ID,
   SEPOLIA,
   RPC,
+  NETWORKS_CHAIN_ID,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
-import { toLowerCaseEquals } from '../general';
-import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import { toLowerCaseEquals } from './../general';
+import { fastSplit } from '../../util/number';
+import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import {
   GOERLI_TEST_NETWORK_OPTION,

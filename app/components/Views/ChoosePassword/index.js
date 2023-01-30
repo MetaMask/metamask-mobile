@@ -204,7 +204,7 @@ const createStyles = (colors) =>
     passwordStrengthLabel: {
       height: 20,
       marginTop: 10,
-      fontSize: scale(10),
+      fontSize: 15,
       color: colors.text.default,
       ...fontStyles.normal,
     },

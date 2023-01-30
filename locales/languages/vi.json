@@ -146,9 +146,7 @@
     "wrong_password_error": "Lỗi: Giải mã không thành công",
     "wrong_password_error_android": "Lỗi: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Lỗi: Không thể mở khóa nếu không có dữ liệu vault trước đó.",
-    "clean_vault_error": "MetaMask đã gặp lỗi do đạt đến giới hạn bộ nhớ. Dữ liệu cục bộ đã bị hỏng. Vui lòng cài đặt lại MetaMask và khôi phục bằng Cụm từ khôi phục bí mật của bạn.",
-    "security_alert_title": "Cảnh báo bảo mật",
-    "security_alert_desc": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)"
+    "clean_vault_error": "MetaMask đã gặp lỗi do đạt đến giới hạn bộ nhớ. Dữ liệu cục bộ đã bị hỏng. Vui lòng cài đặt lại MetaMask và khôi phục bằng Cụm từ khôi phục bí mật của bạn."
   },
   "enter_password": {
     "title": "Nhập mật khẩu của bạn",
@@ -282,6 +280,7 @@
     "transactions": "GIAO DỊCH",
     "no_collectibles": "Không thấy NFT của bạn?",
     "no_available_tokens": "Không thấy Token của bạn?",
+<<<<<<< HEAD
     "add_tokens": "Nhập token",
     "tokens_detected_in_account": "Đã tìm thấy {{tokenCount}} {{tokensLabel}} mới trong tài khoản này",
     "token_toast": {
@@ -302,6 +301,9 @@
     },
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
     "buy_asset": "Mua {{asset}}",
+=======
+    "add_tokens": "Nhập Token",
+>>>>>>> 46fb0f82c (Merge main)
     "no_tokens": "Bạn không có Token nào!",
     "no_nfts_yet": "Chưa có NFT",
     "nfts_autodetection_title": "Phát hiện NFT",
@@ -314,14 +316,14 @@
     "deposit_button": "Nạp",
     "copy_address": "Sao chép",
     "collectible_action_title": "Tùy chọn bộ sưu tập",
-    "remove_token_title": "Bạn có muốn ẩn token này?",
     "remove_collectible_title": "Bạn có muốn gỡ bỏ bộ sưu tập này?",
     "refresh_metadata": "Làm mới Siêu dữ liệu",
     "token_removal_issue_title": "Sự cố khi gỡ bỏ Token.",
     "token_removal_issue_desc": "Đã xảy ra sự cố khi cố gắng gỡ bỏ Token. Hãy thử lại.",
+    "token_removed_title": "Đã gỡ bỏ Token!",
+    "token_removed_desc": "Nếu đổi ý, bạn có thể thêm lại bằng cách chạm vào \"Nhập Token\"",
     "collectible_removed_title": "Đã gỡ bỏ bộ sưu tập!",
     "collectible_removed_desc": "Nếu đổi ý, bạn có thể thêm lại bằng cách chạm vào \"Nhập NFT\"",
-    "remove": "Ẩn",
     "cancel": "Hủy",
     "yes": "Có",
     "private_key_detected": "Đã phát hiện khóa cá nhân",
@@ -330,19 +332,6 @@
     "logout_to_import_seed": "Bạn cần đăng xuất trước để có thể nhập Cụm từ khôi phục bí mật.",
     "ready_to_explore": "Bạn sẵn sàng bắt đầu khám phá các ứng dụng blockchain chưa?",
     "unable_to_load": "Không thể tải số dư"
-  },
-  "asset_details": {
-    "token": "Token",
-    "amount": "Số lượng token",
-    "address": "Địa chỉ hợp đồng của token",
-    "decimal": "Số thập phân của token",
-    "network": "Mạng",
-    "lists": "Danh sách token",
-    "hide_cta": "Ẩn token",
-    "options": {
-      "view_on_block": "Xem trên trình khám phá khối",
-      "token_details": "Thông tin chi tiết về token"
-    }
   },
   "activity_view": {
     "title": "Hoạt động"
@@ -363,15 +352,11 @@
       "cancel_add_collectible": "HỦY",
       "add_collectible": "NHẬP"
     },
-    "banners": {
-      "search_desc": "Tính năng phát hiện token cải tiến hiện được cung cấp trên mạng {{network}}. ",
-      "search_link": "Bật tính năng này trong phần Cài đặt.",
-      "custom_warning_desc": "Bất kỳ ai cũng có thể tạo Token, bao gồm cả việc tạo phiên bản giả mạo của Token hiện có. Tìm hiểu thêm về ",
-      "custom_warning_link": "rủi ro về bảo mật và lừa đảo.",
-      "custom_info_desc": "Tính năng phát hiện token hiện chưa được cung cấp trên mạng này. Vui lòng nhập token theo cách thủ công và đảm bảo bạn tin tưởng token đó. Tìm hiểu về ",
-      "custom_info_link": "rủi ro về bảo mật và lừa đảo.",
-      "custom_security_tips": "Lời khuyên bảo mật"
-    }
+    "warning_body_description": "Bất kỳ ai cũng có thể tạo Token, bao gồm cả việc tạo phiên bản giả mạo của Token hiện có. Hãy tìm hiểu thêm về ",
+    "warning_link": "lừa đảo và rủi ro bảo mật.",
+    "security_tips": "Lời khuyên bảo mật",
+    "token_detection_feature": "Mới! Tính năng phát hiện Token nâng cấp đã có trên Mạng chính của Ethereum dưới dạng tính năng thử nghiệm. ",
+    "token_detection_link": "Bật tính năng này trong phần Cài đặt."
   },
   "terms_and_conditions": {
     "title": "Điều khoản và Điều kiện",
@@ -400,9 +385,14 @@
     "cta_i_agree": "Tôi đồng ý"
   },
   "token": {
+<<<<<<< HEAD
     "token_symbol": "Ký hiệu token",
     "token_address": "Địa chỉ token",
     "token_decimal": "Số thập phân của token",
+=======
+    "token_symbol": "Biểu tượng Token",
+    "token_address": "Địa chỉ Token",
+>>>>>>> 46fb0f82c (Merge main)
     "search_tokens_placeholder": "Tìm Token",
     "address_cant_be_empty": "Địa chỉ Token không thể để trống.",
     "address_must_be_valid": "Địa chỉ Token phải là địa chỉ hợp lệ.",
@@ -503,7 +493,6 @@
     "search_engine": "Tìm công cụ",
     "new_RPC_URL": "Mạng RPC mới",
     "state_logs": "Nhật ký trạng thái",
-    "add_network_title": "Thêm mạng",
     "auto_lock": "Tự động khóa",
     "auto_lock_desc": "Chọn khoảng thời gian trước khi ứng dụng tự động khóa.",
     "state_logs_desc": "Điều này sẽ giúp MetaMask gỡ lỗi bất kỳ sự cố nào bạn có thể gặp phải. Vui lòng gửi đến bộ phận hỗ trợ MetaMask thông qua biểu tượng bánh hamburger > Gửi phản hồi hoặc trả lời phiếu hỏi đáp hiện tại của bạn nếu có.",
@@ -643,11 +632,6 @@
     "theme_os": "Hệ thống",
     "theme_light": "Sáng",
     "theme_dark": "Tối",
-    "mainnet": "Mạng chính thức",
-    "test_network_name": "Mạng thử nghiệm",
-    "custom_network_name": "Mạng tùy chỉnh",
-    "popular": "Phổ biến",
-    "delete": "Xóa",
     "network_exists": "Mạng này đã được thêm.",
     "delete_metrics_title": "Xóa dữ liệu MetaMetrics",
     "delete_metrics_description_part_one": "Thao tác này sẽ xóa dữ liệu MetaMetrics lịch sử được liên kết với ví của bạn.",
@@ -753,8 +737,6 @@
     "seed_phrase_copied_time": "(lưu trữ trong 1 phút)",
     "private_key_copied": "Đã tạm thời sao chép khóa cá nhân vào bộ nhớ đệm",
     "private_key_copied_time": "(lưu trữ trong 1 phút)",
-    "private_key_copied_ios": "Đã tạm thời sao chép khóa cá nhân vào bộ nhớ đệm",
-    "private_key_copied_android": "Đã sao chép khóa cá nhân vào bộ nhớ đệm",
     "warning_incorrect_password": "Mật khẩu không chính xác",
     "unknown_error": "Không thể mở khóa tài khoản của bạn. Vui lòng thử lại.",
     "hardware_error": "Đây là một tài khoản ví cứng, bạn không thể xuất khóa cá nhân của mình.",
@@ -795,12 +777,16 @@
     "were_unable": "Chúng tôi không thể tải",
     "balance": "số dư. Vui lòng xem bài viết hỗ trợ",
     "troubleshooting_missing": "về việc khắc phục sự cố số dư bị thiếu",
+<<<<<<< HEAD
     "for_help": "để được trợ giúp.",
     "troubleshoot": "Khắc phục sự cố",
     "buy_description": "Mua tiền mã hóa bằng tiền",
     "swap_description": "Chuyển đổi giữa các token",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa"
+=======
+    "for_help": "để được trợ giúp."
+>>>>>>> 46fb0f82c (Merge main)
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -809,28 +795,6 @@
     "show_private_key": "Hiển thị khóa cá nhân",
     "account_copied_to_clipboard": "Đã sao chép địa chỉ công khai vào bộ nhớ đệm",
     "share_public_key": "Chia sẻ khóa công khai của tôi: "
-  },
-  "detected_tokens": {
-    "title": "Đã tìm thấy {{tokenCount}} token mới",
-    "title_plural": "Đã tìm thấy {{tokenCount}} token mới",
-    "import_cta": "Nhập ({{tokenCount}})",
-    "hide_cta": "Ẩn tất cả",
-    "token_address": "Địa chỉ token: ",
-    "token_lists": "Danh sách token: {{listNames}}",
-    "token_more": " + {{remainingListCount}} khác",
-    "confirm": {
-      "cancel_cta": "Hủy",
-      "confirm_cta": "Xác nhận",
-      "import": {
-        "title": "Nhập các token đã chọn?",
-        "desc": "Chỉ những token đã chọn mới xuất hiện trong ví của bạn. Sau đó, bạn luôn có thể nhập các token đã ẩn thông qua tìm kiếm."
-      },
-      "hide": {
-        "title": "Bạn có chắc không?",
-        "desc": "Nếu bạn ẩn token, chúng sẽ không hiển thị trong ví của bạn. Tuy nhiên, bạn vẫn có thể thêm chúng thông qua tìm kiếm."
-      }
-    },
-    "address_copied_to_clipboard": "Đã sao chép địa chỉ token vào bộ nhớ đệm"
   },
   "qr_scanner": {
     "invalid_qr_code_title": "Mã QR không hợp lệ",
@@ -890,8 +854,6 @@
     "insufficient": "Không đủ tiền",
     "insufficient_amount": "Bạn cần thêm {{amount}} {{tokenSymbol}} để hoàn tất giao dịch này.",
     "buy_more_eth": "Mua thêm ETH",
-    "buy_more": "Mua thêm",
-    "go_to_faucet": "Đến vòi",
     "get_ether": "Nhận Ether cho mạng {{networkName}}.",
     "insufficient_tokens": "Không đủ {{token}}",
     "invalid_address": "Địa chỉ không hợp lệ",
@@ -971,11 +933,15 @@
     "no_camera_permission": "Camera chưa được cấp phép. Vui lòng cho phép và thử lại",
     "invalid_qr_code_sign": "Mã QR không hợp lệ. Vui lòng kiểm tra ví cứng và thử lại.",
     "no_camera_permission_android": "Bạn cần cho phép MetaMask truy cập vào camera để tiếp tục. Bạn cũng có thể cần thay đổi cài đặt của hệ thống.",
+<<<<<<< HEAD
     "mismatched_qr_request_id": "Dữ liệu giao dịch không đồng nhất. Vui lòng sử dụng Keystone của bạn để ký mã QR bên dưới và nhấn vào 'Lấy Chữ Ký'.",
     "fiat_conversion_not_available": "Quy đổi pháp định hiện không khả dụng",
     "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm",
     "invalid_recipient": "Người nhận không hợp lệ",
     "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ"
+=======
+    "mismatched_qr_request_id": "Dữ liệu giao dịch không đồng nhất. Vui lòng sử dụng Keystone của bạn để ký mã QR bên dưới và nhấn vào 'Lấy Chữ Ký'."
+>>>>>>> 46fb0f82c (Merge main)
   },
   "custom_gas": {
     "total": "Tổng",
@@ -1030,10 +996,14 @@
     "close": "Đóng",
     "all_set": "Đã sẵn sàng!",
     "all_set_desc": "Bạn đã cài đặt quyền thành công cho trang web này.",
+<<<<<<< HEAD
     "must_be_at_least": "Phải ít nhất {{allowance}}",
     "access_up_to": "Truy cập tối đa:",
     "spending_cap": "Hạn mức chi tiêu:",
     "approve_asset": "Phê duyệt tài sản:"
+=======
+    "must_be_at_least": "Phải ít nhất {{allowance}}"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "browser": {
     "title": "Trình duyệt",
@@ -1189,6 +1159,7 @@
     "other_networks": "Mạng khác",
     "close": "Đóng",
     "status_ok": "Vận hành toàn bộ hệ thống",
+<<<<<<< HEAD
     "status_not_ok": "Mạng đang gặp một số sự cố",
     "want_to_add_network": "Bạn muốn thêm mạng này?",
     "network_infomation": "Thao tác này cho phép sử dụng mạng này trong MetaMask",
@@ -1224,6 +1195,9 @@
     "add_network": "thêm thủ công các mạng khác.",
     "deprecated_network_msg": "Do những thay đổi trong giao thức của Ethereum: các mạng thử nghiệm Rinkeby, Ropsten, Kovan có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
     "select_network": "Chọn mạng"
+=======
+    "status_not_ok": "Mạng đang gặp một số sự cố"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "select": {
     "cancel": "Hủy",
@@ -1786,11 +1760,17 @@
     "no_providers_available": "Hiện không có nhà cung cấp nào",
     "try_different_amount_to_buy_input": "Hãy thử chọn một phương thức thanh toán khác hoặc cố gắng tăng hoặc giảm số lượng bạn muốn mua!",
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
+<<<<<<< HEAD
     "no_tokens_available_title": "Hiện không có token nào",
     "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
     "change_payment_method": "Thay đổi phương thức thanh toán",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",
+=======
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "try_different_region": "Try a different region",
+    "return_home": "Return to Home Screen",
+>>>>>>> 46fb0f82c (Merge main)
     "region": {
       "buy_crypto_tokens": "Mua token tiền điện tử",
       "title": "Chọn khu vực của bạn",
@@ -1807,35 +1787,33 @@
       "unsupported_link": "Truy cập bài viết hỗ trợ"
     },
     "order_details": {
-      "details_main": "Chi tiết về lệnh",
-      "successful": "Đặt lệnh thành công!",
-      "your": "Của bạn",
-      "available_in_account": "hiện đã có trong tài khoản của bạn",
-      "crypto": "tiền mã hóa",
-      "failed": "Đặt lệnh không thành công",
-      "cancelled": "Đã hủy lệnh",
-      "failed_description": "Đã xảy ra sự cố và {{provider}} không thể hoàn tất lệnh của bạn. Vui lòng thử lại hoặc sử dụng một nhà cung cấp khác.",
-      "the_provider": "nhà cung cấp",
-      "processing": "Đang xử lý lệnh",
-      "processing_card_description": "Mua bằng thẻ Tín dụng/Ghi nợ thường mất vài phút",
-      "processing_bank_description": "Chuyển khoản ngân hàng thường mất vài ngày làm việc",
-      "details": "Chi tiết về lệnh",
-      "via": "qua",
-      "purchase_amount": "Tổng số lượng mua",
-      "etherscan": "Xem chi tiết đầy đủ trên",
-      "another_purchase": "Thực hiện một giao dịch mua khác",
-      "questions": "Có câu hỏi?",
-      "contact_support": "Liên hệ bộ phận hỗ trợ",
-      "support": "Hỗ trợ",
-      "view_order_status": "Xem trạng thái lệnh trên {{provider}}",
-      "id": "Mã lệnh",
-      "date_and_time": "Ngày và giờ",
-      "payment_method": "Phương thức thanh toán",
-      "token_amount": "Số lượng token",
-      "exchange_rate": "Tỷ giá",
-      "total_fees": "Tổng phí",
-      "amount": "Số lượng",
-      "a_block_explorer": "block explorer"
+      "details_main": "Order Details",
+      "successful": "Order Successful!",
+      "your": "Your",
+      "available_in_account": "is now available in your account",
+      "crypto": "crypto",
+      "failed": "Order Failed",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
+      "the_provider": "the provider",
+      "processing": "Processing Order",
+      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
+      "processing_bank_description": "Bank transfers typically take a few business days",
+      "details": "Order details",
+      "via": "via",
+      "purchase_amount": "Purchase Amount Total",
+      "etherscan": "View full details on",
+      "another_purchase": "Make another purchase",
+      "questions": "Questions?",
+      "contact": "Contact",
+      "support": "Support",
+      "id": "Order ID",
+      "date_and_time": "Date and Time",
+      "payment_method": "Payment Method",
+      "token_amount": "Token Amount",
+      "exchange_rate": "Exchange Rate",
+      "total_fees": "Total Fees",
+      "amount": "Amount",
+      "a_block_explorer": "a block explorer"
     }
   },
   "swaps": {
@@ -2048,6 +2026,7 @@
     "copied_clipboard": "Đã sao chép vào bộ nhớ đệm",
     "ok": "OK"
   },
+<<<<<<< HEAD
   "whats_new": {
     "title": "Xem thông tin mới",
     "slides_button": "Mua tiền mã hóa",
@@ -2063,6 +2042,8 @@
     "slide_5_subtitle": "Tránh xác minh danh tính phức tạp",
     "slide_5_body_1": "Với Mercuryo, giờ đây bạn có thể mua tiền mã hóa trị giá lên đến €699 mà không cần phải xác minh danh tính của mình. Điều này giúp đơn giản hóa trải nghiệm thanh toán tiền mã hóa và giúp quá trình tìm hiểu trở nên dễ dàng hơn rất nhiều."
   },
+=======
+>>>>>>> 46fb0f82c (Merge main)
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
     "message": "Để bảo vệ bạn khỏi các nhà cung cấp mạng độc hại hoặc bị lỗi, tất cả các mạng tùy chỉnh hiện bắt buộc phải có ID chuỗi.",
@@ -2113,10 +2094,10 @@
     "learn_more": {
       "title": "Tôi nên chọn thế nào?",
       "intro": "Việc lựa chọn phí gas phù hợp tùy thuộc vào loại giao dịch và mức độ quan trọng của giao dịch đó với bạn.",
-      "aggressive_label": "Linh hoạt",
-      "aggressive_text": "Khả năng thành công cao, ngay cả khi thị trường biến động. Sử dụng phí Linh hoạt để bù đắp khi lưu lượng mạng tăng vọt trong những trường hợp như phát hành NFT nổi tiếng.",
-      "market_label": "Thị trường",
-      "market_text": "Sử dụng phí Thị trường để xử lý nhanh theo giá thị trường hiện tại.",
+      "high_label": "Cao",
+      "high_text": "Đây là lựa chọn tốt nhất cho các giao dịch nhạy cảm về thời gian (như Hoán đổi) vì nó tăng khả năng giao dịch thành công. Nếu một giao dịch Hoán đổi mất quá nhiều thời gian để xử lý, nó có thể không thành công và dẫn đến mất một phần phí gas của bạn.",
+      "medium_label": "Trung bình",
+      "medium_text": "Phí gas trung bình phù hợp cho giao dịch gửi, rút hoặc các giao dịch không nhạy cảm về thời gian khác. Chế độ cài đặt này thường sẽ dẫn đến một giao dịch thành công.",
       "low_label": "Thấp",
       "low_text": "Sử dụng Thấp để chờ mức giá rẻ hơn. Thời gian dự kiến sẽ kém chính xác hơn nhiều do mức giá tương đối khó dự đoán.",
       "link": "Tìm hiểu thêm về việc tùy chỉnh gas."
@@ -2139,9 +2120,6 @@
     "low": "Thấp",
     "medium": "Trung bình",
     "high": "Cao",
-    "market": "Thị trường",
-    "aggressive": "Linh hoạt",
-    "low_fee_warning": "Nhớ lưu ý đến thời gian xử lý. Các giao dịch trong tương lai sẽ được xếp sau giao dịch này.",
     "edit_priority": "Sửa mức ưu tiên",
     "speed_up_transaction": "Tăng tốc giao dịch",
     "cancel_transaction": "Hủy giao dịch",
@@ -2227,10 +2205,6 @@
     "token_detection_mainnet_link": "Bạn cũng có thể thêm token theo cách thủ công.",
     "or": "hoặc"
   },
-  "download_files": {
-    "error": "Không thể tải tập tin đính kèm xuống.",
-    "unknownError": "Đã xảy ra lỗi không xác định"
-  },
   "remember_me": {
     "enable_remember_me": "Bật Ghi nhớ",
     "enable_remember_me_description": "Khi bật Ghi nhớ, bất kỳ ai có quyền truy cập vào điện thoại của bạn đều có thể truy cập vào tài khoản MetaMask của bạn."
@@ -2240,13 +2214,6 @@
     "placeholder": "Mật khẩu",
     "description": "Nếu bạn tắt tùy chọn này, bạn sẽ cần nhập mật khẩu để mở khóa MetaMask kể từ bây giờ.",
     "action": "Tắt Ghi nhớ"
-  },
-  "dapp_connect": {
-    "warning": "Để sử dụng tính năng này, vui lòng cập nhật ứng dụng lên phiên bản mới nhất"
-  },
-  "confirmation_modal": {
-    "cancel_cta": "Hủy",
-    "confirm_cta": "Xác nhận"
   },
   "automatic_security_checks": {
     "title": "Kiểm tra bảo mật tự động",
@@ -2269,6 +2236,7 @@
     "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác.",
     "primary_action": "Bật kiểm tra bảo mật tự động",
     "secondary_action": "Không, cảm ơn"
+<<<<<<< HEAD
   },
   "contract_allowance": {
     "custom_spend_cap": {
@@ -2415,5 +2383,7 @@
     "add_account": "Thêm tài khoản",
     "add_new_account": "Thêm tài khoản mới",
     "add_hardware_wallet": "Thêm ví cứng"
+=======
+>>>>>>> 46fb0f82c (Merge main)
   }
 }

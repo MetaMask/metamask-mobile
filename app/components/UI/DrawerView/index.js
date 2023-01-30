@@ -74,10 +74,8 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
-import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
-  DRAWER_VIEW_BROWSER_TEXT_ID,
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
@@ -191,8 +189,8 @@ const createStyles = (colors) =>
       marginLeft: 5,
     },
     buttonText: {
-      paddingLeft: scale(4),
-      fontSize: scale(13),
+      paddingLeft: 8,
+      fontSize: 15,
       color: colors.primary.default,
       ...fontStyles.normal,
     },
@@ -200,7 +198,6 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: scale(2),
     },
     buttonIcon: {
       marginTop: 0,

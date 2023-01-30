@@ -10,7 +10,6 @@ import {
   Text,
   View,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -38,10 +37,9 @@ import {
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import {
-  NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+} from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
 import {
   AvatarVariants,
@@ -335,7 +333,6 @@ export class NetworkList extends PureComponent {
         style={styles.network}
         key={`network-${i}`}
         onPress={() => onPress(network)} // eslint-disable-line
-        {...generateTestId(Platform, testId)}
       >
         <View
           {...generateTestId(Platform, `${testId}-selected`)}
@@ -526,7 +523,6 @@ export class NetworkList extends PureComponent {
             name={'ios-close'}
             size={30}
             style={styles.closeIcon}
-            {...generateTestId(Platform, NETWORK_LIST_CLOSE_ICON)}
           />
         </View>
         <ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>

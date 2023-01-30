@@ -146,9 +146,7 @@
     "wrong_password_error": "त्रुटि: Decrypt असफल हुआ",
     "wrong_password_error_android": "त्रुटि: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "त्रुटि: पिछले वॉल्ट के बिना अनलॉक नहीं कर सकते।",
-    "clean_vault_error": "एक संग्रहण की सीमा पर पहुंचने की वजह से MetaMask का सामना एक त्रुटि से हुआ। स्थानीय डेटा अनुपयोगी हो गया है। कृपया MetaMask को फिर से स्थापित करें और अपने सीक्रेट रिकवरी फ्रेज के साथ बहाल करें।",
-    "security_alert_title": "सुरक्षा चेतावनी",
-    "security_alert_desc": "आगे बढ़ने के लिए, आपको पासकोड ऑन करना होगा या आपके डिवाइस में सपोर्ट करने वाली किसी भी बायोमेट्रिक्स प्रमाणीकरण विधि (फेसआईडी, टचआईडी या फ़िंगरप्रिंट) को चालू करना होगा।"
+    "clean_vault_error": "एक संग्रहण की सीमा पर पहुंचने की वजह से MetaMask का सामना एक त्रुटि से हुआ। स्थानीय डेटा अनुपयोगी हो गया है। कृपया MetaMask को फिर से स्थापित करें और अपने सीक्रेट रिकवरी फ्रेज के साथ बहाल करें।"
   },
   "enter_password": {
     "title": "अपना पासवर्ड दर्ज करें",
@@ -282,6 +280,7 @@
     "transactions": "लेनदेन",
     "no_collectibles": "अपना NFT नहीं देखा?",
     "no_available_tokens": "अपना टोकन नहीं देखें?",
+<<<<<<< HEAD
     "add_tokens": "टोकन इम्पोर्ट करें",
     "tokens_detected_in_account": "इस खाते में {{tokenCount}} नया {{tokensLabel}} मिला",
     "token_toast": {
@@ -302,6 +301,9 @@
     },
     "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
     "buy_asset": "{{asset}} खरीदें",
+=======
+    "add_tokens": "इम्पोर्ट टोकन",
+>>>>>>> 46fb0f82c (Merge main)
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
     "no_nfts_yet": "अभी तक कोई NFT नहीं है",
     "nfts_autodetection_title": "NFT का पता लगाना",
@@ -314,14 +316,14 @@
     "deposit_button": "जमा करें",
     "copy_address": "कॉपी करें",
     "collectible_action_title": "संग्रहणीय विकल्प",
-    "remove_token_title": "क्या आप इस टोकन को छिपाना चाहते हैं?",
     "remove_collectible_title": "क्या आप इस संग्रहणीय वस्तु को हटाना चाहते हैं?",
     "refresh_metadata": "Metadata को रिफ्रेश करें",
     "token_removal_issue_title": "टोकन हटाने में मुश्किल।",
     "token_removal_issue_desc": "जब टोकन हटाने की कोशिश कर रहे थे तब समस्या हुई थी। फिर से कोशिश करें।",
+    "token_removed_title": "टोकन हटा दिया गया!",
+    "token_removed_desc": "अगर आप मन बदल लेते हैं, \"टोकन इम्पोर्ट करें\" पर टैप करके आप इसे वापस जोड़ सकते हैं",
     "collectible_removed_title": "संग्रहणीय वस्तु हटा दी गई!",
     "collectible_removed_desc": "अगर आप मन बदल लेते हैं, \"NFT इम्पोर्ट करें\" पर टैप करके आप इसे वापस जोड़ सकते हैं",
-    "remove": "छुपाएं",
     "cancel": "रद्द करें",
     "yes": "हां",
     "private_key_detected": "व्यक्तिगत की का पता चला",
@@ -330,19 +332,6 @@
     "logout_to_import_seed": "सीक्रेट रिकवरी फ्रेज को इम्पोर्ट करने के लिए आपको पहले लॉगआउट होने की जरुरत है।",
     "ready_to_explore": "ब्लॉकचेन एप्लिकेशन को एक्सप्लोर करना शुरु करने के लिए तैयार हैं?",
     "unable_to_load": "बैलेंस लोड करने में असमर्थ है"
-  },
-  "asset_details": {
-    "token": "टोकन",
-    "amount": "टोकन राशि",
-    "address": "टोकन अनुबंध पता",
-    "decimal": "टोकन दशमलव",
-    "network": "नेटवर्क",
-    "lists": "टोकन सूचियाँ",
-    "hide_cta": "टोकन छुपाएं",
-    "options": {
-      "view_on_block": "ब्लॉक एक्सप्लोरर पर देखें",
-      "token_details": "टोकन विवरण"
-    }
   },
   "activity_view": {
     "title": "गतिविधि"
@@ -363,15 +352,11 @@
       "cancel_add_collectible": "रद्द करें",
       "add_collectible": "इम्पोर्ट"
     },
-    "banners": {
-      "search_desc": "बेहतर टोकन डिटेक्शन वर्तमान में {{network}} नेटवर्क पर उपलब्ध है।",
-      "search_link": "इसे सेटिंग्स से एनेबल करें।",
-      "custom_warning_desc": "मौजूदा टोकन के नकली संस्करण बनाने सहित कोई भी टोकन बना सकता है। घोटालों और सुरक्षा जोख़िमों के बारे में ",
-      "custom_warning_link": "अधिक जानें।",
-      "custom_info_desc": "इस नेटवर्क पर टोकन डिटेक्शन अभी उपलब्ध नहीं है। कृपया टोकन को मैन्युअल रूप से इम्पोर्ट करें और सुनिश्चित करें कि आप उस पर भरोसा करते हैं। टोकन घोटालों और सुरक्षा जोख़िमों के बारे में ",
-      "custom_info_link": "अधिक जानें।",
-      "custom_security_tips": "सुरक्षा युक्तियाँ"
-    }
+    "warning_body_description": "कोई भी टोकन बना सकता है,जिसमें मौजूदा टोकन के नकली संस्करण बनाना शामिल है। के बारे में ज्यादा जानें",
+    "warning_link": "स्कैम और सुरक्षा जोखिम",
+    "security_tips": "सुरक्षा सुझाव",
+    "token_detection_feature": "नया! Ethereum Mainnet पर एक प्रायोगिक फीचर के तौर पर संशोधित टोकन की पहचान उपलब्ध है।",
+    "token_detection_link": "सेटिंग से सक्षम करें"
   },
   "terms_and_conditions": {
     "title": "नियम और शर्त",
@@ -402,7 +387,6 @@
   "token": {
     "token_symbol": "टोकन सिंबल",
     "token_address": "टोकन का पता",
-    "token_decimal": "टोकन दशमलव",
     "search_tokens_placeholder": "टोकन खोजें",
     "address_cant_be_empty": "टोकन का पता कभी खाली नहीं रह सकता।",
     "address_must_be_valid": "टोकन का पता एक मान्य पता होना चाहिए।",
@@ -503,7 +487,6 @@
     "search_engine": "इंजन खोजे",
     "new_RPC_URL": "नया RPC नेटवर्क ",
     "state_logs": "स्टेट लॉग",
-    "add_network_title": "एक नेटवर्क जोड़ें",
     "auto_lock": "ऑटो-लॉक",
     "auto_lock_desc": "एप्लिकेशन के अपने आप लॉक होने में लगने वाले समय का चयन करें। ",
     "state_logs_desc": "किसी समस्या को डिबग करने में यह MetaMask की मदद करेगा, जिससे आपका मुकाबला हो सकता है।  कृपया इसे हैमबर्गर आइकन > फीडबेक भेजें के जरिए MetaMask समर्थन को भेजें, या अपने वर्तमान टिकट का जवाब दें यदि आपके पास एक है।",
@@ -643,11 +626,6 @@
     "theme_os": "व्यवस्था",
     "theme_light": "हल्का",
     "theme_dark": "गहरा",
-    "mainnet": "मेननेट",
-    "test_network_name": "टेस्ट नेटवर्क्स",
-    "custom_network_name": "कस्टम नेटवर्क्स",
-    "popular": "लोकप्रिय",
-    "delete": "हटाएँ",
     "network_exists": "यह नेटवर्क पहले से ही जोड़ा जा चुका है।",
     "delete_metrics_title": "मेटामेट्रिक्स डेटा हटाएं",
     "delete_metrics_description_part_one": "यह आपके वॉलेट से जुड़े ऐतिहासिक मेटामेट्रिक्स डेटा को हटा देगा।",
@@ -753,8 +731,6 @@
     "seed_phrase_copied_time": "(1 मिनट के लिए स्टोर की गई)",
     "private_key_copied": "निजी की अस्थायी रुप से क्लिपबोर्ड पर कॉपी की गई",
     "private_key_copied_time": "(1 मिनट के लिए स्टोर की गई)",
-    "private_key_copied_ios": "निजी कुंजी अस्थायी रूप से क्लिपबोर्ड पर कॉपी की गई\n",
-    "private_key_copied_android": "निजी कुंजी को क्लिपबोर्ड पर कॉपी किया गया\n",
     "warning_incorrect_password": "गलत पासवर्ड",
     "unknown_error": "आपके अकाउंट को अनलॉक नहीं कर सके। कृपया फिर से कोशिश करें।",
     "hardware_error": "ये एक हार्डवेयर वॉलेट अकाउंट है, आप अपनी प्राइवेट की को एक्सपोर्ट नहीं कर सकते हैं।",
@@ -795,12 +771,16 @@
     "were_unable": "हम लोड करने में असमर्थ हैं आपका",
     "balance": "बैलेंस: समर्थन लेख को देखें",
     "troubleshooting_missing": "अनुपस्थित बैलेंस की समस्या का निवारण",
+<<<<<<< HEAD
     "for_help": "मदद के लिए।",
     "troubleshoot": "ट्रबलशूट",
     "buy_description": "नकद के साथ क्रिप्टो खरीदें",
     "swap_description": "टोकन के बीच विनिमय",
     "send_description": "किसी भी खाते में क्रिप्टो भेजें",
     "receive_description": "क्रिप्टो प्राप्त करें"
+=======
+    "for_help": "मदद के लिए।"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "account_details": {
     "title": "अकाउंट का विवरण",
@@ -810,6 +790,7 @@
     "account_copied_to_clipboard": "पब्लिक एड्रेस क्लिपबोर्ड पर कॉपी किया गया",
     "share_public_key": "मेरी सार्वजनिक की साझा करना:"
   },
+<<<<<<< HEAD
   "detected_tokens": {
     "title": "{{tokenCount}} नया टोकन मिला",
     "title_plural": "{{tokenCount}} नए टोकन मिले",
@@ -832,6 +813,8 @@
     },
     "address_copied_to_clipboard": "टोकन पता क्लिपबोर्ड पर कॉपी किया गया"
   },
+=======
+>>>>>>> 46fb0f82c (Merge main)
   "qr_scanner": {
     "invalid_qr_code_title": "अमान्य QR कोड",
     "invalid_qr_code_message": "QR कोड जिसे आप स्कैन करने की कोशिश कर रहे हैं मान्य नहीं है।",
@@ -890,8 +873,6 @@
     "insufficient": "अपर्याप्त फंड",
     "insufficient_amount": "इस लेन-देन को पूरा करने के लिए आपको {{amount}} ज्यादा {{tokenSymbol}} की जरुरत है।",
     "buy_more_eth": "ज्यादा ETH खरीदें",
-    "buy_more": "अधिक खरीदें",
-    "go_to_faucet": "फॉसेट पर जाएं",
     "get_ether": "{{networkName}} नेटवर्क के लिए Ether प्राप्त करें।",
     "insufficient_tokens": "अपर्याप्त {{token}}",
     "invalid_address": "अमान्य पता",
@@ -964,18 +945,22 @@
     "contains_zero_width": "शून्य चौड़ाई वाला वर्ण शामिल है",
     "dapp_suggested_gas": "यह गैस शुल्क %{origin} द्वारा सुझाया गया है। यह लेगसी गैस के अनुमान का उपयोग कर रहा है जो गलत हो सकता है। वैसे, इस गैस शुल्क को संपादित करने से आपके लेन-देन के साथ कोई समस्या हो सकती है। यदि आपके पास सवाल हैं तो कृपया %{origin} तक पहुंचें।",
     "dapp_suggested_eip1559_gas": "यह गैस शुल्क %{origin} द्वारा सुझाया गया है। इसे ओवरराइड करने से आपके लेन-देन के साथ समस्या हो सकती है। यदि आपके पास सवाल हैं तो कृपया %{origin} तक पहुंचें।",
-    "address_invalid": "प्राप्तकर्ता का पता अमान्य है।",
-    "ens_not_found": "इस नाम के लिए कोई पता निर्धारित नहीं किया गया है।",
+    "address_invalid": "Recipient address is invalid.",
+    "ens_not_found": "No address has been set for this name.",
     "unknown_qr_code": "अमान्य क्यूआर कोड। कृपया पुन: प्रयास करें।",
     "invalid_qr_code_sync": "अमान्य QR कोड। कृपया हार्डवेयर वॉलेट के सिंक QR कोड को स्कैन करें।",
     "no_camera_permission": "कैमरा अधिकृत नहीं है। कृपया अनुमति दें और दोबारा प्रयास करें",
     "invalid_qr_code_sign": "अमान्य क्यूआर कोड। कृपया अपना हार्डवेयर जांचे और दोबारा प्रयास करें।",
     "no_camera_permission_android": "आगे बढ़ने के लिए आपको MetaMask को अपने कैमरे की एक्सेस देनी होगी। आपको अपने सिस्टम की सेटिंग्स भी बदलनी पड़ सकती है।",
+<<<<<<< HEAD
     "mismatched_qr_request_id": "असंगत लेनदेन डेटा। कृपया नीचे दिए गए क्यूआर कोड पर हस्ताक्षर करने के लिए अपने कीस्टोन का उपयोग करें और 'गेट सिग्नेचर' पर टैप करें।",
     "fiat_conversion_not_available": "फिएट रूपांतरण इस समय उपलब्ध नहीं हैं",
     "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
     "invalid_recipient": "अवैध प्राप्तकर्ता",
     "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है"
+=======
+    "mismatched_qr_request_id": "असंगत लेनदेन डेटा। कृपया नीचे दिए गए क्यूआर कोड पर हस्ताक्षर करने के लिए अपने कीस्टोन का उपयोग करें और 'गेट सिग्नेचर' पर टैप करें।"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "custom_gas": {
     "total": "कुल",
@@ -1030,10 +1015,14 @@
     "close": "बंद करें",
     "all_set": "सब तैयार!",
     "all_set_desc": "आपने इस साइट के लिए अनुमति सफलतापूर्वक निर्धारित कर दी है।",
+<<<<<<< HEAD
     "must_be_at_least": "कम से कम {{allowance}} होना चाहिए",
     "access_up_to": "एक्सेस सीमा:",
     "spending_cap": "खर्च करने की सीमा:",
     "approve_asset": "संपत्ति स्वीकृत करें:"
+=======
+    "must_be_at_least": "कम से कम {{allowance}} होना चाहिए"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "browser": {
     "title": "ब्राउजर",
@@ -1189,6 +1178,7 @@
     "other_networks": "अन्य नेटवर्क",
     "close": "बंद करें",
     "status_ok": "सारे सिस्टम का परिचालन",
+<<<<<<< HEAD
     "status_not_ok": "नेटवर्क में कुछ समस्या हो रही है",
     "want_to_add_network": "इस नेटवर्क को जोड़ना चाहते हैं?",
     "network_infomation": "यह इस नेटवर्क को मेटामास्क के भीतर उपयोग करने की अनुमति देता है",
@@ -1224,6 +1214,9 @@
     "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
     "deprecated_network_msg": "Ethereum प्रोटोकॉल परिवर्तनों के कारण: Rinkeby, Ropsten, Kovan टेस्ट नेटवर्क मज़बूती से काम करने में असमर्थ हो सकते हैं और जल्द ही अप्रचलित हो जाएंगे।",
     "select_network": "एक नेटवर्क चुनें"
+=======
+    "status_not_ok": "नेटवर्क में कुछ समस्या हो रही है"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "select": {
     "cancel": "रद्द करें",
@@ -1786,11 +1779,17 @@
     "no_providers_available": "कोई प्रदाता उपलब्ध नहीं है",
     "try_different_amount_to_buy_input": "एक अलग भुगतान विधि चुनने का प्रयास करें या उस राशि को बढ़ाने या घटाने का प्रयास करें जिसे आप खरीदना चाहते हैं!",
     "webview_received_error": "WebView को त्रुटि का स्टेटस कोड प्राप्त हुआ: {{code}}",
+<<<<<<< HEAD
     "no_tokens_available_title": "कोई टोकन उपलब्ध नहीं है",
     "no_tokens_available": "चयनित भुगतान विधि के साथ {{network}} पर खरीदने के लिए फिलहाल कोई टोकन उपलब्ध नहीं हैं।",
     "change_payment_method": "भुगतान का तरीका बदलें",
     "try_different_region": "कोई दूसरा क्षेत्र आज़माएं",
     "return_home": "होम स्क्रीन पर लौटें",
+=======
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "try_different_region": "Try a different region",
+    "return_home": "Return to Home Screen",
+>>>>>>> 46fb0f82c (Merge main)
     "region": {
       "buy_crypto_tokens": "क्रिप्टो टोकन खरीदें",
       "title": "अपना क्षेत्र चुनें",
@@ -1807,6 +1806,7 @@
       "unsupported_link": "सहायक लेख पर जाएं"
     },
     "order_details": {
+<<<<<<< HEAD
       "details_main": "ऑर्डर का विवरण",
       "successful": "ऑर्डर सफल!",
       "your": "आपका",
@@ -1836,6 +1836,35 @@
       "total_fees": "कुल शुल्क",
       "amount": "रकम",
       "a_block_explorer": "एक ब्लॉक एक्सप्लोरर"
+=======
+      "details_main": "Order Details",
+      "successful": "Order Successful!",
+      "your": "Your",
+      "available_in_account": "is now available in your account",
+      "crypto": "crypto",
+      "failed": "Order Failed",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
+      "the_provider": "the provider",
+      "processing": "Processing Order",
+      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
+      "processing_bank_description": "Bank transfers typically take a few business days",
+      "details": "Order details",
+      "via": "via",
+      "purchase_amount": "Purchase Amount Total",
+      "etherscan": "View full details on",
+      "another_purchase": "Make another purchase",
+      "questions": "Questions?",
+      "contact": "Contact",
+      "support": "Support",
+      "id": "Order ID",
+      "date_and_time": "Date and Time",
+      "payment_method": "Payment Method",
+      "token_amount": "Token Amount",
+      "exchange_rate": "Exchange Rate",
+      "total_fees": "Total Fees",
+      "amount": "Amount",
+      "a_block_explorer": "a block explorer"
+>>>>>>> 46fb0f82c (Merge main)
     }
   },
   "swaps": {
@@ -2048,6 +2077,7 @@
     "copied_clipboard": "क्लिपबोर्ड पर नकल ",
     "ok": "ठीक है"
   },
+<<<<<<< HEAD
   "whats_new": {
     "title": "देखे क्या नया है",
     "slides_button": "क्रिप्टो खरीदें",
@@ -2063,6 +2093,8 @@
     "slide_5_subtitle": "जटिल पहचान सत्यापन से बचें",
     "slide_5_body_1": "Mercuryo के साथ, अब आप अपनी पहचान को सत्यापित किए बिना ही €699 मूल्य की क्रिप्टो खरीद सकते हैं। यह क्रिप्टो चेकआउट अनुभव को सरल बनाता है और ऑनबोर्डिंग को काफी आसान बनाता है।"
   },
+=======
+>>>>>>> 46fb0f82c (Merge main)
   "invalid_network": {
     "title": "कस्टम नेटवर्क के लिए चेनID  \n %{network} \n को फिर से दर्ज करना होगा। ",
     "message": "दुर्भावनापूर्ण या दोषपूर्ण नेटवर्क प्रदाताओं से आपकी सुरक्षा के लिए, चेन ID सारे कस्टम नेटवर्क के लिए अब जरुरी है।",
@@ -2113,10 +2145,10 @@
     "learn_more": {
       "title": "मुझे किस तरह चुनना चाहिए?",
       "intro": "सही गैस शुल्क चुनना लेन-देन के प्रकार पर निर्भर करता है और इस पर निर्भर करता है कि यह आपके लिए कितना महत्वपूर्ण है।",
-      "aggressive_label": "आक्रामक",
-      "aggressive_text": "उच्च संभावना, अस्थिर बाजारों में भी। लोकप्रिय एनएफटी ड्रॉप्स जैसी चीजों के कारण नेटवर्क ट्रैफ़िक में वृद्धि को कवर करने के लिए आक्रामक बने।",
-      "market_label": "बाजार",
-      "market_text": "वर्तमान बाजार मूल्य पर तेजी से प्रसंस्करण के लिए बाजार का प्रयोग करें।",
+      "high_label": "उच्च",
+      "high_text": "समय के प्रति संवेदनशील लेन-देन (जैसे स्वैप) के लिए यह सबसे बढ़िया है क्योंकि यह एक सफल लेन-देन की संभावना को बढ़ाता है। यदि एक स्वैप संसाधित होने में ज्यादा समय लगाता है, तो यह असफल हो सकता है और परिणामस्वरुप आपके गैस शुल्क में से कुछ का नुकसान हो सकता है।",
+      "medium_label": "मध्यम",
+      "medium_text": "भेजने के लिए, निकालने के लिए या अन्य गैर-समय संवेदनशील लेन-देन के लिए मध्यम गैस शुल्क अच्छा है। इस सेटिंग का परिणाम अक्सर सफल लेन-देन होता है।",
       "low_label": "निम्न",
       "low_text": "सस्ती कीमत की प्रतीक्षा करने के लिए लो का उपयोग करें। चूंकि कीमतें कुछ हद तक अप्रत्याशित होती हैं, इसलिए समय के अनुमान बहुत ही कम सटीक होते हैं।",
       "link": "कस्टमाइज गैस के बारे में ज्यादा जानें।"
@@ -2139,9 +2171,6 @@
     "low": "निम्न",
     "medium": "मध्यम",
     "high": "उच्च",
-    "market": "बाजार",
-    "aggressive": "आक्रामक",
-    "low_fee_warning": "अपने प्रसंस्करण समय पर ध्यान दें। इसके बाद भविष्य के लेन-देन कतारबद्ध होंगे।",
     "edit_priority": "प्राथमिकता को संपादित करें",
     "speed_up_transaction": "लेन-देन की गति बढ़ाएं",
     "cancel_transaction": "लेन-देन रद्द करें",
@@ -2216,12 +2245,13 @@
     "switched_network": "आपने स्विच कर लिया है",
     "learn_more": "ज्यादा जानें।",
     "add_token": "मैन्युअल रूप से टोकन जोड़ने के लिए यहां क्लिक करें",
-    "add_token_manually": "उन्हें मैन्युअल रूप से जोड़ें।",
+    "add_token_manually": "Add them manually.",
     "got_it": "समझ लिया",
     "error_title": "उफ़! कुछ गलत हो गया।",
     "error_message": "नेटवर्क जानकारी लोड करने में त्रुटि हुई है। बाद में पुन: प्रयास करें।",
     "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+<<<<<<< HEAD
     "enable_token_detection": "ऑटो टोकन डिटेक्शन सक्षम करें",
     "token_detection_mainnet_title": "टोकन डिटेक्शन एनेबल किया हुआ है इसलिए आपके वॉलेट में कई टोकन अपने आप दिखाई देंगे।",
     "token_detection_mainnet_link": "आप मैन्युअल रूप से टोकन भी जोड़ सकते हैं।",
@@ -2230,6 +2260,12 @@
   "download_files": {
     "error": "अटैचमेंट डाउनलोड करने में विफल।",
     "unknownError": "अज्ञात त्रुटि हुई"
+=======
+    "enable_token_detection": "Enable auto token detection",
+    "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
+    "token_detection_mainnet_link": "You can also add tokens manually.",
+    "or": "or"
+>>>>>>> 46fb0f82c (Merge main)
   },
   "remember_me": {
     "enable_remember_me": "रिमेंबर मी चालू करें",
@@ -2241,6 +2277,7 @@
     "description": "अगर आप इस ऑप्शन को बंद करते हैं, तो अब से आपको MetaMask अनलॉक करने के लिए अपने पासवर्ड की ज़रूरत होगी।",
     "action": "रिमेंबर मी बंद करें"
   },
+<<<<<<< HEAD
   "dapp_connect": {
     "warning": "इस फीचर का उपयोग करने के लिए, कृपया ऐप को नवीनतम संस्करण में अपडेट करें"
   },
@@ -2248,6 +2285,8 @@
     "cancel_cta": "रद्द करें",
     "confirm_cta": "पुष्टि करें"
   },
+=======
+>>>>>>> 46fb0f82c (Merge main)
   "automatic_security_checks": {
     "title": "ऑटोमैटिक सुरक्षा जाँच",
     "description": "अपडेट के लिए ऑटोमैटिक तौर पर जांच करने से आपका IP ऐड्रेस GitHub सर्वर पर प्रदर्शित हो सकता है। यह सिर्फ इस ओर इशारा करता है कि आपका आईपी ऐड्रेस MetaMask का उपयोग कर रहा है। कोई अन्य जानकारी या अकाउंट ऐड्रेस उजागर नहीं होते हैं।"
@@ -2269,6 +2308,7 @@
     "description": "अपडेट के लिए ऑटोमैटिक तौर पर जांच करने से आपका IP ऐड्रेस GitHub सर्वर पर प्रदर्शित हो सकता है। यह सिर्फ इस ओर इशारा करता है कि आपका आईपी ऐड्रेस MetaMask का उपयोग कर रहा है। कोई अन्य जानकारी या अकाउंट ऐड्रेस उजागर नहीं होते हैं।",
     "primary_action": "स्वचालित सिक्योरिटी जांच सक्षम करें",
     "secondary_action": "जी नहीं, धन्यवाद"
+<<<<<<< HEAD
   },
   "contract_allowance": {
     "custom_spend_cap": {
@@ -2415,5 +2455,7 @@
     "add_account": "खाता जोड़ें",
     "add_new_account": "नया खाता जोड़ें",
     "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें"
+=======
+>>>>>>> 46fb0f82c (Merge main)
   }
 }

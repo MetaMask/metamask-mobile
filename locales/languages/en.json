@@ -1975,7 +1975,7 @@
       "best_price": "best price",
       "from_the": "from the",
       "top_liquidity": "top liquidity sources every time.",
-      "fee_is_applied": "The fee of {{fee}} is automatically factored into this quote. You pay it in exchange for a license to use MetaMask's liquidity provider information aggregation software.",
+      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better.",
       "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
     "enable": {
@@ -2349,6 +2349,7 @@
     "new_wallet_needed_description_part_one": "Something's wrong with your wallet, and you'll need to create a new one. Because your accounts are on the blockchain, they're still safe. Only the preferences, saved networks, account names, and related data saved on your device are gone.",
     "new_wallet_needed_description_part_two": "To import your accounts to a new wallet, you'll need your Secret Recovery Phrase. If you don't have your Secret Recovery Phrase, you won't be able to import your accounts.",
     "new_wallet_needed_description_part_three": "To keep this from happening again, be sure to always keep your MetaMask app and OS updated to the latest version."
+<<<<<<< HEAD
   },
   "srp_security_quiz": {
     "title": "Security quiz",
@@ -2445,5 +2446,7 @@
     "add_account": "Add account",
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet"
+=======
+>>>>>>> 46fb0f82c (Merge main)
   }
 }

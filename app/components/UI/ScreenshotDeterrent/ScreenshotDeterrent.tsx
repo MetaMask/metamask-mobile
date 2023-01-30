@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Linking, InteractionManager } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Alert, Linking, InteractionManager } from 'react-native';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
-import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
@@ -38,7 +35,6 @@ const ScreenshotDeterrentWithNavigation = ({
   isSRP: boolean;
 }) => {
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
-  const navigation = useNavigation();
 
   const openSRPGuide = () => {
     setAlertPresent(false);
@@ -63,12 +59,16 @@ const ScreenshotDeterrentWithNavigation = ({
           setAlertPresent(false);
           AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
         },
-        onConfirm: openSRPGuide,
-        confirmLabel: strings('reveal_credential.learn_more'),
-        cancelLabel: strings('reveal_credential.got_it'),
-      },
-    });
-  }, [isSRP, navigation]);
+        {
+          text: strings('reveal_credential.got_it'),
+          onPress: () => {
+            setAlertPresent(false);
+            AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
+          },
+        },
+      ],
+    );
+  }, [isSRP]);
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 

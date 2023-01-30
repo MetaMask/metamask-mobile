@@ -146,9 +146,7 @@
     "wrong_password_error": "Error: Error al descifrar",
     "wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Error: No se puede desbloquear sin una bóveda anterior.",
-    "clean_vault_error": "MetaMask encontró un error ocasionado por alcanzar el límite de almacenamiento. Los datos locales están dañados. Vuelva a instalar MetaMask y restaure la aplicación con la frase secreta de recuperación.",
-    "security_alert_title": "Alerta de seguridad",
-    "security_alert_desc": "Para continuar, debe activar el código de acceso o cualquier método de autenticación biométrica compatible con su dispositivo (FaceID, TouchID o huella dactilar)"
+    "clean_vault_error": "MetaMask encontró un error ocasionado por alcanzar el límite de almacenamiento. Los datos locales están dañados. Vuelva a instalar MetaMask y restaure la aplicación con la frase secreta de recuperación."
   },
   "enter_password": {
     "title": "Escribir la contraseña",
@@ -314,14 +312,14 @@
     "deposit_button": "Depositar",
     "copy_address": "Copie",
     "collectible_action_title": "Opciones de coleccionables",
-    "remove_token_title": "¿Quiere ocultar este token?",
     "remove_collectible_title": "¿Quiere quitar este coleccionable?",
     "refresh_metadata": "Actualizar los metadatos",
     "token_removal_issue_title": "Problema al eliminar el token.",
     "token_removal_issue_desc": "Hubo un problema al intentar eliminar el token. Intente de nuevo.",
+    "token_removed_title": "Se quitó el token.",
+    "token_removed_desc": "Si cambia de opinión, puede volver a agregarlo. Presione en \"+ AGREGAR TOKENS\"",
     "collectible_removed_title": "Se quitó el coleccionable.",
     "collectible_removed_desc": "Si cambia de opinión, puede volver a agregarlo si presiona en \"+ AGREGAR NFT\"",
-    "remove": "Ocultar",
     "cancel": "Cancelar",
     "yes": "Sí",
     "private_key_detected": "Clave privad detectada",
@@ -330,19 +328,6 @@
     "logout_to_import_seed": "Primero debe cerrar sesión para poder importar una frase secreta de recuperación.",
     "ready_to_explore": "¿Está listo para empezar a explorar las aplicaciones de cadena de bloques?",
     "unable_to_load": "No se puede cargar el saldo"
-  },
-  "asset_details": {
-    "token": "Token",
-    "amount": "Cantidad de tokens",
-    "address": "Dirección de contrato del token",
-    "decimal": "Decimales del token",
-    "network": "Red",
-    "lists": "Listas de tokens",
-    "hide_cta": "Ocultar token",
-    "options": {
-      "view_on_block": "Ver en el explorador de bloques",
-      "token_details": "Detalles del token"
-    }
   },
   "activity_view": {
     "title": "Actividad"
@@ -363,15 +348,11 @@
       "cancel_add_collectible": "CANCELAR",
       "add_collectible": "AGREGAR"
     },
-    "banners": {
-      "search_desc": "La detección mejorada de tokens está disponible actualmente en la red {{network}}. ",
-      "search_link": "Habilítela en Configuración.",
-      "custom_warning_desc": "Cualquiera puede crear un token, inclusive versiones falsas de tokens existentes. Conozca más acerca de ",
-      "custom_warning_link": "estafas y riesgos de seguridad.",
-      "custom_info_desc": "La detección de token aún no está disponible en esta red. Por favor, agregue su token manualmente y asegúrese de que confía en él. Conozca más acerca de ",
-      "custom_info_link": "estafas de tokens y riesgos de seguridad.",
-      "custom_security_tips": "Consejos de seguridad"
-    }
+    "warning_body_description": "Cualquiera puede crear un token, incluyendo versiones falsas de tokens ya existentes. Aprenda más acerca de",
+    "warning_link": "estafas y riesgos en seguridad.",
+    "security_tips": "Consejos de seguridad",
+    "token_detection_feature": "¡Lo último! Una versión mejorada en detección de tokens está disponible en Ethereum Mainnet como función de prueba.",
+    "token_detection_link": "Habilítelo desde Configuraciones"
   },
   "terms_and_conditions": {
     "title": "Términos y condiciones",
@@ -402,7 +383,6 @@
   "token": {
     "token_symbol": "Símbolo del token",
     "token_address": "Dirección del token",
-    "token_decimal": "Decimales del token",
     "search_tokens_placeholder": "Buscar tokens",
     "address_cant_be_empty": "La dirección del token no puede estar vacía.",
     "address_must_be_valid": "La dirección del token debe ser una dirección válida.",
@@ -503,7 +483,6 @@
     "search_engine": "Motor de búsqueda",
     "new_RPC_URL": "Nueva red RPC",
     "state_logs": "Registros de estado",
-    "add_network_title": "Agregar una red",
     "auto_lock": "Bloqueo automático",
     "auto_lock_desc": "Elija la cantidad de tiempo antes de que la aplicación se bloquee automáticamente.",
     "state_logs_desc": "Esto ayudará a que MetaMask depure cualquier problema que se pueda encontrar. Envíelo al soporte de MetaMask a través del icono de tres barras > Enviar comentarios, o responda a la incidencia existente, si la tiene.",
@@ -643,11 +622,6 @@
     "theme_os": "Sistema",
     "theme_light": "Claro",
     "theme_dark": "Oscuro",
-    "mainnet": "Mainnet",
-    "test_network_name": "Redes de prueba",
-    "custom_network_name": "Redes personalizadas",
-    "popular": "Popular",
-    "delete": "Eliminar",
     "network_exists": "La red ya ha sido instalada",
     "delete_metrics_title": "Eliminar datos de MetaMetrics",
     "delete_metrics_description_part_one": "Esto eliminará los datos históricos de MetaMetrics asociados a su cartera.",
@@ -753,8 +727,6 @@
     "seed_phrase_copied_time": "(almacenada por 1 minuto)",
     "private_key_copied": "Clave privada copiada en el Portapapeles",
     "private_key_copied_time": "(almacenada por 1 minuto)",
-    "private_key_copied_ios": "Llave privada copiada temporalmente al portapapeles\n",
-    "private_key_copied_android": "Llave privada copiada al portapapeles\n",
     "warning_incorrect_password": "Contraseña incorrecta",
     "unknown_error": "No se pudo desbloquear la cuenta. Vuelva a intentarlo.",
     "hardware_error": "Esta es una cuenta de cartera de hardware, no puede exportar su clave privada.",
@@ -809,28 +781,6 @@
     "show_private_key": "Mostrar clave privada",
     "account_copied_to_clipboard": "Dirección pública copiada en el Portapapeles",
     "share_public_key": "Uso compartido de mi clave pública: "
-  },
-  "detected_tokens": {
-    "title": "{{tokenCount}} nuevos tokens encontrados",
-    "title_plural": "{{tokenCount}} nuevos tokens encontrados",
-    "import_cta": "Agregar ({{tokenCount}})",
-    "hide_cta": "Ocultar todos",
-    "token_address": "Dirección del token: ",
-    "token_lists": "Listas de tokens: {{listNames}}",
-    "token_more": " + {{remainingListCount}} más",
-    "confirm": {
-      "cancel_cta": "Cancelar",
-      "confirm_cta": "Confirmar",
-      "import": {
-        "title": "¿Agregar los tokens seleccionados?",
-        "desc": "Únicamente los tokens seleccionados aparecerán en su billetera. Siempre podrá agregar tokens ocultos más tarde realizando una búsqueda de los mismos."
-      },
-      "hide": {
-        "title": "¿Está seguro?",
-        "desc": "Si oculta tokens, estos no se mostrarán en su billetera. Sin embargo, aún puede agregarlos buscándolos."
-      }
-    },
-    "address_copied_to_clipboard": "Dirección del token copiada en el portapapeles"
   },
   "qr_scanner": {
     "invalid_qr_code_title": "Código QR no válido",
@@ -890,8 +840,6 @@
     "insufficient": "Fondos insuficientes",
     "insufficient_amount": "Necesita {{amount}} {{tokenSymbol}} más para completar esta transacción.",
     "buy_more_eth": "Comprar más ETH",
-    "buy_more": "Comprar más",
-    "go_to_faucet": "Ir a la faucet",
     "get_ether": "Obtenga ether para la red {{networkName}}.",
     "insufficient_tokens": "{{token}} insuficiente",
     "invalid_address": "Dirección no válida",
@@ -1807,35 +1755,33 @@
       "unsupported_link": "Visite el artículo de soporte"
     },
     "order_details": {
-      "details_main": "Detalles del pedido",
-      "successful": "¡Pedido exitoso!",
-      "your": "Su",
-      "available_in_account": "ya está disponible en su cuenta",
-      "crypto": "cripto",
-      "failed": "Pedido fallido",
-      "cancelled": "Orden cancelada",
-      "failed_description": "Algo salió mal y {{provider}} no pudo completar su pedido. Vuelva a intentarlo o con otro proveedor.",
-      "the_provider": "el proveedor",
-      "processing": "Procesando el pedido",
-      "processing_card_description": "Las compras con tarjeta de crédito/débito suelen tardar unos minutos",
-      "processing_bank_description": "Las transferencias bancarias suelen tardar unos días laborales",
-      "details": "Detalles del pedido",
-      "via": "mediante",
-      "purchase_amount": "Monto total de la compra",
-      "etherscan": "Ver detalles completos en",
-      "another_purchase": "Realizar otra compra",
-      "questions": "¿Preguntas?",
-      "contact_support": "Contacte a soporte",
-      "support": "Soporte",
-      "view_order_status": "Ver el estatus de la orden en {{provider}}",
-      "id": "Identificador del pedido",
-      "date_and_time": "Fecha y hora",
-      "payment_method": "Método de pago",
-      "token_amount": "Cantidad de tokens",
-      "exchange_rate": "Tipo de cambio",
-      "total_fees": "Tarifas totales",
-      "amount": "Cantidad",
-      "a_block_explorer": "un explorador de bloques"
+      "details_main": "Order Details",
+      "successful": "Order Successful!",
+      "your": "Your",
+      "available_in_account": "is now available in your account",
+      "crypto": "crypto",
+      "failed": "Order Failed",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
+      "the_provider": "the provider",
+      "processing": "Processing Order",
+      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
+      "processing_bank_description": "Bank transfers typically take a few business days",
+      "details": "Order details",
+      "via": "via",
+      "purchase_amount": "Purchase Amount Total",
+      "etherscan": "View full details on",
+      "another_purchase": "Make another purchase",
+      "questions": "Questions?",
+      "contact": "Contact",
+      "support": "Support",
+      "id": "Order ID",
+      "date_and_time": "Date and Time",
+      "payment_method": "Payment Method",
+      "token_amount": "Token Amount",
+      "exchange_rate": "Exchange Rate",
+      "total_fees": "Total Fees",
+      "amount": "Amount",
+      "a_block_explorer": "a block explorer"
     }
   },
   "swaps": {
@@ -2113,10 +2059,10 @@
     "learn_more": {
       "title": "¿Cómo debo elegir?",
       "intro": "Seleccionar la tarifa de gas adecuada depende del tipo de transacción y de la importancia que tenga para usted.",
-      "aggressive_label": "Agresivo",
-      "aggressive_text": "Alta probabilidad, incluso en mercados volátiles. Use Agresivo para cubrir los aumentos repentinos en el tráfico de la red debido a cosas como lanzamientos populares de NFT.",
-      "market_label": "Mercado",
-      "market_text": "Utilice Mercado para un procesamiento rápido al precio actual del mercado.",
+      "high_label": "Alto",
+      "high_text": "Esto es lo más conveniente para transacciones con límite de tiempo (como Swaps/Intercambios) ya que aumenta la probabilidad de que la transacción sea exitosa. Si un intercambio tarda demasiado en procesarse, puede que falle y esto resulte en la pérdida de parte de su tarifa de gas.",
+      "medium_label": "Medio",
+      "medium_text": "Una tarifa de gas media es buena para enviar, retirar u otras transacciones sin límites de tiempo. Esta configuración será exitosa en la mayoría de los casos.",
       "low_label": "Bajo",
       "low_text": "Use Baja para esperar un precio más bajo. Las estimaciones de tiempo son mucho menos precisas, ya que los precios son un poco imprevisibles.",
       "link": "Obtenga más información sobre cómo personalizar su cuota de gas."
@@ -2139,9 +2085,6 @@
     "low": "Bajo",
     "medium": "Medio",
     "high": "Alto",
-    "market": "Mercado",
-    "aggressive": "Agresivo",
-    "low_fee_warning": "Tome nota de su tiempo de procesamiento. Las transacciones futuras se pondrán en la cola después de esta.",
     "edit_priority": "Editar prioridad",
     "speed_up_transaction": "Agilizar transacción",
     "cancel_transaction": "Cancelar transacción",
@@ -2227,10 +2170,6 @@
     "token_detection_mainnet_link": "También puede agregar los tokens manualmente.",
     "or": "o"
   },
-  "download_files": {
-    "error": "No se pudo descargar el archivo adjunto.",
-    "unknownError": "Ocurrió un error desconocido"
-  },
   "remember_me": {
     "enable_remember_me": "Activar Recordarme",
     "enable_remember_me_description": "Cuando Recordarme está activado, cualquier persona con acceso a su teléfono puede acceder a su cuenta de MetaMask."
@@ -2240,13 +2179,6 @@
     "placeholder": "Contraseña",
     "description": "Si desactiva esta opción, necesitará su contraseña para desbloquear MetaMask de ahora en adelante.",
     "action": "Desactivar Recordarme"
-  },
-  "dapp_connect": {
-    "warning": "Para utilizar esta función, actualice la aplicación a la versión más reciente"
-  },
-  "confirmation_modal": {
-    "cancel_cta": "Cancelar",
-    "confirm_cta": "Confirmar"
   },
   "automatic_security_checks": {
     "title": "Controles de seguridad automáticos",

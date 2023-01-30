@@ -3,8 +3,12 @@ import {
   NETWORK_SCROLL_ID,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   OTHER_NETWORK_LIST_ID,
+<<<<<<< HEAD
   NETWORK_LIST_CLOSE_ICON,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+=======
+} from '../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
+>>>>>>> 46fb0f82c (Merge main)
 
 export default class NetworkListModal {
   static async changeNetwork(networkName) {

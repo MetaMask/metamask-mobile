@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { scale } from 'react-native-size-matters';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from '../../../util/theme/models';
 
@@ -9,7 +8,7 @@ const createStyles = (colors: Colors) =>
       ...fontStyles.normal,
       color: colors.text.default,
       marginVertical: 2,
-      fontSize: scale(14),
+      fontSize: 14,
     },
     centered: {
       textAlign: 'center',

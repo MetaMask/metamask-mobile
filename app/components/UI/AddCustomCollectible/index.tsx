@@ -19,7 +19,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
-import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   NFT_ADDRESS_INPUT_BOX_ID,

@@ -38,10 +38,6 @@ sudo gem install cocoapods -v 1.11.3
 
 #### Android
 
--   Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
-```
-  java -version
-```
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
@@ -64,9 +60,7 @@ sudo gem install cocoapods -v 1.11.3
     -   You should use the following:
         -   **Android OS Version:** Latest, unless told otherwise
         -   **Device:** Google Pixel 3
--   Finally, start the emulator from Android Studio:
-    -   Open "Virtual Device Manager"
-    -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+-   Finally, start the emulator from Android Studio, and run:
 
 
 #### iOS

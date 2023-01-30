@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Platform } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -126,10 +126,7 @@ class Contacts extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        {...generateTestId(Platform, CONTACTS_CONTAINER_ID)}
-      >
+      <SafeAreaView style={styles.wrapper} testID={'contacts-screen'}>
         <AddressList
           onlyRenderAddressBook
           reloadAddressList={reloadAddressList}

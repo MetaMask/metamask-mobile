@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { scale } from 'react-native-size-matters';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
@@ -88,7 +87,7 @@ const createStyles = (colors: any) =>
     },
     passwordStrengthLabel: {
       height: 20,
-      fontSize: scale(10),
+      fontSize: 15,
       color: colors.text.default,
       ...fontStyles.normal,
     },
