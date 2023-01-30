@@ -101,22 +101,7 @@ const ImportPrivateKey = () => {
   const onScanSuccess = (data: { private_key: string; seed: string }) => {
     if (data.private_key) {
       setPrivateKey(data.private_key);
-      Alert.alert(
-        strings('wallet.private_key_detected'),
-        strings('wallet.do_you_want_to_import_this_account'),
-        [
-          {
-            text: strings('wallet.cancel'),
-            onPress: () => false,
-            style: 'cancel',
-          },
-          {
-            text: strings('wallet.yes'),
-            onPress: () => goNext(data.private_key),
-          },
-        ],
-        { cancelable: false },
-      );
+      goNext(data.private_key);
     } else if (data.seed) {
       Alert.alert(
         strings('wallet.error'),
