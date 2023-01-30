@@ -376,7 +376,7 @@ class Settings extends PureComponent {
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
 
       if (!enabled) {
-        this.setState({ [type]: false });
+        this.setState({ [type]: false, loading: false });
         if (type === PASSCODE_CHOICE_STRING) {
           console.log(
             'vault/ SecuritySettings type === PASSCODE_CHOICE_STRING',
@@ -411,7 +411,7 @@ class Settings extends PureComponent {
         this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       }
 
-      this.setState({ [type]: true });
+      this.setState({ [type]: true, loading: false });
     } catch (e) {
       if (e.message === 'Invalid password') {
         Alert.alert(
@@ -422,7 +422,7 @@ class Settings extends PureComponent {
       } else {
         Logger.error(e, 'SecuritySettings:biometrics');
       }
-      this.setState({ [type]: !enabled });
+      this.setState({ [type]: !enabled, loading: false });
     }
   };
 
