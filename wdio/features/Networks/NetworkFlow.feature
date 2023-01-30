@@ -15,18 +15,23 @@ User should also have the ability to a add custom network via the custom network
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
     And I am on the Popular network view
+
     When I tap on network "<Network>" to add it
     Then the network approval modal should appear
+
     When I select approve
     Then the network approval modal has button "Switch Network" displayed
     And the network approval modal has button "Close" displayed
+
     When I tap on Switch network
     Then I should see the added network name "<Network>" in the top navigation bar
+
     #       And my token balance shows up correctly with token "ll"
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     Then "<Network>" should be visible below the Custom Networks section
+
     When I tap on the Add Network button
     Then "<Network>" is not visible in the Popular Networks section
     Examples:
@@ -38,6 +43,7 @@ User should also have the ability to a add custom network via the custom network
     And I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
+
     When I tap on the "CUSTOM NETWORKS" tab
     And I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
@@ -46,6 +52,7 @@ User should also have the ability to a add custom network via the custom network
     And I tap on the Add button
     And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
+
     Examples:
       | Network | rpcUrl                                | ChainID | Symbol |
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
@@ -57,13 +64,16 @@ User should also have the ability to a add custom network via the custom network
     And I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
+
     When I tap on the "POPULAR" tab
     And I tap on network "<Network>" to add it
     And I select approve
     Then the network approval modal has button "Switch Network" displayed
     And the network approval modal has button "Close" displayed
+
     When I tap on Switch network
     Then I should see the added network name "<Network>" in the top navigation bar
+
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -79,6 +89,7 @@ User should also have the ability to a add custom network via the custom network
     When I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
+
     When I tap on the "CUSTOM NETWORKS" tab
     And I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
@@ -87,12 +98,14 @@ User should also have the ability to a add custom network via the custom network
     And I tap on the Add button
     And I tap on Got it in the network education modal
     Then I should see the added network name "<Network>" in the top navigation bar
+
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap on network "<Network>" on networks screen
     And I tap the "Delete" button
     Then "<Network>" should be removed from the list of RPC networks
+
     Examples:
       | Network      | rpcUrl                 | ChainID |  |
       | Celo Mainnet | https://forno.celo.org | 42220   |  |

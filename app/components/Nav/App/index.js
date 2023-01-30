@@ -374,7 +374,6 @@ const App = ({ userLoggedIn }) => {
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
-
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);

@@ -11,8 +11,10 @@ Feature: Onboarding
     And the Welcome Screen is displayed
     When I swipe left on the carousel
     Then "Manage your digital assets" carousel item is displayed
+
     When I swipe left on the carousel
     Then "Your gateway to web3" carousel item is displayed
+
     When I swipe left on the carousel
     And I tap "Get started"
     Then "Wallet setup" is displayed

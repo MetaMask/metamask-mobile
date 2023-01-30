@@ -16,6 +16,7 @@ The contacts you saved on network A does not carry over to network B
   Scenario Outline: Validate invalid and valid wallet address <Case>
     When I enter address "<contractAddress>" in the sender's input box
     Then I should see a warning message "<Warning>"
+
     Examples:
       | Case            | contractAddress                            | Warning                                                                                           |
       | Invalid address | 0xB8B4EE5B1b693971eB60bDa15211570df2dB221L | Recipient address is invalid.                                                                     |
@@ -31,8 +32,10 @@ The contacts you saved on network A does not carry over to network B
     When I enter address "<Address>" in the sender's input box
     And I tap on button with text "Add this address to your address book"
     Then On the Address book modal Cancel button is enabled
+
     When I enter in a contact name "<ContactName>"
     Then the Save button becomes enabled
+
     When I tap the Save button
     And the contact name "<ContactName>" appears in the senders input box above the contact address
     And I navigate to the main wallet screen
@@ -40,6 +43,7 @@ The contacts you saved on network A does not carry over to network B
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
     Then the saved contact "<ContactName>" should appear
+
     Examples:
       | Address                                    | ContactName |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | TestAlias   |
@@ -63,8 +67,10 @@ The contacts you saved on network A does not carry over to network B
     When I tap on contact name "<ContactName>"
     And I tap on Edit button to edit Saved contact details
     Then I can edit the contact name to "<EditContactName>"
+
     When I tap the Edit Contact button which is enabled to confirm the change
     Then the saved contact "<EditContactName>" should appear
+
     When I go back to the main wallet screen
     And On the Main Wallet view I tap on the Send Action
     Then I should see the edited name "<EditContactName>" contact under Recents on the send screen
@@ -83,6 +89,7 @@ The contacts you saved on network A does not carry over to network B
     And I tap on "Settings" in the menu
     And In settings I tap on "Contacts"
     Then I should not see "<ContactName>" appear in the contact list
+
     Examples:
       | ContactName |
       | Birdis      |

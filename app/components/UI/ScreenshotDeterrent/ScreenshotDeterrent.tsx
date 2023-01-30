@@ -8,6 +8,7 @@ import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,

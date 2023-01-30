@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Given, Then, When } from '@wdio/cucumber-framework';
 
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
@@ -9,17 +10,37 @@ import CommonScreen from '../screen-objects/CommonScreen';
 
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
 import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
+=======
+/* global driver */
+import { Given, Then, When } from '@wdio/cucumber-framework';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import DrawerViewScreen from '../screen-objects/DrawerViewScreen';
+import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
+import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
+import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen';
+import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
+import ExternalWebsitesScreen from '../screen-objects/BrowserObject/ExternalWebsitesScreen';
+import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
+import MultiTabScreen from '../screen-objects/BrowserObject/MultiTabScreen';
+>>>>>>> 7abbc1bfd (Merge main)
 import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal';
 import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
+<<<<<<< HEAD
 import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import ConnectedAccountsModal from '../screen-objects/Modals/ConnectedAccountsModal';
+=======
+>>>>>>> 7abbc1bfd (Merge main)
 import AccountListComponent from '../screen-objects/AccountListComponent';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
+<<<<<<< HEAD
   await BrowserScreen.tapUrlBar();
+=======
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
   await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
   await AddressBarScreen.tapUrlCancelButton();
 });
@@ -29,7 +50,11 @@ Given(/^I am on the browser view$/, async () => {
 });
 
 When(/^I input "([^"]*)" in the search field$/, async (text) => {
+<<<<<<< HEAD
   await BrowserScreen.tapUrlBar();
+=======
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
   await AddressBarScreen.editUrlInput(text);
 });
 
@@ -45,10 +70,34 @@ Then(/^Uniswap exchange page is a suggestion listed$/, async () => {
   await AddressBarScreen.isUniswapSuggestionDisplayed();
 });
 
+<<<<<<< HEAD
 Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
   await TabBarModal.tapWalletButton();
   await WalletAccountModal.isAccountOverview();
   await WalletAccountModal.isAccountNameLabelEqualTo(text);
+=======
+Then(/^the browser view is on Uniswap Page$/, async () => {
+  await ExternalWebsitesScreen.isUniswapPageDisplayed();
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains('https://app.uniswap.org/');
+  await AddressBarScreen.tapUrlCancelButton();
+});
+
+Then(/^the browser view is on Home MetaMask website$/, async () => {
+  await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
+  await AddressBarScreen.tapUrlCancelButton();
+});
+
+Then(/^"([^"]*)" is the active wallet account$/, async (text) => {
+  await BrowserScreen.tapNavbarHamburgerButton();
+  await DrawerViewScreen.tapWalletButton();
+  await WalletAccountModal.isAccountOverview();
+  await WalletAccountModal.isAccountNameLabelEqualTo(text);
+  await WalletMainScreen.tapBurgerIcon();
+  await DrawerViewScreen.tapBrowserButton();
+>>>>>>> 7abbc1bfd (Merge main)
 });
 
 Then(/^active wallet is connected to Uniswap$/, async () => {
@@ -64,11 +113,19 @@ When(
 );
 
 Then(/^select account component is displayed$/, async () => {
+<<<<<<< HEAD
   await AccountListComponent.isComponentDisplayed();
 });
 
 When(/^I navigate to "([^"]*)"$/, async (text) => {
   await BrowserScreen.tapUrlBar();
+=======
+  await AccountListComponent.isVisible();
+});
+
+When(/^I navigate to "([^"]*)"$/, async (text) => {
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
   await AddressBarScreen.editUrlInput(text);
   await AddressBarScreen.submitUrlWebsite();
 });
@@ -85,7 +142,10 @@ Given(/^I have no favorites saved$/, async () => {
 When(
   /^I tap on browser control menu icon on the bottom right of the browser view$/,
   async () => {
+<<<<<<< HEAD
     await BrowserScreen.waitForBackButtonEnabled();
+=======
+>>>>>>> 7abbc1bfd (Merge main)
     await BrowserScreen.tapOptionButton();
   },
 );
@@ -123,13 +183,21 @@ When(/^I tap on "([^"]*)" on the Add Favorite Screen$/, async (text) => {
 });
 
 Then(/^the "([^"]*)?" is displayed in the browser tab$/, async (text) => {
+<<<<<<< HEAD
   await BrowserScreen.tapUrlBar();
+=======
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
   await AddressBarScreen.isUrlValueContains(text);
   await AddressBarScreen.tapUrlCancelButton();
 });
 
 Then(/^the favorite is not added on the home "([^"]*)" page$/, async (text) => {
+<<<<<<< HEAD
   await BrowserScreen.tapUrlBar();
+=======
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
   await AddressBarScreen.editUrlInput(text);
   await AddressBarScreen.tapHomeSuggestionButton();
   await ExternalWebsitesScreen.tapHomeFavoritesButton();
@@ -144,12 +212,15 @@ When(/^I tap on the browser home button$/, async () => {
   await BrowserScreen.tapHomeButton();
 });
 
+<<<<<<< HEAD
 When(/^I dismiss the connected accounts modal/, async () => {
   await driver.pause(2500);
   await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
   await driver.pause(2500);
 });
 
+=======
+>>>>>>> 7abbc1bfd (Merge main)
 When(/^I tap on Favorites on Home Website$/, async () => {
   await ExternalWebsitesScreen.tapHomeFavoritesButton();
 });
@@ -190,7 +261,11 @@ When(/^I tap on the Return button from the error page$/, async () => {
 });
 
 When(/^I tap on address bar$/, async () => {
+<<<<<<< HEAD
   await BrowserScreen.tapUrlBar();
+=======
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
 });
 
 Then(/^browser address bar input view is displayed$/, async () => {
@@ -210,6 +285,14 @@ When(/^I input "([^"]*)" in address field$/, async (text) => {
   await AddressBarScreen.editUrlInput(text);
 });
 
+<<<<<<< HEAD
+=======
+When(/^I tap on device Go or Next button$/, async () => {
+  await driver.pressKeyCode(66);
+  await AddressBarScreen.tapUrlCancelButton();
+});
+
+>>>>>>> 7abbc1bfd (Merge main)
 When(/^I tap on the back arrow control button$/, async () => {
   await BrowserScreen.tapBackButton();
 });
@@ -227,6 +310,7 @@ When(/^I tap on browser tab button with count (\d+)$/, async (number) => {
   await BrowserScreen.tapTabsButton();
 });
 
+<<<<<<< HEAD
 When(/^I tap on the tab button$/, async () => {
   await BrowserScreen.tapTabsButton();
 });
@@ -239,18 +323,27 @@ Then(/^I tap on browser tab with text "([^"]*)?"/, async (text) => {
   await CommonScreen.tapOnText(text);
 });
 
+=======
+>>>>>>> 7abbc1bfd (Merge main)
 Then(/^multi browser tab view is displayed$/, async () => {
   await MultiTabScreen.isTabsViewDisplayed();
 });
 
 Then(/^new browser tab is displayed on "([^"]*)"$/, async (text) => {
+<<<<<<< HEAD
   await BrowserScreen.tapUrlBar();
+=======
+  await BrowserScreen.tapUrlNavBar();
+>>>>>>> 7abbc1bfd (Merge main)
   await AddressBarScreen.isUrlValueContains(text);
   await AddressBarScreen.tapUrlCancelButton();
 });
 
 Then(/^browser tab count is (\d+)$/, async (number) => {
+<<<<<<< HEAD
   await driver.pause(2000);
+=======
+>>>>>>> 7abbc1bfd (Merge main)
   await BrowserScreen.numberOfTapsEqualsTo(number);
 });
 
@@ -349,7 +442,10 @@ Then(/^all browser tabs are closed$/, async () => {
 });
 
 Then(/^new browser tab is added$/, async () => {
+<<<<<<< HEAD
   await driver.pause(2000);
+=======
+>>>>>>> 7abbc1bfd (Merge main)
   await BrowserScreen.numberOfTapsEqualsTo(2);
 });
 
@@ -376,11 +472,19 @@ When(/^I select "([^"]*)" network option$/, async (option) => {
 
   await NetworkEducationModal.isNetworkEducationNetworkName(option);
   await NetworkEducationModal.tapGotItButton();
+<<<<<<< HEAD
   await NetworkEducationModal.waitForGotItButtonToDisappear();
 });
 
 Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
   await BrowserScreen.tapNetworkAvatarIcon();
+=======
+});
+
+Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
+  await BrowserScreen.tapOptionButton();
+  await OptionMenuModal.tapSwitchOption();
+>>>>>>> 7abbc1bfd (Merge main)
 
   switch (option) {
     case 'Goerli':
@@ -394,17 +498,23 @@ Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
 });
 
 Given(/^I navigate to the browser$/, async () => {
+<<<<<<< HEAD
   await TabBarModal.tapBrowserButton();
   await BrowserScreen.isScreenContentDisplayed();
 });
 
 When(/^I navigate to the wallet$/, async () => {
   await TabBarModal.tapWalletButton();
+=======
+  await WalletMainScreen.tapBurgerIcon();
+  await DrawerViewScreen.tapBrowserButton();
+>>>>>>> 7abbc1bfd (Merge main)
 });
 
 When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
   await ExternalWebsitesScreen.tapUniswapConnectButton();
   await ExternalWebsitesScreen.tapUniswapMetaMaskWalletButton();
+<<<<<<< HEAD
 });
 When(/^I connect my active wallet to the test dapp$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
@@ -430,6 +540,9 @@ When(/^I connect multiple accounts to a dapp$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
+=======
+  await AccountApprovalModal.tapConnectButton();
+>>>>>>> 7abbc1bfd (Merge main)
 });
 
 Then(/^the "([^"]*)" url is displayed in address field$/, async (text) => {
@@ -440,10 +553,20 @@ Then(/^browser address view is displayed$/, async () => {
   await AddressBarScreen.isAddressInputViewDisplayed();
 });
 
+<<<<<<< HEAD
+=======
+Then(/^the browser view is on the Reddit website$/, async () => {
+  await ExternalWebsitesScreen.isRedditIconDisplayed();
+  await BrowserScreen.tapUrlNavBar();
+  await AddressBarScreen.isUrlValueContains('reddit.com');
+  await AddressBarScreen.tapUrlCancelButton();
+});
+>>>>>>> 7abbc1bfd (Merge main)
 Then(/^I should close the address view$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
 });
 
+<<<<<<< HEAD
 When(/^I tap on the Network Icon$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
 });
@@ -474,4 +597,9 @@ Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
 
 When(/^I tap on Select all button$/, async () => {
   await AccountApprovalModal.tapSelectAllButton();
+=======
+Then(/^the created account is selected$/, async () => {
+  await AccountListComponent.isAccountTwoCheckedIconDisplayed();
+  await AccountListComponent.tapAccount('Account 2');
+>>>>>>> 7abbc1bfd (Merge main)
 });

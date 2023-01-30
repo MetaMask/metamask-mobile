@@ -32,5 +32,4 @@ class NetworkEducationModal {
     await expect(await element.getText()).toContain(name);
   }
 }
-
 export default new NetworkEducationModal();

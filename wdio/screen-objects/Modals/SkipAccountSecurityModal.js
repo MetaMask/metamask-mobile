@@ -25,5 +25,4 @@ class SkipAccountSecurityModal {
     await expect(this.skipBackupText).toBeDisplayed();
   }
 }
-
 export default new SkipAccountSecurityModal();
