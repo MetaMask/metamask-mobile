@@ -7,7 +7,7 @@ import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { TOKEN_RESULTS_LIST_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import { TOKEN_RESULTS_LIST_ID } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
 
 const styles = StyleSheet.create({
   rowWrapper: {

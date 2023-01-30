@@ -4,7 +4,7 @@ import {
   getAssetTestId,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
-} from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+} from '../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';

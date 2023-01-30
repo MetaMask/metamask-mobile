@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -27,9 +26,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import ElevatedView from 'react-native-elevated-view';
 import { useTheme } from '../../../util/theme';
-import { scale } from 'react-native-size-matters';
-import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
@@ -70,7 +66,7 @@ const createStyles = ({ colors, typography }) =>
     },
     skipText: {
       ...fontStyles.normal,
-      fontSize: scale(10),
+      fontSize: 12,
       color: colors.primary.default,
     },
   });
@@ -170,10 +166,6 @@ const OnboardingWizard = (props) => {
           <TouchableOpacity
             style={[styles.skipButtonContainer, styles.skipButton]}
             onPress={closeOnboardingWizard}
-            {...generateTestId(
-              Platform,
-              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
-            )}
           >
             <Text style={styles.skipText}>
               {strings('onboarding_wizard.skip_tutorial')}

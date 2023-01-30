@@ -5,15 +5,18 @@ import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 import Box from '../components/Box';
-import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
+import CustomText from '../../../Base/Text';
+import CustomTitle from '../../../Base/Title';
 import RemoteImage from '../../../Base/RemoteImage';
-import { useTheme } from '../../../../util/theme';
+import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { Colors } from '../../../../util/theme/models';
 import useAnalytics from '../hooks/useAnalytics';
 
 type Logos = QuoteResponse['provider']['logos'];
+
+const Text = CustomText as any;
+const Title = CustomTitle as any;
 
 const LOGO_SIZE = 1;
 
@@ -66,10 +69,11 @@ const InfoAlert: React.FC<Props> = ({
   providerPrivacyPolicy,
   providerSupport,
 }: Props) => {
-  const { colors, themeAppearance } = useTheme();
-
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
+
+  const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
   const handleProviderHomepageLinkPress = useCallback(
     (url: string) => {
@@ -127,13 +131,13 @@ const InfoAlert: React.FC<Props> = ({
           <IonicIcon name="ios-close" size={30} color={colors.icon.default} />
         </TouchableOpacity>
         <View style={styles.title}>
-          {logos?.[themeAppearance] ? (
+          {logos?.[logoKey] ? (
             <RemoteImage
               style={{
                 width: logos.width * LOGO_SIZE,
                 height: logos.height * LOGO_SIZE,
               }}
-              source={{ uri: logos[themeAppearance] }}
+              source={{ uri: logos[logoKey] }}
             />
           ) : (
             <Title centered>{providerName}</Title>

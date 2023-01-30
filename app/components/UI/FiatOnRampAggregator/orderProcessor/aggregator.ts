@@ -56,6 +56,8 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
   excludeFromPurchases: aggregatorOrder.excludeFromPurchases,
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore TODO: remove ignore when upgrading to on-ramp-sdk v1.3.1
   orderType: aggregatorOrder.orderType,
   errorCount: 0,
   lastTimeFetched: Date.now(),

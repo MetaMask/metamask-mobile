@@ -1,7 +1,7 @@
 import React from 'react';
 import { ImageStyle, StyleProp } from 'react-native';
 import { Payment } from '@consensys/on-ramp-sdk';
-import { useTheme } from '../../../../util/theme';
+import { useAssetFromTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 interface Props {
   style?: StyleProp<ImageStyle>;
@@ -12,9 +12,9 @@ const PaymentMethodBadges: React.FC<Props> = ({
   logosByTheme,
   style,
 }: Props) => {
-  const { themeAppearance } = useTheme();
+  const theme: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
-  const logos = logosByTheme[themeAppearance];
+  const logos = logosByTheme[theme];
 
   return (
     <>

@@ -21,7 +21,7 @@ import useRegions from '../hooks/useRegions';
 import useAnalytics from '../hooks/useAnalytics';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import BaseSelectorButton from '../../../Base/SelectorButton';
 import StyledButton from '../../StyledButton';
@@ -60,6 +60,7 @@ import { createGetQuotesNavDetails } from './GetQuotes';
 import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 const SelectorButton = BaseSelectorButton as any;
 

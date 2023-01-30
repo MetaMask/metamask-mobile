@@ -1,4 +1,4 @@
-import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
 import TestHelpers from '../../helpers';
 import messages from '../../../locales/languages/en.json';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';

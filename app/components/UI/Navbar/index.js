@@ -18,7 +18,6 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import URL from 'url-parse';
-import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -32,14 +31,14 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_VIEW_BURGER_ICON_ID,
   HAMBURGER_MENU_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-import { CONTACT_EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import { SEND_CANCEL_BUTTON } from '../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import { CONTACT_EDIT_BUTTON } from '../../../../wdio/features/testIDs/Screens/Contacts.testids';
+import { ASSET_BACK_BUTTON } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -1449,7 +1448,7 @@ export function getFiatOnRampAggNavbar(
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
-      fontSize: scale(11),
+      fontSize: 14,
       ...fontStyles.normal,
     },
     headerStyle: {
@@ -1458,7 +1457,7 @@ export function getFiatOnRampAggNavbar(
       elevation: 0,
     },
     headerTitleStyle: {
-      fontSize: 18,
+      fontSize: 20,
       ...fontStyles.normal,
       color: themeColors.text.default,
       ...(!showBack && { textAlign: 'center' }),
@@ -1470,8 +1469,6 @@ export function getFiatOnRampAggNavbar(
 
   const leftAction = () => navigation.pop();
 
-  const navigationCancelText = strings('navigation.cancel');
-
   return {
     headerTitle: () => (
       <NavbarTitle title={headerTitle} disableNetwork translate={false} />
@@ -1480,11 +1477,7 @@ export function getFiatOnRampAggNavbar(
       if (!showBack) return <View />;
 
       return Device.isAndroid() ? (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.backButton}
-          accessibilityRole="button"
-        >
+        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
           <IonicIcon
             name={'md-arrow-back'}
             size={24}
@@ -1492,11 +1485,7 @@ export function getFiatOnRampAggNavbar(
           />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity
-          onPress={leftAction}
-          style={styles.closeButton}
-          accessibilityRole="button"
-        >
+        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
         </TouchableOpacity>
       );
@@ -1508,9 +1497,10 @@ export function getFiatOnRampAggNavbar(
           onCancel?.();
         }}
         style={styles.closeButton}
-        accessibilityRole="button"
       >
-        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,

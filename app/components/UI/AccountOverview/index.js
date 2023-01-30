@@ -36,7 +36,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

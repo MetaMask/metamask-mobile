@@ -3,7 +3,7 @@ import {
   NETWORK_SCROLL_ID,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   OTHER_NETWORK_LIST_ID,
-} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+} from '../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 
 export default class NetworkListModal {
   static async changeNetwork(networkName) {

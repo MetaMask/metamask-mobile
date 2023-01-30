@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Linking, InteractionManager } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Alert, Linking, InteractionManager } from 'react-native';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
-import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
@@ -38,7 +35,6 @@ const ScreenshotDeterrentWithNavigation = ({
   isSRP: boolean;
 }) => {
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
-  const navigation = useNavigation();
 
   const openSRPGuide = () => {
     setAlertPresent(false);
@@ -50,26 +46,29 @@ const ScreenshotDeterrentWithNavigation = ({
     AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
     setAlertPresent(true);
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.MODAL_CONFIRMATION,
-      params: {
-        variant: ModalConfirmationVariants.Normal,
-        title: strings('screenshot_deterrent.title'),
-        description: strings('screenshot_deterrent.description', {
-          credentialName: isSRP
-            ? strings('screenshot_deterrent.srp_text')
-            : strings('screenshot_deterrent.priv_key_text'),
-        }),
-        onCancel: () => {
-          setAlertPresent(false);
-          AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
+    Alert.alert(
+      strings('screenshot_deterrent.title'),
+      strings('screenshot_deterrent.description', {
+        credentialName: isSRP
+          ? strings('screenshot_deterrent.srp_text')
+          : strings('screenshot_deterrent.priv_key_text'),
+      }),
+      [
+        {
+          text: strings('reveal_credential.learn_more'),
+          onPress: openSRPGuide,
+          style: 'cancel',
         },
-        onConfirm: openSRPGuide,
-        confirmLabel: strings('reveal_credential.learn_more'),
-        cancelLabel: strings('reveal_credential.got_it'),
-      },
-    });
-  }, [isSRP, navigation]);
+        {
+          text: strings('reveal_credential.got_it'),
+          onPress: () => {
+            setAlertPresent(false);
+            AnalyticsV2.trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
+          },
+        },
+      ],
+    );
+  }, [isSRP]);
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 

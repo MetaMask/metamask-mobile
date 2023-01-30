@@ -8,7 +8,7 @@ import {
   ANDROID_I_UNDERSTAND_BUTTON_ID,
   IMPORT_PASSWORD_CONTAINER_ID,
 } from '../../../app/constants/test-ids';
-import { IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID } from '../../../wdio/screen-objects/testIDs/Screens/ImportFromSeedScreen.testIds';
+import { IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID } from '../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
 
 const REMEMBER_ME_ID = 'remember-me-toggle';
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';

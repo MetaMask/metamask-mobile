@@ -10,7 +10,6 @@ import {
   Text,
   View,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -38,13 +37,11 @@ import {
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import {
-  NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+} from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
-import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -315,7 +312,6 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
-    testId,
   ) => {
     const styles = this.getStyles();
 
@@ -324,14 +320,8 @@ export class NetworkList extends PureComponent {
         style={styles.network}
         key={`network-${i}`}
         onPress={() => onPress(network)} // eslint-disable-line
-        {...generateTestId(Platform, testId)}
       >
-        <View
-          {...generateTestId(Platform, `${testId}-selected`)}
-          style={styles.selected}
-        >
-          {selected}
-        </View>
+        <View style={styles.selected}>{selected}</View>
         {isCustomRpc &&
           (image ? (
             <ImageIcon
@@ -357,7 +347,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { color, name, testId } = Networks[network];
+      const { color, name } = Networks[network];
       const isCustomRpc = false;
       const selected =
         providerConfig.type === network ? (
@@ -371,7 +361,6 @@ export class NetworkList extends PureComponent {
         i,
         network,
         isCustomRpc,
-        testId,
       );
     });
   };
@@ -505,7 +494,6 @@ export class NetworkList extends PureComponent {
             name={'ios-close'}
             size={30}
             style={styles.closeIcon}
-            {...generateTestId(Platform, NETWORK_LIST_CLOSE_ICON)}
           />
         </View>
         <ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>

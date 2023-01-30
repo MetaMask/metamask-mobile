@@ -36,7 +36,7 @@ import {
   CONTACT_NAME_INPUT,
   CONTACT_ADD_BUTTON,
   CONTACT_ADDRESS_INPUT,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
+} from '../../../../../../wdio/features/testIDs/Screens/Contacts.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({

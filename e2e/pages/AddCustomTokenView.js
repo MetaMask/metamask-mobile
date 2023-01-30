@@ -6,12 +6,12 @@ import {
   TOKEN_ADDRESS_SYMBOL_ID,
   TOKEN_ADDRESS_WARNING_MESSAGE_ID,
   TOKEN_IMPORT_BUTTON_ID,
-} from '../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+} from '../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
 import {
   NFT_ADDRESS_INPUT_BOX_ID,
   NFT_ADDRESS_WARNING_MESSAGE_ID,
   NFT_IDENTIFIER_INPUT_BOX_ID,
-} from '../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
+} from '../../wdio/features/testIDs/Screens/NFTImportScreen.testIds';
 
 export default class AddCustomTokenView {
   static async tapImportButton() {
