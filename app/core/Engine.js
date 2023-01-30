@@ -310,7 +310,7 @@ class Engine {
           }),
         checkBlockList: async (snapsToCheck) =>
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
-        state: {},
+        state: initialState.snapController || {},
         messenger: snapControllerMessenger,
         fetchFunction: RNFetchBlob.config({ fileCache: true }).fetch.bind(
           RNFetchBlob,
