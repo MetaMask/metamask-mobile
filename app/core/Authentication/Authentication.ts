@@ -16,7 +16,7 @@ import { logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
-import { BIOMETRY_TYPE } from 'react-native-keychain';
+import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -218,7 +218,8 @@ class AuthenticationService {
   /**
    * Fetches the password from the keychain using the auth method it was originally stored
    */
-  getPassword = async () => await SecureKeychain.getGenericPassword();
+  getPassword: () => Promise<false | UserCredentials | null> = async () =>
+    await SecureKeychain.getGenericPassword();
 
   /**
    * Checks the authetincation type configured in the previous login
