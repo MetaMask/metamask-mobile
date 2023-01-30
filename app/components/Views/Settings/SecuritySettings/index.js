@@ -326,10 +326,6 @@ class Settings extends PureComponent {
       hintText: manualBackup,
     });
 
-    InteractionManager.runAfterInteractions(() => {
-      this.setState({ showVideo: true });
-    });
-
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
   };
