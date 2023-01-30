@@ -73,6 +73,9 @@ const SnapsDev = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.webviewContainer}>
+        <SnapsExecutionWebView />
+      </View>
       <TextInput
         style={styles.input}
         onChangeText={setSnapInput}
