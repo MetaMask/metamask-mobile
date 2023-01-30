@@ -24,7 +24,7 @@ import {
   MULTI_TAB_CLOSE_ALL_BUTTON,
   MULTI_TAB_DONE_BUTTON,
   MULTI_TAB_NO_TABS_MESSAGE,
-} from '../../../../wdio/features/testIDs/BrowserScreen/MultiTab.testIds';
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;

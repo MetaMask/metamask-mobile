@@ -82,7 +82,7 @@ import {
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
   DRAWER_VIEW_WALLET_TEXT_ID,
-} from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -958,6 +958,13 @@ class Settings extends PureComponent {
     );
   };
 
+  openSRPQuiz = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    });
+  };
+
   render = () => {
     const { hintText, biometryType, biometryChoice, loading } = this.state;
     const { seedphraseBackedUp } = this.props;

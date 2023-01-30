@@ -30,8 +30,8 @@ import {
   TOKEN_ADDRESS_WARNING_MESSAGE_ID,
   TOKEN_CANCEL_IMPORT_BUTTON_ID,
   TOKEN_PRECISION_WARNING_MESSAGE_ID,
-} from '../../../../wdio/features/testIDs/Screens/AddCustomToken.testIds';
-import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/features/testIDs/Screens/NFTImportScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
