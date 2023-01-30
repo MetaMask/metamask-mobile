@@ -15,15 +15,12 @@ class SkipAccountSecurityModal {
   }
 
   async proceedWithoutWalletSecure() {
-    const setTimeout = 2000;
-    await driver.pause(setTimeout);
-    await Gestures.tap(await this.skipBackupText);
-    await Gestures.tap(await this.skipButton);
+    await Gestures.tap(this.skipBackupText);
+    await Gestures.tap(this.skipButton);
   }
 
   async isVisible() {
     await expect(this.skipBackupText).toBeDisplayed();
   }
 }
-
 export default new SkipAccountSecurityModal();

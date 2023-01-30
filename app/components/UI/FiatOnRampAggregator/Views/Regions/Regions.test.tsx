@@ -7,7 +7,7 @@ import useRegions from '../../hooks/useRegions';
 import { OnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import { fireEvent } from '@testing-library/react-native';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
+import { createPaymentMethodsNavDetails } from '../PaymentMethods';
 import Routes from '../../../../../constants/navigation/Routes';
 
 function render(Component: React.ComponentType) {
@@ -20,9 +20,7 @@ function render(Component: React.ComponentType) {
       state: {
         engine: {
           backgroundState: {
-            NetworkController: {
-              providerConfig: { type: 'mainnet', chainId: 1 },
-            },
+            NetworkController: { provider: { type: 'mainnet', chainId: 1 } },
           },
         },
       },

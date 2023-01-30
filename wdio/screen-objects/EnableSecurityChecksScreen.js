@@ -1,14 +1,14 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
+  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
   ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
 } from './testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
 
 class EnableAutomaticSecurityChecksScreen {
   get noThanksButton() {
     return Selectors.getElementByPlatform(
-      ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
+      ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
     );
   }
   get enableAutomaticSecurityChecksScreen() {

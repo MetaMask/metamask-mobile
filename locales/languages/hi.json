@@ -282,7 +282,7 @@
     "transactions": "लेनदेन",
     "no_collectibles": "अपना NFT नहीं देखा?",
     "no_available_tokens": "अपना टोकन नहीं देखें?",
-    "add_tokens": "टोकन इम्पोर्ट करें",
+    "add_tokens": "इम्पोर्ट टोकन",
     "tokens_detected_in_account": "इस खाते में {{tokenCount}} नया {{tokensLabel}} मिला",
     "token_toast": {
       "tokens_imported_title": "इंम्पोर्ट किए गए टोकन",
@@ -300,8 +300,6 @@
       "cancel_cta": "रद्द करें",
       "confirm_cta": "पुष्टि करें"
     },
-    "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
-    "buy_asset": "{{asset}} खरीदें",
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
     "no_nfts_yet": "अभी तक कोई NFT नहीं है",
     "nfts_autodetection_title": "NFT का पता लगाना",
@@ -796,11 +794,7 @@
     "balance": "बैलेंस: समर्थन लेख को देखें",
     "troubleshooting_missing": "अनुपस्थित बैलेंस की समस्या का निवारण",
     "for_help": "मदद के लिए।",
-    "troubleshoot": "ट्रबलशूट",
-    "buy_description": "नकद के साथ क्रिप्टो खरीदें",
-    "swap_description": "टोकन के बीच विनिमय",
-    "send_description": "किसी भी खाते में क्रिप्टो भेजें",
-    "receive_description": "क्रिप्टो प्राप्त करें"
+    "troubleshoot": "ट्रबलशूट"
   },
   "account_details": {
     "title": "अकाउंट का विवरण",
@@ -823,11 +817,11 @@
       "confirm_cta": "पुष्टि करें",
       "import": {
         "title": "चयनित टोकन आयात करें?",
-        "desc": "आपके द्वारा चुने गए टोकन ही आपके वॉलेट में दिखाई देंगे। आप छिपे हुए टोकनों को खोजकर बाद में कभी भी इंपोर्ट कर सकते हैं।"
+        "desc": "आपके द्वारा चुने गए टोकन ही आपके वॉलेट में दिखाई देंगे। आप बाद में छिपे हुए टोकनों को खोजकर कभी भी इंपोर्ट कर सकते हैं।"
       },
       "hide": {
         "title": "क्या आप सुनिश्चित हैं?",
-        "desc": "अगर आप टोकनों को छुपाते हैं तो वो आपके वॉलेट में दिखाई नहीं देंगे। हालांकि, तब भी आप उन्हें खोजकर जोड़ सकते हैं।"
+        "desc": "अगर आप टोकनों को छुपाते हैं तो वो आपके वॉलेट में दिखाई नहीं देंगे। हालांकि, अभी भी आप उन्हें खोजकर जोड़ सकते हैं।"
       }
     },
     "address_copied_to_clipboard": "टोकन पता क्लिपबोर्ड पर कॉपी किया गया"
@@ -972,10 +966,7 @@
     "invalid_qr_code_sign": "अमान्य क्यूआर कोड। कृपया अपना हार्डवेयर जांचे और दोबारा प्रयास करें।",
     "no_camera_permission_android": "आगे बढ़ने के लिए आपको MetaMask को अपने कैमरे की एक्सेस देनी होगी। आपको अपने सिस्टम की सेटिंग्स भी बदलनी पड़ सकती है।",
     "mismatched_qr_request_id": "असंगत लेनदेन डेटा। कृपया नीचे दिए गए क्यूआर कोड पर हस्ताक्षर करने के लिए अपने कीस्टोन का उपयोग करें और 'गेट सिग्नेचर' पर टैप करें।",
-    "fiat_conversion_not_available": "फिएट रूपांतरण इस समय उपलब्ध नहीं हैं",
-    "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
-    "invalid_recipient": "अवैध प्राप्तकर्ता",
-    "invalid_recipient_description": "पते की जांच करें और सुनिश्चित करें कि वह मान्य है"
+    "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया"
   },
   "custom_gas": {
     "total": "कुल",
@@ -1031,9 +1022,7 @@
     "all_set": "सब तैयार!",
     "all_set_desc": "आपने इस साइट के लिए अनुमति सफलतापूर्वक निर्धारित कर दी है।",
     "must_be_at_least": "कम से कम {{allowance}} होना चाहिए",
-    "access_up_to": "एक्सेस सीमा:",
-    "spending_cap": "खर्च करने की सीमा:",
-    "approve_asset": "संपत्ति स्वीकृत करें:"
+    "access_up_to": "एक्सेस सीमा:"
   },
   "browser": {
     "title": "ब्राउजर",
@@ -1221,9 +1210,7 @@
     "empty_popular_networks": "आपने सभी लोकप्रिय नेटवर्क जोड़ लिए हैं। आप और नेटवर्क खोज सकते हैं",
     "add_other_network_here": "यहां।",
     "you_can": "या आप",
-    "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
-    "deprecated_network_msg": "Ethereum प्रोटोकॉल परिवर्तनों के कारण: Rinkeby, Ropsten, Kovan टेस्ट नेटवर्क मज़बूती से काम करने में असमर्थ हो सकते हैं और जल्द ही अप्रचलित हो जाएंगे।",
-    "select_network": "एक नेटवर्क चुनें"
+    "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -1787,7 +1774,7 @@
     "try_different_amount_to_buy_input": "एक अलग भुगतान विधि चुनने का प्रयास करें या उस राशि को बढ़ाने या घटाने का प्रयास करें जिसे आप खरीदना चाहते हैं!",
     "webview_received_error": "WebView को त्रुटि का स्टेटस कोड प्राप्त हुआ: {{code}}",
     "no_tokens_available_title": "कोई टोकन उपलब्ध नहीं है",
-    "no_tokens_available": "चयनित भुगतान विधि के साथ {{network}} पर खरीदने के लिए फिलहाल कोई टोकन उपलब्ध नहीं हैं।",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "change_payment_method": "भुगतान का तरीका बदलें",
     "try_different_region": "कोई दूसरा क्षेत्र आज़माएं",
     "return_home": "होम स्क्रीन पर लौटें",
@@ -1825,7 +1812,7 @@
       "etherscan": "पूर्ण विवरण देखें",
       "another_purchase": "कुछ और खरीदें",
       "questions": "प्रश्न?",
-      "contact_support": "सहयोग टीम से संपर्क करें",
+      "contact_support": "सपोर्ट टीम से संपर्क करें",
       "support": "सहायता",
       "view_order_status": "{{provider}} पर ऑर्डर का स्टेटस देखें",
       "id": "ऑर्डर आयडी",
@@ -2050,18 +2037,14 @@
   },
   "whats_new": {
     "title": "देखे क्या नया है",
-    "slides_button": "क्रिप्टो खरीदें",
-    "slide_1_subtitle": "केंद्रीकृत आदान-प्रदान को भूल जाइए। MetaMask के साथ क्रिप्टो ख़रीदना अब और आसान हो गया है।",
-    "slide_1_body_1": "अपने MetaMask वॉलेट को सीधे फंड क्यों नहीं करते? हम MetaMask के साथ आपकी फिएट-टू-क्रिप्टो खरीदारी को बहुत आसान बनाने के लिए नए भागीदारों और स्थानीय भुगतान विधियों को शामिल करने में व्यस्त हैं।",
-    "slide_1_body_2": "L2 समेत आठ अलग-अलग नेटवर्क में 189 समर्थित देशों के साथ, हमने आपको कवर कर लिया है। अपने पसंदीदा भुगतान विकल्प का चयन करें और सर्वोत्तम उपलब्ध कोटेशन चुनें।",
-    "slide_2_subtitle": "नमस्कार भारत!",
-    "slide_2_body_1": "भारत में उपयोगकर्ता अब सस्ते, तेज और अधिक कुशल भुगतान के लिए UPI और IMPS का उपयोग कर सकते हैं। Transak और Onramp.money के साथ मिलकर हम web3 को भारत में पहले से कहीं अधिक सुलभ बना रहे हैं।",
-    "slide_3_subtitle": "PayID, POLi, Interac, और iDEAL को सक्षम कर रहा है!",
-    "slide_3_body_1": "हमने कनाडा, नीदरलैंड्स, ऑस्ट्रेलिया, दक्षिण अफ्रीका और तुर्की में स्थानीय बैंकिंग के बुनियादी ढांचे और इन नई भुगतान विधियों की पेशकश करने के लिए बंक्सा के साथ एकीकरण किया है। उन पर नज़र डालें!",
-    "slide_4_subtitle": "LATAM में स्थानीय भुगतान विकल्प",
-    "slide_4_body_1": "Transak के साथ मिलकर अब हमने ब्राजील, मैक्सिको, उरुग्वे, चिली और पेरू में AstroPay को सक्षम किया है। ब्राजील के उपयोगकर्ता Pix का उपयोग करके भी क्रिप्टो को ऑन-रैंप कर सकते हैं।",
-    "slide_5_subtitle": "जटिल पहचान सत्यापन से बचें",
-    "slide_5_body_1": "Mercuryo के साथ, अब आप अपनी पहचान को सत्यापित किए बिना ही €699 मूल्य की क्रिप्टो खरीद सकते हैं। यह क्रिप्टो चेकआउट अनुभव को सरल बनाता है और ऑनबोर्डिंग को काफी आसान बनाता है।"
+    "feature_token_detection_title": "बेहतर टोकन डिटेक्शन यहाँ है",
+    "feature_token_detection_description": "बेहतर टोकन डिटेक्शन फिलहाल एथेरियम मेइनेट, पॉलीगॉन, बीएससी और एवलांश नेटवर्क पर उपलब्ध है। और भी आने को है!\n\nहम थर्ड पार्टी टोकन सूचियों से टोकन प्राप्त करते हैं। दो से अधिक टोकन सूचियों पर सूचीबद्ध टोकन स्वतः पहचाने जाएंगे।\n\nटोकन डिटेक्शन फ़ीचर डिफ़ॉल्ट रूप से चालू है। लेकिन आप इसे सेटिंग्स से डिसेबल कर सकते हैं।",
+    "feature_token_detection_button_text": "सेटिंग्स में जाएँ",
+    "feature_token_security_title_1": "घोटाले और सुरक्षा जोख़िम",
+    "feature_token_security_description_1": "टोकन कोई भी बना सकता है और उनके डुप्लीकेट नाम हो सकते हैं। यदि आपको कोई ऐसा टोकन दिखाई देता है जिस पर आपको भरोसा नहीं है या जिसके साथ आपने इंटरैक्ट नहीं किया है - तो उस पर भरोसा न करना ही सुरक्षित है।",
+    "feature_token_security_title_2": "टोकन छुपाने के लिए लॉन्ग प्रेस करें",
+    "feature_token_security_description_2": "MetaMask मोबाइल ऐप पर, आप टोकन पर लॉन्ग प्रेस करके हमेशा टोकन छुपा सकते हैं, और 'हाइड' का चयन कर सकते हैं।",
+    "feature_token_security_button_text": "चलो शुरू करते हैं!"
   },
   "invalid_network": {
     "title": "कस्टम नेटवर्क के लिए चेनID  \n %{network} \n को फिर से दर्ज करना होगा। ",
@@ -2223,7 +2206,7 @@
     "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "ऑटो टोकन डिटेक्शन सक्षम करें",
-    "token_detection_mainnet_title": "टोकन डिटेक्शन एनेबल किया हुआ है इसलिए आपके वॉलेट में कई टोकन अपने आप दिखाई देंगे।",
+    "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "आप मैन्युअल रूप से टोकन भी जोड़ सकते हैं।",
     "or": "या"
   },
@@ -2242,7 +2225,7 @@
     "action": "रिमेंबर मी बंद करें"
   },
   "dapp_connect": {
-    "warning": "इस फीचर का उपयोग करने के लिए, कृपया ऐप को नवीनतम संस्करण में अपडेट करें"
+    "warning": "इस फ़ीचर का उपयोग करने के लिए, कृपया ऐप को नवीनतम संस्करण में अपडेट करें"
   },
   "confirmation_modal": {
     "cancel_cta": "रद्द करें",
@@ -2270,56 +2253,6 @@
     "primary_action": "स्वचालित सिक्योरिटी जांच सक्षम करें",
     "secondary_action": "जी नहीं, धन्यवाद"
   },
-  "contract_allowance": {
-    "custom_spend_cap": {
-      "max": "अधिकतम",
-      "edit": "एडिट करें",
-      "title": "कस्टम खर्च की सीमा",
-      "use_default": "डिफ़ॉल्ट उपयोग करें",
-      "from_your_balance": "आपके वर्तमान शेष से।",
-      "no_value_selected": "केवल वही संख्या दर्ज करें जिसे {{domain}} आप अभी या भविष्य में एक्सेस करने में सहज हों। बाद में आप कभी भी टोकन की सीमा बढ़ा सकते हैं।",
-      "this_contract_allows": "यह अनुबंध साइट को खर्च करने की अनुमति देता है",
-      "from_your_current_balance": "आपके वर्तमान शेष प्लस से",
-      "future_tokens": "जो आपके पास भविष्य में हो सकता है। आपके टोकन जोखिम में हो सकते हैं।",
-      "info_modal_description_default": "यह अनुबंध बिना किसी पूर्व सूचना या सहमति के आपकी संपूर्ण टोकन शेष राशि को खर्च कर सकता है। खर्च की निम्न सीमा निर्धारित करके आप खुद को सुरक्षित रखें।",
-      "set_spend_cap": "खर्च की सीमा सेट करें",
-      "be_careful": "सावधान रहे",
-      "error_enter_number": "त्रुटि: केवल अंक दर्ज करें"
-    },
-    "token_allowance": {
-      "verify_third_party_details": "तृतीय पक्ष के विवरण को सत्यापित करें",
-      "protect_from_scams": "स्कैमर्स से खुद को बचाने के लिए, कुछ समय निकालकर तृतीय पक्ष के विवरण को सत्यापित करें।",
-      "learn_to_verify": "तृतीय पक्ष के विवरण को सत्यापित करने का तरीका जानें",
-      "spending_cap": "खर्च करने की सीमा",
-      "access": "पहुंच",
-      "nft_contract": "NFT अनुबंध",
-      "token_contract": "टोकन अनुबंध",
-      "third_party_requesting_text": "तृतीय पक्ष अनुरोध कर रहा है {{action}}",
-      "third party": "तृतीय पक्ष",
-      "address": "पता"
-    }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "पुनर्स्थापित करने की आवश्यकता है",
-    "restore_needed_description": "कुछ गलत हुआ है लेकिन चिंता न करें! आइए आपके वॉलेट को पुनर्स्थापित करने का प्रयास करें।",
-    "restore_needed_action": "वॉलेट पुनर्स्थापित करें"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "आपका वॉलेट तैयार है!",
-    "wallet_restored_action": "वॉलेट जारी रखें",
-    "wallet_restored_description_part_one": "आपको अपनी कुछ संपत्तियों, नेटवर्कों और सेटिंग्स को मैन्युअल रूप से फिर से जोड़ने की आवश्यकता हो सकती है।",
-    "wallet_restored_description_part_two": "इसके लिए थोड़ा सा समय लें",
-    "wallet_restored_description_link": "अपने गुप्त पुनर्प्राप्ति वाक्यांश का बैकअप लें",
-    "wallet_restored_description_part_three": "यदि आपको भविष्य में फिर से अपने वॉलेट को पुनर्स्थापित करने की आवश्यकता हो।"
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "नए वॉलेट की जरूरत है",
-    "new_wallet_needed_create_new_wallet_action": "एक नया वॉलेट बनाएं",
-    "new_wallet_needed_create_try_again_action": "वॉलेट पुनर्प्राप्त करने का प्रयास करें",
-    "new_wallet_needed_description_part_one": "आपके वॉलेट में कुछ गड़बड़ है, और आपको एक नया बनाना होगा। क्योंकि आपके खाते ब्लॉकचेन पर हैं, वे अब भी सुरक्षित हैं। केवल प्राथमिकताएं, सहेजे गए नेटवर्क, खाता नाम और आपके डिवाइस पर सहेजा गया संबंधित डेटा चला गया है।",
-    "new_wallet_needed_description_part_two": "अपने खातों को एक नए वॉलेट में आयात करने के लिए, आपको अपने गुप्त पुनर्प्राप्ति वाक्यांश की आवश्यकता होगी। यदि आपके पास अपना गुप्त पुनर्प्राप्ति वाक्यांश नहीं है, तो आप अपने खाते आयात नहीं कर पाएंगे।",
-    "new_wallet_needed_description_part_three": "इसे फिर से होने से रोकने के लिए, सुनिश्चित करें कि आपका MetaMask ऐप और OS हमेशा नवीनतम संस्करण में अपडेट रहें।"
-  },
   "srp_security_quiz": {
     "title": "सुरक्षा प्रश्नोत्तरी",
     "introduction": "अपना सीक्रेट रिकवरी फ्रेज़ प्रकट करने के लिए, आपको दो प्रश्नों का सही उत्तर देना होगा",
@@ -2344,76 +2277,7 @@
       "right_answer_description": "आपके सीक्रेट रिकवरी फ्रेज़ की आवश्यकता का दावा करने वाला कोई भी व्यक्ति आपसे झूठ बोल रहा है। यदि आप इसे उनके साथ साझा करते हैं, तो वे आपकी संपत्ति चुरा लेंगे।",
       "wrong_answer": "आपको उन्हें यह देना चाहिए",
       "wrong_answer_title": "नहीं! अपने सीक्रेट रिकवरी फ्रेज़ को कभी भी किसी के साथ साझा न करें",
-      "wrong_answer_description": "आपके सीक्रेट रिकवरी फ्रेज़ की आवश्यकता का दावा करने वाला कोई भी व्यक्ति आपसे झूठ बोल रहा है। यदि आप इसे उनके साथ साझा करते हैं, तो वे आपकी संपत्तियां चुरा लेंगे।"
+      "wrong_answer_description": "आपके सीक्रेट रिकवरी फ्रेज़ की आवश्यकता का दावा करने वाला कोई भी व्यक्ति आपसे झूठ बोल रहा है। यदि आप इसे उनके साथ साझा करते हैं, तो वे आपकी संपत्ति चुरा लेंगे।"
     }
-  },
-  "ledger": {
-    "open_settings": "सेटिंग्स खोलें",
-    "view_settings": "सेटिंग्स देखें",
-    "bluetooth_off": "ब्लूटूथ बंद है",
-    "bluetooth_off_message": "कृपया अपने डिवाइस के लिए ब्लूटूथ चालू करें",
-    "bluetooth_access_blocked": "Ledger को आपके मोबाइल डिवाइस के साथ पेयर करने के लिए ब्लूटूथ एक्सेस की आवश्यकता होती है।",
-    "bluetooth_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो कृपया इसे सेटिंग्स में सक्षम करें और फिर से कोशिश करें।",
-    "location_access_blocked": "Ledger को आपके मोबाइल डिवाइस के साथ पेयर करने के लिए लोकेशन एक्सेस की आवश्यकता है।",
-    "location_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो आपको सेटिंग्स में लोकेशन ऐक्सेस सक्षम करने और फिर से कोशिश करने की आवश्यकता है।",
-    "bluetooth_scanning_error": "डिवाइस स्कैन करते समय गड़बड़ी",
-    "bluetooth_scanning_error_message": "कृपया सुनिश्चित करें कि आपका डिवाइस अनलॉक है और Ethereum ऐप चल रहा है",
-    "bluetooth_connection_failed": "ब्लूटूथ कनेक्शन नही हो सका",
-    "bluetooth_connection_failed_message": "कृपया सुनिश्चित करें कि आपका Ledger अनलॉक है और आपका ब्लूटूथ सक्षम है",
-    "ethereum_app_open": "Ledger को पुष्टि की जरूरत है",
-    "ethereum_app_open_message": "Ethereum ऐप खोलने के लिए कृपया अपने डिवाइस पर पुष्टि करें। खुल जाने पर ओके दबाएं।",
-    "ethereum_app_unconfirmed_error": "आपने Ethereum ऐप खोलने के अनुरोध को अस्वीकार कर दिया।",
-    "failed_to_open_eth_app": "Ethereum ऐप नहीं खुल सका।",
-    "ethereum_app_open_error": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप इंस्टॉल/स्वीकार करें।",
-    "running_app_close": "चल रहे ऐप को बंद करने में विफल।",
-    "running_app_close_error": "आपके Ledger डिवाइस पर चल रहे ऐप को बंद करने में विफल।",
-    "ethereum_app_not_installed": "Ethereum ऐप इंस्टॉल नहीं है।",
-    "ethereum_app_not_installed_error": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप इंस्टॉल करें।",
-    "ledger_is_locked": "Ledger लॉक है",
-    "unlock_ledger_message": "कृपया अपने Ledger डिवाइस को अनलॉक करें",
-    "cannot_get_account": "अकाउंट नहीं मिल रहा है",
-    "connect_ledger": "Ledger कनेक्ट करें",
-    "looking_for_device": "डिवाइस खोज रहा है",
-    "ledger_reminder_message": "कृपया पक्का करें कि आपका Ledger Nano X है:",
-    "ledger_reminder_message_step_one": "1. अनलॉक है",
-    "ledger_reminder_message_step_two": "2. Ethereum ऐप इंस्टॉल हो गया है",
-    "ledger_reminder_message_step_three": "3. ब्लूटूथ सक्षम है",
-    "ledger_reminder_message_step_four": "4. लोकेशन सक्षम है",
-    "available_devices": "उपलब्ध डिवाइस",
-    "retry": "फिर से कोशिश करें",
-    "continue": "जारी रखें",
-    "confirm_transaction_on_ledger": "अपने Ledger पर दो बटन दबाकर लेन-देन की पुष्टि करें",
-    "bluetooth_enabled_message": "सुनिश्चित करें कि ब्लूटूथ सक्षम है",
-    "device_unlocked_message": "डिवाइस अनलॉक है",
-    "blind_signing_message": "ब्लाइंड साइन सक्षम है",
-    "ledger_disconnected": "आपका डिवाइस डिसकनेक्ट हो गया है",
-    "ledger_disconnected_error": "आपके डिवाइस से कनेक्शन टूट गया है। कृपया फिर से कोशिश करें।",
-    "unknown_error": "अनपेक्षित गड़बड़ी हुई।",
-    "unknown_error_message": "एक अनपेक्षित गड़बड़ी हुई। कृपया फिर से कोशिश करें।",
-    "error_occured": "एक गड़बड़ी हुई",
-    "how_to_install_eth_app": "Ledger डिवाइस पर Ethereum ऐप कैसे इंस्टॉल करें",
-    "ledger_account_count": "आप MetaMask मोबाइल के साथ अपने Ledger से 1 अकाउंट का उपयोग कर रहे हैं।",
-    "open_eth_app": "कृपया Ethereum ऐप खोलें",
-    "open_eth_app_message_one": "हमें पता चला है कि आपके पास Ethereum ऐप इंस्टॉल है लेकिन यह खुला नहीं है, कृपया ",
-    "open_eth_app_message_two": "जारी रखने के लिए Ethereum ऐप खोलने के प्रॉम्प्ट को स्वीकार करने के लिए डिवाइस पर दो बटन दबाएं।",
-    "toast_bluetooth_connection_error_title": "ओह, कुछ गलत हुआ :/",
-    "toast_bluetooth_connection_error_subtitle": "Ledger कनेक्ट नहीं किया गया है",
-    "try_again": "फिर से कोशिश करें।",
-    "forget_device": "Ledger भूल जाएं",
-    "sign_with_ledger": "Ledger के साथ साइन इन करें",
-    "ledger_pending_confirmation": "Ledger व्यस्त है",
-    "ledger_pending_confirmation_error": "आपके Ledger पर एक ऐक्शन बाकी है। कृपया पहले इस ऐक्शन को करें और फिर से कोशिश करें।",
-    "not_supported": "ऑपरेशन समर्थित नहीं है",
-    "not_supported_error": "टाइप किए गए डेटा साइनिंग का केवल संस्करण 4 समर्थित है।",
-    "error_during_connection": "अज्ञात गड़बड़ी हुई",
-    "error_during_connection_message": "आपके Ledger Nano X को जोड़ने में थोड़ी समस्या हुई है, इसे फिर से करने के लिए नीचे 'फिर कोशिश करें' पर टैप करें। कभी-कभी MetaMask मोबाइल के साथ जोड़ने की प्रक्रिया की शुरुआत में आपके Ledger Nano X पर ETH ऐप के खुले होने के कारण ऐसा होता है।",
-    "how_to_install_eth_webview_title": "Ethereum ऐप कैसे इंस्टॉल करें"
-  },
-  "account_actions": {
-    "edit_name": "खाते का नाम संपादित करें",
-    "add_account_or_hardware_wallet": "खाता या हार्डवेयर वॉलेट जोड़ें",
-    "add_account": "खाता जोड़ें",
-    "add_new_account": "नया खाता जोड़ें",
-    "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें"
   }
 }

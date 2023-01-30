@@ -1,3 +1,4 @@
+/* global driver */
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import {
@@ -19,12 +20,8 @@ class NetworkEducationModal {
   }
 
   async tapGotItButton() {
-    await Gestures.waitAndTap(this.networkEducationCloseButton);
-  }
-
-  async waitForGotItButtonToDisappear() {
-    const element = await this.networkEducationCloseButton;
-    await element.waitForExist({ reverse: true });
+    await driver.pause(3000);
+    await Gestures.tap(this.networkEducationCloseButton);
   }
 
   async isNetworkEducationNetworkName(name) {
@@ -32,5 +29,4 @@ class NetworkEducationModal {
     await expect(await element.getText()).toContain(name);
   }
 }
-
 export default new NetworkEducationModal();

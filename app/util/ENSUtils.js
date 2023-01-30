@@ -2,10 +2,6 @@ import Engine from '../core/Engine';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
-const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
-const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
-// One hour cache threshold.
-const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
 import { EMPTY_ADDRESS } from '../constants/transaction';
 
 /**

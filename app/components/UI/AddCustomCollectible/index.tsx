@@ -27,7 +27,6 @@ import {
   NFT_ADDRESS_WARNING_MESSAGE_ID,
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
-import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

@@ -1,4 +1,5 @@
-import { When, Then } from '@wdio/cucumber-framework';
+import { Given, When, Then } from '@wdio/cucumber-framework';
+import { dirname } from 'path';
 import LoginScreen from '../screen-objects/LoginScreen';
 
 Then(/^Login screen is displayed/, async () => {

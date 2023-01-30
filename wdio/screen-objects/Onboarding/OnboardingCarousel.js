@@ -1,6 +1,7 @@
+/* global $, driver */
 import {
-  WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
+  WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
@@ -25,18 +26,10 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
-  get screen() {
-    return Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_CONTAINER_ID);
-  }
-
-  async waitForSplashAnimationToDisplay() {
+  async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForExist();
-  }
-
-  async waitForSplashAnimationToNotExit() {
-    const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForExist({ reverse: true });
+    await expect(elem).toBeDisplayed();
+    await driver.pause(20000);
   }
 
   async verifyCarouselTitle(key) {
@@ -68,28 +61,17 @@ class WelcomeScreen {
     // Get the rectangles of the carousel and store it in a global that will be used for a next call.
     // We dont want ask for the rectangles of the carousel if we already know them.
     // This will save unneeded webdriver calls.
-    const element = await this.screen;
     this.CAROUSEL_RECTANGLES =
       this.CAROUSEL_RECTANGLES ||
-      (await driver.getElementRect(element.elementId));
+      (await driver.getElementRect(
+        await $(`~${WELCOME_SCREEN_CAROUSEL_CONTAINER_ID}`).elementId,
+      ));
 
     return this.CAROUSEL_RECTANGLES;
   }
 
   async clickGetStartedButton() {
-    const element = await this.screen;
-    let screenExist = await element.isExisting();
-
-    while (screenExist) {
-      await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(5000);
-      screenExist = await element.isExisting();
-    }
-  }
-
-  async waitForScreenToDisplay() {
-    const element = await this.screen;
-    await element.waitForDisplayed({ interval: 500 });
+    await Gestures.tap(this.getStartedButton);
   }
 }
 

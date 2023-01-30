@@ -27,10 +27,7 @@ import { MAINNET, NETWORKS_CHAIN_ID, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
-import {
-  ADD_NETWORK_BUTTON,
-  NETWORK_SCREEN_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import { selectProviderConfig } from '../../../../selectors/networkController';
 import {

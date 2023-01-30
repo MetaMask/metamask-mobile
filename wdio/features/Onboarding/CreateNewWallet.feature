@@ -1,17 +1,20 @@
 @androidApp
-@smoke
+@ChainScenarios
 Feature: New wallet flow
 
   Scenario: Onboarding New walllet
-  User opens the app for first time and creates a new wallet.
-    Given the Welcome Screen is displayed
+    A user opens the app for first time and creates a new wallet.
+
+    Given I just installed MetaMask on my device
+
+    When I launch MetaMask mobile app
+    Then "METAMASK" is displayed
+
     When I tap "Get started"
     Then "Wallet setup" is displayed
+
     When On Wallet Setup Screen I tap "Create a new wallet"
     And On Wallet Setup Screen I tap "Agree"
-    And Terms of Use is displayed
-    And I agree to terms
-    And Terms of Use is not displayed
     Then I am presented with a new Account screen with password fields
     And I input a new password "1234554321"
     And I confirm the new password "1234554321"

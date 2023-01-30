@@ -18,9 +18,7 @@ function render(Component: React.ComponentType) {
       state: {
         engine: {
           backgroundState: {
-            NetworkController: {
-              providerConfig: { type: 'mainnet', chainId: 1 },
-            },
+            NetworkController: { provider: { type: 'mainnet', chainId: 1 } },
           },
         },
       },

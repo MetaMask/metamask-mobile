@@ -7,9 +7,11 @@ import networksWithImages from 'images/image-icons';
 import AppConstants from '../../core/AppConstants';
 import {
   GOERLI,
+  KOVAN,
   MAINNET,
   NETWORKS_CHAIN_ID,
-  SEPOLIA,
+  RINKEBY,
+  ROPSTEN,
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
@@ -21,7 +23,9 @@ import { buildUnserializedTransaction } from '../transactions/optimismTransactio
 import handleNetworkSwitch from './handleNetworkSwitch';
 import {
   GOERLI_TEST_NETWORK_OPTION,
-  SEPOLIA_TEST_NETWORK_OPTION,
+  KOVAN_NETWORK_OPTION,
+  RINKEBY_NETWORK_OPTION,
+  ROPSTEN_NETWORK_OPTION,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
@@ -57,7 +61,36 @@ const NetworkList = {
     hexChainId: '0x1',
     color: '#3cc29e',
     networkType: 'mainnet',
-    imageSource: ethLogo,
+  },
+  [ROPSTEN]: {
+    name: 'Ropsten Test Network',
+    shortName: 'Ropsten',
+    networkId: 3,
+    chainId: 3,
+    hexChainId: '0x3',
+    color: '#ff4a8d',
+    networkType: 'ropsten',
+    testId: ROPSTEN_NETWORK_OPTION,
+  },
+  [KOVAN]: {
+    name: 'Kovan Test Network',
+    shortName: 'Kovan',
+    networkId: 42,
+    chainId: 42,
+    hexChainId: '0x2a',
+    color: '#7057ff',
+    networkType: 'kovan',
+    testId: KOVAN_NETWORK_OPTION,
+  },
+  [RINKEBY]: {
+    name: 'Rinkeby Test Network',
+    shortName: 'Rinkeby',
+    networkId: 4,
+    chainId: 4,
+    hexChainId: '0x4',
+    color: '#f6c343',
+    networkType: 'rinkeby',
+    testId: RINKEBY_NETWORK_OPTION,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -67,19 +100,7 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
-    imageSource: goerliLogo,
     testId: GOERLI_TEST_NETWORK_OPTION,
-  },
-  [SEPOLIA]: {
-    name: 'Sepolia Test Network',
-    shortName: 'Sepolia',
-    networkId: 11155111,
-    chainId: 11155111,
-    hexChainId: '0xaa36a7',
-    color: '#cfb5f0',
-    networkType: 'sepolia',
-    imageSource: sepoliaLogo,
-    testId: SEPOLIA_TEST_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',

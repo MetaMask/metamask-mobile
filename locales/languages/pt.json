@@ -300,8 +300,6 @@
       "cancel_cta": "Cancelar",
       "confirm_cta": "Confirmar"
     },
-    "add_to_get_started": "Adicione criptomoedas para começar",
-    "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
     "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
@@ -796,11 +794,7 @@
     "balance": "saldo. Consulte o artigo de solução",
     "troubleshooting_missing": "de problemas referente a saldos ausentes",
     "for_help": "para obter ajuda.",
-    "troubleshoot": "Solução de problemas",
-    "buy_description": "Compre criptomoedas com dinheiro",
-    "swap_description": "Faça câmbio entre tokens",
-    "send_description": "Envie criptomoedas para qualquer conta",
-    "receive_description": "Receba criptomoedas"
+    "troubleshoot": "Solução de problemas"
   },
   "account_details": {
     "title": "Detalhes da conta",
@@ -972,10 +966,7 @@
     "invalid_qr_code_sign": "Código QR inválido. Verifique seu hardware e tente novamente.",
     "no_camera_permission_android": "A MetaMask deve ser autorizada a acessar sua câmera para continuar. Também pode ser necessário alterar as configurações do seu sistema.",
     "mismatched_qr_request_id": "Dados de transação incongruentes. Use sua Keystone para assinar o código QR abaixo e toque em “Obter assinatura”.",
-    "fiat_conversion_not_available": "Conversões de moeda fiduciária não estão disponíveis no momento",
-    "hex_data_copied": "Dados hexadecimais copiados para a área de transferência",
-    "invalid_recipient": "Destinatário inválido",
-    "invalid_recipient_description": "Verifique o endereço e certifique-se de que ele é válido"
+    "hex_data_copied": "Dados hexadecimais copiados para a área de transferência"
   },
   "custom_gas": {
     "total": "Total",
@@ -1031,9 +1022,7 @@
     "all_set": "Tudo pronto!",
     "all_set_desc": "Você definiu as permissões para este site com sucesso.",
     "must_be_at_least": "Deve ser pelo menos {{allowance}}",
-    "access_up_to": "Acesso a até:",
-    "spending_cap": "Limite de gastos:",
-    "approve_asset": "Aprovar ativo:"
+    "access_up_to": "Acesso a até:"
   },
   "browser": {
     "title": "Navegador",
@@ -1221,9 +1210,7 @@
     "empty_popular_networks": "Você adicionou todas as redes populares. Você pode descobrir mais redes",
     "add_other_network_here": "aqui.",
     "you_can": "Ou você pode",
-    "add_network": "adicionar mais redes manualmente.",
-    "deprecated_network_msg": "Devido às mudanças de protocolo do Ethereum, as redes de teste Rinkeby, Ropsten e Kovan podem não funcionar com a mesma confiança e serão descontinuadas em breve.",
-    "select_network": "Selecione uma rede"
+    "add_network": "adicionar mais redes manualmente."
   },
   "select": {
     "cancel": "Cancelar",
@@ -1787,7 +1774,7 @@
     "try_different_amount_to_buy_input": "Tente escolher um método de pagamento diferente ou tente aumentar ou reduzir o valor que deseja comprar!",
     "webview_received_error": "O WebView recebeu o código de status de erro: {{code}}",
     "no_tokens_available_title": "Nenhum token disponível",
-    "no_tokens_available": "No momento, não há tokens disponíveis para compra em {{network}} com a forma de pagamento selecionada.",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "change_payment_method": "Alterar método de pagamento",
     "try_different_region": "Tente uma região diferente",
     "return_home": "Voltar à tela inicial",
@@ -1825,7 +1812,7 @@
       "etherscan": "Ver detalhes completos em",
       "another_purchase": "Fazer outra compra",
       "questions": "Dúvidas?",
-      "contact_support": "Falar com o Suporte",
+      "contact_support": "Fale com o suporte",
       "support": "Suporte",
       "view_order_status": "Ver status da ordem em {{provider}}",
       "id": "ID do pedido",
@@ -2050,18 +2037,14 @@
   },
   "whats_new": {
     "title": "Veja as novidades",
-    "slides_button": "Comprar criptomoedas",
-    "slide_1_subtitle": "Esqueça as exchanges centralizadas. Comprar criptomoedas com a MetaMask acaba de ficar mais fácil.",
-    "slide_1_body_1": "Por que não adicionar fundos diretamente à sua carteira da MetaMask? Temos nos esforçado para integrar novos parceiros e formas de pagamento locais para tornar suas compras de criptomoedas com moeda fiduciária usando a MetaMask muito mais fáceis.",
-    "slide_1_body_2": "Com suporte a 189 países em oito redes diferentes, incluindo redes de segunda camada (L2), nós temos o que você precisa. Selecione sua opção de pagamento preferida e escolha a melhor cotação disponível.",
-    "slide_2_subtitle": "Olá, Índia!",
-    "slide_2_body_1": "Os usuários da Índia agora podem acessar os modos UPI e IMPS para fazer pagamentos mais baratos, rápidos e eficientes. Junto com a Transak e a Onramp.money, estamos tornando a Web3 mais acessível do que nunca na Índia.",
-    "slide_3_subtitle": "Disponibilizando PayID, POLi, Interac e iDEAL!",
-    "slide_3_body_1": "Nós nos integramos com a Banxa para oferecer uma infraestrutura bancária local e essas novas formas de pagamento no Canadá, Países Baixos, Austrália, África do Sul e Turquia. Confira essas opções!",
-    "slide_4_subtitle": "Opções de pagamento locais na América Latina",
-    "slide_4_body_1": "Junto com a Transak, nós habilitamos a AstroPay no Brasil, México, Uruguai, Chile e Peru. Os usuários brasileiros também podem converter moeda fiduciária em criptomoedas usando o Pix.",
-    "slide_5_subtitle": "Evite validações de identidade complexas",
-    "slide_5_body_1": "Com a Mercuryo, você agora pode comprar o equivalente a até € 699 em criptomoedas sem precisar validar sua identidade. Isso simplifica a experiência de finalização de compra de criptomoedas e torna a integração do usuário muito mais fácil."
+    "feature_token_detection_title": "Chegou a detecção aprimorada de tokens",
+    "feature_token_detection_description": "A detecção aprimorada de tokens está disponível na Mainnet do Ethereum e nas redes Polygon, BSC e Avalanche. Há mais por vir!\n\nBuscamos tokens em listas de terceiros. Os tokens listados em mais de duas listas serão automaticamente detectados.\n\nO recurso de detecção de tokens fica ATIVADO por padrão, mas você pode desativá-lo nas configurações.",
+    "feature_token_detection_button_text": "Veja nas configurações",
+    "feature_token_security_title_1": "Golpes e riscos de segurança",
+    "feature_token_security_description_1": "Tokens podem ser criados por qualquer pessoa e podem ter nomes duplicados. Caso você veja aparecer um token em que não confia ou com o qual não tenha interagido, é mais seguro não confiar nele.",
+    "feature_token_security_title_2": "Mantenha pressionado para ocultar os tokens",
+    "feature_token_security_description_2": "No app da MetaMask para dispositivos móveis, você pode ocultar os tokens a qualquer momento pressionando-os e selecionando \"Ocultar\".",
+    "feature_token_security_button_text": "Vamos começar!"
   },
   "invalid_network": {
     "title": "O ID de cadeia da rede personalizada \n %{network} \n precisa ser reinserido.",
@@ -2270,56 +2253,6 @@
     "primary_action": "Ativar verificações automáticas de segurança",
     "secondary_action": "Não, obrigado"
   },
-  "contract_allowance": {
-    "custom_spend_cap": {
-      "max": "Máx.",
-      "edit": "Editar",
-      "title": "Limite de gastos personalizado",
-      "use_default": "Usar o padrão",
-      "from_your_balance": "do seu saldo atual.",
-      "no_value_selected": "Somente insira um número com o qual esteja confortável que {{domain}} acesse agora ou no futuro. Você pode aumentar a qualquer momento o limite de tokens.",
-      "this_contract_allows": "Esse contrato permite que o site gaste",
-      "from_your_current_balance": "do seu saldo atual mais",
-      "future_tokens": "o que você vier a ter no futuro. Seus tokens podem estar em risco.",
-      "info_modal_description_default": "O contrato poderia gastar todo o seu saldo de tokens sem aviso prévio nem consentimento. Proteja-se definindo um limite de gastos menor.",
-      "set_spend_cap": "Defina um limite de gastos",
-      "be_careful": "Tenha cuidado",
-      "error_enter_number": "Erro: insira apenas números"
-    },
-    "token_allowance": {
-      "verify_third_party_details": "Confirmar dados de terceiros",
-      "protect_from_scams": "Para se proteger contra golpistas, reserve um momento para confirmar os dados de terceiros.",
-      "learn_to_verify": "Aprenda como confirmar os dados de terceiros",
-      "spending_cap": "limite de gastos",
-      "access": "acesso",
-      "nft_contract": "Contrato de NFT",
-      "token_contract": "Contrato de token",
-      "third_party_requesting_text": "Terceiro solicitando {{action}}",
-      "third party": "terceiro",
-      "address": "Endereço"
-    }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "Restauração necessária",
-    "restore_needed_description": "Algo deu errado, mas não se preocupe! Vamos tentar restaurar sua carteira.",
-    "restore_needed_action": "Restaurar carteira"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "Sua carteira está pronta!",
-    "wallet_restored_action": "Prosseguir para a carteira",
-    "wallet_restored_description_part_one": "Você pode precisar adicionar novamente alguns de seus ativos, redes e configurações manualmente.",
-    "wallet_restored_description_part_two": "Reserve um momento para",
-    "wallet_restored_description_link": "fazer o backup da sua Frase de Recuperação Secreta",
-    "wallet_restored_description_part_three": "caso precise restaurar sua carteira novamente no futuro."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Nova carteira necessária",
-    "new_wallet_needed_create_new_wallet_action": "Criar uma nova carteira",
-    "new_wallet_needed_create_try_again_action": "Tentar recuperar a carteira",
-    "new_wallet_needed_description_part_one": "Algo deu errado com a sua carteira, e você precisará criar outra. Visto que suas contas estão na blockchain, elas ainda estão seguras. Somente as preferências, redes salvas, nomes das contas e dados relacionados salvos em seu dispositivo foram perdidos.",
-    "new_wallet_needed_description_part_two": "Para importar suas contas para uma nova carteira, você precisará da sua Frase de Recuperação Secreta. Se não a tiver, você não poderá importar suas contas.",
-    "new_wallet_needed_description_part_three": "Para evitar que isso ocorra novamente, certifique-se de sempre manter seu app MetaMask e sistema operacional atualizados com a última versão."
-  },
   "srp_security_quiz": {
     "title": "Quiz de segurança",
     "introduction": "Para revelar sua Frase de Recuperação Secreta, você precisa responder corretamente duas perguntas",
@@ -2335,7 +2268,7 @@
       "right_answer_title": "Certo! Ninguém pode ajudar a recuperar sua Frase de Recuperação Secreta",
       "right_answer_description": "Anote-a, grave em metal ou guarde-a em diversos lugares secretos para que nunca a perca. Se perdê-la, é para sempre.",
       "wrong_answer_title": "Errado! Ninguém consegue recuperar sua Frase de Recuperação Secreta",
-      "wrong_answer_description": "Se você perder sua Frase de Recuperação Secreta, é para sempre. Ninguém consegue ajudar a recuperá-la, não importa o que digam."
+      "wrong_answer_description": "Se perder sua Frase de Recuperação Secreta, é para sempre. Ninguém consegue recuperá-la, não importa o que digam."
     },
     "question_two": {
       "question": "Se alguém, até mesmo um atendente do suporte, pedir sua Frase de Recuperação Secreta...",
@@ -2346,74 +2279,5 @@
       "wrong_answer_title": "Não! Não compartilhe sua Frase de Recuperação Secreta com ninguém, nunca",
       "wrong_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados."
     }
-  },
-  "ledger": {
-    "open_settings": "Abrir configurações",
-    "view_settings": "Ver configurações",
-    "bluetooth_off": "O Bluetooth está desligado",
-    "bluetooth_off_message": "Favor ligar o Bluetooth do seu dispositivo",
-    "bluetooth_access_blocked": "A Ledger precisa de acesso ao Bluetooth para se emparelhar com seu dispositivo móvel.",
-    "bluetooth_access_blocked_message": "Se quiser emparelhar seu dispositivo Ledger usando o Bluetooth, ative-o nas configurações e tente novamente.",
-    "location_access_blocked": "A Ledger precisa de acesso à localização para se emparelhar com seu dispositivo móvel.",
-    "location_access_blocked_message": "Se quiser emparelhar seu dispositivo Ledger usando o Bluetooth, você precisará habilitar o acesso à localização nas configurações e tentar de novo.",
-    "bluetooth_scanning_error": "Erro na varredura do dispositivo",
-    "bluetooth_scanning_error_message": "Certifique-se de que seu dispositivo está desbloqueado e o app Ethereum está em execução",
-    "bluetooth_connection_failed": "Falha na conexão Bluetooth",
-    "bluetooth_connection_failed_message": "Certifique-se de que sua Ledger está desbloqueada e seu Bluetooth está ativado",
-    "ethereum_app_open": "A Ledger exige confirmação",
-    "ethereum_app_open_message": "Por favor, confirme em seu dispositivo para abrir o app Ethereum. Pressione OK quando terminar.",
-    "ethereum_app_unconfirmed_error": "Você negou a solicitação de abrir o app Ethereum.",
-    "failed_to_open_eth_app": "Falha ao abrir o app Ethereum.",
-    "ethereum_app_open_error": "Por favor, instale/aceite o app Ethereum em seu dispositivo Ledger.",
-    "running_app_close": "Falha ao fechar o app em execução.",
-    "running_app_close_error": "Falha ao fechar o app em execução em seu dispositivo Ledger.",
-    "ethereum_app_not_installed": "O app Ethereum não está instalado.",
-    "ethereum_app_not_installed_error": "Por favor, instale o app Ethereum em seu dispositivo Ledger.",
-    "ledger_is_locked": "A Ledger está bloqueada",
-    "unlock_ledger_message": "Favor desbloquear seu dispositivo Ledger",
-    "cannot_get_account": "Não é possível obter a conta",
-    "connect_ledger": "Conectar Ledger",
-    "looking_for_device": "Procurando dispositivo",
-    "ledger_reminder_message": "Por favor, certifique-se de que sua Ledger Nano X está:",
-    "ledger_reminder_message_step_one": "1. Desbloqueada",
-    "ledger_reminder_message_step_two": "2. O app Ethereum está instalado",
-    "ledger_reminder_message_step_three": "3. O Bluetooth está ativado",
-    "ledger_reminder_message_step_four": "4. A localização está habilitada",
-    "available_devices": "Dispositivos disponíveis",
-    "retry": "Tentar novamente",
-    "continue": "Continuar",
-    "confirm_transaction_on_ledger": "Confirme a transação pressionando os dois botões em sua Ledger",
-    "bluetooth_enabled_message": "Certifique-se de que o Bluetooth está ativado",
-    "device_unlocked_message": "O dispositivo está desbloqueado",
-    "blind_signing_message": "A assinatura cega está ativada",
-    "ledger_disconnected": "Seu dispositivo foi desconectado",
-    "ledger_disconnected_error": "A conexão com o seu dispositivo foi perdida. Por favor, tente novamente.",
-    "unknown_error": "Ocorreu um erro inesperado.",
-    "unknown_error_message": "Ocorreu um erro inesperado. Por favor, tente novamente.",
-    "error_occured": "Ocorreu um erro",
-    "how_to_install_eth_app": "Como instalar o app Ethereum em um dispositivo Ledger",
-    "ledger_account_count": "Você está usando 1 conta da sua Ledger com o MetaMask Mobile.",
-    "open_eth_app": "Favor abrir o app Ethereum",
-    "open_eth_app_message_one": "Detectamos que você tem o app Ethereum instalado, mas ele não está aberto. Por favor, ",
-    "open_eth_app_message_two": "pressione os dois botões em seu dispositivo para aceitar a solicitação de abrir o app Ethereum para continuar.",
-    "toast_bluetooth_connection_error_title": "Ops, algo deu errado :/",
-    "toast_bluetooth_connection_error_subtitle": "A Ledger não foi conectada",
-    "try_again": "Tentar novamente",
-    "forget_device": "Esquecer Ledger",
-    "sign_with_ledger": "Entrar com a Ledger",
-    "ledger_pending_confirmation": "A Ledger está ocupada",
-    "ledger_pending_confirmation_error": "Há uma ação pendente em sua Ledger. Por favor, conclua a ação primeiro, depois tente novamente.",
-    "not_supported": "Operação não compatível",
-    "not_supported_error": "Somente a versão 4 da assinatura de dados digitados é compatível.",
-    "error_during_connection": "Ocorreu um erro desconhecido",
-    "error_during_connection_message": "Está ocorrendo um pequeno problema ao conectar sua Ledger Nano X. Toque abaixo em \"Tentar novamente\" para tentar mais uma vez. Às vezes isso ocorre quando o app ETH em sua Ledger Nano X é aberto no início do processo de emparelhamento com o MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "Como instalar o app Ethereum"
-  },
-  "account_actions": {
-    "edit_name": "Editar nome da conta",
-    "add_account_or_hardware_wallet": "Adicionar conta ou carteira de hardware",
-    "add_account": "Adicionar conta",
-    "add_new_account": "Adicionar nova conta",
-    "add_hardware_wallet": "Adicionar carteira de hardware"
   }
 }

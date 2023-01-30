@@ -54,6 +54,7 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: any;
+  navBarDisabled: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -61,10 +62,8 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
+  navBarDisabled,
 }: IRevealPrivateCredentialProps) => {
-  const hasNavigation = !!navigation;
-  // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
-  const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
   const [unlocked, setUnlocked] = useState<boolean>(false);
@@ -72,7 +71,8 @@ const RevealPrivateCredential = ({
   const [password, setPassword] = useState<string>('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState<string>('');
-  const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
+  const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] =
+    useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const selectedAddress = useSelector(
@@ -102,6 +102,11 @@ const RevealPrivateCredential = ({
         MetaMetricsEvents.GO_BACK_SRP_SCREEN,
       ),
     );
+  };
+
+  const isPrivateKey = () => {
+    const credential = credentialName || route.params.privateCredentialName;
+    return credential === PRIVATE_KEY;
   };
 
   const tryUnlockWithPassword = async (
@@ -148,7 +153,7 @@ const RevealPrivateCredential = ({
   useEffect(() => {
     updateNavBar();
     // Track SRP Reveal screen rendered
-    if (!isPrivateKey) {
+    if (!isPrivateKey()) {
       AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN, {});
     }
 
@@ -189,7 +194,7 @@ const RevealPrivateCredential = ({
         { view: 'Enter password' },
       );
 
-    if (!isPrivateKey)
+    if (!isPrivateKey())
       AnalyticsV2.trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA, {});
     if (cancel) return cancel();
     navigateBack();
@@ -216,7 +221,7 @@ const RevealPrivateCredential = ({
   };
 
   const done = () => {
-    if (!isPrivateKey)
+    if (!isPrivateKey())
       AnalyticsV2.trackEvent(MetaMetricsEvents.SRP_DONE_CTA, {});
     navigateBack();
   };
@@ -231,7 +236,7 @@ const RevealPrivateCredential = ({
       { action: 'copied to clipboard' },
     );
 
-    if (!isPrivateKey) AnalyticsV2.trackEvent(MetaMetricsEvents.COPY_SRP, {});
+    if (!isPrivateKey()) AnalyticsV2.trackEvent(MetaMetricsEvents.COPY_SRP, {});
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -283,7 +288,8 @@ const RevealPrivateCredential = ({
         { action: 'viewed SRP' },
       );
 
-      if (!isPrivateKey) AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP, {});
+      if (!isPrivateKey())
+        AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP, {});
     } else if (event.i === 1) {
       AnalyticsV2.trackEvent(
         isPrivateKey
@@ -292,12 +298,12 @@ const RevealPrivateCredential = ({
         { action: 'viewed QR code' },
       );
 
-      if (!isPrivateKey)
+      if (!isPrivateKey())
         AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP_QR, {});
     }
   };
 
-  useEffect(() => {
+  const renderTabView = (privCredentialName: string) => {
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
         if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
@@ -306,56 +312,55 @@ const RevealPrivateCredential = ({
         }
       });
 
-    setClipboardEnabled(true);
-  }, []);
-
-  const renderTabView = (privCredentialName: string) => (
-    <ScrollableTabView
-      renderTabBar={() => renderTabBar()}
-      onChangeTab={(event: any) => onTabBarChange(event)}
-    >
-      <View
-        tabLabel={strings(`reveal_credential.text`)}
-        style={styles.tabContent}
+    return (
+      <ScrollableTabView
+        renderTabBar={() => renderTabBar()}
+        onChangeTab={(event: any) => onTabBarChange(event)}
       >
-        <Text style={styles.boldText}>
-          {strings(`reveal_credential.${privCredentialName}`)}
-        </Text>
-        <View style={styles.seedPhraseView}>
-          <TextInput
-            value={clipboardPrivateCredential}
-            numberOfLines={3}
-            multiline
-            selectTextOnFocus
-            style={styles.seedPhrase}
-            editable={false}
-            testID={'private-credential-text'}
-            placeholderTextColor={colors.text.muted}
-            keyboardAppearance={themeAppearance}
-          />
-          {clipboardEnabled ? (
-            <Button
-              label={strings('reveal_credential.copy_to_clipboard')}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Sm}
-              onPress={() =>
-                copyPrivateCredentialToClipboard(privCredentialName)
-              }
-              testID={'private-credential-touchable'}
-              style={styles.clipboardButton}
+        <View
+          tabLabel={strings(`reveal_credential.text`)}
+          style={styles.tabContent}
+        >
+          <Text style={styles.boldText}>
+            {strings(`reveal_credential.${privCredentialName}`)}
+          </Text>
+          <View style={styles.seedPhraseView}>
+            <TextInput
+              value={clipboardPrivateCredential}
+              numberOfLines={3}
+              multiline
+              selectTextOnFocus
+              style={styles.seedPhrase}
+              editable={false}
+              testID={'private-credential-text'}
+              placeholderTextColor={colors.text.muted}
+              keyboardAppearance={themeAppearance}
             />
-          ) : null}
+            {isAndroidSupportedVersion && (
+              <TouchableOpacity
+                style={styles.privateCredentialAction}
+                onPress={() =>
+                  copyPrivateCredentialToClipboard(privCredentialName)
+                }
+                testID={'private-credential-touchable'}
+              >
+                <Text style={styles.blueText}>
+                  {strings('reveal_credential.copy_to_clipboard')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-      <View
-        tabLabel={strings(`reveal_credential.qr_code`)}
-        style={styles.tabContent}
-      >
-        <View style={styles.qrCodeWrapper}>
-          <QRCode
-            value={clipboardPrivateCredential}
-            size={Dimensions.get('window').width - 176}
-          />
+        <View
+          tabLabel={strings(`reveal_credential.qr_code`)}
+          style={styles.tabContent}
+        >
+          <View style={styles.qrCodeWrapper}>
+            <QRCode
+              value={clipboardPrivateCredential}
+              size={Dimensions.get('window').width - 176}
+            />
+          </View>
         </View>
       </View>
     </ScrollableTabView>

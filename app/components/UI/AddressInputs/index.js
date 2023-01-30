@@ -16,16 +16,15 @@ import {
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
-} from '../../../util/address';
-import { strings } from '../../../../locales/i18n';
-import Text from '../../Base/Text';
-import { hasZeroWidthPoints } from '../../../util/confusables';
-import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-const createStyles = (colors, layout = 'horizontal') => {
-  const isVerticalLayout = layout === 'vertical';
-  return StyleSheet.create({
+} from '../../../../util/address';
+import { strings } from '../../../../../locales/i18n';
+import Text from '../../../Base/Text';
+import { hasZeroWidthPoints } from '../../../../util/confusables';
+import { useTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+const createStyles = (colors) =>
+  StyleSheet.create({
     wrapper: {
       flexDirection: isVerticalLayout ? 'column' : 'row',
       marginHorizontal: 8,

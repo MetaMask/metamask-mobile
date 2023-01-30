@@ -1,6 +1,10 @@
-export const BROWSER_SCREEN_ID = 'browser-screen';
+export const SCREEN_ID = 'browser-screen';
 
-export const NAVBAR_TITLE_NETWORK = 'browser-url-bar';
+export const NAVBAR_TITLE_NETWORK = 'navbar-title-network';
+
+export const ROOT_CONTENT_ID = 'root';
+
+export const HAMBURGER_BUTTON = 'hamburger-menu-button-browser';
 
 export const ACCOUNT_BUTTON = 'navbar-account-button';
 
@@ -17,5 +21,3 @@ export const HOME_BUTTON = 'home-button';
 export const FORWARD_BUTTON = 'go-forward-button';
 
 export const SEARCH_BUTTON = 'search-button';
-
-export const NETWORK_AVATAR_ICON = 'network-avatar-image';

@@ -9,8 +9,6 @@ import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { selectNetwork } from '../../../../selectors/networkController';
-
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { CONTACTS_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
 const createStyles = (colors) =>

@@ -1,18 +1,19 @@
+// eslint-disable-next-line no-unused-vars
+/* global driver */
 import { Then } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import Contacts from '../screen-objects/Contacts';
 import AddContact from '../screen-objects/AddContact';
-import CommonScreen from '../screen-objects/CommonScreen';
 
 Then(/^I am on the contacts view/, async () => {
   await Contacts.isContactsScreenDisplayed();
 });
-Then(/^I tap on the "([^"]*)?" button/, async (text) => {
+Then(/^I tap on the "Add contact" button/, async () => {
   await driver.pause(2000);
-  await CommonScreen.tapOnText(text);
+  await Contacts.tapOnText('Add contact');
 });
 
-Then(/^I tap button Add contact which is now enabled/, async () => {
+Then(/^I tap button "([^"]*)?" which is now enabled/, async (text) => {
   await Contacts.isAddContactButtonEnabled();
   await AddContact.tapOnAddContactButton();
 });
@@ -49,12 +50,13 @@ Then(
 );
 
 Then(/I tap on Edit button to edit Saved contact details/, async () => {
+  const timeout = 2000;
+  await driver.pause(timeout);
   await Contacts.tapOnEditButton();
 });
 
 Then(/I can edit the contact name to "([^"]*)?"/, async (name) => {
-  await AddContact.waitForAddContactButton();
-  await AddContact.changeContactName(name);
+  await Contacts.changeContactName(name);
 });
 
 Then(

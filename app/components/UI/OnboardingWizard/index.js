@@ -5,8 +5,6 @@ import {
   StyleSheet,
   InteractionManager,
   Platform,
-  Text,
-  TouchableOpacity,
 } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -29,9 +27,9 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import ElevatedView from 'react-native-elevated-view';
 import { useTheme } from '../../../util/theme';
+import { scale } from 'react-native-size-matters';
 import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import Device from '../../../util/device';
 
 const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
@@ -71,7 +69,8 @@ const createStyles = ({ colors, typography }) =>
       justifyContent: 'center',
     },
     skipText: {
-      ...typography.BodyMD,
+      ...fontStyles.normal,
+      fontSize: scale(10),
       color: colors.primary.default,
     },
   });

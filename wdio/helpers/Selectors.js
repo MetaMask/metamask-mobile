@@ -23,11 +23,14 @@ class Selectors {
   }
 
   static async getXpathElementByText(text) {
-    return await $(`//*[@text='${text}']`);
+    const element = await $(`//*[@text='${text}']`);
+    return await element;
   }
 
-  static async getXpathElementByTextContains(text) {
-    const element = await $(`//*[contains(@text, '${text}')]`);
+  static async getXpathElementByContentDescription(text) {
+    const element = await $(
+      `//android.view.ViewGroup[@content-desc='${text}']`,
+    );
     return await element;
   }
 

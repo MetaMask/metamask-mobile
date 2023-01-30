@@ -41,10 +41,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 12,
       width: '100%',
     },
-    image: {
-      width: 300,
-      height: 250,
-    },
     bottomContainer: {
       width: '100%',
       marginTop: 25,

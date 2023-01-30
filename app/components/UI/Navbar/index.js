@@ -17,6 +17,7 @@ import { fontStyles, colors as importedColors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import URL from 'url-parse';
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -31,27 +32,16 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_VIEW_BURGER_ICON_ID,
   HAMBURGER_MENU_BUTTON,
-  NAVBAR_NETWORK_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
-  NETWORK_SCREEN_CLOSE_ICON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { CONTACT_EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import {
-  PAYMENT_REQUEST_CLOSE_BUTTON,
-  REQUEST_SEARCH_RESULTS_BACK_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
-import ButtonIcon, {
-  ButtonIconVariants,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+
+const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {

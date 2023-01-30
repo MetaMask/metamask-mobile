@@ -282,7 +282,7 @@
     "transactions": "交易",
     "no_collectibles": "您没有任何收藏品！",
     "no_available_tokens": "没有看到您的代币？",
-    "add_tokens": "导入代币",
+    "add_tokens": "添加代币",
     "tokens_detected_in_account": "在此账户中找到{{tokenCount}}个新的{{tokensLabel}}",
     "token_toast": {
       "tokens_imported_title": "已导入的代币",
@@ -300,8 +300,6 @@
       "cancel_cta": "取消",
       "confirm_cta": "确认"
     },
-    "add_to_get_started": "请添加加密货币以开始",
-    "buy_asset": "购买{{asset}}",
     "no_tokens": "您没有任何代币！",
     "no_nfts_yet": "尚无 NFT",
     "nfts_autodetection_title": "NFT 检测",
@@ -796,11 +794,7 @@
     "balance": "余额。请参阅支持文章",
     "troubleshooting_missing": "“解决余额丢失问题”",
     "for_help": "以寻求帮助。",
-    "troubleshoot": "故障排除",
-    "buy_description": "用现金购买加密货币",
-    "swap_description": "代币之间的兑换",
-    "send_description": "向任何账户发送加密货币",
-    "receive_description": "接收加密货币"
+    "troubleshoot": "故障排除"
   },
   "account_details": {
     "title": "账户详细信息",
@@ -822,12 +816,12 @@
       "cancel_cta": "取消",
       "confirm_cta": "确认",
       "import": {
-        "title": "要导入所选代币吗？",
-        "desc": "只有您选择的代币才会出现在您的钱包中。您可以随时使用搜索功能来导入隐藏的代币。"
+        "title": "要导入所选通证吗？",
+        "desc": "只有您选择的通证才会出现在您的钱包中。您可以随时使用搜索功能来导入隐藏的通证。"
       },
       "hide": {
         "title": "您确定吗？",
-        "desc": "您隐藏的代币将不会显示在您的钱包中。但是，您仍然可以通过搜索将其添加。"
+        "desc": "您隐藏的通证将不会显示在您的钱包中。但是，您仍然可以通过搜索将其添加。"
       }
     },
     "address_copied_to_clipboard": "代币地址已复制到剪贴板"
@@ -972,10 +966,7 @@
     "invalid_qr_code_sign": "无效二维码。请检查您的硬件钱包并重试。",
     "no_camera_permission_android": "您需要授予MetaMask对您的相机的访问权限才能继续。您可能还需要更改系统设置。",
     "mismatched_qr_request_id": "扫描的签名二维码不属于当前交易，请检查交易详情后重试。",
-    "fiat_conversion_not_available": "目前不提供法币兑换",
-    "hex_data_copied": "Hex数据已复制到剪贴板",
-    "invalid_recipient": "收件人无效",
-    "invalid_recipient_description": "请检查地址，确保其为有效地址"
+    "hex_data_copied": "Hex数据已复制到剪贴板"
   },
   "custom_gas": {
     "total": "总计",
@@ -1031,9 +1022,7 @@
     "all_set": "完成设置！",
     "all_set_desc": "您已成功为此站点设置权限。",
     "must_be_at_least": "必须至少是 {{allowance}}",
-    "access_up_to": "可访问多达：",
-    "spending_cap": "支出上限：",
-    "approve_asset": "批准资产："
+    "access_up_to": "可访问多达："
   },
   "browser": {
     "title": "浏览器",
@@ -1221,9 +1210,7 @@
     "empty_popular_networks": "您已经添加了所有热门网络。要探索更多网络，请前往",
     "add_other_network_here": "这里。",
     "you_can": "或者您可以",
-    "add_network": "手动添加更多网络。",
-    "deprecated_network_msg": "由于以太坊的协议有变化：Rinkeby、Ropsten、Kovan测试网络可能无法可靠地工作，很快就会被弃用。",
-    "select_network": "选择网络"
+    "add_network": "手动添加更多网络。"
   },
   "select": {
     "cancel": "取消",
@@ -1787,7 +1774,7 @@
     "try_different_amount_to_buy_input": "尝试选择其他付款方式，或尝试增加或减少您想购买的金额！",
     "webview_received_error": "WebView收到错误状态代码：{{code}}",
     "no_tokens_available_title": "无可用代币",
-    "no_tokens_available": "当前{{network}}上没有可用的代币，无法使用所选支付方式购买。",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "change_payment_method": "更改付款方式",
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
@@ -2050,18 +2037,14 @@
   },
   "whats_new": {
     "title": "了解新功能",
-    "slides_button": "购买加密货币",
-    "slide_1_subtitle": "忘掉去中心化交易所吧。使用MetaMask购买加密货币变得更容易了。",
-    "slide_1_body_1": "何不直接将资金存入您的MetaMask钱包？我们一直忙于引入新的合作伙伴和本地支付方式，以便您能更轻松地通过MetaMask用法定货币购买加密货币。",
-    "slide_1_body_2": "我们支持189个国家/地区，在八个不同网络（包括L2）为您提供服务。请选择您首选的支付选项，然后选择提供给您的最佳报价。",
-    "slide_2_subtitle": "印度，你好！",
-    "slide_2_body_1": "印度用户现在可以访问UPI和IMPS，以获得更便宜、更快速、更高效的支付。我们与Transak和Onramp.money合作，使web3在印度比以往任何时候都更容易获取。",
-    "slide_3_subtitle": "启用了PayID、POLi、Interac和iDEAL！",
-    "slide_3_body_1": "我们与Banxa整合，在加拿大、荷兰、澳大利亚、南非和土耳其提供当地银行基础设施和这些新的支付方式。快来看看吧！",
-    "slide_4_subtitle": "拉丁美洲的本地支付选项",
-    "slide_4_body_1": "我们与Transak合作，现在已经于巴西、墨西哥、乌拉圭、智利和秘鲁启用了AstroPay。巴西用户也可以使用Pix来接入加密货币。",
-    "slide_5_subtitle": "避免复杂的身份验证",
-    "slide_5_body_1": "使用Mercuryo，您现在可以购买价值最高达699欧元的加密货币，而无需验证您的身份。这简化了加密货币结账体验，使入门变得更加容易。"
+    "feature_token_detection_title": "代币检测现已改进",
+    "feature_token_detection_description": "目前，以太坊主网、Polygon、BSC和Avalanche网络均提供经过改进的代币检测。陆续会有更多网络跟进！\n\n我们从第三方代币列表中获取代币。列于两个以上代币列表的代币将会被自动检测出来。\n\n默认情况下，代币检测功能处于启用状态。但是，您可以在设置中停用此功能。",
+    "feature_token_detection_button_text": "在设置中访问",
+    "feature_token_security_title_1": "欺诈和安全风险",
+    "feature_token_security_description_1": "代币可由任何人创建，而且名称可以重复。如果您看到一个您尚未信任或尚未与之交互的代币，则不信任它是较安全的做法。",
+    "feature_token_security_title_2": "长按以隐藏代币",
+    "feature_token_security_description_2": "要在MetaMask移动应用程序上隐藏代币，请长按该代币，然后选择“隐藏”。",
+    "feature_token_security_button_text": "让我们开始吧！"
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n %{network} \n的链 ID。",
@@ -2270,56 +2253,6 @@
     "primary_action": "启用自动安全检查",
     "secondary_action": "不，谢谢"
   },
-  "contract_allowance": {
-    "custom_spend_cap": {
-      "max": "最大",
-      "edit": "编辑",
-      "title": "自定义支出上限",
-      "use_default": "使用默认值",
-      "from_your_balance": "从当前余额中。",
-      "no_value_selected": "仅输入一个您觉得现在或将来可放心让{{domain}}访问的数字。以后，您可以随时提高代币上限。",
-      "this_contract_allows": "此合约允许网站",
-      "from_your_current_balance": "从您当前的余额和",
-      "future_tokens": "您将来可能拥有的余额中支出。您的代币可能存在风险。",
-      "info_modal_description_default": "合约可能会在没有进一步通知或同意的情况下支出您的全部代币余额。请设置较低的支出上限以保护自己。",
-      "set_spend_cap": "设置支出上限",
-      "be_careful": "请小心",
-      "error_enter_number": "错误：仅可输入数字"
-    },
-    "token_allowance": {
-      "verify_third_party_details": "核实第三方的详细信息",
-      "protect_from_scams": "为了免受骗子欺诈，请花点时间核实第三方的详细信息。",
-      "learn_to_verify": "了解如何核实第三方的详细信息",
-      "spending_cap": "支出上限",
-      "access": "访问",
-      "nft_contract": "NFT合约",
-      "token_contract": "代币合约",
-      "third_party_requesting_text": "第三方请求{{action}}",
-      "third party": "第三方",
-      "address": "地址"
-    }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "需要恢复",
-    "restore_needed_description": "出了问题，但别担心！让我们尝试恢复您的钱包。",
-    "restore_needed_action": "恢复钱包"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "您的钱包已经准备就绪！",
-    "wallet_restored_action": "继续前往钱包",
-    "wallet_restored_description_part_one": "您可能需要再次手动添加一些资产、网络和设置。",
-    "wallet_restored_description_part_two": "请花点时间",
-    "wallet_restored_description_link": "将您的助记词备份",
-    "wallet_restored_description_part_three": "以防将来需要再次恢复钱包。"
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "需要新钱包",
-    "new_wallet_needed_create_new_wallet_action": "创建新钱包",
-    "new_wallet_needed_create_try_again_action": "尝试恢复钱包",
-    "new_wallet_needed_description_part_one": "您的钱包出了问题，您需要创建一个新的钱包。因为您的账户在区块链上，所以它们仍然安全。只有保存于设备上的首选项、网络、账户名和相关数据丢失了。",
-    "new_wallet_needed_description_part_two": "要将您的账户导入新钱包，您需要使用助记词。如果您没有助记词，就无法导入账户。",
-    "new_wallet_needed_description_part_three": "为了避免再次发生这种情况，请确保将 MetaMask 应用程序和操作系统始终更新至最新版本。"
-  },
   "srp_security_quiz": {
     "title": "安全问答",
     "introduction": "要查看助记词，您需要答对两个问题",
@@ -2335,85 +2268,16 @@
       "right_answer_title": "答对了！没有人能够帮您找回您的助记词",
       "right_answer_description": "将它写下来、刻在金属上，或保存在多个秘密位置，这样您就不会丢失它。如果丢失了，它就会永远消失。",
       "wrong_answer_title": "答错了！没有人能够帮您找回您的助记词",
-      "wrong_answer_description": "一旦遗失助记词，它将永远消失。无论他人如何保证，无人能够帮您找回。"
+      "wrong_answer_description": "如果您丢失了助记词，它就会永远消失。没有人能够帮您找回它，无论他们说什么。 "
     },
     "question_two": {
       "question": "如果有人（即使是技术支持人员）查问您的助记词......",
       "right_answer": "就是在对您进行诈骗",
       "right_answer_title": "答对了！分享您的助记词绝对不是个好主意",
-      "right_answer_description": "任何声称需要您的助记词的人都在对您进行欺诈。如果您与他们分享助记词，他们就会偷窃您的资产。",
+      "right_answer_description": "任何声称需要您的助记词的人都是在骗您。如果您与他们分享助记词，他们就会偷窃您的资产。",
       "wrong_answer": "您应该交给他们",
       "wrong_answer_title": "不！永远不要与任何人分享您的助记词",
-      "wrong_answer_description": "任何声称需要您的助记词的人都在对您进行欺诈。如果您与他们分享助记词，他们就会偷窃您的资产。"
+      "wrong_answer_description": "任何声称需要您的助记词的人都是在骗您。如果您与他们分享助记词，他们就会偷窃您的资产。"
     }
-  },
-  "ledger": {
-    "open_settings": "打开设置",
-    "view_settings": "查看设置",
-    "bluetooth_off": "蓝牙已关闭",
-    "bluetooth_off_message": "请打开您的设备的蓝牙",
-    "bluetooth_access_blocked": "Ledger需要蓝牙接入，才能与移动设备配对。",
-    "bluetooth_access_blocked_message": "如果您想使用蓝牙对Ledger设备进行配对，请在设置中启用蓝牙，然后重试。",
-    "location_access_blocked": "Ledger需要位置访问权限，才能与移动设备配对。",
-    "location_access_blocked_message": "如果您想使用蓝牙对Ledger设备进行配对，请在设置中启用位置访问权限，然后重试。",
-    "bluetooth_scanning_error": "扫描设备时出错",
-    "bluetooth_scanning_error_message": "请确保设备已解锁，并且以太坊应用程序正在运行",
-    "bluetooth_connection_failed": "蓝牙连接失败",
-    "bluetooth_connection_failed_message": "请确保Ledger已解锁，并且蓝牙已启用",
-    "ethereum_app_open": "Ledger需要确认",
-    "ethereum_app_open_message": "请在您的设备上确认，以打开以太坊应用程序。完成后请按确定。",
-    "ethereum_app_unconfirmed_error": "您拒绝了打开以太坊应用程序的请求。",
-    "failed_to_open_eth_app": "无法打开以太坊应用程序。",
-    "ethereum_app_open_error": "请在Ledger设备上安装/接受以太坊应用程序。",
-    "running_app_close": "无法关闭正在运行的应用程序。",
-    "running_app_close_error": "无法关闭正在Ledger设备上运行的应用程序。",
-    "ethereum_app_not_installed": "未安装以太坊应用程序。",
-    "ethereum_app_not_installed_error": "请在Ledger设备上安装以太坊应用程序。",
-    "ledger_is_locked": "Ledger已锁定",
-    "unlock_ledger_message": "请解锁您的Ledger设备",
-    "cannot_get_account": "无法获取账户",
-    "connect_ledger": "连接Ledger",
-    "looking_for_device": "正在查找设备",
-    "ledger_reminder_message": "请确保您的Ledger Nano X：",
-    "ledger_reminder_message_step_one": "1. 已解锁",
-    "ledger_reminder_message_step_two": "2. 已安装以太坊应用程序",
-    "ledger_reminder_message_step_three": "3. 已启用蓝牙",
-    "ledger_reminder_message_step_four": "4. 已启用位置",
-    "available_devices": "可用设备",
-    "retry": "重试",
-    "continue": "继续",
-    "confirm_transaction_on_ledger": "请按下Ledger上的两个按钮，以确认交易",
-    "bluetooth_enabled_message": "请确保蓝牙已启用",
-    "device_unlocked_message": "设备已解锁",
-    "blind_signing_message": "已启用盲签名",
-    "ledger_disconnected": "您的设备已断开连接",
-    "ledger_disconnected_error": "与设备的连接已断开。请重试。",
-    "unknown_error": "发生意外错误。",
-    "unknown_error_message": "发生意外错误。请重试。",
-    "error_occured": "发生错误",
-    "how_to_install_eth_app": "如何在Ledger设备上安装以太坊应用程序",
-    "ledger_account_count": "您正在以您的Ledger使用1个MetaMask Mobile账户。",
-    "open_eth_app": "请打开以太坊应用程序",
-    "open_eth_app_message_one": "我们检测到您安装了以太坊应用程序，但尚未打开，请 ",
-    "open_eth_app_message_two": "按下设备上的两个按钮，接受打开以太坊应用程序的提示以继续。",
-    "toast_bluetooth_connection_error_title": "糟糕，出问题了:/",
-    "toast_bluetooth_connection_error_subtitle": "Ledger尚未连接",
-    "try_again": "请重试",
-    "forget_device": "忘记Ledger",
-    "sign_with_ledger": "用Ledger签名",
-    "ledger_pending_confirmation": "Ledger处于繁忙状态",
-    "ledger_pending_confirmation_error": "您的Ledger上有一个待定操作。请先清除该操作，然后重试。",
-    "not_supported": "操作不受支持",
-    "not_supported_error": "仅支持类型化数据签名的版本4。",
-    "error_during_connection": "发生未知错误",
-    "error_during_connection_message": "连接Ledger Nano X时出现小问题，请在下方点击“重试”，再试一次。有时，这是因为在和MetaMask Mobile进行配对的过程开始时，Ledger Nano X上的以太坊应用程序处于打开状态。",
-    "how_to_install_eth_webview_title": "如何安装以太坊应用程序"
-  },
-  "account_actions": {
-    "edit_name": "编辑账户名",
-    "add_account_or_hardware_wallet": "添加账户或硬件钱包",
-    "add_account": "添加账户",
-    "add_new_account": "添加新账户",
-    "add_hardware_wallet": "添加硬件钱包"
   }
 }

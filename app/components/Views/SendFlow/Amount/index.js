@@ -77,12 +77,6 @@ import Alert, { AlertType } from '../../../../components/Base/Alert';
 import {
   AMOUNT_SCREEN,
   AMOUNT_SCREEN_CARET_DROP_DOWN,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_INPUT,
-  AMOUNT_ERROR,
-  FIAT_CONVERSION_WARNING_TEXT,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  CURRENCY_SWITCH,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {

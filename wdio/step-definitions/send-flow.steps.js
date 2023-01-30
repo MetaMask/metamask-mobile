@@ -1,11 +1,8 @@
 // eslint-disable-next-line no-unused-vars
-import { Given, Then, When } from '@wdio/cucumber-framework';
+/* global driver */
+import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
-import AmountScreen from '../screen-objects/AmountScreen';
-import WalletMainScreen from '../screen-objects/WalletMainScreen';
-import TokenOverviewScreen from '../screen-objects/TokenOverviewScreen';
-import TransactionConfirmScreen from '../screen-objects/TransactionConfirmScreen';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
@@ -42,20 +39,14 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
   await SendScreen.isTextVisible(text);
 });
 
+Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await SendScreen.tapOnText(text);
+});
+
 Then(/^I proceed to the amount view/, async () => {
   await SendScreen.isAmountScreenDisplayed();
-});
-
-Then(/^I should be taken to the transaction confirmation view/, async () => {
-  await TransactionConfirmScreen.isConfirmScreenVisible();
-});
-
-Then(/^the token (.*) being sent is visible/, async (token) => {
-  await TransactionConfirmScreen.isCorrectTokenConfirm(token);
-});
-
-Then(/^the token amount (.*) to be sent is visible/, async (amount) => {
-  await TransactionConfirmScreen.isCorrectTokenAmountDisplayed(amount);
 });
 
 Then(
@@ -97,26 +88,3 @@ Then(
     await SendScreen.typeAddressInSendAddressField(address);
   },
 );
-
-Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
-  await AmountScreen.enterAmount(amount);
-});
-
-Then(
-  /^the transaction is submitted with Transaction Complete! toast/,
-  async () => {
-    await WalletMainScreen.isToastNotificationDisplayed();
-  },
-);
-
-Then(/^I am taken to the token overview screen/, async () => {
-  await TokenOverviewScreen.isTokenOverviewVisible();
-});
-
-Then(/^I tap back from the Token overview page/, async () => {
-  await TokenOverviewScreen.tapBackButton();
-});
-
-When(/^I tap button Send on Token screen view$/, async () => {
-  await TokenOverviewScreen.tapSendButton();
-});

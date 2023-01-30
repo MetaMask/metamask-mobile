@@ -10,7 +10,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import SettingsNotification from '../../../../../UI/SettingsNotification';
@@ -122,7 +121,6 @@ const ProtectYourWallet = ({
       {!srpBackedup ? (
         <Button
           label={strings('app_settings.back_up_now')}
-          width={ButtonWidthTypes.Full}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           onPress={goToBackup}
@@ -131,7 +129,6 @@ const ProtectYourWallet = ({
       ) : (
         <Button
           label={strings('reveal_credential.seed_phrase_title')}
-          width={ButtonWidthTypes.Full}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           onPress={openSRPQuiz}

@@ -26,7 +26,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
-  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
+  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';

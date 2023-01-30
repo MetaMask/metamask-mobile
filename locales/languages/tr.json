@@ -282,7 +282,7 @@
     "transactions": "İŞLEMLER",
     "no_collectibles": "NFT'nizi görmüyor musunuz?",
     "no_available_tokens": "Tokeninizi görmüyor musunuz?",
-    "add_tokens": "Tokenleri içe aktar",
+    "add_tokens": "Tokenleri İçe Aktar",
     "tokens_detected_in_account": "Bu hesapta {{tokenCount}} yeni {{tokensLabel}} bulundu",
     "token_toast": {
       "tokens_imported_title": "İçe Aktarılan Tokenler",
@@ -300,8 +300,6 @@
       "cancel_cta": "İptal",
       "confirm_cta": "Onayla"
     },
-    "add_to_get_started": "Başlamak için kripto ekleyin",
-    "buy_asset": "{{asset}} satın alın",
     "no_tokens": "Tokeniniz yok!",
     "no_nfts_yet": "Henüz NFT yok",
     "nfts_autodetection_title": "NFT algılama",
@@ -796,11 +794,7 @@
     "balance": "yükleyemedik. Yardım için",
     "troubleshooting_missing": "eksik bakiye sorununu giderme hakkındaki",
     "for_help": "makaleye bakın.",
-    "troubleshoot": "Sorun Giderme",
-    "buy_description": "Nakit ile kripto satın alın",
-    "swap_description": "Tokenler arasında takas yapın",
-    "send_description": "Dilediğin hesaba kripto gönderin",
-    "receive_description": "Kripto alın"
+    "troubleshoot": "Sorun Giderme"
   },
   "account_details": {
     "title": "Hesap Bilgileri",
@@ -972,10 +966,7 @@
     "invalid_qr_code_sign": "Geçersiz QR kodu. Lütfen donanımınızı kontrol edin ve tekrar deneyin.",
     "no_camera_permission_android": "Devam etmek için kameranıza MetaMask erişim izni vermeniz gerekiyor. Ayrıca sistem ayarlarınızı değiştirmeniz gerekebilir.",
     "mismatched_qr_request_id": "Uyumsuz işlem verisi. Lütfen aşağıdaki QR koduyla imzalamak için Kilidinizi kullanın ve 'İmzayı Al' tuşuna tıklayın.",
-    "fiat_conversion_not_available": "İtibari para dönüştürmeleri şu anda kullanılmıyor",
-    "hex_data_copied": "Onaltılık verileri panoya kopyalandı",
-    "invalid_recipient": "Alıcı geçersiz",
-    "invalid_recipient_description": "Adresi kontrol edin ve geçerli olduğundan emin olun"
+    "hex_data_copied": "Onaltılık verileri panoya kopyalandı"
   },
   "custom_gas": {
     "total": "Toplam",
@@ -1031,9 +1022,7 @@
     "all_set": "Her şey hazır!",
     "all_set_desc": "Bu site için izinleri başarılı bir şekilde ayarladın.",
     "must_be_at_least": "En az {{allowance}} olmalıdır",
-    "access_up_to": "Erişim limiti:",
-    "spending_cap": "Harcama üst limiti:",
-    "approve_asset": "Varlığı onayla:"
+    "access_up_to": "Erişim limiti:"
   },
   "browser": {
     "title": "Tarayıcı",
@@ -1221,9 +1210,7 @@
     "empty_popular_networks": "Tüm popüler ağları eklediniz.",
     "add_other_network_here": "Burada daha fazla ağ keşfedebilirsiniz.",
     "you_can": "Veya",
-    "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
-    "deprecated_network_msg": "Ethereum'da yaşanan protokol değişikliklerinden dolayı: Rinkeby, Ropsten, Kovan test ağları güvenilir bir şekilde çalışmayabilir ve yakında kullanım dışı olacak.",
-    "select_network": "Bir ağ seçin"
+    "add_network": "manuel olarak daha fazla ekleyebilirsiniz."
   },
   "select": {
     "cancel": "İptal",
@@ -1787,7 +1774,7 @@
     "try_different_amount_to_buy_input": "Farklı bir ödeme yöntemi seçmeyi dene veya satın almak istediğin tutarı artırmayı veya azaltmayı dene!",
     "webview_received_error": "WebView şu hata durum kodunu aldı: {{code}}",
     "no_tokens_available_title": "Token Yok",
-    "no_tokens_available": "Şu anda {{network}} üzerinde seçili ödeme yöntemi ile mevcut token bulunmamaktadır.",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "change_payment_method": "Ödeme yöntemini değiştir",
     "try_different_region": "Farklı bir bölge deneyin",
     "return_home": "Ana Ekrana Geri Dön",
@@ -1825,7 +1812,7 @@
       "etherscan": "Tüm ayrıntıları şurada görüntüle",
       "another_purchase": "Başka bir satın alma işlemi gerçekleştir",
       "questions": "Sorularınız mı var?",
-      "contact_support": "Destek ile İletişim Kur",
+      "contact_support": "Destek ile iletişim kurun",
       "support": "Destek",
       "view_order_status": "Emir durumunu {{provider}} üzerinde görüntüleyin",
       "id": "Emir Numarası",
@@ -2050,18 +2037,14 @@
   },
   "whats_new": {
     "title": "Yeniliklere bakın",
-    "slides_button": "Kripto satın alın",
-    "slide_1_subtitle": "Merkezi takasları unutun. MetaMask ile kripto satın almak çok daha kolay hale geldi.",
-    "slide_1_body_1": "Doğrudan MetaMask cüzdanınıza para yatırmaya ne dersiniz? MetaMask ile itibari paradan kripto satın alma işlemlerinizi çok daha kolay hale getirmek amacıyla yeni iş ortakları ve yerel ödeme yöntemleri bulmak için çok çalıştık.",
-    "slide_1_body_2": "L2'ler de dahil olmak üzere sekiz farklı ağ genelinde desteklenen 19 ülke ile sizi kapsıyoruz. Tercih ettiğiniz ödeme seçeneğini seçin ve mevcut en iyi tekliften yararlanın.",
-    "slide_2_subtitle": "Merhaba Hindistan!",
-    "slide_2_body_1": "Artık Hindistan'daki kullanıcılar UPI ve IMPS'e daha ucuz, daha hızlı ve daha verimli ödemeler karşılığında erişim sağlayabiliyor. Transak ve Onramp.money ile birlikte web3'ü Hindistan'da hiç olmadığı kadar erişilebilir hale getiriyoruz.",
-    "slide_3_subtitle": "PayID, POLi, Interac ve iDEAL etkinleştiriliyor!",
-    "slide_3_body_1": "Yerel bankacılık altyapısı sunmak amacıyla Banxa ve Kanada, Hollanda, Avustralya, Güney Afrika ve Türkiye'deki bu yeni ödeme yöntemlerini entegre ettik. İnceleyin!",
-    "slide_4_subtitle": "Latin Amerika'daki yerel ödeme seçenekleri",
-    "slide_4_body_1": "Transak ile şimdi Brezilya, Meksika, Uruguay, Şili ve Peru'da AstroPay'i etkinleştirdik. Brezilyalı kullanıcılar Pix kullanarak da kriptoya erişim sağlayabilir.",
-    "slide_5_subtitle": "Karmaşık kimlik doğrulama işlemlerinden kaçının",
-    "slide_5_body_1": "Mercuryo ile artık kimliğinizi doğrulamak zorunda kalmadan 699€'ya varan değerde kripto satın alabilirsiniz. Bu durum, kripto ödeme deneyimini basitleştirir ve katılımı çok daha kolay hale getirir."
+    "feature_token_detection_title": "Gelişmiş token algılama burada",
+    "feature_token_detection_description": "Gelişmiş token algılama şu anda Ethereum Mainnet, Polygon, BSC, ve Avalanche ağında mevcuttur. Daha fazlası çok yakında!\n\nTokenleri 3. taraf token listelerinden alırız. İkiden fazla token listesinde yer alan tokenler otomatik olarak silinir.\n\nToken algılama özelliği varsayılan olarak AÇIK konumdadır. Ancak Ayarlar kısmından devre dışı bırakabilirsiniz.",
+    "feature_token_detection_button_text": "Ayarlarda ziyaret edin",
+    "feature_token_security_title_1": "Dolandırıcılık ve güvenlik riskleri",
+    "feature_token_security_description_1": "Tokenler herkes tarafından oluşturulabilir ve yinelenen adlara sahip olabilir. Güvenmediğiniz veya etkileşimde bulunmadığınız bir token görürseniz ona güvenmemek daha güvenlidir.",
+    "feature_token_security_title_2": "Tokenleri gizlemek için uzun bas",
+    "feature_token_security_description_2": "MetaMask mobil uygulamasında, dilediğiniz zaman tokena uzun basıp \"Gizle\" seçeneğini seçerek tokenleri gizleyebilirsiniz.",
+    "feature_token_security_button_text": "Başlayalım!"
   },
   "invalid_network": {
     "title": "Kişisel ağ \n%{network} \niçin zincir kimliğinin yeniden girilmesi gerekiyor.",
@@ -2270,56 +2253,6 @@
     "primary_action": "Otomatik güvenlik kontrollerini etkinleştir",
     "secondary_action": "Hayır, teşekkürler"
   },
-  "contract_allowance": {
-    "custom_spend_cap": {
-      "max": "Maksimum",
-      "edit": "Düzenle",
-      "title": "Kişisel harcama üst limiti",
-      "use_default": "Güncel bakiyenizden",
-      "from_your_balance": "varsayılanı kulanın.",
-      "no_value_selected": "Sadece şu anda ya da gelecekte {{domain}} erişimi konusunda rahat hissettiğiniz bir sayı girin. Token limitini daha sonra dilediğiniz zaman artırabilirsiniz.",
-      "this_contract_allows": "Bu sözleşme, sitenin geçerli bakiyenizden",
-      "from_your_current_balance": "ve ayrıca gelecekte sahip olabileceğiniz bakiyelerden",
-      "future_tokens": "harcama yapabilmesine izin verir. Tokenleriniz risk altında olabilir.",
-      "info_modal_description_default": "Sözleşme, başka herhangi bir uyarı ya da rıza olmaksızın tüm token bakiyenizi harcayabilir. Düşük bir harcama limiti belirleyerek kendinizi koruyun.",
-      "set_spend_cap": "Bir harcama limiti belirleyin",
-      "be_careful": "Dikkatli olun",
-      "error_enter_number": "Hata: Sadece sayı girin"
-    },
-    "token_allowance": {
-      "verify_third_party_details": "Üçüncü taraf bilgilerini doğrula",
-      "protect_from_scams": "Kendinizi dolandırıcılardan korumak için bir dakikanızı ayırarak üçüncü taraf bilgilerini doğrulayın.",
-      "learn_to_verify": "Üçüncü taraf bilgilerinin nasıl doğrulanacağını öğrenin",
-      "spending_cap": "harcama üst limiti",
-      "access": "erişim",
-      "nft_contract": "NFT sözleşmesi",
-      "token_contract": "Token sözleşmesi",
-      "third_party_requesting_text": "Üçüncü taraf talebi {{action}}",
-      "third party": "üçüncü taraf",
-      "address": "Adres"
-    }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "Geri yükleme gerekiyor",
-    "restore_needed_description": "Bir sorunla karşılaşıldı ama endişelenme! Cüzdanını geri geri yüklemeye çalışalım.",
-    "restore_needed_action": "Cüzdanı geri yükle"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "Cüzdanın hazır!",
-    "wallet_restored_action": "Cüzdana devam et",
-    "wallet_restored_description_part_one": "Bazı varlıklarını, ağlarını ve ayarlarını tekrar manuel olarak eklemen gerekebilir.",
-    "wallet_restored_description_part_two": "Bir dakikanı ayırarak",
-    "wallet_restored_description_link": "Gizli Kurtarma İfadeni yedekle",
-    "wallet_restored_description_part_three": "çünkü gelecekte cüzdanını tekrar geri yüklemen gerekebilir."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Yeni cüzdan gerekli",
-    "new_wallet_needed_create_new_wallet_action": "Yeni bir cüzdan oluştur",
-    "new_wallet_needed_create_try_again_action": "Cüzdanı kurtarmayı dene",
-    "new_wallet_needed_description_part_one": "Cüzdanınla ilgili bir sorun oluştu ve yeni bir tane oluşturman gerekecek. Hesapların blok zincirinde olduğu için hâlâ güvende. Sadece cihazında kayıtlı olan tercihler, kaydedilen ağlar, hesap adları ve ilgili veriler kayboldu.",
-    "new_wallet_needed_description_part_two": "Hesapları yeni bir cüzdana aktarmak için Gizli Kurtarma İfadene ihtiyacın olacak. Gizli Kurtarma İfaden yoksa hesaplarını içe aktaramayacaksın.",
-    "new_wallet_needed_description_part_three": "Bunun tekrar olmasını önlemek için her zaman MetaMask uygulamanı ve işletim sistemini en yeni sürümde güncel tuttuğundan emin ol."
-  },
   "srp_security_quiz": {
     "title": "Güvenlik testi",
     "introduction": "Gizli Kurtarma İfadenizi görmek için iki soruyu doğru cevaplamanız gerekmektedir",
@@ -2335,7 +2268,7 @@
       "right_answer_title": "Doğru! Hiç kimse Gizli Kurtarma İfadenizi geri almanıza yardımcı olamaz",
       "right_answer_description": "Bir yere yazın, bir metalin üzerine kazıyın veya asla kaybetmemeniz için birden fazla noktada saklayın. Kaybederseniz sonsuza dek kaybolur.",
       "wrong_answer_title": "Yanlış! Hiç kimse Gizli Kurtarma İfadenizi geri almanıza yardımcı olamaz",
-      "wrong_answer_description": "Gizli Kurtarma İfadenizi kaybederseniz sonsuza dek kaybolur. Söylediklerinin ne olduğuna bakılmaksızın hiç kimse onu geri almanıza yardımcı olamaz."
+      "wrong_answer_description": "Gizli Kurtarma İfadenizi kaybederseniz sonsuza dek kaybolur. Geri almanızı sağlayacağını iddia edenler olabilir ancak hiç kimse onu geri almanıza yardımcı olamaz."
     },
     "question_two": {
       "question": "Herhangi birisi, bir destek temsilcisi bile sizden Gizli Kurtarma İfadenizi isterse...",
@@ -2346,74 +2279,5 @@
       "wrong_answer_title": "Hayır! Gizli Kurtarma İfadenizi asla hiç kimse ile paylaşmayın, asla",
       "wrong_answer_description": "Gizli Kurtarma İfadenizi isteyen kişi size yalan söylüyordur. Kendisi ile paylaşırsanız varlıklarınızı çalacaktır."
     }
-  },
-  "ledger": {
-    "open_settings": "Ayarları aç",
-    "view_settings": "Ayarları görüntüle",
-    "bluetooth_off": "Bluetooth kapalı",
-    "bluetooth_off_message": "Lütfen cihazınızda Bluetooth özelliğini açın",
-    "bluetooth_access_blocked": "Ledger, mobil cihazınızla eşleşmek için Bluetooth erişimine ihtiyaç duyuyor.",
-    "bluetooth_access_blocked_message": "Bluetooth kullanarak Ledger cihazını eşleştirmek istiyorsanız Ayarlar kısmında Bluetooth'u etkinleştirip tekrar deneyin.",
-    "location_access_blocked": "Ledger, mobil cihazınızla eşleşmek için konum erişimine ihtiyaç duyuyor.",
-    "location_access_blocked_message": "Bluetooth kullanarak Ledger cihazınızı eşleştirmek istiyorsanız Ayarlar kısmında konum erişimini etkinleştirip tekrar denemeniz gerekecek.",
-    "bluetooth_scanning_error": "Cihaz taranırken hata",
-    "bluetooth_scanning_error_message": "Lütfen cihazınızın kilidinin açık olduğundan ve Ethereum uygulamasının çalıştığından emin olun",
-    "bluetooth_connection_failed": "Bluetooth bağlantısı başarısız oldu",
-    "bluetooth_connection_failed_message": "Lütfen Ledger'ınızın kilidinin açık olduğundan ve Bluetooth özelliğinin etkin olduğundan emin olun",
-    "ethereum_app_open": "Ledger onaya ihtiyaç duyuyor",
-    "ethereum_app_open_message": "Ethereum uygulamasını açmak için lütfen cihazınızda onaylayın. Yapıktan sonra Tamam düğmesine basın.",
-    "ethereum_app_unconfirmed_error": "Ethereum uygulamasını açma talebini reddettiniz.",
-    "failed_to_open_eth_app": "Ethereum uygulaması açılamadı.",
-    "ethereum_app_open_error": "Lütfen Ledger cihazınızda Ethereum uygulamasını yükleyin/kabul edin.",
-    "running_app_close": "Çalışan uygulama kapatılamadı.",
-    "running_app_close_error": "Ledger cihazınızda çalışan uygulama kapatılamadı.",
-    "ethereum_app_not_installed": "Ethereum uygulaması yüklü değil.",
-    "ethereum_app_not_installed_error": "Lütfen Ledger cihazınıza Ethereum uygulamasını yükleyin.",
-    "ledger_is_locked": "Ledger kilitli",
-    "unlock_ledger_message": "Lütfen Ledger cihazınızın kilidini açın",
-    "cannot_get_account": "Hesap alınamıyor",
-    "connect_ledger": "Ledger'ı bağla",
-    "looking_for_device": "Cihaz aranıyor",
-    "ledger_reminder_message": "Ledger Nano X cihazınızın şöyle olduğundan emin olun:",
-    "ledger_reminder_message_step_one": "1. Kilidi açılmış",
-    "ledger_reminder_message_step_two": "2. Ethereum uygulaması yüklü",
-    "ledger_reminder_message_step_three": "3. Bluetooth etkinleştirilmiş",
-    "ledger_reminder_message_step_four": "4. Konum etkinleştirilmiş",
-    "available_devices": "Kullanılabilir cihazlar",
-    "retry": "Tekrar Dene",
-    "continue": "Devam",
-    "confirm_transaction_on_ledger": "Ledger cihazınızda iki düğmeye basarak işlemi onaylayın",
-    "bluetooth_enabled_message": "Bluetooth özelliğinin etknleştirilmiş olduğundan emin olun",
-    "device_unlocked_message": "Cihazın kilidi açık",
-    "blind_signing_message": "Kör imzalama etkin",
-    "ledger_disconnected": "Cihazınızın bağlantısı kesildi",
-    "ledger_disconnected_error": "Cihazınız ile bağlantı kaybedildi. Lütfen tekrar deneyin.",
-    "unknown_error": "Beklenmedik hata oluştu.",
-    "unknown_error_message": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.",
-    "error_occured": "Bir hata oluştu",
-    "how_to_install_eth_app": "Ledger cihazına Ethereum uygulaması nasıl yüklenir?",
-    "ledger_account_count": "Ledger cihazınızda MetaMask Mobil ile 1 hesap kullanıyorsunuz.",
-    "open_eth_app": "Lütfen Ethereum uygulamasını açın",
-    "open_eth_app_message_one": "Ethereum uygulamasının yüklü olduğunu ancak açık olmadığını tespit ettik; ",
-    "open_eth_app_message_two": "devam etmek için lütfen cihazdaki iki düğmeye basarak Ethereum uygulamasını açma komutunu kabul edin.",
-    "toast_bluetooth_connection_error_title": "Hay aksi, bir şeyler ters gitti :/",
-    "toast_bluetooth_connection_error_subtitle": "Ledger'a bağlanılmadı",
-    "try_again": "Tekrar dene",
-    "forget_device": "Ledger'ı unut",
-    "sign_with_ledger": "Ledger ile oturum açın",
-    "ledger_pending_confirmation": "Ledger meşgul",
-    "ledger_pending_confirmation_error": "Ledger cihazınızda bekleyen bir eylem var. Lütfen önce eylemi temizleyip ardından tekrar deneyin.",
-    "not_supported": "İşlem desteklenmiyor",
-    "not_supported_error": "Girilen veri imzalama işleminde sadece sürüm 4 desteklenmektedir.",
-    "error_during_connection": "Bilinmeyen bir hata oluştu",
-    "error_during_connection_message": "Ledger Nano X cihazınıza bağlanırken küçük bir sorun oluştu, bunu tekrar denemek için aşağıdaki \"Tekrar Dene\" düğmesine dokunun. Bazen MetaMask Mobil ile eşleştirme sürecinin başlangıcında Ledger Nano X cihazında ETH uygulamasının açık olması nedeniyle bu durum meydana gelir.",
-    "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?"
-  },
-  "account_actions": {
-    "edit_name": "Hesap adını düzenleyin",
-    "add_account_or_hardware_wallet": "Hesap veya donanım cüzdanı ekleyin",
-    "add_account": "Hesap ekleyin",
-    "add_new_account": "Yeni hesap ekleyin",
-    "add_hardware_wallet": "Donanım cüzdanı ekleyin"
   }
 }

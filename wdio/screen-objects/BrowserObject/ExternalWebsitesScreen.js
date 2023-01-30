@@ -14,6 +14,7 @@ import {
   REDDIT_ICON,
   UNISWAP_CONNECT_BUTTON,
   UNISWAP_METAMASK_WALLET_BUTTON,
+  UNISWAP_PAGE,
   UNISWAP_WALLET_PROFILE_ICON,
 } from '../testIDs/BrowserScreen/ExternalWebsites.testIds';
 
@@ -65,6 +66,10 @@ class ExternalWebsitesScreen {
     return Selectors.getElementByCss(UNISWAP_WALLET_PROFILE_ICON);
   }
 
+  get uniswapPage() {
+    return Selectors.getElementByPlatform(UNISWAP_PAGE);
+  }
+
   get homeFavoriteUniswapCardTitle() {
     return Selectors.getXpathElementByText(HOME_FAVORITES_UNISWAP_CARD_TITLE);
   }
@@ -73,13 +78,7 @@ class ExternalWebsitesScreen {
     return Selectors.getXpathElementByText(HOME_FAVORITES_CARDS_URL);
   }
 
-  get testDappConnectButton() {
-    return Selectors.getXpathElementByText('CONNECT');
-  }
-
   async tapHomeFavoritesButton() {
-    const element = await this.homeFavoriteButton;
-    await element.waitForEnabled();
     await Gestures.waitAndTap(this.homeFavoriteButton);
   }
 
@@ -119,17 +118,16 @@ class ExternalWebsitesScreen {
     await expect(await this.redditIcon).toBeDisplayed();
   }
 
+  async isUniswapPageDisplayed() {
+    await expect(await this.uniswapPage).toBeDisplayed();
+  }
+
   async tapUniswapConnectButton() {
     await Gestures.waitAndTap(this.uniswapConnectButton);
   }
-  async tapDappConnectButton() {
-    const element = await this.testDappConnectButton;
-    await element.waitForEnabled();
-    await Gestures.waitAndTap(this.testDappConnectButton);
-  }
 
   async tapUniswapMetaMaskWalletButton() {
-    await Gestures.tapTextByXpath('MetaMask');
+    await Gestures.waitAndTap(this.uniswapMetamaskWalletButton);
   }
 
   async isUniswapProfileIconDisplayed() {

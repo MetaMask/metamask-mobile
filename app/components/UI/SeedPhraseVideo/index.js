@@ -28,6 +28,12 @@ const SeedPhraseVideo = ({ style, onClose }) => {
     });
   }, []);
 
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setShowVideo(true);
+    });
+  }, []);
+
   return (
     <View style={styles.videoContainer}>
       {showVideo ? (

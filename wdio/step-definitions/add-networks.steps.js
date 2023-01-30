@@ -1,11 +1,30 @@
-import { Given, Then, When } from '@wdio/cucumber-framework';
+/* global driver */
+import { Given, When, Then } from '@wdio/cucumber-framework';
+import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
+import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
+import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
+import Accounts from '../helpers/Accounts';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
-import CommonScreen from '../screen-objects/CommonScreen';
+
+Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
+  const setTimeout = 50000;
+  await driver.pause(setTimeout);
+  await WelcomeScreen.clickGetStartedButton();
+  await OnboardingScreen.clickImportWalletButton();
+  await MetaMetricsScreen.swipeUp();
+  await MetaMetricsScreen.tapIAgreeButton();
+  const validAccount = Accounts.getValidAccount();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
+  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
+  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
+  await ImportFromSeedScreen.clickImportButton();
+});
 
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.tapAddNetworks();
@@ -45,7 +64,7 @@ When(
   async (buttons) => {
     switch (buttons) {
       case 'Switch Network':
-        await NetworkApprovalModal.isSwitchToNetworkButtonDisplayed();
+        await NetworkApprovalModal.isApproveNetworkButton();
         break;
       case 'Close':
         await NetworkApprovalModal.isCloseNetworkButton();
@@ -67,7 +86,7 @@ When(/^I am back to the wallet view/, async () => {
 When(
   /^I should see the added network name "([^"]*)?" in the top navigation bar/,
   async (network) => {
-    await WalletMainScreen.isNetworkNavbarTitle(network);
+    await WalletMainScreen.isNetworkNameCorrect(network);
   },
 );
 
@@ -106,7 +125,6 @@ Then(
   /^"([^"]*)?" is not visible in the Popular Networks section/,
   async (network) => {
     await NetworksScreen.isNetworkNotVisible(network);
-    await NetworksScreen.tapBackButton();
   },
 );
 
@@ -190,8 +208,6 @@ Then(
   /^"([^"]*)?" should be removed from the list of RPC networks/,
   async (network) => {
     await NetworksScreen.isNetworkRemoved(network);
-    await CommonScreen.waitForToastToDisplay();
-    await CommonScreen.waitForToastToDisappear();
   },
 );
 

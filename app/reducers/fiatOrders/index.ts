@@ -219,7 +219,6 @@ export const getRampNetworks: (
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
-  networks: [],
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,

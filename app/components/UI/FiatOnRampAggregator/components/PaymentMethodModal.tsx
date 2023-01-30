@@ -11,7 +11,7 @@ import PaymentMethod from './PaymentMethod';
 import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import { Region, ScreenLocation } from '../types';
+import { ScreenLocation } from '../types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

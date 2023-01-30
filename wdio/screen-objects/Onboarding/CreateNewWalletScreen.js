@@ -5,8 +5,7 @@ import {
   I_UNDERSTAND_BUTTON_ID,
   PROTECT_YOUR_WALLET_CONTAINER_ID,
   REMIND_LATER_BUTTON_ID,
-  SUBMIT_BUTTON,
-  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
+  PROTECT_YOUR_WALLET_CONTAINER_ID,
 } from '../testIDs/Screens/WalletSetupScreen.testIds';
 import { SKIP_BUTTON } from '../testIDs/Components/SkipAccountSecurityModalTestIds';
 import Gestures from '../../helpers/Gestures';
@@ -61,16 +60,8 @@ class CreateNewWalletScren {
     await Gestures.tap(this.newWalletSubmitButton);
   }
 
-  async inputConfirmResetPasswordField(secondPassword) {
-    await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
-    await driver.hideKeyboard();
-  }
-
-  async tapSubmitButton() {
-    await Gestures.tap(this.newWalletSubmitButton);
-  }
-
-  async tapRemindMeLater() {
+  async selectRemindMeLater() {
+    await driver.pause(2000);
     await Gestures.tap(this.remindMeLaterButton);
   }
 

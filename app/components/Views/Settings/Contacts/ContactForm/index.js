@@ -37,10 +37,6 @@ import {
   CONTACT_ADD_BUTTON,
   CONTACT_ADDRESS_INPUT,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
-import {
-  selectChainId,
-  selectNetwork,
-} from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

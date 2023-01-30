@@ -14,14 +14,7 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import {
-  getNetworkImageSource,
-  getNetworkNameFromProvider,
-} from '../../../util/networks';
-import Avatar, {
-  AvatarVariants,
-} from '../../../component-library/components/Avatars/Avatar';
+import { isMainnetByChainId } from '../../../util/networks';
 
 const createStyles = (colors: {
   background: { default: string };

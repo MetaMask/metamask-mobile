@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   Keyboard,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
@@ -43,9 +42,11 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
-import { Authentication } from '../../../../core';
-import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
+import {
+  CHANGE_PASSWORD_TITLE_ID,
+  CHANGE_PASSWORD_BUTTON_ID,
+} from '../../../../constants/test-ids';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -53,15 +54,10 @@ import {
   RememberMeOptionSection,
   AutomaticSecurityChecks,
   ProtectYourWallet,
-  LoginOptionsSettings,
-  RevealPrivateKey,
-  ChangePassword,
-  AutoLock,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderType } from '../../../../selectors/networkController';
-import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+
+const isIos = Device.isIos();
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -277,10 +273,30 @@ class Settings extends PureComponent {
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
-    this.setState({
-      analyticsEnabled,
-      hintText: manualBackup,
-    });
+
+    if (biometryType) {
+      let passcodeEnabled = false;
+      const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+      if (!biometryChoice) {
+        const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
+        if (passcodeChoice !== '' && passcodeChoice === TRUE) {
+          passcodeEnabled = true;
+        }
+      }
+      this.setState({
+        biometryType:
+          biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
+        biometryChoice: !!biometryChoice,
+        analyticsEnabled,
+        passcodeChoice: passcodeEnabled,
+        hintText: manualBackup,
+      });
+    } else {
+      this.setState({
+        analyticsEnabled,
+        hintText: manualBackup,
+      });
+    }
 
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
@@ -441,6 +457,21 @@ class Settings extends PureComponent {
     }
   };
 
+  goToExportPrivateKey = () => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      privateCredentialName: 'private_key',
+    });
+  };
+
+  selectLockTime = (lockTime) => {
+    this.props.setLockTime(parseInt(lockTime, 10));
+  };
+
+  resetPassword = () => {
+    this.props.navigation.navigate('ResetPassword');
+  };
+
   saveHint = async () => {
     const { hintText } = this.state;
     if (!hintText) return;
@@ -477,6 +508,134 @@ class Settings extends PureComponent {
         value={hintText}
         onChangeText={this.handleChangeText}
       />
+    );
+  };
+
+  renderPasswordSection = () => {
+    const { styles } = this.getStyles();
+    return (
+      <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
+        <Text style={styles.title}>
+          {strings('password_reset.password_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('password_reset.password_desc')}
+        </Text>
+        <StyledButton
+          type="normal"
+          onPress={this.resetPassword}
+          containerStyle={styles.confirm}
+          testID={CHANGE_PASSWORD_BUTTON_ID}
+        >
+          {strings('password_reset.change_password')}
+        </StyledButton>
+      </View>
+    );
+  };
+
+  renderAutoLockSection = () => {
+    const { styles } = this.getStyles();
+    return (
+      <View style={styles.setting} testID={'auto-lock-section'}>
+        <Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.auto_lock_desc')}
+        </Text>
+        <View style={styles.picker}>
+          {this.autolockOptions && (
+            <SelectComponent
+              selectedValue={this.props.lockTime.toString()}
+              onValueChange={this.selectLockTime}
+              label={strings('app_settings.auto_lock')}
+              options={this.autolockOptions}
+            />
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  renderBiometricOptionsSection = () => {
+    const { styles, colors } = this.getStyles();
+    return (
+      <View style={styles.setting} testID={'biometrics-option'}>
+        <Text style={styles.title}>
+          {strings(
+            `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
+          )}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={this.state.biometryChoice}
+            onValueChange={this.onSingInWithBiometrics}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  renderDevicePasscodeSection = () => {
+    const { styles, colors } = this.getStyles();
+    return (
+      <View style={styles.setting}>
+        <Text style={styles.title}>
+          {isIos
+            ? strings(`biometrics.enable_device_passcode_ios`)
+            : strings(`biometrics.enable_device_passcode_android`)}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            onValueChange={this.onSignInWithPasscode}
+            value={this.state.passcodeChoice}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  renderPrivateKeySection = () => {
+    const { accounts, identities, selectedAddress } = this.props;
+    const account = {
+      address: selectedAddress,
+      ...identities[selectedAddress],
+      ...accounts[selectedAddress],
+    };
+    const { styles } = this.getStyles();
+
+    return (
+      <View style={styles.setting} testID={'reveal-private-key-section'}>
+        <Text style={styles.title}>
+          {strings('reveal_credential.private_key_title_for_account', {
+            accountName: account.name,
+          })}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('reveal_credential.private_key_warning', {
+            accountName: account.name,
+          })}
+        </Text>
+        <StyledButton
+          type="normal"
+          onPress={this.goToExportPrivateKey}
+          containerStyle={styles.confirm}
+        >
+          {strings('reveal_credential.show_private_key')}
+        </StyledButton>
+      </View>
     );
   };
 
@@ -728,7 +887,7 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const { hintText, loading } = this.state;
+    const { hintText, biometryType, biometryChoice, loading } = this.state;
     const { seedphraseBackedUp } = this.props;
     const { styles } = this.getStyles();
 
@@ -755,12 +914,9 @@ class Settings extends PureComponent {
             hintText={hintText}
             toggleHint={this.toggleHint}
           />
-          <ChangePassword />
-          <AutoLock />
-          <LoginOptionsSettings
-            onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
-            onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
-          />
+          {this.renderPasswordSection()}
+          {this.renderAutoLockSection()}
+          {biometryType && this.renderBiometricOptionsSection()}
           <RememberMeOptionSection />
           <RevealPrivateKey />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>

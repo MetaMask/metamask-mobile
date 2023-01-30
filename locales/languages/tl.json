@@ -282,7 +282,7 @@
     "transactions": "MGA TRANSAKSYON",
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
-    "add_tokens": "Mag-import ng mga token",
+    "add_tokens": "MAGDAGDAG NG MGA TOKEN",
     "tokens_detected_in_account": "{{tokenCount}} (na) bagong {{tokensLabel}} ang natagpuan sa account na ito",
     "token_toast": {
       "tokens_imported_title": "Mga Na-import na Token",
@@ -300,8 +300,6 @@
       "cancel_cta": "Kanselahin",
       "confirm_cta": "Kumpirmahin"
     },
-    "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
-    "buy_asset": "Bumili ng {{asset}}",
     "no_tokens": "Wala kang anumang token!",
     "no_nfts_yet": "Wala pang mga NFT",
     "nfts_autodetection_title": "Pagtuklas ng NFT",
@@ -796,11 +794,7 @@
     "balance": "balanse. Basahin ang artikulo ng suporta",
     "troubleshooting_missing": "pag-troubleshoot sa mga nawawalang balanse",
     "for_help": "para sa tulong.",
-    "troubleshoot": "I-troubleshoot",
-    "buy_description": "Bumili ng crypto gamit ang cash",
-    "swap_description": "Palitan sa pagitan ng mga token",
-    "send_description": "Magpadala ng crypto sa anumang account",
-    "receive_description": "Tumanggap ng crypto"
+    "troubleshoot": "I-troubleshoot"
   },
   "account_details": {
     "title": "Mga Detalye ng Account",
@@ -972,10 +966,7 @@
     "invalid_qr_code_sign": "Di-wastong QR-code. Mangyaring suriin ang iyong hardware at subukang muli.",
     "no_camera_permission_android": "Kailangan mong bigyan ng access ang MetaMask sa iyong kamera upang magpatuloy. Maaaring kailanganin mo ring baguhin ang iyong mga setting ng sistema.",
     "mismatched_qr_request_id": "Hindi tugmang datos ng transakyon. Mangyaring gamitin ang iyong Keystone para lagdaan ang QR code sa ibaba at i-tap ang 'Kumuha ng Lagda'.",
-    "fiat_conversion_not_available": "Hindi available ang mga conversion ng Fiat sa ngayon",
-    "hex_data_copied": "Nakopya ang hex data sa clipboard",
-    "invalid_recipient": "Maling tagatanggap",
-    "invalid_recipient_description": "Tingnan ang address at tiyaking wasto ito"
+    "hex_data_copied": "Nakopya ang hex data sa clipboard"
   },
   "custom_gas": {
     "total": "Kabuuan",
@@ -1031,9 +1022,7 @@
     "all_set": "Handa na!",
     "all_set_desc": "Matagumpay kang nakapagtakda ng mga pahintulot para sa site na ito.",
     "must_be_at_least": "Dapat ay hindi bababa sa {{allowance}}",
-    "access_up_to": "I-access ang hanggang:",
-    "spending_cap": "Limitasyon sa paggastos:",
-    "approve_asset": "Inaprubahang asset:"
+    "access_up_to": "I-access ang hanggang:"
   },
   "browser": {
     "title": "Browser",
@@ -1221,9 +1210,7 @@
     "empty_popular_networks": "Idinagdag mo ang lahat ng sikat na network. Maaari kang makatuklas ng higit pang mga network",
     "add_other_network_here": "dito.",
     "you_can": "O maaari kang",
-    "add_network": "magdagdag pa ng mga network nang manu-mano.",
-    "deprecated_network_msg": "Dahil sa mga pagbabago ng protokol ng Ethereum: ang mga test network na Rinkeby, Ropsten, at Kovan ay maaaring hindi gumana tulad ng maaasahan at malapit nang itigil ang paggamit.",
-    "select_network": "Pumili ng network"
+    "add_network": "magdagdag pa ng mga network nang manu-mano."
   },
   "select": {
     "cancel": "Kanselahin",
@@ -1787,7 +1774,7 @@
     "try_different_amount_to_buy_input": "Subukang pumili ng ibang paraan ng pagbabayad o subukang dagdagan o bawasan ang halagang gusto mong bilhin!",
     "webview_received_error": "Ang WebView ay nakatanggap ng error status code: {{code}}",
     "no_tokens_available_title": "Walang Available na Token",
-    "no_tokens_available": "Kasalukuyang walang mga token na available upang bilhin sa {{network}} gamit ang napiling paraan ng pagbabayad.",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "change_payment_method": "Baguhin ang paraan ng pagbabayad",
     "try_different_region": "Subukan ang ibang rehiyon",
     "return_home": "Bumalik sa Home Screen",
@@ -1825,7 +1812,7 @@
       "etherscan": "Tingnan ang buong detalye sa",
       "another_purchase": "Muling bumili",
       "questions": "May mga katanungan?",
-      "contact_support": "Makipag-ugnayan sa Suporta",
+      "contact_support": "Makipag-ugnayan sa suporta",
       "support": "Suporta",
       "view_order_status": "Tingnan ang status ng order sa {{provider}}",
       "id": "Order ID",
@@ -2050,18 +2037,14 @@
   },
   "whats_new": {
     "title": "Tingnan kung ano'ng bago",
-    "slides_button": "Bumili ng crypto",
-    "slide_1_subtitle": "Kalimutan ang mga sentralisadong palitan. Ang pagbili ng crypto gamit ang MetaMask ay naging mas madali.",
-    "slide_1_body_1": "Bakit hindi direktang pondohan ang iyong MetaMask wallet? Naging abala kami sa pag-onboard ng mga bagong ka-partner at lokal na paraan ng pagbabayad upang gawing mas madali ang iyong mga pagbili ng fiat-to-crypto gamit ang MetaMask.",
-    "slide_1_body_2": "Sa 189 na sinusuportahang bansa sa walong iba't ibang network kabilang ang L2's, sinasaklaw ka namin. Piliin ang iyong gustong opsyon sa pagbabayad at piliin ang pinakamahusay na available na quote.",
-    "slide_2_subtitle": "Kumusta India!",
-    "slide_2_body_1": "Maa-access na ng mga user sa India ang UPI at IMPS para sa mas mura, mas mabilis, at mas mahusay na pagbabayad. Kasama ng Transak at Onramp.money, ginagawa naming mas naa-access ang web3 kaysa dati sa India.",
-    "slide_3_subtitle": "Pinapagana ang PayID, POLi, Interac, at iDEAL!",
-    "slide_3_body_1": "Nagsama kami ng Banxa upang mag-alok ng lokal na imprastraktura ng pagbabangko at ang mga bagong paraan ng pagbabayad na ito sa Canada, Netherlands, Australia, South Africa, at Turkey. Tingnan ang mga ito!",
-    "slide_4_subtitle": "Mga opsyon sa lokal na pagbabayad sa LATAM",
-    "slide_4_body_1": "Kasama ng Transak, pinagana na namin ngayon ang AstroPay sa Brazil, Mexico, Uruguay, Chile, at Peru. Ang mga Brazilian user ay maaari ding on-ramp sa crypto gamit ang Pix.",
-    "slide_5_subtitle": "Iwasan ang kumplikadong pag-verify ng pagkakakilanlan",
-    "slide_5_body_1": "Sa Mercuryo, maaari ka na ngayong bumili ng hanggang €699 na halaga ng crypto nang hindi kinakailangang i-verify ang iyong pagkakakilanlan. Pinapasimple nito ang karanasan sa pag-checkout ng crypto at ginagawang mas madali ang pag-onboard."
+    "feature_token_detection_title": "Narito ang pinahusay na pagtukoy ng token",
+    "feature_token_detection_description": "Ang pinahusay na pagtukoy ng token ay kasalukuyang available sa network ng Ethereum Mainnet, Polygon, BSC, at Avalanche. Marami pang darating!\n\nKumukuha kami ng mga token mula sa mga listahan ng mga token ng 3rd party. Ang mga token na nakalista sa higit sa dalawang listahan ng token ay awtomatikong matutukoy.\n\nNAKA-ON bilang default ang feature sa pagtukoy ng token. Ngunit maaari mo itong i-disable mula sa Mga Setting.",
+    "feature_token_detection_button_text": "Bisitahin sa Mga Setting",
+    "feature_token_security_title_1": "Scam at mga panganib sa seguridad",
+    "feature_token_security_description_1": "Ang mga token ay maaaring likhain ng sinuman at maaaring magkaroon ng mga kaparehong pangalan. Kung makakita ka ng isang token na lumalabas na hindi mo pinagkakatiwalaan o hindi ka pa nagkaroon ng interaksyon - mas ligtas na hindi pagkatiwalaan ito.",
+    "feature_token_security_title_2": "Pindutin nang matagal para itago ang mga token",
+    "feature_token_security_description_2": "Sa MetaMask mobile app, maaari mong palaging itago ang mga token sa pamamagitan ng matagal na pagpindot sa token, at piliin ang ‘Itago’.",
+    "feature_token_security_button_text": "Magsimula na tayo!"
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit ang chain ID para sa custom na network na \n %{network} \n.",
@@ -2270,56 +2253,6 @@
     "primary_action": "Paganahin ang mga awtomatikong pagsusuri sa seguridad",
     "secondary_action": "Salamat nalang"
   },
-  "contract_allowance": {
-    "custom_spend_cap": {
-      "max": "Max",
-      "edit": "I-edit",
-      "title": "Custom na limitasyon sa paggastos",
-      "use_default": "Gumamit ng default",
-      "from_your_balance": "mula sa iyong kasalukuyang balanse.",
-      "no_value_selected": "Ilagay lamang ang numero na komportable ka sa {{domain}} na ina-access ngayon o sa hinaharap. Maaari mong palaging dagdagan ang limit ng token sa susunod.",
-      "this_contract_allows": "Ang kontratang ito ay nagpapahintulot sa site na gumastos",
-      "from_your_current_balance": "mula sa iyong kasalukuyang balanse at",
-      "future_tokens": "maaaring mayroon ka sa hinaharap. Maaaring nasa panganib ang iyong mga token.",
-      "info_modal_description_default": "Maaaring gastusin ng kontrata ang iyong buong balanse ng token nang walang karagdagang abiso o pahintulot. Protektahan ang iyong sarili sa pamamagitan ng pagtatakda ng mas mababang limitasyon sa paggastos.",
-      "set_spend_cap": "Magtakda ng limitasyon sa paggastos",
-      "be_careful": "Maging maingat",
-      "error_enter_number": "Error: Maglagay lamang ng mga numero"
-    },
-    "token_allowance": {
-      "verify_third_party_details": "Beripikahin ang mga detalye ng third party",
-      "protect_from_scams": "Para protektahan ang iyong sarili laban sa mga manloloko, maglaan ng ilang sandali upang beripikahin ang mga detalye ng third party.",
-      "learn_to_verify": "Matutunan kung paano beripikahin ang mga detalye ng third party",
-      "spending_cap": "limitasyon sa paggastos",
-      "access": "access",
-      "nft_contract": "Kontrata ng NFT",
-      "token_contract": "Kontrata ng token",
-      "third_party_requesting_text": "Third party na humihiling ng {{action}}",
-      "third party": "third party",
-      "address": "Address"
-    }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "Kinailangan ang pag-restore",
-    "restore_needed_description": "Nagkaproblema pero huwag mag-alala! Subukan natin muli na i-restore ang iyong wallet.",
-    "restore_needed_action": "I-restore ang wallet"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "Handa na ang iyong wallet!",
-    "wallet_restored_action": "Magpatuloy sa wallet",
-    "wallet_restored_description_part_one": "Maaaring kailanganin mong manwal na magdagdag muli ng ilan sa mga asset mo, network, at settings.",
-    "wallet_restored_description_part_two": "Maglaan ng sandali para",
-    "wallet_restored_description_link": "i-back up ang iyong Secret Recovery Phrase",
-    "wallet_restored_description_part_three": "sakaling kailangan mong i-restore muli ang iyong wallet sa susunod."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Bagong wallet na kailangan",
-    "new_wallet_needed_create_new_wallet_action": "Gumawa ng bagong wallet",
-    "new_wallet_needed_create_try_again_action": "Subukang mabawi ang wallet",
-    "new_wallet_needed_description_part_one": "Nagkaproblema sa iyong wallet, at kakailanganin mo na gumawa ng bago. Dahil ang mga account mo ay nasa blockchain, ligtas pa rin ang mga iyon. Mga preference, naka-save na network, pangalan ng account at nauugnay na data na naka-save sa iyong device lang ang mawawala.",
-    "new_wallet_needed_description_part_two": "Para i-import ang iyong mga account sa bagong wallet, kailangan mo ang iyong Secret Recovery Phrase. Kung wala kang Secret Recovery Phrase, hindi mo mai-import ang mga account mo.",
-    "new_wallet_needed_description_part_three": "Para maiwasan na mangyari itong muli, tiyakin na laging naka-update sa pinakabagong bersyon ang iyong MetaMask app at OS."
-  },
   "srp_security_quiz": {
     "title": "Pagsusulit sa seguridad",
     "introduction": "Upang ipakita ang iyong Secret Recovery Phrase, kailangan mong sagutin nang tama ang dalawang tanong",
@@ -2341,79 +2274,10 @@
       "question": "Kung sinuman, kahit isang ahente ng suporta, ay humingi ng iyong Secret Recovery Phrase...",
       "right_answer": "Niloloko ka",
       "right_answer_title": "Tama! Ang pagbabahagi ng iyong Secret Recovery Phrase ay hindi kailanman isang magandang ideya",
-      "right_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, nanakawin nila ng iyong mga ari-arian.",
+      "right_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian.",
       "wrong_answer": "Dapat mong ibigay sa kanila",
       "wrong_answer_title": "Hindi! Huwag kailanman ibahagi ang iyong Secret Recovery Phrase sa sinuman, kailanman",
-      "wrong_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, nanakawin nila ng iyong mga ari-arian."
+      "wrong_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian."
     }
-  },
-  "ledger": {
-    "open_settings": "Buksan ang mga setting",
-    "view_settings": "Tingnan ang mga setting",
-    "bluetooth_off": "Naka-off ang Bluetooth",
-    "bluetooth_off_message": "Mangyaring i-on ang Bluetooth sa iyong device",
-    "bluetooth_access_blocked": "Kailangan ng Ledger ng access sa Bluetooth para ipares ang iyong mobile device.",
-    "bluetooth_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, paganahin ito sa Mga Setting at subukang muli.",
-    "location_access_blocked": "Kailangan ng Ledger ng access sa lokasyon upang ipares sa iyong mobile device.",
-    "location_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, kailangan mong paganahin ang access sa lokasyon sa Mga Setting at subukang muli.",
-    "bluetooth_scanning_error": "Error habang ini-scan ang device",
-    "bluetooth_scanning_error_message": "Siguraduhing naka-unlock ang iyong device at gumagana ang app ng Ethereum",
-    "bluetooth_connection_failed": "Nabigo ang koneksyon sa Bluetooth",
-    "bluetooth_connection_failed_message": "Siguraduhing naka-unlock ang iyong Ledger at gumagana ang iyong Bluetooth",
-    "ethereum_app_open": "Nangangailangan ng kumpirmasyon ang Ledger",
-    "ethereum_app_open_message": "Mangyaring kumpirmahin sa iyong device na buksan ang app ng Ethereum. Pindutin ang OK kapag tapos na.",
-    "ethereum_app_unconfirmed_error": "Tinanggihan mo ang kahilingang buksan ang app ng Ethereum.",
-    "failed_to_open_eth_app": "Nabigong buksan ang app ng Ethereum.",
-    "ethereum_app_open_error": "Mangyaring i-install/tanggapin ang app ng Ethereum sa iyong Ledger device.",
-    "running_app_close": "Nabigong isara ang gumaganang app.",
-    "running_app_close_error": "Nabigong isara ang gumaganang app sa iyong Ledger device.",
-    "ethereum_app_not_installed": "Hindi naka-install ang app ng Ethereum.",
-    "ethereum_app_not_installed_error": "Paki-install ang app ng Ethereum sa iyong Ledger device.",
-    "ledger_is_locked": "Naka-lock ang Ledger",
-    "unlock_ledger_message": "Mangyaring i-unlock ang iyong Ledger device",
-    "cannot_get_account": "Hindi makuha ang account",
-    "connect_ledger": "Ikonekta ang Ledger",
-    "looking_for_device": "Naghahanap ng device",
-    "ledger_reminder_message": "Siguraduhin na ang iyong Ledger Nano X ay:",
-    "ledger_reminder_message_step_one": "1. Nakabukas",
-    "ledger_reminder_message_step_two": "2. Naka-install ang app ng Ethereum",
-    "ledger_reminder_message_step_three": "3. Gumagana ang Bluetooth",
-    "ledger_reminder_message_step_four": "4. Gumagana ang lokasyon",
-    "available_devices": "Available na mga device",
-    "retry": "Subukang muli",
-    "continue": "Magpatuloy",
-    "confirm_transaction_on_ledger": "Kumpirmahin ang transaksyon sa pamamagitan ng pagpindot ng dalawang button sa iyong Ledger",
-    "bluetooth_enabled_message": "Siguraduhing gumagana ang Bluetooth",
-    "device_unlocked_message": "Nakabukas ang device",
-    "blind_signing_message": "Gumagana ang blind signing",
-    "ledger_disconnected": "Nadiskonekta ang iyong device",
-    "ledger_disconnected_error": "Nawala ang koneksyon sa iyong device. Pakisubukang muli.",
-    "unknown_error": "Naganap ang hindi inaasahang error.",
-    "unknown_error_message": "May naganap na hindi inaasahang error. Pakisubukang muli.",
-    "error_occured": "May naganap na error",
-    "how_to_install_eth_app": "Paano i-install ang app ng Ethereum sa isang Ledger device",
-    "ledger_account_count": "Gumagamit ka ng 1 account mula sa iyong Ledger gamit ang MetaMask Mobile.",
-    "open_eth_app": "Mangyaring buksan ang app ng Ethereum",
-    "open_eth_app_message_one": "Natukoy namin na mayroon kang naka-install na app ng Ethereum ngunit hindi ito nakabukas, mangyaring ",
-    "open_eth_app_message_two": "pindutin ang dalawang button sa device para tanggapin ang prompt para mabuksan ang app ng Ethereum para magpatuloy.",
-    "toast_bluetooth_connection_error_title": "Oops, nagkaproblema :/",
-    "toast_bluetooth_connection_error_subtitle": "Ang Ledger ay hindi konektado",
-    "try_again": "Subukang muli",
-    "forget_device": "Kalimutan ang Ledger",
-    "sign_with_ledger": "Mag-sign gamit ang Ledger",
-    "ledger_pending_confirmation": "Busy ang Ledger",
-    "ledger_pending_confirmation_error": "May nakabinbing aksyon sa iyong Ledger. Mangyaring tanggalin muna ang aksyon, pagkatapos ay subukang muli.",
-    "not_supported": "Hindi suportado ang operasyon",
-    "not_supported_error": "Ang bersyon 4 lamang ng naka-type na pag-sign ng data ang sinusuportahan.",
-    "error_during_connection": "May naganap na hindi kilalang error",
-    "error_during_connection_message": "Nagkaroon ng kaunting problema sa pagkonekta sa iyong Ledger Nano X, i-tap ang 'Subukang muli' sa ibaba upang subukan ito. Minsan nangyayari ito dahil sa pagiging bukas ng ETH app sa iyong Ledger Nano X sa simula ng proseso ng pagpapares sa MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "Paano i-install ang App ng Ethereum"
-  },
-  "account_actions": {
-    "edit_name": "I-edit ang pangalan ng account",
-    "add_account_or_hardware_wallet": "Magdagdag ng account o hardware wallet",
-    "add_account": "Magdagdag ng account",
-    "add_new_account": "Magdagdag ng bagong account",
-    "add_hardware_wallet": "Magdagdag ng hardware wallet"
   }
 }

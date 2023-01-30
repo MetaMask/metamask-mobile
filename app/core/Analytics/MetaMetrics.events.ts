@@ -256,8 +256,6 @@ enum EVENT_NAME {
   SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
   SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
 
-  //Terms of Use
-  USER_TERMS = 'Terms of Use',
   // Reveal SRP Quiz
   SRP_REVEAL_QUIZ_PROMPT_SEEN = 'SRP reveal quiz prompt seen',
   SRP_REVEAL_START_CTA_SELECTED = 'SRP reveal get started CTA selected',
@@ -269,78 +267,6 @@ enum EVENT_NAME {
   SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER = 'SRP reveal second question answered correctly',
   REVEAL_SRP = 'Reveal SRP',
   SRP_COPIED = 'SRP copied',
-
-  // Permission request
-  PERMISSION_REQUEST_STARTED = 'Permission Request Started',
-  PERMISSION_REQUEST_COMPLETED = 'Permission Request Completed',
-  PERMISSION_REQUEST_CANCELLED = 'Permission Request Cancelled',
-
-  OPEN_DAPP_PERMISSIONS = 'Viewed dapp permissions',
-  CHANGE_DAPP_PERMISSIONS = 'Changed dapp permissions',
-
-  // Vault Corruption
-  VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED = 'Vault Corruption Restore Wallet Screen Viewed',
-  VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED = 'Vault Corruption Restore Wallet Button Pressed',
-  VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED = 'Vault Corruption Wallet Successfully Restored Screen Viewed',
-  VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED = 'Vault Corruption Wallet Successfully Restored Continue To Wallet Button Pressed',
-  VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED = 'Vault Corruption Wallet Reset Needed Screen Viewed',
-  VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED = 'Vault Corruption Wallet Reset Needed Try Again Button Pressed',
-  VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED = 'Vault Corruption Wallet Reset Needed Create A New Wallet Button Pressed',
-
-  // Login screen
-  LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
-
-  // Delete Wallet Modal
-  DELETE_WALLET_MODAL_WALLET_DELETED = 'Delete Wallet Modal Wallet Deleted',
-
-  // Tab Bar Actions
-  ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
-  RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
-  SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
-  SEND_BUTTON_CLICKED = 'Send Button Clicked',
-}
-
-enum ACTIONS {
-  //Onboarding
-  METRICS_OPTS = 'Metrics Option',
-  IMPORT_OR_CREATE = 'Import or Create',
-  IMPORT_OR_SYNC = 'Import or Sync',
-  ONBOARDING_NEXT = 'Onboarding Next',
-  ONBOARDING_SKIP = 'Onboarding Skip',
-  // Navigation Drawer
-  NAVIGATION_DRAWER = 'Navigation Drawer',
-  // Common Navigation
-  COMMON_BROWSER_DAPP_WALLET = 'Browser & Dapp & Wallet View',
-  // Browser
-  BROWSER_VIEW = 'Browser View',
-  // Dapp
-  DAPP_VIEW = 'Dapp View',
-  // Wallet
-  WALLET_VIEW = 'Wallet View',
-  //Transactions
-  CONFIRM_SCREEN = 'Confirm Screen',
-  SIGN_SCREEN = 'Sign Request',
-  // Accounts
-  ACCOUNTS_MODAL = 'Account Modal',
-  // Authentication
-  UNLOCK = 'Unlock',
-  CONNECT = 'Connect',
-  // Settings
-  SETTINGS = 'Settings',
-  // Receive Options
-  RECEIVE_OPTIONS = 'Receive Options',
-  // Send Flow
-  SEND_FLOW = 'Send Flow',
-  // Dapp Interactions
-  APPROVE_REQUEST = 'Approve Request',
-  BUY_ETH = 'Buy ETH',
-  SELECTS_DEBIT_OR_ACH = 'Selects Debit or ACH',
-  SELECTS_APPLE_PAY = 'Selects Apple Pay',
-  // Swaps
-  QUOTE = 'Quote',
-  SWAP = 'Swap',
-  PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
-  PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
 }
 
 const events = {
@@ -578,7 +504,6 @@ const events = {
   SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
   SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
   SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
-  USER_TERMS: generateOpt(EVENT_NAME.USER_TERMS),
   SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
     EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
   ),
@@ -605,63 +530,6 @@ const events = {
   ),
   REVEAL_SRP: generateOpt(EVENT_NAME.REVEAL_SRP),
   SRP_COPIED: generateOpt(EVENT_NAME.SRP_COPIED),
-  PERMISSION_REQUEST_STARTED: generateOpt(
-    EVENT_NAME.PERMISSION_REQUEST_STARTED,
-  ),
-  PERMISSION_REQUEST_CANCELLED: generateOpt(
-    EVENT_NAME.PERMISSION_REQUEST_CANCELLED,
-  ),
-  PERMISSION_REQUEST_COMPLETED: generateOpt(
-    EVENT_NAME.PERMISSION_REQUEST_COMPLETED,
-  ),
-  OPEN_DAPP_PERMISSIONS: generateOpt(EVENT_NAME.OPEN_DAPP_PERMISSIONS),
-  REVOKE_ACCOUNT_DAPP_PERMISSIONS: generateOpt(
-    EVENT_NAME.CHANGE_DAPP_PERMISSIONS,
-    ACTIONS.PERMISSION_REVOKE_ACCOUNT,
-  ),
-  ADD_ACCOUNT_DAPP_PERMISSIONS: generateOpt(
-    EVENT_NAME.CHANGE_DAPP_PERMISSIONS,
-    ACTIONS.PERMISSION_NEW_ACCOUNT,
-  ),
-  BROWSER_SWITCH_TAB: generateOpt(EVENT_NAME.BROWSER_SWITCH_TAB),
-
-  // Vault corruption
-  VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
-  ),
-  VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED: generateOpt(
-    EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED,
-  ),
-  VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
-  ),
-  VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED:
-    generateOpt(
-      EVENT_NAME.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
-    ),
-  VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
-  ),
-  VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED: generateOpt(
-    EVENT_NAME.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
-  ),
-  VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED:
-    generateOpt(
-      EVENT_NAME.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
-    ),
-
-  // Login screen
-  LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
-
-  // Delete Wallet Modal
-  DELETE_WALLET_MODAL_WALLET_DELETED: generateOpt(
-    EVENT_NAME.DELETE_WALLET_MODAL_WALLET_DELETED,
-  ),
-
-  ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
-  RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
-  SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
-  SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
 };
 
 /**

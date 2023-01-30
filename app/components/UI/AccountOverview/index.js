@@ -36,10 +36,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { selectNetwork } from '../../../selectors/networkController';
-import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({

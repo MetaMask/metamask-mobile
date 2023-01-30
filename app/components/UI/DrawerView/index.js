@@ -77,12 +77,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
+  DRAWER_VIEW_BROWSER_TEXT_ID,
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
+  DRAWER_VIEW_WALLET_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
-import { selectTicker } from '../../../selectors/networkController';
-
-import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -949,6 +948,28 @@ class DrawerView extends PureComponent {
     }
     return [
       [
+        {
+          name: strings('drawer.browser'),
+          icon: this.getIcon('globe'),
+          selectedIcon: this.getSelectedIcon('globe'),
+          action: this.goToBrowser,
+          routeNames: ['BrowserView', 'AddBookmark'],
+          testID: DRAWER_VIEW_BROWSER_TEXT_ID,
+        },
+        {
+          name: strings('drawer.wallet'),
+          icon: this.getImageIcon('wallet'),
+          selectedIcon: this.getSelectedImageIcon('wallet'),
+          action: this.showWallet,
+          routeNames: [
+            'Wallet',
+            'WalletView',
+            'Asset',
+            'AddAsset',
+            'Collectible',
+          ],
+          testID: DRAWER_VIEW_WALLET_TEXT_ID,
+        },
         {
           name: strings('drawer.transaction_activity'),
           icon: this.getFeatherIcon('list'),

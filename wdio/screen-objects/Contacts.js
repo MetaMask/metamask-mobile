@@ -30,7 +30,7 @@ class Contacts {
 
   async isContactsScreenDisplayed() {
     expect(
-      await Selectors.getElementByPlatform('add-contact-button'),
+      await Selectors.getXpathElementByContentDescription('add-contact-button'),
     ).toBeDisplayed();
   }
 
@@ -62,7 +62,11 @@ class Contacts {
   }
 
   async tapOnEditButton() {
-    await Gestures.waitAndTap(this.editButton);
+    await Gestures.tap(this.editButton);
+  }
+
+  async changeContactName(newName) {
+    await Gestures.typeText(this.contactOverviewNameInput, newName);
   }
 }
 export default new Contacts();

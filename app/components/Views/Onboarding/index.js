@@ -52,7 +52,8 @@ import {
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
-import Routes from '../../../constants/navigation/Routes';
+
+const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const createStyles = (colors) =>
   StyleSheet.create({

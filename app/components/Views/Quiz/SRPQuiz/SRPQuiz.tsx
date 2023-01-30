@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +6,7 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../component-library/components/Icon';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -18,8 +17,6 @@ import { SRP_GUIDE_URL } from '../../../../constants/urls';
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
-
-const introductionImg = require('../../../../images/reveal-srp.png');
 
 const SRPQuiz = () => {
   const modalRef = useRef<ReusableModalRef>(null);
@@ -47,7 +44,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.Danger}
+        name={IconName.DangerFilled}
         color={colors.error.default}
       />
     ),
@@ -58,7 +55,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.Confirmation}
+        name={IconName.CheckCircleOnFilled}
         color={colors.success.default}
       />
     ),
@@ -69,8 +66,7 @@ const SRPQuiz = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      credentialName: 'seed_phrase',
-      shouldUpdateNav: true,
+      privateCredentialName: 'seed_phrase',
     });
   }, [navigation]);
 
@@ -79,7 +75,6 @@ const SRPQuiz = () => {
     return (
       <QuizContent
         header={strings('srp_security_quiz.title')}
-        image={introductionImg}
         title={{
           content: strings('srp_security_quiz.introduction'),
         }}
@@ -98,7 +93,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}
@@ -131,7 +126,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}
@@ -164,7 +159,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}
@@ -197,7 +192,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}
@@ -230,7 +225,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}
@@ -263,7 +258,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}
@@ -296,7 +291,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Tertiary,
           },
         ]}
         dismiss={dismissModal}

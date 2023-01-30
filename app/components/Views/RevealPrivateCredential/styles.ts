@@ -21,14 +21,14 @@ export const createStyles = (colors: any) =>
       fontSize: 20,
       textAlign: 'center',
       color: colors.text.default,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border.default,
       ...fontStyles.normal,
     },
     seedPhraseView: {
       marginTop: 10,
       alignItems: 'center',
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: colors.border.default,
     },
     clipboardButton: {
       alignSelf: 'center',

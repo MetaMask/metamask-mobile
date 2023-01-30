@@ -8,7 +8,6 @@ import {
   ADD_ADDRESS_BUTTON,
   SEND_CANCEL_BUTTON,
 } from './testIDs/Screens/SendScreen.testIds';
-import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 
 class SendScreen {
   get sendAddressInputField() {
@@ -23,21 +22,12 @@ class SendScreen {
     return Selectors.getElementByPlatform(SEND_CANCEL_BUTTON);
   }
 
-  get amountInputField() {
-    return Selectors.getElementByPlatform(TRANSACTION_AMOUNT_INPUT);
-  }
-
   get understandWarningcontinue() {
     return Selectors.getElementByPlatform(UNDERSTAND_WARNING_CONTINUE);
   }
 
   get amountScreen() {
     return Selectors.getElementByPlatform(AMOUNT_SCREEN);
-  }
-
-  get confirmAmount() {
-    // eslint-disable-next-line no-undef
-    return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
   }
 
   get addAddressButton() {
@@ -68,8 +58,12 @@ class SendScreen {
     await Gestures.tap(this.sendCancelButton);
   }
 
+  async tapOnText(text) {
+    await Gestures.tapTextByXpath(text);
+  }
+
   async isAmountScreenDisplayed() {
-    expect(await this.amountScreen).toBeDisplayed();
+    await expect(this.amountScreen).toBeDisplayed();
   }
 
   async isChangedContactNameVisible(contactName) {

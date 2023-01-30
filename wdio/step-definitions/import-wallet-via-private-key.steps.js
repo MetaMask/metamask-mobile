@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { When, Then } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
@@ -32,11 +31,11 @@ Then(/^The account is imported/, async () => {
 
 Then(/^I am on the imported account/, async () => {
   await driver.pause(2500);
-  await WalletAccountModal.isAccountNameLabelEqualTo('Account 2'); // this can be better
+  WalletAccountModal.isAccountNameLabelEqualTo('Account 3'); // this can be better
 });
 
 Then(/^I should see an error (.*)/, async (errorMessage) => {
-  await ImportAccountScreen.isAlertTextVisible(errorMessage);
+  ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });
 Then(/^I close the import account screen/, async () => {

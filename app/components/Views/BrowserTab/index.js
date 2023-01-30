@@ -69,11 +69,6 @@ import {
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import {
-  getPermittedAccounts,
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
@@ -82,6 +77,7 @@ import {
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
+  SWITCH_NETWORK_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
@@ -1286,6 +1282,22 @@ export const BrowserTab = (props) => {
                 </Text>
               </Button>
               {renderNonHomeOptions()}
+              <Button onPress={switchNetwork} style={styles.option}>
+                <View style={styles.optionIconWrapper}>
+                  <MaterialCommunityIcon
+                    name="earth"
+                    size={18}
+                    style={styles.optionIcon}
+                  />
+                </View>
+                <Text
+                  style={styles.optionText}
+                  numberOfLines={2}
+                  {...generateTestId(Platform, SWITCH_NETWORK_OPTION)}
+                >
+                  {strings('browser.switch_network')}
+                </Text>
+              </Button>
             </View>
           </View>
         </TouchableWithoutFeedback>

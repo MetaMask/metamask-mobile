@@ -1,10 +1,10 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import {
+  NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,
+  NEW_NETWORK_ADDED_CLOSE_BUTTON,
   APPROVE_NETWORK_APPROVE_BUTTON,
   APPROVE_NETWORK_MODAL,
-  NEW_NETWORK_ADDED_CLOSE_BUTTON,
-  NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON,
 } from '../testIDs/Screens/NetworksScreen.testids';
 
 class NetworkApprovalModal {
@@ -15,8 +15,7 @@ class NetworkApprovalModal {
   get ApproveNetworkApproveButton() {
     return Selectors.getElementByPlatform(APPROVE_NETWORK_APPROVE_BUTTON);
   }
-
-  get closeNetworkButton() {
+  get CloseNetworkButton() {
     return Selectors.getElementByPlatform(NEW_NETWORK_ADDED_CLOSE_BUTTON);
   }
 
@@ -27,32 +26,23 @@ class NetworkApprovalModal {
   }
 
   async isApproveNetworkModal() {
-    const element = await this.ApproveNetworkModal;
-    await element.waitForDisplayed();
+    await expect(this.ApproveNetworkModal).toBeDisplayed();
   }
 
   async isApproveNetworkButton() {
-    const element = await this.ApproveNetworkApproveButton;
-    await element.waitForDisplayed();
+    await expect(this.ApproveNetworkApproveButton).toBeDisplayed();
   }
 
   async isCloseNetworkButton() {
-    const element = await this.closeNetworkButton;
-    await element.waitForDisplayed();
+    await expect(this.CloseNetworkButton).toBeDisplayed();
   }
 
   async tapApproveButton() {
-    await Gestures.waitAndTap(this.ApproveNetworkApproveButton);
+    await Gestures.tap(this.ApproveNetworkApproveButton);
   }
 
   async tapSwitchToNetwork() {
-    await Gestures.waitAndTap(this.SwitchToNetworkButton);
-  }
-
-  async isSwitchToNetworkButtonDisplayed() {
-    const element = await this.SwitchToNetworkButton;
-    await element.waitForDisplayed();
+    await Gestures.tap(this.SwitchToNetworkButton);
   }
 }
-
 export default new NetworkApprovalModal();

@@ -5,12 +5,6 @@ import {
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { CELL_SELECT_TEST_ID } from '../../app/constants/test-ids';
-
-import messages from '../../locales/languages/en.json';
-
-const REMOVE_IMPORTED_ACCOUNT_TEXT = messages.accounts.yes_remove_it;
-
 export default class AccountListView {
   static async tapCreateAccountButton() {
     await TestHelpers.waitAndTap(CREATE_ACCOUNT_BUTTON_ID);

@@ -4,14 +4,7 @@ import {
   getAssetTestId,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
-  NAVBAR_NETWORK_BUTTON,
-  NFT_TAB_CONTAINER_ID,
-  SEND_BUTTON_ID,
-  WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';

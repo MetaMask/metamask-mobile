@@ -1,5 +1,4 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import fiatOrderReducer, {
   addActivationKey,
   addAuthenticationUrl,
@@ -16,9 +15,8 @@ import fiatOrderReducer, {
   getOrders,
   getPendingOrders,
   getProviderName,
-  getRampNetworks,
   initialState,
-  getOrderById,
+  makeOrderIdSelector,
   removeActivationKey,
   removeAuthenticationUrl,
   removeFiatCustomIdData,
@@ -31,7 +29,6 @@ import fiatOrderReducer, {
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
-  updateOnRampNetworks,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -53,8 +50,6 @@ const mockOrder1 = {
   txHash: '0x987654321',
   excludeFromPurchases: false,
   orderType: 'BUY',
-  errorCount: 0,
-  lastTimeFetched: 0,
   data: {
     id: 'test-id',
     isOnlyLink: false,
@@ -540,20 +535,6 @@ describe('fiatOrderReducer', () => {
       ],
     );
   });
-
-  it('should update networks', () => {
-    const stateWithNetworks = fiatOrderReducer(
-      initialState,
-      updateOnRampNetworks(networks),
-    );
-
-    const stateWithNoNetworks = fiatOrderReducer(
-      stateWithNetworks,
-      updateOnRampNetworks([]),
-    );
-    expect(stateWithNetworks.networks).toEqual(networks);
-    expect(stateWithNoNetworks.networks).toEqual([]);
-  });
 });
 
 describe('selectors', () => {
@@ -563,7 +544,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '56',
               },
             },
@@ -644,7 +625,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '56',
               },
             },
@@ -700,7 +681,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -773,7 +754,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -795,7 +776,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '56',
               },
             },
@@ -853,7 +834,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -929,7 +910,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -951,7 +932,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '56',
               },
             },
@@ -999,7 +980,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -1015,13 +996,13 @@ describe('selectors', () => {
     });
   });
 
-  describe('getOrderById', () => {
+  describe('makeOrderIdSelector', () => {
     it('should make selector and return the correct order id', () => {
       const state = {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -1080,8 +1061,9 @@ describe('selectors', () => {
           ],
         },
       };
-      const order = getOrderById(state, 'test-56-order-2');
-      expect(order?.id).toBe('test-56-order-2');
+      const selector = makeOrderIdSelector('test-56-order-2');
+      expect(selector).toBeInstanceOf(Function);
+      expect(selector(state)?.id).toBe('test-56-order-2');
     });
   });
 
@@ -1091,7 +1073,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '1',
               },
             },
@@ -1154,7 +1136,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: {
+              provider: {
                 chainId: '56',
               },
             },
@@ -1264,25 +1246,6 @@ describe('selectors', () => {
       };
       expect(getAuthenticationUrls(state)).toStrictEqual([]);
     });
-  });
-});
-
-describe('getRampNetworks', () => {
-  it('should return the correct ramp networks', () => {
-    const state = {
-      fiatOrders: {
-        ...initialState,
-        networks,
-      },
-    };
-    const otherState = {
-      fiatOrders: {
-        ...initialState,
-        networks: networks[1],
-      },
-    };
-    expect(getRampNetworks(state)).toStrictEqual(networks);
-    expect(getRampNetworks(otherState)).toStrictEqual(networks[1]);
   });
 });
 

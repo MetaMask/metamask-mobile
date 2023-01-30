@@ -43,18 +43,8 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
-import {
-  AvatarVariants,
-  AvatarSize,
-} from '../../../component-library/components/Avatars/Avatar';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import {
-  LINEA_TESTNET_BLOCK_EXPLORER,
-  LINEA_TESTNET_RPC_URL,
-} from '../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -325,7 +315,6 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
-    color,
     testId,
   ) => {
     const styles = this.getStyles();
@@ -343,16 +332,7 @@ export class NetworkList extends PureComponent {
         >
           {selected}
         </View>
-        {isCustomRpc ? (
-          <AvatarNetwork
-            variant={AvatarVariants.Network}
-            name={name}
-            imageSource={image}
-            style={styles.networkIcon}
-            size={AvatarSize.Xs}
-          />
-        ) : null}
-        {!isCustomRpc &&
+        {isCustomRpc &&
           (image ? (
             <ImageIcon
               image={network.toUpperCase()}
@@ -377,7 +357,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { name, imageSource, color, testId } = Networks[network];
+      const { color, name, testId } = Networks[network];
       const isCustomRpc = false;
       const selected =
         providerConfig.type === network ? (
@@ -391,7 +371,6 @@ export class NetworkList extends PureComponent {
         i,
         network,
         isCustomRpc,
-        color,
         testId,
       );
     });

@@ -282,7 +282,7 @@
     "transactions": "GIAO DỊCH",
     "no_collectibles": "Không thấy NFT của bạn?",
     "no_available_tokens": "Không thấy Token của bạn?",
-    "add_tokens": "Nhập token",
+    "add_tokens": "Nhập Token",
     "tokens_detected_in_account": "Đã tìm thấy {{tokenCount}} {{tokensLabel}} mới trong tài khoản này",
     "token_toast": {
       "tokens_imported_title": "Token đã nhập",
@@ -300,8 +300,6 @@
       "cancel_cta": "Hủy",
       "confirm_cta": "Xác nhận"
     },
-    "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
-    "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có Token nào!",
     "no_nfts_yet": "Chưa có NFT",
     "nfts_autodetection_title": "Phát hiện NFT",
@@ -400,8 +398,8 @@
     "cta_i_agree": "Tôi đồng ý"
   },
   "token": {
-    "token_symbol": "Ký hiệu token",
-    "token_address": "Địa chỉ token",
+    "token_symbol": "Biểu tượng Token",
+    "token_address": "Địa chỉ Token",
     "token_decimal": "Số thập phân của token",
     "search_tokens_placeholder": "Tìm Token",
     "address_cant_be_empty": "Địa chỉ Token không thể để trống.",
@@ -796,11 +794,7 @@
     "balance": "số dư. Vui lòng xem bài viết hỗ trợ",
     "troubleshooting_missing": "về việc khắc phục sự cố số dư bị thiếu",
     "for_help": "để được trợ giúp.",
-    "troubleshoot": "Khắc phục sự cố",
-    "buy_description": "Mua tiền mã hóa bằng tiền",
-    "swap_description": "Chuyển đổi giữa các token",
-    "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
-    "receive_description": "Nhận tiền mã hóa"
+    "troubleshoot": "Khắc phục sự cố"
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -972,10 +966,7 @@
     "invalid_qr_code_sign": "Mã QR không hợp lệ. Vui lòng kiểm tra ví cứng và thử lại.",
     "no_camera_permission_android": "Bạn cần cho phép MetaMask truy cập vào camera để tiếp tục. Bạn cũng có thể cần thay đổi cài đặt của hệ thống.",
     "mismatched_qr_request_id": "Dữ liệu giao dịch không đồng nhất. Vui lòng sử dụng Keystone của bạn để ký mã QR bên dưới và nhấn vào 'Lấy Chữ Ký'.",
-    "fiat_conversion_not_available": "Quy đổi pháp định hiện không khả dụng",
-    "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm",
-    "invalid_recipient": "Người nhận không hợp lệ",
-    "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ"
+    "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm"
   },
   "custom_gas": {
     "total": "Tổng",
@@ -1031,9 +1022,7 @@
     "all_set": "Đã sẵn sàng!",
     "all_set_desc": "Bạn đã cài đặt quyền thành công cho trang web này.",
     "must_be_at_least": "Phải ít nhất {{allowance}}",
-    "access_up_to": "Truy cập tối đa:",
-    "spending_cap": "Hạn mức chi tiêu:",
-    "approve_asset": "Phê duyệt tài sản:"
+    "access_up_to": "Truy cập tối đa:"
   },
   "browser": {
     "title": "Trình duyệt",
@@ -1221,9 +1210,7 @@
     "empty_popular_networks": "Bạn đã thêm tất cả các mạng phổ biến. Bạn có thể khám phá thêm nhiều mạng khác",
     "add_other_network_here": "tại đây.",
     "you_can": "Hoặc bạn có thể",
-    "add_network": "thêm thủ công các mạng khác.",
-    "deprecated_network_msg": "Do những thay đổi trong giao thức của Ethereum: các mạng thử nghiệm Rinkeby, Ropsten, Kovan có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
-    "select_network": "Chọn mạng"
+    "add_network": "thêm thủ công các mạng khác."
   },
   "select": {
     "cancel": "Hủy",
@@ -1787,7 +1774,7 @@
     "try_different_amount_to_buy_input": "Hãy thử chọn một phương thức thanh toán khác hoặc cố gắng tăng hoặc giảm số lượng bạn muốn mua!",
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
     "no_tokens_available_title": "Hiện không có token nào",
-    "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "change_payment_method": "Thay đổi phương thức thanh toán",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",
@@ -2050,18 +2037,14 @@
   },
   "whats_new": {
     "title": "Xem thông tin mới",
-    "slides_button": "Mua tiền mã hóa",
-    "slide_1_subtitle": "Hãy quên đi các sàn giao dịch tập trung. Mua tiền mã hóa với MetaMask đã trở nên dễ dàng hơn.",
-    "slide_1_body_1": "Tại sao không nạp tiền trực tiếp vào ví MetaMask? Chúng tôi đang bận rộn giới thiệu các đối tác mới và phương thức thanh toán địa phương để giúp bạn mua tiền mã hóa bằng tiền pháp định với MetaMask trở nên dễ dàng hơn rất nhiều.",
-    "slide_1_body_2": "Với 189 quốc gia được hỗ trợ trên 8 mạng khác nhau, bao gồm cả L2, nhu cầu của bạn sẽ luôn được đáp ứng. Chọn tùy chọn thanh toán ưa thích của bạn và chọn báo giá tốt nhất hiện có.",
-    "slide_2_subtitle": "Xin chào Ấn Độ!",
-    "slide_2_body_1": "Người dùng ở Ấn Độ hiện có thể truy cập UPI & IMPS để thanh toán rẻ hơn, nhanh hơn và hiệu quả hơn. Cùng với Transak và Onramp.money, chúng tôi đang giúp web3 trở nên dễ tiếp cận hơn bao giờ hết tại Ấn Độ.",
-    "slide_3_subtitle": "Hãy kích hoạt PayID, POLi, Interac và iDEAL!",
-    "slide_3_body_1": "Chúng tôi đã tích hợp với Banxa để cung cấp cơ sở hạ tầng ngân hàng địa phương và các phương thức thanh toán mới này ở Canada, Hà Lan, Úc, Nam Phi và Thổ Nhĩ Kỳ. Hãy khám phá!",
-    "slide_4_subtitle": "Các tùy chọn thanh toán địa phương ở LATAM",
-    "slide_4_body_1": "Cùng với Transak, chúng tôi hiện đã kích hoạt AstroPay ở Brazil, Mexico, Uruguay, Chile và Peru. Người dùng Brazil cũng có thể chuyển sang tiền mã hóa bằng cách sử dụng Pix.",
-    "slide_5_subtitle": "Tránh xác minh danh tính phức tạp",
-    "slide_5_body_1": "Với Mercuryo, giờ đây bạn có thể mua tiền mã hóa trị giá lên đến €699 mà không cần phải xác minh danh tính của mình. Điều này giúp đơn giản hóa trải nghiệm thanh toán tiền mã hóa và giúp quá trình tìm hiểu trở nên dễ dàng hơn rất nhiều."
+    "feature_token_detection_title": "Tính năng phát hiện token cải tiến đã ra mắt",
+    "feature_token_detection_description": "Tính năng phát hiện token cải tiến hiện được cung cấp trên mạng Ethereum Mainnet, Polygon, BSC và Avalanche. Sau này sẽ có trên nhiều mạng khác!\n\nChúng tôi lấy token từ danh sách token của bên thứ ba. Các token được liệt kê trên nhiều hơn hai danh sách token sẽ tự động được phát hiện.\n\nTính năng phát hiện token được BẬT theo mặc định. Nhưng bạn có thể tắt tính năng này trong phần Cài đặt.",
+    "feature_token_detection_button_text": "Xem trong phần Cài đặt",
+    "feature_token_security_title_1": "Rủi ro về bảo mật và lừa đảo",
+    "feature_token_security_description_1": "Token có thể được tạo bởi bất kỳ ai và có thể có tên trùng lặp. Nếu bạn thấy một token mà bạn không tin tưởng hoặc chưa từng tương tác - để đảm bảo an toàn, đừng tin tưởng token đó.",
+    "feature_token_security_title_2": "Nhấn và giữ để ẩn token",
+    "feature_token_security_description_2": "Trong ứng dụng MetaMask trên thiết bị di động, bạn luôn luôn có thể ẩn token bằng cách nhấn và giữ token đó rồi chọn \"Ẩn\".",
+    "feature_token_security_button_text": "Hãy bắt đầu!"
   },
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
@@ -2270,56 +2253,6 @@
     "primary_action": "Bật kiểm tra bảo mật tự động",
     "secondary_action": "Không, cảm ơn"
   },
-  "contract_allowance": {
-    "custom_spend_cap": {
-      "max": "Tối đa",
-      "edit": "Chỉnh sửa",
-      "title": "Hạn mức chi tiêu tùy chỉnh",
-      "use_default": "Sử dụng mặc định",
-      "from_your_balance": "từ số dư hiện tại của bạn.",
-      "no_value_selected": "Chỉ nhập số mà bạn cảm thấy thoải mái khi truy cập {{domain}} ở hiện tại hoặc trong tương lai. Bạn luôn có thể tăng giới hạn token sau này.",
-      "this_contract_allows": "Hợp đồng này cho phép trang web chi tiêu",
-      "from_your_current_balance": "từ số dư hiện tại của bạn, cộng với",
-      "future_tokens": "số dư bạn có thể có trong tương lai. Token của bạn có thể gặp rủi ro.",
-      "info_modal_description_default": "Hợp đồng có thể chi tiêu toàn bộ số dư token của bạn mà không cần thông báo hoặc chấp thuận thêm. Hãy tự bảo vệ chính mình bằng cách đặt hạn mức chi tiêu thấp hơn.",
-      "set_spend_cap": "Đặt hạn mức chi tiêu",
-      "be_careful": "Hãy cẩn thận",
-      "error_enter_number": "Lỗi: Chỉ nhập số"
-    },
-    "token_allowance": {
-      "verify_third_party_details": "Xác minh thông tin bên thứ ba",
-      "protect_from_scams": "Để bảo vệ chính mình khỏi những kẻ lừa đảo, hãy dành chút thời gian để xác minh thông tin bên thứ ba.",
-      "learn_to_verify": "Tìm hiểu cách xác minh thông tin bên thứ ba",
-      "spending_cap": "hạn mức chi tiêu",
-      "access": "truy cập",
-      "nft_contract": "Hợp đồng NFT",
-      "token_contract": "Hợp đồng token",
-      "third_party_requesting_text": "Bên thứ ba yêu cầu {{action}}",
-      "third party": "bên thứ ba",
-      "address": "Địa chỉ"
-    }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "Cần khôi phục",
-    "restore_needed_description": "Đã xảy ra sự cố nhưng đừng lo lắng! Hãy thử khôi phục ví của bạn.",
-    "restore_needed_action": "Khôi phục ví"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "Ví của bạn đã sẵn sàng!",
-    "wallet_restored_action": "Tiếp tục đến ví",
-    "wallet_restored_description_part_one": "Bạn có thể cần phải thêm lại một số tài sản, mạng và cài đặt của mình theo cách thủ công.",
-    "wallet_restored_description_part_two": "Hãy dành một chút thời gian để",
-    "wallet_restored_description_link": "sao lưu Cụm từ khôi phục bí mật của bạn",
-    "wallet_restored_description_part_three": "trong trường hợp bạn cần khôi phục lại ví của mình trong tương lai."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Cần có ví mới",
-    "new_wallet_needed_create_new_wallet_action": "Tạo ví mới",
-    "new_wallet_needed_create_try_again_action": "Thử khôi phục ví",
-    "new_wallet_needed_description_part_one": "Đã xảy ra lỗi với ví của bạn và bạn cần tạo một ví mới. Vì tài khoản của bạn nằm trên chuỗi khối nên chúng vẫn an toàn. Chỉ có các tùy chọn, mạng đã lưu, tên tài khoản và dữ liệu liên quan được lưu trên thiết bị của bạn mới biến mất.",
-    "new_wallet_needed_description_part_two": "Để nhập tài khoản của bạn vào ví mới, bạn sẽ cần sử dụng Cụm từ khôi phục bí mật. Nếu không có Cụm từ khôi phục bí mật, bạn sẽ không thể nhập tài khoản của mình.",
-    "new_wallet_needed_description_part_three": "Để tránh trường hợp này xảy ra lại, hãy nhớ luôn cập nhật ứng dụng MetaMask và hệ điều hành của bạn lên phiên bản mới nhất."
-  },
   "srp_security_quiz": {
     "title": "Câu hỏi bảo mật",
     "introduction": "Để hiển thị Cụm từ khôi phục bí mật, bạn cần trả lời đúng hai câu hỏi",
@@ -2346,74 +2279,5 @@
       "wrong_answer_title": "Không! Tuyệt đối không bao giờ chia sẻ Cụm từ khôi phục bí mật của bạn với bất kỳ ai",
       "wrong_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn."
     }
-  },
-  "ledger": {
-    "open_settings": "Mở cài đặt",
-    "view_settings": "Xem cài đặt",
-    "bluetooth_off": "Bluetooth đã tắt",
-    "bluetooth_off_message": "Vui lòng bật Bluetooth cho thiết bị của bạn",
-    "bluetooth_access_blocked": "Ledger cần được cấp quyền truy cập Bluetooth để ghép nối với thiết bị di động của bạn.",
-    "bluetooth_access_blocked_message": "Nếu bạn muốn ghép nối thiết bị Ledger bằng Bluetooth, hãy bật Bluetooth trong phần Cài đặt và thử lại.",
-    "location_access_blocked": "Ledger cần được cấp quyền truy cập dịch vụ định vị để ghép nối với thiết bị di động của bạn.",
-    "location_access_blocked_message": "Nếu bạn muốn ghép nối thiết bị Ledger bằng Bluetooth, bạn sẽ cần cấp quyền truy cập dịch vụ định vị trong phần Cài đặt và thử lại.",
-    "bluetooth_scanning_error": "Lỗi khi quét thiết bị",
-    "bluetooth_scanning_error_message": "Nhớ mở khóa thiết bị và chạy ứng dụng Ethereum",
-    "bluetooth_connection_failed": "Kết nối Bluetooth không thành công",
-    "bluetooth_connection_failed_message": "Nhớ mở khóa Ledger và bật Bluetooth",
-    "ethereum_app_open": "Ledger yêu cầu xác nhận",
-    "ethereum_app_open_message": "Vui lòng xác nhận trên thiết bị của bạn để mở ứng dụng Ethereum. Nhấn OK sau khi hoàn tất.",
-    "ethereum_app_unconfirmed_error": "Bạn đã từ chối yêu cầu mở ứng dụng Ethereum.",
-    "failed_to_open_eth_app": "Không mở được ứng dụng Ethereum.",
-    "ethereum_app_open_error": "Vui lòng cài đặt/chấp nhận ứng dụng Ethereum trên thiết bị Ledger của bạn.",
-    "running_app_close": "Không đóng được ứng dụng đang chạy.",
-    "running_app_close_error": "Không đóng được ứng dụng đang chạy trên thiết bị Ledger của bạn.",
-    "ethereum_app_not_installed": "Chưa cài đặt ứng dụng Ethereum.",
-    "ethereum_app_not_installed_error": "Vui lòng cài đặt ứng dụng Ethereum trên thiết bị Ledger của bạn.",
-    "ledger_is_locked": "Ledger đã khóa",
-    "unlock_ledger_message": "Vui lòng mở khóa thiết bị Ledger của bạn",
-    "cannot_get_account": "Không thể lấy tài khoản",
-    "connect_ledger": "Kết nối với Ledger",
-    "looking_for_device": "Tìm kiếm thiết bị",
-    "ledger_reminder_message": "Đảm bảo Ledger Nano X của bạn:",
-    "ledger_reminder_message_step_one": "1. Đã mở khóa",
-    "ledger_reminder_message_step_two": "2. Đã cài đặt ứng dụng Ethereum",
-    "ledger_reminder_message_step_three": "3. Đã bật Bluetooth",
-    "ledger_reminder_message_step_four": "4. Đã bật dịch vụ định vị",
-    "available_devices": "Thiết bị có sẵn",
-    "retry": "Thử lại",
-    "continue": "Tiếp tục",
-    "confirm_transaction_on_ledger": "Xác nhận giao dịch bằng cách nhấn hai nút trên Ledger của bạn",
-    "bluetooth_enabled_message": "Nhớ bật Bluetooth",
-    "device_unlocked_message": "Đã mở khóa thiết bị",
-    "blind_signing_message": "Đã bật ký mù",
-    "ledger_disconnected": "Thiết bị của bạn đã bị ngắt kết nối",
-    "ledger_disconnected_error": "Đã mất kết nối với thiết bị của bạn. Vui lòng thử lại.",
-    "unknown_error": "Đã xảy ra lỗi không mong muốn.",
-    "unknown_error_message": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
-    "error_occured": "Đã xảy ra lỗi",
-    "how_to_install_eth_app": "Cách cài đặt ứng dụng Ethereum trên thiết bị Ledger",
-    "ledger_account_count": "Bạn đang sử dụng 1 tài khoản từ Ledger bằng MetaMask Di động.",
-    "open_eth_app": "Vui lòng mở ứng dụng Ethereum",
-    "open_eth_app_message_one": "Chúng tôi phát hiện bạn đã cài đặt nhưng chưa mở ứng dụng Ethereum, vui lòng ",
-    "open_eth_app_message_two": "nhấn hai nút trên thiết bị để chấp nhận lời nhắc mở ứng dụng Ethereum để tiếp tục.",
-    "toast_bluetooth_connection_error_title": "Rất tiếc, đã xảy ra lỗi :/",
-    "toast_bluetooth_connection_error_subtitle": "Chưa kết nối với Ledger",
-    "try_again": "Thử lại",
-    "forget_device": "Quên Ledger",
-    "sign_with_ledger": "Ký bằng Ledger",
-    "ledger_pending_confirmation": "Ledger đang bận",
-    "ledger_pending_confirmation_error": "Có một hành động đang chờ xử lý trên Ledger. Trước tiên hãy xóa hành động đó và thử lại.",
-    "not_supported": "Thao tác không được hỗ trợ",
-    "not_supported_error": "Chỉ hỗ trợ phiên bản 4 của ký dữ liệu đã nhập.",
-    "error_during_connection": "Đã xảy ra lỗi không xác định",
-    "error_during_connection_message": "Đã xảy ra một sự cố nhỏ khi kết nối với Ledger Nano X của bạn, nhấn 'Thử lại' bên dưới để tiếp tục. Đôi khi sự cố này xảy ra do bạn đang mở ứng dụng ETH trên Ledger Nano X khi bắt đầu quá trình ghép nối với MetaMask Di động.",
-    "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum"
-  },
-  "account_actions": {
-    "edit_name": "Chỉnh sửa tên tài khoản",
-    "add_account_or_hardware_wallet": "Thêm tài khoản hoặc ví cứng",
-    "add_account": "Thêm tài khoản",
-    "add_new_account": "Thêm tài khoản mới",
-    "add_hardware_wallet": "Thêm ví cứng"
   }
 }

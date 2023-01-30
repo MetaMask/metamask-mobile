@@ -34,10 +34,7 @@ class MultiTabScreen {
   }
 
   async tapAddButton() {
-    const element = await this.addButton;
-    await element.waitForEnabled();
     await Gestures.waitAndTap(this.addButton);
-    await element.waitForExist({ reverse: true });
   }
 
   async tapDoneButton() {

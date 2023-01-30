@@ -56,9 +56,6 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import AccountSelector from '../../../components/Views/AccountSelector';
-import AccountConnect from '../../../components/Views/AccountConnect';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -357,15 +354,6 @@ const App = ({ userLoggedIn }) => {
   }, [navigator]);
 
   useEffect(() => {
-    if (navigator) {
-      SDKConnect.getInstance().init({ navigation: navigator });
-    }
-    return () => {
-      SDKConnect.getInstance().unmount();
-    };
-  }, [navigator]);
-
-  useEffect(() => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
@@ -373,7 +361,6 @@ const App = ({ userLoggedIn }) => {
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
-
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
@@ -511,37 +498,6 @@ const App = ({ userLoggedIn }) => {
         component={EnableAutomaticSecurityChecksModal}
       />
       <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
-    </Stack.Navigator>
-  );
-
-  const ImportPrivateKeyView = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-      <Stack.Screen
-        name="ImportPrivateKeySuccess"
-        component={ImportPrivateKeySuccess}
-      />
-      <Stack.Screen
-        name={Routes.QR_SCANNER}
-        component={QRScanner}
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </Stack.Navigator>
-  );
-
-  const ConnectQRHardwareFlow = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
     </Stack.Navigator>
   );
 

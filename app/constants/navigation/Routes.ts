@@ -28,9 +28,7 @@ const Routes = {
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
-    DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
-    WALLET_ACTIONS: 'WalletActions',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -52,32 +50,6 @@ const Routes = {
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
-    CHANGE_PASSWORD: 'ResetPassword',
-  },
-  SHEET: {
-    ACCOUNT_SELECTOR: 'AccountSelector',
-    SDK_LOADING: 'SDKLoading',
-    SDK_FEEDBACK: 'SDKFeedback',
-    ACCOUNT_CONNECT: 'AccountConnect',
-    ACCOUNT_PERMISSIONS: 'AccountPermissions',
-  },
-  BROWSER: {
-    HOME: 'BrowserTabHome',
-    URL_MODAL: 'BrowserUrlModal',
-    VIEW: 'BrowserView',
-  },
-  WEBVIEW: {
-    MAIN: 'Webview',
-    SIMPLE: 'SimpleWebview',
-  },
-  WALLET: {
-    HOME: 'WalletTabHome',
-    TAB_STACK_FLOW: 'WalletTabStackFlow',
-  },
-  VAULT_RECOVERY: {
-    RESTORE_WALLET: 'RestoreWallet',
-    WALLET_RESTORED: 'WalletRestored',
-    WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
 };
 

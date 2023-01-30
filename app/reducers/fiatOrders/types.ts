@@ -74,7 +74,6 @@ export interface ActivationKey {
 export interface FiatOrdersState {
   orders: FiatOrder[];
   customOrderIds: CustomIdData[];
-  networks: AggregatorNetwork[];
   selectedRegionAgg: Country | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
