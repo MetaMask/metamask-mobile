@@ -3,7 +3,7 @@ import { View, Alert, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import Text from '../../../component-library/components/Texts/Text';
+import { SnapElement } from './SnapElement';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -15,7 +15,12 @@ import Engine from '../../../core/Engine';
 
 import { createStyles } from './styles';
 
-const MOCK_ORIGIN = 'metamask-mobile';
+/**
+ * To test
+ *
+ * local:http://localhost:3000/snap/
+ * local:http://localhost:3000/helloworldsnap/
+ */
 
 const SnapsDev = () => {
   const navigation = useNavigation();
@@ -65,38 +70,6 @@ const SnapsDev = () => {
     ]);
   };
 
-  const ping = (snapId: string) => {
-    // eslint-disable-next-line no-console
-    console.log('ping', snapId);
-  };
-
-  const terminate = async (snapId: string): Promise<void> => {
-    const { SnapController } = Engine.context as any;
-    await SnapController.terminateSnap(snapId);
-  };
-
-  const executeSnapMethod = async (
-    snapId: string,
-    method: string,
-  ): Promise<any> => {
-    // eslint-disable-next-line no-console
-    const { SnapController } = Engine.context as any;
-    const localSnap = snapId;
-    const origin = MOCK_ORIGIN;
-    const { name, args } = JSON.parse(method);
-    const result = await SnapController.handleRequest({
-      snapId: localSnap,
-      origin,
-      handler: 'onRpcRequest',
-      request: {
-        method: name,
-      },
-    });
-    // eslint-disable-next-line no-console
-    console.log(result);
-    // await SnapController.terminateSnap(snapId);
-  };
-
   return (
     <View style={styles.container}>
       <TextInput
@@ -114,39 +87,7 @@ const SnapsDev = () => {
       />
       <ScrollView style={styles.snapListContainer}>
         {Object.values(snaps).map((snap: any, idx: number) => (
-          <View key={idx} style={styles.snapElementContainer}>
-            <Text>{`Snap: ${snap.id}`}</Text>
-            <Text>{`Status: ${snap.status}`}</Text>
-            <View style={styles.btnContainer}>
-              <Button
-                label={'Ping'}
-                onPress={() => ping(snap.id)}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Sm}
-                style={styles.button}
-              />
-              <Button
-                label={'Terminate'}
-                onPress={() => terminate(snap.id)}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Sm}
-                style={styles.button}
-              />
-            </View>
-            <TextInput
-              style={styles.input}
-              onChangeText={setSnapInput}
-              value={snapInput}
-              placeholder={'{name: <METHOD_NAME>, args: { ... }}'}
-            />
-            <Button
-              label={'Execute Snap Method'}
-              onPress={() => installSnap(snapInput, MOCK_ORIGIN)}
-              variant={ButtonVariants.Tertiary}
-              size={ButtonSize.Sm}
-              style={styles.installBtn}
-            />
-          </View>
+          <SnapElement snap={snap} key={idx} />
         ))}
       </ScrollView>
       <View style={styles.webviewContainer}>

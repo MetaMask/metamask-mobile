@@ -1,21 +1,15 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createStyles = (colors: any) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
     snapListContainer: {
       flex: 1,
       padding: 10,
     },
     snapElementContainer: {
       marginBottom: 5,
-    },
-    webviewContainer: {
-      flex: 0.1,
     },
     // eslint-disable-next-line react-native/no-color-literals
     input: {
