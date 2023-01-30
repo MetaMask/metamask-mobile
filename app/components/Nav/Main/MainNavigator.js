@@ -632,6 +632,16 @@ const SnapsDevUI = () => (
   </Stack.Navigator>
 );
 
+const SnapsDevUI = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.SNAPS.HOME}
+      component={SnapsDev}
+      options={SnapsDev.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
