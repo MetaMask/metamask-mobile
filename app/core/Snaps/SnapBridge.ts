@@ -9,7 +9,7 @@ import {
 } from 'swappable-obj-proxy';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import { createEngineStream } from 'json-rpc-middleware-stream';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 
 import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
