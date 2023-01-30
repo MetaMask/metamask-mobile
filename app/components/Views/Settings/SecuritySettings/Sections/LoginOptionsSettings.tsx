@@ -14,8 +14,8 @@ import {
 import { View } from 'react-native';
 
 interface BiometricOptionSectionProps {
-  onSignWithBiometricsOptionUpdated: (enabled: boolean) => void;
-  onSignWithPasscodeOptionUpdated: (enabled: boolean) => void;
+  onSignWithBiometricsOptionUpdated: (enabled: boolean) => Promise<void>;
+  onSignWithPasscodeOptionUpdated: (enabled: boolean) => Promise<void>;
 }
 
 const LoginOptionsSettings = ({
@@ -62,15 +62,15 @@ const LoginOptionsSettings = ({
   }, []);
 
   const onBiometricsOptionUpdated = useCallback(
-    (enabled: boolean) => {
-      onSignWithBiometricsOptionUpdated(enabled);
+    async (enabled: boolean) => {
+      await onSignWithBiometricsOptionUpdated(enabled);
       setBiometryChoice(enabled);
     },
     [onSignWithBiometricsOptionUpdated],
   );
   const onPasscodeOptionUpdated = useCallback(
-    (enabled: boolean) => {
-      onSignWithPasscodeOptionUpdated(enabled);
+    async (enabled: boolean) => {
+      await onSignWithPasscodeOptionUpdated(enabled);
       setPasscodeChoice(enabled);
     },
     [onSignWithPasscodeOptionUpdated],

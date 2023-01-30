@@ -130,21 +130,11 @@ export default {
       'vault/ SecureKeychain setGenericPassword encryptedPassword worked',
       encryptedPassword,
     );
-    try {
-      await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
-        ...defaultOptions,
-        ...authOptions,
-      });
-    } catch (error) {
-      console.log(
-        'vault/ SecureKeychain Keychain.setGenericPassword failed with',
-        error,
-      );
-    }
+    await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
+      ...defaultOptions,
+      ...authOptions,
+    });
 
-    console.log(
-      'vault/ SecureKeychain setGenericPassword  Keychain.setGenericPassword worked',
-    );
     if (type === this.TYPES.BIOMETRICS) {
       await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
       await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
