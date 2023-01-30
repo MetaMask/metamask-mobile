@@ -27,15 +27,11 @@ const SnapElement = (snap: any) => {
     await SnapController.terminateSnap(snap.snap.id);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const executeSnapMethod = async (): Promise<any> => {
-    // eslint-disable-next-line no-console
     const { SnapController } = Engine.context as any;
     const localSnap = snap.snap.id;
     const origin = 'metamask-mobile';
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const { name, args } = JSON.parse(input);
-    const result = await SnapController.handleRequest({
+    await SnapController.handleRequest({
       snapId: localSnap,
       origin,
       handler: 'onRpcRequest',
@@ -43,9 +39,6 @@ const SnapElement = (snap: any) => {
         method: input.toLowerCase(),
       },
     });
-    // eslint-disable-next-line no-console
-    console.log(result);
-    // await SnapController.terminateSnap(snapId);
   };
 
   return (
@@ -76,7 +69,6 @@ const SnapElement = (snap: any) => {
       />
       <Button
         label={'Execute Snap Method'}
-        // eslint-disable-next-line no-console
         onPress={executeSnapMethod}
         variant={ButtonVariants.Tertiary}
         size={ButtonSize.Sm}
