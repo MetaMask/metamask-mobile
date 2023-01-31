@@ -9,6 +9,24 @@ import {
 import { strings } from '../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../util/etherscan';
 
+interface ValidExplorer {
+  isValid: true;
+  name: string;
+  value: string;
+  isRPC: boolean;
+  baseUrl: string;
+}
+
+interface InvalidExplorer {
+  isValid: false;
+  name: string | null;
+  value: string | null;
+  isRPC?: boolean;
+  baseUrl?: string;
+}
+
+type Explorer = ValidExplorer | InvalidExplorer;
+
 function useBlockExplorer() {
   const providerConfig = useSelector(
     (state: any) => state.engine.backgroundState.NetworkController.provider,
@@ -18,7 +36,7 @@ function useBlockExplorer() {
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
 
-  const [explorer, setExplorer] = useState({
+  const [explorer, setExplorer] = useState<Explorer>({
     name: '',
     value: null,
     isValid: false,
@@ -73,7 +91,7 @@ function useBlockExplorer() {
 
   const tx = useCallback(
     (hash) => {
-      if (!explorer.isValid || !explorer.value) {
+      if (!explorer.isValid) {
         return '';
       }
 
@@ -86,7 +104,7 @@ function useBlockExplorer() {
   );
   const account = useCallback(
     (address) => {
-      if (!explorer.isValid || !explorer.value) {
+      if (!explorer.isValid) {
         return '';
       }
 
@@ -99,7 +117,7 @@ function useBlockExplorer() {
   );
   const token = useCallback(
     (address) => {
-      if (!explorer.isValid || !explorer.value) {
+      if (!explorer.isValid) {
         return '';
       }
 
