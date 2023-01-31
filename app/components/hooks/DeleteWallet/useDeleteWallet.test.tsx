@@ -27,15 +27,15 @@ describe('useDeleteWallet', () => {
     const { result } = renderHook(() => useDeleteWallet());
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [resetWalletState, _] = result.current;
-    const newWalletAndKeyChain = jest.spyOn(
+    const newWalletAndKeychain = jest.spyOn(
       Authentication,
-      'newWalletAndKeyChain',
+      'newWalletAndKeychain',
     );
     const resetStateSpy = jest.spyOn(Engine, 'resetState');
     await resetWalletState();
     expect(resetStateSpy).toHaveBeenCalled();
-    expect(newWalletAndKeyChain).toHaveBeenCalledWith('123', {
-      type: AUTHENTICATION_TYPE.UNKNOWN,
+    expect(newWalletAndKeychain).toHaveBeenCalledWith('123', {
+      currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
     });
   });
 

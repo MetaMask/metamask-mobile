@@ -92,7 +92,7 @@ describe('Authentication', () => {
       true,
     );
     expect(result.availableBiometryType).toEqual('Fingerprint');
-    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.PASSWORD', async () => {

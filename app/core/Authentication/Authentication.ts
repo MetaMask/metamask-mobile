@@ -310,7 +310,7 @@ class AuthenticationService {
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
    */
-  newWalletAndKeyChain = async (
+  newWalletAndKeychain = async (
     password: string,
     authData: AuthData,
   ): Promise<void> => {
@@ -346,8 +346,8 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     try {
-      await this.storePassword(password, authData.currentAuthType);
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      await this.storePassword(password, authData.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();

@@ -376,7 +376,7 @@ class ChoosePassword extends PureComponent {
 
       if (previous_screen === ONBOARDING) {
         try {
-          await Authentication.newWalletAndKeyChain(password, authType);
+          await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
           // retry faceID if the user cancels the
           if (
@@ -440,7 +440,7 @@ class ChoosePassword extends PureComponent {
       false,
     );
     try {
-      await Authentication.newWalletAndKeyChain(
+      await Authentication.newWalletAndKeychain(
         this.state.password,
         newAuthData,
       );

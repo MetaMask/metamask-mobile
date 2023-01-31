@@ -14,7 +14,7 @@ describe('App', () => {
       engine: {
         backgroundState: {
           PreferencesController: {
-            selectedAddress: 'akjdjkasdjkdsk',
+            selectedAddress: '0x1',
           },
         },
       },
