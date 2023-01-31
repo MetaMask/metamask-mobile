@@ -2,7 +2,7 @@ import TestHelpers from '../../helpers';
 import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
-} from '../../../wdio/features/testIDs/Screens/WelcomeScreen.testIds';
+} from '../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 
 const ONBOARDING_CAROUSEL_ID = 'welcome-screen-carousel-container-id';
 

@@ -15,7 +15,7 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/features/testIDs/Screens/WalletScreen-testIds';
+import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
