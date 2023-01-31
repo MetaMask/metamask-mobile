@@ -1,4 +1,4 @@
-import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import TestHelpers from '../../helpers';
 
 const NO_THANKS_BUTTON_ID = 'onboarding-wizard-back-button';
