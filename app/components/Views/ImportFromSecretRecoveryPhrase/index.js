@@ -73,6 +73,8 @@ import { passcodeType } from '../../../util/authentication/passcodeType';
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const IOS_REJECTED_BIOMETRICS_ERROR =
+  'Error: The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set restore their account
@@ -142,6 +144,34 @@ const ImportFromSecretRecoveryPhrase = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const updateBiometryChoice = async (biometryChoice) => {
+    setBiometryChoice(biometryChoice);
+  };
+
+  /**
+   * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
+   * If this occurs we will create the wallet automatically with password as the login method
+   */
+  const handleRejectedOsBiometricPrompt = async (parsedSeed) => {
+    console.log('Vault/ handleRejectedOsBiometricPrompt');
+    const newAuthData = await Authentication.componentAuthenticationType(
+      false,
+      false,
+    );
+    try {
+      await Authentication.newWalletAndRestore(
+        password,
+        newAuthData,
+        parsedSeed,
+        true,
+      );
+    } catch (err) {
+      this.setState({ loading: false, error: err.toString() });
+    }
+    setBiometryType(newAuthData.availableBiometryType);
+    updateBiometryChoice(false);
+  };
+
   const onPressImport = async () => {
     const vaultSeed = await parseVaultValue(password, seed);
     const parsedSeed = parseSeedPhrase(vaultSeed || seed);
@@ -176,17 +206,23 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
-        const type = await Authentication.componentAuthenticationType(
+        const authData = await Authentication.componentAuthenticationType(
           biometryChoice,
           rememberMe,
         );
 
-        await Authentication.newWalletAndRestore(
-          password,
-          type,
-          parsedSeed,
-          true,
-        );
+        try {
+          await Authentication.newWalletAndRestore(
+            password,
+            authData,
+            parsedSeed,
+            true,
+          );
+        } catch (err) {
+          // retry faceID if the user cancels the
+          if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
+            await handleRejectedOsBiometricPrompt(parsedSeed);
+        }
         // Get onboarding wizard state
         const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
         setLoading(false);
@@ -212,14 +248,20 @@ const ImportFromSecretRecoveryPhrase = ({
         }
         await importAdditionalAccounts();
       } catch (error) {
+        console.log('vault/ ImportFromSRP error catch', error.toString());
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+          console.log(
+            'vault/ ImportFromSRP error Passcode not set',
+            error.toString(),
+          );
           Alert.alert(
             'Security Alert',
             'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
           );
           setLoading(false);
         } else {
+          console.log('vault/ ImportFromSRP error else', error.toString());
           setLoading(false);
           setError(error.message);
           Logger.log('Error with seed phrase import', error.message);
@@ -280,10 +322,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const jumpToConfirmPassword = () => {
     const { current } = confirmPasswordInput;
     current && current.focus();
-  };
-
-  const updateBiometryChoice = async (biometryChoice) => {
-    setBiometryChoice(biometryChoice);
   };
 
   const renderSwitch = () => {

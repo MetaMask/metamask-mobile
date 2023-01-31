@@ -230,6 +230,8 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const IOS_REJECTED_BIOMETRICS_ERROR =
+  'Error: The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -378,7 +380,11 @@ class ChoosePassword extends PureComponent {
           await Authentication.newWalletAndKeyChain(password, authType);
         } catch (error) {
           // retry faceID if the user cancels the
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
+          if (
+            Device.isIos &&
+            error.toString() === IOS_REJECTED_BIOMETRICS_ERROR
+          )
+            await this.handleRejectedOsBiometricPrompt();
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
@@ -427,8 +433,7 @@ class ChoosePassword extends PureComponent {
 
   /**
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-   * It resets the state and and prompts the user to both set the "Remember Me" state and to try again.
-   * @param {*} error - error provide from try catch wrapping the biometric set password attempt
+   * If this occurs we will create the wallet automatically with password as the login method
    */
   handleRejectedOsBiometricPrompt = async () => {
     const newAuthData = await Authentication.componentAuthenticationType(
@@ -444,10 +449,9 @@ class ChoosePassword extends PureComponent {
       throw Error(strings('choose_password.disable_biometric_error'));
     }
     this.setState({
-      biometryType: newAuthData.type,
-      biometryChoice: true,
+      biometryType: newAuthData.availableBiometryType,
+      biometryChoice: false,
     });
-    this.updateBiometryChoice();
   };
 
   /**

@@ -270,6 +270,10 @@ class Login extends PureComponent {
     );
 
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      console.log(
+        'vault/ Login AUTHENTICATION_TYPE.PASSCODE',
+        JSON.stringify(authData),
+      );
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
         biometryChoice: !(
@@ -279,18 +283,21 @@ class Login extends PureComponent {
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
     } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+      console.log('vault/ Login AUTHENTICATION_TYPE.REMEMBER_ME');
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,
       });
       this.props.setAllowLoginWithRememberMe(true);
-    } else if (authData.availableBiometryType)
+    } else if (authData.availableBiometryType) {
+      console.log('vault/ Login authData.availableBiometryType');
       this.setState({
         biometryType: authData.availableBiometryType,
         biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
         biometryPreviouslyDisabled: !!previouslyDisabled,
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
+    }
   }
 
   componentWillUnmount() {
@@ -495,7 +502,7 @@ class Login extends PureComponent {
                     <BiometryButton
                       onPress={this.tryBiometric}
                       hidden={shouldHideBiometricAccessoryButton}
-                      type={this.state.biometryType}
+                      biometryType={this.state.biometryType}
                     />
                   )}
                   keyboardAppearance={themeAppearance}

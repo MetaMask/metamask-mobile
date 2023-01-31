@@ -14,7 +14,7 @@ const iosFaceId = require('../../../images/ios-face-id.png');
 const androidFaceRecognition = require('../../../images/android-face-recognition.png');
 const androidIris = require('../../../images/android-iris.png');
 
-type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE.BIOMETRIC;
+type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE;
 
 interface BiometryButtonProps {
   onPress: () => void;
@@ -30,7 +30,10 @@ const BiometryButton = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  console.log('vault/ BiometryButton before render', biometryType);
+
   const renderIcon = (type: BiometryType) => {
+    console.log('vault/ BiometryButton', biometryType);
     if (Platform.OS === 'ios') {
       if (type === 'TouchID') {
         return (
@@ -41,12 +44,21 @@ const BiometryButton = ({
             name="ios-finger-print"
           />
         );
+      } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
+        return (
+          <Ionicons
+            color={colors.text.default}
+            size={28}
+            style={styles.fixCenterIcon}
+            name="ios-lock"
+          />
+        );
       }
       return <ImageRN style={styles.image} source={iosFaceId} />;
     }
 
     if (Platform.OS === 'android') {
-      if (type === 'Fingerprint')
+      if (type === 'Fingerprint') {
         return (
           <MaterialIcon
             color={colors.text.default}
@@ -55,10 +67,20 @@ const BiometryButton = ({
             name="fingerprint"
           />
         );
-      if (type === 'Face')
+      } else if (type === 'Face') {
         return <ImageRN style={styles.image} source={androidFaceRecognition} />;
-      if (type === 'Iris')
+      } else if (type === 'Iris') {
         return <ImageRN style={styles.image} source={androidIris} />;
+      } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
+        return (
+          <MaterialIcon
+            color={colors.text.default}
+            style={styles.fixCenterIcon}
+            size={28}
+            name="lock"
+          />
+        );
+      }
     }
 
     return (

@@ -88,7 +88,7 @@ class AuthenticationService {
         await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
       } catch (e: any) {
         throw new AuthenticationError(
-          e,
+          (e as Error).message,
           'Unable to recreate vault',
           this.authData,
         );
@@ -344,7 +344,11 @@ class AuthenticationService {
       this.authData = authData;
     } catch (e: any) {
       this.lockApp(false);
-      throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
+      throw new AuthenticationError(
+        (e as Error).message,
+        'Failed wallet creation',
+        this.authData,
+      );
     }
     password = this.wipeSensitiveData();
   };
@@ -363,6 +367,12 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     try {
+      console.log(
+        'vault/ Autnentication.newWalletAndRestore called with',
+        password,
+        JSON.stringify(authData),
+        clearEngine,
+      );
       await this.storePassword(password, authData.currentAuthType);
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
@@ -372,7 +382,11 @@ class AuthenticationService {
       this.authData = authData;
     } catch (e: any) {
       this.lockApp(false);
-      throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
+      throw new AuthenticationError(
+        (e as Error).message,
+        'Failed wallet creation',
+        this.authData,
+      );
     }
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
@@ -397,7 +411,11 @@ class AuthenticationService {
       this.authData = authData;
     } catch (e: any) {
       this.lockApp(false);
-      throw new AuthenticationError(e, 'Failed to login', this.authData);
+      throw new AuthenticationError(
+        (e as Error).message,
+        'Failed to login',
+        this.authData,
+      );
     }
     password = this.wipeSensitiveData();
   };
@@ -424,7 +442,7 @@ class AuthenticationService {
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(
-        e,
+        (e as Error).message,
         'appTriggeredAuth failed to login',
         this.authData,
       );
