@@ -11,7 +11,6 @@ import Icon, {
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { useAssetFromTheme } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';
@@ -20,8 +19,7 @@ import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
 
-const introductionImgLight = require('../../../../images/reveal-srp-light.png');
-const introductionImgDark = require('../../../../images/reveal-srp-light.png');
+const introductionImg = require('../../../../images/reveal-srp.png');
 
 const SRPQuiz = () => {
   const modalRef = useRef<ReusableModalRef>(null);
@@ -29,11 +27,6 @@ const SRPQuiz = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
-
-  const introductionImg = useAssetFromTheme(
-    introductionImgLight,
-    introductionImgDark,
-  );
 
   const dismissModal = (): void => {
     modalRef.current?.dismissModal();
@@ -110,7 +103,7 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [introductionImg]);
+  }, []);
 
   const questionOne = useCallback((): Element => {
     AnalyticsV2.trackEvent(
