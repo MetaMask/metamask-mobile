@@ -5,7 +5,7 @@ import { fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { TABS_NUMBER } from '../../../../../wdio/features/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { TABS_NUMBER } from '../../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
