@@ -15,7 +15,7 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.isScreenTitleVisible();
+  // await WelcomeScreen.isScreenTitleVisible();
   await driver.pause(22000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -47,6 +47,20 @@ Given(/^I have created my wallet$/, async () => {
   await CreateNewWalletScreen.selectRemindMeLater();
   await CreateNewWalletScreen.isAccountCreated();
   await CreateNewWalletScreen.isNotVisible();
+});
+
+Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
+  const setTimeout = 50000;
+  await driver.pause(setTimeout);
+  await WelcomeScreen.clickGetStartedButton();
+  await OnboardingScreen.clickImportWalletButton();
+  await MetaMetricsScreen.swipeUp();
+  await MetaMetricsScreen.tapIAgreeButton();
+  const validAccount = Accounts.getValidAccount();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
+  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
+  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
+  await ImportFromSeedScreen.clickImportButton();
 });
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
