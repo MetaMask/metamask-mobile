@@ -290,6 +290,7 @@ class DeeplinkManager {
         if (KeyringController.isUnlocked()) {
           createSession();
         } else {
+          // Wait until app unlocked
           KeyringController.once('unlock', createSession);
         }
 
