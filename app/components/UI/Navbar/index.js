@@ -47,7 +47,7 @@ import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Scree
 import {
   PAYMENT_REQUEST_CLOSE_BUTTON,
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/RecieveToken.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
 const { HOMEPAGE_URL } = AppConstants;
 

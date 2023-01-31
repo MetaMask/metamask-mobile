@@ -30,7 +30,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { PAYMENT_REQUEST_QR_CODE_CLOSE_ICON } from '../../../../wdio/screen-objects/testIDs/Screens/RecieveToken.testIds';
+import { PAYMENT_REQUEST_QR_CODE_CLOSE_ICON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
 const isIos = Device.isIos();
 

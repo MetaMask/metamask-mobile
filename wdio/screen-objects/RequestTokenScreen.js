@@ -2,20 +2,14 @@ import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import {
   REQUEST_AMOUNT_INPUT,
-  PAYMENT_REQUEST_CLOSE_BUTTON,
   REQUEST_SEARCH_ASSET_INPUT,
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
   REQUEST_SEARCH_SCREEN,
-  PAYMENT_REQUEST_QR_CODE_CLOSE_ICON,
-} from '../screen-objects/testIDs/Screens/RecieveToken.testIds';
+} from './testIDs/Screens/RequestToken.testIds';
 
 class RequestTokenScreen {
   get requestAmount() {
     return Selectors.getElementByPlatform(REQUEST_AMOUNT_INPUT);
-  }
-
-  get requestCloseButton() {
-    return Selectors.getElementByPlatform(PAYMENT_REQUEST_CLOSE_BUTTON);
   }
 
   get requestSearchInput() {
@@ -30,10 +24,6 @@ class RequestTokenScreen {
     return Selectors.getElementByPlatform(REQUEST_SEARCH_SCREEN);
   }
 
-  get closeRequestPaymentQRIcon() {
-    return Selectors.getElementByPlatform(PAYMENT_REQUEST_QR_CODE_CLOSE_ICON);
-  }
-
   async typeAmountInRequest(amount) {
     await Gestures.setValueWithoutTap(this.requestAmount, amount);
   }
@@ -46,24 +36,16 @@ class RequestTokenScreen {
     await expect(Selectors.getXpathElementByText(text)).not.toBeDisplayed();
   }
 
-  async closePaymentRequest() {
-    await Gestures.tap(this.requestCloseButton);
+  async inputSearchRequestField(searchRequest) {
+    await Gestures.typeText(this.requestSearchInput, searchRequest);
   }
 
-  async inputSearchRequestField(searchReq) {
-    await Gestures.typeText(this.requestSearchInput, searchReq);
-  }
-
-  async tapBackButtonOnSearch(searchReq) {
+  async tapBackButtonOnSearch() {
     await Gestures.tap(this.requestSearchBackButton);
   }
 
   async searchResultsIsVisible() {
     expect(await this.requestSearchScreen).toBeDisplayed();
-  }
-
-  async closeQRPayment() {
-    await Gestures.tap(this.closeRequestPaymentQRIcon);
   }
 }
 
