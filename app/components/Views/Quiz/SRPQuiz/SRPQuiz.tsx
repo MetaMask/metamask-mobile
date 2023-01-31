@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +18,8 @@ import { SRP_GUIDE_URL } from '../../../../constants/urls';
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
+
+const introductionImg = require('../../../../images/reveal-srp.png');
 
 const SRPQuiz = () => {
   const modalRef = useRef<ReusableModalRef>(null);
@@ -75,6 +78,7 @@ const SRPQuiz = () => {
     return (
       <QuizContent
         header={strings('srp_security_quiz.title')}
+        image={introductionImg}
         title={{
           content: strings('srp_security_quiz.introduction'),
         }}
