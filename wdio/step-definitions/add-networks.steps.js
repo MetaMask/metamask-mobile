@@ -275,3 +275,7 @@ Then(/^I tap on Got it in the network education modal/, async () => {
 Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
   await NetworkListModal.changeNetwork(network);
 });
+
+Then(/^I close the networks screen view$/, async () => {
+  await NetworksScreen.tapCloseNetworkScreen();
+});
