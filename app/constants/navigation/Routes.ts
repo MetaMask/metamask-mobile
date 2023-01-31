@@ -41,6 +41,7 @@ const Routes = {
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
     DETECTED_TOKENS: 'DetectedTokens',
+    SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -55,8 +56,29 @@ const Routes = {
   SEND_FLOW: {
     SEND_TO: 'SendTo',
   },
+  ACCOUNT_BACKUP: {
+    STEP_1_B: 'AccountBackupStep1B',
+  },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+  },
+  SHEET: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
+    ACCOUNT_CONNECT: 'AccountConnect',
+    ACCOUNT_PERMISSIONS: 'AccountPermissions',
+  },
+  BROWSER: {
+    HOME: 'BrowserTabHome',
+    URL_MODAL: 'BrowserUrlModal',
+    VIEW: 'BrowserView',
+  },
+  WEBVIEW: {
+    MAIN: 'Webview',
+    SIMPLE: 'SimpleWebview',
+  },
+  WALLET: {
+    HOME: 'WalletTabHome',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

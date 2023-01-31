@@ -32,13 +32,13 @@ import {
   NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
+} from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
 import Avatar, {
   AvatarVariants,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
@@ -283,14 +283,15 @@ export class NetworkList extends PureComponent {
         </View>
         {isCustomRpc &&
           // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
-          (image ? null : (
+          (image ? (
             <Avatar
               variant={AvatarVariants.Network}
               name={name}
+              imageSource={image}
               style={styles.networkIcon}
               size={AvatarSize.Xs}
             />
-          ))}
+          ) : null)}
         {!isCustomRpc &&
           (image ? (
             <ImageIcon

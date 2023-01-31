@@ -58,14 +58,15 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import AssetOptions from '../../Views/AssetOptions';
-// import ImportPrivateKey from '../../Views/ImportPrivateKey';
-// import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
-// import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import ConnectQRHardware from '../../Views/ConnectHardware/ConnectQRHardware';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -425,6 +426,31 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
         component={EnableAutomaticSecurityChecksModal}
       />
+      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    </Stack.Navigator>
+  );
+
+  const ImportPrivateKeyView = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+      <Stack.Screen
+        name="ImportPrivateKeySuccess"
+        component={ImportPrivateKeySuccess}
+      />
+    </Stack.Navigator>
+  );
+
+  const ConnectQRHardwareFlow = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
     </Stack.Navigator>
   );
 
@@ -500,16 +526,16 @@ const App = ({ userLoggedIn }) => {
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
             />
-            {/* <Stack.Screen
+            <Stack.Screen
               name="ImportPrivateKeyView"
               component={ImportPrivateKeyView}
               options={{ animationEnabled: true }}
-            /> */}
-            {/* <Stack.Screen
+            />
+            <Stack.Screen
               name="ConnectQRHardwareFlow"
               component={ConnectQRHardwareFlow}
               options={{ animationEnabled: true }}
-            /> */}
+            />
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}

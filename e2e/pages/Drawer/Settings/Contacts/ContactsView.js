@@ -2,7 +2,7 @@ import TestHelpers from '../../../../helpers';
 import {
   CONTACT_ADDRESS_INPUT,
   CONTACTS_CONTAINER_ID,
-} from '../../../../../wdio/features/testIDs/Screens/Contacts.testids';
+} from '../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
 
 const ADD_CONTACT_BUTTON_ID = 'add-contact-button';
 
