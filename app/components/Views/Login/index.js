@@ -25,7 +25,7 @@ import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { passcodeType } from '../../../util/authentication/passcodeType';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import BiometryButton from '../../UI/BiometryButton/BiometryButton';
+import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,

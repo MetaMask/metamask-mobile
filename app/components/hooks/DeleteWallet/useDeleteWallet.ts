@@ -11,7 +11,7 @@ const useDeleteWallet = () => {
     try {
       await Engine.resetState();
       await Authentication.newWalletAndKeyChain(`${Date.now()}`, {
-        type: AUTHENTICATION_TYPE.UNKNOWN,
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
       await Authentication.lockApp();
     } catch (error: any) {
