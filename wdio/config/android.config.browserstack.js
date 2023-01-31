@@ -13,8 +13,8 @@ config.capabilities = [
     fullReset: false,
     maxInstances: 1,
     build: 'Android QA E2E Tests',
-    device: 'Google Pixel 3',
-    os_version: '9.0',
+    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 3',
+    os_version: process.env.BROWSERSTACK_OS_VERSION || '9.0',
     app: process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
   },
@@ -23,7 +23,8 @@ config.capabilities = [
 config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression =
+  process.env.BROWSERSTACK_TAG_EXPRESSION || '@androidApp'; // pass tag to run tests specific to android
 
 delete config.port;
 delete config.path;
