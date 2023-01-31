@@ -200,6 +200,9 @@ class Engine {
 
       const tokenListController = new TokenListController({
         chainId: networkController.state.provider.chainId,
+        selectedAddress: preferencesController.state.selectedAddress,
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,

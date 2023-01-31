@@ -1,3 +1,31 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenListController.js b/node_modules/@metamask/assets-controllers/dist/TokenListController.js
+index f783f7b..07971ab 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenListController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenListController.js
+@@ -51,7 +51,7 @@ class TokenListController extends base_controller_1.BaseControllerV2 {
+      * @param options.state - Initial state to set on this controller.
+      * @param options.preventPollingOnNetworkRestart - Determines whether to prevent poilling on network restart in extension.
+      */
+-    constructor({ chainId, preventPollingOnNetworkRestart = false, onNetworkStateChange, interval = DEFAULT_INTERVAL, cacheRefreshThreshold = DEFAULT_THRESHOLD, messenger, state, }) {
++    constructor({ chainId,selectedAddress, preventPollingOnNetworkRestart = false, onNetworkStateChange, onPreferencesStateChange,interval = DEFAULT_INTERVAL, cacheRefreshThreshold = DEFAULT_THRESHOLD, messenger, state, }) {
+         super({
+             name,
+             metadata,
+@@ -78,6 +78,14 @@ class TokenListController extends base_controller_1.BaseControllerV2 {
+                 }
+             }));
+         }
++        if(onPreferencesStateChange){
++        onPreferencesStateChange(({ selectedAddress }) => {
++            const  currentSelectedAddress  = this.selectedAddress;
++            const isSelectedAddressChanged = selectedAddress !== currentSelectedAddress;
++            if (isSelectedAddressChanged ) {
++                this.fetchTokenList();
++            }
++        });}
+         else {
+             this.messagingSystem.subscribe('NetworkController:providerChange', (providerConfig) => __awaiter(this, void 0, void 0, function* () {
+                 yield __classPrivateFieldGet(this, _TokenListController_instances, "m", _TokenListController_onNetworkStateChangeCallback).call(this, providerConfig);
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 index 4a18560..4297ef3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
