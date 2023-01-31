@@ -84,7 +84,6 @@ export default {
   },
 
   async getGenericPassword() {
-    console.log('vault/ SecureKeychain getGenericPassword');
     if (instance) {
       instance.isAuthenticating = true;
       const keychainObject = await Keychain.getGenericPassword(defaultOptions);
@@ -101,11 +100,6 @@ export default {
   },
 
   async setGenericPassword(password, type) {
-    console.log(
-      'vault/ SecureKeychain setGenericPassword with',
-      password,
-      type,
-    );
     const authOptions = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
@@ -121,15 +115,10 @@ export default {
       //Don't need to add any parameter
     } else {
       // Setting a password without a type does not save it
-      console.log('vault/ setGenericPassword else', password, type);
       return await this.resetGenericPassword();
     }
 
     const encryptedPassword = await instance.encryptPassword(password);
-    console.log(
-      'vault/ SecureKeychain setGenericPassword encryptedPassword worked',
-      encryptedPassword,
-    );
     await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
       ...defaultOptions,
       ...authOptions,
@@ -147,7 +136,6 @@ export default {
         await this.getGenericPassword();
       }
     } else if (type === this.TYPES.PASSCODE) {
-      console.log('vault/ SecureKeychain type === this.TYPES.PASSCODE', type);
       await AsyncStorage.removeItem(BIOMETRY_CHOICE);
       await AsyncStorage.removeItem(PASSCODE_DISABLED);
       await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);

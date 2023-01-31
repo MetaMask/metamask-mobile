@@ -117,7 +117,6 @@ const ImportFromSecretRecoveryPhrase = ({
     updateNavBar();
 
     const setBiometricsOption = async () => {
-      console.log('vault/ ImportFromSRP calling Authentication.getType');
       const authData = await Authentication.getType();
       const previouslyDisabled = await AsyncStorage.getItem(
         BIOMETRY_CHOICE_DISABLED,
@@ -153,7 +152,6 @@ const ImportFromSecretRecoveryPhrase = ({
    * If this occurs we will create the wallet automatically with password as the login method
    */
   const handleRejectedOsBiometricPrompt = async (parsedSeed) => {
-    console.log('Vault/ handleRejectedOsBiometricPrompt');
     const newAuthData = await Authentication.componentAuthenticationType(
       false,
       false,
@@ -248,20 +246,14 @@ const ImportFromSecretRecoveryPhrase = ({
         }
         await importAdditionalAccounts();
       } catch (error) {
-        console.log('vault/ ImportFromSRP error catch', error.toString());
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-          console.log(
-            'vault/ ImportFromSRP error Passcode not set',
-            error.toString(),
-          );
           Alert.alert(
             'Security Alert',
             'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
           );
           setLoading(false);
         } else {
-          console.log('vault/ ImportFromSRP error else', error.toString());
           setLoading(false);
           setError(error.message);
           Logger.log('Error with seed phrase import', error.message);

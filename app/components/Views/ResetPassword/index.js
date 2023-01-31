@@ -338,8 +338,6 @@ class ResetPassword extends PureComponent {
     this.updateNavBar();
 
     const state = { view: CONFIRM_PASSWORD };
-
-    console.log('vault/ ResetPassword calling Authentication.getType');
     const authData = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,

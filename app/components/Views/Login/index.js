@@ -249,13 +249,7 @@ class Login extends PureComponent {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     //Setup UI to handle Biometric
-    // const { type } = await Authentication.getAuthData();
-    console.log('vault/ Login calling Authentication.getType()');
     const authData = await Authentication.getType();
-    console.log(
-      'vault/ Login calling Authentication.getType returned:',
-      authData,
-    );
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
@@ -263,17 +257,7 @@ class Login extends PureComponent {
       PASSCODE_DISABLED,
     );
 
-    console.log('vault/ Login previouslyDisabled:', previouslyDisabled);
-    console.log(
-      'vault/ Login passcodePreviouslyDisabled:',
-      passcodePreviouslyDisabled,
-    );
-
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-      console.log(
-        'vault/ Login AUTHENTICATION_TYPE.PASSCODE',
-        JSON.stringify(authData),
-      );
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
         biometryChoice: !(
@@ -283,14 +267,12 @@ class Login extends PureComponent {
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
     } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
-      console.log('vault/ Login AUTHENTICATION_TYPE.REMEMBER_ME');
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,
       });
       this.props.setAllowLoginWithRememberMe(true);
     } else if (authData.availableBiometryType) {
-      console.log('vault/ Login authData.availableBiometryType');
       this.setState({
         biometryType: authData.availableBiometryType,
         biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
@@ -384,7 +366,6 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      console.log('vault/ Login tryBiometric calling appTriggeredAuth');
       await Authentication.appTriggeredAuth(this.props.selectedAddress);
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
@@ -451,9 +432,6 @@ class Login extends PureComponent {
       this.state.biometryChoice &&
       this.state.biometryType &&
       this.state.hasBiometricCredentials
-    );
-    console.log(
-      `vault/ Login render. shouldHideBiometricAccessoryButton: ${shouldHideBiometricAccessoryButton}, biometryChoice: ${this.state.biometryChoice}, biometryType: ${this.state.biometryType}, hasBiometricCredentials: ${this.state.hasBiometricCredentials}`,
     );
 
     return (
