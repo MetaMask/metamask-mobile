@@ -42,9 +42,11 @@ const ProtectYourWallet = ({
     <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
   );
 
-  const openSRPQuiz = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+  const goToRevealPrivateCredential = (): void => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      privateCredentialName: 'seed_phrase',
     });
   };
 
@@ -131,7 +133,7 @@ const ProtectYourWallet = ({
           label={strings('reveal_credential.seed_phrase_title')}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
-          onPress={openSRPQuiz}
+          onPress={goToRevealPrivateCredential}
           style={styles.confirm}
           testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
         />

@@ -97,7 +97,6 @@ export function createLoggerMiddleware(opts) {
               message: 'Error in RPC response',
               orginalError: error,
               res: resWithoutError,
-              req,
             };
 
             if (error.message) {

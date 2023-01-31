@@ -35,14 +35,14 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_VIEW_BURGER_ICON_ID,
   HAMBURGER_MENU_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-import { CONTACT_EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import { SEND_CANCEL_BUTTON } from '../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
+import { CONTACT_EDIT_BUTTON } from '../../../../wdio/features/testIDs/Screens/Contacts.testids';
+import { ASSET_BACK_BUTTON } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
 
 const { HOMEPAGE_URL } = AppConstants;
 

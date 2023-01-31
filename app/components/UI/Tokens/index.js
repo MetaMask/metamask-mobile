@@ -35,7 +35,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {

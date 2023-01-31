@@ -26,7 +26,7 @@ import {
   KOVAN_NETWORK_OPTION,
   RINKEBY_NETWORK_OPTION,
   ROPSTEN_NETWORK_OPTION,
-} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+} from '../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
 

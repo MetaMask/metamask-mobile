@@ -32,7 +32,6 @@ const Routes = {
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
-    SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

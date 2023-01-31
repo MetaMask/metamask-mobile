@@ -22,7 +22,7 @@ import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   ACCOUNT_LIST_ACCOUNT_NAMES,
   ACCOUNT_LIST_CHECK_ICON,
-} from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+} from '../../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';

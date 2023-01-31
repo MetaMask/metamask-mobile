@@ -32,7 +32,7 @@ import {
   ACCOUNT_LIST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+} from '../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

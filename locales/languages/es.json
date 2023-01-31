@@ -2205,16 +2205,16 @@
       "right_answer_title": "¡Correcto! Nadie puede ayudarlo a recuperar su frase secreta de recuperación",
       "right_answer_description": "Anótela, grábela en metal o guárdela en múltiples lugares secretos para que nunca la pierda. Si la extravía, se ha ido para siempre.",
       "wrong_answer_title": "¡Incorrecto! Nadie puede ayudarlo a recuperar su frase secreta de recuperación",
-      "wrong_answer_description": "Si pierde su frase secreta de recuperación, desaparecerá para siempre. Nadie puede ayudarlo a recuperarla, sin importar lo que digan."
+      "wrong_answer_description": "Si pierde su frase secreta de recuperación, desaparecerá para siempre. Nadie puede ayudarlo a recuperarla, sin importar lo que digan. "
     },
     "question_two": {
       "question": "Si alguien, incluso un agente de soporte, le pide su frase secreta de recuperación...",
       "right_answer": "Lo están estafando",
       "right_answer_title": "¡Correcto! Compartir su frase secreta de recuperación nunca es una buena idea",
-      "right_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos.",
+      "right_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos. ",
       "wrong_answer": "Debiera brindársela",
       "wrong_answer_title": "¡No! Nunca comparta su frase secreta de recuperación con nadie, nunca",
-      "wrong_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos."
+      "wrong_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos. "
     }
   }
 }

@@ -336,25 +336,20 @@ class Engine {
           },
           { interval: 10000 },
         ),
-        new TokenRatesController(
-          {
-            onTokensStateChange: (listener) =>
-              tokensController.subscribe(listener),
-            onCurrencyRateStateChange: (listener) =>
-              this.controllerMessenger.subscribe(
-                `${currencyRateController.name}:stateChange`,
-                listener,
-              ),
-            onNetworkStateChange: (listener) =>
-              this.controllerMessenger.subscribe(
-                AppConstants.NETWORK_STATE_CHANGE_EVENT,
-                listener,
-              ),
-          },
-          {
-            chainId: networkController.state.provider.chainId,
-          },
-        ),
+        new TokenRatesController({
+          onTokensStateChange: (listener) =>
+            tokensController.subscribe(listener),
+          onCurrencyRateStateChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              `${currencyRateController.name}:stateChange`,
+              listener,
+            ),
+          onNetworkStateChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+        }),
         new TransactionController({
           getNetworkState: () => networkController.state,
           onNetworkStateChange: (listener) =>

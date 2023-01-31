@@ -2205,16 +2205,16 @@
       "right_answer_title": "Tama! Walang makakatulong na maibalik ang iyong Secret Recovery Phrase",
       "right_answer_description": "Isulat ito, iukit sa metal, o itago ito sa maraming lihim na lugar upang hindi ito mawala. Kung nawala mo ito, wala na ito ng tuluyan.",
       "wrong_answer_title": "Mali! Walang makakatulong na maibalik ang iyong Secret Recovery Phrase",
-      "wrong_answer_description": "Kung nawala mo ang iyong Secret Recovery Phrase mawawala na ito nang tuluyan. Walang makakatulong sa iyo na maibalik ito, anuman ang maaaring sabihin nila."
+      "wrong_answer_description": "Kung nawala mo ang iyong Secret Recovery Phrase mawawala na ito nang tuluyan. Walang makakatulong sa iyo na maibalik ito, anuman ang maaaring sabihin nila. "
     },
     "question_two": {
       "question": "Kung sinuman, kahit isang ahente ng suporta, ay humingi ng iyong Secret Recovery Phrase...",
       "right_answer": "Niloloko ka",
       "right_answer_title": "Tama! Ang pagbabahagi ng iyong Secret Recovery Phrase ay hindi kailanman isang magandang ideya",
-      "right_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian.",
+      "right_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian. ",
       "wrong_answer": "Dapat mong ibigay sa kanila",
       "wrong_answer_title": "Hindi! Huwag kailanman ibahagi ang iyong Secret Recovery Phrase sa sinuman, kailanman",
-      "wrong_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian."
+      "wrong_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian. "
     }
   }
 }
