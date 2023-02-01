@@ -6,7 +6,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID, IMPORT_FROM_SEED_SCREEN_LOGIN_BIOMETRICS_TOGGLE,
 } from '../testIDs/Screens/ImportFromSeedScreen.testIds';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
@@ -54,6 +54,12 @@ class ImportFromSeed {
     );
   }
 
+  get loginBiometricsToggleButton() {
+    return Selectors.getXpathElementByResourceId(
+      IMPORT_FROM_SEED_SCREEN_LOGIN_BIOMETRICS_TOGGLE,
+    );
+  }
+
   async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
@@ -94,6 +100,25 @@ class ImportFromSeed {
 
   async isPasswordMatchIconVisible() {
     await expect(this.passwordMatchIcon).toBeDisplayed();
+  }
+
+  async tapLoginBiometricsToggle() {
+    await Gestures.waitAndTap(this.loginBiometricsToggleButton);
+  }
+
+  async setLoginBiometrics(value) {
+    let element = await this.loginBiometricsToggleButton;
+    let elemValue = await element.getText();
+
+    if (value !== elemValue) {
+      await this.tapLoginBiometricsToggle();
+      await Gestures.waitAndTap(this.screenTitle);
+
+      element = await this.loginBiometricsToggleButton;
+      elemValue = await element.getText();
+
+      expect(elemValue).toEqual(value);
+    }
   }
 }
 

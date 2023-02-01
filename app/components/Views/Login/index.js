@@ -52,6 +52,7 @@ import {
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { LOGIN_VIEW_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -528,7 +529,12 @@ class Login extends PureComponent {
                   <AnimatedFox bgColor={colors.background.default} />
                 )}
               </View>
-              <Text style={styles.title}>{strings('login.title')}</Text>
+              <Text
+                style={styles.title}
+                {...generateTestId(Platform, LOGIN_VIEW_TITLE_ID)}
+              >
+                {strings('login.title')}
+              </Text>
               <View style={styles.field}>
                 <Text style={styles.label}>{strings('login.password')}</Text>
                 <OutlinedTextField

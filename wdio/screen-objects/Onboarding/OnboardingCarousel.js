@@ -29,7 +29,7 @@ class WelcomeScreen {
   async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
-    await driver.pause(20000);
+    await elem.waitForDisplayed({ reverse: true });
   }
 
   async verifyCarouselTitle(key) {
@@ -71,7 +71,7 @@ class WelcomeScreen {
   }
 
   async clickGetStartedButton() {
-    await Gestures.tap(this.getStartedButton);
+    await Gestures.waitAndTap(this.getStartedButton);
   }
 }
 

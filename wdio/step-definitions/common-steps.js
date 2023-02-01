@@ -14,13 +14,13 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
-  await driver.pause(22000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
+  await ImportFromSeedScreen.setLoginBiometrics('OFF');
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
@@ -31,7 +31,6 @@ Given(/^I have created my wallet$/, async () => {
   // should be in a common step file
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
-  await driver.pause(13000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();

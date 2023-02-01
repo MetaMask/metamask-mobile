@@ -2,8 +2,8 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import {
-  WALLET_CONTAINER_ID,
   NAVBAR_TITLE_NETWORKS_TEXT,
+  WALLET_ACCOUNT_OVERVIEW,
 } from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
@@ -54,7 +54,7 @@ class WalletMainScreen {
   }
 
   get WalletScreenContainer() {
-    return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(WALLET_ACCOUNT_OVERVIEW);
   }
 
   get networkNavBarWalletTitle() {
