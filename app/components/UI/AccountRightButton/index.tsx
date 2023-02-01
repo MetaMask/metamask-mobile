@@ -72,42 +72,37 @@ const AccountRightButton = ({
   );
   const dispatch = useDispatch();
 
-  const onKeyboardShown = useCallback(() => {
-    setIsKeyboardVisible(true);
-  }, [setIsKeyboardVisible]);
-
-  const onKeyboardHidden = useCallback(() => {
-    setIsKeyboardVisible(false);
-  }, [setIsKeyboardVisible]);
+  const handleKeyboardVisibility = useCallback(
+    (visibility: boolean) => () => {
+      setIsKeyboardVisible(visibility);
+    },
+    [setIsKeyboardVisible],
+  );
 
   // Listen to keyboard events.
   useEffect(() => {
     let hideSubscription: EmitterSubscription;
     let showSubscription: EmitterSubscription;
     if (Platform.OS === 'android') {
-      showSubscription = Keyboard.addListener(
-        'keyboardDidShow',
-        onKeyboardShown,
+      showSubscription = Keyboard.addListener('keyboardDidShow', () =>
+        handleKeyboardVisibility(true),
       );
-      hideSubscription = Keyboard.addListener(
-        'keyboardDidHide',
-        onKeyboardHidden,
+      hideSubscription = Keyboard.addListener('keyboardDidHide', () =>
+        handleKeyboardVisibility(false),
       );
     } else {
-      showSubscription = Keyboard.addListener(
-        'keyboardWillShow',
-        onKeyboardShown,
+      showSubscription = Keyboard.addListener('keyboardWillShow', () =>
+        handleKeyboardVisibility(true),
       );
-      hideSubscription = Keyboard.addListener(
-        'keyboardWillHide',
-        onKeyboardHidden,
+      hideSubscription = Keyboard.addListener('keyboardWillHide', () =>
+        handleKeyboardVisibility(false),
       );
     }
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
-  }, [onKeyboardShown, onKeyboardHidden]);
+  }, [handleKeyboardVisibility]);
 
   const dismissKeyboard = useCallback(() => {
     if (!isKeyboardVisible) return;
@@ -115,17 +110,15 @@ const AccountRightButton = ({
     placeholderInputRef.current?.blur();
   }, [isKeyboardVisible]);
 
-  let onPressButton = () => {
+  const handleButtonPress = useCallback(() => {
     dismissKeyboard();
-    onPress?.();
-  };
-
-  if (!selectedAddress && isNetworkVisible) {
-    onPressButton = () => {
-      dismissKeyboard();
+    if (!selectedAddress && isNetworkVisible) {
       dispatch(toggleNetworkModal(false));
-    };
-  }
+    } else {
+      onPress?.();
+    }
+  }, [dismissKeyboard, selectedAddress, isNetworkVisible, dispatch, onPress]);
+
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),
     [networkProvider],
@@ -147,7 +140,7 @@ const AccountRightButton = ({
   return (
     <TouchableOpacity
       style={styles.leftButton}
-      onPress={onPressButton}
+      onPress={handleButtonPress}
       testID={'navbar-account-button'}
     >
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />

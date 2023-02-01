@@ -442,7 +442,9 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.QR_SCANNER}
         component={QRScanner}
-        header={null}
+        screenOptions={{
+          headerShown: false,
+        }}
       />
     </Stack.Navigator>
   );
