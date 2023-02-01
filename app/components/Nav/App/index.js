@@ -58,6 +58,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import DetectedTokens from '../../Views/DetectedTokens';
@@ -425,6 +426,7 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
         component={EnableAutomaticSecurityChecksModal}
       />
+      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
     </Stack.Navigator>
   );
 

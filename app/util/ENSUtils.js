@@ -6,6 +6,7 @@ const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
 const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
 const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
+import { EMPTY_ADDRESS } from '../constants/transaction';
 
 /**
  * Utility class with the single responsibility
@@ -55,6 +56,7 @@ export async function doENSLookup(ensName, network) {
     this.ens = new ENS({ provider, network });
     try {
       const resolvedAddress = await this.ens.lookup(ensName);
+      if (resolvedAddress === EMPTY_ADDRESS) return;
       return resolvedAddress;
       // eslint-disable-next-line no-empty
     } catch (e) {}

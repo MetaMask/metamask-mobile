@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
@@ -13,6 +13,7 @@ import { useStyles } from '../../../hooks';
 import { TabBarLabel, TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_LABEL } from './TabBar.constants';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -33,6 +34,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           label={label}
           icon={icon}
           onPress={onPress}
+          {...generateTestId(Platform, key)}
         />
       );
     },

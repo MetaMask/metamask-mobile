@@ -25,7 +25,7 @@ import {
   IMPORT_PRIVATE_KEY_BUTTON_ID,
   PRIVATE_KEY_INPUT_BOX_ID,
   CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
-} from '../../../../wdio/features/testIDs/Screens/ImportAccountScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/ImportAccountScreen.testIds';
 
 /**
  * View that's displayed the first time a user receives funds
