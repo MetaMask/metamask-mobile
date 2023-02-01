@@ -32,7 +32,7 @@ import {
   ACCOUNT_LIST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
-} from '../../../../wdio/features/testIDs/Components/AccountListComponent.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { selectNetwork } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>

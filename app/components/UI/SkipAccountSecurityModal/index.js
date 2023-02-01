@@ -18,11 +18,11 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   SKIP_BUTTON,
   CANCEL_BUTTON,
-} from '../../../../wdio/features/testIDs/Components/SkipAccountSecurityModalTestIds';
+} from '../../../../wdio/screen-objects/testIDs/Components/SkipAccountSecurityModalTestIds';
 import {
   SKIP_BACKUP_MODAL,
   SKIP_BACKUP_TEXT,
-} from '../../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

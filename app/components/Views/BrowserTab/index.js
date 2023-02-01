@@ -71,7 +71,7 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
   SWITCH_NETWORK_OPTION,
-} from '../../../../wdio/features/testIDs/BrowserScreen/OptionMenu.testIds';
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import { selectNetwork } from '../../../selectors/networkController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;

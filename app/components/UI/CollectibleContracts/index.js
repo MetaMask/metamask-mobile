@@ -30,7 +30,7 @@ import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { IMPORT_NFT_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import { IMPORT_NFT_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
   selectProviderType,

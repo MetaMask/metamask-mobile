@@ -14,7 +14,7 @@ config.capabilities = [
     app: './ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
     settings: {
       snapshotMaxDepth: 100,
-    }
+    },
   },
 ];
 
@@ -23,4 +23,3 @@ config.cucumberOpts.tagExpression = '@iosApp'; // pass tag to run tests specific
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export
 export { _config as config };
-

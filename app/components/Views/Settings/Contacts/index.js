@@ -12,7 +12,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectNetwork } from '../../../../selectors/networkController';
 
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { CONTACTS_CONTAINER_ID } from '../../../../../wdio/features/testIDs/Screens/Contacts.testids';
+import { CONTACTS_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
