@@ -175,7 +175,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: permittedAccountsList.length,
-        source: 'permission system',
+        source: 'in-app browser',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
