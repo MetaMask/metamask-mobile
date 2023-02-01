@@ -5,6 +5,7 @@ import {
   isValidHexAddress,
   isValidAddressInputViaQRCode,
   stripHexPrefix,
+  getAddress,
 } from '.';
 
 describe('isENS', () => {
@@ -140,18 +141,24 @@ describe('stripHexPrefix', () => {
 });
 
 describe('getAddress', () => {
-  it('if address is ENS, return doENSLookup', async () => {
-    const address = 'test.eth';
+  const validAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+  const inValidAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE';
+  const validENSAddress = 'test.eth';
+
+  it('should resolve ENS if ENS is valid', async () => {
     const network = '1';
     const doENSLookup = jest.fn();
-    await doENSLookup(address, network);
-    expect(doENSLookup).toHaveBeenCalledWith(address, network);
+    await doENSLookup(validENSAddress, network);
+    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, network);
   });
 
-  it('if address is not ENS, return address', async () => {
-    const address = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
-    expect(isValidHexAddress(address, { mixedCaseUseChecksum: true })).toBe(
-      true,
-    );
+  it('should return address if address is valid', async () => {
+    const response = await getAddress(validAddress, '1');
+    expect(response).toBe(validAddress);
+  });
+
+  it('should return null if address is invalid', async () => {
+    const response = await getAddress(inValidAddress, '1');
+    expect(response).toBe(null);
   });
 });
