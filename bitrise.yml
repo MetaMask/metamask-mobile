@@ -293,6 +293,14 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                echo 'BITRISE_SOURCE_DIR'
+                echo $BITRISE_SOURCE_DIR
+                echo 'ls -la $BITRISE_SOURCE_DIR'
+                ls -la $BITRISE_SOURCE_DIR
+                ls -la $PROJECT_LOCATION/app/build/outputs/apk/qa/release
+                ls -la $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease
+                ls -la $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease
+                ls -la sourcemaps/android
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - cache-push@2:
