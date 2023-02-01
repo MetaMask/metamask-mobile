@@ -12,20 +12,6 @@ import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal'
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 
-Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 50000;
-  await driver.pause(setTimeout);
-  await WelcomeScreen.clickGetStartedButton();
-  await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.swipeUp();
-  await MetaMetricsScreen.tapIAgreeButton();
-  const validAccount = Accounts.getValidAccount();
-  await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
-  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.clickImportButton();
-});
-
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.clickAddNetworks();
 });
