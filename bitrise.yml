@@ -276,6 +276,14 @@ workflows:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
+      - cache-pull@2:
+          inputs:
+            - cache_paths:
+              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+              - $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+              - $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+              - sourcemaps/android/index.js.map
       - script@1:
           inputs:
             - content: |-
@@ -284,6 +292,14 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
+      - cache-push@2:
+          inputs:
+            - cache_paths:
+              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+              - $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+              - $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+              - sourcemaps/android/index.js.map
       - deploy-to-bitrise-io@1:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
