@@ -258,6 +258,8 @@ workflows:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
   build_android_qa:
+    before_run:
+      - code_setup
     after_run:
       - _upload_apk_to_browserstack
     steps:
@@ -269,8 +271,6 @@ workflows:
               - $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
               - $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
               - sourcemaps/android/index.js.map
-      - code_setup:
-          if: steps.cache_pull.outputs.cache_hit != 'true'
       - change-android-versioncode-and-versionname@1:
           if: steps.cache_pull.outputs.cache_hit != 'true'
           inputs:
