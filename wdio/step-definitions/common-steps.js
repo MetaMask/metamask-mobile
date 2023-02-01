@@ -30,7 +30,6 @@ Given(/^I have created my wallet$/, async () => {
   // should be in a common step file
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
-  await driver.pause(13000); //TODO: Needs a smarter set timeout
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
