@@ -47,8 +47,6 @@ import {
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
-const { HOMEPAGE_URL } = AppConstants;
-
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
     Analytics.trackEvent(event);
