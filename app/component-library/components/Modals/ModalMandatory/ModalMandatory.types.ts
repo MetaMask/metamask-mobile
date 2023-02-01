@@ -42,6 +42,10 @@ interface MandatoryModalParams {
      * @returns void
      */
     onRender?: () => void;
+    /**
+     * Optional boolean to check if it's needed to scroll trought content to accept the mandatory condition
+     */
+    isScrollToEndNeeded?: boolean;
   };
 }
 

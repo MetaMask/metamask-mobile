@@ -318,8 +318,6 @@ const App = ({ userLoggedIn }) => {
     startAnimation();
   }, [isAuthChecked]);
 
-  // const navigation = useNavigation();
-
   const termsOfUse = useCallback(async () => {
     if (navigator) {
       await navigateTermsOfUse(navigator.navigate);

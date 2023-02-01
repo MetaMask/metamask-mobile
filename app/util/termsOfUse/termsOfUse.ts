@@ -39,6 +39,7 @@ export default async function navigateTermsOfUse(
           uri: 'https://consensys.net/terms-of-use/',
         },
         onRender: useTermsDisplayed,
+        isScrollToEndNeeded: true,
       },
     });
   }

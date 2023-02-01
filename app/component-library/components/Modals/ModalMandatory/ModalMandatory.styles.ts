@@ -32,7 +32,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       marginBottom: 16,
     },
-    webView: { height: screenHeight / 2 },
+    bodyContainer: { height: screenHeight / 2 },
     checkboxContainer: {
       flexDirection: 'row',
       marginTop: 16,
@@ -45,6 +45,20 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     confirmButton: {
       marginTop: 16,
+    },
+    scrollToEndButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 32 / 2,
+      backgroundColor: colors.background.default,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+      position: 'absolute',
+      bottom: 175,
+      right: 32,
+      borderWidth: 1,
+      borderColor: colors.primary.default,
     },
     footerHelpText: {
       marginTop: 16,
