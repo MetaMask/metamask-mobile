@@ -265,12 +265,12 @@ workflows:
     steps:
       - cache-pull@2:
           inputs:
-            - cache_paths:
-              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-              - $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-              - $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-              - sourcemaps/android/index.js.map
+            - cache_paths: |-
+                $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+                $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+                $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+                sourcemaps/android/index.js.map
       - change-android-versioncode-and-versionname@1:
           if: steps.cache_pull.outputs.cache_hit != 'true'
           inputs:
@@ -305,12 +305,12 @@ workflows:
           is_always_run: false
       - cache-push@2:
           inputs:
-            - cache_paths:
-              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-              - $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-              - $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-              - $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-              - sourcemaps/android/index.js.map
+            - cache_paths: |-
+                $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+                $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+                $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+                sourcemaps/android/index.js.map
       - deploy-to-bitrise-io@1:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
