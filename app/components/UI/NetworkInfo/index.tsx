@@ -179,6 +179,8 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     return type === RPC ? networkName : networkName.toUpperCase();
   }, [ticker, type, isMainnet, nickname]);
 
+  const networkName = getNetworkName();
+
   return (
     <View style={styles.wrapper}>
       <View
@@ -192,14 +194,14 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           <View style={styles.tokenType}>
             <Avatar
               variant={AvatarVariants.Network}
-              name={type.toUpperCase()}
+              name={networkName.toUpperCase()}
               imageSource={networkImageSource}
             />
             <Text
               style={[styles.tokenText, styles.capitalizeText]}
               testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
             >
-              {getNetworkName()}
+              {networkName}
             </Text>
           </View>
           {ticker === undefined && (
