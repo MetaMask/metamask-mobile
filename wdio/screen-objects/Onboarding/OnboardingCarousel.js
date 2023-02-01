@@ -29,6 +29,16 @@ class WelcomeScreen {
   async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await expect(elem).toBeDisplayed();
+    await driver.pause(20000);
+  }
+
+  async waitForSplashAnimationToDisplay() {
+    const elem = await this.splashScreenMetamaskAnimationId;
+    await elem.waitForDisplayed();
+  }
+
+  async waitForSplashAnimationToDisappear() {
+    const elem = await this.splashScreenMetamaskAnimationId;
     await elem.waitForDisplayed({ reverse: true });
   }
 

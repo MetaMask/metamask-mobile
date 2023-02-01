@@ -3,7 +3,7 @@ import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import {
   NAVBAR_TITLE_NETWORKS_TEXT,
-  WALLET_ACCOUNT_OVERVIEW,
+  WALLET_CONTAINER_ID,
 } from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
@@ -55,7 +55,7 @@ class WalletMainScreen {
   }
 
   get WalletScreenContainer() {
-    return Selectors.getXpathElementByResourceId(WALLET_ACCOUNT_OVERVIEW);
+    return Selectors.getXpathElementByResourceId(WALLET_CONTAINER_ID);
   }
 
   get networkNavBarWalletTitle() {

@@ -1,14 +1,23 @@
-/* global $ */
+/* global driver */
 import Gestures from '../../helpers/Gestures';
 import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
   OPTIN_METRICS_NO_THANKS_BUTTON_ID,
   OPTIN_METRICS_TITLE_ID,
 } from '../testIDs/Screens/OptinMetricsScreen.testIds';
+import Selectors from '../../helpers/Selectors';
 
 class MetaMetricsScreen {
   get screenTitle() {
-    return $(`~${OPTIN_METRICS_TITLE_ID}`);
+    return Selectors.getElementByPlatform(OPTIN_METRICS_TITLE_ID);
+  }
+
+  get iAgreeButton() {
+    return Selectors.getElementByPlatform(OPTIN_METRICS_I_AGREE_BUTTON_ID);
+  }
+
+  get noThanksButton() {
+    return Selectors.getElementByPlatform(OPTIN_METRICS_NO_THANKS_BUTTON_ID);
   }
 
   async isScreenTitleVisible() {
@@ -22,14 +31,12 @@ class MetaMetricsScreen {
 
   async tapIAgreeButton() {
     await this.swipeUp();
-    const elem = $(`~${OPTIN_METRICS_I_AGREE_BUTTON_ID}`);
-    await Gestures.tap(elem);
+    await Gestures.waitAndTap(this.iAgreeButton);
   }
 
   async tapNoThanksButton() {
     await this.swipeUp();
-    const elem = $(`~${OPTIN_METRICS_NO_THANKS_BUTTON_ID}`);
-    await Gestures.tap(elem);
+    await Gestures.waitAndTap(this.noThanksButton);
     await driver.pause(2000);
   }
 }
