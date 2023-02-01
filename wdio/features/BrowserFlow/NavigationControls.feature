@@ -16,8 +16,10 @@ Feature: This feature file covers all the navigation control options in browser.
     Then the browser view is on the "https://www.reddit.com/" website
     And I tap on the back arrow control button
     Then the browser view is on the "https://home.metamask.io/" website
+
     When I tap on forward arrow control button
     Then the browser view is on the "https://www.reddit.com/" website
+
     When I tap on search button
     Then browser address bar input view is displayed
 

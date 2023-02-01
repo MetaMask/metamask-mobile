@@ -4,7 +4,6 @@ Feature: Adding Networks via the popular and custom networks flow
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
 
-
   Scenario Outline: Adding a network via the new popular network flow
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen

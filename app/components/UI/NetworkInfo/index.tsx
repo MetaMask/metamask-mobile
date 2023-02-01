@@ -21,6 +21,7 @@ import {
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
+
 const createStyles = (colors: {
   background: { default: string };
   text: { default: string };

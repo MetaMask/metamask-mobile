@@ -20,6 +20,7 @@ Feature: This feature file covers address view functionality in the browser.
     When I tap on "Cancel button" in address field
     Then browser address bar input view is no longer displayed
     And the browser view is on the "https://home.metamask.io/" website
+
     When I tap on address bar
     And I navigate to "reddit.com"
     Then the browser view is on the "https://www.reddit.com/" website

@@ -45,7 +45,7 @@ const QuizContent = ({
           </TouchableOpacity>
         </View>
         {icon ? icon() : null}
-        {image ? <Image source={image} /> : null}
+        {image ? <Image source={image} style={styles.image} /> : null}
         <Text
           variant={TextVariants.sHeadingLG}
           style={{ ...styles.title, ...title.style }}
