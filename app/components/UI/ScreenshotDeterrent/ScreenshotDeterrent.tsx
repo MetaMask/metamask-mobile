@@ -10,7 +10,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
-const ScreenshotDeterrentWithNoNavigation = ({
+const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
 }: {
   enabled: boolean;
@@ -101,7 +101,7 @@ const ScreenshotDeterrent = ({
   hasNavigation ? (
     <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />
   ) : (
-    <ScreenshotDeterrentWithNoNavigation enabled={enabled} />
+    <ScreenshotDeterrentWithoutNavigation enabled={enabled} />
   );
 
 export default ScreenshotDeterrent;

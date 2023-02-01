@@ -18,6 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
+import { ROOT } from './constants';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -234,7 +235,7 @@ class ErrorBoundary extends Component {
       <RevealPrivateCredential
         credentialName={'seed_phrase'}
         cancel={this.cancelExportSeedphrase}
-        errorBoundaryView={this.props.view}
+        hasNavigation={this.props.view !== ROOT}
       />
     ) : this.state.error ? (
       <Fallback
