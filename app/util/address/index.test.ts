@@ -138,3 +138,20 @@ describe('stripHexPrefix', () => {
     expect(stripHexPrefix(stripped)).toBe(stripped);
   });
 });
+
+describe('getAddress', () => {
+  it('if address is ENS, return doENSLookup', async () => {
+    const address = 'test.eth';
+    const network = '1';
+    const doENSLookup = jest.fn();
+    await doENSLookup(address, network);
+    expect(doENSLookup).toHaveBeenCalledWith(address, network);
+  });
+
+  it('if address is not ENS, return address', async () => {
+    const address = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+    expect(isValidHexAddress(address, { mixedCaseUseChecksum: true })).toBe(
+      true,
+    );
+  });
+});

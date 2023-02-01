@@ -23,8 +23,7 @@ import { showAlert } from '../actions/alert';
 import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
-import { doENSLookup } from '../util/ENSUtils';
-import { isENS } from '../util/address';
+import { getAddress } from '../util/address';
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;
@@ -86,14 +85,8 @@ class DeeplinkManager {
       throw new Error('The parameter uint256 should be an integer');
 
     const value = uint256Number.toString(16);
-    let spenderAddress;
 
-    if (isENS(address)) {
-      spenderAddress = await doENSLookup(address, this.network);
-    } else {
-      spenderAddress = address;
-    }
-
+    const spenderAddress = await getAddress(address, this.network);
     if (!spenderAddress) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
