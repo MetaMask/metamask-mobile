@@ -18,7 +18,6 @@ import SheetBottom, {
 } from '../../../component-library/components/Sheet/SheetBottom';
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -98,22 +97,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       ).length,
   );
 
-  /* const nonTestnetNetworks = useSelector( */
-  /*   (state: any) => */
-  /*     state.engine.backgroundState.PreferencesController.frequentRpcList */
-  /*       .length + 1, */
-  /* ); */
-
-  const permittedAccountsList = useSelector((state: any) => {
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
-    const permittedAcc = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-    return permittedAcc;
-  }, isEqual);
-
   /**
    * Get image url from favicon api.
    */
@@ -174,7 +157,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       );
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
-        number_of_accounts_connected: permittedAccountsList.length,
+        number_of_accounts_connected: connectedAccountLength,
         source: 'in-app browser',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
@@ -214,7 +197,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
-    permittedAccountsList.length,
   ]);
 
   const handleCreateAccount = useCallback(
