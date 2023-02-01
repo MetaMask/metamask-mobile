@@ -2205,16 +2205,16 @@
       "right_answer_title": "Certo! Ninguém pode ajudar a recuperar sua Frase de Recuperação Secreta",
       "right_answer_description": "Anote-a, grave em metal ou guarde-a em diversos lugares secretos para que nunca a perca. Se perdê-la, é para sempre.",
       "wrong_answer_title": "Errado! Ninguém consegue recuperar sua Frase de Recuperação Secreta",
-      "wrong_answer_description": "Se perder sua Frase de Recuperação Secreta, é para sempre. Ninguém consegue recuperá-la, não importa o que digam. "
+      "wrong_answer_description": "Se perder sua Frase de Recuperação Secreta, é para sempre. Ninguém consegue recuperá-la, não importa o que digam."
     },
     "question_two": {
       "question": "Se alguém, até mesmo um atendente do suporte, pedir sua Frase de Recuperação Secreta...",
       "right_answer": "Você estará sendo vítima de um golpe",
       "right_answer_title": "Correto! Compartilhar sua Frase de Recuperação Secreta nunca é uma boa ideia",
-      "right_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados. ",
+      "right_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados.",
       "wrong_answer": "Você deverá revelar",
       "wrong_answer_title": "Não! Não compartilhe sua Frase de Recuperação Secreta com ninguém, nunca",
-      "wrong_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados. "
+      "wrong_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados."
     }
   }
 }
