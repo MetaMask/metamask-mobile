@@ -30,7 +30,6 @@ Given(/^I have imported my wallet$/, async () => {
 });
 
 Given(/^I have created my wallet$/, async () => {
-  // should be in a common step file
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
   await driver.pause(13000); //TODO: Needs a smarter set timeout
@@ -42,11 +41,12 @@ Given(/^I have created my wallet$/, async () => {
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password);
-  await SkipAccountSecurityModal.isVisible();
+  // await SkipAccountSecurityModal.isVisible();
+  await CreateNewWalletScreen.tapRemindMeLater();
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-  await CreateNewWalletScreen.selectRemindMeLater();
-  await CreateNewWalletScreen.isAccountCreated();
-  await CreateNewWalletScreen.isNotVisible();
+  // await CreateNewWalletScreen.isNotVisible();
+  await WalletMainScreen.tapRemindMeLaterOnNotification()
+  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
 });
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {

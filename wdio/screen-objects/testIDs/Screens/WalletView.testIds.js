@@ -13,3 +13,6 @@ export const WALLET_ACCOUNT_NAME_LABEL_TEXT = 'edit-account-label';
 export const WALLET_ACCOUNT_NAME_LABEL_INPUT = 'account-label-text-input';
 
 export const ACCOUNT_OVERVIEW_ID = 'account-overview';
+
+export const NOTIFICATION_REMIND_ME_LATER_BUTTON_ID = 'notification-remind-later-button';
+

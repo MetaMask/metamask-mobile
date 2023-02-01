@@ -7,7 +7,7 @@ Feature: Request Token
 
   Scenario: Create wallet and then add a network
 
-    Given I have imported my wallet
+    Given I have created my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I tap on the navbar network title button
@@ -42,6 +42,8 @@ Feature: Request Token
     And I tap on button with text "Next"
     Then "Your request link is ready to send!" is visible
     And I tap on the close payment request icon
+    And I tap on button with text "Remind me later"
+
     Examples:
       | Network               | TokenName |
       | BNB Smart Chain       | BNB       |
@@ -76,6 +78,8 @@ Feature: Request Token
     Then "Payment Request QR Code" is visible
 
     And I close the request screen
+    And I tap on button with text "Remind me later"
+
     Examples:
       | Network               | TokenID | FirstTokenName     | SecondTokenID | SecondTokenName |
       | BNB Smart Chain       | BETH    | Binance Beacon ETH | Link          | ChainLink Token |
