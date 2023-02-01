@@ -49,7 +49,7 @@ const PRIVATE_KEY = 'private_key';
 interface IRevealPrivateCredentialProps {
   navigation: any;
   credentialName: string;
-  cancel: any;
+  cancel: () => void;
   route: any;
   errorBoundaryView?: string;
 }

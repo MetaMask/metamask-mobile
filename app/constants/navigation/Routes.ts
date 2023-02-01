@@ -26,6 +26,7 @@ const Routes = {
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
+    SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -40,8 +41,12 @@ const Routes = {
   SEND_FLOW: {
     SEND_TO: 'SendTo',
   },
+  ACCOUNT_BACKUP: {
+    STEP_1_B: 'AccountBackupStep1B',
+  },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
   },
 };
 
