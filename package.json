@@ -15,7 +15,7 @@
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
-    "setup": "yarn clean && yarn pod:install && yarn allow-scripts && ./scripts/postinstall.sh",
+    "setup": "yarn clean && yarn allow-scripts && ./scripts/postinstall.sh && yarn pod:install",
     "setup:e2e": "cd wdio && yarn install",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
