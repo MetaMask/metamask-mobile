@@ -68,7 +68,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
-} from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
   ButtonSize,
