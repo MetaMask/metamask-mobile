@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
   placeholderInput: {
     height: 0,
     width: 0,
+    paddingVertical: 0,
   },
 });
 
