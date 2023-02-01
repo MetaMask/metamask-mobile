@@ -28,7 +28,7 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.clickImportButton();
 });
 
-Given(/^I have created my wallet$/, async () => {
+Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
   await WelcomeScreen.clickGetStartedButton();
@@ -38,14 +38,20 @@ Given(/^I have created my wallet$/, async () => {
   await MetaMetricsScreen.tapNoThanksButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
-  await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password);
-  // await SkipAccountSecurityModal.isVisible();
-  await CreateNewWalletScreen.tapRemindMeLater();
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-  // await CreateNewWalletScreen.isNotVisible();
+  await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
+  // // await SkipAccountSecurityModal.isVisible();
+  // await CreateNewWalletScreen.tapRemindMeLater();
+  // await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+  // // await CreateNewWalletScreen.isNotVisible();
+  // await WalletMainScreen.tapRemindMeLaterOnNotification();
+  // await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+});
+
+Given(/^I tap on the remind me later on the secure notification$/, async () => {
   await WalletMainScreen.tapRemindMeLaterOnNotification();
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
 });
+
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   const setTimeout = 50000;

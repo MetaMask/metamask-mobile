@@ -7,10 +7,15 @@ Feature: Request Token
 
   Scenario: Create wallet and then add a network
 
-    Given I have created my wallet
+    Given I create a new wallet
+    And I select remind me later on secure wallet screen
+    And Select "Skip" on remind secure modal
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I tap on the navbar network title button
+    And I tap on the remind me later on the secure notification
+    Then I am on the main wallet view
+
+    When I tap on the navbar network title button
     And I tap on the Add a Network button
     When I tap on network "BNB Smart Chain" to add it
     Then the network approval modal should appear
