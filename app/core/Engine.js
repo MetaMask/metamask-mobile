@@ -353,7 +353,7 @@ class Engine {
               ),
           },
           {
-            chainId: networkController.state.provider.chainId,
+            chainId: networkController.state.providerConfig.chainId,
           },
         ),
         new TransactionController({
