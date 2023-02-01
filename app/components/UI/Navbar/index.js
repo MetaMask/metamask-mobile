@@ -586,7 +586,11 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(route, themeColors) {
+export function getBrowserViewNavbarOptions(
+  route,
+  themeColors,
+  rightButtonAnalyticsEvent,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -604,8 +608,10 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
 
   const handleUrlPress = () => route.params?.showUrlModal?.();
 
-  const setAccountsPermissionsVisible =
-    route.params?.setAccountsPermissionsVisible;
+  const handleAccountRightButtonPress = (permittedAccounts, currentUrl) => {
+    rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
+    route.params?.setAccountsPermissionsVisible();
+  };
 
   const connectedAccounts = route.params?.connectedAccounts;
 
@@ -619,7 +625,7 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
       <AccountRightButton
         selectedAddress={connectedAccounts?.[0]}
         isNetworkVisible
-        onPress={setAccountsPermissionsVisible}
+        onPress={handleAccountRightButtonPress}
       />
     ),
     headerStyle: innerStyles.headerStyle,

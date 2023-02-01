@@ -716,6 +716,13 @@ const RootRPCMethodsUI = (props) => {
               metadata: { id },
             } = requestData;
 
+            const totalAccounts = props.accountsLength;
+
+            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+              number_of_accounts: totalAccounts,
+              source: 'PERMISSION SYSTEM',
+            });
+
             props.navigation.navigate(
               ...createAccountConnectNavDetails({
                 hostInfo: requestData,
@@ -860,6 +867,7 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
+  accountsLength: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -872,6 +880,9 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({

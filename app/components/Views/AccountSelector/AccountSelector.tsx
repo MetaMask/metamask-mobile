@@ -17,7 +17,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-
 // Internal dependencies.
 import {
   ACCOUNT_LIST_ID,
@@ -53,6 +52,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     InteractionManager.runAfterInteractions(() => {
       // Track Event: "Switched Account"
       AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        source: 'Wallet Tab',
         number_of_accounts: accounts?.length,
       });
     });

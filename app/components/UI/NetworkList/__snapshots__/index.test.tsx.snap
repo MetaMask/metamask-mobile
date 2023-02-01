@@ -2,6 +2,7 @@
 
 exports[`NetworkList should render correctly 1`] = `
 <NetworkList
+  currentBottomNavRoute="Wallet"
   dispatch={[Function]}
   frequentRpcList={
     Array [

@@ -224,7 +224,7 @@ class AccountOverview extends PureComponent {
   openAccountSelector = () => {
     const { onboardingWizard, navigation } = this.props;
     !onboardingWizard &&
-      navigation.navigate(...createAccountSelectorNavDetails());
+      navigation.navigate(...createAccountSelectorNavDetails({}));
   };
 
   isAccountLabelDefined = (accountLabel) =>

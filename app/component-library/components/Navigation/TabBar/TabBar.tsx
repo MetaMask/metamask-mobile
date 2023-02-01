@@ -21,11 +21,19 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
-      const label = descriptors[route.key].options.tabBarLabel as TabBarLabel;
+      const { options } = descriptors[route.key];
+      const label = options.tabBarLabel as TabBarLabel;
+      //TODO: use another option on add it to the prop interface
+      const callback = options.callback;
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_LABEL[label];
-      const onPress = () => !isSelected && navigation.navigate(route.name);
+      const onPress = () => {
+        if (isSelected) return;
+
+        callback?.();
+        navigation.navigate(route.name);
+      };
 
       return (
         <TabBarItem

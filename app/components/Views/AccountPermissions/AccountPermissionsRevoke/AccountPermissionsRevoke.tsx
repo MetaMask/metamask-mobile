@@ -26,10 +26,13 @@ import {
 import { ToastOptions } from '../../../../component-library/components/Toast/Toast.types';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
+import { useSelector } from 'react-redux';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -47,11 +50,32 @@ const AccountPermissionsRevoke = ({
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const nonTestnetNetworks = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList
+        .length + 1,
+  );
+
   const revokeAllAccounts = useCallback(
     async () => {
       try {
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
+        );
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+          {
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: permittedAddresses.length,
+            number_of_networks: nonTestnetNetworks,
+          },
         );
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
@@ -139,6 +163,14 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                   });
                 }
+                AnalyticsV2.trackEvent(
+                  MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+                  {
+                    number_of_accounts: accountsLength,
+                    number_of_accounts_connected: permittedAddresses.length,
+                    number_of_networks: nonTestnetNetworks,
+                  },
+                );
               }
             }}
             label={strings('accounts.revoke')}
