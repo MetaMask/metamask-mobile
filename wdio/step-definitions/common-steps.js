@@ -45,7 +45,7 @@ Given(/^I have created my wallet$/, async () => {
   await CreateNewWalletScreen.tapRemindMeLater();
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
   // await CreateNewWalletScreen.isNotVisible();
-  await WalletMainScreen.tapRemindMeLaterOnNotification()
+  await WalletMainScreen.tapRemindMeLaterOnNotification();
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
 });
 

@@ -1,3 +1,4 @@
+/* global driver */
 import {
   SKIP_BACKUP_TEXT,
   SKIP_BUTTON,

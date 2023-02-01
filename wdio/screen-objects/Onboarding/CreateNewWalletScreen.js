@@ -1,3 +1,4 @@
+/* global driver */
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../testIDs/Components/TermsAndConditions.testIds';
 import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,

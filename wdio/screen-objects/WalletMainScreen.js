@@ -71,10 +71,10 @@ class WalletMainScreen {
   }
 
   get remindMeLaterNotification() {
-    return Selectors.getElementByPlatform(NOTIFICATION_REMIND_ME_LATER_BUTTON_ID);
+    return Selectors.getElementByPlatform(
+      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+    );
   }
-
-  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID
 
   async tapSettings() {
     await Gestures.tap(this.drawerSettings);
