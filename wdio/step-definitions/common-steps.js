@@ -39,12 +39,6 @@ Given(/^I create a new wallet$/, async () => {
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
-  // // await SkipAccountSecurityModal.isVisible();
-  // await CreateNewWalletScreen.tapRemindMeLater();
-  // await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-  // // await CreateNewWalletScreen.isNotVisible();
-  // await WalletMainScreen.tapRemindMeLaterOnNotification();
-  // await SkipAccountSecurityModal.proceedWithoutWalletSecure();
 });
 
 Given(/^I tap on the remind me later on the secure notification$/, async () => {
