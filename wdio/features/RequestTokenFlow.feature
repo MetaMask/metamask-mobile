@@ -12,7 +12,7 @@ Feature: Request Token
     And Select "Skip" on remind secure modal
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I tap on the remind me later on the secure notification
+    And I tap the remind me later button on the Protect Your Wallet Modal
     Then I am on the main wallet view
 
     When I tap on the navbar network title button

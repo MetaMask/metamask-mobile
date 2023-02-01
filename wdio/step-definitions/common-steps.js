@@ -41,7 +41,7 @@ Given(/^I create a new wallet$/, async () => {
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
 });
 
-Given(/^I tap on the remind me later on the secure notification$/, async () => {
+Given(/^I tap the remind me later button on the Protect Your Wallet Modal$/, async () => {
   await WalletMainScreen.tapRemindMeLaterOnNotification();
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
 });
