@@ -39,8 +39,14 @@ Then(/^I tap on the navbar network title button/, async () => {
 
 Then(/^I am on the wallet screen/, async () => {
   await driver.pause(2000);
-  await WalletMainScreen.isVisible();
+  await driver.pause(2000);
+  await WalletMainScreen.isMainWalletViewVisible();
 });
+
+Then(/^I see (.*) visible in the top navigation bar/, async (network) => {
+  await WalletMainScreen.isNetworkNameCorrect(network);
+});
+
 Then(/^I am on the wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
 });

@@ -1,10 +1,5 @@
 /* global driver */
-import { Given, When, Then } from '@wdio/cucumber-framework';
-import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
-import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
-import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
-import Accounts from '../helpers/Accounts';
+import { When, Then } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
@@ -260,4 +255,8 @@ Then(/^I tap on Got it in the network education modal/, async () => {
 
 Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
   await NetworkListModal.changeNetwork(network);
+});
+
+Then(/^I close the networks screen view$/, async () => {
+  await NetworksScreen.tapCloseNetworkScreen();
 });
