@@ -23,6 +23,9 @@ const initialState = {
   modals: {
     shouldNetworkSwitchPopToWallet: false,
   },
+  navigation: {
+    currentBottomNavRoute: 'Wallet',
+  },
 };
 const store = mockStore(initialState);
 
