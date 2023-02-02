@@ -12,6 +12,7 @@ import {
   ScrollView,
   Image,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -57,6 +58,7 @@ import {
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -585,6 +587,7 @@ class ResetPassword extends PureComponent {
                 secureTextEntry
                 onSubmitEditing={this.tryUnlock}
                 testID={CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID}
+                {...generateTestId(Platform, CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID)}
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (
@@ -693,6 +696,7 @@ class ResetPassword extends PureComponent {
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
                     testID={CREATE_PASSWORD_INPUT_BOX_ID}
+                    {...generateTestId(Platform, CREATE_PASSWORD_INPUT_BOX_ID)}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -723,6 +727,7 @@ class ResetPassword extends PureComponent {
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
                     testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    {...generateTestId(Platform, CONFIRM_PASSWORD_INPUT_BOX_ID)}
                     zasdfasfasf
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
@@ -759,6 +764,7 @@ class ResetPassword extends PureComponent {
                     style={styles.label}
                     onPress={this.setSelection}
                     testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+                    {...generateTestId(Platform, ANDROID_I_UNDERSTAND_BUTTON_ID)}
                   >
                     {strings('reset_password.i_understand')}{' '}
                     <Text onPress={this.learnMore} style={styles.learnMore}>
