@@ -263,7 +263,6 @@ workflows:
     after_run:
       - _upload_apk_to_browserstack
     steps:
-      - cache-pull@2: {}
       - change-android-versioncode-and-versionname@1:
           inputs:
             - new_version_name: $VERSION_NAME
@@ -285,7 +284,6 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
-      - cache-push@2: {}
       - deploy-to-bitrise-io@1:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
@@ -320,9 +318,8 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                echo "BROWSERSTACK APP URL: $BROWSERSTACK_APP_URL"
   wdio_android_e2e_test:
-    before_run:
-      - build_android_qa
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
