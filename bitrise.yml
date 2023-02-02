@@ -325,6 +325,8 @@ workflows:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
   wdio_android_e2e_test:
+    before_run:
+      - code_setup_cache
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
