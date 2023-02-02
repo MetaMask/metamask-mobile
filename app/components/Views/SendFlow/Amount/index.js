@@ -79,6 +79,7 @@ import {
   AMOUNT_SCREEN_CARET_DROP_DOWN,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { isHexString } from 'ethjs-util';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -813,9 +814,10 @@ class Amount extends PureComponent {
       inputValue = inputValue.replace(',', '.');
     }
     const processedTicker = getTicker(ticker);
-    const processedInputValue = isDecimal(inputValue)
-      ? handleWeiNumber(inputValue)
-      : '0';
+    const processedInputValue =
+      isDecimal(inputValue) && !isHexString(inputValue)
+        ? handleWeiNumber(inputValue)
+        : '0';
     selectedAsset = selectedAsset || this.props.selectedAsset;
     if (selectedAsset.isETH) {
       hasExchangeRate = isMainNet(chainId) ? !!conversionRate : false;
