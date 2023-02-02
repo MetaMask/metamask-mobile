@@ -4,7 +4,7 @@ Feature: Adding Networks via the popular and custom networks flow
   A user should be able to add a custom network via the popular network flow
   A user should also have the ability to a add custom network via the custom network flow.
 
-  Scenario: Adding a network via the new popular network flow
+  Scenario Outline: Adding a network via the new popular network flow
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
@@ -38,7 +38,7 @@ Feature: Adding Networks via the popular and custom networks flow
       | Network |
       | Palm    |
 
-  Scenario: Adding a network via the custom network flow
+  Scenario Outline: Adding a network via the custom network flow
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -61,7 +61,7 @@ Feature: Adding Networks via the popular and custom networks flow
       | Network | rpcUrl                                | ChainID | Symbol |
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
 
-  Scenario: I can remove a custom network that was added via the popular network flow
+  Scenario Outline: I can remove a custom network that was added via the popular network flow
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -91,7 +91,7 @@ Feature: Adding Networks via the popular and custom networks flow
       | Network  |
       | Optimism |
 
-  Scenario: I can remove a custom network that was added via the custom network flow
+  Scenario Outline: I can remove a custom network that was added via the custom network flow
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"

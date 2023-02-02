@@ -31,7 +31,11 @@ const PickerNetwork = ({
         name={label}
         imageSource={imageSource}
       />
-      <Text style={styles.label} variant={TextVariants.sBodyMD}>
+      <Text
+        style={styles.label}
+        numberOfLines={1}
+        variant={TextVariants.sBodyMD}
+      >
         {label}
       </Text>
       <Icon size={IconSize.Xs} name={IconName.ArrowDownOutline} />
