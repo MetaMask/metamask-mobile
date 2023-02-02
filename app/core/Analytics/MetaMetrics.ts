@@ -104,6 +104,9 @@ class MetaMetrics implements IMetaMetrics {
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
   #identify(userTraits: UserIdentityProperties): void {
+    // The alias method is used to merge two user identities
+    // by connecting two sets of user data as one.
+    this.#segmentClient.alias(this.#metametricsId);
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
