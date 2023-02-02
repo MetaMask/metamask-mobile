@@ -71,7 +71,7 @@ class WelcomeScreen {
   }
 
   async clickGetStartedButton() {
-    await Gestures.tap(this.getStartedButton);
+    await Gestures.waitAndTap(this.getStartedButton);
   }
 }
 

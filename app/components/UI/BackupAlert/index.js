@@ -5,19 +5,22 @@ import {
   View,
   TouchableOpacity,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
 import { connect } from 'react-redux';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { NOTIFICATION_REMIND_ME_LATER_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
@@ -220,7 +223,10 @@ class BackupAlert extends PureComponent {
                 >
                   <Text
                     style={styles.backupAlertMessage}
-                    testID={'notification-remind-later-button'}
+                    {...generateTestId(
+                      Platform,
+                      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+                    )}
                   >
                     {strings('backup_alert.left_button')}
                   </Text>

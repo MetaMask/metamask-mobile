@@ -2,6 +2,7 @@
 
 exports[`ModalConfirmation should render correctly 1`] = `
 <ForwardRef
+  onDismiss={[Function]}
   style={
     Object {
       "justifyContent": "center",
