@@ -37,7 +37,7 @@ export const trackLegacyAnonymousEvent = (
  * @param {Object} eventName
  * @param {Object} params
  */
-export const trackEvent = (event: IMetaMetricsEvent, params: any): void => {
+export const trackEvent = (event: IMetaMetricsEvent, params?: any): void => {
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {

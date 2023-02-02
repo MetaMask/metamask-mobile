@@ -22,12 +22,12 @@ const ScreenshotDeterrent = ({
 
   const openSRPGuide = () => {
     setAlertPresent(false);
-    trackEvent(MetaMetricsEvents.SCREENSHOT_LEARN_MORE, {});
+    trackEvent(MetaMetricsEvents.SCREENSHOT_LEARN_MORE);
     Linking.openURL(SRP_GUIDE_URL);
   };
 
   const showScreenshotAlert = useCallback(() => {
-    trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
+    trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING);
     setAlertPresent(true);
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -42,7 +42,7 @@ const ScreenshotDeterrent = ({
         }),
         onCancel: () => {
           setAlertPresent(false);
-          trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
+          trackEvent(MetaMetricsEvents.SCREENSHOT_OK);
         },
         onConfirm: openSRPGuide,
         confirmLabel: strings('reveal_credential.learn_more'),
