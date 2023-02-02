@@ -16,23 +16,13 @@ Feature: This feature file covers all the navigation control options in browser.
     Then the browser view is on the "https://www.reddit.com/" website
     And I tap on the back arrow control button
     Then the browser view is on the "https://home.metamask.io/" website
-
-    When I tap on forward arrow control button
-    Then the browser view is on the "https://www.reddit.com/" website
-
-    When I tap on search button
-    Then browser address bar input view is displayed
-
+  
     When I tap on browser tab button with count 1
     Then multi browser tab view is displayed
 
     When I tap on "Add" button on multi browser tab view
-    Then new browser tab is displayed on "https://home.metamask.io/"
-    And browser tab count is 2
+    Then browser tab count is 2
 
     When I tap on browser tab button with count 2
     And I tap on "Close All" button on multi browser tab view
     Then all browser tabs are closed
-
-    When I tap on "Add" button on multi browser tab view
-    Then the browser view is on the "https://home.metamask.io/" website

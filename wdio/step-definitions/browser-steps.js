@@ -229,6 +229,7 @@ Then(/^new browser tab is displayed on "([^"]*)"$/, async (text) => {
 });
 
 Then(/^browser tab count is (\d+)$/, async (number) => {
+  await driver.pause(2000);
   await BrowserScreen.numberOfTapsEqualsTo(number);
 });
 
@@ -327,6 +328,7 @@ Then(/^all browser tabs are closed$/, async () => {
 });
 
 Then(/^new browser tab is added$/, async () => {
+  await driver.pause(2000);
   await BrowserScreen.numberOfTapsEqualsTo(2);
 });
 
