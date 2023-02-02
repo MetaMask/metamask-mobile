@@ -272,38 +272,62 @@ workflows:
                 $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
                 sourcemaps/android/index.js.map
       - change-android-versioncode-and-versionname@1:
-          if: steps.cache_pull.outputs.cache_hit != 'true'
+          run_if: |-
+            {{ if fileExists "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" }}
+            {{/* File exists, don't run this step */}}
+            false
+            {{ else }}
+            true
+            {{ end }}
           inputs:
             - new_version_name: $VERSION_NAME
             - new_version_code: $VERSION_NUMBER
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
-          if: steps.cache_pull.outputs.cache_hit != 'true'
+          run_if: |-
+            {{ if fileExists "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" }}
+            {{/* File exists, don't run this step */}}
+            false
+            {{ else }}
+            true
+            {{ end }}
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - install-missing-android-tools@2:
-          if: steps.cache_pull.outputs.cache_hit != 'true'
+          run_if: |-
+            {{ if fileExists "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" }}
+            {{/* File exists, don't run this step */}}
+            false
+            {{ else }}
+            true
+            {{ end }}
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
+          run_if: |-
+            {{ if fileExists "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" }}
+            {{/* File exists, don't run this step */}}
+            false
+            {{ else }}
+            true
+            {{ end }}
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-                echo 'BITRISE_SOURCE_DIR'
-                echo $BITRISE_SOURCE_DIR
-                echo 'ls -la $BITRISE_SOURCE_DIR'
-                ls -la $BITRISE_SOURCE_DIR
-                ls -la $PROJECT_LOCATION/app/build/outputs/apk/qa/release
-                ls -la $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease
-                ls -la $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease
-                ls -la sourcemaps/android
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - cache-push@2:
+          run_if: |-
+            {{ if fileExists "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" }}
+            {{/* File exists, don't run this step */}}
+            false
+            {{ else }}
+            true
+            {{ end }}
           inputs:
             - cache_paths: |-
                 $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
@@ -361,10 +385,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo $BITRISE_TEST_RESULT_DIR
-                echo $BITRISE_SOURCE_DIR
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
-                ls -la $BITRISE_TEST_RESULT_DIR
       - deploy-to-bitrise-io@1:
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
