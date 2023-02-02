@@ -6,11 +6,12 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
+  NAVBAR_NETWORK_BUTTON,
+  NFT_TAB_CONTAINER_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
-const NETWORKS_BUTTON_ID = 'open-networks-button';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
 export default class WalletView {
@@ -26,14 +27,26 @@ export default class WalletView {
     await TestHelpers.tap(DRAWER_BUTTON_ID);
   }
 
+  static async tapBrowser() {
+    await TestHelpers.tapByText('Browser');
+    await TestHelpers.delay(1000);
+  }
+
   static async tapNetworksButtonOnNavBar() {
-    await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
+    await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
   }
   static async tapNftTab() {
     await TestHelpers.tapByText('NFTs');
   }
   static async tapTokensTab() {
-    await TestHelpers.tapByText('TOKENS');
+    await TestHelpers.tapByText('Tokens');
+  }
+  static async scrollDownOnNFTsTab() {
+    await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'up', 'slow', 0.6);
+  }
+
+  static async scrollUpOnNFTsTab() {
+    await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'down', 'slow', 0.6);
   }
 
   static async tapImportNFTButton() {

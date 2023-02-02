@@ -3,6 +3,8 @@
 // Third library dependencies.
 import React from 'react';
 
+import { Platform } from 'react-native';
+
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import SelectItem from '../../../../Select/Select/SelectItem';
@@ -12,6 +14,7 @@ import CellBase from '../../foundation/CellBase';
 import { CELL_SELECT_TEST_ID } from './CellSelect.constants';
 import styleSheet from './CellSelect.styles';
 import { CellSelectProps } from './CellSelect.types';
+import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 const CellSelect = ({
   style,
@@ -22,6 +25,7 @@ const CellSelect = ({
   tagLabel,
   isSelected = false,
   children,
+  ...props
 }: CellSelectProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -30,6 +34,8 @@ const CellSelect = ({
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_SELECT_TEST_ID}
+      {...props}
+      {...generateTestId(Platform, CELL_SELECT_TEST_ID)}
     >
       <CellBase
         avatarProps={avatarProps}

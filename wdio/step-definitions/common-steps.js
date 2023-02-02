@@ -29,6 +29,7 @@ Given(/^I have imported my wallet$/, async () => {
 });
 
 Given(/^I have created my wallet$/, async () => {
+  // should be in a common step file
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.isScreenTitleVisible();
   await WelcomeScreen.clickGetStartedButton();
