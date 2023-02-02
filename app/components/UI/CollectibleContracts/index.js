@@ -107,6 +107,8 @@ const CollectibleContracts = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+  const isCollectionDetectionBannerVisible =
+    networkType === MAINNET && !nftDetectionDismissed && !useNftDetection;
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
@@ -262,16 +264,14 @@ const CollectibleContracts = ({
       style={styles.wrapper}
       {...generateTestId(Platform, NFT_TAB_CONTAINER_ID)}
     >
-      {networkType === MAINNET &&
-        !nftDetectionDismissed &&
-        !useNftDetection && (
-          <View style={styles.emptyView}>
-            <CollectibleDetectionModal
-              onDismiss={dismissNftInfo}
-              navigation={navigation}
-            />
-          </View>
-        )}
+      {isCollectionDetectionBannerVisible && (
+        <View style={styles.emptyView}>
+          <CollectibleDetectionModal
+            onDismiss={dismissNftInfo}
+            navigation={navigation}
+          />
+        </View>
+      )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
       {renderFooter()}
     </View>

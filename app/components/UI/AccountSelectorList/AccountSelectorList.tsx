@@ -108,7 +108,7 @@ const AccountSelectorList = ({
                       safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
-              let nextActiveAddress = account.address;
+              let nextActiveAddress = account?.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
                 nextActiveAddress = accounts[nextActiveIndex]?.address;

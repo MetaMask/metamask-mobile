@@ -90,6 +90,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     [origin],
   );
 
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
   /**
    * Get image url from favicon api.
    */
@@ -114,8 +121,13 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
+        number_of_accounts: accountsLength,
+        source: 'permission system',
+      });
     },
-    [Engine.context.PermissionController],
+    [Engine.context.PermissionController, accountsLength],
   );
 
   const handleConnect = useCallback(async () => {
@@ -143,6 +155,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
+        number_of_accounts: accountsLength,
+        number_of_accounts_connected: connectedAccountLength,
+        source: 'in-app browser',
+      });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
         labelOptions = [
@@ -179,6 +196,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
+    accountsLength,
   ]);
 
   const handleCreateAccount = useCallback(

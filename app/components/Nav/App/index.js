@@ -44,7 +44,10 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
-import { setCurrentRoute } from '../../../actions/navigation';
+import {
+  setCurrentRoute,
+  setCurrentBottomNavRoute,
+} from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -198,7 +201,12 @@ const App = ({ userLoggedIn }) => {
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
   const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
-  const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+  const triggerSetCurrentRoute = (route) => {
+    dispatch(setCurrentRoute(route));
+    if (route === 'Wallet' || route === 'BrowserView') {
+      dispatch(setCurrentBottomNavRoute(route));
+    }
+  };
   const frequentRpcList = useSelector(
     (state) =>
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,

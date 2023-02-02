@@ -146,6 +146,7 @@ class Connection {
     }
 
     this.RemoteConn.on('clients_ready', ({ originatorInfo }) => {
+      const isMMSDK = true;
       if (this.isReady) return;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -156,6 +157,7 @@ class Connection {
         sendMessage: this.sendMessage,
         getApprovedHosts: () => approvedHosts,
         remoteConnHost: this.host,
+        isMMSDK,
         getRpcMethodMiddleware: ({
           getProviderState,
         }: {
@@ -181,7 +183,7 @@ class Connection {
             wizardScrollAdjusted: { current: false },
             tabId: '',
             isWalletConnect: false,
-            isMMSDK: true,
+            isMMSDK,
             analytics: {
               isRemoteConn: true,
               platform: parseSource(originatorInfo?.platform),

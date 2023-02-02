@@ -181,6 +181,10 @@ export class NetworkList extends PureComponent {
      * Boolean indicating if switching network action should result in popping back to the wallet.
      */
     shouldNetworkSwitchPopToWallet: PropTypes.bool,
+    /**
+     * Current Bottom nav bar route.
+     */
+    currentBottomNavRoute: PropTypes.string,
   };
 
   getOtherNetworks = () => getAllNetworks().slice(1);
@@ -200,6 +204,12 @@ export class NetworkList extends PureComponent {
     } else {
       onClose(false);
     }
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+      chain_id: type,
+      source: this.props.currentBottomNavRoute,
+      symbol: ticker,
+    });
+
     return onNetworkSelected(type, ticker, url, networkOnboardedState);
   };
 
@@ -212,11 +222,6 @@ export class NetworkList extends PureComponent {
       setTimeout(() => {
         Engine.refreshTransactionHistory();
       }, 1000);
-
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: String(Networks[type].chainId),
-      source: 'Settings',
-    });
   };
 
   closeModal = () => {
@@ -245,7 +250,7 @@ export class NetworkList extends PureComponent {
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
-      source: 'Settings',
+      source: this.props.currentBottomNavRoute,
       symbol: ticker,
     });
   };
@@ -454,6 +459,7 @@ export class NetworkList extends PureComponent {
 
 const mapStateToProps = (state) => ({
   provider: state.engine.backgroundState.NetworkController.provider,
+  currentBottomNavRoute: state.navigation.currentBottomNavRoute,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

@@ -481,8 +481,6 @@ class DrawerView extends PureComponent {
   previousBalance = null;
   processedNewBalance = false;
   animatingNetworksModal = false;
-  animatingAccountsModal = false;
-  animatingLedgerDeviceActionModal = false;
 
   componentWillUnmount() {
     if (this.ledgerModalTimer) {
@@ -715,7 +713,7 @@ class DrawerView extends PureComponent {
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      referral_source: 'In-app Navigation',
+      source: 'In-app Navigation',
       chain_id: network,
     });
   };

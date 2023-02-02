@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 4a18560..a8d7277 100644
+index 4a18560..a76c8d5 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -182,6 +182,77 @@ class TokensController extends base_controller_1.BaseController {
@@ -127,3 +127,12 @@ index 4a18560..a8d7277 100644
                          suggestedAssetMeta.status = SuggestedAssetStatus.accepted;
                          this.hub.emit(`${suggestedAssetMeta.id}:finished`, suggestedAssetMeta);
                          break;
+@@ -528,7 +608,7 @@ class TokensController extends base_controller_1.BaseController {
+             newAllIgnoredTokens = Object.assign(Object.assign({}, allIgnoredTokens), { [chainIdToAddTokens]: newIgnoredNetworkTokens });
+         }
+         let newAllDetectedTokens = allDetectedTokens;
+-        if (newDetectedTokens === null || newDetectedTokens === void 0 ? void 0 : newDetectedTokens.length) {
++        if (newDetectedTokens === null || newDetectedTokens === void 0 ? void 0 : !!newDetectedTokens) {
+             const networkDetectedTokens = allDetectedTokens[chainIdToAddTokens];
+             const newDetectedNetworkTokens = Object.assign(Object.assign({}, networkDetectedTokens), { [userAddressToAddTokens]: newDetectedTokens });
+             newAllDetectedTokens = Object.assign(Object.assign({}, allDetectedTokens), { [chainIdToAddTokens]: newDetectedNetworkTokens });

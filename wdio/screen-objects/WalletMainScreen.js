@@ -15,6 +15,7 @@ import {
   WALLET_ACCOUNT_ICON,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
   NAVBAR_NETWORK_BUTTON,
+  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
 } from './testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
@@ -67,6 +68,12 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
   }
 
+  get remindMeLaterNotification() {
+    return Selectors.getElementByPlatform(
+      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+    );
+  }
+
   async tapSettings() {
     await Gestures.tap(this.drawerSettings);
   }
@@ -114,6 +121,12 @@ class WalletMainScreen {
     await driver.pause(timeOut);
     await Gestures.tap(this.networkInNavBar);
     await driver.pause(timeOut);
+  }
+
+  async tapRemindMeLaterOnNotification() {
+    const timeOut = 3000;
+    await driver.pause(timeOut);
+    await Gestures.tap(this.remindMeLaterNotification);
   }
 
   async isVisible() {
