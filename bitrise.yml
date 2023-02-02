@@ -327,14 +327,14 @@ workflows:
           title: Trigger WDIO E2E test worflow
           inputs:
             - content: |-
-              #!/usr/bin/env bash
-              set -e
-              set -x
-              set -o pipefail
+                #!/usr/bin/env bash
+                set -e
+                set -x
+                set -o pipefail
 
-              curl https://app.bitrise.io/app/be69d4368ee7e86d/build/start.json \
-                -L \
-                --data '{"hook_info":{"type":"bitrise","build_trigger_token":"$BITRISE_BUILD_TRIGGER_TOKEN"},"build_params":{"branch":"$BITRISE_GIT_BRANCH", "workflow_id":"wdio_android_e2e_test", ,"environments":[{"mapped_to":"$BROWSERSTACK_APP_URL","value":"$BROWSERSTACK_APP_URL","is_expand":true}]},"triggered_by":"Android QA Build"}'
+                curl https://app.bitrise.io/app/be69d4368ee7e86d/build/start.json \
+                  -L \
+                  --data '{"hook_info":{"type":"bitrise","build_trigger_token":"$BITRISE_BUILD_TRIGGER_TOKEN"},"build_params":{"branch":"$BITRISE_GIT_BRANCH", "workflow_id":"wdio_android_e2e_test", ,"environments":[{"mapped_to":"$BROWSERSTACK_APP_URL","value":"$BROWSERSTACK_APP_URL","is_expand":true}]},"triggered_by":"Android QA Build"}'
 
   wdio_android_e2e_test:
     before_run:
