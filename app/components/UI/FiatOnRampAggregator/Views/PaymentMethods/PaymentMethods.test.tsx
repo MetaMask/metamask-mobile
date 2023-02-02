@@ -279,6 +279,12 @@ describe('PaymentMethods View', () => {
       rendered.getByRole('button', { name: 'Continue to amount' }),
     );
     expect(mockNavigate).toHaveBeenCalledWith(...createAmountToBuyNavDetails());
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
+      {
+        location: 'Payment Method Screen',
+      },
+    );
   });
 
   it('renders correctly with sdkError', async () => {

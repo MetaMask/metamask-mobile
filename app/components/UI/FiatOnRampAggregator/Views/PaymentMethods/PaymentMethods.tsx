@@ -92,8 +92,11 @@ const PaymentMethods = () => {
   }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
+    trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
+      location: 'Payment Method Screen',
+    });
     navigation.navigate(...createAmountToBuyNavDetails());
-  }, [navigation]);
+  }, [navigation, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(

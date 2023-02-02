@@ -28,6 +28,9 @@ export interface AnalyticsEvents {
     payment_method_id: string;
     location?: ScreenLocation;
   };
+  ONRAMP_CONTINUE_TO_AMOUNT_CLICKED: {
+    location: ScreenLocation;
+  };
   ONRAMP_QUOTES_REQUESTED: {
     currency_source: string;
     currency_destination: string;

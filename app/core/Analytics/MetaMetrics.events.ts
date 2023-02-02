@@ -189,6 +189,7 @@ enum EVENT_NAME {
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   ONRAMP_REGION_SELECTED = 'On-ramp Region Selected',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
+  ONRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'On-ramp Continue To Amount Clicked',
   ONRAMP_QUOTES_REQUESTED = 'On-ramp Quotes Requested',
   ONRAMP_CANCELED = 'On-ramp Canceled',
   ONRAMP_QUOTES_RECEIVED = 'On-ramp Quotes Received',
