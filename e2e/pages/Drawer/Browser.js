@@ -16,8 +16,8 @@ const RETURN_HOME_TEXT = strings('webview_error.return_home');
 const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
 
 export class Browser {
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
+  static async tapUrlInputBox() {
+    await TestHelpers.tapByText('home.metamask.io');
     await TestHelpers.delay(1000);
   }
 

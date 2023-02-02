@@ -2,7 +2,7 @@
 
 // Third library dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
@@ -21,6 +21,7 @@ import {
 } from './CellBase.constants';
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
+import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 const CellBase = ({
   style,
@@ -47,6 +48,7 @@ const CellBase = ({
           numberOfLines={1}
           variant={TextVariants.sHeadingSMRegular}
           testID={CELL_TITLE_TEST_ID}
+          {...generateTestId(Platform, CELL_TITLE_TEST_ID)}
         >
           {title}
         </Text>

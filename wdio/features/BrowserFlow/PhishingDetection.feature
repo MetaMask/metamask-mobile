@@ -14,4 +14,4 @@ Feature: This feature file covers phishing detection functionality the browser.
 
     When I tap the Back button on Phishing Detection page
     Then I should close the address view
-    Then the browser view is on Home MetaMask website
+    And the browser view is on the "https://home.metamask.io/" website

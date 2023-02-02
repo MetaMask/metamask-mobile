@@ -437,14 +437,37 @@
     "receive": "受け取る"
   },
   "accounts": {
-    "create_new_account": "新規アカウントを作成",
-    "import_account": "アカウントをインポート",
+    "create_new_account": "新規アカウントの作成",
+    "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
-    "yes_remove_it": "はい、削除します"
+    "yes_remove_it": "はい、削除します",
+    "accounts_title": "アカウント",
+    "connect_account_title": "アカウントの接続",
+    "connect_accounts_title": "アカウントの接続",
+    "connected_accounts_title": "接続されたアカウント",
+    "connect_description": "アカウントのアドレス、残高、アクティビティを共有すると、サイトがトランザクションを実行できるようになります。",
+    "connect_multiple_accounts": "複数アカウントを接続",
+    "connect_more_accounts": "他のアカウントを接続",
+    "cancel": "キャンセル",
+    "connect": "接続",
+    "connect_with_count": "{{countLabel}} 個を接続",
+    "select_all": "すべて選択",
+    "permissions": "許可",
+    "disconnect": "接続解除",
+    "disconnect_all_accounts": "すべてのアカウントを接続解除",
+    "revoke": "取り消す",
+    "revoke_all": "すべて取り消す"
+  },
+  "toast": {
+    "connected_and_active": "接続済みかつ有効です。",
+    "now_active": "有効になりました。",
+    "revoked": "取り消されました。",
+    "revoked_all": "すべてのアカウントが取り消されました。",
+    "accounts_connected": "アカウントが接続されました。"
   },
   "connect_qr_hardware": {
     "title": "QR ベースのハードウェアウォレットを接続",

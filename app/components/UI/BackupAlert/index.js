@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -17,6 +18,8 @@ import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { NOTIFICATION_REMIND_ME_LATER_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -64,10 +67,10 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     modalViewInBrowserView: {
-      bottom: Device.isIphoneX() ? 90 : 80,
+      bottom: Device.isIphoneX() ? 180 : 170,
     },
     modalViewNotInBrowserView: {
-      bottom: Device.isIphoneX() ? 20 : 10,
+      bottom: Device.isIphoneX() ? 120 : 110,
     },
     buttonsWrapper: {
       flexDirection: 'row-reverse',
@@ -226,7 +229,10 @@ class BackupAlert extends PureComponent {
                 >
                   <Text
                     style={styles.backupAlertMessage}
-                    testID={'notification-remind-later-button'}
+                    {...generateTestId(
+                      Platform,
+                      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+                    )}
                   >
                     {strings('backup_alert.left_button')}
                   </Text>

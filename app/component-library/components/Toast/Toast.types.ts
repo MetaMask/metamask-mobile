@@ -1,6 +1,9 @@
 // Third party dependencies.
 import { ImageSourcePropType } from 'react-native';
 
+// External Dependencies.
+import { AvatarAccountType } from '../Avatars/AvatarAccount';
+
 /**
  * Toast variants.
  */
@@ -47,6 +50,7 @@ interface PlainToastOption extends BaseToastVariants {
 interface AccountToastOption extends BaseToastVariants {
   variant: ToastVariants.Account;
   accountAddress: string;
+  accountAvatarType: AvatarAccountType;
 }
 
 /**
@@ -54,6 +58,7 @@ interface AccountToastOption extends BaseToastVariants {
  */
 interface NetworkToastOption extends BaseToastVariants {
   variant: ToastVariants.Network;
+  networkName?: string;
   networkImageSource: ImageSourcePropType;
 }
 
