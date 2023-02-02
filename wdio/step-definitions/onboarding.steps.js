@@ -162,7 +162,7 @@ When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
 });
 
 When(/^I select remind me later on secure wallet screen/, async () => {
-  await CreateNewWalletScreen.selectRemindMeLater();
+  await CreateNewWalletScreen.tapRemindMeLater();
 });
 
 When(/^secure wallet page is presented/, async () => {

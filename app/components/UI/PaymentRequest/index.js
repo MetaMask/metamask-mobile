@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -52,6 +53,12 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  REQUEST_AMOUNT_INPUT,
+  REQUEST_SEARCH_ASSET_INPUT,
+  REQUEST_SEARCH_SCREEN,
+} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -446,7 +453,10 @@ class PaymentRequest extends PureComponent {
       return token;
     });
     return (
-      <View style={baseStyles.flexGrow} testID={'request-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        {...generateTestId(Platform, REQUEST_SEARCH_SCREEN)}
+      >
         <View>
           <Text style={styles.title}>
             {strings('payment_request.choose_asset')}
@@ -472,7 +482,7 @@ class PaymentRequest extends PureComponent {
               returnKeyType="go"
               value={this.state.searchInputValue}
               blurOnSubmit
-              testID={'request-search-asset-input'}
+              {...generateTestId(Platform, REQUEST_SEARCH_ASSET_INPUT)}
               keyboardAppearance={themeAppearance}
             />
             {this.state.searchInputValue ? (
@@ -769,7 +779,7 @@ class PaymentRequest extends PureComponent {
                     value={amount}
                     onSubmitEditing={this.onNext}
                     ref={this.amountInput}
-                    testID={'request-amount-input'}
+                    {...generateTestId(Platform, REQUEST_AMOUNT_INPUT)}
                     keyboardAppearance={themeAppearance}
                   />
                   <Text

@@ -1,8 +1,8 @@
 import { swapsUtils } from '@metamask/swaps-controller';
+import { useCallback, useEffect } from 'react';
 import { selectChainId } from '../../../selectors/networkController';
-import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import {
   setSwapsLiveness,
@@ -12,12 +12,19 @@ import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
+import { EngineState } from '../../../selectors/types';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
-
-function SwapLiveness({ isLive, chainId, setLiveness }) {
-  const [hasMountChecked, setHasMountChecked] = useState(false);
-
+function SwapLiveness() {
+  const isLive = useSelector(swapsLivenessSelector);
+  const chainId = useSelector((state: EngineState) => selectChainId(state));
+  const dispatch = useDispatch();
+  const setLiveness = useCallback(
+    (liveness, currentChainId) => {
+      dispatch(setSwapsLiveness(liveness, currentChainId));
+    },
+    [dispatch],
+  );
   const checkLiveness = useCallback(async () => {
     try {
       const data = await swapsUtils.fetchSwapsFeatureLiveness(
@@ -32,32 +39,29 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
         ? 'mobileActiveAndroid'
         : 'mobileActive';
       const liveness =
+        // @ts-expect-error interface mismatch
         typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
       setLiveness(liveness, chainId);
     } catch (error) {
-      Logger.error(error, 'Swaps: error while fetching swaps liveness');
+      Logger.error(error as any, 'Swaps: error while fetching swaps liveness');
       setLiveness(false, chainId);
     }
   }, [setLiveness, chainId]);
 
-  // Check on mount
   useEffect(() => {
-    if (isSwapsAllowed(chainId) && !isLive && !hasMountChecked) {
-      setHasMountChecked(true);
+    if (isSwapsAllowed(chainId) && !isLive) {
       checkLiveness();
     }
-  }, [chainId, checkLiveness, hasMountChecked, isLive]);
-
-  // Check con appstate change
+  }, [chainId, checkLiveness, isLive]);
+  // Check on AppState change
   const appStateHandler = useCallback(
     (newState) => {
-      if (hasMountChecked && !isLive && newState === 'active') {
+      if (!isLive && newState === 'active') {
         checkLiveness();
       }
     },
-    [checkLiveness, hasMountChecked, isLive],
+    [checkLiveness, isLive],
   );
-
   useEffect(() => {
     if (isSwapsAllowed(chainId)) {
       AppState.addEventListener('change', appStateHandler);
@@ -66,7 +70,6 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
       };
     }
   }, [appStateHandler, chainId]);
-
   // Check on interval
   useInterval(
     async () => {
@@ -74,18 +77,6 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
     },
     isSwapsAllowed(chainId) && !isLive ? POLLING_FREQUENCY : null,
   );
-
   return null;
 }
-
-const mapStateToProps = (state) => ({
-  isLive: swapsLivenessSelector(state),
-  chainId: selectChainId(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  setLiveness: (liveness, chainId) =>
-    dispatch(setSwapsLiveness(liveness, chainId)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(SwapLiveness);
+export default SwapLiveness;
