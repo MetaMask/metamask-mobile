@@ -196,7 +196,7 @@ const createStyles = (colors) =>
 const PASSCODE_NOT_SET_ERROR = 'Error: Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
-  'Error: Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+  'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Error: Cannot unlock without a previous vault.';
 
 /**
@@ -354,14 +354,12 @@ class Login extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
+        const vaultCorruptionError = new Error('Vault Corruption Error');
+        Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
         this.setState({
           loading: false,
           error: strings('login.clean_vault_error'),
         });
-        Logger.error(
-          'Vault Corruption Error',
-          strings('login.clean_vault_error'),
-        );
       } else {
         this.setState({ loading: false, error });
       }
