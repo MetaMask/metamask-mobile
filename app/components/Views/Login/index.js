@@ -258,8 +258,6 @@ class Login extends PureComponent {
       PASSCODE_DISABLED,
     );
 
-    console.log(`vault/ Login authData ${JSON.stringify(this.authData)}`);
-
     if (this.authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
         biometryType: passcodeType(this.authData.currentAuthType),
@@ -272,9 +270,6 @@ class Login extends PureComponent {
     } else if (
       this.authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME
     ) {
-      console.log(
-        'vault/ Login AUTHENTICATION_TYPE.REMEMBER_ME setting rememberMe true',
-      );
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,

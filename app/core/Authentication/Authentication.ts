@@ -156,7 +156,6 @@ class AuthenticationService {
     password: string,
     authType: AUTHENTICATION_TYPE,
   ): Promise<void> => {
-    console.log('vault/ Authentication storePassword with', password, authType);
     try {
       switch (authType) {
         case AUTHENTICATION_TYPE.BIOMETRIC:
@@ -264,11 +263,6 @@ class AuthenticationService {
     biometryChoice: boolean,
     rememberMe: boolean,
   ): Promise<AuthData> => {
-    console.log(
-      'vault/ Authentication componentAuthenticationType called with',
-      biometryChoice,
-      rememberMe,
-    );
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
     const biometryPreviouslyDisabled = await AsyncStorage.getItem(
@@ -381,12 +375,6 @@ class AuthenticationService {
     authData: AuthData,
     selectedAddress: string,
   ): Promise<void> => {
-    console.log(
-      'vault/ Authentication userEntryAuth called with',
-      password,
-      JSON.stringify(authData),
-      selectedAddress,
-    );
     try {
       await this.loginVaultCreation(password, selectedAddress);
       await this.storePassword(password, authData.currentAuthType);
