@@ -245,11 +245,12 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
+  authData = Authentication.getType();
+
   async componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     //Setup UI to handle Biometric
-    const authData = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
@@ -257,24 +258,31 @@ class Login extends PureComponent {
       PASSCODE_DISABLED,
     );
 
-    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+    console.log(`vault/ Login authData ${JSON.stringify(this.authData)}`);
+
+    if (this.authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
-        biometryType: passcodeType(authData.currentAuthType),
+        biometryType: passcodeType(this.authData.currentAuthType),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
         biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
-    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+    } else if (
+      this.authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME
+    ) {
+      console.log(
+        'vault/ Login AUTHENTICATION_TYPE.REMEMBER_ME setting rememberMe true',
+      );
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,
       });
       this.props.setAllowLoginWithRememberMe(true);
-    } else if (authData.availableBiometryType) {
+    } else if (this.authData.availableBiometryType) {
       this.setState({
-        biometryType: authData.availableBiometryType,
+        biometryType: this.authData.availableBiometryType,
         biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
         biometryPreviouslyDisabled: !!previouslyDisabled,
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
