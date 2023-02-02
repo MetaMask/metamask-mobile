@@ -30,6 +30,9 @@ export default function onUrlSubmit(
       if (searchEngine === 'DuckDuckGo') {
         searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
       }
+      if (searchEngine === 'Presearch') {
+        searchUrl = 'https://presearch.com/search?q=' + escape(input);
+      }
       return searchUrl;
     }
   }
