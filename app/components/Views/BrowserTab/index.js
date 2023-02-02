@@ -921,7 +921,7 @@ export const BrowserTab = (props) => {
 
   const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
     const newBridge = new BackgroundBridge({
-      connection: {
+      connectionOptions: {
         isMainFrame,
         type: CONNECTION_TYPE.BROWSER,
         url: urlBridge,
