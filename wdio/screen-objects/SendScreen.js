@@ -58,10 +58,6 @@ class SendScreen {
     await Gestures.tap(this.sendCancelButton);
   }
 
-  async tapOnText(text) {
-    await Gestures.tapTextByXpath(text);
-  }
-
   async isAmountScreenDisplayed() {
     await expect(this.amountScreen).toBeDisplayed();
   }

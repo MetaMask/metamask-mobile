@@ -88,4 +88,4 @@ Feature: Request Token
     Examples:
       | Network               | TokenID | FirstTokenName     | SecondTokenID | SecondTokenName |
       | BNB Smart Chain       | BETH    | Binance Beacon ETH | Link          | ChainLink Token |
-      | Ethereum Main Network | QNT     | Quant              | CETH          | Compound Ether  |
+      | Ethereum Main Network | QNT     | Quant              | CETH          | cETH            |

@@ -16,3 +16,6 @@ export const ACCOUNT_OVERVIEW_ID = 'account-overview';
 
 export const NOTIFICATION_REMIND_ME_LATER_BUTTON_ID =
   'notification-remind-later-button';
+
+export const SECURE_WALLET_BACKUP_ALERT_MODAL =
+  'backup-alert';

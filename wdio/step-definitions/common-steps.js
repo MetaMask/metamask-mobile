@@ -12,6 +12,7 @@ import CommonScreen from '../screen-objects/CommonScreen';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
+import SendScreen from "../screen-objects/SendScreen";
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
@@ -42,13 +43,15 @@ Given(/^I create a new wallet$/, async () => {
 });
 
 Given(/^I tap the remind me later button on the Protect Your Wallet Modal$/, async () => {
+  const timeOut = 3000;
+  await driver.pause(timeOut);
+  await WalletMainScreen.backupAlertModalIsVisible()
   await WalletMainScreen.tapRemindMeLaterOnNotification();
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
 });
 
-
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 50000;
+  const setTimeout = 20000;
   await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
@@ -84,4 +87,10 @@ Then(/^I am on the main wallet view/, async () => {
   const timeout = 1000;
   await driver.pause(timeout);
   await WalletMainScreen.isMainWalletViewVisible();
+});
+
+Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.tapOnText(text);
 });

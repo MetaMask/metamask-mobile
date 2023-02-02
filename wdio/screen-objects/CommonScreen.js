@@ -1,4 +1,5 @@
 import Selectors from '../helpers/Selectors';
+import Gestures from "../helpers/Gestures";
 
 class CommonScreen {
   async isTextDisplayed(text) {
@@ -7,6 +8,10 @@ class CommonScreen {
 
   async isTextElementNotDisplayed(text) {
     await expect(Selectors.getXpathElementByText(text)).not.toBeDisplayed();
+  }
+
+  async tapOnText(text) {
+    await Gestures.tapTextByXpath(text);
   }
 }
 
