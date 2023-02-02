@@ -41,7 +41,7 @@ export const trackEvent = (event: IMetaMetricsEvent, params: any): void => {
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {
-      if (!params && !event.properties) {
+      if ((!params && !event.properties) || Object.keys(params).length === 0) {
         MetaMetrics.trackEvent(event.name, {});
       }
 
