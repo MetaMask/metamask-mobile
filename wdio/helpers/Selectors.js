@@ -24,8 +24,7 @@ class Selectors {
   }
 
   static async getXpathElementByText(text) {
-    const element = await $(`//*[@text='${text}']`);
-    return await element;
+    return await $(`//*[@text='${text}']`);
   }
 
   static async getXpathElementByContentDescription(text) {

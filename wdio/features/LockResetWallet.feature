@@ -4,27 +4,28 @@
 Feature: Lock and Reset Wallet
 
   Scenario: Import wallet
-    Given I just installed MetaMask on my device
-
-    When I launch MetaMask mobile app
-    Then "METAMASK" is displayed
-
-    When I tap "Get started"
-    And I tap "Import using Secret Recovery Phrase"
-    And I tap "I agree"
-    And I type <SRP> in SRP field
-    And I type <password> in new password field
-    And I type <password> in confirm password field
-    And I tap "Import"
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
-    Then "Welcome to your new wallet!" is displayed
+    And I tap No thanks on the onboarding welcome tutorial
 
-    Examples:
-      | SRP                                                                   | password      |
-      | fold media south add since false relax immense pause cloth just raven | Metapass12345 |
+  Scenario: Change Password
+    When I tap "No, Thanks"
+    And I tap burger icon
+    And I tap on "Settings" in the menu
+    And In settings I tap on "Security & Privacy"
+    And on Security & Privacy screen I tap "Change password" 
+    And on Change password screen I input "password" in confirm field
+    And on Change password screen I tap CONFIRM
+    Then "Incorrect password" is visible
+    When on Change password screen I input "12345678" in confirm field
+    And on Change password screen I tap CONFIRM
+    When I input a new password "1234554321"
+    And on Reset password screen I input "1234554321" in confirm field
+    And I tap Reset password
+    Then Creating your password is displayed
 
   Scenario: Lock Wallet
-    When I tap "No, Thanks"
+    When I navigate to Lock Wallet from Security & Privacy
     And I tap burger icon
     And I tap Lock menu item
     Then device alert <alert_msg> is displayed
