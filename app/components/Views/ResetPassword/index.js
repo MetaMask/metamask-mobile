@@ -589,7 +589,7 @@ class ResetPassword extends PureComponent {
                 testID={CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID}
                 {...generateTestId(
                   Platform,
-                  CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID
+                  CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
                 )}
                 keyboardAppearance={themeAppearance}
               />
@@ -769,7 +769,7 @@ class ResetPassword extends PureComponent {
                     testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
                     {...generateTestId(
                       Platform,
-                      ANDROID_I_UNDERSTAND_BUTTON_ID
+                      ANDROID_I_UNDERSTAND_BUTTON_ID,
                     )}
                   >
                     {strings('reset_password.i_understand')}{' '}
