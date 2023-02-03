@@ -13,10 +13,12 @@ export default class LockManager {
   }
 
   updateLockTime(lockTime) {
+    console.log('vault/ LockManager updateLockTime', lockTime);
     this.lockTime = lockTime;
   }
 
   handleAppStateChange = async (nextAppState) => {
+    console.log('vault/ LockManager handleAppStateChange', nextAppState);
     // Don't auto-lock
     if (this.lockTime === -1) {
       return;
@@ -54,6 +56,7 @@ export default class LockManager {
   };
 
   lockApp = async () => {
+    console.log('vault/ LockManager lockApp');
     const { KeyringController } = Engine.context;
     if (
       !SecureKeychain.getInstance().isAuthenticating &&
@@ -72,6 +75,7 @@ export default class LockManager {
   };
 
   stopListening() {
+    console.log('vault/ LockManager stopListening');
     AppState.removeEventListener('change', this.handleAppStateChange);
   }
 }

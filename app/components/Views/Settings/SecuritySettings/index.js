@@ -402,6 +402,7 @@ class Settings extends PureComponent {
       this.props.passwordSet();
 
       if (this.props.lockTime === -1) {
+        console.log('vault/ SecuritySettings lock time', this.props.lockTime);
         this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       }
 
@@ -494,6 +495,7 @@ class Settings extends PureComponent {
   };
 
   selectLockTime = (lockTime) => {
+    console.log('vault/ selectLockTime called with', lockTime);
     this.props.setLockTime(parseInt(lockTime, 10));
   };
 
