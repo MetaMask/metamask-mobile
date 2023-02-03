@@ -330,8 +330,8 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list: |-
-                  BROWSERSTACK_APP_URL
+            - environment_key_list:
+                BROWSERSTACK_APP_URL: "$BROWSERSTACK_APP_URL"
   wdio_android_e2e_test:
     before_run:
       - code_setup_cache
