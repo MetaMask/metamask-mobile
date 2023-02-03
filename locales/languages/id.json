@@ -439,12 +439,35 @@
   "accounts": {
     "create_new_account": "Buat Akun Baru",
     "import_account": "Impor Akun",
-    "connect_hardware": "Hubungkan Dompet Perangkat Keras",
-    "imported": "DIIMPOR",
+    "connect_hardware": "Hubungkan dompet perangkat keras",
+    "imported": "Diimpor",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
-    "yes_remove_it": "Ya, hapus"
+    "yes_remove_it": "Ya, hapus",
+    "accounts_title": "Akun",
+    "connect_account_title": "Hubungkan Akun",
+    "connect_accounts_title": "Hubungkan Akun",
+    "connected_accounts_title": "Akun yang Terhubung",
+    "connect_description": "Bagikan alamat, saldo, aktivitas akun Anda, dan izinkan situs untuk memulai transaksi.",
+    "connect_multiple_accounts": "Hubungkan beberapa akun",
+    "connect_more_accounts": "Hubungkan lebih banyak akun",
+    "cancel": "Batalkan",
+    "connect": "Hubungkan",
+    "connect_with_count": "Hubungkan{{countLabel}}",
+    "select_all": "Pilih semua",
+    "permissions": "Izin",
+    "disconnect": "Putuskan koneksi",
+    "disconnect_all_accounts": "Putuskan koneksi semua akun",
+    "revoke": "Cabut",
+    "revoke_all": "Cabut semua"
+  },
+  "toast": {
+    "connected_and_active": "terhubung dan aktif.",
+    "now_active": "sekarang aktif.",
+    "revoked": "dicabut.",
+    "revoked_all": "Semua akun dicabut.",
+    "accounts_connected": "akun terhubung."
   },
   "connect_qr_hardware": {
     "title": "Hubungkan dompet perangkat keras berbasis QR",
@@ -2189,5 +2212,32 @@
     "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan.",
     "primary_action": "Aktifkan pemeriksaan keamanan otomatis",
     "secondary_action": "Tidak, terima kasih"
+  },
+  "srp_security_quiz": {
+    "title": "Kuis keamanan",
+    "introduction": "Untuk mengungkapkan Frasa Pemulihan Rahasia, Anda perlu menjawab dua pertanyaan dengan benar",
+    "get_started": "Mulai",
+    "learn_more": "Selengkapnya",
+    "try_again": "Coba lagi",
+    "continue": "Lanjutkan",
+    "of": "dari",
+    "question_one": {
+      "question": "Jika Anda kehilangan Frasa Pemulihan Rahasia, MetaMask...",
+      "right_answer": "Tidak dapat membantu Anda",
+      "wrong_answer": "Dapat mengembalikannya untuk Anda",
+      "right_answer_title": "Benar! Tidak ada yang dapat membantu mengembalikan Frasa Pemulihan Rahasia Anda",
+      "right_answer_description": "Catat, ukir pada logam, atau simpan di beberapa tempat rahasia agar Anda tidak pernah kehilangan. Jika Anda kehilangan, maka akan hilang selamanya.",
+      "wrong_answer_title": "Salah! Tidak ada yang dapat membantu mengembalikan Frasa Pemulihan Rahasia Anda",
+      "wrong_answer_description": "Jika Anda kehilangan Frasa Pemulihan Rahasia, maka akan hilang selamanya. Tidak ada yang dapat membantu Anda mengembalikannya, apa pun yang mereka katakan."
+    },
+    "question_two": {
+      "question": "Jika ada yang menanyakan Frasa Pemulihan Rahasia Anda, bahkan agen pendukung,...",
+      "right_answer": "Anda ditipu",
+      "right_answer_title": "Benar! Membagikan Frasa Pemulihan Rahasia bukanlah ide yang baik",
+      "right_answer_description": "Siapa pun yang mengaku membutuhkan Frasa Pemulihan Rahasia, mereka berbohong kepada Anda. Jika membaginya, mereka akan mencuri aset Anda.",
+      "wrong_answer": "Anda harus memberikannya kepada mereka",
+      "wrong_answer_title": "Tidak! Jangan pernah membagikan Frasa Pemulihan Rahasia kepada siapa pun",
+      "wrong_answer_description": "Siapa pun yang mengaku membutuhkan Frasa Pemulihan Rahasia, mereka berbohong kepada Anda. Jika membaginya, mereka akan mencuri aset Anda."
+    }
   }
 }

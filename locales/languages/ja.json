@@ -437,14 +437,37 @@
     "receive": "受け取る"
   },
   "accounts": {
-    "create_new_account": "新規アカウントを作成",
-    "import_account": "アカウントをインポート",
+    "create_new_account": "新規アカウントの作成",
+    "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
-    "yes_remove_it": "はい、削除します"
+    "yes_remove_it": "はい、削除します",
+    "accounts_title": "アカウント",
+    "connect_account_title": "アカウントの接続",
+    "connect_accounts_title": "アカウントの接続",
+    "connected_accounts_title": "接続されたアカウント",
+    "connect_description": "アカウントのアドレス、残高、アクティビティを共有すると、サイトがトランザクションを実行できるようになります。",
+    "connect_multiple_accounts": "複数アカウントを接続",
+    "connect_more_accounts": "他のアカウントを接続",
+    "cancel": "キャンセル",
+    "connect": "接続",
+    "connect_with_count": "{{countLabel}} 個を接続",
+    "select_all": "すべて選択",
+    "permissions": "許可",
+    "disconnect": "接続解除",
+    "disconnect_all_accounts": "すべてのアカウントを接続解除",
+    "revoke": "取り消す",
+    "revoke_all": "すべて取り消す"
+  },
+  "toast": {
+    "connected_and_active": "接続済みかつ有効です。",
+    "now_active": "有効になりました。",
+    "revoked": "取り消されました。",
+    "revoked_all": "すべてのアカウントが取り消されました。",
+    "accounts_connected": "アカウントが接続されました。"
   },
   "connect_qr_hardware": {
     "title": "QR ベースのハードウェアウォレットを接続",
@@ -2189,5 +2212,32 @@
     "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。",
     "primary_action": "自動セキュリティチェックを有効にする",
     "secondary_action": "結構です"
+  },
+  "srp_security_quiz": {
+    "title": "セキュリティの質問",
+    "introduction": "秘密のリカバリーフレーズを表示するには、2 つの質問に正しく答える必要があります。",
+    "get_started": "開始",
+    "learn_more": "詳細",
+    "try_again": "もう一度試す",
+    "continue": "続行",
+    "of": "/",
+    "question_one": {
+      "question": "秘密のリカバリーフレーズをなくした場合、MetaMask は...",
+      "right_answer": "どうすることもできません",
+      "wrong_answer": "それを取り戻すことができます",
+      "right_answer_title": "正解です！秘密のリカバリーフレーズは誰にも取り戻すことができません",
+      "right_answer_description": "書き留めたり金属に掘ったり、いくつかの秘密の場所に保管したりして、絶対になくさないようにしてください。なくした場合、一生戻ってきません。",
+      "wrong_answer_title": "不正解！秘密のリカバリーフレーズは誰にも取り戻せません",
+      "wrong_answer_description": "秘密のリカバリーフレーズをなくした場合、一生戻ってきません。誰が何と言おうと、誰にも取り戻すことはできません。"
+    },
+    "question_two": {
+      "question": "誰かに秘密のリカバリーフレーズを尋ねられたら、それがサポート担当者であっても...",
+      "right_answer": "あなたは騙されようとしています",
+      "right_answer_title": "正解です！秘密のリカバリーフレーズは決して誰にも教えてはいけません",
+      "right_answer_description": "秘密のリカバリーフレーズが必要だと言われたら、それは嘘です。教えてしまったら資産を盗まれます。",
+      "wrong_answer": "教えるべきです",
+      "wrong_answer_title": "不正解！秘密のリカバリーフレーズは決して誰にも教えないでください",
+      "wrong_answer_description": "秘密のリカバリーフレーズが必要だと言われたら、それは嘘です。教えてしまったら資産を盗まれます。"
+    }
   }
 }

@@ -12,7 +12,7 @@ import {
   ERROR_PAGE_MESSAGE,
   ERROR_PAGE_RETURN_BUTTON,
   ERROR_PAGE_TITLE,
-} from '../../../../wdio/features/testIDs/BrowserScreen/ExternalWebsites.testIds';
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

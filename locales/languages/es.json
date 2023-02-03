@@ -439,12 +439,35 @@
   "accounts": {
     "create_new_account": "Crear cuenta nueva",
     "import_account": "Importar una cuenta",
-    "connect_hardware": "Conectar la cartera de hardware",
-    "imported": "IMPORTADO",
+    "connect_hardware": "Conectar la billetera de hardware",
+    "imported": "Importado",
     "remove_account_title": "Eliminación de la cuenta",
     "remove_account_message": "¿Está seguro de que quiere quitar esta cuenta?",
     "no": "No",
-    "yes_remove_it": "Sí, deseo quitarla"
+    "yes_remove_it": "Sí, deseo quitarla",
+    "accounts_title": "Cuentas",
+    "connect_account_title": "Conectar cuenta",
+    "connect_accounts_title": "Conectar cuentas",
+    "connected_accounts_title": "Cuentas conectadas",
+    "connect_description": "Comparta la dirección de su cuenta, saldo, actividad y permita que el sitio inicie transacciones.",
+    "connect_multiple_accounts": "Conectar múltiples cuentas",
+    "connect_more_accounts": "Conectar más cuentas",
+    "cancel": "Cancelar",
+    "connect": "Conectar",
+    "connect_with_count": "Conectar {{countLabel}}",
+    "select_all": "Seleccionar todo",
+    "permissions": "Permisos",
+    "disconnect": "Desconectar",
+    "disconnect_all_accounts": "Desconectar todas las cuentas",
+    "revoke": "Revocar",
+    "revoke_all": "Revocar todo"
+  },
+  "toast": {
+    "connected_and_active": "conectado y activo.",
+    "now_active": "activo ahora.",
+    "revoked": "revocada.",
+    "revoked_all": "Todas las cuentas revocadas.",
+    "accounts_connected": "cuentas conectadas."
   },
   "connect_qr_hardware": {
     "title": "Conectar una cartera de hardware basada en QR",
@@ -2189,5 +2212,32 @@
     "description": "La búsqueda automática de actualizaciones puede exponer su dirección IP a los servidores de GitHub. Esto solo indica que su dirección IP está usando MetaMask. No se exponen otros datos ni direcciones de cuentas.",
     "primary_action": "Habilitar comprobaciones de seguridad automáticas",
     "secondary_action": "No, gracias"
+  },
+  "srp_security_quiz": {
+    "title": "Cuestionario de seguridad",
+    "introduction": "Para revelar su frase secreta de recuperación, debe responder correctamente dos preguntas",
+    "get_started": "Iniciar",
+    "learn_more": "Más información",
+    "try_again": "Intente de nuevo",
+    "continue": "Continuar",
+    "of": "de",
+    "question_one": {
+      "question": "Si extravía su frase secreta de recuperación, MetaMask...",
+      "right_answer": "No puede ayudarlo",
+      "wrong_answer": "Puede recuperarla para usted",
+      "right_answer_title": "¡Correcto! Nadie puede ayudarlo a recuperar su frase secreta de recuperación",
+      "right_answer_description": "Anótela, grábela en metal o guárdela en múltiples lugares secretos para que nunca la pierda. Si la extravía, se ha ido para siempre.",
+      "wrong_answer_title": "¡Incorrecto! Nadie puede ayudarlo a recuperar su frase secreta de recuperación",
+      "wrong_answer_description": "Si pierde su frase secreta de recuperación, desaparecerá para siempre. Nadie puede ayudarlo a recuperarla, sin importar lo que digan."
+    },
+    "question_two": {
+      "question": "Si alguien, incluso un agente de soporte, le pide su frase secreta de recuperación...",
+      "right_answer": "Lo están estafando",
+      "right_answer_title": "¡Correcto! Compartir su frase secreta de recuperación nunca es una buena idea",
+      "right_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos.",
+      "wrong_answer": "Debiera brindársela",
+      "wrong_answer_title": "¡No! Nunca comparta su frase secreta de recuperación con nadie, nunca",
+      "wrong_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos."
+    }
   }
 }

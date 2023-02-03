@@ -440,11 +440,34 @@
     "create_new_account": "Tạo tài khoản mới",
     "import_account": "Nhập tài khoản",
     "connect_hardware": "Kết nối với ví cứng",
-    "imported": "ĐÃ NHẬP",
+    "imported": "Đã nhập",
     "remove_account_title": "Gỡ bỏ tài khoản",
     "remove_account_message": "Bạn có thật sự muốn gỡ bỏ tài khoản này?",
     "no": "Không",
-    "yes_remove_it": "Có, hãy gỡ bỏ nó"
+    "yes_remove_it": "Có, hãy gỡ bỏ nó",
+    "accounts_title": "Tài khoản",
+    "connect_account_title": "Kết nối tài khoản",
+    "connect_accounts_title": "Kết nối tài khoản",
+    "connected_accounts_title": "Tài khoản đã kết nối",
+    "connect_description": "Chia sẻ địa chỉ tài khoản, số dư, hoạt động của bạn và cho phép trang web bắt đầu thực hiện các giao dịch.",
+    "connect_multiple_accounts": "Kết nối nhiều tài khoản",
+    "connect_more_accounts": "Kết nối thêm tài khoản",
+    "cancel": "Hủy",
+    "connect": "Kết nối",
+    "connect_with_count": "Kết nối{{countLabel}}",
+    "select_all": "Chọn tất cả",
+    "permissions": "Quyền",
+    "disconnect": "Ngắt kết nối",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
+    "revoke": "Thu hồi",
+    "revoke_all": "Thu hồi tất cả"
+  },
+  "toast": {
+    "connected_and_active": "đã được kết nối và đang hoạt động.",
+    "now_active": "đang hoạt động.",
+    "revoked": "đã bị thu hồi.",
+    "revoked_all": "Tất cả tài khoản đã bị thu hồi.",
+    "accounts_connected": "tài khoản đã được kết nối."
   },
   "connect_qr_hardware": {
     "title": "Kết nối với một ví cứng dựa trên mã QR",
@@ -2189,5 +2212,32 @@
     "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác.",
     "primary_action": "Bật kiểm tra bảo mật tự động",
     "secondary_action": "Không, cảm ơn"
+  },
+  "srp_security_quiz": {
+    "title": "Câu hỏi bảo mật",
+    "introduction": "Để hiển thị Cụm từ khôi phục bí mật, bạn cần trả lời đúng hai câu hỏi",
+    "get_started": "Bắt đầu",
+    "learn_more": "Tìm hiểu thêm",
+    "try_again": "Thử lại",
+    "continue": "Tiếp tục",
+    "of": "trên",
+    "question_one": {
+      "question": "Nếu bạn làm mất Cụm từ khôi phục bí mật, MetaMask...",
+      "right_answer": "Không thể giúp bạn",
+      "wrong_answer": "Có thể lấy lại cho bạn",
+      "right_answer_title": "Đúng! Không ai có thể giúp bạn lấy lại Cụm từ khôi phục bí mật",
+      "right_answer_description": "Hãy viết ra, khắc lên kim loại hoặc cất giữ ở nhiều nơi bí mật để bạn không bao giờ làm mất nó. Nếu bạn làm mất, nó sẽ bị mất vĩnh viễn.",
+      "wrong_answer_title": "Sai! Không ai có thể giúp bạn lấy lại Cụm từ khôi phục bí mật",
+      "wrong_answer_description": "Nếu bạn làm mất Cụm từ khôi phục bí mật, nó sẽ bị mất vĩnh viễn. Dù mọi người có nói gì, thì cũng không ai có thể giúp bạn lấy lại."
+    },
+    "question_two": {
+      "question": "Nếu có bất kỳ ai, kể cả nhân viên hỗ trợ, hỏi về Cụm từ khôi phục bí mật của bạn...",
+      "right_answer": "Bạn đang bị lừa đảo",
+      "right_answer_title": "Chính xác! Chia sẻ Cụm từ khôi phục bí mật chưa bao giờ là một ý hay",
+      "right_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn.",
+      "wrong_answer": "Bạn nên đưa nó cho họ",
+      "wrong_answer_title": "Không! Tuyệt đối không bao giờ chia sẻ Cụm từ khôi phục bí mật của bạn với bất kỳ ai",
+      "wrong_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn."
+    }
   }
 }

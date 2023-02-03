@@ -209,7 +209,7 @@ const PaymentMethods = () => {
   }
 
   return (
-    <ScreenLayout scrollable>
+    <ScreenLayout>
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>

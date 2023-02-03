@@ -444,7 +444,30 @@
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
-    "yes_remove_it": "네. 제거하겠습니다"
+    "yes_remove_it": "네. 제거하겠습니다",
+    "accounts_title": "계정",
+    "connect_account_title": "계정 연결",
+    "connect_accounts_title": "계정 연결",
+    "connected_accounts_title": "연결된 계정",
+    "connect_description": "계정 주소와 잔액 및 활동을 공유하고 사이트가 결제를 진행하도록 허용하세요.",
+    "connect_multiple_accounts": "여러 계정 연결",
+    "connect_more_accounts": "더 많은 계정 연결",
+    "cancel": "취소",
+    "connect": "연결",
+    "connect_with_count": "{{countLabel}} 연결",
+    "select_all": "모두 선택",
+    "permissions": "권한",
+    "disconnect": "연결 해제",
+    "disconnect_all_accounts": "모든 계정 연결 해제",
+    "revoke": "취소",
+    "revoke_all": "모두 취소"
+  },
+  "toast": {
+    "connected_and_active": "연결되어 활성화됨.",
+    "now_active": "지금 활성화됨.",
+    "revoked": "취소됨.",
+    "revoked_all": "모든 계정이 취소되었습니다.",
+    "accounts_connected": "계정이 연결되었습니다."
   },
   "connect_qr_hardware": {
     "title": "QR 코드 기반 하드웨어 지갑 연결",
@@ -2189,5 +2212,32 @@
     "description": "업데이트를 위한 자동 보안 점검의 경우 GitHub 서버에 IP 주소가 노출될 수 있습니다. 이때 노출되는 정보는 해당 IP 주소가 MetaMask를 사용한다는 사실뿐입니다. 다른 정보나 계정 주소는 노출되지 않습니다.",
     "primary_action": "자동 보안 확인 활성화",
     "secondary_action": "괜찮습니다"
+  },
+  "srp_security_quiz": {
+    "title": "보안 퀴즈",
+    "introduction": "비밀 복구 구문을 찾으려면 두 가지 질문에 올바르게 답해야 합니다",
+    "get_started": "시작하기",
+    "learn_more": "자세히 알아보기",
+    "try_again": "다시 시도",
+    "continue": "계속",
+    "of": "/",
+    "question_one": {
+      "question": "비밀 복구 구문을 분실하시면 MetaMask가...",
+      "right_answer": "도와드릴 수 없습니다",
+      "wrong_answer": "찾아드릴 수 있습니다",
+      "right_answer_title": "맞습니다! 아무도 본인의 비밀 복구 구문을 복구할 수 없습니다",
+      "right_answer_description": "따라서 이를 적거나, 금속 등에 새기거나, 여러 비밀 장소에 보관하여 절대로 잃어버리지 않도록 하세요. 한 번 잃어버리면 영원히 찾을 수 없습니다.",
+      "wrong_answer_title": "아닙니다! 아무도 본인의 비밀 복구 구문을 복구할 수 없습니다",
+      "wrong_answer_description": "비밀 복구 구문은 한 번 잃어버리면 영원히 찾을 수 없습니다. 누가 뭐라고 해도 아무도 이를 찾아드리지 못합니다."
+    },
+    "question_two": {
+      "question": "누군가, 심지어 고객 센터 직원이라고 해도 여러분의 비밀 복구 구문을 물어본다면...",
+      "right_answer": "이는 반드시 사기입니다",
+      "right_answer_title": "맞습니다! 비밀 복구 구문은 아무와도 공유하면 안 됩니다",
+      "right_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다.",
+      "wrong_answer": "주어야 합니다",
+      "wrong_answer_title": "맞습니다! 비밀 복구 구문은 절대로 아무와도 공유하면 안 됩니다",
+      "wrong_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다."
+    }
   }
 }

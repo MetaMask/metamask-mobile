@@ -95,10 +95,9 @@
       "content3": "now to edit account name."
     },
     "step4": {
-      "title": "Main Navigation",
-      "content1": "Tap here",
-      "content2": "to access your Wallet, Browser, and Transaction activity.",
-      "content3": "You can take more actions with your accounts & access MetaMask settings."
+      "title": "Main Menu",
+      "content1": "You can access Transaction history, Settings, and Support from this menu.",
+      "content2": "You can take more actions with your accounts & access MetaMask settings."
     },
     "step5": {
       "title": "Explore the Browser",
@@ -277,13 +276,13 @@
   },
   "wallet": {
     "title": "Wallet",
-    "tokens": "TOKENS",
+    "tokens": "Tokens",
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
-    "add_tokens": "Import Tokens",
+    "add_tokens": "Import tokens",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
       "tokens_imported_title": "Imported Tokens",
@@ -451,9 +450,9 @@
     "no": "No",
     "yes_remove_it": "Yes, remove it",
     "accounts_title": "Accounts",
-    "connect_account_title": "Connect Account",
-    "connect_accounts_title": "Connect Accounts",
-    "connected_accounts_title": "Connected Accounts",
+    "connect_account_title": "Connect account",
+    "connect_accounts_title": "Connect accounts",
+    "connected_accounts_title": "Connected accounts",
     "connect_description": "Share your account address, balance, activity, and allow site to initiate transactions.",
     "connect_multiple_accounts": "Connect multiple accounts",
     "connect_more_accounts": "Connect more accounts",
@@ -461,9 +460,8 @@
     "connect": "Connect",
     "connect_with_count": "Connect{{countLabel}}",
     "select_all": "Select all",
+    "unselect_all": "Unselect all",
     "permissions": "Permissions",
-    "disconnect": "Disconnect",
-    "disconnect_all_accounts": "Disconnect all accounts",
     "revoke": "Revoke",
     "revoke_all": "Revoke all"
   },
@@ -1040,7 +1038,16 @@
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-    "yes": "Yes"
+    "yes": "Yes",
+    "protocol_alert_options": {
+      "ignore": "Ignore",
+      "allow": "Allow"
+    },
+    "protocol_alerts": {
+      "tel": "This website has been blocked from automatically making a phone call",
+      "mailto": "This website has been blocked from automatically composing an email.",
+      "generic": "This website has been blocked from automatically opening an external application"
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -1934,7 +1941,7 @@
       "best_price": "best price",
       "from_the": "from the",
       "top_liquidity": "top liquidity sources every time.",
-      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better.",
+      "fee_is_applied": "The fee of {{fee}} is automatically factored into this quote. You pay it in exchange for a license to use MetaMask's liquidity provider information aggregation software.",
       "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
     "enable": {
@@ -2286,5 +2293,32 @@
     "new_wallet_needed_description_part_one": "Something's wrong with your wallet, and you'll need to create a new one. Because your accounts are on the blockchain, they're still safe. Only the preferences, saved networks, account names, and related data saved on your device are gone.",
     "new_wallet_needed_description_part_two": "To import your accounts to a new wallet, you'll need your Secret Recovery Phrase. If you don't have your Secret Recovery Phrase, you won't be able to import your accounts.",
     "new_wallet_needed_description_part_three": "To keep this from happening again, be sure to always keep your MetaMask app and OS updated to the latest version."
+  },
+  "srp_security_quiz": {
+    "title": "Security quiz",
+    "introduction": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+    "get_started": "Get started",
+    "learn_more": "Learn more",
+    "try_again": "Try again",
+    "continue": "Continue",
+    "of": "of",
+    "question_one": {
+      "question": "If you lose your Secret Recovery Phrase, MetaMask...",
+      "right_answer": "Can’t help you",
+      "wrong_answer": "Can get it back for you",
+      "right_answer_title": "Right! No one can help get your Secret Recovery Phrase back",
+      "right_answer_description": "Write it down, engrave it on metal, or keep it in multiple secret spots so you never lose it. If you lose it, it’s gone forever.",
+      "wrong_answer_title": "Wrong! No one can help get your Secret Recovery Phrase back",
+      "wrong_answer_description": "If you lose your Secret Recovery Phrase, it’s gone forever. No one can help you get it back, no matter what they might say."
+    },
+    "question_two": {
+      "question": "If anyone, even a support agent, asks for your Secret Recovery Phrase...",
+      "right_answer": "You’re being scammed",
+      "right_answer_title": "Correct! Sharing your Secret Recovery Phrase is never a good idea",
+      "right_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets.",
+      "wrong_answer": "You should give it to them",
+      "wrong_answer_title": "Nope! Never share your Secret Recovery Phrase with anyone, ever",
+      "wrong_answer_description": "Anyone claiming to need your Secret Recovery Phrase is lying to you. If you share it with them, they will steal your assets."
+    }
   }
 }

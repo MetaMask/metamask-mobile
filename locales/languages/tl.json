@@ -437,14 +437,37 @@
     "receive": "TUMANGGAP"
   },
   "accounts": {
-    "create_new_account": "Gumawa ng Bagong Account",
-    "import_account": "Mag-import ng Account",
-    "connect_hardware": "Ikonekta ang Hardware Wallet",
-    "imported": "NA-IMPORT",
+    "create_new_account": "Gumawa ng bagong account",
+    "import_account": "Mag-import ng account",
+    "connect_hardware": "Ikonekta ang hardware wallet",
+    "imported": "Na-import",
     "remove_account_title": "Pagtanggal ng account",
     "remove_account_message": "Gusto mo ba talagang tanggalin ang account na ito?",
     "no": "Hindi",
-    "yes_remove_it": "Oo, tanggalin ito"
+    "yes_remove_it": "Oo, tanggalin ito",
+    "accounts_title": "Mga Account",
+    "connect_account_title": "Ikonekta ang Account",
+    "connect_accounts_title": "Ikonekta ang mga Account",
+    "connected_accounts_title": "Mga Konektadong Account",
+    "connect_description": "Ibahagi ang address ng iyong account, balanse, aktibidad, at payagan ang site na magsimula ng mga transaksyon.",
+    "connect_multiple_accounts": "Ikonekta ang maraming account",
+    "connect_more_accounts": "Ikonekta ang higit pang mga account",
+    "cancel": "Kanselahin",
+    "connect": "Kumonekta",
+    "connect_with_count": "Kumonekta{{countLabel}}",
+    "select_all": "Piliin lahat",
+    "permissions": "Mga Pahintulot",
+    "disconnect": "Idiskonekta",
+    "disconnect_all_accounts": "Idiskonekta ang lahat ng account",
+    "revoke": "Ipawalang-bisa",
+    "revoke_all": "Ipawalang-bisa lahat"
+  },
+  "toast": {
+    "connected_and_active": "konektado at aktibo.",
+    "now_active": "aktibo ngayon.",
+    "revoked": "binawi.",
+    "revoked_all": "Ang lahat ng account ay binawi.",
+    "accounts_connected": "mga account na konektado."
   },
   "connect_qr_hardware": {
     "title": "Ikonekta ang QR-based na hardware wallet",
@@ -2189,5 +2212,32 @@
     "description": "Maaaring ilantad ng awtomatikong pagsuri para sa mga update ang iyong IP address sa mga server ng GitHub. Ipinapahiwatig lamang nito na ang iyong IP address ay gumagamit ng MetaMask. Walang ibang impormasyon o mga address ng account ang nakalantad.",
     "primary_action": "Paganahin ang mga awtomatikong pagsusuri sa seguridad",
     "secondary_action": "Salamat nalang"
+  },
+  "srp_security_quiz": {
+    "title": "Pagsusulit sa seguridad",
+    "introduction": "Upang ipakita ang iyong Secret Recovery Phrase, kailangan mong sagutin nang tama ang dalawang tanong",
+    "get_started": "Magsimula",
+    "learn_more": "Matuto pa",
+    "try_again": "Subukan muli",
+    "continue": "Magpatuloy",
+    "of": "ng",
+    "question_one": {
+      "question": "Kung mawala mo ang iyong Secret Recovery Phrase, ang MetaMask ay...",
+      "right_answer": "Hindi ka matutulungan",
+      "wrong_answer": "Maaari itong ibalik para sa iyo",
+      "right_answer_title": "Tama! Walang makakatulong na maibalik ang iyong Secret Recovery Phrase",
+      "right_answer_description": "Isulat ito, iukit sa metal, o itago ito sa maraming lihim na lugar upang hindi ito mawala. Kung nawala mo ito, wala na ito ng tuluyan.",
+      "wrong_answer_title": "Mali! Walang makakatulong na maibalik ang iyong Secret Recovery Phrase",
+      "wrong_answer_description": "Kung nawala mo ang iyong Secret Recovery Phrase mawawala na ito nang tuluyan. Walang makakatulong sa iyo na maibalik ito, anuman ang maaaring sabihin nila."
+    },
+    "question_two": {
+      "question": "Kung sinuman, kahit isang ahente ng suporta, ay humingi ng iyong Secret Recovery Phrase...",
+      "right_answer": "Niloloko ka",
+      "right_answer_title": "Tama! Ang pagbabahagi ng iyong Secret Recovery Phrase ay hindi kailanman isang magandang ideya",
+      "right_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian.",
+      "wrong_answer": "Dapat mong ibigay sa kanila",
+      "wrong_answer_title": "Hindi! Huwag kailanman ibahagi ang iyong Secret Recovery Phrase sa sinuman, kailanman",
+      "wrong_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian."
+    }
   }
 }

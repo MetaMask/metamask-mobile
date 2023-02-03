@@ -8,6 +8,7 @@ import {
   StyleSheet,
   InteractionManager,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
@@ -28,6 +29,8 @@ import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { PAYMENT_REQUEST_QR_CODE_CLOSE_ICON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
 const isIos = Device.isIos();
 
@@ -375,7 +378,10 @@ class PaymentRequestSuccess extends PureComponent {
                 <TouchableOpacity
                   style={styles.closeIcon}
                   onPress={this.closeQRModal}
-                  testID={'payment-request-qrcode-close-button'}
+                  {...generateTestId(
+                    Platform,
+                    PAYMENT_REQUEST_QR_CODE_CLOSE_ICON,
+                  )}
                 >
                   <IonicIcon
                     name={'ios-close'}
