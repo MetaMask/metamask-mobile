@@ -1,11 +1,10 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
-import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { RPC } from '../../../constants/network';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import {
@@ -15,7 +14,13 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
-import { isMainnetByChainId } from '../../../util/networks';
+import {
+  isMainnetByChainId,
+  getNetworkImageSource,
+} from '../../../util/networks';
+import Avatar, {
+  AvatarVariants,
+} from '../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -60,6 +65,7 @@ const createStyles = (colors: {
       color: colors.text.default,
       textAlign: 'center',
       paddingRight: 10,
+      marginLeft: 8,
     },
     capitalizeText: {
       textTransform: 'capitalize',
@@ -143,6 +149,39 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     return false;
   }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
 
+  const networkProvider = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+
+  const networkImageSource = useMemo(
+    () =>
+      getNetworkImageSource({
+        networkType: networkProvider.type,
+        chainId: networkProvider.chainId,
+      }),
+    [networkProvider],
+  );
+
+  const getNetworkName = useCallback(() => {
+    let networkName = '';
+    if (ticker === undefined) {
+      networkName =
+        `${nickname}` || strings('network_information.unknown_network');
+    } else {
+      networkName =
+        type === RPC
+          ? `${nickname}`
+          : isMainnet
+          ? `${type}`
+          : `${strings('network_information.testnet_network', {
+              type,
+            })}`;
+    }
+    return type === RPC ? networkName : networkName.toUpperCase();
+  }, [ticker, type, isMainnet, nickname]);
+
+  const networkName = getNetworkName();
+
   return (
     <View style={styles.wrapper}>
       <View
@@ -154,37 +193,17 @@ const NetworkInfo = (props: NetworkInfoProps) => {
         </Text>
         <View style={styles.tokenView}>
           <View style={styles.tokenType}>
-            {ticker === undefined ? (
-              <>
-                <View style={styles.unknownWrapper}>
-                  <Text style={styles.unknownText}>?</Text>
-                </View>
-                <Text style={styles.tokenText}>
-                  {`${nickname}` ||
-                    strings('network_information.unknown_network')}
-                </Text>
-              </>
-            ) : (
-              <>
-                <NetworkMainAssetLogo style={styles.ethLogo} />
-                <Text
-                  style={
-                    type === RPC
-                      ? styles.tokenText
-                      : [styles.tokenText, styles.capitalizeText]
-                  }
-                  testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
-                >
-                  {type === RPC
-                    ? `${nickname}`
-                    : isMainnet
-                    ? `${type}`
-                    : `${strings('network_information.testnet_network', {
-                        type,
-                      })}`}
-                </Text>
-              </>
-            )}
+            <Avatar
+              variant={AvatarVariants.Network}
+              name={networkName.toUpperCase()}
+              imageSource={networkImageSource}
+            />
+            <Text
+              style={[styles.tokenText, styles.capitalizeText]}
+              testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
+            >
+              {networkName}
+            </Text>
           </View>
           {ticker === undefined && (
             <Text style={styles.rpcUrl}>{rpcTarget}</Text>

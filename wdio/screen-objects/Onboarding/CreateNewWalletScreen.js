@@ -1,3 +1,4 @@
+/* global driver */
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../testIDs/Components/TermsAndConditions.testIds';
 import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
@@ -60,9 +61,9 @@ class CreateNewWalletScren {
     await Gestures.tap(this.newWalletSubmitButton);
   }
 
-  async selectRemindMeLater() {
-    await driver.pause(2000);
+  async tapRemindMeLater() {
     await Gestures.tap(this.remindMeLaterButton);
+    // await Gestures.tap(Selectors.getXpathElementByText('Remind me later'));
   }
 
   async isAccountCreated() {
