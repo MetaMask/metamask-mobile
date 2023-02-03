@@ -421,7 +421,9 @@
     "select_all": "Επιλογή όλων",
     "permissions": "Άδειες",
     "disconnect": "Αποσύνδεση",
-    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών"
+    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "revoke": "Ανάκληση",
+    "revoke_all": "Ανάκληση όλων"
   },
   "toast": {
     "connected_and_active": "συνδεδεμένοι και ενεργοί.",

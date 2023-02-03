@@ -71,6 +71,7 @@ class ImportFromSeed {
     try {
       expect(message.includes(text.trim())).toBe(true);      
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(`Not able to get device alert text: `);
     }    
   }

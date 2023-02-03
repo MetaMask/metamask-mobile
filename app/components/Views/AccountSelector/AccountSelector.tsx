@@ -53,12 +53,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     InteractionManager.runAfterInteractions(() => {
       // Track Event: "Switched Account"
       AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        source: 'Wallet Tab',
         number_of_accounts: accounts?.length,
       });
     });
   };
 
-  const onRemoveAccount = useCallback(
+  const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
       const { PreferencesController } = Engine.context;
       nextActiveAddress &&
@@ -84,23 +85,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [onCreateNewAccount, setIsLoading]);
 
   const openImportAccount = useCallback(() => {
-    sheetRef.current?.hide(() => {
-      navigation.navigate('ImportPrivateKeyView');
-      // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-        {},
-      );
-    });
+    navigation.navigate('ImportPrivateKeyView');
+    // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
     onOpenImportAccount?.();
   }, [onOpenImportAccount, navigation]);
 
   const openConnectHardwareWallet = useCallback(() => {
-    sheetRef.current?.hide(() => {
-      navigation.navigate('ConnectQRHardwareFlow');
-      // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
-    });
+    navigation.navigate('ConnectQRHardwareFlow');
+    // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
     onOpenConnectHardwareWallet?.();
   }, [onOpenConnectHardwareWallet, navigation]);
 
@@ -143,7 +137,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       <SheetHeader title={strings('accounts.accounts_title')} />
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
-        onRemoveAccount={onRemoveAccount}
+        onRemoveImportedAccount={onRemoveImportedAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}

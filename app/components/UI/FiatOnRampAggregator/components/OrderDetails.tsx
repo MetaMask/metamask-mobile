@@ -280,7 +280,7 @@ const OrderDetails: React.FC<Props> = ({
           )}
         </Group>
 
-        {orderLink && (
+        {Boolean(orderLink) && (
           <Row>
             <TouchableOpacity
               onPress={() => handleProviderLinkPress(orderLink as string)}

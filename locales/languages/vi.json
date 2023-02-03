@@ -421,7 +421,9 @@
     "select_all": "Chọn tất cả",
     "permissions": "Quyền",
     "disconnect": "Ngắt kết nối",
-    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản"
+    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
+    "revoke": "Thu hồi",
+    "revoke_all": "Thu hồi tất cả"
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",

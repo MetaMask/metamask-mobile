@@ -44,7 +44,10 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
-import { setCurrentRoute } from '../../../actions/navigation';
+import {
+  setCurrentRoute,
+  setCurrentBottomNavRoute,
+} from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -58,11 +61,15 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import AssetOptions from '../../Views/AssetOptions';
+import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -194,7 +201,12 @@ const App = ({ userLoggedIn }) => {
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
   const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
-  const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+  const triggerSetCurrentRoute = (route) => {
+    dispatch(setCurrentRoute(route));
+    if (route === 'Wallet' || route === 'BrowserView') {
+      dispatch(setCurrentBottomNavRoute(route));
+    }
+  };
   const frequentRpcList = useSelector(
     (state) =>
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
@@ -422,6 +434,38 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
         component={EnableAutomaticSecurityChecksModal}
       />
+      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    </Stack.Navigator>
+  );
+
+  const ImportPrivateKeyView = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+      <Stack.Screen
+        name="ImportPrivateKeySuccess"
+        component={ImportPrivateKeySuccess}
+      />
+      <Stack.Screen
+        name={Routes.QR_SCANNER}
+        component={QRScanner}
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </Stack.Navigator>
+  );
+
+  const ConnectQRHardwareFlow = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
     </Stack.Navigator>
   );
 
@@ -472,6 +516,16 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
+            />
+            <Stack.Screen
+              name="ImportPrivateKeyView"
+              component={ImportPrivateKeyView}
+              options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name="ConnectQRHardwareFlow"
+              component={ConnectQRHardwareFlow}
+              options={{ animationEnabled: true }}
             />
           </Stack.Navigator>
         </NavigationContainer>

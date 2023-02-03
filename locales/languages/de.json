@@ -421,7 +421,9 @@
     "select_all": "\nAlle auswählen",
     "permissions": "Berechtigungen",
     "disconnect": "Verbindung trennen",
-    "disconnect_all_accounts": "Alle Konten trennen"
+    "disconnect_all_accounts": "Alle Konten trennen",
+    "revoke": "Widerrufen",
+    "revoke_all": "Alle widerrufen"
   },
   "toast": {
     "connected_and_active": "verbunden und aktiv.",

@@ -4,7 +4,7 @@ Feature: Address
   The contacts you saved on network A does not carry over to network B
 
   Scenario: Import account and navigate to Send
-    Given I import wallet using seed phrase "fold media south add since false relax immense pause cloth just raven"
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And On the Main Wallet view I tap "Send"
@@ -22,8 +22,12 @@ Feature: Address
     Then I proceed to the amount view
     And I tap on button with text "Cancel"
 
+<<<<<<< HEAD
 
   Scenario: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
+=======
+  Scenario Outline: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
+>>>>>>> 6e062b6952c6b12441413240ecf0bccf5941f4d9
     When On the Main Wallet view I tap "Send"
     When I enter address "<Address>" in the sender's input box
     And I tap on button with text "Add this address to your address book"
@@ -41,6 +45,7 @@ Feature: Address
       | Address                                    | ContactName |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | TestAlias   |
 
+<<<<<<< HEAD
 
   Scenario: A user can add a contact on the contacts view and Edit saved contact
     Given I am on the contacts view
@@ -72,11 +77,37 @@ Feature: Address
     And I input "<EthAddress>" in the Address field
     And I tap button "Add contact" which is now enabled
     Then the saved contact "<ContactName>" should appear
+=======
+  Scenario Outline: A user has a saved address then deletes it
+>>>>>>> 6e062b6952c6b12441413240ecf0bccf5941f4d9
     When I tap on contact name "<ContactName>"
     And I tap on Edit button to edit Saved contact details
     And I tap on button with text "Delete"
     And I tap on button with text "Delete"
     Then the deleted contact "<ContactName>" should not appear
+<<<<<<< HEAD
+=======
+
+    Examples:
+      | ContactName |
+      | TestAlias   |
+
+  Scenario Outline: A user can add a contact on the contacts view and edit the saved contact
+    Given I am on the contacts view
+    And I tap on the "Add contact" button
+    And I input "<ContactName>" into the contact name field
+    And I input "<AddressName>" in the Address field
+    And I tap button Add contact which is now enabled
+    Then the saved contact "<ContactName>" should appear
+
+    When I tap on contact name "<ContactName>"
+    And I tap on Edit button to edit Saved contact details
+    Then I can edit the contact name to "<EditContactName>"
+
+    When I tap the Edit Contact button which is enabled to confirm the change
+    Then the saved contact "<EditContactName>" should appear
+
+>>>>>>> 6e062b6952c6b12441413240ecf0bccf5941f4d9
     When I go back to the main wallet screen
     And On the Main Wallet view I tap "Send" navigating to the send screen
     Then the deleted contact "<ContactName>" should not appear
@@ -84,7 +115,7 @@ Feature: Address
       | ContactName | EthAddress |
       | jande       | curt.eth   |
 
-  Scenario: A user saves an address on mainnet and should not see that saved address on Goreli
+  Scenario Outline: A user saves an address on mainnet and should not see that saved address on Goreli
     Given I navigate to the main wallet view from Send screen
     And I tap burger icon
     And I tap on "Settings" in the menu

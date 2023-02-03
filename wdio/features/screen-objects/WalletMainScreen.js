@@ -1,12 +1,24 @@
 /* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-
-import { WALLET_CONTAINER_ID, NAVBAR_TITLE_NETWORKS_TEXT, } from '../testIDs/Screens/WalletScreen-testIds.js';
+import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
-} from '../testIDs/Components/OnboardingWizard.testIds';
+} from './testIDs/Components/OnboardingWizard.testIds';
+
+import {
+  WALLET_VIEW_BURGER_ICON_ID,
+  HAMBURGER_MENU_BUTTON,
+  IMPORT_NFT_BUTTON_ID,
+  IMPORT_TOKEN_BUTTON_ID,
+  WALLET_ACCOUNT_ICON,
+  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
+  NAVBAR_NETWORK_BUTTON,
+  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+} from './testIDs/Screens/WalletView.testIds';
+
+import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
 import { WALLET_VIEW_BURGER_ICON_ID,
         HAMBURGER_MENU_BUTTON,IMPORT_NFT_BUTTON_ID,IMPORT_TOKEN_BUTTON_ID,WALLET_ACCOUNT_ICON } 
@@ -45,12 +57,22 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
   }
 
-  get networkNavBarWalletTitle() {
-    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORKS_TEXT);
+  get networkInNavBar() {
+    return Selectors.getElementByPlatform(NAVBAR_NETWORK_BUTTON);
   }
 
   get drawerSettings() {
     return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
+  }
+
+  get mainWalletView() {
+    return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
+  }
+
+  get remindMeLaterNotification() {
+    return Selectors.getElementByPlatform(
+      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+    );
   }
 
   async tapSettings() {
@@ -90,15 +112,21 @@ class WalletMainScreen {
   async tapNFTTab(){
     await Gestures.tapTextByXpath("NFTs");
   }
-  async tapIdenticon(){
-    await Gestures.tap(this.Identicon);
+  async tapIdenticon() {
+    await Gestures.waitAndTap(this.Identicon);
   }
   
   async tapNetworkNavBar() {
     const timeOut = 3000;
     await driver.pause(timeOut);
-    await Gestures.tap(this.networkNavBarWalletTitle);
+    await Gestures.tap(this.networkInNavBar);
     await driver.pause(timeOut);
+  }
+
+  async tapRemindMeLaterOnNotification() {
+    const timeOut = 3000;
+    await driver.pause(timeOut);
+    await Gestures.tap(this.remindMeLaterNotification);
   }
 
   async isVisible() {
@@ -106,9 +134,8 @@ class WalletMainScreen {
   }
 
   async isNetworkNameCorrect(network) {
-    const textFromElement = await this.networkNavBarWalletTitle;
-    const networkName = await textFromElement.getText();
-    expect(networkName).toContain(network);
+    const networkName = Selectors.getXpathElementByText(network);
+    await expect(networkName).toBeDisplayed();
   }
 
   async isTokenTextVisible(token){

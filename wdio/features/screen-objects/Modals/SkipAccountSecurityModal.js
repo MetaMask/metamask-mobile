@@ -1,3 +1,4 @@
+/* global driver */
 import {
     SKIP_BACKUP_TEXT,
     SKIP_BUTTON,
@@ -15,7 +16,9 @@ class SkipAccountSecurityModal {
     return Selectors.getElementByPlatform(SKIP_BUTTON);
   }
 
-  async proceedWithoutWalletSecure(){
+  async proceedWithoutWalletSecure() {
+    const settimeout = 2000;
+    await driver.pause(settimeout);
     await Gestures.tap(this.skipBackupText);
     await Gestures.tap(this.skipButton);
   }

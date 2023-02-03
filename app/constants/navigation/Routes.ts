@@ -28,6 +28,7 @@ const Routes = {
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
     DETECTED_TOKENS: 'DetectedTokens',
+    SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

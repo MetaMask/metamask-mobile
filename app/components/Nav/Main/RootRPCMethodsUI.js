@@ -755,24 +755,18 @@ const RootRPCMethodsUI = (props) => {
       }
 
       switch (request.type) {
-        case ApprovalTypes.INSTALL_SNAP:
-          // eslint-disable-next-line no-console
-          console.log({ requestData, id: request.id });
-          setHostToApprove({ requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.INSTALL_SNAP,
-            origin: request.origin,
-          });
-          break;
-        case ApprovalTypes.UPDATE_SNAP:
-          // eslint-disable-next-line no-console
-          console.log('Update Snap');
-          break;
         case ApprovalTypes.REQUEST_PERMISSIONS:
           if (requestData?.permissions?.eth_accounts) {
             const {
               metadata: { id },
             } = requestData;
+
+            const totalAccounts = props.accountsLength;
+
+            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+              number_of_accounts: totalAccounts,
+              source: 'PERMISSION SYSTEM',
+            });
 
             props.navigation.navigate(
               ...createAccountConnectNavDetails({
@@ -919,6 +913,7 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
+  accountsLength: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -931,6 +926,9 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({

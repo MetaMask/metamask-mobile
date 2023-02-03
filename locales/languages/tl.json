@@ -421,7 +421,9 @@
     "select_all": "Piliin lahat",
     "permissions": "Mga Pahintulot",
     "disconnect": "Idiskonekta",
-    "disconnect_all_accounts": "Idiskonekta ang lahat ng account"
+    "disconnect_all_accounts": "Idiskonekta ang lahat ng account",
+    "revoke": "Ipawalang-bisa",
+    "revoke_all": "Ipawalang-bisa lahat"
   },
   "toast": {
     "connected_and_active": "konektado at aktibo.",

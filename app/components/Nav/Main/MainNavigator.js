@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
+import { NetworksChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -25,7 +27,6 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
-import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -35,8 +36,6 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import ImportPrivateKey from '../../Views/ImportPrivateKey';
-import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/SendFlow/Amount';
@@ -64,6 +63,11 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getActiveTabUrl } from '../../../util/transactions';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { isEqual } from 'lodash';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -198,12 +202,59 @@ const HomeTabs = () => {
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
+  const accountsLength = useSelector(
+    (state) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const chainId = useSelector((state) => {
+    const provider = state.engine.backgroundState.NetworkController.provider;
+    return NetworksChainId[provider.type];
+  });
+
+  const amountOfBrowserOpenTabs = useSelector(
+    (state) => state.browser.tabs.length,
+  );
+
+  /* tabs: state.browser.tabs, */
+  /* activeTab: state.browser.activeTab, */
+  const activeConnectedDapp = useSelector((state) => {
+    const activeTabUrl = getActiveTabUrl(state);
+    if (!activeTabUrl) return [];
+
+    const permissionsControllerState =
+      state.engine.backgroundState.PermissionController;
+    const hostname = new URL(activeTabUrl).hostname;
+    const permittedAcc = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    return permittedAcc;
+  }, isEqual);
+
   const options = {
     home: {
       tabBarLabel: 'Wallet',
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+          number_of_accounts: accountsLength,
+          chain_id: chainId,
+        });
+      },
     },
     browser: {
       tabBarLabel: 'Browser',
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+          number_of_accounts: accountsLength,
+          chain_id: chainId,
+          source: 'Navigation Tab',
+          active_connected_dapp: activeConnectedDapp,
+          number_of_open_tabs: amountOfBrowserOpenTabs,
+        });
+      },
     },
   };
 
@@ -384,20 +435,6 @@ const SettingsModalStack = () => (
   </Stack.Navigator>
 );
 
-const ImportPrivateKeyView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-    <Stack.Screen
-      name="ImportPrivateKeySuccess"
-      component={ImportPrivateKeySuccess}
-    />
-  </Stack.Navigator>
-);
-
 const SendView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -561,15 +598,15 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
+// const ConnectQRHardwareFlow = () => (
+//   <Stack.Navigator
+//     screenOptions={{
+//       headerShown: false,
+//     }}
+//   >
+//     <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+//   </Stack.Navigator>
+// );
 
 const SnapsDevUI = () => (
   <Stack.Navigator>
@@ -611,14 +648,14 @@ const MainNavigator = () => (
       mode={'modal'}
       component={SnapsDevUI}
     />
-    <Stack.Screen
+    {/* <Stack.Screen
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}
     />
     <Stack.Screen
       name="ConnectQRHardwareFlow"
       component={ConnectQRHardwareFlow}
-    />
+    /> */}
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

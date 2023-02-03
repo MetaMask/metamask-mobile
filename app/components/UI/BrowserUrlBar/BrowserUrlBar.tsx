@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../component-library/hooks';
 import { getURLProtocol } from '../../../util/general';
@@ -14,11 +14,10 @@ import Text from '../../../component-library/components/Texts/Text';
 
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { NAVBAR_TITLE_NETWORK } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const getDappMainUrl = () => {
-    if (!url) return;
-
     const urlObj = new URL(url);
     const ensUrl = route.params?.currentEnsName ?? '';
 
@@ -45,7 +44,10 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
 
   return (
     <TouchableOpacity onPress={onPress}>
-      <View style={styles.main}>
+      <View
+        style={styles.main}
+        {...generateTestId(Platform, NAVBAR_TITLE_NETWORK)}
+      >
         <Icon
           color={theme.colors.icon.alternative}
           name={secureConnectionIcon}

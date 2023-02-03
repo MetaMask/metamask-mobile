@@ -210,11 +210,14 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        config: { provider: networkController.provider },
+        config: {
+          provider: networkController.provider,
+          chainId: networkController.state.provider.chainId,
+        },
       });
 
       const tokenListController = new TokenListController({
-        chainId: networkController.provider.chainId,
+        chainId: networkController.state.provider.chainId,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,

@@ -3,6 +3,7 @@ import {
   Account,
   EnsByAccountAddress,
 } from '../../components/hooks/useAccounts';
+import { safeToChecksumAddress } from '../address';
 import { isDefaultAccountName } from '../ENSUtils';
 
 /**
@@ -22,7 +23,10 @@ export const getAccountNameWithENS = ({
   accounts: Account[];
   ensByAccountAddress: EnsByAccountAddress;
 }) => {
-  const account = accounts.find(({ address }) => address === accountAddress);
+  const account = accounts.find(
+    ({ address }) =>
+      safeToChecksumAddress(address) === safeToChecksumAddress(accountAddress),
+  );
   const ensName = ensByAccountAddress[accountAddress];
   return isDefaultAccountName(account?.name) && ensName
     ? ensName

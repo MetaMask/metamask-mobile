@@ -1,38 +1,11 @@
 /* global driver */
-import { Given, When, Then } from '@wdio/cucumber-framework';
-import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
-import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
-import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import Accounts from '../helpers/Accounts';
+import { When, Then } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../../features/screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../../features/screen-objects/Modals/NetworkListModal';
-
-Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 50000;
-  await driver.pause(setTimeout);
-  await WelcomeScreen.clickGetStartedButton();
-  await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.swipeUp();
-  await MetaMetricsScreen.tapIAgreeButton();
-  const validAccount = Accounts.getValidAccount();
-  await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
-  await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-  await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.clickImportButton();
-});
-
-Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
-  await OnboardingWizardModal.isVisible();
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
-  await OnboardingWizardModal.tapNoThanksButton();
-});
 
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.clickAddNetworks();
@@ -270,4 +243,8 @@ Then(/^I tap on Got it in the network education modal/, async () => {
 
 Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
   await NetworkListModal.changeNetwork(network);
+});
+
+Then(/^I close the networks screen view$/, async () => {
+  await NetworksScreen.tapCloseNetworkScreen();
 });

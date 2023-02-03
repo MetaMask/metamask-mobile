@@ -12,14 +12,14 @@ import Cell, {
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress } from '../../../util/address';
+import { formatAddress, safeToChecksumAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
-import { removeAccountFromPermissions } from '../../../core/Permissions';
+import { removeAccountsFromPermissions } from '../../../core/Permissions';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
@@ -27,7 +27,7 @@ import styleSheet from './AccountSelectorList.styles';
 
 const AccountSelectorList = ({
   onSelectAccount,
-  onRemoveAccount,
+  onRemoveImportedAccount,
   accounts,
   ensByAccountAddress,
   isLoading = false,
@@ -104,24 +104,25 @@ const AccountSelectorList = ({
               const account = accounts.find(
                 ({ isSelected: isAccountSelected, address: accountAddress }) =>
                   selectedAddressOverride
-                    ? selectedAddressOverride === accountAddress
+                    ? safeToChecksumAddress(selectedAddressOverride) ===
+                      safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
-              let nextActiveAddress = account.address;
+              let nextActiveAddress = account?.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
                 nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
               // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
-              // If needed, place PreferencesController.setSelectedAddress in onRemoveAccount callback.
-              onRemoveAccount?.({
+              // If needed, place PreferencesController.setSelectedAddress in onRemoveImportedAccount callback.
+              onRemoveImportedAccount?.({
                 removedAddress: address,
                 nextActiveAddress,
               });
               await Engine.context.KeyringController.removeAccount(address);
               // Revocation of accounts from PermissionController is needed whenever accounts are removed.
               // If there is an instance where this is not the case, this logic will need to be updated.
-              removeAccountFromPermissions(address);
+              removeAccountsFromPermissions([address]);
             },
           },
         ],
@@ -129,7 +130,12 @@ const AccountSelectorList = ({
       );
     },
     /* eslint-disable-next-line */
-    [accounts, onRemoveAccount, isRemoveAccountEnabled, selectedAddresses],
+    [
+      accounts,
+      onRemoveImportedAccount,
+      isRemoveAccountEnabled,
+      selectedAddresses,
+    ],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
@@ -160,7 +166,7 @@ const AccountSelectorList = ({
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type !== KeyringTypes.hd,
+              imported: type === KeyringTypes.simple,
               isSelected: isSelectedAccount,
               index,
             });
@@ -206,7 +212,8 @@ const AccountSelectorList = ({
       const selectedAddressOverride = selectedAddresses?.[0];
       const account = accounts.find(({ isSelected, address }) =>
         selectedAddressOverride
-          ? selectedAddressOverride === address
+          ? safeToChecksumAddress(selectedAddressOverride) ===
+            safeToChecksumAddress(address)
           : isSelected,
       );
       accountListRef?.current?.scrollToOffset({

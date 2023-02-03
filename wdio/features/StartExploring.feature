@@ -17,16 +17,18 @@ Feature: Start Exploring
     Then I should be able to edit the account Name
     When I enter "Big Bank" for account name
     Then the account nickname should read "Big Bank"
-    When I tap on "Got it" button
-    Then the tutorial modal heading should read "Main Navigation"
+
+    When On the onboarding wizard I tap on "Got it" button
+    Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the burger menu.
     And I should see the "Skip Tutorial" button
     When I tap on "Got it" button
     Then the tutorial modal heading should read "Explore the Browser"
     And there should be an explanation of the what the purpose of the browser.
     And I should see the "Skip Tutorial" button
-    When I tap on "Back" button
-    Then the tutorial modal heading should read "Main Navigation"
+
+    When On the onboarding wizard I tap on "Back" button
+    Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the burger menu.
     And I should see the "Skip Tutorial" button
     When I tap on "Got it" button

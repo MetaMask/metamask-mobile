@@ -18,7 +18,12 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import { getPermittedAccounts } from '../../../core/Permissions';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  getPermittedAccounts,
+  getPermittedAccountsByHostname,
+} from '../../../core/Permissions';
 import getAccountNameWithENS from '../../../util/accounts';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import {
@@ -28,6 +33,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
+import { isEqual } from 'lodash';
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
 const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
@@ -47,6 +53,7 @@ const Browser = (props) => {
     updateTab,
     activeTab: activeTabId,
     tabs,
+    accountsLength,
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
@@ -60,8 +67,40 @@ const Browser = (props) => {
       : AvatarAccountType.JazzIcon,
   );
 
+  //frequentRpcList has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
+  const nonTestnetNetworks = props.frequentRpcList.length + 1;
+
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const permittedAccountsList = useSelector((state) => {
+    if (!activeTab) return [];
+
+    const permissionsControllerState =
+      state.engine.backgroundState.PermissionController;
+    const hostname = new URL(activeTab.url).hostname;
+    const permittedAcc = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    return permittedAcc;
+  }, isEqual);
+
+  const handleRightTopButtonAnalyticsEvent = () => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
+      number_of_accounts: accountsLength,
+      number_of_accounts_connected: permittedAccountsList.length,
+      number_of_networks: nonTestnetNetworks,
+    });
+  };
+
   useEffect(
-    () => navigation.setOptions(getBrowserViewNavbarOptions(route, colors)),
+    () =>
+      navigation.setOptions(
+        getBrowserViewNavbarOptions(
+          route,
+          colors,
+          handleRightTopButtonAnalyticsEvent,
+        ),
+      ),
     /* eslint-disable-next-line */
     [navigation, route, colors],
   );
@@ -85,6 +124,7 @@ const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
@@ -314,6 +354,11 @@ const Browser = (props) => {
 };
 
 const mapStateToProps = (state) => ({
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });
@@ -363,6 +408,8 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  accountsLength: PropTypes.number,
+  frequentRpcList: PropTypes.array,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

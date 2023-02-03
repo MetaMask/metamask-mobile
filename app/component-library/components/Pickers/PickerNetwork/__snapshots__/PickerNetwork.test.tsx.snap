@@ -26,6 +26,7 @@ exports[`PickerNetwork should render correctly 1`] = `
     variant="Network"
   />
   <Text
+    numberOfLines={1}
     style={
       Object {
         "flexShrink": 1,

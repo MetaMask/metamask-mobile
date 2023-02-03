@@ -32,8 +32,11 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../../wdio/features/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { ADD_NETWORK_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import Avatar, {
+  AvatarVariants,
+  AvatarSize,
+} from '../../../component-library/components/Avatars/Avatar';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -175,6 +178,10 @@ export class NetworkList extends PureComponent {
      * Boolean indicating if switching network action should result in popping back to the wallet.
      */
     shouldNetworkSwitchPopToWallet: PropTypes.bool,
+    /**
+     * Current Bottom nav bar route.
+     */
+    currentBottomNavRoute: PropTypes.string,
   };
 
   getOtherNetworks = () => getAllNetworks().slice(1);
@@ -194,6 +201,12 @@ export class NetworkList extends PureComponent {
     } else {
       onClose(false);
     }
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+      chain_id: type,
+      source: this.props.currentBottomNavRoute,
+      symbol: ticker,
+    });
+
     return onNetworkSelected(type, ticker, url, networkOnboardedState);
   };
 
@@ -206,11 +219,6 @@ export class NetworkList extends PureComponent {
       setTimeout(() => {
         Engine.refreshTransactionHistory();
       }, 1000);
-
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: String(Networks[type].chainId),
-      source: 'Settings',
-    });
   };
 
   closeModal = () => {
@@ -239,7 +247,7 @@ export class NetworkList extends PureComponent {
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
-      source: 'Settings',
+      source: this.props.currentBottomNavRoute,
       symbol: ticker,
     });
   };
@@ -258,6 +266,7 @@ export class NetworkList extends PureComponent {
     network,
     isCustomRpc,
     color,
+    testId,
   ) => {
     const styles = this.getStyles();
 
@@ -269,11 +278,16 @@ export class NetworkList extends PureComponent {
       >
         <View style={styles.selected}>{selected}</View>
         {isCustomRpc &&
+          // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
           (image ? (
-            <ImageIcon image={image} style={styles.networkIcon} />
-          ) : (
-            <AvatarNetwork name={name} style={styles.networkIcon} />
-          ))}
+            <Avatar
+              variant={AvatarVariants.Network}
+              name={name}
+              imageSource={image}
+              style={styles.networkIcon}
+              size={AvatarSize.Xs}
+            />
+          ) : null)}
         {!isCustomRpc &&
           (image ? (
             <ImageIcon
@@ -299,7 +313,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { name, imageSource, color } = Networks[network];
+      const { name, imageSource, color, testId } = Networks[network];
       const isCustomRpc = false;
       const selected =
         provider.type === network ? (
@@ -314,6 +328,7 @@ export class NetworkList extends PureComponent {
         network,
         isCustomRpc,
         color,
+        testId,
       );
     });
   };
@@ -434,6 +449,7 @@ export class NetworkList extends PureComponent {
 
 const mapStateToProps = (state) => ({
   provider: state.engine.backgroundState.NetworkController.provider,
+  currentBottomNavRoute: state.navigation.currentBottomNavRoute,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

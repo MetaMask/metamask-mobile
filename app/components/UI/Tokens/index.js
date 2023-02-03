@@ -31,7 +31,7 @@ import Text from '../../Base/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { IMPORT_TOKEN_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import { IMPORT_TOKEN_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 
 const createStyles = (colors) =>

@@ -78,7 +78,8 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
-} from '../../../../wdio/features/testIDs/Screens/DrawerView.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
@@ -692,7 +693,7 @@ class DrawerView extends PureComponent {
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      referral_source: 'In-app Navigation',
+      source: 'In-app Navigation',
       chain_id: network,
     });
   };

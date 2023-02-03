@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.12.3",
+  "version": "5.14.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -98,6 +98,7 @@
     "**/immer": "^9.0.6",
     "**/node-fetch": "^2.6.7",
     "**/node-notifier": "^8.0.1",
+    "**/cookiejar": "2.1.4",
     "**/lodash": "^4.17.21",
     "**/ua-parser-js": "^0.7.24",
     "**/elliptic": "^6.5.4",

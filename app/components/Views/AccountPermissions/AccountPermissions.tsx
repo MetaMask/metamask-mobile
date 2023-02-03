@@ -60,6 +60,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const nonTestnetNetworks = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList
+        .length + 1,
+  );
+
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
@@ -94,6 +108,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+  const previousPermittedAccounts = useRef<string[]>();
+  const previousIdentitiesListSize = useRef<number>();
+  const identitiesMap = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -102,6 +122,36 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     (callback?: () => void) => sheetRef?.current?.hide?.(callback),
     [sheetRef],
   );
+  const metricsSource = 'Browser Tab/Permission UI';
+
+  // Checks if anymore accounts are connected to the dapp. Auto dismiss sheet if none are connected.
+  useEffect(() => {
+    if (
+      previousPermittedAccounts.current === undefined &&
+      permittedAccountsByHostname.length === 0
+    ) {
+      // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
+      hideSheet();
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: strings('toast.revoked_all') }],
+      });
+      previousPermittedAccounts.current = permittedAccountsByHostname.length;
+    }
+  }, [permittedAccountsByHostname, hideSheet, toastRef]);
+
+  // Refreshes selected addresses based on the addition and removal of accounts.
+  useEffect(() => {
+    const identitiesAddressList = Object.keys(identitiesMap);
+    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
+      // Clean up selected addresses that are no longer part of identities.
+      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
+        identitiesAddressList.includes(address),
+      );
+      setSelectedAddresses(updatedSelectedAddresses);
+      previousIdentitiesListSize.current = identitiesAddressList.length;
+    }
+  }, [identitiesMap, selectedAddresses]);
 
   const accountsFilteredByPermissions = useMemo(() => {
     const accountsByPermittedStatus: Record<
@@ -133,6 +183,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
           {},
         );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+          source: metricsSource,
+          number_of_accounts: accounts?.length,
+        });
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
       } finally {
@@ -178,6 +232,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accountAddress: newActiveAddress,
         accountAvatarType,
       });
+      const totalAccounts = accountsLength;
+      // TODO: confirm this value is the newly added accounts or total connected accounts
+      const connectedAccounts = connectedAccountLength;
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
+        number_of_accounts: totalAccounts,
+        number_of_accounts_connected: connectedAccounts,
+        number_of_networks: nonTestnetNetworks,
+      });
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
     } finally {
@@ -191,6 +253,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ensByAccountAddress,
     toastRef,
     accountAvatarType,
+    accountsLength,
+    nonTestnetNetworks,
   ]);
 
   useEffect(() => {
@@ -200,7 +264,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
-          hideSheet();
+          hideSheet(() => {
+            AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+              source: metricsSource,
+              number_of_accounts: accounts?.length,
+            });
+          });
           break;
         }
         case USER_INTENT.Create:
@@ -213,25 +282,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           break;
         }
         case USER_INTENT.Import: {
-          hideSheet(() => {
-            navigation.navigate('ImportPrivateKeyView');
-            // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-              {},
-            );
-          });
+          navigation.navigate('ImportPrivateKeyView');
+          // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            {},
+          );
+
           break;
         }
         case USER_INTENT.ConnectHW: {
-          hideSheet(() => {
-            navigation.navigate('ConnectQRHardwareFlow');
-            // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-              {},
-            );
-          });
+          navigation.navigate('ConnectQRHardwareFlow');
+          // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
+          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+
           break;
         }
       }
@@ -247,6 +311,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hideSheet,
     handleCreateAccount,
     handleConnect,
+    accounts?.length,
   ]);
 
   const renderConnectedScreen = useCallback(
@@ -315,7 +380,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress={ensByAccountAddress}
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
-        onDismissSheet={hideSheet}
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
@@ -328,7 +392,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       permittedAccountsByHostname,
       accountsFilteredByPermissions,
       setPermissionsScreen,
-      hideSheet,
       favicon,
       hostname,
       secureIcon,

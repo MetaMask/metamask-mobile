@@ -50,10 +50,11 @@ const AccountPermissionsConnected = ({
     () => getNetworkNameFromProvider(networkController.provider),
     [networkController.provider],
   );
-  const networkImageSource = useMemo(
-    () => getNetworkImageSource(networkController.provider.chainId),
-    [networkController.provider.chainId],
-  );
+  const networkImageSource = useMemo(() => {
+    const { type, chainId } = networkController.provider;
+    return getNetworkImageSource({ networkType: type, chainId });
+  }, [networkController.provider]);
+
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
@@ -98,16 +99,6 @@ const AccountPermissionsConnected = ({
       toastRef,
       accountAvatarType,
     ],
-  );
-
-  /**
-   * Permission removal is already handled in AccountSelectorList.
-   */
-  const onRemoveAccount = useCallback(
-    () =>
-      // Check if the deleted account is the only account.
-      accounts.length === 1 && onDismissSheet(),
-    [accounts, onDismissSheet],
   );
 
   const switchNetwork = useCallback(() => {
@@ -156,7 +147,6 @@ const AccountPermissionsConnected = ({
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
-        onRemoveAccount={onRemoveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}

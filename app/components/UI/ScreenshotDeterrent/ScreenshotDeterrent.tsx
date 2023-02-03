@@ -7,7 +7,27 @@ import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { strings } from '../../../../locales/i18n';
 
-const ScreenshotDeterrent = ({
+const ScreenshotDeterrentWithoutNavigation = ({
+  enabled,
+}: {
+  enabled: boolean;
+}) => {
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [enabled]);
+
+  return <View />;
+};
+
+const ScreenshotDeterrentWithNavigation = ({
   enabled,
   isSRP,
 }: {
@@ -67,5 +87,20 @@ const ScreenshotDeterrent = ({
 
   return <View />;
 };
+
+const ScreenshotDeterrent = ({
+  enabled,
+  isSRP,
+  hasNavigation = true,
+}: {
+  enabled: boolean;
+  isSRP: boolean;
+  hasNavigation: boolean;
+}) =>
+  hasNavigation ? (
+    <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />
+  ) : (
+    <ScreenshotDeterrentWithoutNavigation enabled={enabled} />
+  );
 
 export default ScreenshotDeterrent;

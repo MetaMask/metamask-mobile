@@ -65,6 +65,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
+  const previousIdentitiesListSize = useRef<number>();
+  const identitiesMap = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
@@ -85,6 +90,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     [origin],
   );
 
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
   /**
    * Get image url from favicon api.
    */
@@ -93,11 +105,29 @@ const AccountConnect = (props: AccountConnectProps) => {
     return { uri: iconUrl };
   }, [hostname]);
 
+  // Refreshes selected addresses based on the addition and removal of accounts.
+  useEffect(() => {
+    const identitiesAddressList = Object.keys(identitiesMap);
+    if (previousIdentitiesListSize.current !== identitiesAddressList.length) {
+      // Clean up selected addresses that are no longer part of identities.
+      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
+        identitiesAddressList.includes(address),
+      );
+      setSelectedAddresses(updatedSelectedAddresses);
+      previousIdentitiesListSize.current = identitiesAddressList.length;
+    }
+  }, [identitiesMap, selectedAddresses]);
+
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
+        number_of_accounts: accountsLength,
+        source: 'permission system',
+      });
     },
-    [Engine.context.PermissionController],
+    [Engine.context.PermissionController, accountsLength],
   );
 
   const handleConnect = useCallback(async () => {
@@ -125,6 +155,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
+        number_of_accounts: accountsLength,
+        number_of_accounts_connected: connectedAccountLength,
+        source: 'in-app browser',
+      });
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
         labelOptions = [
@@ -161,6 +196,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
+    accountsLength,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -221,27 +257,19 @@ const AccountConnect = (props: AccountConnectProps) => {
           break;
         }
         case USER_INTENT.Import: {
-          hideSheet(() => {
-            cancelPermissionRequest(permissionRequestId);
-            navigation.navigate('ImportPrivateKeyView');
-            // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-              {},
-            );
-          });
+          navigation.navigate('ImportPrivateKeyView');
+          // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            {},
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
-          hideSheet(() => {
-            cancelPermissionRequest(permissionRequestId);
-            navigation.navigate('ConnectQRHardwareFlow');
-            // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-              {},
-            );
-          });
+          navigation.navigate('ConnectQRHardwareFlow');
+          // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
+          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+
           break;
         }
       }
@@ -269,7 +297,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];
     const selectedAccount = accounts.find(
-      (account) => account.address === selectedAddress,
+      (account) =>
+        safeToChecksumAddress(account.address) ===
+        safeToChecksumAddress(selectedAddress),
     );
     const ensName = ensByAccountAddress[selectedAddress];
     const defaultSelectedAccount: Account | undefined = selectedAccount

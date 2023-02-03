@@ -1,4 +1,3 @@
-/* global driver */
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
@@ -9,6 +8,7 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
+import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -154,7 +154,7 @@ When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
 });
 
 When(/^I select remind me later on secure wallet screen/, async () => {
-  await CreateNewWalletScreen.selectRemindMeLater();
+  await CreateNewWalletScreen.tapRemindMeLater();
 });
 
 When(/^secure wallet page is presented/, async () => {

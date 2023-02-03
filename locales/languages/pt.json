@@ -421,7 +421,9 @@
     "select_all": "Selecionar tudo",
     "permissions": "Permissões",
     "disconnect": "Desconectar",
-    "disconnect_all_accounts": "Desconectar todas as contas"
+    "disconnect_all_accounts": "Desconectar todas as contas",
+    "revoke": "Revogar",
+    "revoke_all": "Revogar tudo"
   },
   "toast": {
     "connected_and_active": "conectada e ativa.",
