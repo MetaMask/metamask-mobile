@@ -309,16 +309,12 @@ workflows:
       - script@1:
           title: Upload APK to Browserstack
           inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           set -e
-      #           set -x
-      #           set -o pipefail
-      #           APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-      #           CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
-      #           CUSTOM_ID=${CUSTOM_ID////-}
-      #           curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
-      #           curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+             - content: |-
+                  #!/usr/bin/env bash
+                  set -e
+                  set -x
+                  set -o pipefail
+                  envman add --key BROWSERSTACK_APP_URL --value "TEST"
       # - deploy-to-bitrise-io@1:
       #     inputs:
       #       - deploy_path: browserstack_uploaded_apps.json
@@ -331,7 +327,7 @@ workflows:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
             - environment_key_list:
-                BROWSERSTACK_APP_URL: "$BROWSERSTACK_APP_URL"
+                BROWSERSTACK_APP_URL
   wdio_android_e2e_test:
     before_run:
       - code_setup_cache
