@@ -16,10 +16,10 @@
 - [#5605](https://github.com/MetaMask/metamask-mobile/pull/5605): [FIX] Handle ENS Address Error
 - [#5600](https://github.com/MetaMask/metamask-mobile/pull/5600): [IMPROVEMENT] Refactor ProtectYourWallet section in the security section
 - [#5586](https://github.com/MetaMask/metamask-mobile/pull/5586): [IMPROVEMENT] Stablize Addressbook and Networks flow tests
-- [#5594](https://github.com/MetaMask/metamask-mobile/pull/5594): [IMPROVEMENT] bumped ua-parser-js to 0.7.33
-- [#5580](https://github.com/MetaMask/metamask-mobile/pull/5580): [IMPROVEMENT] Bump cookiejar from 2.1.2 to 2.1.4
-- [#5471](https://github.com/MetaMask/metamask-mobile/pull/5471): [IMPROVEMENT] Bump luxon from 3.1.1 to 3.2.1
-- [#5450](https://github.com/MetaMask/metamask-mobile/pull/5450): [IMPROVEMENT] Bump json5 from 1.0.1 to 1.0.2
+- [#5594](https://github.com/MetaMask/metamask-mobile/pull/5594): [UPGRADE] bumped ua-parser-js to 0.7.33
+- [#5580](https://github.com/MetaMask/metamask-mobile/pull/5580): [UPGRADE] Bump cookiejar from 2.1.2 to 2.1.4
+- [#5471](https://github.com/MetaMask/metamask-mobile/pull/5471): [UPGRADE] Bump luxon from 3.1.1 to 3.2.1
+- [#5450](https://github.com/MetaMask/metamask-mobile/pull/5450): [UPGRADE] Bump json5 from 1.0.1 to 1.0.2
 - [#5575](https://github.com/MetaMask/metamask-mobile/pull/5575): [CONTENT] Add translations to SRP Reveal feature
 - [#5559](https://github.com/MetaMask/metamask-mobile/pull/5559): [ANALYTICS] Add analytics events for SRP reveal
 
