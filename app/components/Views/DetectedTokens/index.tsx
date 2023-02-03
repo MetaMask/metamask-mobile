@@ -18,6 +18,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { getDecimalChainId } from '../../../util/networks';
 import { FlatList } from 'react-native-gesture-handler';
+import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -282,5 +284,10 @@ const DetectedTokens = () => {
     </ReusableModal>
   );
 };
+
+export const createDetectedTokensNavDetails = createNavigationDetails(
+  Routes.MODAL.ROOT_MODAL_FLOW,
+  Routes.MODAL.DETECTED_TOKENS,
+);
 
 export default DetectedTokens;

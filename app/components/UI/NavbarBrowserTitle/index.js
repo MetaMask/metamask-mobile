@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet, Text, Image } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
