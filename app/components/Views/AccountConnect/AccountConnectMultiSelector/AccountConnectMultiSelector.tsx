@@ -18,9 +18,8 @@ import AccountSelectorList from '../../../UI/AccountSelectorList';
 // Internal dependencies.
 import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
-import USER_INTENT from '../../../../constants/permissions';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
+import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import { USER_INTENT } from '../../../../constants/permissions';
 
 const AccountConnectMultiSelector = ({
   accounts,

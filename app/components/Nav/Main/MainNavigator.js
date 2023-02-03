@@ -169,6 +169,16 @@ const WalletTabStackFlow = () => (
   </Stack.Navigator>
 );
 
+const TransactionsHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
+    />
+  </Stack.Navigator>
+);
+
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
@@ -623,16 +633,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
-
 const SnapsDevUI = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -667,18 +667,11 @@ const MainNavigator = () => (
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
+    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
     <Stack.Screen
       name={Routes.SNAPS.HOME}
       mode={'modal'}
       component={SnapsDevUI}
-    />
-    <Stack.Screen
-      name="ImportPrivateKeyView"
-      component={ImportPrivateKeyView}
-    />
-    <Stack.Screen
-      name="ConnectQRHardwareFlow"
-      component={ConnectQRHardwareFlow}
     />
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
