@@ -752,6 +752,19 @@ const RootRPCMethodsUI = (props) => {
       }
 
       switch (request.type) {
+        case ApprovalTypes.INSTALL_SNAP:
+          // eslint-disable-next-line no-console
+          console.log({ requestData, id: request.id });
+          setHostToApprove({ requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.INSTALL_SNAP,
+            origin: request.origin,
+          });
+          break;
+        case ApprovalTypes.UPDATE_SNAP:
+          // eslint-disable-next-line no-console
+          console.log('Update Snap');
+          break;
         case ApprovalTypes.REQUEST_PERMISSIONS:
           if (requestData?.permissions?.eth_accounts) {
             const {
