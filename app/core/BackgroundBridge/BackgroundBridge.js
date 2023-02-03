@@ -341,9 +341,7 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // TODO - Remove this condition when WalletConnect and MMSDK uses Permission System.
-    if (this.isMMSDK || this.isWalletConnect) {
-      // Do nothing.
-    } else {
+    if (!this.isMMSDK && !this.isWalletConnect) {
       const permissionController = Engine.context.PermissionController;
       engine.push(
         permissionController.createPermissionMiddleware({

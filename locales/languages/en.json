@@ -1106,7 +1106,16 @@
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-    "yes": "Yes"
+    "yes": "Yes",
+    "protocol_alert_options": {
+      "ignore": "Ignore",
+      "allow": "Allow"
+    },
+    "protocol_alerts": {
+      "tel": "This website has been blocked from automatically making a phone call",
+      "mailto": "This website has been blocked from automatically composing an email.",
+      "generic": "This website has been blocked from automatically opening an external application"
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",

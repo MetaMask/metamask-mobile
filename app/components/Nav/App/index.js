@@ -449,6 +449,13 @@ const App = ({ userLoggedIn }) => {
         name="ImportPrivateKeySuccess"
         component={ImportPrivateKeySuccess}
       />
+      <Stack.Screen
+        name={Routes.QR_SCANNER}
+        component={QRScanner}
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 
@@ -461,30 +468,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
     </Stack.Navigator>
   );
-
-  // const ImportPrivateKeyView = () => (
-  //   <Stack.Navigator
-  //     screenOptions={{
-  //       headerShown: false,
-  //     }}
-  //   >
-  //     <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-  //     <Stack.Screen
-  //       name="ImportPrivateKeySuccess"
-  //       component={ImportPrivateKeySuccess}
-  //     />
-  //   </Stack.Navigator>
-  // );
-
-  // const ConnectQRHardwareFlow = () => (
-  //   <Stack.Navigator
-  //     screenOptions={{
-  //       headerShown: false,
-  //     }}
-  //   >
-  //     <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  //   </Stack.Navigator>
-  // );
 
   return (
     // do not render unless a route is defined
