@@ -7,12 +7,12 @@ import AvatarIcon from './AvatarIcon';
 
 // Internal dependencies.
 import { AvatarSize } from '../../Avatar.types';
-import { IconNames } from '../../../../Icons/Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 describe('AvatarIcon', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarIcon size={AvatarSize.Lg} name={IconNames.AddSquare} />,
+      <AvatarIcon size={AvatarSize.Lg} name={IconName.AddSquare} />,
     );
     expect(wrapper).toMatchSnapshot();
   });

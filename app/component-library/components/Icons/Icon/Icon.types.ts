@@ -27,7 +27,7 @@ export interface IconProps extends ViewProps {
   /**
    * Enum to select between icon names.
    */
-  name: IconNames;
+  name: IconName;
   /**
    * Color of the icon.
    */
@@ -45,7 +45,7 @@ export interface IconStyleSheetVars extends Pick<IconProps, 'style'> {
  * Asset stored by icon name
  */
 export type AssetByIconName = {
-  [key in IconNames]: React.FC<SvgProps>;
+  [key in IconName]: React.FC<SvgProps>;
 };
 
 ///////////////////////////////////////////////////////
@@ -56,13 +56,15 @@ export type AssetByIconName = {
 /**
  * Icon names
  */
-export enum IconNames {
+export enum IconName {
   AddSquare = 'AddSquare',
   Add = 'Add',
   Arrow2Down = 'Arrow2Down',
   Arrow2Left = 'Arrow2Left',
   Arrow2Right = 'Arrow2Right',
   Arrow2Up = 'Arrow2Up',
+  ArrowDoubleLeft = 'ArrowDoubleLeft',
+  ArrowDoubleRight = 'ArrowDoubleRight',
   ArrowDown = 'ArrowDown',
   ArrowLeft = 'ArrowLeft',
   ArrowRight = 'ArrowRight',

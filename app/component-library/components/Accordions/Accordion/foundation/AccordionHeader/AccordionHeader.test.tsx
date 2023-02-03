@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconNames } from '../../../../Icons/Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import AccordionHeader from './AccordionHeader';
@@ -55,7 +55,7 @@ describe('AccordionHeader', () => {
     const iconElement = wrapper.findWhere(
       (node) => node.prop('testID') === ACCORDION_HEADER_ARROW_ICON_TEST_ID,
     );
-    expect(iconElement.props().name).toBe(IconNames.ArrowUp);
+    expect(iconElement.props().name).toBe(IconName.ArrowUp);
   });
   //TODO: Add Test for Pressed state and animation
 });

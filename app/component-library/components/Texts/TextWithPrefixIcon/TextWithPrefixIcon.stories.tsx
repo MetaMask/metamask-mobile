@@ -4,7 +4,7 @@ import { text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { IconNames, IconProps, IconSize } from '../../Icons/Icon';
+import { IconName, IconProps, IconSize } from '../../Icons/Icon';
 import { TextVariants } from '../Text/Text.types';
 
 // Internal dependencies.
@@ -15,10 +15,10 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
   'Default',
   () => {
     const groupId = 'Props';
-    const IconNamesSelector = select(
+    const IconNameSelector = select(
       'iconProps.name',
-      IconNames,
-      IconNames.Lock,
+      IconName,
+      IconName.Lock,
       groupId,
     );
     const iconSizeSelector = select(
@@ -35,7 +35,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
     );
     const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
     const iconProps: IconProps = {
-      name: IconNamesSelector,
+      name: IconNameSelector,
       size: iconSizeSelector,
     };
 

@@ -22,11 +22,11 @@ import ButtonTertiary, {
   ButtonTertiaryVariants,
 } from 'app/component-library/components/ButtonTertiary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
-import { IconNames } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonTertiary
   label={LABEL}
-  IconNames={IconNames.Bank}
+  IconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   buttonTertiaryVariants={ButtonTertiaryVariants.Normal}

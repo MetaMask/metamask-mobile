@@ -124,7 +124,7 @@ const CustomSpendCap = ({
     <>
       <Icon
         size={IconSize.Sm}
-        name={IconName.DangerFilled}
+        name={IconName.Danger}
         color={colors.error.default}
       />
       <Text variant={TextVariants.sBodyMDBold} style={styles.modalTitleDanger}>
@@ -168,8 +168,8 @@ const CustomSpendCap = ({
               size={IconSize.Sm}
               name={
                 defaultValueSelected
-                  ? IconName.DangerFilled
-                  : IconName.QuestionFilled
+                  ? IconName.Danger
+                  : IconName.Question
               }
               color={
                 defaultValueSelected ? colors.error.default : colors.icon.muted

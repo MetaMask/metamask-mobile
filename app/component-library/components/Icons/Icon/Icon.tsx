@@ -9,7 +9,7 @@ import { useStyles } from '../../../hooks/useStyles';
 // Internal dependencies.
 import { IconProps, IconSize } from './Icon.types';
 import styleSheet from './Icon.styles';
-import { assetByIconNames } from './Icon.assets';
+import { assetByIconName } from './Icon.assets';
 
 const Icon = ({
   size = IconSize.Md,
@@ -23,7 +23,7 @@ const Icon = ({
     style,
   });
   const iconColor = color || theme.colors.icon.default;
-  const SVG = assetByIconNames[name];
+  const SVG = assetByIconName[name];
   const sizeAsNum = Number(size);
 
   return (

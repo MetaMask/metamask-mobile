@@ -80,8 +80,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const secureIcon = useMemo(
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
-        ? IconName.LockFilled
-        : IconName.LockSlashFilled,
+        ? IconName.Lock
+        : IconName.LockSlash,
     [origin],
   );
   /**

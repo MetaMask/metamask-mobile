@@ -24,7 +24,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   /**
    * Icon name of the icon that will be displayed.
    */
-  IconNames?: IconProps['name'];
+  IconName?: IconProps['name'];
   /**
    * Size of the button.
    */

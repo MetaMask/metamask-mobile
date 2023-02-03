@@ -38,13 +38,13 @@ Function to trigger when pressing the button.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | Function                                            | Yes                                                     |
 
-### `IconNames`
+### `IconName`
 
 Icon name of the icon that will be displayed.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconNames](../Icon/Icon.types.ts#53)                | False                                                   |
+| [IconName](../Icon/Icon.types.ts#53)                | False                                                   |
 
 ## Usage
 
@@ -53,12 +53,12 @@ Icon name of the icon that will be displayed.
 import ButtonBase, {
   ButtonSize,
 } from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import { IconNames } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonBase
   label={LABEL}
   labelColor={LABEL_COLOR}
-  IconNames={IconNames.Bank}
+  IconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
 />;

@@ -85,8 +85,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const secureIcon = useMemo(
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
-        ? IconName.LockFilled
-        : IconName.LockSlashFilled,
+        ? IconName.Lock
+        : IconName.LockSlash,
     [origin],
   );
 

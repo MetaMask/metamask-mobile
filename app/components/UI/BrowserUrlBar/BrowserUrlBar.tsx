@@ -38,8 +38,8 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const isHttps = contentProtocol === PROTOCOLS.HTTPS;
 
   const secureConnectionIcon = isHttps
-    ? IconName.LockFilled
-    : IconName.LockSlashFilled;
+    ? IconName.Lock
+    : IconName.LockSlash;
 
   const mainUrl = getDappMainUrl();
 

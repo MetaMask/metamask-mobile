@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconNames, IconProps, IconSize } from '../../Icons/Icon';
+import { IconName, IconProps, IconSize } from '../../Icons/Icon';
 import { TextVariants } from '../Text/Text.types';
 
 // Internal dependencies.
@@ -16,7 +16,7 @@ import {
 } from './TextWithPrefixIcon.constants';
 
 const sampleIconProps: IconProps = {
-  name: IconNames.Add,
+  name: IconName.Add,
 };
 
 describe('TextWithPrefixIcon - Snapshot', () => {
@@ -49,9 +49,9 @@ describe('TextWithPrefixIcon', () => {
     expect(TextWithPrefixIconComponent.exists()).toBe(true);
   });
   it('should render the given icon name and size', () => {
-    const testIconNames = IconNames.Bank;
+    const testIconName = IconName.Bank;
     const testIconSize = IconSize.Xss;
-    sampleIconProps.name = testIconNames;
+    sampleIconProps.name = testIconName;
     sampleIconProps.size = testIconSize;
     const wrapper = shallow(
       <TextWithPrefixIcon
@@ -64,7 +64,7 @@ describe('TextWithPrefixIcon', () => {
     const iconElement = wrapper.findWhere(
       (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_ICON_TEST_ID,
     );
-    expect(iconElement.props().name).toBe(testIconNames);
+    expect(iconElement.props().name).toBe(testIconName);
     expect(iconElement.props().size).toBe(testIconSize);
   });
   it('should render the given text with the appropriate variant', () => {

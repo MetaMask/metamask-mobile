@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import {
-  IconNames,
+  IconName,
   IconProps,
 } from '../../../component-library/components/Icons/Icon';
 import TextWithPrefixIcon from '../../../component-library/components/Texts/TextWithPrefixIcon';
@@ -24,7 +24,7 @@ const TextEstimated: React.FC<TextEstimatedProps> = ({
   ...props
 }) => {
   const iconProps: IconProps = {
-    name: IconNames.Tilde,
+    name: IconName.Tilde,
     size: TILDE_ICON_SIZE_BY_TEXT_VARIANT[variant],
   };
   return (

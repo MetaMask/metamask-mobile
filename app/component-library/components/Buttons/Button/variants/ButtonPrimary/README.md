@@ -22,11 +22,11 @@ import ButtonPrimary, {
   ButtonPrimaryVariants,
 } from 'app/component-library/components/ButtonPrimary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
-import { IconNames } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonPrimary
   label={LABEL}
-  IconNames={IconNames.Bank}
+  IconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   buttonPrimaryVariants={ButtonPrimaryVariants.Normal}

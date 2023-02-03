@@ -6,7 +6,7 @@ import { storiesOf } from '@storybook/react-native';
 import { boolean, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { IconNames } from '../../Icons/Icon';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies
 import TabBarItem from './TabBarItem';
@@ -15,7 +15,7 @@ storiesOf('Component Library / TabBarItem', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const iconSelector = select('name', IconNames, IconNames.Lock, groupId);
+    const iconSelector = select('name', IconName, IconName.Lock, groupId);
     const labelSelector = text('label', 'Wallet', groupId);
     const selectedSelector = boolean('isSelected', true, groupId);
 

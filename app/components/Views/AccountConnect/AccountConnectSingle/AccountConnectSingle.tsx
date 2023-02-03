@@ -151,7 +151,7 @@ const AccountConnectSingle = ({
         style={isLoading && styles.disabled}
       >
         <View style={styles.downCaretContainer}>
-          <Icon name={IconName.ArrowDownOutline} />
+          <Icon name={IconName.ArrowDown} />
         </View>
       </Cell>
     );

@@ -47,7 +47,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.DangerFilled}
+        name={IconName.Danger}
         color={colors.error.default}
       />
     ),
@@ -58,7 +58,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.CheckCircleOnFilled}
+        name={IconName.Confirm}
         color={colors.success.default}
       />
     ),

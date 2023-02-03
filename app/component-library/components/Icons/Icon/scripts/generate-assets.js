@@ -50,7 +50,7 @@ const main = async () => {
   );
   fs.appendFileSync(
     assetsModulePath,
-    `\nimport { AssetByIconName, IconNames } from './Icon.types';`,
+    `\nimport { AssetByIconName, IconName } from './Icon.types';`,
   );
 
   assetFileList.forEach((fileName) => {
@@ -75,7 +75,7 @@ const main = async () => {
     const iconName = getIconNameInTitleCase(fileName);
     fs.appendFileSync(
       assetsModulePath,
-      `\n  [IconNames.${iconName}]: ${iconName},`,
+      `\n  [IconName.${iconName}]: ${iconName},`,
     );
   });
 
@@ -93,7 +93,7 @@ const main = async () => {
     TYPES_CONTENT_TO_DETECT +
     `\n///////////////////////////////////////////////////////`;
 
-  typesContentToWrite += '\n\n/**\n * Icon names\n */\nexport enum IconNames {';
+  typesContentToWrite += '\n\n/**\n * Icon names\n */\nexport enum IconName {';
 
   assetFileList.forEach((fileName) => {
     const iconName = path

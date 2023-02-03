@@ -6,17 +6,17 @@ import { select, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { IconNames } from '../../../../Icons/Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
 import { ButtonIconVariants, ButtonIconProps } from './ButtonIcon.types';
 
 export const getButtonIconStoryProps = (): ButtonIconProps => {
-  const IconNamesSelector = select(
-    'IconNames',
-    IconNames,
-    IconNames.Lock,
+  const IconNameSelector = select(
+    'IconName',
+    IconName,
+    IconName.Lock,
     storybookPropsGroupID,
   );
   const variantSelector = select(
@@ -28,7 +28,7 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
   const disabledSelector = boolean('disabled', false, storybookPropsGroupID);
   return {
     buttonIconVariants: variantSelector,
-    IconNames: IconNamesSelector,
+    IconName: IconNameSelector,
     disabled: disabledSelector,
     onPress: () => console.log("I'm clicked!"),
   };

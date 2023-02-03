@@ -38,7 +38,7 @@ const QuizContent = ({
           <TouchableOpacity onPress={dismiss}>
             <Icon
               size={IconSize.Xs}
-              name={IconName.CloseOutline}
+              name={IconName.Close}
               color={colors.icon.default}
               style={styles.icon}
             />

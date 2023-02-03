@@ -6,7 +6,7 @@ import { select, text, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { IconNames } from '../../../../Icons/Icon';
+import { IconName } from '../../../../Icons/Icon';
 import { ButtonSize } from '../../Button.types';
 
 // Internal dependencies.
@@ -39,13 +39,13 @@ export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {
-    const IconNamesSelector = select(
-      'IconNames',
-      IconNames,
-      IconNames.AddSquare,
+    const IconNameSelector = select(
+      'IconName',
+      IconName,
+      IconName.AddSquare,
       storybookPropsGroupID,
     );
-    buttonSecondaryStoryProps.IconNames = IconNamesSelector;
+    buttonSecondaryStoryProps.IconName = IconNameSelector;
   }
   return buttonSecondaryStoryProps;
 };

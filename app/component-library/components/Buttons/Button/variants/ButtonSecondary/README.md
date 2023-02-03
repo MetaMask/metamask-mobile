@@ -22,11 +22,11 @@ import ButtonSecondary, {
   ButtonSecondaryVariants,
 } from 'app/component-library/components/ButtonSecondary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
-import { IconNames } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonSecondary
   label={LABEL}
-  IconNames={IconNames.Bank}
+  IconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   buttonSecondaryVariants={ButtonSecondaryVariants.Normal}

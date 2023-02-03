@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconNames } from '../Icons/Icon';
+import { IconName } from '../Icons/Icon';
 
 // Internal dependencies.
 import Checkbox from './Checkbox';
@@ -21,7 +21,7 @@ describe('Checkbox', () => {
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
     const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconNames.CheckBoxOn);
+    expect(iconName).toBe(IconName.CheckBoxOn);
   });
 
   it('should render correct icon when not selected', () => {
@@ -30,6 +30,6 @@ describe('Checkbox', () => {
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
     const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconNames.CheckBoxOff);
+    expect(iconName).toBe(IconName.CheckBoxOff);
   });
 });
