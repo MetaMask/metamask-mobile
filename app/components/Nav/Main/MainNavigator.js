@@ -168,6 +168,16 @@ const WalletTabStackFlow = () => (
   </Stack.Navigator>
 );
 
+const TransactionsHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
+    />
+  </Stack.Navigator>
+);
+
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
@@ -622,6 +632,7 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+<<<<<<< HEAD
 const SnapsDevUI = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -632,6 +643,8 @@ const SnapsDevUI = () => (
   </Stack.Navigator>
 );
 
+=======
+>>>>>>> 044bc0103 (Solve merge bugs)
 const SnapsDevUI = () => (
   <Stack.Navigator>
     <Stack.Screen
