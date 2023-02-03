@@ -12,7 +12,7 @@ class EngineService {
    *
    * @param store - Redux store
    */
-  initalizeEngine = (store: any) => {
+  initializeEngine = (store: any) => {
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
