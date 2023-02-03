@@ -47,7 +47,7 @@ function loadStories() {
   require('../app/component-library/components/Toast/Toast.stories');
   require('../app/components/Base/Alert.stories');
   require('../app/components/Base/ListItem.stories');
-  require('../app/components/Base/Text.stories');
+  require('../app/components/Base/Text/Text.stories');
   require('../app/components/Base/Title.stories');
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
