@@ -54,16 +54,16 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { EndowmentPermissions } from '../constants/permissions';
-import {
-  SNAP_BLOCKLIST,
-  checkSnapsBlockList,
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
-} from '../util/snaps';
+import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from '../core/Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
-import { SnapBridge, WebviewExecutionService } from './Snaps';
+import {
+  SnapBridge,
+  WebviewExecutionService,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
+} from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import {
   getCaveatSpecifications,
