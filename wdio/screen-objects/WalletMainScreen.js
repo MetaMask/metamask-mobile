@@ -18,7 +18,7 @@ import {
   WALLET_ACCOUNT_ICON,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
-  SECURE_WALLET_BACKUP_ALERT_MODAL
+  SECURE_WALLET_BACKUP_ALERT_MODAL,
 } from './testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
@@ -78,9 +78,7 @@ class WalletMainScreen {
   }
 
   get backupAlertModal() {
-    return Selectors.getElementByPlatform(
-      SECURE_WALLET_BACKUP_ALERT_MODAL,
-    );
+    return Selectors.getElementByPlatform(SECURE_WALLET_BACKUP_ALERT_MODAL);
   }
 
   async tapSettings() {
@@ -138,7 +136,8 @@ class WalletMainScreen {
   }
 
   async backupAlertModalIsVisible() {
-    await expect(this.backupAlertModal).toBeDisplayed();
+    const element = await this.backupAlertModal;
+    return element.isDisplayed();
   }
   async isVisible() {
     await expect(this.WalletScreenContainer).toBeDisplayed();

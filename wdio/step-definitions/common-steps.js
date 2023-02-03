@@ -12,7 +12,6 @@ import CommonScreen from '../screen-objects/CommonScreen';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import SendScreen from "../screen-objects/SendScreen";
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
@@ -42,13 +41,21 @@ Given(/^I create a new wallet$/, async () => {
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
 });
 
-Given(/^I tap the remind me later button on the Protect Your Wallet Modal$/, async () => {
-  const timeOut = 3000;
-  await driver.pause(timeOut);
-  await WalletMainScreen.backupAlertModalIsVisible()
-  await WalletMainScreen.tapRemindMeLaterOnNotification();
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-});
+Given(
+  /^I tap the remind me later button on the Protect Your Wallet Modal$/,
+  async () => {
+    const timeOut = 3000;
+    await driver.pause(timeOut);
+    await WalletMainScreen.backupAlertModalIsVisible();
+    await WalletMainScreen.tapRemindMeLaterOnNotification();
+    await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+    if (await WalletMainScreen.backupAlertModalIsVisible()) {
+      // on some devices clicking testID is not viable, so we use xpath if modal still visible
+      await CommonScreen.tapOnText('Remind me later');
+      await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+    }
+  },
+);
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   const setTimeout = 20000;
