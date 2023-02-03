@@ -15,7 +15,7 @@ import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Networks, { getAllNetworks } from '../../../../util/networks';
+import Networks, { getAllNetworks, isMainNet } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import getImage from '../../../../util/getImage';
@@ -23,8 +23,12 @@ import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
-import { ADD_NETWORK_BUTTON } from '../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
+import Avatar, {
+  AvatarSize,
+  AvatarVariants,
+} from '../../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -200,7 +204,7 @@ class NetworksSettings extends PureComponent {
       <View key={`network-${network}`}>
         {
           // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
-          network === MAINNET ? (
+          isMainNet(network) ? (
             this.renderMainnet()
           ) : (
             <TouchableOpacity
@@ -211,18 +215,30 @@ class NetworksSettings extends PureComponent {
             >
               <View style={styles.network}>
                 {isCustomRPC &&
+                  // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
                   (image ? (
                     <ImageIcons image={image} style={styles.networkIcon} />
                   ) : (
-                    <View style={styles.networkIcon} />
+                    <Avatar
+                      variant={AvatarVariants.Network}
+                      name={name}
+                      style={styles.networkIcon}
+                      size={AvatarSize.Xs}
+                    />
                   ))}
-                {!isCustomRPC && (
-                  <View
-                    style={[styles.networkIcon, { backgroundColor: image }]}
-                  >
-                    <Text style={styles.text}>{name[0]}</Text>
-                  </View>
-                )}
+                {!isCustomRPC &&
+                  (image ? (
+                    <ImageIcons
+                      image={network.toUpperCase()}
+                      style={styles.networkIcon}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.networkIcon, { backgroundColor: image }]}
+                    >
+                      <Text style={styles.text}>{name[0]}</Text>
+                    </View>
+                  ))}
                 <Text style={styles.networkLabel}>{name}</Text>
                 {!isCustomRPC && (
                   <FontAwesome

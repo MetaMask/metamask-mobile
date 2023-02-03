@@ -21,7 +21,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { URL_CLEAR_ICON } from '../../../../wdio/features/testIDs/BrowserScreen/AddressBar.testIds';
+import { URL_CLEAR_ICON } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -29,7 +29,7 @@ export interface BrowserUrlParams {
 }
 
 export const createBrowserUrlModalNavDetails =
-  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER_URL_MODAL);
+  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER.URL_MODAL);
 
 const BrowserUrlModal = () => {
   const { onUrlInputSubmit, url } = useParams<BrowserUrlParams>();

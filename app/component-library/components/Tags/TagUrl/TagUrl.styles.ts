@@ -31,15 +31,23 @@ const styleSheet = (params: { theme: Theme; vars: TagUrlStyleSheetVars }) => {
         paddingRight: 16,
         flexDirection: 'row',
         alignItems: 'center',
+        alignSelf: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    favicon: {
+      marginRight: 8,
+    },
     label: {
-      marginLeft: 8,
       color: colors.text.alternative,
+      flexShrink: 1,
     },
     cta: {
       marginLeft: 16,
+    },
+    icon: {
+      color: colors.icon.alternative,
+      marginRight: 4,
     },
   });
 };

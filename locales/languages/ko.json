@@ -444,7 +444,30 @@
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
-    "yes_remove_it": "네. 제거하겠습니다"
+    "yes_remove_it": "네. 제거하겠습니다",
+    "accounts_title": "계정",
+    "connect_account_title": "계정 연결",
+    "connect_accounts_title": "계정 연결",
+    "connected_accounts_title": "연결된 계정",
+    "connect_description": "계정 주소와 잔액 및 활동을 공유하고 사이트가 결제를 진행하도록 허용하세요.",
+    "connect_multiple_accounts": "여러 계정 연결",
+    "connect_more_accounts": "더 많은 계정 연결",
+    "cancel": "취소",
+    "connect": "연결",
+    "connect_with_count": "{{countLabel}} 연결",
+    "select_all": "모두 선택",
+    "permissions": "권한",
+    "disconnect": "연결 해제",
+    "disconnect_all_accounts": "모든 계정 연결 해제",
+    "revoke": "취소",
+    "revoke_all": "모두 취소"
+  },
+  "toast": {
+    "connected_and_active": "연결되어 활성화됨.",
+    "now_active": "지금 활성화됨.",
+    "revoked": "취소됨.",
+    "revoked_all": "모든 계정이 취소되었습니다.",
+    "accounts_connected": "계정이 연결되었습니다."
   },
   "connect_qr_hardware": {
     "title": "QR 코드 기반 하드웨어 지갑 연결",
@@ -2211,10 +2234,10 @@
       "question": "누군가, 심지어 고객 센터 직원이라고 해도 여러분의 비밀 복구 구문을 물어본다면...",
       "right_answer": "이는 반드시 사기입니다",
       "right_answer_title": "맞습니다! 비밀 복구 구문은 아무와도 공유하면 안 됩니다",
-      "right_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다. ",
+      "right_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다.",
       "wrong_answer": "주어야 합니다",
       "wrong_answer_title": "맞습니다! 비밀 복구 구문은 절대로 아무와도 공유하면 안 됩니다",
-      "wrong_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다. "
+      "wrong_answer_description": "비밀 복구 구문이 있어야 고객을 도울 수 있다고 하는 사람은 모두 거짓말쟁이입니다. 그런 자들과 비밀 복구 구문을 공유하면 자산을 도둑맞게 됩니다."
     }
   }
 }

@@ -41,7 +41,6 @@ import {
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import AccountList from '../../../UI/AccountList';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import NotificationManager from '../../../../core/NotificationManager';
@@ -177,10 +176,6 @@ class Confirm extends PureComponent {
      */
     identities: PropTypes.object,
     /**
-     * List of keyrings
-     */
-    keyrings: PropTypes.array,
-    /**
      * Selected asset from current transaction state
      */
     selectedAsset: PropTypes.object,
@@ -230,7 +225,6 @@ class Confirm extends PureComponent {
     transactionValue: undefined,
     transactionValueFiat: undefined,
     errorMessage: undefined,
-    fromAccountModalVisible: false,
     warningModalVisible: false,
     mode: REVIEW,
     gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
@@ -805,13 +799,11 @@ class Confirm extends PureComponent {
     return balanceIsInsufficient ? strings('transaction.insufficient') : null;
   };
 
-  onAccountChange = async (accountAddress) => {
+  onSelectAccount = async (accountAddress) => {
     const { identities, accounts } = this.props;
     const { name } = identities[accountAddress];
-    const { PreferencesController } = Engine.context;
     const ens = await doENSReverseLookup(accountAddress);
     const fromAccountName = ens || name;
-    PreferencesController.setSelectedAddress(accountAddress);
     // If new account doesn't have the asset
     this.setState({
       fromAccountName,
@@ -819,17 +811,23 @@ class Confirm extends PureComponent {
       balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero(),
     });
     this.parseTransactionDataHeader();
-    this.toggleFromAccountModal();
+  };
+
+  openAccountSelector = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+      params: {
+        isSelectOnly: true,
+        onSelectAccount: this.onSelectAccount,
+        checkBalanceError: this.getBalanceError,
+      },
+    });
   };
 
   toggleHexDataModal = () => {
     const { hexDataModalVisible } = this.state;
     this.setState({ hexDataModalVisible: !hexDataModalVisible });
-  };
-
-  toggleFromAccountModal = () => {
-    const { fromAccountModalVisible } = this.state;
-    this.setState({ fromAccountModalVisible: !fromAccountModalVisible });
   };
 
   cancelGasEdition = () => {
@@ -1064,37 +1062,6 @@ class Confirm extends PureComponent {
     );
   };
 
-  renderFromAccountModal = () => {
-    const { identities, keyrings, ticker } = this.props;
-    const { fromAccountModalVisible, fromSelectedAddress } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <Modal
-        isVisible={fromAccountModalVisible}
-        style={styles.bottomModal}
-        onBackdropPress={this.toggleFromAccountModal}
-        onBackButtonPress={this.toggleFromAccountModal}
-        onSwipeComplete={this.toggleFromAccountModal}
-        swipeDirection={'down'}
-        propagateSwipe
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-      >
-        <AccountList
-          enableAccountsAddition={false}
-          identities={identities}
-          selectedAddress={fromSelectedAddress}
-          keyrings={keyrings}
-          onAccountChange={this.onAccountChange}
-          getBalanceError={this.getBalanceError}
-          ticker={ticker}
-        />
-      </Modal>
-    );
-  };
-
   buyEth = () => {
     const { navigation } = this.props;
     try {
@@ -1109,7 +1076,7 @@ class Confirm extends PureComponent {
 
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
-      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
+      this.props.navigation.navigate(Routes.BROWSER.VIEW, {
         newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
@@ -1229,7 +1196,7 @@ class Confirm extends PureComponent {
       >
         <View style={styles.inputWrapper}>
           <AddressFrom
-            onPressIcon={!paymentRequest ? null : this.toggleFromAccountModal}
+            onPressIcon={!paymentRequest ? null : this.openAccountSelector}
             fromAccountAddress={fromSelectedAddress}
             fromAccountName={fromAccountName}
             fromAccountBalance={fromAccountBalance}
@@ -1374,7 +1341,6 @@ class Confirm extends PureComponent {
             )}
           </StyledButton>
         </View>
-        {this.renderFromAccountModal()}
         {mode === EDIT && this.renderCustomGasModalLegacy()}
         {mode === EDIT_NONCE && this.renderCustomNonceModal()}
         {mode === EDIT_EIP1559 && this.renderCustomGasModalEIP1559()}
@@ -1404,7 +1370,6 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  keyrings: state.engine.backgroundState.KeyringController.keyrings,
   transaction: getNormalizedTxState(state),
   selectedAsset: state.transaction.selectedAsset,
   transactionState: state.transaction,

@@ -31,7 +31,7 @@ import {
 import {
   APPROVE_NETWORK_APPROVE_BUTTON,
   APPROVE_NETWORK_MODAL,
-} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -110,6 +110,7 @@ interface NetworkProps {
   onClose: () => void;
   network: any;
   navigation: any;
+  shouldNetworkSwitchPopToWallet: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -125,6 +126,7 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    shouldNetworkSwitchPopToWallet,
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
@@ -198,7 +200,9 @@ const NetworkModals = (props: NetworkProps) => {
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
     closeModal();
-    navigation.navigate('WalletView');
+    shouldNetworkSwitchPopToWallet
+      ? navigation.navigate('WalletView')
+      : navigation.goBack();
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 

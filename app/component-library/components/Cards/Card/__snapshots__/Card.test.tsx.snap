@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Card - Snapshot should render correctly 1`] = `
-<View
+<TouchableOpacity
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -13,5 +13,5 @@ exports[`Card - Snapshot should render correctly 1`] = `
   }
 >
   <View />
-</View>
+</TouchableOpacity>
 `;
