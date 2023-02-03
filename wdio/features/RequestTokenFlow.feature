@@ -1,4 +1,4 @@
-@androidApp 
+@androidApp
 @ChainScenarios
 
 Feature: Request Token
@@ -32,7 +32,7 @@ Feature: Request Token
     When I tap on the navbar network title button
     And I tap on <Network> on Networks list to switch
     And I tap on Got it in the network education modal
-    Then I see <Network> visible in the top navigation bar
+    Then I see "<Network>" visible in the top navigation bar
 
     When I tap on button with text "Receive"
     Then "Scan address to receive payment" is visible

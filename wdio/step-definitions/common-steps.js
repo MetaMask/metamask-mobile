@@ -101,3 +101,10 @@ Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
   await driver.pause(timeout);
   await CommonScreen.tapOnText(text);
 });
+
+Then(/^I see "([^"]*)?" visible in the top navigation bar/, async (networkName) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await WalletMainScreen.isNetworkNameCorrect(networkName);
+
+});
