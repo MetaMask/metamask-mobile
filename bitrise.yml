@@ -268,42 +268,42 @@ workflows:
             - new_version_name: $VERSION_NAME
             - new_version_code: $VERSION_NUMBER
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
-      - install-missing-android-tools@2:
-          inputs:
-            - ndk_revision: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-          title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-          title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-          title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-          title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
+      # - file-downloader@1:
+      #     inputs:
+      #       - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      #       - destination: android/keystores/internalRelease.keystore
+      # - install-missing-android-tools@2:
+      #     inputs:
+      #       - ndk_revision: $NDK_VERSION
+      #       - gradlew_path: $PROJECT_LOCATION/gradlew
+      # - script@1:
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           node -v
+      #           GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+      #     title: Build Android Pre-Release Bundle
+      #     is_always_run: false
+      # - deploy-to-bitrise-io@1:
+      #     inputs:
+      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+      #     title: Bitrise Deploy APK
+      # - deploy-to-bitrise-io@1:
+      #     inputs:
+      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+      #     title: Bitrise Deploy Checksum
+      # - deploy-to-bitrise-io@1:
+      #     inputs:
+      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+      #     title: Bitrise ProGuard Map Files
+      # - deploy-to-bitrise-io@1:
+      #     inputs:
+      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+      #     title: Bitrise Deploy AAB
+      # - deploy-to-bitrise-io@1:
+      #     inputs:
+      #       - deploy_path: sourcemaps/android/index.js.map
+      #     title: Bitrise Deploy Sourcemaps
   _upload_apk_to_browserstack:
     steps:
       - script@1:
