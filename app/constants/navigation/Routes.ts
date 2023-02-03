@@ -67,23 +67,6 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
   },
-  SHEET: {
-    ACCOUNT_SELECTOR: 'AccountSelector',
-    ACCOUNT_CONNECT: 'AccountConnect',
-    ACCOUNT_PERMISSIONS: 'AccountPermissions',
-  },
-  BROWSER: {
-    HOME: 'BrowserTabHome',
-    URL_MODAL: 'BrowserUrlModal',
-    VIEW: 'BrowserView',
-  },
-  WEBVIEW: {
-    MAIN: 'Webview',
-    SIMPLE: 'SimpleWebview',
-  },
-  WALLET: {
-    HOME: 'WalletTabHome',
-  },
   SNAPS: {
     HOME: 'SnapsHome',
   },

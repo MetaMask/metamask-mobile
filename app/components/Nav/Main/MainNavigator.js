@@ -41,6 +41,7 @@ import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
+import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -58,6 +59,7 @@ import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { SnapsDev } from '../../Views/Snaps';
 import { colors as importedColors } from '../../../styles/common';
+import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
@@ -157,6 +159,16 @@ const WalletTabStackFlow = () => (
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
       options={RevealPrivateCredential.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
+const TransactionsHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
     />
   </Stack.Navigator>
 );
@@ -586,16 +598,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-// const ConnectQRHardwareFlow = () => (
-//   <Stack.Navigator
-//     screenOptions={{
-//       headerShown: false,
-//     }}
-//   >
-//     <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-//   </Stack.Navigator>
-// );
-
 const SnapsDevUI = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -630,19 +632,12 @@ const MainNavigator = () => (
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
+    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
     <Stack.Screen
       name={Routes.SNAPS.HOME}
       mode={'modal'}
       component={SnapsDevUI}
     />
-    {/* <Stack.Screen
-      name="ImportPrivateKeyView"
-      component={ImportPrivateKeyView}
-    /> */}
-    {/* <Stack.Screen
-      name="ConnectQRHardwareFlow"
-      component={ConnectQRHardwareFlow}
-    /> */}
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
