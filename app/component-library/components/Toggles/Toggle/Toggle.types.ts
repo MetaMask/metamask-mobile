@@ -4,9 +4,10 @@ import { SwitchProps } from 'react-native';
 /**
  * Toggle component props.
  */
-export type ToggleProps = SwitchProps;
-
-/**
- * Style sheet input parameters.
- */
-export type ToggleStyleSheetVars = Pick<ToggleProps, 'style'>;
+export interface ToggleProps extends SwitchProps {
+  /**
+   * Determines if toggle is selected.
+   * @default false
+   */
+  isSelected?: boolean;
+}

@@ -10,14 +10,15 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import styleSheet from './Toggle.styles';
 import { ToggleProps } from './Toggle.types';
+import { TOGGLE_TEST_ID } from './Toggle.constants';
 
 const Toggle: React.FC<ToggleProps> = ({
   style,
-  value = false,
+  isSelected = false,
   onValueChange,
   ...props
 }) => {
-  const [currentValue, setCurrentValue] = useState(value);
+  const [currentValue, setCurrentValue] = useState(isSelected);
   const { styles, theme } = useStyles(styleSheet, { style });
 
   const valueChangeHandler = () => {
@@ -36,6 +37,7 @@ const Toggle: React.FC<ToggleProps> = ({
       {...props}
       value={currentValue}
       onValueChange={valueChangeHandler}
+      testID={TOGGLE_TEST_ID}
     />
   );
 };

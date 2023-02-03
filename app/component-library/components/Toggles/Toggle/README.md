@@ -1,18 +1,44 @@
 # Toggle
 
-Toggle is a wrapper component typically used for displaying Toggle Content.
+Toggle is a component used to represent a switch between true or false.
 
 ## Props
 
-This component extends React Native's [View](https://reactnative.dev/docs/view) component.
+This component extends React Native's [Switch](https://reactnative.dev/docs/switch) component.
 
-### `children`
+### `isSelected`
 
-Content to wrap to display.
+Determines if toggle is selected.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                  |
+
+## React Native's Switch Props
+
+### `disabled`
+
+If true the user won't be able to toggle the switch.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                  |
+
+### `onChange`
+
+Invoked with the the change event as an argument when the value changes.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
+| function                                            | No                                                     |
+
+### `onValueChange`
+
+Invoked with the new value when the value changes.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| function                                            | No                                                     |
 
 ## Usage
 
@@ -20,7 +46,7 @@ Content to wrap to display.
 // Replace import with relative path.
 import Toggle from 'app/component-library/components/Toggles/Toggle/Toggle';
 
-<Toggle>
-  <SampleContent />
-</Toggle>;
+<Toggle 
+  isSelected 
+  disabled/>
 ```

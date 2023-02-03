@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toggle should render correctly 1`] = `
+<ForwardRef(Switch)
+  ios_backgroundColor="#848C96"
+  onValueChange={[Function]}
+  style={Object {}}
+  testID="toggle"
+  trackColor={
+    Object {
+      "false": "#848C96",
+      "true": "#037DD6",
+    }
+  }
+  value={false}
+/>
+`;
