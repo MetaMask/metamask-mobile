@@ -1,9 +1,6 @@
 import { When, Then } from '@wdio/cucumber-framework';
-import Gestures from '../helpers/Gestures';
 import ChangePasswordScreens from '../screen-objects/ChangePasswordScreens';
-import NetworksScreen from '../screen-objects/NetworksScreen';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen';
-import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 
 When(
   /^on Change password screen I input "([^"]*)?" in confirm field/,
@@ -28,9 +25,4 @@ When(/^I tap Reset password/, async () => {
 });
 Then(/^Creating your password is displayed/, async () => {
     await driver.pause(15000);
-});
-When(/^I navigate to Lock Wallet from Security & Privacy/, async () => {
-    await NetworksScreen.tapBackButtonInNewScreen();
-    await NetworksScreen.tapBackButtonInSettingsScreen();
-    await driver.pause(11111);
 });
