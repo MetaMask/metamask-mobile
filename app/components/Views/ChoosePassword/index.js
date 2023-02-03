@@ -50,7 +50,9 @@ import {
 } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
@@ -63,6 +65,7 @@ import {
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { scale } from 'react-native-size-matters';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,7 +200,7 @@ const createStyles = (colors) =>
     passwordStrengthLabel: {
       height: 20,
       marginTop: 10,
-      fontSize: 15,
+      fontSize: scale(10),
       color: colors.text.default,
       ...fontStyles.normal,
     },
@@ -354,9 +357,7 @@ class ChoosePassword extends PureComponent {
       return;
     }
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATION_ATTEMPTED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
     });
 
     try {
@@ -401,16 +402,13 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATED, {
           biometrics_enabled: Boolean(this.state.biometryType),
         });
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED,
-          {
-            wallet_setup_type: 'new',
-            new_wallet: true,
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          wallet_setup_type: 'new',
+          new_wallet: true,
+        });
       });
     } catch (error) {
       await this.recreateVault('');
@@ -432,13 +430,10 @@ class ChoosePassword extends PureComponent {
         this.setState({ loading: false, error: error.toString() });
       }
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
-          {
-            wallet_setup_type: 'new',
-            error_type: error.toString(),
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'new',
+          error_type: error.toString(),
+        });
       });
     }
   };

@@ -10,6 +10,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -20,7 +21,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
-import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -28,7 +29,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
-} from '../../../../wdio/features/testIDs/Screens/WelcomeScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const IMAGE_3_RATIO = 215 / 315;
@@ -159,14 +160,14 @@ class OnboardingCarousel extends PureComponent {
 
   onPressGetStarted = () => {
     this.props.navigation.navigate('Onboarding');
-    this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_STARTED);
+    this.trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
   };
 
   renderTabBar = () => <View />;
 
   onChangeTab = (obj) => {
     this.setState({ currentTab: obj.i + 1 });
-    this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
+    this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
       message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
         locale: 'en',
       }),
@@ -182,7 +183,7 @@ class OnboardingCarousel extends PureComponent {
 
   componentDidMount = () => {
     this.updateNavBar();
-    this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
   };
 
   componentDidUpdate = () => {

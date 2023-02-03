@@ -1,0 +1,138 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
+index 4a18560..a76c8d5 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
+@@ -182,6 +182,77 @@ class TokensController extends base_controller_1.BaseController {
+             }
+         });
+     }
++    /**
++     * Adds a token to the stored token list for a specific wallet.
++     * TODO - Should consolidate this with addToken method since much of the logic is similar.
++     *
++     * @param params - Params used for adding token to an account address.
++     * @param params.accountAddress - Account address to add the token to.
++     * @param params.token - Token to add.
++     * @param params.token.address - Hex address of the token contract.
++     * @param params.token.symbol - Symbol of the token.
++     * @param params.token.decimals - Number of decimals the token uses.
++     * @param params.token.image - Image of the token.
++     * @returns Current token list.
++     */
++    addTokenToAccount({ accountAddress, token: { address, symbol, decimals, image } }) {
++        return __awaiter(this, void 0, void 0, function* () {
++            const currentChainId = this.config.chainId;
++            const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
++            const releaseLock = yield this.mutex.acquire();
++            try {
++                address = (0, controller_utils_1.toChecksumHexAddress)(address);
++                const tokens = allTokens[currentChainId]?.[accountAddress] || [];
++                const ignoredTokens = allIgnoredTokens[currentChainId]?.[accountAddress] || [];
++                const detectedTokens = allDetectedTokens[currentChainId]?.[accountAddress] || [];
++                const newTokens = [...tokens];
++                const [isERC721, tokenMetadata] = yield Promise.all([
++                    this._detectIsERC721(address),
++                    this.fetchTokenMetadata(address),
++                ]);
++                if (currentChainId !== this.config.chainId) {
++                    throw new Error('TokensController Error: Switched networks while adding token');
++                }
++                const newEntry = {
++                    address,
++                    symbol,
++                    decimals,
++                    image: image ||
++                        (0, assetsUtil_1.formatIconUrlWithProxy)({
++                            chainId: this.config.chainId,
++                            tokenAddress: address,
++                        }),
++                    isERC721,
++                    aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
++                };
++                const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
++                if (previousEntry) {
++                    const previousIndex = newTokens.indexOf(previousEntry);
++                    newTokens[previousIndex] = newEntry;
++                }
++                else {
++                    newTokens.push(newEntry);
++                }
++                const newIgnoredTokens = ignoredTokens.filter((tokenAddress) => tokenAddress.toLowerCase() !== address.toLowerCase());
++                const newDetectedTokens = detectedTokens.filter((token) => token.address.toLowerCase() !== address.toLowerCase());
++                const { newAllTokens, newAllIgnoredTokens, newAllDetectedTokens } = this._getNewAllTokensState({
++                    newTokens,
++                    newIgnoredTokens,
++                    newDetectedTokens,
++                    detectionAddress: accountAddress,
++                });
++                this.update({
++                    allTokens: newAllTokens,
++                    allIgnoredTokens: newAllIgnoredTokens,
++                    allDetectedTokens: newAllDetectedTokens,
++                });
++                return newTokens;
++            }
++            finally {
++                releaseLock();
++            }
++        });
++    }
+     /**
+      * Add a batch of tokens.
+      *
+@@ -402,9 +473,10 @@ class TokensController extends base_controller_1.BaseController {
+      *
+      * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
+      * @param type - The asset type.
++     * @param interactingAddress - The account that is interacting with the Dapp.
+      * @returns Object containing a Promise resolving to the suggestedAsset address if accepted.
+      */
+-    watchAsset(asset, type) {
++    watchAsset(asset, type, interactingAddress) {
+         return __awaiter(this, void 0, void 0, function* () {
+             const suggestedAssetMeta = {
+                 asset,
+@@ -412,6 +484,7 @@ class TokensController extends base_controller_1.BaseController {
+                 status: SuggestedAssetStatus.pending,
+                 time: Date.now(),
+                 type,
++                interactingAddress
+             };
+             try {
+                 switch (type) {
+@@ -454,9 +527,12 @@ class TokensController extends base_controller_1.BaseController {
+      * A `<suggestedAssetMeta.id>:finished` hub event is fired after accepted or failure.
+      *
+      * @param suggestedAssetID - The ID of the suggestedAsset to accept.
++     * @param interactingAddress - The account address that interacted with asset that is being watched.
+      */
+-    acceptWatchAsset(suggestedAssetID) {
++    acceptWatchAsset(suggestedAssetID, interactingAddress) {
+         return __awaiter(this, void 0, void 0, function* () {
++            const { selectedAddress } = this.config;
++            const isAddingOnWalletAccount = interactingAddress ? interactingAddress === selectedAddress : true;
+             const { suggestedAssets } = this.state;
+             const index = suggestedAssets.findIndex(({ id }) => suggestedAssetID === id);
+             const suggestedAssetMeta = suggestedAssets[index];
+@@ -464,7 +540,11 @@ class TokensController extends base_controller_1.BaseController {
+                 switch (suggestedAssetMeta.type) {
+                     case 'ERC20':
+                         const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
+-                        yield this.addToken(address, symbol, decimals, image);
++                        if (isAddingOnWalletAccount) {
++                            yield this.addToken(address, symbol, decimals, image);
++                        } else {
++                            yield this.addTokenToAccount({ accountAddress: interactingAddress, token: { address, symbol, decimals, image } });
++                        }
+                         suggestedAssetMeta.status = SuggestedAssetStatus.accepted;
+                         this.hub.emit(`${suggestedAssetMeta.id}:finished`, suggestedAssetMeta);
+                         break;
+@@ -528,7 +608,7 @@ class TokensController extends base_controller_1.BaseController {
+             newAllIgnoredTokens = Object.assign(Object.assign({}, allIgnoredTokens), { [chainIdToAddTokens]: newIgnoredNetworkTokens });
+         }
+         let newAllDetectedTokens = allDetectedTokens;
+-        if (newDetectedTokens === null || newDetectedTokens === void 0 ? void 0 : newDetectedTokens.length) {
++        if (newDetectedTokens === null || newDetectedTokens === void 0 ? void 0 : !!newDetectedTokens) {
+             const networkDetectedTokens = allDetectedTokens[chainIdToAddTokens];
+             const newDetectedNetworkTokens = Object.assign(Object.assign({}, networkDetectedTokens), { [userAddressToAddTokens]: newDetectedTokens });
+             newAllDetectedTokens = Object.assign(Object.assign({}, allDetectedTokens), { [chainIdToAddTokens]: newDetectedNetworkTokens });

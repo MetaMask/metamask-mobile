@@ -31,18 +31,23 @@ import { Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-interface IFiatOnRampSDKConfig {
+import useActivationKeys from '../hooks/useActivationKeys';
+
+interface OnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
   POLLING_CYCLES: number;
 }
 
-export interface IFiatOnRampSDK {
+export interface OnRampSDK {
   sdk: RegionsService | undefined;
   sdkError?: Error;
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
+
+  unsupportedRegion?: Region;
+  setUnsupportedRegion: (region?: Region) => void;
 
   selectedPaymentMethodId: string | null;
   setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
@@ -59,8 +64,9 @@ export interface IFiatOnRampSDK {
   selectedAddress: string;
   selectedChainId: string;
 
-  appConfig: IFiatOnRampSDKConfig;
+  appConfig: OnRampSDKConfig;
   callbackBaseUrl: string;
+  isInternalBuild: boolean;
 }
 
 interface IProviderProps<T> {
@@ -69,21 +75,22 @@ interface IProviderProps<T> {
 }
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
+const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
 const CONTEXT = Device.isAndroid()
   ? Context.MobileAndroid
   : Device.isIos()
   ? Context.MobileIOS
   : Context.Mobile;
 const VERBOSE_SDK = isDevelopment;
-const ACTIVATION_KEYS = process.env.ONRAMP_ACTIVATION_KEYS?.split(',') || [];
 
 export const SDK = OnRampSdk.create(
-  isDevelopment ? Environment.Staging : Environment.Production,
+  isDevelopmentOrInternalBuild ? Environment.Staging : Environment.Production,
   CONTEXT,
   {
     verbose: VERBOSE_SDK,
     locale: I18n.locale,
-    activationKeys: ACTIVATION_KEYS,
   },
 );
 
@@ -103,14 +110,18 @@ const appConfig = {
   POLLING_CYCLES: 6,
 };
 
-const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
+const SDKContext = createContext<OnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({
   value,
   ...props
-}: IProviderProps<IFiatOnRampSDK>) => {
+}: IProviderProps<OnRampSDK>) => {
   const [sdkModule, setSdkModule] = useState<RegionsService>();
   const [sdkError, setSdkError] = useState<Error>();
+  useActivationKeys({
+    provider: true,
+    internal: isDevelopmentOrInternalBuild,
+  });
 
   useEffect(() => {
     (async () => {
@@ -144,6 +155,8 @@ export const FiatOnRampSDKProvider = ({
   const INITIAL_SELECTED_ASSET = null;
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
+  const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
+
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
@@ -152,7 +165,7 @@ export const FiatOnRampSDKProvider = ({
   const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
 
   const setSelectedRegionCallback = useCallback(
-    (region) => {
+    (region: Region | null) => {
       setSelectedRegion(region);
       dispatch(setFiatOrdersRegionAGG(region));
     },
@@ -183,12 +196,15 @@ export const FiatOnRampSDKProvider = ({
     [dispatch],
   );
 
-  const contextValue: IFiatOnRampSDK = {
+  const contextValue: OnRampSDK = {
     sdk,
     sdkError,
 
     selectedRegion,
     setSelectedRegion: setSelectedRegionCallback,
+
+    unsupportedRegion,
+    setUnsupportedRegion,
 
     selectedPaymentMethodId,
     setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
@@ -207,6 +223,7 @@ export const FiatOnRampSDKProvider = ({
 
     appConfig,
     callbackBaseUrl,
+    isInternalBuild: isDevelopmentOrInternalBuild,
   };
 
   return <SDKContext.Provider value={value || contextValue} {...props} />;
@@ -214,106 +231,8 @@ export const FiatOnRampSDKProvider = ({
 
 export const useFiatOnRampSDK = () => {
   const contextValue = useContext(SDKContext);
-  return contextValue as IFiatOnRampSDK;
+  return contextValue as OnRampSDK;
 };
-
-type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
-type PartialParameters<T> = T extends (...args: infer P) => any
-  ? NullifyOrPartial<P>
-  : never;
-
-interface config<T> {
-  method: T;
-  onMount?: boolean;
-}
-/**
- * useSDKMethod is a hook to conveniently call OnRampSdk.regions methods.
- *
- * @param config The method name or an object with the method name and a boolean onMount flag.
- * @param params The parameters to pass to the method.
- * @returns An array with an object with data, an error and a loading flag, and a function to call the method.
- *
- * @example
- * // Calling `getDefaultFiatCurrency` method
- * const [{ isFetching, error, data }] = useSDKMethod('getDefaultFiatCurrency', '/regions/cl');
- *
- * @example
- * // Calling `getDefaultFiatCurrency` method and get the function
- * const [{ isFetching, error, data }, getDefaultFiatCurrency] = useSDKMethod('getDefaultFiatCurrency', '/regions/cl');
- * // `getDefaultFiatCurrency` will be called with the same parameters
- * // by default (`/regions/cl` in this case)
- * const defaultCLFiatCurrency = await getDefaultFiatCurrency();
- * // Parameters can be overridden
- * const defaultARFiatCurrency = await getDefaultFiatCurrency('/regions/ar');
- * // The return and error of these calls will be reflected in the returned object of the hook
- */
-export function useSDKMethod<T extends keyof RegionsService>(
-  config: T | config<T>,
-  ...params: PartialParameters<RegionsService[T]>
-): [
-  {
-    data: Awaited<ReturnType<RegionsService[T]>> | null;
-    error: string | null;
-    isFetching: boolean;
-  },
-  (
-    ...customParams: PartialParameters<RegionsService[T]> | []
-  ) => Promise<any> | ReturnType<RegionsService[T]>,
-] {
-  const { sdk }: { sdk: RegionsService } = useFiatOnRampSDK() as any;
-  const [data, setData] = useState<Awaited<
-    ReturnType<RegionsService[T]>
-  > | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState<boolean>(true);
-  const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
-  const method = typeof config === 'string' ? config : config.method;
-  const onMount = typeof config === 'string' ? true : config.onMount ?? true;
-
-  const query = useCallback(
-    async (...customParams: PartialParameters<RegionsService[T]> | []) => {
-      if (
-        (customParams.length > 0 && customParams.some((param) => !param)) ||
-        (customParams.length === 0 &&
-          params.length > 0 &&
-          params.some((param) => !param))
-      ) {
-        return;
-      }
-      try {
-        setIsFetching(true);
-        setError(null);
-        setData(null);
-        if (sdk) {
-          const response = await sdk[method](
-            // @ts-expect-error spreading params error
-            ...(customParams.length > 0 ? customParams : params),
-          );
-          // @ts-expect-error response type error
-          setData(response);
-          return response;
-        }
-      } catch (responseError) {
-        Logger.error(responseError as Error, `useSDKMethod::${method} failed`);
-        setError((responseError as Error).message);
-      } finally {
-        setIsFetching(false);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [method, stringifiedParams, sdk],
-  );
-
-  useEffect(() => {
-    if (onMount) {
-      query();
-    } else {
-      setIsFetching(false);
-    }
-  }, [query, onMount]);
-
-  return [{ data, error, isFetching }, query];
-}
 
 export const withFiatOnRampSDK = (Component: React.FC) => (props: any) =>
   (

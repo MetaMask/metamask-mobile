@@ -17,8 +17,9 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import sanitizeUrl from '../../../util/sanitizeUrl';
+
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -30,7 +31,7 @@ import {
 import {
   APPROVE_NETWORK_APPROVE_BUTTON,
   APPROVE_NETWORK_MODAL,
-} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -109,6 +110,7 @@ interface NetworkProps {
   onClose: () => void;
   network: any;
   navigation: any;
+  shouldNetworkSwitchPopToWallet: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -124,6 +126,7 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    shouldNetworkSwitchPopToWallet,
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
@@ -154,7 +157,6 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (validUrl) {
       const url = new URLPARSE(rpcUrl);
-      const sanitizedUrl = sanitizeUrl(url.href);
       const decimalChainId = getDecimalChainId(chainId);
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       PreferencesController.addToFrequentRpcList(
@@ -168,16 +170,13 @@ const NetworkModals = (props: NetworkProps) => {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: sanitizedUrl,
         chain_id: decimalChainId,
         source: 'Popular network list',
         symbol: ticker,
-        block_explorer_url: blockExplorerUrl,
-        network_name: nickname,
       };
 
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       setNetworkAdded(true);
@@ -201,7 +200,9 @@ const NetworkModals = (props: NetworkProps) => {
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
     closeModal();
-    navigation.navigate('WalletView');
+    shouldNetworkSwitchPopToWallet
+      ? navigation.navigate('WalletView')
+      : navigation.goBack();
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 

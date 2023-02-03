@@ -1,8 +1,10 @@
 import TestHelpers from '../../../../helpers';
+import {
+  CONTACT_ADDRESS_INPUT,
+  CONTACTS_CONTAINER_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
 
-const CONTACTS_CONTAINER_ID = 'contacts-screen';
 const ADD_CONTACT_BUTTON_ID = 'add-contact-button';
-const CONTACTS_VIEW_ADDRESS_INPUT_BOX_ID = 'contact-address-input';
 
 export default class ContactsView {
   static async tapAddContactButton() {
@@ -10,7 +12,7 @@ export default class ContactsView {
   }
 
   static async clearAddressInputBox() {
-    await TestHelpers.clearField(CONTACTS_VIEW_ADDRESS_INPUT_BOX_ID);
+    await TestHelpers.clearField(CONTACT_ADDRESS_INPUT);
   }
 
   static async tapOnAlias(alias) {

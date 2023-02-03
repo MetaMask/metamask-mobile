@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -10,7 +9,9 @@ import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -48,10 +49,6 @@ const createStyles = (colors) =>
 class TypedSign extends PureComponent {
   static propTypes = {
     /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
@@ -87,16 +84,14 @@ class TypedSign extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, messageParams, selectedAddress } =
-        this.props;
+      const { currentPageInformation, messageParams } = this.props;
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
       return {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         sign_type: 'typed',
         version: messageParams?.version,
@@ -109,7 +104,7 @@ class TypedSign extends PureComponent {
 
   componentDidMount = () => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
   };
@@ -173,7 +168,7 @@ class TypedSign extends PureComponent {
   cancelSignature = () => {
     this.rejectMessage();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
     this.props.onCancel();
@@ -183,14 +178,14 @@ class TypedSign extends PureComponent {
     try {
       await this.signMessage();
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );
         this.props.onCancel();
@@ -265,6 +260,7 @@ class TypedSign extends PureComponent {
       currentPageInformation,
       showExpandedMessage,
       toggleExpandedMessage,
+      messageParams: { from },
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -299,6 +295,7 @@ class TypedSign extends PureComponent {
         currentPageInformation={currentPageInformation}
         truncateMessage={truncateMessage}
         type="typedSign"
+        fromAddress={from}
       >
         <View
           style={messageWrapperStyles}
@@ -314,9 +311,4 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(TypedSign);
+export default TypedSign;

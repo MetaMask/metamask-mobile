@@ -1,3 +1,7 @@
+import generateTestReports from './wdio/utils/generateTestReports';
+
+const { removeSync } = require('fs-extra');
+
 export const config = {
   //
   // ====================
@@ -22,7 +26,10 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/**/*.feature'],
+  specs: ['./wdio/features/*.feature',
+          './wdio/features/**/*.feature'
+  ],
+
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -52,26 +59,26 @@ export const config = {
   capabilities: [
     {
       /***
-        // maxInstances can get overwritten per capability. So if you have an in-house Selenium
-        // grid with only 5 firefox instances available you can make sure that not more than
-        // 5 instances get started at a time.
-        maxInstances: 5,
-        //
-        browserName: 'chrome',
-        acceptInsecureCerts: true
-        // If outputDir is provided WebdriverIO can capture driver session logs
-        // it is possible to configure which logTypes to include/exclude.
-        // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
-        // excludeDriverLogs: ['bugreport', 'server'],
-        platformName: "Android",
-        platformVersion: "10",
-        deviceName: "Pixel 3 API 29",
-        app: "/Users/chriswilcox/projects/wdio/resources/ApiDemos-debug.apk",
-        // app: __dirname + "/projects/wdio/resources/ApiDemos-debug.apk",
-        appPackage: "io.appium.android.apis",
-        appActivity: ".view.TextFields",
-        automationName: "UiAutomator2"
-        ***/
+       // maxInstances can get overwritten per capability. So if you have an in-house Selenium
+       // grid with only 5 firefox instances available you can make sure that not more than
+       // 5 instances get started at a time.
+       maxInstances: 5,
+       //
+       browserName: 'chrome',
+       acceptInsecureCerts: true
+       // If outputDir is provided WebdriverIO can capture driver session logs
+       // it is possible to configure which logTypes to include/exclude.
+       // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
+       // excludeDriverLogs: ['bugreport', 'server'],
+       platformName: "Android",
+       platformVersion: "10",
+       deviceName: "Pixel 3 API 29",
+       app: "/Users/chriswilcox/projects/wdio/resources/ApiDemos-debug.apk",
+       // app: __dirname + "/projects/wdio/resources/ApiDemos-debug.apk",
+       appPackage: "io.appium.android.apis",
+       appActivity: ".view.TextFields",
+       automationName: "UiAutomator2"
+       ***/
     },
   ],
   //
@@ -108,7 +115,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 10000,
+  waitforTimeout: 120000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -124,6 +131,14 @@ export const config = {
   /** services: ['chromedriver','appium'], ***/
   services: ['appium'],
 
+  // Appium service with custom chrome driver path
+  /*services: [
+    ['appium', {
+      args: {
+        chromedriverExecutable: '',
+      }
+    }]
+  ],*/
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
   // see also: https://webdriver.io/docs/frameworks
@@ -144,13 +159,32 @@ export const config = {
   // Test reporter for stdout.
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
-  reporters: ['spec'],
+  reporters: [
+    'spec',
+    [
+      'cucumberjs-json',
+      {
+        jsonFolder: './wdio/reports/json',
+        language: 'en',
+      },
+    ],
+    [
+      'junit',
+      {
+        outputDir: './wdio/reports/junit-results',
+        outputFileFormat: function (options) {
+          // optional
+          return `results-${options.cid}.${options.capabilities.platformName}.xml`;
+        },
+      },
+    ],
+  ],
 
   //
   // If you are using Cucumber you need to specify the location of your step definitions.
   cucumberOpts: {
     // <string[]> (file/dir) require files before executing features
-    require: ['./wdio/features/step-definitions/*.js'],
+    require: ['./wdio/step-definitions/*.js'],
     // <boolean> show full backtrace for errors
     backtrace: false,
     // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
@@ -168,7 +202,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 60000,
+    timeout: 90000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },
@@ -186,8 +220,9 @@ export const config = {
    * @param {Object} config wdio configuration object
    * @param {Array.<Object>} capabilities list of capabilities details
    */
-  // onPrepare: function (config, capabilities) {
-  // },
+  onPrepare: function (config, capabilities) {
+    removeSync('./wdio/reports');
+  },
   /**
    * Gets executed before a worker process is spawned and can be used to initialise specific service
    * for that worker as well as modify runtime environments in an async fashion.
@@ -252,8 +287,11 @@ export const config = {
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  // beforeScenario: function (world, context) {
-  // },
+  beforeScenario: async function (world, context) {
+    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
+      await driver.launchApp();
+    }
+  },
   /**
    *
    * Runs before a Cucumber Step.
@@ -286,8 +324,11 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  // afterScenario: function (world, result, context) {
-  // },
+  afterScenario: async function (world, result, context) {
+    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
+      await driver.closeApp();
+    }
+  },
   /**
    *
    * Runs after a Cucumber Feature.
@@ -334,8 +375,9 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
-  // onComplete: function (exitCode, config, capabilities) {
-  // },
+  onComplete: async function (exitCode, config, capabilities) {
+    generateTestReports();
+  },
   /**
    * Gets executed when a refresh happens.
    * @param {String} oldSessionId session ID of the old session

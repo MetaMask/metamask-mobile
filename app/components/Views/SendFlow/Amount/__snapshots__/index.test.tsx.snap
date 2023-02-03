@@ -599,8 +599,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -807,7 +806,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -1595,8 +1594,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -1803,7 +1801,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -2608,8 +2606,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -2816,7 +2813,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -3621,8 +3618,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -3829,7 +3825,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -4616,8 +4612,7 @@ exports[`Amount should display correct balance 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -4824,7 +4819,7 @@ exports[`Amount should display correct balance 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -5612,8 +5607,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={0.2}
                             disabled={false}
                             onPress={[Function]}
@@ -5815,7 +5809,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -6523,8 +6517,7 @@ exports[`Amount should render correctly 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -6731,7 +6724,7 @@ exports[`Amount should render correctly 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -7512,34 +7505,34 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
-                                          false,
-                                          false,
-                                          false,
-                                          false,
-                                          false,
-                                          false,
                                           undefined,
-                                          false,
                                           undefined,
-                                          false,
-                                          false,
-                                          false,
-                                          false,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
                                           Object {
                                             "fontSize": 12,
                                           },
                                           undefined,
-                                          false,
-                                          false,
-                                          false,
                                           undefined,
-                                          false,
-                                          false,
-                                          false,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
+                                          undefined,
                                           undefined,
                                           Array [
                                             Object {
@@ -7588,8 +7581,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={0.2}
                             disabled={false}
                             onPress={[Function]}
@@ -7791,7 +7783,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },

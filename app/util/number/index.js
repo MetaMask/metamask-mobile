@@ -4,11 +4,12 @@
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
-import { util } from '@metamask/controllers';
+import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
+export { BNToHex, hexToBN };
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -39,15 +40,6 @@ const baseChange = {
   dec: (n) => new BigNumber(n).toString(10),
   BN: (n) => new BN(n.toString(16)),
 };
-/**
- * Converts a BN object to a hex string with a '0x' prefix
- *
- * @param {Object} value - BN instance to convert to a hex string
- * @returns {string} - '0x'-prefixed hex string
- */
-export function BNToHex(value) {
-  return util.BNToHex(value);
-}
 
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
@@ -252,6 +244,20 @@ export function renderFiatAddition(
 }
 
 /**
+ * Limits a number to a max decimal places.
+ * @param {number} num
+ * @param {number} maxDecimalPlaces
+ * @returns {string}
+ */
+export function limitToMaximumDecimalPlaces(num, maxDecimalPlaces = 5) {
+  if (isNaN(num) || isNaN(maxDecimalPlaces)) {
+    return num;
+  }
+  const base = Math.pow(10, maxDecimalPlaces);
+  return (Math.round(num * base) / base).toString();
+}
+
+/**
  * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
  *
  * @param {number|string} fiat - Fiat number
@@ -311,16 +317,6 @@ export function calcTokenValueToSend(value, decimals) {
 }
 
 /**
- * Converts a hex string to a BN object
- *
- * @param {string} value - Number represented as a hex string
- * @returns {Object} - A BN instance
- */
-export function hexToBN(value) {
-  return util.hexToBN(value);
-}
-
-/**
  * Checks if a value is a BN instance
  *
  * @param {object} value - Value to check
@@ -365,6 +361,23 @@ export function isNumber(str) {
 }
 
 /**
+ * Determines whether the given number is going to be
+ * displalyed in scientific notation after being converted to a string.
+ *
+ * @param {number} value - The value to check.
+ * @returns {boolean} True if the value is a number in scientific notation, false otherwise.
+ * @see https://262.ecma-international.org/5.1/#sec-9.8.1
+ */
+
+export const isNumberScientificNotationWhenString = (value) => {
+  if (typeof value !== 'number') {
+    return false;
+  }
+  // toLowerCase is needed since E is also valid
+  return value.toString().toLowerCase().includes('e');
+};
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -372,6 +385,11 @@ export function isNumber(str) {
  * @returns {Object} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
+  // check the posibilty to convert to BN
+  // directly on the swaps screen
+  if (isNumberScientificNotationWhenString(value)) {
+    value = value.toFixed(18);
+  }
   return convert.toWei(value, unit);
 }
 

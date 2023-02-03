@@ -10,9 +10,13 @@ export interface ContractBoxBaseProps {
    */
   onCopyAddress: () => void;
   /**
-   * function that opens contract in block explorer
+   * function that opens contract in block explorer if present
    */
-  onExportAddress: () => void;
+  onExportAddress?: () => void;
+  /**
+   * functions that called when the user clicks on the contract name
+   */
+  onContractPress: () => void;
 }
 
 export interface IconViewProps {

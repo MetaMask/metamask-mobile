@@ -22,10 +22,14 @@ export type IconByTabBarLabel = {
   [key in TabBarLabel]: IconNames;
 };
 
+type TabBarOptions = BottomTabBarOptions & {
+  descriptors: BottomTabBarProps['descriptors'];
+};
+
 /**
  * TabBar component props.
  */
-export type TabBarProps = BottomTabBarProps<BottomTabBarOptions>;
+export type TabBarProps = BottomTabBarProps<TabBarOptions>;
 
 /**
  * Style sheet input parameters.

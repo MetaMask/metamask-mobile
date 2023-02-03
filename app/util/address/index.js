@@ -8,12 +8,17 @@ import {
 } from 'ethereumjs-util';
 import URL from 'url-parse';
 import punycode from 'punycode/punycode';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
-import NetworkList from '../../util/networks';
+import {
+  doENSLookup,
+  doENSReverseLookup,
+  ENSCache,
+  isDefaultAccountName,
+} from '../../util/ENSUtils';
+import { isMainnetByChainId } from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
@@ -95,9 +100,15 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+  const { NetworkController } = Engine.context;
+  const network = NetworkController.state.network;
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
-    return identities[address].name;
+    const identityName = identities[address].name;
+    const ensName = ENSCache.cache[`${network}${address}`]?.name || '';
+    return isDefaultAccountName(identityName) && ensName
+      ? ensName
+      : identityName;
   }
   return renderShortAddress(address);
 }
@@ -305,7 +316,7 @@ function checkIfAddressAlreadySaved(params) {
  *
  */
 export async function validateAddressOrENS(params) {
-  const { toAccount, network, addressBook, identities, providerType } = params;
+  const { toAccount, network, addressBook, identities, chainId } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -342,10 +353,10 @@ export async function validateAddressOrENS(params) {
       addToAddressToAddressBook = true;
     }
 
-    if (providerType) {
+    if (chainId !== undefined) {
+      const isMainnet = isMainnetByChainId(chainId);
       // Check if it's token contract address on mainnet
-      const networkId = NetworkList[providerType].networkId;
-      if (networkId === NetworkList.mainnet.chainId) {
+      if (isMainnet) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
             checksummedAddress,
@@ -364,13 +375,13 @@ export async function validateAddressOrENS(params) {
      * Check if it's smart contract address
      */
     /*
-			const smart = false; //
+               const smart = false; //
 
-			if (smart) {
-				addressError = strings('transaction.smartContractAddressWarning');
-				isOnlyWarning = true;
-			}
-			*/
+               if (smart) {
+                    addressError = strings('transaction.smartContractAddressWarning');
+                    isOnlyWarning = true;
+               }
+               */
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);

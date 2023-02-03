@@ -40,6 +40,9 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     modalRef.current?.dismissModal(onConfirm);
   };
 
+  const handleModalDismiss = (hasPendingAction: boolean) =>
+    !hasPendingAction && onCancel?.();
+
   const renderHeader = () => (
     <Text style={styles.headerLabel} variant={TextVariants.sHeadingMD}>
       {title}
@@ -74,7 +77,11 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
   );
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
+    <ReusableModal
+      ref={modalRef}
+      style={styles.screen}
+      onDismiss={handleModalDismiss}
+    >
       <View style={styles.modal}>
         <View style={styles.bodyContainer}>
           {renderHeader()}

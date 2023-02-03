@@ -46,7 +46,7 @@ function loadStories() {
   require('../app/component-library/components/Toast/Toast.stories');
   require('../app/components/Base/Alert.stories');
   require('../app/components/Base/ListItem.stories');
-  require('../app/components/Base/Text.stories');
+  require('../app/components/Base/Text/Text.stories');
   require('../app/components/Base/Title.stories');
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
@@ -55,6 +55,7 @@ function loadStories() {
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
+  require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
 }
 
 const stories = [
@@ -100,7 +101,7 @@ const stories = [
   '../app/component-library/components/Toast/Toast.stories',
   '../app/components/Base/Alert.stories',
   '../app/components/Base/ListItem.stories',
-  '../app/components/Base/Text.stories',
+  '../app/components/Base/Text/Text.stories',
   '../app/components/Base/Title.stories',
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
@@ -109,6 +110,7 @@ const stories = [
   '../app/components/UI/WarningAlert/WarningAlert.stories',
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
+  '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
 ];
 
 module.exports = {

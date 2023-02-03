@@ -28,7 +28,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { shallowEqual } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import {
   estimateGas,
@@ -57,10 +57,6 @@ class TransactionEditor extends PureComponent {
      * List of accounts from the AccountTrackerController
      */
     accounts: PropTypes.object,
-    /**
-     * A string representing the network name
-     */
-    networkType: PropTypes.string,
     /**
      * Current mode this transaction editor is in
      */
@@ -731,7 +727,6 @@ class TransactionEditor extends PureComponent {
       gasEstimateType,
       transaction,
       activeTabUrl,
-      networkType,
     } = this.props;
     const {
       ready,
@@ -836,7 +831,6 @@ class TransactionEditor extends PureComponent {
                 transaction,
                 activeTabUrl,
                 gasEstimateType,
-                networkType,
               )}
             />
           ) : (
@@ -864,7 +858,6 @@ class TransactionEditor extends PureComponent {
                 transaction,
                 activeTabUrl,
                 gasEstimateType,
-                networkType,
               )}
             />
           ))}

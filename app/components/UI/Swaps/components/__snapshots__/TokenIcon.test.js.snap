@@ -8,7 +8,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
   onError={[Function]}
   source={
     Object {
-      "testUri": "../../../app/images/eth-logo.png",
+      "testUri": "../../../app/images/eth-logo-new.png",
     }
   }
   style={
@@ -30,22 +30,6 @@ exports[`TokenIcon component should Render correctly 2`] = `
 exports[`TokenIcon component should Render correctly 3`] = `
 <EmptyIcon>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Array [
         Object {
@@ -59,8 +43,6 @@ exports[`TokenIcon component should Render correctly 3`] = `
         undefined,
       ]
     }
-    underline={false}
-    upper={false}
   >
     C
   </Text>
@@ -104,7 +86,7 @@ exports[`TokenIcon component should Render correctly 6`] = `
   onError={[Function]}
   source={
     Object {
-      "testUri": "../../../app/images/eth-logo.png",
+      "testUri": "../../../app/images/eth-logo-new.png",
     }
   }
   style={
@@ -132,22 +114,6 @@ exports[`TokenIcon component should Render correctly 7`] = `
   medium={true}
 >
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Array [
         Object {
@@ -164,8 +130,6 @@ exports[`TokenIcon component should Render correctly 7`] = `
         undefined,
       ]
     }
-    underline={false}
-    upper={false}
   >
     C
   </Text>

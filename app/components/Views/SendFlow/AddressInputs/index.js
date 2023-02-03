@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -15,7 +21,8 @@ import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useTheme } from '../../../../util/theme';
-
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -254,8 +261,7 @@ export const AddressTo = (props) => {
             )}
             <View style={styles.toInputWrapper}>
               <View style={[styles.address, styles.checkAddress]}>
-                {(isENS(toAddressName) ||
-                  toAddressName?.substring(0, 2) !== '0x') && (
+                {isENS(toAddressName) && (
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
@@ -322,6 +328,7 @@ export const AddressTo = (props) => {
               onSubmitEditing={onSubmit}
               value={toSelectedAddress}
               testID={'txn-to-address-input'}
+              {...generateTestId(Platform, SEND_ADDRESS_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
           </View>

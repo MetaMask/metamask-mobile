@@ -1,4 +1,5 @@
 const Routes = {
+  WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
@@ -13,8 +14,11 @@ const Routes = {
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
+    SETTINGS: 'OnRampSettings',
+    ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
   QR_SCANNER: 'QRScanner',
+  TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -23,6 +27,8 @@ const Routes = {
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
+    DETECTED_TOKENS: 'DetectedTokens',
+    SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -30,12 +36,36 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+    MANUAL_BACKUP: {
+      STEP_3: 'ManualBackupStep3',
+    },
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
   },
+  ACCOUNT_BACKUP: {
+    STEP_1_B: 'AccountBackupStep1B',
+  },
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+  },
+  SHEET: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
+    ACCOUNT_CONNECT: 'AccountConnect',
+    ACCOUNT_PERMISSIONS: 'AccountPermissions',
+  },
+  BROWSER: {
+    HOME: 'BrowserTabHome',
+    URL_MODAL: 'BrowserUrlModal',
+    VIEW: 'BrowserView',
+  },
+  WEBVIEW: {
+    MAIN: 'Webview',
+    SIMPLE: 'SimpleWebview',
+  },
+  WALLET: {
+    HOME: 'WalletTabHome',
   },
 };
 
