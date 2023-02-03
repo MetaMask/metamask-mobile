@@ -22,6 +22,7 @@ const CellMultiselect = ({
   tagLabel,
   isSelected = false,
   children,
+  ...props
 }: CellMultiselectProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -30,6 +31,7 @@ const CellMultiselect = ({
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_MULTI_SELECT_TEST_ID}
+      {...props}
     >
       <CellBase
         avatarProps={avatarProps}

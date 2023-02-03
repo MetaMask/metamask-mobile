@@ -38,4 +38,8 @@ export interface CustomNetworkProps extends Network {
    * Switch tab between popular and custom networks
    */
   switchTab: (goToPage: number) => void;
+  /**
+   * should navigation return to wallet after network change
+   */
+  shouldNetworkSwitchPopToWallet: boolean;
 }

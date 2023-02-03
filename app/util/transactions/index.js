@@ -444,7 +444,7 @@ export function getEther(ticker) {
     name: 'Ether',
     address: '',
     symbol: ticker || strings('unit.eth'),
-    logo: '../images/eth-logo.png',
+    logo: '../images/eth-logo-new.png',
     isETH: true,
   };
 }
