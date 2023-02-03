@@ -54,7 +54,12 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { EndowmentPermissions } from '../constants/permissions';
-import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
+import {
+  SNAP_BLOCKLIST,
+  checkSnapsBlockList,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
+} from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from '../core/Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
@@ -252,6 +257,103 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      const additionalKeyrings = [QRHardwareKeyring];
+
+      const getIdentities = () => {
+        const identities = preferencesController.state.identities;
+        const newIdentities = {};
+        Object.keys(identities).forEach((key) => {
+          newIdentities[key.toLowerCase()] = identities[key];
+        });
+        return newIdentities;
+      };
+
+      const keyringController = new KeyringController(
+        {
+          removeIdentity: preferencesController.removeIdentity.bind(
+            preferencesController,
+          ),
+          syncIdentities: preferencesController.syncIdentities.bind(
+            preferencesController,
+          ),
+          updateIdentities: preferencesController.updateIdentities.bind(
+            preferencesController,
+          ),
+          setSelectedAddress: preferencesController.setSelectedAddress.bind(
+            preferencesController,
+          ),
+          setAccountLabel: preferencesController.setAccountLabel.bind(
+            preferencesController,
+          ),
+        },
+        { encryptor, keyringTypes: additionalKeyrings },
+        initialState.KeyringController,
+      );
+
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+      });
+
+      const getSnapPermissionSpecifications = () => ({
+        ...buildSnapEndowmentSpecifications(),
+        ...buildSnapRestrictedMethodSpecifications({
+          clearSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:clearSnapState',
+          ),
+          // getMnemonic: this.getPrimaryKeyringMnemonic.bind(this),
+          // getUnlockPromise: this.appStateController.getUnlockPromise.bind(
+          //   this.appStateController,
+          // ),
+          getSnap: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:get',
+          ),
+          handleSnapRpcRequest: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:handleRequest',
+          ),
+          getSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:getSnapState',
+          ),
+          // showConfirmation: (origin, confirmationData) =>
+          //   this.approvalController.addAndShowApprovalRequest({
+          //     origin,
+          //     type: MESSAGE_TYPE.SNAP_CONFIRM,
+          //     requestData: confirmationData,
+          //   }),
+          updateSnapState: this.controllerMessenger.call.bind(
+            this.controllerMessenger,
+            'SnapController:updateSnapState',
+          ),
+        }),
+      });
+
+      const permissionController = new PermissionController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'PermissionController',
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${approvalController.name}:hasRequest`,
+            `${approvalController.name}:acceptRequest`,
+            `${approvalController.name}:rejectRequest`,
+          ],
+        }),
+        state: initialState.PermissionController,
+        caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+        permissionSpecifications: {
+          ...getPermissionSpecifications({
+            getAllAccounts: () => keyringController.getAccounts(),
+          }),
+          ...getSnapPermissionSpecifications(),
+        },
+        unrestrictedMethods,
+      });
+
       this.setupSnapProvider = (snapId, connectionStream) => {
         console.log(
           '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
@@ -302,6 +404,16 @@ class Engine {
           'ExecutionService:outboundResponse',
         ],
         allowedActions: [
+          `${approvalController.name}:addRequest`,
+          `${permissionController.name}:getEndowments`,
+          `${permissionController.name}:getPermissions`,
+          `${permissionController.name}:hasPermission`,
+          `${permissionController.name}:hasPermissions`,
+          `${permissionController.name}:requestPermissions`,
+          `${permissionController.name}:revokeAllPermissions`,
+          `${permissionController.name}:revokePermissions`,
+          `${permissionController.name}:revokePermissionForAllSubjects`,
+          `${permissionController.name}:grantPermissions`,
           'ExecutionService:executeSnap',
           'ExecutionService:getRpcRequestHandler',
           'ExecutionService:terminateSnap',
@@ -313,6 +425,7 @@ class Engine {
       const snapController = new SnapController({
         environmentEndowmentPermissions: Object.values(EndowmentPermissions),
         featureFlags: { dappsCanUpdateSnaps: true },
+        // TO DO
         getAppKey: async () =>
           new Promise((resolve, reject) => {
             resolve('mockAppKey');
@@ -324,54 +437,15 @@ class Engine {
         fetchFunction: RNFetchBlob.config({ fileCache: true }).fetch.bind(
           RNFetchBlob,
         ),
+        // TO DO
         closeAllConnections: () =>
           console.log(
             'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
           ),
       });
 
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
-      });
-
       const phishingController = new PhishingController();
       phishingController.updatePhishingLists();
-
-      const additionalKeyrings = [QRHardwareKeyring];
-
-      const getIdentities = () => {
-        const identities = preferencesController.state.identities;
-        const newIdentities = {};
-        Object.keys(identities).forEach((key) => {
-          newIdentities[key.toLowerCase()] = identities[key];
-        });
-        return newIdentities;
-      };
-
-      const keyringController = new KeyringController(
-        {
-          removeIdentity: preferencesController.removeIdentity.bind(
-            preferencesController,
-          ),
-          syncIdentities: preferencesController.syncIdentities.bind(
-            preferencesController,
-          ),
-          updateIdentities: preferencesController.updateIdentities.bind(
-            preferencesController,
-          ),
-          setSelectedAddress: preferencesController.setSelectedAddress.bind(
-            preferencesController,
-          ),
-          setAccountLabel: preferencesController.setAccountLabel.bind(
-            preferencesController,
-          ),
-        },
-        { encryptor, keyringTypes: additionalKeyrings },
-        initialState.KeyringController,
-      );
 
       const controllers = [
         keyringController,
@@ -503,28 +577,7 @@ class Engine {
         ),
         gasFeeController,
         approvalController,
-        new PermissionController({
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'PermissionController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:hasRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
-          }),
-          state: initialState.PermissionController,
-          caveatSpecifications: getCaveatSpecifications({ getIdentities }),
-          permissionSpecifications: {
-            ...getPermissionSpecifications({
-              getAllAccounts: () => keyringController.getAccounts(),
-            }),
-            /*
-            ...this.getSnapPermissionSpecifications(),
-            */
-          },
-          unrestrictedMethods,
-        }),
+        permissionController,
         snapController,
       ];
 

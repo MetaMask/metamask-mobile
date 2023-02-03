@@ -736,9 +736,6 @@ class DrawerView extends PureComponent {
     const { navigation } = this.props;
     navigation.navigate(Routes.SNAPS.HOME);
     this.hideDrawer();
-
-    // eslint-disable-next-line no-console
-    // console.log('Navigate to snaps');
   };
 
   showSettings = async () => {

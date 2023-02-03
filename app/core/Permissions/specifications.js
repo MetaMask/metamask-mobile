@@ -1,3 +1,5 @@
+import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snap-controllers';
+import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/rpc-methods';
 import {
   constructPermission,
   PermissionType,
@@ -64,6 +66,8 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
     validator: (caveat, _origin, _target) =>
       validateCaveatAccounts(caveat.value, getIdentities),
   },
+  ...snapsCaveatsSpecifications,
+  ...snapsEndowmentCaveatSpecifications,
 });
 
 /**
@@ -131,6 +135,14 @@ export const getPermissionSpecifications = ({ getAllAccounts }) => ({
         );
       }
     },
+  },
+  [PermissionKeys.snap_confirm]: {
+    permissionType: PermissionType.RestrictedMethod,
+    targetKey: PermissionKeys.snap_confirm,
+  },
+  [PermissionKeys.snap_getBip44Entropy]: {
+    permissionType: PermissionType.RestrictedMethod,
+    targetKey: PermissionKeys.snap_getBip44Entropy,
   },
 });
 
