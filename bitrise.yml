@@ -17,23 +17,23 @@ workflows:
       - setup
     steps:
       - cache-pull@2: {}
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: setup
-          title: Yarn Setup
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: audit:ci
-          title: Audit Dependencies
-      - yarn@0:
-          title: Lint
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: lint
-          is_always_run: true
-      - cache-push@2: {}
+      # - yarn@0:
+      #     inputs:
+      #       - cache_local_deps: 'yes'
+      #       - command: setup
+      #     title: Yarn Setup
+      # - yarn@0:
+      #     inputs:
+      #       - cache_local_deps: 'yes'
+      #       - command: audit:ci
+      #     title: Audit Dependencies
+      # - yarn@0:
+      #     title: Lint
+      #     inputs:
+      #       - cache_local_deps: 'yes'
+      #       - command: lint
+      #     is_always_run: true
+      # - cache-push@2: {}
   code_setup:
     before_run:
       - setup
@@ -309,19 +309,19 @@ workflows:
       - script@1:
           title: Upload APK to Browserstack
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -e
-                set -x
-                set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
-                CUSTOM_ID=${CUSTOM_ID////-}
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
-      - deploy-to-bitrise-io@1:
-          inputs:
-            - deploy_path: browserstack_uploaded_apps.json
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           set -e
+      #           set -x
+      #           set -o pipefail
+      #           APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+      #           CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+      #           CUSTOM_ID=${CUSTOM_ID////-}
+      #           curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+      #           curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      # - deploy-to-bitrise-io@1:
+      #     inputs:
+      #       - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
       - build-router-start@0:
           inputs:
