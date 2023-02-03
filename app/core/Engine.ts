@@ -50,7 +50,12 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { EndowmentPermissions } from '../constants/permissions';
-import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
+import {
+  SNAP_BLOCKLIST,
+  checkSnapsBlockList,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
+} from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
@@ -224,6 +229,7 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+<<<<<<< HEAD:app/core/Engine.ts
       const approvalController = new ApprovalController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'ApprovalController',
@@ -237,6 +243,8 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
+=======
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
       const additionalKeyrings = [QRHardwareKeyring];
 
       const getIdentities = () => {
@@ -248,9 +256,12 @@ class Engine {
         return newIdentities;
       };
 
+<<<<<<< HEAD:app/core/Engine.ts
       const keyringState =
         initialKeyringState || initialState.KeyringController;
 
+=======
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
       const keyringController = new KeyringController(
         {
           removeIdentity: preferencesController.removeIdentity.bind(
@@ -270,6 +281,7 @@ class Engine {
           ),
         },
         { encryptor, keyringTypes: additionalKeyrings },
+<<<<<<< HEAD:app/core/Engine.ts
         keyringState,
       );
 
@@ -307,6 +319,17 @@ class Engine {
         );
         return appKey;
       };
+=======
+        initialState.KeyringController,
+      );
+
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+      });
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
 
       const getSnapPermissionSpecifications = () => ({
         ...buildSnapEndowmentSpecifications(),
@@ -315,8 +338,15 @@ class Engine {
             this.controllerMessenger,
             'SnapController:clearSnapState',
           ),
+<<<<<<< HEAD:app/core/Engine.ts
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
+=======
+          // getMnemonic: this.getPrimaryKeyringMnemonic.bind(this),
+          // getUnlockPromise: this.appStateController.getUnlockPromise.bind(
+          //   this.appStateController,
+          // ),
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -329,10 +359,20 @@ class Engine {
             this.controllerMessenger,
             'SnapController:getSnapState',
           ),
+<<<<<<< HEAD:app/core/Engine.ts
+=======
+          // showConfirmation: (origin, confirmationData) =>
+          //   this.approvalController.addAndShowApprovalRequest({
+          //     origin,
+          //     type: MESSAGE_TYPE.SNAP_CONFIRM,
+          //     requestData: confirmationData,
+          //   }),
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
           updateSnapState: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:updateSnapState',
           ),
+<<<<<<< HEAD:app/core/Engine.ts
           showConfirmation: (origin, confirmationData) =>
             approvalController.addAndShowApprovalRequest({
               origin,
@@ -354,6 +394,8 @@ class Engine {
               origin,
             );
           },
+=======
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
         }),
       });
 
@@ -378,6 +420,7 @@ class Engine {
         unrestrictedMethods,
       });
 
+<<<<<<< HEAD:app/core/Engine.ts
       const subjectMetadataController = new SubjectMetadataController({
         messenger: this.controllerMessenger.getRestricted({
           name: 'SubjectMetadataController',
@@ -387,6 +430,8 @@ class Engine {
         subjectCacheLimit: 100,
       });
 
+=======
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
       this.setupSnapProvider = (snapId, connectionStream) => {
         // eslint-disable-next-line no-console
         console.log(
@@ -451,7 +496,10 @@ class Engine {
           `${permissionController.name}:revokePermissions`,
           `${permissionController.name}:revokePermissionForAllSubjects`,
           `${permissionController.name}:grantPermissions`,
+<<<<<<< HEAD:app/core/Engine.ts
           `${subjectMetadataController.name}:getSubjectMetadata`,
+=======
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
           'ExecutionService:executeSnap',
           'ExecutionService:getRpcRequestHandler',
           'ExecutionService:terminateSnap',
@@ -464,12 +512,25 @@ class Engine {
         environmentEndowmentPermissions: Object.values(EndowmentPermissions),
         featureFlags: { dappsCanUpdateSnaps: true },
         // TO DO
+<<<<<<< HEAD:app/core/Engine.ts
         getAppKey: async (subject, appKeyType) =>
           getAppKeyForSubject(`${appKeyType}:${subject}`),
+=======
+        getAppKey: async () =>
+          new Promise((resolve, reject) => {
+            resolve('mockAppKey');
+          }),
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
         checkBlockList: async (snapsToCheck) =>
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: initialState.snapController || {},
         messenger: snapControllerMessenger,
+<<<<<<< HEAD:app/core/Engine.ts
+=======
+        fetchFunction: RNFetchBlob.config({ fileCache: true }).fetch.bind(
+          RNFetchBlob,
+        ),
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
         // TO DO
         closeAllConnections: () =>
           // eslint-disable-next-line no-console
@@ -480,6 +541,12 @@ class Engine {
           detectSnapLocation(location, { ...options, fetch: fetchFunction }),
       });
 
+<<<<<<< HEAD:app/core/Engine.ts
+=======
+      const phishingController = new PhishingController();
+      phishingController.updatePhishingLists();
+
+>>>>>>> 3cc578eb5 (Integrate PS):app/core/Engine.js
       const controllers = [
         keyringController,
         new AccountTrackerController({
