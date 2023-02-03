@@ -22,7 +22,7 @@ import ButtonPrimary, {
   ButtonPrimaryVariants,
 } from 'app/component-library/components/ButtonPrimary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <ButtonPrimary
   label={LABEL}

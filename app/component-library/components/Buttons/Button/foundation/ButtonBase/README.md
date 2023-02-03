@@ -53,7 +53,7 @@ Icon name of the icon that will be displayed.
 import ButtonBase, {
   ButtonSize,
 } from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <ButtonBase
   label={LABEL}

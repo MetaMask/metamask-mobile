@@ -22,7 +22,7 @@ import ButtonSecondary, {
   ButtonSecondaryVariants,
 } from 'app/component-library/components/ButtonSecondary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <ButtonSecondary
   label={LABEL}

@@ -22,7 +22,7 @@ import AvatarIcon, {
   AvatarIcon,
 } from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <AvatarIcon size={AvatarSize.Md} name={IconName.Bank} />;
 ```

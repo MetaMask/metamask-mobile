@@ -22,7 +22,7 @@ import ButtonTertiary, {
   ButtonTertiaryVariants,
 } from 'app/component-library/components/ButtonTertiary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <ButtonTertiary
   label={LABEL}

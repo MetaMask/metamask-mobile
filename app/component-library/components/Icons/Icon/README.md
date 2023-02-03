@@ -35,7 +35,7 @@ Color to apply to the icon. Defaults to `icon.default` from theme.
 import Icon, {
   IconSize,
   IconName,
-} from 'app/component-library/components/Icon';
+} from 'app/component-library/components/Icons/Icon';
 
 <Icon name={IconName.Bank} size={IconSize.Md} color={ICON_COLOR} />;
 ```

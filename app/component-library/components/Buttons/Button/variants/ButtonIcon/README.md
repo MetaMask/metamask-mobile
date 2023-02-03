@@ -35,7 +35,7 @@ Optional enum to select between variants.
 ```javascript
 // Replace import with relative path.
 import ButtonIcon, {ButtonIconVariants} from 'app/component-library/components/ButtonIcon';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <ButtonIcon
   IconName={IconName.Bank}

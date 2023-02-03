@@ -32,7 +32,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
-import { IconName } from '../../../component-library/components/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getUrlObj } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';

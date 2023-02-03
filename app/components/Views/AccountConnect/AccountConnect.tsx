@@ -29,7 +29,7 @@ import {
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
-import { IconName } from '../../../component-library/components/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
