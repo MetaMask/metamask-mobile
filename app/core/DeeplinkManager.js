@@ -160,8 +160,8 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
-        this.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-          screen: Routes.BROWSER_VIEW,
+        this.navigation.navigate(Routes.BROWSER.HOME, {
+          screen: Routes.BROWSER.VIEW,
           params: {
             newTabUrl: url,
             timestamp: Date.now(),

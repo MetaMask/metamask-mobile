@@ -10,10 +10,16 @@ const generateOpt = (
   action?: ACTIONS,
   description?: DESCRIPTION,
 ): IMetaMetricsEvent => {
-  if (action && description) {
-    return { name, properties: { action, name: description } };
+  if (action || description) {
+    return {
+      category: name,
+      properties: {
+        ...(action && { action }),
+        ...(description && { name: description }),
+      },
+    };
   }
-  return { name };
+  return { category: name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
@@ -139,6 +145,7 @@ enum EVENT_NAME {
   BROWSER_SHARE_SITE = 'Shared A Site',
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
+  BROWSER_SWITCH_TAB = 'Switched tab within Browser',
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
@@ -246,6 +253,69 @@ enum EVENT_NAME {
   SCREENSHOT_WARNING = 'Screenshot Warning Displayed',
   SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
   SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
+
+  // Reveal SRP Quiz
+  SRP_REVEAL_QUIZ_PROMPT_SEEN = 'SRP reveal quiz prompt seen',
+  SRP_REVEAL_START_CTA_SELECTED = 'SRP reveal get started CTA selected',
+  SRP_REVEAL_FIRST_QUESTION_SEEN = 'SRP reveal first question seen',
+  SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER = 'SRP reveal first question answered incorrectly',
+  SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER = 'SRP reveal first question answered correctly',
+  SRP_REVEAL_SECOND_QUESTION_SEEN = 'SRP reveal second question seen',
+  SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER = 'SRP reveal second question answered incorrectly',
+  SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER = 'SRP reveal second question answered correctly',
+  REVEAL_SRP = 'Reveal SRP',
+  SRP_COPIED = 'SRP copied',
+
+  // Permission request
+  PERMISSION_REQUEST_STARTED = 'Permission Request Started',
+  PERMISSION_REQUEST_COMPLETED = 'Permission Request Completed',
+  PERMISSION_REQUEST_CANCELLED = 'Permission Request Cancelled',
+
+  OPEN_DAPP_PERMISSIONS = 'Viewed dapp permissions',
+  CHANGE_DAPP_PERMISSIONS = 'Changed dapp permissions',
+}
+
+enum ACTIONS {
+  //Onboarding
+  METRICS_OPTS = 'Metrics Option',
+  IMPORT_OR_CREATE = 'Import or Create',
+  IMPORT_OR_SYNC = 'Import or Sync',
+  ONBOARDING_NEXT = 'Onboarding Next',
+  ONBOARDING_SKIP = 'Onboarding Skip',
+  // Navigation Drawer
+  NAVIGATION_DRAWER = 'Navigation Drawer',
+  // Common Navigation
+  COMMON_BROWSER_DAPP_WALLET = 'Browser & Dapp & Wallet View',
+  // Browser
+  BROWSER_VIEW = 'Browser View',
+  // Dapp
+  DAPP_VIEW = 'Dapp View',
+  // Wallet
+  WALLET_VIEW = 'Wallet View',
+  //Transactions
+  CONFIRM_SCREEN = 'Confirm Screen',
+  SIGN_SCREEN = 'Sign Request',
+  // Accounts
+  ACCOUNTS_MODAL = 'Account Modal',
+  // Authentication
+  UNLOCK = 'Unlock',
+  CONNECT = 'Connect',
+  // Settings
+  SETTINGS = 'Settings',
+  // Receive Options
+  RECEIVE_OPTIONS = 'Receive Options',
+  // Send Flow
+  SEND_FLOW = 'Send Flow',
+  // Dapp Interactions
+  APPROVE_REQUEST = 'Approve Request',
+  BUY_ETH = 'Buy ETH',
+  SELECTS_DEBIT_OR_ACH = 'Selects Debit or ACH',
+  SELECTS_APPLE_PAY = 'Selects Apple Pay',
+  // Swaps
+  QUOTE = 'Quote',
+  SWAP = 'Swap',
+  PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
+  PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
 }
 
 const events = {
@@ -479,6 +549,51 @@ const events = {
   SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
   SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
   SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
+  SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
+  ),
+  SRP_REVEAL_START_CTA_SELECTED: generateOpt(
+    EVENT_NAME.SRP_REVEAL_START_CTA_SELECTED,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_SEEN,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
+  ),
+  SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_SEEN: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_SEEN,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
+  ),
+  SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER: generateOpt(
+    EVENT_NAME.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
+  ),
+  REVEAL_SRP: generateOpt(EVENT_NAME.REVEAL_SRP),
+  SRP_COPIED: generateOpt(EVENT_NAME.SRP_COPIED),
+  PERMISSION_REQUEST_STARTED: generateOpt(
+    EVENT_NAME.PERMISSION_REQUEST_STARTED,
+  ),
+  PERMISSION_REQUEST_CANCELLED: generateOpt(
+    EVENT_NAME.PERMISSION_REQUEST_CANCELLED,
+  ),
+  PERMISSION_REQUEST_COMPLETED: generateOpt(
+    EVENT_NAME.PERMISSION_REQUEST_COMPLETED,
+  ),
+  OPEN_DAPP_PERMISSIONS: generateOpt(EVENT_NAME.OPEN_DAPP_PERMISSIONS),
+  REVOKE_ACCOUNT_DAPP_PERMISSIONS: generateOpt(
+    EVENT_NAME.CHANGE_DAPP_PERMISSIONS,
+    ACTIONS.PERMISSION_REVOKE_ACCOUNT,
+  ),
+  ADD_ACCOUNT_DAPP_PERMISSIONS: generateOpt(
+    EVENT_NAME.CHANGE_DAPP_PERMISSIONS,
+    ACTIONS.PERMISSION_NEW_ACCOUNT,
+  ),
+  BROWSER_SWITCH_TAB: generateOpt(EVENT_NAME.BROWSER_SWITCH_TAB),
 };
 
 /**
@@ -575,47 +690,6 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_DEBIT_OR_ACH = 'Selects debit card or bank account as payment method',
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
-}
-
-enum ACTIONS {
-  //Onboarding
-  METRICS_OPTS = 'Metrics Option',
-  IMPORT_OR_CREATE = 'Import or Create',
-  IMPORT_OR_SYNC = 'Import or Sync',
-  ONBOARDING_NEXT = 'Onboarding Next',
-  ONBOARDING_SKIP = 'Onboarding Skip',
-  // Navigation Drawer
-  NAVIGATION_DRAWER = 'Navigation Drawer',
-  // Common Navigation
-  COMMON_BROWSER_DAPP_WALLET = 'Browser & Dapp & Wallet View',
-  // Browser
-  BROWSER_VIEW = 'Browser View',
-  // Dapp
-  DAPP_VIEW = 'Dapp View',
-  // Wallet
-  WALLET_VIEW = 'Wallet View',
-  //Transactions
-  CONFIRM_SCREEN = 'Confirm Screen',
-  SIGN_SCREEN = 'Sign Request',
-  // Accounts
-  ACCOUNTS_MODAL = 'Account Modal',
-  // Authentication
-  UNLOCK = 'Unlock',
-  CONNECT = 'Connect',
-  // Settings
-  SETTINGS = 'Settings',
-  // Receive Options
-  RECEIVE_OPTIONS = 'Receive Options',
-  // Send Flow
-  SEND_FLOW = 'Send Flow',
-  // Dapp Interactions
-  APPROVE_REQUEST = 'Approve Request',
-  BUY_ETH = 'Buy ETH',
-  SELECTS_DEBIT_OR_ACH = 'Selects Debit or ACH',
-  SELECTS_APPLE_PAY = 'Selects Apple Pay',
-  // Swaps
-  QUOTE = 'Quote',
-  SWAP = 'Swap',
 }
 
 const legacyMetaMetricsEvents = {

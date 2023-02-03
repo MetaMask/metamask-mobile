@@ -260,6 +260,8 @@ workflows:
   build_android_qa:
     before_run:
       - code_setup
+    after_run:
+      - _upload_apk_to_browserstack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -302,6 +304,44 @@ workflows:
           inputs:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
+  _upload_apk_to_browserstack:
+    steps:
+      - script@1:
+          title: Upload APK to Browserstack
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                set -x
+                set -o pipefail
+                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+  wdio_android_e2e_test:
+    before_run:
+      - build_android_qa
+    steps:
+      - script@1:
+          title: Run Android E2E tests on Browserstack
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                yarn test:wdio:android:browserstack
+      - script@1:
+          is_always_run: true
+          title: Add tests reports to Bitrise
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo $BITRISE_TEST_RESULT_DIR
+                echo $BITRISE_SOURCE_DIR
+                cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
+                ls -la $BITRISE_TEST_RESULT_DIR
+      - deploy-to-bitrise-io@1:
+          inputs:
+              - deploy_path: $BITRISE_TEST_RESULT_DIR
+          title: Deploy test report files
   deploy_android_to_store:
     before_run:
       - build_android_release
@@ -416,10 +456,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.12.3
+      VERSION_NAME: 5.14.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1033
+      VERSION_NUMBER: 1055
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

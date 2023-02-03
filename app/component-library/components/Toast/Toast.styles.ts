@@ -27,6 +27,7 @@ const styleSheet = StyleSheet.create({
     marginRight: 8,
   },
   labelsContainer: {
+    flex: 1,
     justifyContent: 'center',
   },
   label: {

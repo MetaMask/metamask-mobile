@@ -1,3 +1,5 @@
+// Needed to polyfill random number generation.
+import 'react-native-get-random-values';
 import './shim.js';
 
 import 'react-native-gesture-handler';
@@ -60,6 +62,12 @@ LogBox.ignoreLogs([
   'Module RCTSearchApiManager requires main queue setup',
   'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
 ]);
+
+const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
+// Ignore box logs, usefull for QA testing in development builds
+if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
+  LogBox.ignoreAllLogs();
+}
 
 /* Uncomment and comment regular registration below */
 // import Storybook from './storybook';

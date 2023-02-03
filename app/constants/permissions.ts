@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const EndowmentPermissions = Object.freeze({
   'endowment:network-access': 'endowment:network-access',
   'endowment:long-running': 'endowment:long-running',
@@ -7,3 +6,13 @@ export const EndowmentPermissions = Object.freeze({
   'endowment:ethereum-provider': 'endowment:ethereum-provider',
   'endowment:rpc': 'endowment:rpc',
 } as const);
+
+export enum USER_INTENT {
+  None,
+  Create,
+  CreateMultiple,
+  Confirm,
+  Cancel,
+  Import,
+  ConnectHW,
+}

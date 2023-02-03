@@ -57,6 +57,10 @@ class EngineService {
         name: 'SnapController',
         key: `${Engine.context.SnapController.name}:stateChange`,
       },
+      {
+        name: 'PermissionController',
+        key: `${Engine.context.PermissionController.name}:stateChange`,
+      },
     ];
 
     Engine?.datamodel?.subscribe?.(() => {

@@ -22,6 +22,7 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
         variant={AvatarVariants.Favicon}
         imageSource={imageSource}
         size={AvatarSize.Md}
+        style={styles.favicon}
       />
       <Text style={styles.label} variant={TextVariants.sBodyMD}>
         {label}
