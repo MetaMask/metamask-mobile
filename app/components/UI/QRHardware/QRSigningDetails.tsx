@@ -46,6 +46,7 @@ interface IQRSigningDetails {
   showHint?: boolean;
   shouldStartAnimated?: boolean;
   bypassAndroidCameraAccessCheck?: boolean;
+  fromAddress: string;
 }
 
 const createStyles = (colors: any) =>
@@ -124,6 +125,7 @@ const QRSigningDetails = ({
   showHint = true,
   shouldStartAnimated = true,
   bypassAndroidCameraAccessCheck = true,
+  fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -287,7 +289,10 @@ const QRSigningDetails = ({
               ]}
             >
               <View style={styles.accountInfoCardWrapper}>
-                <AccountInfoCard showFiatBalance={false} />
+                <AccountInfoCard
+                  showFiatBalance={false}
+                  fromAddress={fromAddress}
+                />
               </View>
               {renderAlert()}
               {renderCameraAlert()}

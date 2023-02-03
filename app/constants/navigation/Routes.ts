@@ -17,6 +17,13 @@ const Routes = {
     SETTINGS: 'OnRampSettings',
     ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
+  HW: {
+    CONNECT: 'ConnectHardwareWalletFlow',
+    SELECT_DEVICE: 'SelectHardwareWallet',
+    CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
+    CONNECT_LEDGER: 'LedgerConnectFlow',
+    LEDGER_ACCOUNT: 'LedgerAccountInfo',
+  },
   LEDGER_CONNECT_FLOW: {
     ID: 'LedgerConnectFlow',
     LEDGER_CONNECT: 'LedgerConnect',
@@ -24,6 +31,7 @@ const Routes = {
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
   QR_SCANNER: 'QRScanner',
+  TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -32,6 +40,7 @@ const Routes = {
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
+    DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
   },
   ONBOARDING: {
@@ -53,6 +62,23 @@ const Routes = {
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+  },
+  SHEET: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
+    ACCOUNT_CONNECT: 'AccountConnect',
+    ACCOUNT_PERMISSIONS: 'AccountPermissions',
+  },
+  BROWSER: {
+    HOME: 'BrowserTabHome',
+    URL_MODAL: 'BrowserUrlModal',
+    VIEW: 'BrowserView',
+  },
+  WEBVIEW: {
+    MAIN: 'Webview',
+    SIMPLE: 'SimpleWebview',
+  },
+  WALLET: {
+    HOME: 'WalletTabHome',
   },
 };
 

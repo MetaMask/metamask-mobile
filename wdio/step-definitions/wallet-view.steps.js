@@ -2,6 +2,7 @@
 import { When, Then } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import SendScreen from '../screen-objects/SendScreen';
+import AccountListComponent from '../screen-objects/AccountListComponent';
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
   const timeout = 1500;
@@ -43,4 +44,26 @@ Then(/^I am on the wallet screen/, async () => {
 });
 Then(/^I am on the wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
+});
+When(/^I tap on the Identicon/, async () => {
+  // should be in a commons-step file
+  await driver.pause(setTimeout);
+  await WalletMainScreen.tapIdenticon();
+});
+
+When(/^the account list should be visible/, async () => {
+  // should be in a common-step file
+  await driver.pause(3000);
+  await AccountListComponent.isComponentDisplayed();
+});
+
+When(/^the account list should not be visible/, async () => {
+  // should be in a common-step file
+  await driver.pause(3000);
+  await AccountListComponent.isComponentNotDisplayed();
+});
+
+When(/^I dismiss the account list/, async () => {
+  await driver.pause(2500);
+  await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
 });

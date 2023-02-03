@@ -61,6 +61,7 @@ import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -543,6 +544,7 @@ const RootRPCMethodsUI = (props) => {
       />
     );
 
+  // Reject pending approval using MetaMask SDK.
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
     try {
@@ -552,6 +554,7 @@ const RootRPCMethodsUI = (props) => {
     }
   };
 
+  // Accept pending approval using MetaMask SDK.
   const acceptPendingApproval = (id, requestData) => {
     const { ApprovalController } = Engine.context;
     ApprovalController.accept(id, requestData);
@@ -571,7 +574,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to add chain to wallet.
    */
   const renderAddCustomNetworkModal = () => (
     <Modal
@@ -613,7 +616,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to switch chain on wallet.
    */
   const renderSwitchCustomNetworkModal = () => (
     <Modal
@@ -642,7 +645,7 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * When user clicks on approve to connect with a dapp
+   * When user clicks on approve to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsConfirm = () => {
     acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
@@ -650,7 +653,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * When user clicks on reject to connect with a dapp
+   * When user clicks on reject to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsReject = () => {
     rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
@@ -658,7 +661,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
    */
   const renderAccountsApprovalModal = () => (
     <Modal
@@ -740,7 +743,29 @@ const RootRPCMethodsUI = (props) => {
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
       }
+
       switch (request.type) {
+        case ApprovalTypes.REQUEST_PERMISSIONS:
+          if (requestData?.permissions?.eth_accounts) {
+            const {
+              metadata: { id },
+            } = requestData;
+
+            const totalAccounts = props.accountsLength;
+
+            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+              number_of_accounts: totalAccounts,
+              source: 'PERMISSION SYSTEM',
+            });
+
+            props.navigation.navigate(
+              ...createAccountConnectNavDetails({
+                hostInfo: requestData,
+                permissionRequestId: id,
+              }),
+            );
+          }
+          break;
         case ApprovalTypes.CONNECT_ACCOUNTS:
           setHostToApprove({ data: requestData, id: request.id });
           showPendingApprovalModal({
@@ -822,9 +847,9 @@ const RootRPCMethodsUI = (props) => {
       {renderApproveModal()}
       {renderAddCustomNetworkModal()}
       {renderSwitchCustomNetworkModal()}
-      {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderAccountsApprovalModal()}
     </React.Fragment>
   );
 };
@@ -877,6 +902,7 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
+  accountsLength: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -889,6 +915,9 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({

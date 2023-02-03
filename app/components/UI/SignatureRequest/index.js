@@ -151,6 +151,10 @@ class SignatureRequest extends PureComponent {
      * Expands the message box on press.
      */
     toggleExpandedMessage: PropTypes.func,
+    /**
+     * Active address of account that triggered signing.
+     */
+    fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
     /**
@@ -230,6 +234,7 @@ class SignatureRequest extends PureComponent {
       currentPageInformation,
       truncateMessage,
       toggleExpandedMessage,
+      fromAddress,
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
@@ -238,7 +243,7 @@ class SignatureRequest extends PureComponent {
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
-          <AccountInfoCard operation="signing" />
+          <AccountInfoCard operation="signing" fromAddress={fromAddress} />
         </View>
         <TouchableOpacity
           style={styles.children}
@@ -336,7 +341,7 @@ class SignatureRequest extends PureComponent {
   }
 
   renderQRDetails() {
-    const { QRState } = this.props;
+    const { QRState, fromAddress } = this.props;
     const styles = this.getStyles();
 
     return (
@@ -346,6 +351,7 @@ class SignatureRequest extends PureComponent {
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={fromAddress}
         />
       </View>
     );
