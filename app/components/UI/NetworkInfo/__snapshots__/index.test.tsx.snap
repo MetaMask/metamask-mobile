@@ -5,12 +5,6 @@ exports[`NetworkInfo should render correctly 1`] = `
   dispatch={[Function]}
   isTokenDetectionEnabled={true}
   onClose={[Function]}
-  providerConfig={
-    Object {
-      "rpcTarget": "",
-      "type": "mainnet",
-    }
-  }
   ticker=""
   type=""
 />

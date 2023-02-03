@@ -67,7 +67,10 @@ import {
 } from '../../../component-library/components/Toast';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import { selectProviderType } from '../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const Stack = createStackNavigator();
 
@@ -218,9 +221,7 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const networkProvider = useSelector((state) => selectProviderConfig(state));
   const prevNetworkProvider = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 

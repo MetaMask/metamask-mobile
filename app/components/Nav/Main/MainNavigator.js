@@ -67,6 +67,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { isEqual } from 'lodash';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -209,7 +210,7 @@ const HomeTabs = () => {
   );
 
   const chainId = useSelector((state) => {
-    const provider = state.engine.backgroundState.NetworkController.provider;
+    const provider = selectProviderConfig(state);
     return NetworksChainId[provider.type];
   });
 

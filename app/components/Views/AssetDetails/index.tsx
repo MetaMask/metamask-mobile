@@ -189,7 +189,7 @@ const AssetDetails = (props: Props) => {
                 asset_type: 'token',
                 tokens: [`${symbol} - ${address}`],
                 chain_id: getDecimalChainId(
-                  NetworkController?.state?.provider?.chainId,
+                  NetworkController?.state?.providerConfig?.chainId,
                 ),
               });
             } catch (err) {

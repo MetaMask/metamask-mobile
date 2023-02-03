@@ -43,7 +43,10 @@ import {
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { selectTicker } from '../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -135,8 +138,8 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  const networkProvider = useSelector((state: any) =>
+    selectProviderConfig(state),
   );
   const dispatch = useDispatch();
   const networkName = useMemo(

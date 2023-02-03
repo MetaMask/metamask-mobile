@@ -125,7 +125,7 @@ export const getAllNetworks = () =>
 export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 
 export const isMainNet = (network) =>
-  isDefaultMainnet(network?.provider?.type) || network === String(1);
+  isDefaultMainnet(network?.providerConfig?.type) || network === String(1);
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {

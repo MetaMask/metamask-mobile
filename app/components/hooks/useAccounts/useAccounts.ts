@@ -18,6 +18,10 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
+import {
+  selectTicker,
+  selectNetwork,
+} from '../../../selectors/networkController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -37,9 +41,7 @@ const useAccounts = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,
   );
-  const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.network,
-  );
+  const network = useSelector((state: any) => selectNetwork(state));
   const selectedAddress = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -57,10 +59,7 @@ const useAccounts = ({
     (state: any) =>
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
   );
-  const ticker = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.ticker,
-  );
+  const ticker = useSelector((state: any) => selectTicker(state));
 
   const fetchENSNames = useCallback(
     async ({
