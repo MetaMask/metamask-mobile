@@ -332,6 +332,9 @@ workflows:
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
             - environment_key_list:
                 BROWSERSTACK_APP_URL
+                BROWSERSTACK_DEVICE
+                BROWSERSTACK_OS_VERSION
+                BROWSERSTACK_TAG_EXPRESSION
   wdio_android_e2e_test:
     before_run:
       - code_setup_cache
