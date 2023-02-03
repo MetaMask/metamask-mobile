@@ -6,7 +6,7 @@ import { TextInput, View } from 'react-native';
 import { useStyles } from '../../../hooks';
 import formatNumber from '../../../../util/formatNumber';
 import { strings } from '../../../../../locales/i18n';
-import Text, { TextVariants } from '../../../components/Texts/Text';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 
 // Internal dependencies.
 import { CustomInputProps } from './CustomInput.types';
@@ -50,14 +50,14 @@ const CustomInput = ({
           />
         ) : defaultValueSelected ? (
           <Text
-            variant={TextVariants.sBodyMD}
+            variant={TextVariant.BodyMD}
             style={styles.warningValue}
           >{`${formatNumber(value)} ${ticker}`}</Text>
         ) : null}
       </View>
       {inputDisabled && (
         <Text
-          variant={TextVariants.sBodySM}
+          variant={TextVariant.BodySM}
           style={styles.maxValueText}
           onPress={handleMaxPress}
         >

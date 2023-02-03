@@ -31,12 +31,12 @@ exports[`ModalConfirmation should render correctly 1`] = `
             "marginBottom": 8,
           }
         }
-        variant="sHeadingMD"
+        variant="HeadingMD"
       >
         Title!
       </Text>
       <Text
-        variant="sBodyMD"
+        variant="BodyMD"
       >
         Description.
       </Text>

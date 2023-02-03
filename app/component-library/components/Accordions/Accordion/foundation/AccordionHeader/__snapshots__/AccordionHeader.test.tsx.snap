@@ -22,7 +22,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
       }
     }
     testID="accordion-header-title"
-    variant="sBodyMD"
+    variant="BodyMD"
   >
     Sample Accordion Header Title
   </Text>
@@ -75,7 +75,7 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
       }
     }
     testID="accordion-header-title"
-    variant="sBodyMD"
+    variant="BodyMD"
   >
     Sample Accordion Header Title
   </Text>

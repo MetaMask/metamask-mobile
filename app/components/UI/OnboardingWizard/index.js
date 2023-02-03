@@ -71,7 +71,7 @@ const createStyles = ({ colors, typography }) =>
       justifyContent: 'center',
     },
     skipText: {
-      ...typography.sBodyMD,
+      ...typography.BodyMD,
       color: colors.primary.default,
     },
   });

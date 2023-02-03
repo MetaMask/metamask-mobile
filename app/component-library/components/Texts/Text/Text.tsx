@@ -8,11 +8,11 @@ import { Text as RNText } from 'react-native';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import { TextProps, TextVariants } from './Text.types';
+import { TextProps, TextVariant } from './Text.types';
 import styleSheet from './Text.styles';
 
 const Text: React.FC<TextProps> = ({
-  variant = TextVariants.sBodyMD,
+  variant = TextVariant.BodyMD,
   style,
   children,
   ...props

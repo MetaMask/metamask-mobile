@@ -21,7 +21,7 @@ exports[`SheetHeader should render correctly 1`] = `
     }
   />
   <Text
-    variant="sHeadingMD"
+    variant="HeadingMD"
   >
     Title
   </Text>

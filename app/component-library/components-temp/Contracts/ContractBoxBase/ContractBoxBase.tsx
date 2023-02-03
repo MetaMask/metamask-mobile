@@ -7,7 +7,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariants,
 } from '../../../components/Avatars/Avatar';
-import Text, { TextVariants } from '../../../components/Texts/Text';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import Icon, { IconName, IconSize } from '../../../components/Icon';
 import { useStyles } from '../../../hooks';
@@ -50,15 +50,15 @@ const ContractBoxBase = ({
         />
         {contractPetName ? (
           <Pressable onPress={onContractPress}>
-            <Text style={styles.header} variant={TextVariants.sHeadingMD}>
+            <Text style={styles.header} variant={TextVariant.HeadingMD}>
               {contractPetName}
             </Text>
-            <Text variant={TextVariants.sBodyMD}>{formattedAddress}</Text>
+            <Text variant={TextVariant.BodyMD}>{formattedAddress}</Text>
           </Pressable>
         ) : (
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
             <ButtonLink
-              textVariants={TextVariants.sHeadingMD}
+              TextVariant={TextVariant.HeadingMD}
               style={styles.header}
               onPress={onContractPress}
             >

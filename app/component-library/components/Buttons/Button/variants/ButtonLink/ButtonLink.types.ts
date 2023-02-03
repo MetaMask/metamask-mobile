@@ -1,5 +1,5 @@
 // External dependencies.
-import { TextProps, TextVariants } from '../../../../Texts/Text/Text.types';
+import { TextProps, TextVariant } from '../../../../Texts/Text/Text.types';
 import { ButtonVariants } from '../../Button.types';
 
 /**
@@ -17,7 +17,7 @@ export interface ButtonLinkProps extends Omit<TextProps, 'variant'> {
   /**
    * Text component variants.
    */
-  textVariants?: TextVariants;
+  TextVariant?: TextVariant;
 }
 
 /**

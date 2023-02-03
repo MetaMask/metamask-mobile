@@ -30,7 +30,7 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
     <Text
       numberOfLines={1}
       testID="cell-title"
-      variant="sHeadingSMRegular"
+      variant="HeadingSMRegular"
     >
       Orangefox.eth
     </Text>
@@ -68,7 +68,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
     <Text
       numberOfLines={1}
       testID="cell-title"
-      variant="sHeadingSMRegular"
+      variant="HeadingSMRegular"
     >
       Orangefox.eth
     </Text>
@@ -115,7 +115,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
     <Text
       numberOfLines={1}
       testID="cell-title"
-      variant="sHeadingSMRegular"
+      variant="HeadingSMRegular"
     >
       Orangefox.eth
     </Text>
@@ -127,7 +127,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
         }
       }
       testID="cell-secondary-text"
-      variant="sBodyMD"
+      variant="BodyMD"
     >
       0x2990079bcdEe240329a520d2444386FC119da21a
     </Text>
@@ -165,7 +165,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
     <Text
       numberOfLines={1}
       testID="cell-title"
-      variant="sHeadingSMRegular"
+      variant="HeadingSMRegular"
     >
       Orangefox.eth
     </Text>
@@ -177,7 +177,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
         }
       }
       testID="cell-tertiary-text"
-      variant="sBodyMD"
+      variant="BodyMD"
     >
       Updated 1 sec ago
     </Text>

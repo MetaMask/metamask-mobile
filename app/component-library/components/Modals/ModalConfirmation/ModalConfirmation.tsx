@@ -9,7 +9,7 @@ import ReusableModal, {
 import Button, { ButtonSize, ButtonVariants } from '../../Buttons/Button';
 import { ButtonSecondaryVariants } from '../../Buttons/Button/variants/ButtonSecondary';
 import { ButtonPrimaryVariants } from '../../Buttons/Button/variants/ButtonPrimary';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks';
 
@@ -44,13 +44,13 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     !hasPendingAction && onCancel?.();
 
   const renderHeader = () => (
-    <Text style={styles.headerLabel} variant={TextVariants.sHeadingMD}>
+    <Text style={styles.headerLabel} variant={TextVariant.HeadingMD}>
       {title}
     </Text>
   );
 
   const renderDescription = () => (
-    <Text variant={TextVariants.sBodyMD}>{description}</Text>
+    <Text variant={TextVariant.BodyMD}>{description}</Text>
   );
 
   const renderButtons = () => (

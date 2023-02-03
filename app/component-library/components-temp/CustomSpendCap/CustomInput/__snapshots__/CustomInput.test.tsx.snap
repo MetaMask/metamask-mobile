@@ -51,7 +51,7 @@ exports[`CustomInput should render correctly 1`] = `
         "color": "#535A61",
       }
     }
-    variant="sBodySM"
+    variant="BodySM"
   >
     Max
   </Text>

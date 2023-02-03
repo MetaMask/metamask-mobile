@@ -5,7 +5,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import Button, { ButtonVariants } from '../../Buttons/Button';
 import { ButtonIconVariants } from '../../Buttons/Button/variants/ButtonIcon';
 import { IconName } from '../../Icon';
@@ -40,7 +40,7 @@ const SheetHeader = ({
           />
         )}
       </View>
-      <Text variant={TextVariants.sHeadingMD}>{title}</Text>
+      <Text variant={TextVariant.HeadingMD}>{title}</Text>
       <View style={styles.rightAccessory}>
         {actionButtonOptions && (
           // TODO - Replace ButtonLink with ButtonTertiary once new variant is ready/
@@ -48,7 +48,7 @@ const SheetHeader = ({
             variant={ButtonVariants.Link}
             testID={SHEET_HEADER_ACTION_BUTTON_ID}
             onPress={actionButtonOptions.onPress}
-            textVariants={TextVariants.sBodyMD}
+            TextVariant={TextVariant.BodyMD}
           >
             {actionButtonOptions.label}
           </Button>

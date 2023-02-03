@@ -20,7 +20,7 @@ exports[`Tag should render correctly 1`] = `
         "bottom": 2,
       }
     }
-    variant="sBodyMD"
+    variant="BodyMD"
   >
     Imported
   </Text>

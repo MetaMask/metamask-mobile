@@ -26,7 +26,7 @@ exports[`PickerAccount should render correctly 1`] = `
     />
     <View>
       <Text
-        variant="sHeadingSMRegular"
+        variant="HeadingSMRegular"
       >
         Orangefox.eth
       </Text>
@@ -36,7 +36,7 @@ exports[`PickerAccount should render correctly 1`] = `
             "color": "#535A61",
           }
         }
-        variant="sBodyMD"
+        variant="BodyMD"
       >
         0x2990...a21a
       </Text>

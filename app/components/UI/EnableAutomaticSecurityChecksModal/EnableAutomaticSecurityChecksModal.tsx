@@ -3,7 +3,7 @@ import { View, Image, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
@@ -99,10 +99,10 @@ const EnableAutomaticSecurityChecksModal = () => {
         >
           <Image source={onboardingDeviceImage} />
         </View>
-        <Text variant={TextVariants.lHeadingLG} style={styles.title}>
+        <Text variant={TextVariant.DisplayMD} style={styles.title}>
           {strings('enable_automatic_security_check_modal.title')}
         </Text>
-        <Text variant={TextVariants.sBodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
           {strings('enable_automatic_security_check_modal.description')}
         </Text>
       </ScrollView>

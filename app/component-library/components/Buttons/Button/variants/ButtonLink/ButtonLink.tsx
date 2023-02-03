@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import Text, { TextVariants } from '../../../../Texts/Text';
+import Text, { TextVariant } from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -15,7 +15,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
   onPress,
   style,
   children,
-  textVariants = TextVariants.sBodyMD,
+  TextVariant = TextVariant.BodyMD,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -25,7 +25,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
       suppressHighlighting
       style={styles.base}
       {...props}
-      variant={textVariants}
+      variant={TextVariant}
     >
       {children}
     </Text>
