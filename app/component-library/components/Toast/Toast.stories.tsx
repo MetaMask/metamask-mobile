@@ -16,6 +16,7 @@ import { ToastContext, ToastContextWrapper } from './Toast.context';
 import { ToastVariants } from './Toast.types';
 import {
   TEST_ACCOUNT_ADDRESS,
+  TEST_AVATAR_TYPE,
   TEST_NETWORK_IMAGE_URL,
 } from './Toast.constants';
 
@@ -37,6 +38,7 @@ const ToastExample = () => {
               { label: ' Account 2.', isBold: true },
             ],
             accountAddress: TEST_ACCOUNT_ADDRESS,
+            accountAvatarType: TEST_AVATAR_TYPE,
           });
         }}
       />

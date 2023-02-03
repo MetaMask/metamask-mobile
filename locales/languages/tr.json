@@ -437,14 +437,37 @@
     "receive": "AL"
   },
   "accounts": {
-    "create_new_account": "Yeni Hesap Oluştur",
-    "import_account": "Bir Hesabı İçe Aktar",
-    "connect_hardware": "Donanım Cüzdanı Bağla",
-    "imported": "İÇE AKTARILDI",
+    "create_new_account": "Yeni hesap oluştur",
+    "import_account": "Bir hesabı içe aktar",
+    "connect_hardware": "Donanım cüzdanı bağla",
+    "imported": "İçe aktarıldı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
-    "yes_remove_it": "Evet, kaldır"
+    "yes_remove_it": "Evet, kaldır",
+    "accounts_title": "Hesaplar",
+    "connect_account_title": "Hesabı Bağla",
+    "connect_accounts_title": "Hesapları Bağla",
+    "connected_accounts_title": "Bağlı Hesaplar",
+    "connect_description": "Hesap adresinizi, bakiyenizi, faaliyetinizi paylaşın ve sitenin işlem başlatmasına izin verin.",
+    "connect_multiple_accounts": "Birden fazla hesabı bağla",
+    "connect_more_accounts": "Daha fazla hesap bağla",
+    "cancel": "İptal et",
+    "connect": "Bağla",
+    "connect_with_count": "{{countLabel}} Bağla",
+    "select_all": "Tümünü seç",
+    "permissions": "İzinler",
+    "disconnect": "Bağlantıyı kes",
+    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes",
+    "revoke": "İptal et",
+    "revoke_all": "Tümünü iptal et"
+  },
+  "toast": {
+    "connected_and_active": "bağlandı ve aktif.",
+    "now_active": "şimdi aktif.",
+    "revoked": "iptal edildi.",
+    "revoked_all": "Tüm hesaplar iptal edildi.",
+    "accounts_connected": "hesap bağlandı."
   },
   "connect_qr_hardware": {
     "title": "QR tabanlı bir donanım cüzdanı bağlayın",

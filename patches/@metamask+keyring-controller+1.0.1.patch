@@ -1,0 +1,80 @@
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
+index a5e5af1..e2dbbd2 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
+@@ -125,6 +125,7 @@ class KeyringController extends base_controller_1.BaseController {
+     }
+     /**
+      * Adds a new account to the default (first) HD seed phrase keyring.
++     * Patched to not auto switch accounts.
+      *
+      * @returns Promise resolving to current state when the account is added.
+      */
+@@ -140,12 +141,13 @@ class KeyringController extends base_controller_1.BaseController {
+             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             yield this.verifySeedPhrase();
+             this.updateIdentities(newAccounts);
++            let addedAccountAddress = '';
+             newAccounts.forEach((selectedAddress) => {
+                 if (!oldAccounts.includes(selectedAddress)) {
+-                    this.setSelectedAddress(selectedAddress);
++                    addedAccountAddress = selectedAddress
+                 }
+             });
+-            return this.fullUpdate();
++            return { addedAccountAddress, keyringState: this.fullUpdate() };
+         });
+     }
+     /**
+@@ -313,8 +315,8 @@ class KeyringController extends base_controller_1.BaseController {
+             const accounts = yield newKeyring.getAccounts();
+             const allAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             this.updateIdentities(allAccounts);
+-            this.setSelectedAddress(accounts[0]);
+-            return this.fullUpdate();
++            const importedAccountAddress = accounts[0];
++            return { importedAccountAddress, keyringState: this.fullUpdate() };
+         });
+     }
+     /**
+@@ -615,16 +617,19 @@ class KeyringController extends base_controller_1.BaseController {
+             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(keyring);
+             const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             this.updateIdentities(newAccounts);
++            let newHardwareWalletAddress = '';
+             newAccounts.forEach((address) => {
+                 if (!oldAccounts.includes(address)) {
+                     if (this.setAccountLabel) {
+                         this.setAccountLabel(address, `${keyring.getName()} ${index}`);
+                     }
+-                    this.setSelectedAddress(address);
++                    newHardwareWalletAddress = address;
+                 }
+             });
+             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").persistAllKeyrings();
+             yield this.fullUpdate();
++            // Return address of hardware wallet address that was created.
++            return newHardwareWalletAddress;
+         });
+     }
+     getAccountKeyringType(account) {
+@@ -635,13 +640,15 @@ class KeyringController extends base_controller_1.BaseController {
+     forgetQRDevice() {
+         return __awaiter(this, void 0, void 0, function* () {
+             const keyring = yield this.getOrAddQRKeyring();
++            const accountsIncludingHardware = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
+             keyring.forgetDevice();
+-            const accounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
+-            accounts.forEach((account) => {
+-                this.setSelectedAddress(account);
+-            });
++            const remainingAccounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
++            const removedAccounts = accountsIncludingHardware.filter((address) => !remainingAccounts.includes(address));
++            this.updateIdentities(remainingAccounts);
+             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").persistAllKeyrings();
+             yield this.fullUpdate();
++            // Return list of removed accounts as well as remaining accounts for the app to use.
++            return { removedAccounts, remainingAccounts };
+         });
+     }
+ }
