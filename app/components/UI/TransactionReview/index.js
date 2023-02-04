@@ -266,7 +266,7 @@ class TransactionReview extends PureComponent {
     const {
       validate,
       transaction,
-      transaction: { data, to },
+      transaction: { data, to, value },
       tokens,
       chainId,
       tokenList,
@@ -279,7 +279,7 @@ class TransactionReview extends PureComponent {
       data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
     const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
-    if (approveTransaction) {
+    if (approveTransaction && (!value || value.isZero())) {
       let contract = tokenList[safeToChecksumAddress(to)];
       if (!contract) {
         contract = tokens.find(

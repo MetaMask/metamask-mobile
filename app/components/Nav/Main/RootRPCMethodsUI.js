@@ -355,7 +355,11 @@ const RootRPCMethodsUI = (props) => {
           });
         }
 
-        if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+        if (
+          data &&
+          data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+          (!value || value === '0x0')
+        ) {
           toggleApproveModal();
         } else {
           toggleDappTransactionModal();
