@@ -16,6 +16,7 @@ import {
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
   NAVBAR_NETWORK_BUTTON,
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+  SECURE_WALLET_BACKUP_ALERT_MODAL,
 } from './testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
@@ -74,6 +75,10 @@ class WalletMainScreen {
     );
   }
 
+  get backupAlertModal() {
+    return Selectors.getElementByPlatform(SECURE_WALLET_BACKUP_ALERT_MODAL);
+  }
+
   async tapSettings() {
     await Gestures.tap(this.drawerSettings);
   }
@@ -124,11 +129,14 @@ class WalletMainScreen {
   }
 
   async tapRemindMeLaterOnNotification() {
-    const timeOut = 3000;
-    await driver.pause(timeOut);
+    await Gestures.tap(this.remindMeLaterNotification, 'MOVETO');
     await Gestures.tap(this.remindMeLaterNotification);
   }
 
+  async backupAlertModalIsVisible() {
+    const element = await this.backupAlertModal;
+    return element.isDisplayed();
+  }
   async isVisible() {
     await expect(this.WalletScreenContainer).toBeDisplayed();
   }
