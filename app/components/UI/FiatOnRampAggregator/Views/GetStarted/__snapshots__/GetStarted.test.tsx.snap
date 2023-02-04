@@ -133,7 +133,7 @@ exports[`GetStarted renders correctly 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -786,7 +786,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -1212,7 +1212,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}

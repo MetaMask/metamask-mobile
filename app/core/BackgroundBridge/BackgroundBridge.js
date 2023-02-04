@@ -41,13 +41,16 @@ export class BackgroundBridge extends EventEmitter {
     wcRequestActions,
     getApprovedHosts,
     remoteConnHost,
+    isMMSDK,
   }) {
     super();
     this.url = url;
+    // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.hostname = new URL(url).hostname;
     this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
+    this.isMMSDK = isMMSDK;
     this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
@@ -336,6 +339,16 @@ export class BackgroundBridge extends EventEmitter {
         getProviderState: this.getProviderState.bind(this),
       }),
     );
+
+    // TODO - Remove this condition when WalletConnect and MMSDK uses Permission System.
+    if (!this.isMMSDK && !this.isWalletConnect) {
+      const permissionController = Engine.context.PermissionController;
+      engine.push(
+        permissionController.createPermissionMiddleware({
+          origin,
+        }),
+      );
+    }
 
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));

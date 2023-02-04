@@ -51,7 +51,7 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: any;
-  navBarDisabled: boolean;
+  hasNavigation: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -59,7 +59,7 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
-  navBarDisabled,
+  hasNavigation,
 }: IRevealPrivateCredentialProps) => {
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
@@ -87,7 +87,7 @@ const RevealPrivateCredential = ({
     credentialName || route.params.privateCredentialName;
 
   const updateNavBar = () => {
-    if (navBarDisabled) {
+    if (!hasNavigation) {
       return;
     }
     navigation.setOptions(
@@ -178,7 +178,7 @@ const RevealPrivateCredential = ({
   }, []);
 
   const navigateBack = () => {
-    navigation.pop();
+    hasNavigation && navigation.pop();
   };
 
   const cancelReveal = () => {
@@ -540,9 +540,11 @@ const RevealPrivateCredential = ({
         </>
       </ActionView>
       {renderModal(isPrivateKey(), privateCredentialName)}
+
       <ScreenshotDeterrent
         enabled={unlocked}
         isSRP={privateCredentialName !== PRIVATE_KEY}
+        hasNavigation={hasNavigation}
       />
     </SafeAreaView>
   );

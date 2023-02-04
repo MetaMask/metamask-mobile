@@ -82,6 +82,10 @@ export default class TestHelpers {
     await element(by.id(elementId)).swipe(direction, speed, percentage);
   }
 
+  static async swipeByText(text, direction, speed, percentage) {
+    await element(by.text(text)).swipe(direction, speed, percentage);
+  }
+
   static async scrollTo(scrollviewId, edge) {
     await element(by.id(scrollviewId)).scrollTo(edge);
   }
