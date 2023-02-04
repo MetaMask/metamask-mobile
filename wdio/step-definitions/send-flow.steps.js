@@ -39,12 +39,6 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
   await SendScreen.isTextVisible(text);
 });
 
-Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
-  const timeout = 1000;
-  await driver.pause(timeout);
-  await SendScreen.tapOnText(text);
-});
-
 Then(/^I proceed to the amount view/, async () => {
   await SendScreen.isAmountScreenDisplayed();
 });

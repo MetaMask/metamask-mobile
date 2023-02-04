@@ -19,3 +19,6 @@ export const NFT_TAB_CONTAINER_ID = 'collectible-contracts';
 
 export const NOTIFICATION_REMIND_ME_LATER_BUTTON_ID =
   'notification-remind-later-button';
+
+export const SECURE_WALLET_BACKUP_ALERT_MODAL =
+  'backup-alert';
