@@ -7,7 +7,7 @@ import { TextVariants } from '../../Texts/Text';
 /**
  * TextInput component props.
  */
-export interface TextInputProps extends RNTextInputProps {
+export interface TextInputProps extends Omit<RNTextInputProps, 'editable'> {
   /**
    * Optional enum to select between Typography variants.
    * @default sBodyMD

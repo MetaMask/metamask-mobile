@@ -3,6 +3,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
+import { colors } from '../../../../styles/common';
 
 /**
  * Style sheet function for TextInput component.
@@ -21,14 +22,16 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
       }
     : {
         opacity: disabled ? 0.5 : 1,
-        borderColor: isFocused ? theme.colors.primary.default : 'transparent',
+        borderColor: isFocused
+          ? theme.colors.primary.default
+          : colors.transparent,
       };
   return StyleSheet.create({
     base: Object.assign(
       {
         color: theme.colors.text.default,
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: colors.transparent,
         ...stateObj,
       },
       theme.typography[textVariant],
