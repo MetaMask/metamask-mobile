@@ -8,7 +8,10 @@ import { TouchableOpacity } from 'react-native';
 import Text, { TextVariants } from '../../../../Texts/Text';
 import Icon, { IconSize } from '../../../../Icon';
 import { useStyles } from '../../../../../hooks';
-import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
+import {
+  DEFAULT_BUTTON_SIZE,
+  DEFAULT_BUTTON_WIDTH,
+} from '../../Button.constants';
 
 // Internal dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';
@@ -17,11 +20,11 @@ import styleSheet from './ButtonBase.styles';
 const ButtonBase = ({
   label,
   iconName,
-  size = ButtonSize.Md,
+  size = DEFAULT_BUTTON_SIZE,
   onPress,
   style,
   labelColor,
-  width = ButtonWidthTypes.Auto,
+  width = DEFAULT_BUTTON_WIDTH,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {

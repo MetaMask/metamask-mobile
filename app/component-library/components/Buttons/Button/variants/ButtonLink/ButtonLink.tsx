@@ -1,36 +1,32 @@
 /* eslint-disable react/prop-types */
 // Third party dependencies.
-import React, { useState, useMemo, useCallback } from 'react';
-import { GestureResponderEvent } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { GestureResponderEvent, ColorValue } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariants } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 import { ButtonSize } from '../../Button.types';
 import Button from '../../foundation/ButtonBase';
+import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 
 // Internal dependencies.
 import { ButtonLinkProps } from './ButtonLink.types';
 import styleSheet from './ButtonLink.styles';
+import { DEFAULT_BUTTON_LINK_SIZE } from './ButtonLink.constants';
 
 const ButtonLink: React.FC<ButtonLinkProps> = ({
-  onPress,
   style,
-  textVariants = TextVariants.sBodyMD,
+  textVariants = DEFAULT_TEXT_VARIANT,
   onPressIn,
   onPressOut,
   isDanger = false,
-  size = ButtonSize.Md,
+  size = DEFAULT_BUTTON_LINK_SIZE,
   label,
   ...props
 }) => {
   const [pressed, setPressed] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, { style });
-  const labelColor = useMemo(() => {
-    const colorObj = isDanger ? theme.colors.error : theme.colors.primary;
-    const color: string = pressed ? colorObj.alternative : colorObj.default;
-    return color;
-  }, [theme, isDanger, pressed]);
+  const { styles } = useStyles(styleSheet, { style, isDanger, pressed });
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {
@@ -52,9 +48,8 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
     <>
       {size === ButtonSize.Auto ? (
         <Text
-          onPress={onPress}
           suppressHighlighting
-          style={styles.base}
+          style={styles.baseText}
           {...props}
           variant={textVariants}
         >
@@ -63,10 +58,9 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
       ) : (
         <Button
           style={styles.base}
-          labelColor={labelColor}
+          labelColor={styles.baseText.color}
           onPressIn={triggerOnPressedIn}
           onPressOut={triggerOnPressedOut}
-          onPress={onPress}
           label={label}
           {...props}
         />

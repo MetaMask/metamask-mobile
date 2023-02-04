@@ -9,16 +9,16 @@ exports[`ButtonIcon should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
-      "height": 32,
+      "height": 24,
       "justifyContent": "center",
-      "width": 32,
+      "width": 24,
     }
   }
 >
   <Icon
     color="#037DD6"
     name="AddSquareFilled"
-    size="24"
+    size="16"
   />
 </TouchableOpacity>
 `;

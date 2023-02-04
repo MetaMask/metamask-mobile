@@ -25,7 +25,7 @@ const ToastExample = () => {
   return (
     <>
       <Button
-        variant={ButtonVariants.Tertiary}
+        variant={ButtonVariants.Link}
         size={ButtonSize.Md}
         label={'Show Account Toast'}
         onPress={() => {
@@ -41,7 +41,7 @@ const ToastExample = () => {
         }}
       />
       <Button
-        variant={ButtonVariants.Tertiary}
+        variant={ButtonVariants.Link}
         size={ButtonSize.Md}
         label={'Show Network Toast'}
         onPress={() => {
@@ -63,7 +63,7 @@ const ToastExample = () => {
         }}
       />
       <Button
-        variant={ButtonVariants.Tertiary}
+        variant={ButtonVariants.Link}
         size={ButtonSize.Md}
         label={'Show Plain Toast'}
         onPress={() => {

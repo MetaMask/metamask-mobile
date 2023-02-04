@@ -365,17 +365,23 @@ class OptinMetrics extends PureComponent {
           <Text>{strings('privacy_policy.fine_print_1')}</Text>
           {'\n\n'}
           {strings('privacy_policy.fine_print_2a') + ' '}
-          <ButtonLink onPress={this.openRPCSettings}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('privacy_policy.here')}
+            onPress={this.openRPCSettings}
+          />
           {' ' + strings('privacy_policy.fine_print_2b') + ' '}
-          <ButtonLink onPress={this.openDataRetentionPost}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            onPress={this.openDataRetentionPost}
+            label={strings('privacy_policy.here')}
+          />
           {strings('privacy_policy.fine_print_2c') + ' '}
-          <ButtonLink onPress={this.openPrivacyPolicy}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('privacy_policy.here')}
+            onPress={this.openPrivacyPolicy}
+          />
           {strings('unit.point')}
         </Text>
       </View>

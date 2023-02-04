@@ -12,11 +12,3 @@ export interface ButtonSecondaryProps
    */
   variant?: ButtonVariants.Secondary;
 }
-
-/**
- * Style sheet input parameters.
- */
-export interface ButtonSecondaryStyleSheetVars
-  extends Pick<ButtonSecondaryProps, 'style' | 'isDanger'> {
-  pressed: boolean;
-}

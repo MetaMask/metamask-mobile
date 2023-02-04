@@ -12,11 +12,3 @@ export interface ButtonPrimaryProps
    */
   variant?: ButtonVariants.Primary;
 }
-
-/**
- * Style sheet input parameters.
- */
-export interface ButtonPrimaryStyleSheetVars
-  extends Pick<ButtonPrimaryProps, 'style' | 'isDanger'> {
-  pressed: boolean;
-}

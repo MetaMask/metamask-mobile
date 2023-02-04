@@ -54,6 +54,14 @@ Optional boolean to show the danger state of the button.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                   |
 
+### `width`
+
+Optional param to control the width of the button.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [ButtonWidthTypes](../../Button.types.ts) or number                  | No                                                      |      ButtonWidthTypes.Auto                                                   |
+
 ## Usage
 
 ```javascript
@@ -69,5 +77,7 @@ import { IconName } from 'app/component-library/components/Icon';
   iconName={IconName.BankFilled}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
+  isDanger
+  width={ButtonWidthTypes.Auto}
 />;
 ```

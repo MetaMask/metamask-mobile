@@ -9,13 +9,12 @@ import Icon from '../../Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import {
-  ButtonIconProps,
-  ButtonIconVariants,
-  ButtonIconSizes,
-} from './ButtonIcon.types';
+import { ButtonIconProps, ButtonIconVariants } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
-import { ICON_SIZE_BY_BUTTON_ICON_SIZE } from './ButtonIcon.constants';
+import {
+  DEFAULT_BUTTON_ICON_SIZE,
+  ICON_SIZE_BY_BUTTON_ICON_SIZE,
+} from './ButtonIcon.constants';
 
 const ButtonIcon = ({
   iconName,
@@ -24,7 +23,7 @@ const ButtonIcon = ({
   onPressIn,
   onPressOut,
   style,
-  size = ButtonIconSizes.Lg,
+  size = DEFAULT_BUTTON_ICON_SIZE,
   ...props
 }: ButtonIconProps) => {
   const {

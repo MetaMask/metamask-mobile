@@ -20,8 +20,3 @@ export interface ButtonLinkProps extends Omit<ButtonBaseProps, 'labelColor'> {
    */
   textVariants?: TextVariants;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type ButtonLinkStyleSheetVars = Pick<ButtonLinkProps, 'style'>;

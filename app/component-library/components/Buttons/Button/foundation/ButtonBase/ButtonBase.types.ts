@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
+import { ColorValue, TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
 import { IconProps } from '../../../../Icon';
@@ -24,7 +24,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   /**
    * Color of label. Applies to icon too.
    */
-  labelColor?: string;
+  labelColor?: string | ColorValue;
   /**
    * Icon name of the icon that will be displayed.
    */
@@ -42,14 +42,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   isDanger?: boolean;
   /**
-   * Optional param to control widthType.
+   * Optional param to control the width of the button.
    */
   width?: ButtonWidthTypes | number;
 }
-/**
- * Style sheet input parameters.
- */
-export type ButtonBaseStyleSheetVars = Pick<
-  ButtonBaseProps,
-  'style' | 'size' | 'labelColor' | 'width'
->;

@@ -14,5 +14,7 @@ This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts#L14) 
   iconName={IconName.BankFilled}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
+  isDanger
+  width={ButtonWidthTypes.Full}
 />;
 ```

@@ -4,8 +4,6 @@ import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 
-// Internal dependencies.
-import { ButtonLinkStyleSheetVars } from './ButtonLink.types';
 /**
  * Style sheet function for ButtonLink component.
  *
@@ -14,16 +12,16 @@ import { ButtonLinkStyleSheetVars } from './ButtonLink.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: ButtonLinkStyleSheetVars;
-}) => {
+const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
-  const { style } = vars;
+  const { style, isDanger, pressed } = vars;
+  const colorObj = isDanger ? theme.colors.error : theme.colors.primary;
+  const labelColor: string = pressed ? colorObj.alternative : colorObj.default;
+
   return StyleSheet.create({
     base: Object.assign({ backgroundColor: 'transparent' }, style) as ViewStyle,
     baseText: Object.assign(
-      { color: theme.colors.primary.default } as TextStyle,
+      { color: labelColor } as TextStyle,
       style,
     ) as TextStyle,
   });

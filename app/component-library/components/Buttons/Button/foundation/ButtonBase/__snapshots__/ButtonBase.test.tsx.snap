@@ -7,16 +7,13 @@ exports[`ButtonBase should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "alignSelf": "baseline",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
-<<<<<<< HEAD
-      "width": "auto",
-=======
       "paddingHorizontal": 16,
->>>>>>> 0f506e70ea1283e7b626f1abbd267195b5a478a0
     }
   }
 >
