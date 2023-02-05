@@ -39,7 +39,6 @@ import {
   METAMETRICS_OPT_IN_CONTAINER_ID,
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/OptinMetricsScreen.testIds';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Button, {
   ButtonVariants,
   ButtonSize,
