@@ -13,19 +13,19 @@ import ButtonLink from './ButtonLink';
 import { ButtonLinkProps } from './ButtonLink.types';
 
 export const getButtonLinkStoryProps = (): ButtonLinkProps => {
-  const TextVariantSelector = select(
-    'TextVariant',
+  const textVariantSelector = select(
+    'textVariant',
     TextVariant,
     TextVariant.HeadingSMRegular,
     storybookPropsGroupID,
   );
   const childrenText = text(
-    'TextVariant',
+    'textVariant',
     'Sample Button Link Text',
     storybookPropsGroupID,
   );
   return {
-    TextVariant: TextVariantSelector,
+    textVariant: textVariantSelector,
     children: childrenText,
     onPress: () => console.log("I'm clicked!"),
   };

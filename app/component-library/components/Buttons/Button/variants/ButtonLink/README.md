@@ -23,6 +23,6 @@ import { TextVariant } from 'app/component-library/components/Texts/Text';
 
 <ButtonLink
   variant={TextVariant.HeadingSM}
-  onPress={ONPRESS_HANDLER)}
+  onPress={ONPRESS_HANDLER}
 >{LINK_LABEL}</ButtonLink>;
 ```

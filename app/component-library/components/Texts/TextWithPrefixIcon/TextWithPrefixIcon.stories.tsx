@@ -27,7 +27,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
       IconSize.Md,
       groupId,
     );
-    const TextVariantSelector = select(
+    const textVariantSelector = select(
       'Variant',
       TextVariant,
       TextVariant.HeadingSMRegular,
@@ -40,7 +40,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
     };
 
     return (
-      <TextWithPrefixIcon variant={TextVariantSelector} iconProps={iconProps}>
+      <TextWithPrefixIcon variant={textVariantSelector} iconProps={iconProps}>
         {inputText}
       </TextWithPrefixIcon>
     );

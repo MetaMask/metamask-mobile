@@ -177,7 +177,7 @@ const CustomSpendCap = ({
             />
           </Pressable>
         </View>
-        <ButtonLink onPress={handlePress} TextVariant={TextVariant.BodyMD}>
+        <ButtonLink onPress={handlePress} textVariant={TextVariant.BodyMD}>
           {defaultValueSelected
             ? strings('contract_allowance.custom_spend_cap.edit')
             : strings('contract_allowance.custom_spend_cap.use_default')}

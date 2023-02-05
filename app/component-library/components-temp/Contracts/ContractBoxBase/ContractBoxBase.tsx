@@ -58,7 +58,7 @@ const ContractBoxBase = ({
         ) : (
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
             <ButtonLink
-              TextVariant={TextVariant.HeadingMD}
+              textVariant={TextVariant.HeadingMD}
               style={styles.header}
               onPress={onContractPress}
             >

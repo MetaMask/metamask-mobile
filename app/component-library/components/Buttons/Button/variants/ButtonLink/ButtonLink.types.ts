@@ -17,7 +17,7 @@ export interface ButtonLinkProps extends Omit<TextProps, 'variant'> {
   /**
    * Text component variants.
    */
-  TextVariant?: TextVariant;
+  textVariant?: TextVariant;
 }
 
 /**

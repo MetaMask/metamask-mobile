@@ -29,7 +29,7 @@ const AvatarToken = ({
     showFallback,
   });
 
-  const TextVariant =
+  const textVariant =
     size === AvatarSize.Sm || size === AvatarSize.Xs
       ? TextVariant.BodyMD
       : TextVariant.HeadingSMRegular;
@@ -40,7 +40,7 @@ const AvatarToken = ({
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base}>
       {showFallback ? (
-        <Text style={styles.label} variant={TextVariant}>
+        <Text style={styles.label} variant={textVariant}>
           {tokenNameFirstLetter}
         </Text>
       ) : (

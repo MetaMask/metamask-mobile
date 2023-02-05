@@ -12,7 +12,7 @@ import { TEST_SAMPLE_TEXT } from './TextEstimated.constants';
 
 storiesOf('Components / UI / TextEstimated', module).add('Default', () => {
   const groupId = 'Props';
-  const TextVariantSelector = select(
+  const textVariantSelector = select(
     'Variant',
     TextVariant,
     TextVariant.HeadingSMRegular,
@@ -21,6 +21,6 @@ storiesOf('Components / UI / TextEstimated', module).add('Default', () => {
   const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
 
   return (
-    <TextEstimated variant={TextVariantSelector}>{inputText}</TextEstimated>
+    <TextEstimated variant={textVariantSelector}>{inputText}</TextEstimated>
   );
 });

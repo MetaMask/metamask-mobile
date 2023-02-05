@@ -15,7 +15,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
   onPress,
   style,
   children,
-  TextVariant = TextVariant.BodyMD,
+  textVariant = TextVariant.BodyMD,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -25,7 +25,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
       suppressHighlighting
       style={styles.base}
       {...props}
-      variant={TextVariant}
+      variant={textVariant}
     >
       {children}
     </Text>
