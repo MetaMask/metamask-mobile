@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js';
 // External dependencies.
 import { useStyles } from '../../hooks';
 import { strings } from '../../../../locales/i18n';
-import ButtonLink from '../../components/Buttons/Button/variants/ButtonLink';
+import Button, { ButtonVariants } from '../../components/Buttons/Button';
 import Text, { TextVariant } from '../../components/Texts/Text';
 import formatNumber from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
@@ -177,11 +177,16 @@ const CustomSpendCap = ({
             />
           </Pressable>
         </View>
-        <ButtonLink onPress={handlePress} textVariant={TextVariant.BodyMD}>
-          {defaultValueSelected
-            ? strings('contract_allowance.custom_spend_cap.edit')
-            : strings('contract_allowance.custom_spend_cap.use_default')}
-        </ButtonLink>
+        <Button
+          variant={ButtonVariants.Link}
+          onPress={handlePress}
+          textVariant={TextVariant.sBodyMD}
+          label={
+            defaultValueSelected
+              ? strings('contract_allowance.custom_spend_cap.edit')
+              : strings('contract_allowance.custom_spend_cap.use_default')
+          }
+        />
       </View>
       <View style={styles.inputContainer}>
         <CustomInput
