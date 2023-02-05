@@ -3,9 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
-
-// Internal dependencies.
-import { ButtonBaseStyleSheetVars } from './ButtonBase.types';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 /**
  * Style sheet function for ButtonBase component.
@@ -14,24 +12,33 @@ import { ButtonBaseStyleSheetVars } from './ButtonBase.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: ButtonBaseStyleSheetVars;
-}) => {
+const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { vars, theme } = params;
-  const { style, size, labelColor } = vars;
-  const sizeAsNum = Number(size);
+  const { style, size, labelColor, width } = vars;
+  const isAutoSize: boolean = size === ButtonSize.Auto;
+  let widthObject;
+  switch (width) {
+    case ButtonWidthTypes.Auto:
+      widthObject = { alignSelf: 'baseline' };
+      break;
+    case ButtonWidthTypes.Full:
+      widthObject = { alignSelf: 'stretch' };
+      break;
+    default:
+      widthObject = { width };
+  }
 
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
         backgroundColor: theme.colors.background.alternative,
-        height: sizeAsNum,
+        height: isAutoSize ? size : Number(size),
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: sizeAsNum / 2,
-        paddingHorizontal: 16,
+        borderRadius: isAutoSize ? 0 : Number(size) / 2,
+        paddingHorizontal: isAutoSize ? 0 : 16,
+        ...widthObject,
       } as ViewStyle,
       style,
     ) as ViewStyle,
