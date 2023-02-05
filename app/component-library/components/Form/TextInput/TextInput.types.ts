@@ -2,7 +2,7 @@
 import { TextInputProps as RNTextInputProps } from 'react-native';
 
 // External dependencies.
-import { TextVariants } from '../../Texts/Text';
+import { TextVariant } from '../../Texts/Text';
 
 /**
  * TextInput component props.
@@ -10,9 +10,9 @@ import { TextVariants } from '../../Texts/Text';
 export interface TextInputProps extends Omit<RNTextInputProps, 'editable'> {
   /**
    * Optional enum to select between Typography variants.
-   * @default sBodyMD
+   * @default BodyMD
    */
-  textVariant?: TextVariants;
+  textVariant?: TextVariant;
   /**
    * Optional boolean to disable TextInput.
    * @default false

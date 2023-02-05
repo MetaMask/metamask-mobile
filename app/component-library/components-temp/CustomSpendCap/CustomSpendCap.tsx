@@ -180,7 +180,7 @@ const CustomSpendCap = ({
         <Button
           variant={ButtonVariants.Link}
           onPress={handlePress}
-          textVariant={TextVariant.sBodyMD}
+          textVariant={TextVariant.BodyMD}
           label={
             defaultValueSelected
               ? strings('contract_allowance.custom_spend_cap.edit')
