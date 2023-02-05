@@ -11,7 +11,7 @@ import Text, { TextVariants } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import Icon, { IconName, IconSize } from '../../../components/Icon';
 import { useStyles } from '../../../hooks';
-import ButtonLink from '../../../components/Buttons/Button/variants/ButtonLink';
+import Button, { ButtonVariants } from '../../../components/Buttons/Button';
 
 // Internal dependencies.
 import { ContractBoxBaseProps, IconViewProps } from './ContractBoxBase.types';
@@ -57,13 +57,14 @@ const ContractBoxBase = ({
           </Pressable>
         ) : (
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
-            <ButtonLink
+            <Button
+              variant={ButtonVariants.Link}
               textVariants={TextVariants.sHeadingMD}
               style={styles.header}
               onPress={onContractPress}
             >
               {formattedAddress}
-            </ButtonLink>
+            </Button>
           </View>
         )}
       </View>
