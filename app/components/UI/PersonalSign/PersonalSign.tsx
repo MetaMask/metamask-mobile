@@ -10,7 +10,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
-import { sanitizeString } from '../../../util/string';
+import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { useTheme } from '../../../util/theme';

@@ -1,4 +1,4 @@
-import { sanitizeString } from '.';
+import sanitizeString from '.';
 
 describe('sanitizeString', () => {
   it('should escape all occurences of \u202E in text', async () => {

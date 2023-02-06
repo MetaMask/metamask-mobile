@@ -16,7 +16,7 @@ import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { sanitizeString } from '../../../util/string';
+import sanitizeString from '../../../util/string';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const createStyles = (colors) =>
