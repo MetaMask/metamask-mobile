@@ -5,15 +5,15 @@ Feature: App launch times
   So that I can ensure it is performing well
 
   Scenario: Measure app launch time on fresh install
-    Given the app is closed
-    When I launch the app
+    Given the app is launched
+    When the app displayed the splash animation
     Then the app should launch within x seconds
 
   Scenario: Measure app launch time after importing a wallet
-    Given I have imported my wallet for app launch times
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And main Wallet Screen is displayed
+    And I am on the wallet view
     When I kill then app
     And I relaunch the app
     And I log into my wallet

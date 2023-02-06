@@ -132,7 +132,8 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const element = await this.WalletScreenContainer;
+    await element.waitForDisplayed();
   }
 
   async isNetworkNameCorrect(network) {

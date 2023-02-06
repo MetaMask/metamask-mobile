@@ -15,14 +15,14 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.isScreenTitleVisible();
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForSplashAnimationToDisappear();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
-  await ImportFromSeedScreen.setLoginBiometrics('OFF');
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
@@ -32,7 +32,8 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I have created my wallet$/, async () => {
   // should be in a common step file
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.isScreenTitleVisible();
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForSplashAnimationToDisappear();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
