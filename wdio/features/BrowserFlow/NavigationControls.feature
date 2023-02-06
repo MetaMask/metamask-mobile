@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @regression
 Feature: This feature file covers all the navigation control options in browser.
 
   Scenario: Navigation with browser controls

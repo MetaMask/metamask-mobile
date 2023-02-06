@@ -1,4 +1,5 @@
-@androidApp
+@androidApp 
+@regression
 Feature: This feature file covers address view functionality in the browser.
 
   Scenario: Address bar
