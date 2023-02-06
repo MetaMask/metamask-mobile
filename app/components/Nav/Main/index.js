@@ -253,7 +253,6 @@ const Main = (props) => {
   }, [networkProvider, toastRef]);
 
   useEffect(() => {
-    console.log('vault/ Nav/Main');
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
       initForceReload();
