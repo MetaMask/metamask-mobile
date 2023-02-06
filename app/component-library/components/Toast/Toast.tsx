@@ -121,9 +121,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
         textVariants={TextVariants.sBodyMD}
-      >
-        {linkButtonOptions.label}
-      </Button>
+        label={linkButtonOptions.label}
+      />
     );
 
   const renderAvatar = () => {

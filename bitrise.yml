@@ -259,7 +259,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
   build_android_qa:
     before_run:
-      - code_setup
+      - code_setup_cache
     after_run:
       - _upload_apk_to_browserstack
     steps:
@@ -318,9 +318,26 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - deploy-to-bitrise-io@1:
+          inputs:
+            - deploy_path: browserstack_uploaded_apps.json
+          title: Bitrise Deploy Browserstack Uploaded Apps
+      - build-router-start@0:
+          inputs:
+            - workflows: |-
+                wdio_android_e2e_test
+            - wait_for_builds: 'false'
+            - abort_on_fail: 'yes'
+            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+            - environment_key_list:
+                BROWSERSTACK_APP_URL
+                BROWSERSTACK_DEVICE
+                BROWSERSTACK_OS_VERSION
+                BROWSERSTACK_TAG_EXPRESSION
   wdio_android_e2e_test:
     before_run:
-      - build_android_qa
+      - code_setup_cache
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
@@ -334,10 +351,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo $BITRISE_TEST_RESULT_DIR
-                echo $BITRISE_SOURCE_DIR
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
-                ls -la $BITRISE_TEST_RESULT_DIR
       - deploy-to-bitrise-io@1:
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR

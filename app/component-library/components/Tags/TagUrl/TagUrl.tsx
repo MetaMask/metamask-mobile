@@ -32,9 +32,8 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
           variant={ButtonVariants.Link}
           style={styles.cta}
           onPress={cta.onPress}
-        >
-          {cta.label}
-        </Button>
+          label={cta.label}
+        />
       )}
     </View>
   );

@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @regression
 Feature: This feature file cover the switch account on the browser flow.
 
   Scenario: Switching accounts while connected to a dapp.

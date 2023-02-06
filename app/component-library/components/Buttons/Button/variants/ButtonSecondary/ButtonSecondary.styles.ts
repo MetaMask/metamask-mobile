@@ -4,12 +4,6 @@ import { StyleSheet, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 
-// Internal dependencies.
-import {
-  ButtonSecondaryStyleSheetVars,
-  ButtonSecondaryVariants,
-} from './ButtonSecondary.types';
-
 /**
  * Style sheet function for ButtonSecondary component.
  *
@@ -17,24 +11,14 @@ import {
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: ButtonSecondaryStyleSheetVars;
-}) => {
+const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, buttonSecondaryVariants, pressed } = vars;
-  let borderColor: string;
-  switch (buttonSecondaryVariants) {
-    case ButtonSecondaryVariants.Normal:
-      borderColor = pressed
-        ? colors.primary.alternative
-        : colors.primary.default;
-      break;
-    case ButtonSecondaryVariants.Danger:
-      borderColor = pressed ? colors.error.alternative : colors.error.default;
-      break;
-  }
+  const { style, isDanger, pressed } = vars;
+  const borderColorObj = isDanger ? colors.error : colors.primary;
+  const borderColor: string = pressed
+    ? borderColorObj.alternative
+    : borderColorObj.default;
 
   return StyleSheet.create({
     base: Object.assign(
