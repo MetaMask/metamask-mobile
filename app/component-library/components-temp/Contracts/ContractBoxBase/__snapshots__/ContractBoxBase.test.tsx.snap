@@ -35,12 +35,12 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
             "color": "#037DD6",
           }
         }
-        variant="HeadingMD"
+        variant="sHeadingMD"
       >
         DAI
       </Text>
       <Text
-        variant="BodyMD"
+        variant="sBodyMD"
       >
         0x2990...a21a
       </Text>

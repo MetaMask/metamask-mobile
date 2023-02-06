@@ -9,7 +9,7 @@ exports[`TextEstimated - Snapshot should render default settings correctly 1`] =
     }
   }
   testID="text-estimated"
-  variant="HeadingSMRegular"
+  variant="sHeadingSMRegular"
 >
   Sample Text
 </TextWithPrefixIcon>

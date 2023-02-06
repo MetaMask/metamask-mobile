@@ -32,7 +32,7 @@ exports[`ButtonBase should render correctly 1`] = `
         "color": undefined,
       }
     }
-    variant="BodyMD"
+    variant="sBodyMD"
   >
     Click me!
   </Text>

@@ -38,7 +38,7 @@ exports[`TagUrl should render correctly 1`] = `
         "flexShrink": 1,
       }
     }
-    variant="BodyMD"
+    variant="sBodyMD"
   >
     https://uniswap.org
   </Text>

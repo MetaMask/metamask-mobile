@@ -140,7 +140,7 @@ exports[`AvatarGroup should render correctly 1`] = `
         }
       }
       testID="stacked-avatar-overflow-counter"
-      variant="BodyMD"
+      variant="sBodyMD"
     >
       +10
     </Text>

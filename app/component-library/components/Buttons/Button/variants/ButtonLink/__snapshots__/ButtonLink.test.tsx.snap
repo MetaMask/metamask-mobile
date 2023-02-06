@@ -10,7 +10,7 @@ exports[`Link should render correctly 1`] = `
       }
     }
     suppressHighlighting={true}
-    variant="BodyMD"
+    variant="sBodyMD"
   >
     I'm a Link!
   </Text>
