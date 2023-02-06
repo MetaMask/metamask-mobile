@@ -747,9 +747,6 @@ class Confirm extends PureComponent {
           TransactionTypes.MMM,
           WalletDevice.MM_MOBILE,
         );
-      await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
-      await new Promise((resolve) => resolve(result));
 
       const finalizeConfirmation = async (confirmed) => {
         const rejectTransaction = () => {
@@ -823,10 +820,12 @@ class Confirm extends PureComponent {
           }),
         );
       } else {
+        await KeyringController.resetQRKeyringState();
         await TransactionController.approveTransaction(transactionMeta.id);
         await finalizeConfirmation(true);
       }
     } catch (error) {
+      this.setState({ transactionConfirmed: false, stopUpdateGas: false });
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(
           strings('transactions.transaction_error'),
