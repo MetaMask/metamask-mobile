@@ -109,7 +109,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 
   dismiss = () => {
     this.props.navigation.popToTop();
-    this.props.navigation.goBack(null);
+    this.props.navigation.canGoBack() && this.props.navigation.goBack(null);
   };
 
   render() {
