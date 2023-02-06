@@ -7,7 +7,7 @@ exports[`ButtonBase should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
-      "alignSelf": "baseline",
+      "alignSelf": "flex-start",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
       "flexDirection": "row",

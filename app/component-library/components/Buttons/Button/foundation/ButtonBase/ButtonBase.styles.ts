@@ -19,7 +19,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   let widthObject;
   switch (width) {
     case ButtonWidthTypes.Auto:
-      widthObject = { alignSelf: 'baseline' };
+      widthObject = { alignSelf: 'flex-start' };
       break;
     case ButtonWidthTypes.Full:
       widthObject = { alignSelf: 'stretch' };
