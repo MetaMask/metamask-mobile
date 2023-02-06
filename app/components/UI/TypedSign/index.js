@@ -217,12 +217,15 @@ class TypedSign extends PureComponent {
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
           <View>
-            <Text style={[styles.messageText, styles.msgKey]}>{sanitizeString(key)}:</Text>
+            <Text style={[styles.messageText, styles.msgKey]}>
+              {sanitizeString(key)}:
+            </Text>
             <View>{this.renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
           <Text style={styles.messageText}>
-            <Text style={styles.msgKey}>{sanitizeString(key)}:</Text> {sanitizeString(`${obj[key]}`)}
+            <Text style={styles.msgKey}>{sanitizeString(key)}:</Text>{' '}
+            {sanitizeString(`${obj[key]}`)}
           </Text>
         )}
       </View>
@@ -239,7 +242,7 @@ class TypedSign extends PureComponent {
           {messageParams.data.map((obj, i) => (
             <View key={`${obj.name}_${i}`}>
               <Text style={[styles.messageText, styles.msgKey]}>
-                {sanitizeString((obj.name))}:
+                {sanitizeString(obj.name)}:
               </Text>
               <Text style={styles.messageText} key={obj.name}>
                 {sanitizeString(` ${obj.value}`)}
