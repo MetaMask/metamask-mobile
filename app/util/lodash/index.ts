@@ -58,11 +58,11 @@ export const gt = (value: number, other: number): boolean =>
  * @returns {string} Returns the `toStringTag`.
  */
 function getTag(value: any): string {
-  const toString = Object.prototype.toString;
+  const objToString = Object.prototype.toString;
   if (value === null) {
     return value === undefined ? '[object Undefined]' : '[object Null]';
   }
-  return toString.call(value);
+  return objToString.call(value);
 }
 
 /**
@@ -76,8 +76,8 @@ export function isString(value: any): boolean {
   return (
     type === 'string' ||
     (type === 'object' &&
-      value != null &&
+      value !== null &&
       !Array.isArray(value) &&
-      getTag(value) == '[object String]')
+      getTag(value) === '[object String]')
   );
 }
