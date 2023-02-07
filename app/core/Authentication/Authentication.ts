@@ -376,6 +376,12 @@ class AuthenticationService {
     selectedAddress: string,
   ): Promise<void> => {
     try {
+      console.log(
+        'vault/ userEntryAuth called with',
+        password,
+        authData,
+        selectedAddress,
+      );
       await this.loginVaultCreation(password, selectedAddress);
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();

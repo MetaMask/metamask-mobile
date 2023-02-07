@@ -245,10 +245,10 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
-  authData = Authentication.getType();
-
   async componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
+    const authData = await Authentication.getType();
 
     //Setup UI to handle Biometric
     const previouslyDisabled = await AsyncStorage.getItem(
@@ -258,29 +258,30 @@ class Login extends PureComponent {
       PASSCODE_DISABLED,
     );
 
-    if (this.authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+    console.log(
+      `vault/ Login: previouslyDisabled: ${previouslyDisabled}, passcodePreviouslyDisabled: ${passcodePreviouslyDisabled} authData: 
+      ${JSON.stringify(authData)}`,
+    );
+
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
-        biometryType: passcodeType(this.authData.currentAuthType),
+        biometryType: passcodeType(authData.currentAuthType),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
         biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
-        hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
-    } else if (
-      this.authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME
-    ) {
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,
       });
       this.props.setAllowLoginWithRememberMe(true);
-    } else if (this.authData.availableBiometryType) {
+    } else if (authData.availableBiometryType) {
       this.setState({
-        biometryType: this.authData.availableBiometryType,
+        biometryType: authData.availableBiometryType,
         biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
         biometryPreviouslyDisabled: !!previouslyDisabled,
-        hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
     }
   }
