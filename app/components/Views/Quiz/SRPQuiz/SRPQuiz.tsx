@@ -291,7 +291,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Primary,
           },
           {
             label: strings('srp_security_quiz.learn_more'),

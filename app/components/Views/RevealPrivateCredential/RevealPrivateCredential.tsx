@@ -103,7 +103,7 @@ const RevealPrivateCredential = ({
   };
 
   const isPrivateKey = () => {
-    const credential = credentialName || route.params.privateCredentialName;
+    const credential = credentialName || route.params.credentialName;
     return credential === PRIVATE_KEY;
   };
 
