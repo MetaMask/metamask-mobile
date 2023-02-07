@@ -13,6 +13,7 @@ import Logger from '../../../util/Logger';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -86,12 +87,14 @@ const UpdateNeeded = () => {
       <View style={styles.actionButtonWrapper}>
         <Button
           variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
           label={strings('update_needed.primary_action')}
           onPress={onUpdatePressed}
           style={styles.actionButton}
         />
         <Button
           variant={ButtonVariants.Link}
+          width={ButtonWidthTypes.Full}
           label={strings('update_needed.secondary_action')}
           size={ButtonSize.Md}
           onPress={triggerClose}
