@@ -440,7 +440,6 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      transaction: { from },
     } = this.props;
     const {
       actionKey,
@@ -497,29 +496,29 @@ class TransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     <View style={styles.accountInfoCardWrapper}>
-                    <TransactionReviewInformation
-                      navigation={navigation}
-                      error={error}
-                      edit={this.edit}
-                      ready={ready}
-                      assetAmount={assetAmount}
-                      fiatValue={fiatValue}
-                      toggleDataView={this.toggleDataView}
-                      over={over}
-                      onCancelPress={this.props.onCancel}
-                      gasEstimateType={gasEstimateType}
-                      EIP1559GasData={EIP1559GasData}
-                      origin={
-                        dappSuggestedGas ? currentPageInformation?.url : null
-                      }
-                      gasSelected={gasSelected}
-                      originWarning={dappSuggestedGasWarning}
-                      onUpdatingValuesStart={onUpdatingValuesStart}
-                      onUpdatingValuesEnd={onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                    />
+                      <TransactionReviewInformation
+                        navigation={navigation}
+                        error={error}
+                        edit={this.edit}
+                        ready={ready}
+                        assetAmount={assetAmount}
+                        fiatValue={fiatValue}
+                        toggleDataView={this.toggleDataView}
+                        over={over}
+                        onCancelPress={this.props.onCancel}
+                        gasEstimateType={gasEstimateType}
+                        EIP1559GasData={EIP1559GasData}
+                        origin={
+                          dappSuggestedGas ? currentPageInformation?.url : null
+                        }
+                        gasSelected={gasSelected}
+                        originWarning={dappSuggestedGasWarning}
+                        onUpdatingValuesStart={onUpdatingValuesStart}
+                        onUpdatingValuesEnd={onUpdatingValuesEnd}
+                        animateOnChange={animateOnChange}
+                        isAnimating={isAnimating}
+                        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                      />
                     </View>
                   </View>
                 </ScrollView>

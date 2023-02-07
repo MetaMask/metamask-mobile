@@ -629,7 +629,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from },
+      transaction: { origin },
       network,
       over,
       gasEstimateType,
