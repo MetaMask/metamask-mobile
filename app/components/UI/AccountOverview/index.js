@@ -25,7 +25,11 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
 import { renderFiat } from '../../../util/number';
-import { isHardwareAccount, renderAccountName } from '../../../util/address';
+import {
+  isHardwareAccount,
+  isImportedAccount,
+  renderAccountName,
+} from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import {
   doENSReverseLookup,
@@ -368,6 +372,7 @@ class AccountOverview extends PureComponent {
 
     const isHardwareWalletAccount = isHardwareAccount(address);
     const isLedgerAccount = isHardwareAccount(address, [KeyringTypes.ledger]);
+    const showImportAccountLabel = isImportedAccount(address);
 
     return (
       <View
@@ -453,6 +458,13 @@ class AccountOverview extends PureComponent {
                         {isLedgerAccount
                           ? strings('accounts.ledger')
                           : strings('transaction.hardware')}
+                      </Text>
+                    </View>
+                  )}
+                  {showImportAccountLabel && (
+                    <View style={styles.tag}>
+                      <Text style={styles.tagText}>
+                        {strings('accounts.imported')}
                       </Text>
                     </View>
                   )}

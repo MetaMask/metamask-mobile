@@ -184,6 +184,27 @@ export function isQRHardwareAccount(address) {
 }
 
 /**
+ * judge address is an imported account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isImportedAccount(address) {
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  const simpleKeyrings = keyrings.filter(
+    (keyring) => keyring.type === KeyringTypes.simple,
+  );
+  let simpleAccounts = [];
+  for (const simpleKeyring of simpleKeyrings) {
+    simpleAccounts = simpleAccounts.concat(
+      simpleKeyring.accounts.map((account) => account.toLowerCase()),
+    );
+  }
+  return simpleAccounts.includes(address.toLowerCase());
+}
+
+/**
  * judge address's account type for tracking
  *
  * @param {String} address - String corresponding to an address
