@@ -18,9 +18,10 @@ import ReusableModal, {
   ReusableModalRef,
 } from '../../../../components/UI/ReusableModal';
 import Checkbox from '../../../../component-library/components/Checkbox';
-import ButtonIcon from '../../../../component-library/components/Buttons/Button/variants/ButtonIcon';
 import { IconName } from '../../../../component-library/components/Icon';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 
 // Internal dependencies
 import {
