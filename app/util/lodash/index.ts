@@ -51,8 +51,6 @@ export const lt = (value: number, other: number): boolean =>
 export const gt = (value: number, other: number): boolean =>
   Number(value) > Number(other);
 
-const toString = Object.prototype.toString;
-
 /**
  * Gets the `toStringTag` of `value`.
  *
@@ -60,7 +58,8 @@ const toString = Object.prototype.toString;
  * @returns {string} Returns the `toStringTag`.
  */
 function getTag(value: any): string {
-  if (value == null) {
+  const toString = Object.prototype.toString;
+  if (value === null) {
     return value === undefined ? '[object Undefined]' : '[object Null]';
   }
   return toString.call(value);
