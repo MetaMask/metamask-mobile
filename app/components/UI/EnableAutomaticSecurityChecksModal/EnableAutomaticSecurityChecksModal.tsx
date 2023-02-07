@@ -9,11 +9,10 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import ButtonTertiary, {
-  ButtonTertiaryVariants,
-} from '../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
-import { ButtonSize } from '../../../component-library/components/Buttons/Button';
-import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import { useDispatch } from 'react-redux';
 import {
   setAutomaticSecurityChecks,
@@ -107,14 +106,16 @@ const EnableAutomaticSecurityChecksModal = () => {
         </Text>
       </ScrollView>
       <View style={styles.actionButtonWrapper}>
-        <ButtonPrimary
+        <Button
+          variant={ButtonVariants.Primary}
           label={strings(
             'enable_automatic_security_check_modal.primary_action',
           )}
           onPress={enableAutomaticSecurityChecks}
           style={styles.actionButton}
         />
-        <ButtonTertiary
+        <Button
+          variant={ButtonVariants.Link}
           label={strings(
             'enable_automatic_security_check_modal.secondary_action',
           )}
@@ -124,7 +125,6 @@ const EnableAutomaticSecurityChecksModal = () => {
           )}
           size={ButtonSize.Md}
           onPress={triggerCloseAndDisableAutomaticSecurityChecks}
-          buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         />
       </View>
     </ReusableModal>

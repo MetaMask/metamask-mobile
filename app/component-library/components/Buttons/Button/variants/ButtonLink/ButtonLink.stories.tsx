@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { select, text } from '@storybook/addon-knobs';
+import { boolean, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
@@ -19,15 +19,14 @@ export const getButtonLinkStoryProps = (): ButtonLinkProps => {
     TextVariants.lBodyMD,
     storybookPropsGroupID,
   );
-  const childrenText = text(
-    'textVariants',
-    'Sample Button Link Text',
-    storybookPropsGroupID,
-  );
+  const label = text('label', 'Sample Button Link Text', storybookPropsGroupID);
+  const isDanger = boolean('isDanger', false, storybookPropsGroupID);
+
   return {
     textVariants: textVariantsSelector,
-    children: childrenText,
+    label,
     onPress: () => console.log("I'm clicked!"),
+    isDanger,
   };
 };
 

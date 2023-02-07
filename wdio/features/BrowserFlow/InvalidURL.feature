@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @smoke
 Feature: This feature file covers invalid url functionality in the browser.
 
   Scenario: Searching an invalid url and prompts the user with an error message

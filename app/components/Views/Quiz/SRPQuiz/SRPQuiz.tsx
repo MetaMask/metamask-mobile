@@ -97,7 +97,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -130,7 +130,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -163,7 +163,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -196,7 +196,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -229,7 +229,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -262,7 +262,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -290,12 +290,12 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
-            variant: ButtonVariants.Primary,
+            variant: ButtonVariants.Link,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}

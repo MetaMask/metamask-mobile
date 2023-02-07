@@ -72,7 +72,6 @@ class CreateNewWalletScren {
 
   async tapRemindMeLater() {
     await Gestures.tap(this.remindMeLaterButton);
-    // await Gestures.tap(Selectors.getXpathElementByText('Remind me later'));
   }
 
   async isAccountCreated() {

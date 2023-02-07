@@ -1,8 +1,12 @@
-@androidApp
-@ChainScenarios
+@androidApp 
+@ChainScenarios 
+@regression
+
 Feature: Adding addresses to contacts via address book modal and the contacts screen
   A user should see the correct warning when trying to send funds to a contract address
   A user can saved an ENS name to your address book
+  
+
   The contacts you saved on network A does not carry over to network B
 
   Scenario: Import account and navigate to Send

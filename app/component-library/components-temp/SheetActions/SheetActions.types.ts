@@ -1,6 +1,3 @@
-// External dependencies.
-import { ButtonTertiaryVariant } from '../../../component-library/components/Buttons/ButtonTertiary';
-
 /**
  * Sheet action options.
  */
@@ -10,7 +7,7 @@ export interface Action {
   testID?: string;
   disabled?: boolean;
   isLoading?: boolean;
-  variant?: ButtonTertiaryVariant;
+  isDanger?: boolean;
 }
 
 /**

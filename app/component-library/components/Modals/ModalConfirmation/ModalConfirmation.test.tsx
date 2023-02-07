@@ -4,7 +4,6 @@ import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import ModalConfirmation from './ModalConfirmation';
-import { ModalConfirmationVariants } from './ModalConfirmation.types';
 import {
   MODAL_CONFIRMATION_NORMAL_BUTTON_ID,
   MODAL_CONFIRMATION_DANGER_BUTTON_ID,
@@ -17,7 +16,6 @@ describe('ModalConfirmation', () => {
         route={{
           params: {
             onConfirm: () => null,
-            variant: ModalConfirmationVariants.Normal,
             title: 'Title!',
             description: 'Description.',
           },
@@ -32,7 +30,6 @@ describe('ModalConfirmation', () => {
         route={{
           params: {
             onConfirm: () => null,
-            variant: ModalConfirmationVariants.Normal,
             title: 'Title!',
             description: 'Description.',
           },
@@ -50,7 +47,7 @@ describe('ModalConfirmation', () => {
         route={{
           params: {
             onConfirm: () => null,
-            variant: ModalConfirmationVariants.Danger,
+            isDanger: true,
             title: 'Title!',
             description: 'Description.',
           },
