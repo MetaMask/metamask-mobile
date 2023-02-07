@@ -726,7 +726,6 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    // testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
                     {...generateTestId(
                       Platform,
                       RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,

@@ -11,7 +11,7 @@ When(
   },
 );
 When(/^on Change password screen I tap CONFIRM/, async () => {
-  await ChangePasswordScreens.tapCONFIRM();
+  await ChangePasswordScreens.tapConfirmButton();
 });
 When(
   /^on Reset password screen I input "([^"]*)?" in confirm field/,
