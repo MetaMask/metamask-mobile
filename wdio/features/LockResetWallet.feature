@@ -10,8 +10,7 @@ Feature: Change password, Lock and Reset Wallet
     And I tap No thanks on the onboarding welcome tutorial
 
   Scenario: Navigate to Change Password in Settings
-    When I tap "No, Thanks"
-    And I tap burger icon
+    When I tap burger icon
     And I tap on "Settings" in the menu
     And In settings I tap on "Security & Privacy"
     Then on Security & Privacy screen I tap "Change password" 
