@@ -765,9 +765,10 @@ class ApproveTransactionReview extends PureComponent {
             variant={TextVariants.sBodyMD}
             onPress={showVerifyContractDetails}
             style={styles.verifyContractLink}
-          >
-            {strings('confirmation.token_allowance.verify_contract_details')}
-          </ButtonLink>
+            label={strings(
+              'confirmation.token_allowance.verify_contract_details',
+            )}
+          />
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"

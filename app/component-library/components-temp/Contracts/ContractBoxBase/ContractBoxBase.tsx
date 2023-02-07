@@ -89,9 +89,7 @@ const ContractBoxBase = ({
               textVariant={TextVariant.HeadingMD}
               style={styles.header}
               onPress={onContractPress}
-            >
-              {formattedAddress}
-            </Button>
+            />
           </View>
         )}
       </View>
