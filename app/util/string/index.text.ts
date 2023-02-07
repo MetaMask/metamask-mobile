@@ -5,4 +5,8 @@ describe('sanitizeString', () => {
     const result = sanitizeString('test \u202E test \u202E test');
     expect(result).toEqual('test \\u202E test \\u202E test');
   });
+  it('should return a non-string value as it is', async () => {
+    const result = sanitizeString({ test: 'test \u202E test \u202E test' });
+    expect(result.test).toEqual('test \u202E test \u202E test');
+  });
 });

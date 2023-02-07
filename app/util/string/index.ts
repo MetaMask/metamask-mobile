@@ -1,11 +1,16 @@
+import { isString } from '../lodash';
+
 /**
  * The method escape RTL character in string
  *
- * @param {string} str
+ * @param {any} str
  * @returns {(string|*)} escaped string or original param value
  */
-export default (str: any): string => {
+export default (str: any): any => {
   if (!str) {
+    return str;
+  }
+  if (!isString(str)) {
     return str;
   }
   const regex = /\u202E/giu;
