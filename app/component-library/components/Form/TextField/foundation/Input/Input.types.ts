@@ -19,6 +19,11 @@ export interface InputProps extends Omit<TextInputProps, 'editable'> {
    */
   disabled?: boolean;
   /**
+   * Optional boolean to show readonly input.
+   * @default false
+   */
+  readonly?: boolean;
+  /**
    * Optional boolean to disable state styles.
    * @default false
    */
