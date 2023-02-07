@@ -409,6 +409,7 @@ class AuthenticationService {
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
     } catch (e: any) {
+      console.log('vault/ appTriggeredAuth failed to login: ', e);
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
@@ -423,17 +424,22 @@ class AuthenticationService {
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
   lockApp = async (reset = true): Promise<void> => {
+    console.log('vault/ lockApp called with reset: ', reset);
     const { KeyringController }: any = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
+      console.log('vault/ lockApp keyring controller setLocked() called');
       await KeyringController.setLocked();
     }
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
   };
 
-  getType = async (): Promise<AuthData> =>
-    await this.checkAuthenticationMethod();
+  getType = async (): Promise<AuthData> => {
+    const result = await this.checkAuthenticationMethod();
+    console.log('vault/ Authentication getType result: ', result);
+    return result;
+  };
 }
 // eslint-disable-next-line import/prefer-default-export
 export const Authentication = new AuthenticationService();

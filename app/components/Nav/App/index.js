@@ -219,6 +219,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
+          console.log('vault/ Nav/App calling appTriggeredAuth');
           await Authentication.appTriggeredAuth(selectedAddress);
           navigator.navigate(Routes.ONBOARDING.HOME_NAV);
         }
