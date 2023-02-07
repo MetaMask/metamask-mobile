@@ -12,7 +12,7 @@ import formatNumber from '../../../../util/formatNumber';
 import TransactionTypes from '../../../../core/TransactionTypes';
 
 const {
-  ASSET: { ERC721, ERC20 },
+  ASSET: { ERC20 },
 } = TransactionTypes;
 
 const createStyles = (colors) =>
@@ -163,16 +163,10 @@ export default class TransactionReviewDetailsCard extends Component {
             <Text style={styles.transactionDetailsTextLeft}>
               {strings('spend_limit_edition.allowance')}
             </Text>
-            {tokenType === ERC20 && (
-              <Text style={styles.transactionDetailsTextRight}>
-                {formatNumber(allowance)} {tokenSymbol}
-              </Text>
-            )}
-            {tokenType === ERC721 && (
-              <Text style={styles.transactionDetailsTextRight}>
-                {tokenId} {tokenSymbol}
-              </Text>
-            )}
+            <Text style={styles.transactionDetailsTextRight}>
+              {tokenType === ERC20 ? formatNumber(allowance) : tokenId}{' '}
+              {tokenSymbol}
+            </Text>
           </View>
         </View>
         <View style={styles.viewData}>
