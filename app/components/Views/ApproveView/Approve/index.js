@@ -121,6 +121,10 @@ class Approve extends PureComponent {
     network: PropTypes.string,
     frequentRpcList: PropTypes.array,
     providerRpcTarget: PropTypes.string,
+    /**
+     * Indicates whether custom nonce should be shown in transaction editor
+     */
+    showCustomNonce: PropTypes.bool,
   };
 
   state = {
@@ -352,8 +356,10 @@ class Approve extends PureComponent {
   };
 
   prepareTransaction = (transaction) => {
-    const { gasEstimateType } = this.props;
+    const { gasEstimateType, showCustomNonce } = this.props;
     const { legacyGasTransaction, eip1559GasTransaction } = this.state;
+    const { nonce } = transaction;
+    if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce + 1);
     const transactionToSend = {
       ...transaction,
       value: BNToHex(transaction.value),
