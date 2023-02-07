@@ -12,6 +12,7 @@ import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useDispatch } from 'react-redux';
 import {
@@ -108,6 +109,7 @@ const EnableAutomaticSecurityChecksModal = () => {
       <View style={styles.actionButtonWrapper}>
         <Button
           variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
           label={strings(
             'enable_automatic_security_check_modal.primary_action',
           )}
@@ -116,6 +118,7 @@ const EnableAutomaticSecurityChecksModal = () => {
         />
         <Button
           variant={ButtonVariants.Link}
+          width={ButtonWidthTypes.Full}
           label={strings(
             'enable_automatic_security_check_modal.secondary_action',
           )}
