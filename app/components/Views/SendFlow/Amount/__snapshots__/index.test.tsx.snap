@@ -349,7 +349,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -421,7 +421,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -527,7 +527,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -611,7 +611,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -1344,7 +1344,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -1416,7 +1416,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1522,7 +1522,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -1606,7 +1606,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -2339,7 +2339,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -2411,7 +2411,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2534,7 +2534,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -2618,7 +2618,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -3351,7 +3351,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -3423,7 +3423,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -3546,7 +3546,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -3630,7 +3630,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -4363,7 +4363,7 @@ exports[`Amount should display correct balance 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -4435,7 +4435,7 @@ exports[`Amount should display correct balance 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -4540,7 +4540,7 @@ exports[`Amount should display correct balance 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -4624,7 +4624,7 @@ exports[`Amount should display correct balance 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -5357,7 +5357,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -5429,7 +5429,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -5535,7 +5535,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -5620,7 +5620,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -6347,7 +6347,7 @@ exports[`Amount should render correctly 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -6419,7 +6419,7 @@ exports[`Amount should render correctly 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6529,7 +6529,7 @@ exports[`Amount should render correctly 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -7248,7 +7248,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -7320,7 +7320,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -7426,7 +7426,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -7490,8 +7490,8 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       },
                                       undefined,
                                       Object {
-                                        "backgroundColor": "#D73A4919",
-                                        "borderColor": "#D73A49",
+                                        "backgroundColor": "#D7384719",
+                                        "borderColor": "#D73847",
                                       },
                                       undefined,
                                     ]
@@ -7594,7 +7594,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {

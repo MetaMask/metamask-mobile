@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { TextVariants } from '../../../../Texts/Text';
+import { TextVariant } from '../../../../Texts/Text';
 import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 
 // Internal dependencies.
@@ -16,8 +16,8 @@ import { InputProps } from './Input.types';
 
 export const getInputStoryProps = (): InputProps => {
   const textVariantsSelector = select(
-    'textVariants',
-    TextVariants,
+    'textVariant',
+    TextVariant,
     DEFAULT_TEXT_VARIANT,
     storybookPropsGroupID,
   );

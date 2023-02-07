@@ -17,7 +17,7 @@ import { DEFAULT_BUTTON_LINK_SIZE } from './ButtonLink.constants';
 
 const ButtonLink: React.FC<ButtonLinkProps> = ({
   style,
-  textVariants = DEFAULT_TEXT_VARIANT,
+  textVariant = DEFAULT_TEXT_VARIANT,
   onPressIn,
   onPressOut,
   isDanger = false,
@@ -51,7 +51,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
           suppressHighlighting
           style={styles.baseText}
           {...props}
-          variant={textVariants}
+          variant={textVariant}
         >
           {label}
         </Text>

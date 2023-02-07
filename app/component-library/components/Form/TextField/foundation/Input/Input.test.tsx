@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TextVariants } from '../../../../Texts/Text';
+import { TextVariant } from '../../../../Texts/Text';
 import { mockTheme } from '../../../../../../util/theme';
 
 // Internal dependencies.
@@ -16,7 +16,7 @@ describe('Input', () => {
     expect(wrapper).toMatchSnapshot();
   });
   it('should render Input with the correct TextVariant', () => {
-    const wrapper = shallow(<Input textVariant={TextVariants.sHeadingSM} />);
+    const wrapper = shallow(<Input textVariant={TextVariant.HeadingSM} />);
     const inputComponent = wrapper.findWhere(
       (node) => node.prop('testID') === INPUT_TEST_ID,
     );
