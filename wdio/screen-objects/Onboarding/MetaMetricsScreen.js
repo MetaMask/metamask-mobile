@@ -25,19 +25,21 @@ class MetaMetricsScreen {
   }
 
   async swipeUp() {
-    await driver.pause(5000);
     await Gestures.swipe({ x: 200, y: 1000 }, { x: 200, y: 10 });
   }
 
   async tapIAgreeButton() {
     await this.swipeUp();
+    const element = await this.iAgreeButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.iAgreeButton);
   }
 
   async tapNoThanksButton() {
     await this.swipeUp();
+    const element = await this.iAgreeButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.noThanksButton);
-    await driver.pause(2000);
   }
 }
 

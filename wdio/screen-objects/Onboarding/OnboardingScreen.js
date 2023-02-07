@@ -68,7 +68,7 @@ class OnBoardingScreen {
   }
 
   async clickImportWalletButton() {
-    await Gestures.tap(this.importWalletButton);
+    await Gestures.waitAndTap(this.importWalletButton);
   }
 
   async tapCreateNewWalletButton() {
