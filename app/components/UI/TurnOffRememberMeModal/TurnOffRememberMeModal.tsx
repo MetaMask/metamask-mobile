@@ -6,7 +6,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
@@ -93,10 +93,10 @@ const TurnOffRememberMeModal = () => {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.areYouSure}>
-              <Text variant={TextVariants.sHeadingLG} style={styles.textStyle}>
+              <Text variant={TextVariant.HeadingLG} style={styles.textStyle}>
                 {strings('turn_off_remember_me.title')}
               </Text>
-              <Text variant={TextVariants.sBodyMD} style={styles.textStyle}>
+              <Text variant={TextVariant.BodyMD} style={styles.textStyle}>
                 {strings('turn_off_remember_me.description')}
               </Text>
               <OutlinedTextField
