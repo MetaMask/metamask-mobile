@@ -10,7 +10,7 @@ class ChangePasswordScreens {
   get passwordInput() {
     return Selectors.getElementByPlatform(RESET_PASSWORD_INPUT_ID);
   }
-  get buttonCONFIRM() {
+  get confirmButton() {
     return Selectors.getElementByPlatform(RESET_PASSWORD_CONFIRM_BUTTON_ID);
   }
   get termsAndConditionCheckBox() {
@@ -23,11 +23,11 @@ class ChangePasswordScreens {
     await elem.waitForDisplayed();
     await Gestures.typeText(elem, text);
   }
-  async tapCONFIRM() {
+  async tapConfirmButton() {
     // await Gestures.tap(this.buttonCONFIRM);
     await driver.hideKeyboard();
-    await Gestures.tap(this.buttonCONFIRM);
-    await Gestures.tap(this.buttonCONFIRM);
+    await Gestures.tap(this.confirmButton);
+    await Gestures.tap(this.confirmButton);
   }
   async tapUnderstandTerms() {
     await Gestures.tap(this.termsAndConditionCheckBox);
