@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../EthereumAddress';
@@ -58,25 +58,25 @@ const AddNickname = (props: AddNicknameProps) => {
     return setAddressHasError(!addressHasError);
   };
 
+  const validateAddressOrENSFromInput = useCallback(async () => {
+    const { addressError, errorContinue } = await validateAddressOrENS({
+      toAccount: address,
+      network,
+      addressBook,
+      identities,
+      chainId,
+    });
+
+    setAddressErr(addressError);
+    setErrContinue(errorContinue);
+    setAddressHasError(addressError);
+  }, [address, network, addressBook, identities, chainId]);
+
   useEffect(() => {
-    const validateAddressOrENSFromInput = async () => {
-      const { addressError, errorContinue } = await validateAddressOrENS({
-        toAccount: address,
-        network,
-        addressBook,
-        identities,
-        chainId,
-      });
-
-      setAddressErr(addressError);
-      setErrContinue(errorContinue);
-      setAddressHasError(addressError);
-    };
-
     validateAddressOrENSFromInput();
-  }, [address, addressBook, chainId, identities, network]);
+  }, [validateAddressOrENSFromInput]);
 
-  const copyaddress = async () => {
+  const copyAddress = async () => {
     await ClipboardManager.setString(address);
     showModalAlert({
       isVisible: true,
@@ -161,7 +161,7 @@ const AddNickname = (props: AddNicknameProps) => {
             <View style={styles.addressWrapperPrimary}>
               <TouchableOpacity
                 style={styles.addressWrapper}
-                onPress={copyaddress}
+                onPress={copyAddress}
                 onLongPress={showFullAddressModal}
               >
                 <Feather name="copy" size={18} style={styles.actionIcon} />

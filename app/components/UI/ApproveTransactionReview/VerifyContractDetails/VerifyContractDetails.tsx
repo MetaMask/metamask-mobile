@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariants,
@@ -36,8 +36,9 @@ const VerifyContractDetails = ({
     (state: any) => state.engine.backgroundState.TokensController.tokens,
   );
 
-  const filterTokensByTokenSymbol = tokens.filter(
-    (token: any) => token.symbol === tokenSymbol,
+  const filterTokensByTokenSymbol = useMemo(
+    () => tokens.filter((token: any) => token.symbol === tokenSymbol),
+    [tokens, tokenSymbol],
   );
 
   const tokenSymbolFirstLetter = tokenSymbol?.charAt(0);
@@ -58,12 +59,12 @@ const VerifyContractDetails = ({
     });
   }, [contractAddress, tokenAddress, savedContactListToArray]);
 
-  const showBlockExplorerIcon = () => {
+  const showBlockExplorerIcon = useCallback(() => {
     if (type === RPC) {
       return findBlockExplorerForRpc(rpcTarget, frequentRpcList);
     }
     return true;
-  };
+  }, [type, rpcTarget, frequentRpcList]);
 
   const hasBlockExplorer = showBlockExplorerIcon();
 
