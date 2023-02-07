@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import PickerBase from './PickerBase';
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 storiesOf('Component Library / PickerBase', module).add('Default', () => (
   <PickerBase onPress={() => Alert.alert('Pressed picker!')}>
     <View style={styles.wrappedContent}>
-      <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+      <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
     </View>
   </PickerBase>
 ));
