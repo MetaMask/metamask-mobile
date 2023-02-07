@@ -1,3 +1,4 @@
+import { v1 as random } from 'uuid';
 import { NetworksChainId } from '@metamask/controller-utils';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
@@ -326,6 +327,54 @@ export const migrations = {
 
     return state;
   },
+  13: (state) => {
+    const { approvedHosts } = state.privacy;
+    const { selectedAddress } =
+      state.engine.backgroundState.PreferencesController;
+
+    const hosts = Object.keys(approvedHosts);
+
+    if (!hosts) return state;
+
+    const { subjects } = hosts.reduce(
+      (accumulator, host, index) => ({
+        subjects: {
+          ...accumulator.subjects,
+          [host]: {
+            origin: host,
+            permissions: {
+              eth_accounts: {
+                id: random(),
+                parentCapability: 'eth_accounts',
+                invoker: host,
+                caveats: [
+                  {
+                    type: 'restrictReturnedAccounts',
+                    value: [
+                      {
+                        address: selectedAddress,
+                        lastUsed: Date.now() - index,
+                      },
+                    ],
+                  },
+                ],
+                date: Date.now(),
+              },
+            },
+          },
+        },
+      }),
+      {},
+    );
+
+    const newState = { ...state };
+
+    newState.engine.backgroundState.PermissionController = {
+      subjects,
+    };
+
+    return newState;
+  },
 };
 
-export const version = 12;
+export const version = 13;
