@@ -270,6 +270,7 @@ class Login extends PureComponent {
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
         biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
+        hasBiometricCredentials: !this.props.route?.params?.logout,
       });
     } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
       this.setState({
@@ -282,6 +283,9 @@ class Login extends PureComponent {
         biometryType: authData.availableBiometryType,
         biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
         biometryPreviouslyDisabled: !!previouslyDisabled,
+        hasBiometricCredentials:
+          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
+          !this.props.route?.params?.logout,
       });
     }
   }
@@ -434,6 +438,10 @@ class Login extends PureComponent {
       this.state.biometryChoice &&
       this.state.biometryType &&
       this.state.hasBiometricCredentials
+    );
+
+    console.log(
+      `vault/ Login render shoulHideBiometricAccessoryButton: shouldHideBiometricAccessoryButton: ${shouldHideBiometricAccessoryButton}, biometryChoice: ${this.state.biometryChoice}, biometryType: ${this.state.biometryType}, hasBiometricCredentials: ${this.state.hasBiometricCredentials}}`,
     );
 
     return (
