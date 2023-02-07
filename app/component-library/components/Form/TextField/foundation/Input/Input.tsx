@@ -2,18 +2,18 @@
 
 // Third party dependencies.
 import React, { useState } from 'react';
-import { TextInput as RNTextInput } from 'react-native';
+import { TextInput } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import { DEFAULT_TEXT_VARIANT } from '../../Texts/Text/Text.constants';
+import { useStyles } from '../../../../../hooks';
+import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 
 // Internal dependencies.
-import styleSheet from './TextInput.styles';
-import { TextInputProps } from './TextInput.types';
-import { TEXTINPUT_TEST_ID } from './TextInput.constants';
+import styleSheet from './Input.styles';
+import { InputProps } from './Input.types';
+import { INPUT_TEST_ID } from './Input.constants';
 
-const TextInput: React.FC<TextInputProps> = ({
+const Input: React.FC<InputProps> = ({
   style,
   textVariant = DEFAULT_TEXT_VARIANT,
   disableStateStyles = false,
@@ -43,8 +43,8 @@ const TextInput: React.FC<TextInputProps> = ({
     onFocus?.(e);
   };
   return (
-    <RNTextInput
-      testID={TEXTINPUT_TEST_ID}
+    <TextInput
+      testID={INPUT_TEST_ID}
       {...props}
       style={styles.base}
       editable={!disabled}
@@ -55,4 +55,4 @@ const TextInput: React.FC<TextInputProps> = ({
   );
 };
 
-export default TextInput;
+export default Input;

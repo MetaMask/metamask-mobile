@@ -1,6 +1,6 @@
-# TextInput
+# Input
 
-TextInput is a light-weight borderless input component used inside of TextField
+Input is a light-weight borderless input component used inside of TextField.
 
 ## Props
 
@@ -16,7 +16,7 @@ Optional enum to select between Typography variants.
 
 ### `disabled`
 
-Optional boolean to disable TextInput.
+Optional boolean to disable Input.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -33,7 +33,7 @@ Optional boolean to disable state styles.
 ## Usage
 
 ```javascript
-<TextInput 
+<Input 
   textVariant={TextVariants.sBodyMD} 
   disabled 
   disableStateStyles/>

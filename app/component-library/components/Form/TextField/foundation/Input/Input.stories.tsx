@@ -6,15 +6,15 @@ import { boolean, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import { TextVariants } from '../../Texts/Text';
-import { DEFAULT_TEXT_VARIANT } from '../../Texts/Text/Text.constants';
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
+import { TextVariants } from '../../../../Texts/Text';
+import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 
 // Internal dependencies.
-import TextInput from './TextInput';
-import { TextInputProps } from './TextInput.types';
+import Input from './Input';
+import { InputProps } from './Input.types';
 
-export const getTextInputStoryProps = (): TextInputProps => {
+export const getInputStoryProps = (): InputProps => {
   const textVariantsSelector = select(
     'textVariants',
     TextVariants,
@@ -35,8 +35,11 @@ export const getTextInputStoryProps = (): TextInputProps => {
   };
 };
 
-const TextInputStory = () => <TextInput {...getTextInputStoryProps()} />;
+const InputStory = () => <Input {...getInputStoryProps()} />;
 
-storiesOf('Component Library / Form', module).add('TextInput', TextInputStory);
+storiesOf('Component Library / Form', module).add(
+  'TextField / Input',
+  InputStory,
+);
 
-export default TextInputStory;
+export default InputStory;

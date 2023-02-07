@@ -2,11 +2,11 @@
 import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
-import { colors } from '../../../../styles/common';
+import { Theme } from '../../../../../../util/theme/models';
+import { colors } from '../../../../../../styles/common';
 
 /**
- * Style sheet function for TextInput component.
+ * Style sheet function for Input component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
