@@ -218,7 +218,7 @@ class NetworksSettings extends PureComponent {
               testID={'select-network'}
             >
               <View style={styles.network}>
-                {isCustomRPC && (
+                {isCustomRPC ? (
                   <AvatarNetwork
                     variant={AvatarVariants.Network}
                     name={name}
@@ -226,7 +226,7 @@ class NetworksSettings extends PureComponent {
                     style={styles.networkIcon}
                     size={AvatarSize.Xs}
                   />
-                )}
+                ) : null}
                 {!isCustomRPC &&
                   (image ? (
                     <ImageIcons

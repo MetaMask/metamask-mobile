@@ -287,7 +287,7 @@ export class NetworkList extends PureComponent {
         >
           {selected}
         </View>
-        {isCustomRpc && (
+        {isCustomRpc ? (
           <AvatarNetwork
             variant={AvatarVariants.Network}
             name={name}
@@ -295,7 +295,7 @@ export class NetworkList extends PureComponent {
             style={styles.networkIcon}
             size={AvatarSize.Xs}
           />
-        )}
+        ) : null}
         {!isCustomRpc &&
           (image ? (
             <ImageIcon
