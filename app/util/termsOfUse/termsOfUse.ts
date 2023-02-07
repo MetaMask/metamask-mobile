@@ -9,13 +9,13 @@ import { strings } from '../../../locales/i18n';
 const onConfirmUseTerms = async () => {
   await AsyncStorage.setItem(USE_TERMS, TRUE);
   AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
-    value: AppConstants.TERMS_ACCEPTED,
+    value: AppConstants.TERMS_OF_USE.TERMS_ACCEPTED,
   });
 };
 
 const useTermsDisplayed = () => {
   AnalyticsV2.trackEvent(MetaMetricsEvents.USER_TERMS, {
-    value: AppConstants.TERMS_DISPLAYED,
+    value: AppConstants.TERMS_OF_USE.TERMS_DISPLAYED,
   });
 };
 
@@ -36,10 +36,12 @@ export default async function navigateTermsOfUse(
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
-          uri: 'https://consensys.net/terms-of-use/',
+          uri: AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL_WITHOUT_COOKIES,
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: true,
+        scrollEndBottomMargin:
+          AppConstants.TERMS_OF_USE.SCROLL_END_BOTTOM_MARGIN,
       },
     });
   }

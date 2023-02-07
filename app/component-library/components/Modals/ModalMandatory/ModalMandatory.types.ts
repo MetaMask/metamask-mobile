@@ -46,6 +46,10 @@ interface MandatoryModalParams {
      * Optional boolean to check if it's needed to scroll trought content to accept the mandatory condition
      */
     isScrollToEndNeeded?: boolean;
+    /**
+     * Optional number that defines when the scroll should end on the webview
+     */
+    scrollEndBottomMargin?: number;
   };
 }
 

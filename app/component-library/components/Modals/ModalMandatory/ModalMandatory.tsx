@@ -24,7 +24,6 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 
 // Internal dependencies
 import {
-  SCROLL_END_BOTTOM_MARGIN,
   WEBVIEW_SCROLL_END_EVENT,
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
@@ -54,12 +53,17 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     checkboxText,
     onRender,
     isScrollToEndNeeded,
+    scrollEndBottomMargin,
   } = route.params;
 
-  const scrollToEndJS = `window.scrollTo(0, document.body.scrollHeight);`;
+  const scrollToEndJS = `window.scrollTo(0, document.body.scrollHeight - ${
+    scrollEndBottomMargin ?? 0
+  } );`;
 
   const isScrollEndedJS = `(function(){ window.onscroll = function() {
-    if (window.scrollY + window.innerHeight + ${SCROLL_END_BOTTOM_MARGIN} >= document.documentElement.scrollHeight) {
+    if (window.scrollY + window.innerHeight + ${
+      scrollEndBottomMargin ?? 0
+    } >= document.documentElement.scrollHeight) {
       window.ReactNativeWebView.postMessage('${WEBVIEW_SCROLL_END_EVENT}');
     }else{
       window.ReactNativeWebView.postMessage('${WEBVIEW_SCROLL_NOT_END_EVENT}');
