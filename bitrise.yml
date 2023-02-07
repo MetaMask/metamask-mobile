@@ -151,6 +151,11 @@ workflows:
                 #!/usr/bin/env bash echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
+      - yarn@0:
+          inputs:
+            - command: e2e:announce
+          title: Announcing e2e tests result
+          is_always_run: true
   # Parallel Build & Deploy Steps
   create_release_builds:
     before_run:
@@ -193,7 +198,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: build:announce
-          title: Accouncing pre-release
+          title: Announcing pre-release
           is_always_run: false
   create_qa_builds:
     before_run:
