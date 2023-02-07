@@ -6,7 +6,6 @@ import Logger from '../util/Logger';
 
 export default class LockManager {
   constructor(navigation, lockTime) {
-    console.log('vault/ LockManager new LockManager', lockTime);
     this.navigation = navigation;
     this.lockTime = lockTime;
     this.appState = 'active';
@@ -18,12 +17,6 @@ export default class LockManager {
   }
 
   handleAppStateChange = async (nextAppState) => {
-    console.log(
-      'vault/ LockManager handleAppStateChange called with nextAppState: ',
-      nextAppState,
-      ' and this.lockTime: ',
-      this.lockTime,
-    );
     // Don't auto-lock
     if (this.lockTime === -1) {
       return;
@@ -57,7 +50,6 @@ export default class LockManager {
   };
 
   gotoLockScreen = () => {
-    console.log('vault/ LockManager gotoLockScreen');
     this.navigation?.navigate('LockScreen', { backgroundMode: true });
   };
 
@@ -65,9 +57,6 @@ export default class LockManager {
     if (!SecureKeychain.getInstance().isAuthenticating) {
       const { KeyringController } = Engine.context;
       try {
-        console.log(
-          'vault/ LockManager lockApp calling KeyringController.setLocked();',
-        );
         await KeyringController.setLocked();
         this.gotoLockScreen();
       } catch (e) {
@@ -80,7 +69,6 @@ export default class LockManager {
   };
 
   stopListening() {
-    console.log('vault/ LockManager stopListening');
     AppState.removeEventListener('change', this.handleAppStateChange);
   }
 }
