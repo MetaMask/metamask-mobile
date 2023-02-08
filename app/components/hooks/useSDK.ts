@@ -1,7 +1,7 @@
 import SDKConnect, {
   Connection,
   ConnectionProps,
-} from 'app/core/SDKConnect/SDKConnect';
+} from '../../core/SDKConnect/SDKConnect';
 import { useEffect, useState } from 'react';
 
 export interface SDKStatus {
