@@ -126,7 +126,8 @@ class MessageSign extends PureComponent {
   };
 
   signMessage = async () => {
-    const { messageParams, fromAddress } = this.props;
+    const { messageParams } = this.props;
+    const { from } = messageParams;
     const { KeyringController, MessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const cleanMessageParams = await MessageManager.approveMessage(
@@ -151,12 +152,11 @@ class MessageSign extends PureComponent {
       );
     };
 
-    const isLedgerAccount = isHardwareAccount(fromAddress, [
-      KeyringTypes.ledger,
-    ]);
+    const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
 
     if (isLedgerAccount) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
+      console.log('[MessageSign] in sign message ledger');
 
       this.props.navigation.navigate(
         ...createLedgerMessageSignModalNavDetails({
