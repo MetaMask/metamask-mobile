@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { TextInput } from 'react-native';
 
 // External dependencies.
@@ -33,19 +33,26 @@ const Input: React.FC<InputProps> = ({
     isFocused,
   });
 
-  const onBlurHandler = (e: any) => {
-    if (!disabled) {
-      setIsFocused(false);
-      onBlur?.(e);
-    }
-  };
+  const onBlurHandler = useCallback(
+    (e: any) => {
+      if (!disabled) {
+        setIsFocused(false);
+        onBlur?.(e);
+      }
+    },
+    [disabled, setIsFocused, onBlur],
+  );
 
-  const onFocusHandler = (e: any) => {
-    if (!disabled) {
-      setIsFocused(true);
-      onFocus?.(e);
-    }
-  };
+  const onFocusHandler = useCallback(
+    (e: any) => {
+      if (!disabled) {
+        setIsFocused(true);
+        onFocus?.(e);
+      }
+    },
+    [disabled, setIsFocused, onFocus],
+  );
+
   return (
     <TextInput
       testID={INPUT_TEST_ID}

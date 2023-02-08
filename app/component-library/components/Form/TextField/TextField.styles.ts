@@ -33,11 +33,15 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
         borderWidth: 1,
         borderColor,
         opacity: disabled ? 0.5 : 1,
+        paddingHorizontal: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,
     startAccessory: {
       marginRight: 8,
+    },
+    input: {
+      flex: 1,
     },
     endAccessory: {
       marginLeft: 8,

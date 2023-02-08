@@ -32,6 +32,6 @@ export const getTextFieldStoryProps = (): TextFieldProps => {
 
 const TextFieldStory = () => <TextField {...getTextFieldStoryProps()} />;
 
-storiesOf('Morph / Form', module).add('TextField', TextFieldStory);
+storiesOf('Component Library / Form', module).add('TextField', TextFieldStory);
 
 export default TextFieldStory;

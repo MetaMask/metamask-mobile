@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -28,6 +28,7 @@ const TextField: React.FC<TextFieldProps> = ({
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
+
   const { styles } = useStyles(styleSheet, {
     style,
     size,
@@ -36,38 +37,46 @@ const TextField: React.FC<TextFieldProps> = ({
     isFocused,
   });
 
-  const onBlurHandler = (e: any) => {
-    if (!disabled) {
-      setIsFocused(false);
-      onBlur?.(e);
-    }
-  };
+  const onBlurHandler = useCallback(
+    (e: any) => {
+      if (!disabled) {
+        setIsFocused(false);
+        onBlur?.(e);
+      }
+    },
+    [disabled, setIsFocused, onBlur],
+  );
 
-  const onFocusHandler = (e: any) => {
-    if (!disabled) {
-      setIsFocused(true);
-      onFocus?.(e);
-    }
-  };
+  const onFocusHandler = useCallback(
+    (e: any) => {
+      if (!disabled) {
+        setIsFocused(true);
+        onFocus?.(e);
+      }
+    },
+    [disabled, setIsFocused, onFocus],
+  );
 
   return (
     <View style={styles.base}>
       {startAccessory && (
         <View style={styles.startAccessory}>{startAccessory}</View>
       )}
-      {inputComponent ? (
-        { inputComponent }
-      ) : (
-        <Input
-          disableStateStyles
-          textVariant={TextVariant.BodyMD}
-          disabled={disabled}
-          autoFocus={autoFocus}
-          onBlur={onBlurHandler}
-          onFocus={onFocusHandler}
-          {...props}
-        />
-      )}
+      <View style={styles.input}>
+        {inputComponent ? (
+          { inputComponent }
+        ) : (
+          <Input
+            disableStateStyles
+            textVariant={TextVariant.BodyMD}
+            disabled={disabled}
+            autoFocus={autoFocus}
+            onBlur={onBlurHandler}
+            onFocus={onFocusHandler}
+            {...props}
+          />
+        )}
+      </View>
       {endAccessory && <View style={styles.endAccessory}>{endAccessory}</View>}
     </View>
   );

@@ -27,7 +27,8 @@ function loadStories() {
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
-  require('../app/component-library/components/Form/TextField/foundation/Input/Input.stories');
+  require('../app/component-library/components/Form/TextField/TextField.stories');
+  require('../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
@@ -82,7 +83,8 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
-  '../app/component-library/components/Form/TextField/foundation/Input/Input.stories',
+  '../app/component-library/components/Form/TextField/TextField.stories',
+  '../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
