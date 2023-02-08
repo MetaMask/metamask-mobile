@@ -437,3 +437,19 @@ export const stripHexPrefix = (str) => {
   }
   return isHexPrefixed(str) ? str.slice(2) : str;
 };
+
+/**
+ * Method to check if address is ENS and return the address
+ * @param {String} toAccount - Address or ENS
+ * @param {String} network - Network id
+ * @returns {String} - Address or null
+ */
+export async function getAddress(toAccount, network) {
+  if (isENS(toAccount)) {
+    return await doENSLookup(toAccount, network);
+  }
+  if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    return toAccount;
+  }
+  return null;
+}
