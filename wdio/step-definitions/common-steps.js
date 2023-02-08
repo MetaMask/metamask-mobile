@@ -14,10 +14,13 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 
+Given(/^the app displayed the splash animation$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+});
+
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToDisappear();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -33,7 +36,7 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToDisappear();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -117,8 +120,7 @@ When(/^I log into my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
   await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToDisappear();
-  await LoginScreen.isLoginScreenVisible();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await LoginScreen.typePassword(validAccount.password);
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();

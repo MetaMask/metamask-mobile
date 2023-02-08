@@ -2,8 +2,6 @@
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 import { Given, When, Then } from '@wdio/cucumber-framework';
 
-import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
-
 let startTimer;
 let stopTimer;
 
@@ -24,8 +22,4 @@ Then(/^the app should launch within x seconds$/, async () => {
 
 Given(/^the app is launched$/, async () => {
   startTimer = new Date().getTime();
-});
-
-When(/^the app displayed the splash animation$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
 });
