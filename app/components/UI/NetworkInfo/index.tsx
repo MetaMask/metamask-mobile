@@ -67,9 +67,6 @@ const createStyles = (colors: {
       paddingRight: 10,
       marginLeft: 8,
     },
-    capitalizeText: {
-      textTransform: 'capitalize',
-    },
     messageTitle: {
       fontSize: 14,
       ...fontStyles.bold,
@@ -199,7 +196,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               imageSource={networkImageSource}
             />
             <Text
-              style={[styles.tokenText, styles.capitalizeText]}
+              style={styles.tokenText}
               testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
             >
               {networkName}
