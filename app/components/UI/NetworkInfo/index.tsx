@@ -162,6 +162,11 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     [networkProvider],
   );
 
+  const getCapitalizeNetworkName = (networkName: string) => {
+    const firstLetterUppercase = networkName.charAt(0).toUpperCase();
+    return `${firstLetterUppercase}${networkName.slice(1)}`;
+  };
+
   const getNetworkName = useCallback(() => {
     let networkName = '';
     if (ticker === undefined) {
@@ -177,7 +182,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               type,
             })}`;
     }
-    return type === RPC ? networkName : networkName.toUpperCase();
+    return type === RPC ? networkName : getCapitalizeNetworkName(networkName);
   }, [ticker, type, isMainnet, nickname]);
 
   const networkName = getNetworkName();
@@ -199,7 +204,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               imageSource={networkImageSource}
             />
             <Text
-              style={[styles.tokenText, styles.capitalizeText]}
+              style={styles.tokenText}
               testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
             >
               {networkName}
