@@ -30,6 +30,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   fromTokenMinimalUnit,
+  isZeroValue,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
@@ -279,7 +280,7 @@ class TransactionReview extends PureComponent {
       data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
     const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
-    if (approveTransaction && (!value || value.isZero())) {
+    if (approveTransaction && (!value || isZeroValue(value))) {
       let contract = tokenList[safeToChecksumAddress(to)];
       if (!contract) {
         contract = tokens.find(
