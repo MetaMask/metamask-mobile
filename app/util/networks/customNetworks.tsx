@@ -86,6 +86,26 @@ const PopularList = [
       imageUrl: 'PALM',
     },
   },
+  {
+    chainId: '1',
+    nickname: 'GANACHE Ethereum Mainnet',
+    rpcUrl: `http://192.168.50.114:10545`,
+    ticker: 'MATIC',
+    rpcPrefs: {
+      blockExplorerUrl: '',
+      imageUrl: 'ETH',
+    },
+  },
+  {
+    chainId: '137',
+    nickname: 'GANACHE Polygon Mainnet',
+    rpcUrl: `http://192.168.50.114:12545`,
+    ticker: 'MATIC',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://polygonscan.com',
+      imageUrl: 'MATIC',
+    },
+  },
 ];
 
 export default PopularList;
