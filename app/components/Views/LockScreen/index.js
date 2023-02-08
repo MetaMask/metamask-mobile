@@ -122,7 +122,7 @@ class LockScreen extends PureComponent {
   }
 
   lock = async () => {
-    await Authentication.lockApp();
+    await Authentication.lockApp(false);
     this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
   };
 
