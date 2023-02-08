@@ -24,6 +24,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const { options } = descriptors[route.key];
       const label = options.tabBarLabel as TabBarLabel;
       //TODO: use another option on add it to the prop interface
+      // Since we can't use label to translate text because it is being used to index tab icon
+      const itemText = options.itemText as string;
+      //TODO: use another option on add it to the prop interface
       const callback = options.callback;
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
@@ -39,7 +42,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         <TabBarItem
           key={key}
           isSelected={isSelected}
-          label={label}
+          label={itemText}
           icon={icon}
           onPress={onPress}
           {...generateTestId(Platform, key)}
