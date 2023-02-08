@@ -1,11 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  StyleSheet,
-  Alert,
-  InteractionManager,
-  AppState,
-  View,
-} from 'react-native';
+import { Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -41,47 +35,10 @@ import {
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
+import createStyles from './styles';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    keyboardAwareWrapper: {
-      flex: 1,
-      justifyContent: 'flex-end',
-    },
-    bottomModal: {
-      justifyContent: 'flex-end',
-      margin: 0,
-    },
-    updateNickView: {
-      margin: 0,
-    },
-    headerWrapper: {
-      position: 'relative',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      top: 20,
-      marginVertical: 20,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      paddingVertical: 20,
-      backgroundColor: colors.background.default,
-    },
-    icon: {
-      position: 'absolute',
-      right: 0,
-      padding: 10,
-      color: colors.icon.default,
-    },
-    headerText: {
-      color: colors.text.default,
-      textAlign: 'center',
-      fontSize: 15,
-    },
-  });
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
@@ -569,6 +526,9 @@ class Approve extends PureComponent {
   };
 
   render = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
     const {
       mode,
       ready,
@@ -610,9 +570,6 @@ class Approve extends PureComponent {
       legacyGasLimit: legacyGasObject?.legacyGasLimit,
       suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
     };
-
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
 
     const addressData = checkIfAddressIsSaved(
       addressBook,
