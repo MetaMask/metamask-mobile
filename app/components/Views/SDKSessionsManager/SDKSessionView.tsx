@@ -1,7 +1,11 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { ConnectionStatus } from '@metamask/sdk-communication-layer';
+import {
+  ConnectionStatus,
+  ServiceStatus,
+  MessageType,
+} from '@metamask/sdk-communication-layer';
 import SDKConnect, { Connection } from '../../../core/SDKConnect/SDKConnect';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -44,7 +48,11 @@ const createStyles = (
 
 export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
   const { colors } = useTheme();
-  const status = connection.remote.getConnectionStatus();
+  const [serviceStatus, setServiceStatus] = useState<ServiceStatus>(
+    connection.remote.getServiceStatus(),
+  );
+  const status =
+    serviceStatus.connectionStatus ?? ConnectionStatus.DISCONNECTED;
   const styles = createStyles(colors, status);
 
   const hasPauseAction =
@@ -53,20 +61,29 @@ export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
     status === ConnectionStatus.WAITING;
   const hasResumeAction = status === ConnectionStatus.PAUSED;
   const hasRemoveAction = true;
+  const hasReconnectAction = true;
 
-  Logger.log(
-    `status: ${status} hasPauseAction=${hasPauseAction} hasResumeAction=${hasResumeAction}`,
-  );
+  useEffect(() => {
+    connection.remote.on(
+      MessageType.SERVICE_STATUS,
+      (_status: ServiceStatus) => {
+        setServiceStatus(_status);
+      },
+    );
+  });
 
   return (
     <View style={styles.container}>
-      <Text>{connection.originatorInfo?.platform}</Text>
-      <Text>{connection.originatorInfo?.title}</Text>
-      <Text>{connection.originatorInfo?.url}</Text>
-      <Text>{connection.channelId}</Text>
-      <Text>
-        Expiration: {connection.remote.getChannelConfig()?.validUntil}
-      </Text>
+      {/* <Text>{connection.originatorInfo?.platform}</Text>
+      <Text>{connection.originatorInfo?.title}</Text> */}
+      {/* <Text>{JSON.stringify(connection.remote.getKeyInfo())}</Text> */}
+      <Text>originator: {JSON.stringify(serviceStatus?.originatorInfo)}</Text>
+      <Text>key_exchange_step: {serviceStatus?.keyInfo?.step}</Text>
+      <Text>key_exchanged: {serviceStatus?.keyInfo?.keysExchanged + ''}</Text>
+      <Text>Channel: {serviceStatus?.channelId}</Text>
+      <Text>{`Expiration: ${
+        serviceStatus?.channelConfig?.validUntil ?? ''
+      }`}</Text>
       <Text>Status: {connection.remote.getConnectionStatus()}</Text>
       <TouchableOpacity
         style={styles.button}
@@ -76,6 +93,22 @@ export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
       >
         <Text style={styles.buttonText}>Requests Redirect</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          Logger.log(connection.remote.getKeyInfo());
+        }}
+      >
+        <Text style={styles.buttonText}>Print KeyInfo</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          Logger.log(connection.remote.getServiceStatus());
+        }}
+      >
+        <Text style={styles.buttonText}>Print ServiceStatus</Text>
+      </TouchableOpacity>
       {hasResumeAction && (
         <TouchableOpacity
           style={styles.button}
@@ -83,7 +116,7 @@ export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
             connection.resume();
           }}
         >
-          <Text style={styles.buttonText}>Resume</Text>
+          <Text style={styles.buttonText}>resume</Text>
         </TouchableOpacity>
       )}
       {hasPauseAction && (
@@ -94,6 +127,18 @@ export const SDKSessionView = ({ connection }: SDKSessionViewProps) => {
           }}
         >
           <Text style={styles.buttonText}>Pause</Text>
+        </TouchableOpacity>
+      )}
+      {hasReconnectAction && (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            // disconnect then reconnect
+            connection.pause();
+            SDKConnect.reconnect({ channelId: connection.channelId });
+          }}
+        >
+          <Text style={styles.buttonText}>Reconnect</Text>
         </TouchableOpacity>
       )}
       {hasRemoveAction && (

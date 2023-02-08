@@ -67,7 +67,7 @@ const SDKSessionsManager = (props: Props) => {
     // should listen for changes in connection state -- switch to redux
     refreshSDKState();
     SDKConnect.registerEventListener((eventName: string) => {
-      Logger.log(`event: ${eventName}`);
+      Logger.log(`SDKSEssionManager::useEffect event=${eventName}`);
       refreshSDKState();
     });
   }, []);
@@ -145,8 +145,8 @@ const SDKSessionsManager = (props: Props) => {
               Disconnect all
             </Text>
           </TouchableOpacity>
-          <Text>Registered DAPPS: {Object.keys(connections).length}</Text>
-          <Text>Active Connections: {Object.keys(connected).length}</Text>
+          <Text>Registered DAPPS: {connected.length}</Text>
+          {/* <Text>Active Connections: {Object.keys(connected).length}</Text> */}
           {connected.map((sdkSession, _index) => (
             <SDKSessionView key={`s${_index}`} connection={sdkSession} />
           ))}

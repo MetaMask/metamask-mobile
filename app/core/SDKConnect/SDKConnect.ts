@@ -5,6 +5,7 @@ import {
   MessageType,
   OriginatorInfo,
   RemoteCommunication,
+  ServiceStatus,
 } from '@metamask/sdk-communication-layer';
 import BackgroundTimer from 'react-native-background-timer';
 import DefaultPreference from 'react-native-default-preference';
@@ -54,7 +55,8 @@ export type SDKEventListener = (event: string) => void;
 export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 
 export const CONNECTION_CONFIG = {
-  serverUrl: 'https://af75-1-36-226-145.ap.ngrok.io',
+  serverUrl: 'http://192.168.50.114:4000',
+  // serverUrl: 'https://6831-1-36-226-145.ap.ngrok.io',
   platform: 'metamask-mobile',
   context: 'mm-mobile',
   sdkRemoteOrigin: 'MMSDKREMOTE::',
@@ -151,9 +153,9 @@ export class Connection extends EventEmitter2 {
       webRTCLib: webrtc,
       reconnect: true,
       context: CONNECTION_CONFIG.context,
-      enableDebug: true,
-      ecies: {
-        enabled: true,
+      analytics: true,
+      developerMode: true,
+      storage: {
         debug: true,
       },
     });
@@ -178,7 +180,7 @@ export class Connection extends EventEmitter2 {
     }
 
     this.remote.on(
-      'clients_ready',
+      MessageType.CLIENTS_READY,
       (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
         Logger.log(
           `Connection::on::cliensts_ready this.isReady=${this.isReady}`,
@@ -198,6 +200,7 @@ export class Connection extends EventEmitter2 {
           originatorInfo,
         );
 
+        Logger.log(`Connection::on clients_ready setting up background bridge`);
         this.backgroundBridge = new BackgroundBridge({
           webview: null,
           url: originatorInfo?.url,
@@ -208,6 +211,7 @@ export class Connection extends EventEmitter2 {
           getRpcMethodMiddleware: ({
             getProviderState,
           }: {
+            hostname: string;
             getProviderState: any;
           }) =>
             getRpcMethodMiddleware({
@@ -216,8 +220,8 @@ export class Connection extends EventEmitter2 {
               navigation: null, //props.navigation,
               getApprovedHosts: () => approvedHosts,
               setApprovedHosts: () => null,
-              approveHost: (hostname) =>
-                approveHost({ host: this.host, hostname }),
+              approveHost: (approveHostname) =>
+                approveHost({ host: this.host, hostname: approveHostname }),
               // Website info
               url: {
                 current: originatorInfo?.url ?? CONNECTION_CONFIG.unknownParam,
@@ -250,83 +254,97 @@ export class Connection extends EventEmitter2 {
         });
 
         this.isReady = true;
+
+        this.remote.on(
+          MessageType.MESSAGE,
+          async (message: CommunicationLayerMessage) => {
+            Logger.log(
+              `Connection::on 'message' --> this.ready=${this.isReady}`,
+            );
+            if (!this.isReady) {
+              Logger.log(`Connection::on 'message' connection not ready`);
+              return;
+            }
+
+            // ignore anything other than RPC methods.
+            if (!message.method || !message.id) {
+              Logger.log(`received invalid rpc message`, message);
+              return;
+            }
+
+            // handle termination message
+            if (message.type === MessageType.TERMINATE) {
+              return;
+            }
+
+            await waitForKeychainUnlocked();
+
+            if (METHODS_TO_REDIRECT[message?.method]) {
+              this.requestsToRedirect[message?.id] = true;
+            }
+
+            Logger.log(
+              `Connection::on message rpcId=${message?.id} method: ${message?.method}`,
+            );
+            // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
+            if (message.method === 'eth_sendTransaction') {
+              if (
+                !(
+                  message.params &&
+                  Array.isArray(message?.params) &&
+                  message.params.length > 0
+                )
+              ) {
+                Logger.log(`invalid message format!`);
+                throw new Error('Invalid message format');
+              }
+
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              const { TransactionController } = Engine.context;
+              try {
+                const hash = await (
+                  await TransactionController.addTransaction(
+                    message.params[0],
+                    this.originatorInfo?.url
+                      ? MM_SDK_REMOTE_ORIGIN + this.originatorInfo?.url
+                      : undefined,
+                    WalletDevice.MM_MOBILE,
+                  )
+                ).result;
+                this.sendMessage({
+                  data: {
+                    id: message.id,
+                    jsonrpc: '2.0',
+                    result: hash,
+                  },
+                  name: 'metamask-provider',
+                });
+              } catch (error) {
+                this.sendMessage({
+                  data: {
+                    error,
+                    id: message.id,
+                    jsonrpc: '2.0',
+                  },
+                  name: 'metamask-provider',
+                });
+              }
+              return;
+            }
+
+            this.backgroundBridge?.onMessage({
+              name: 'metamask-provider',
+              data: message,
+              origin: 'sdk',
+            });
+          },
+        );
       },
     );
 
-    this.remote.on('message', async (message: CommunicationLayerMessage) => {
-      Logger.log(
-        `Connection::on 'message' --> this.ready=${this.isReady}`,
-        message,
-      );
-      if (!this.isReady) {
-        Logger.log(`Connection::on 'message' connection not ready`);
-        return;
-      }
-
-      // ignore anything other than RPC methods.
-      if (!message.method || !message.id) {
-        Logger.log(`received invalid rpc message`);
-        return;
-      }
-
-      await waitForKeychainUnlocked();
-
-      if (METHODS_TO_REDIRECT[message?.method]) {
-        this.requestsToRedirect[message?.id] = true;
-      }
-
-      // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
-      if (message.method === 'eth_sendTransaction') {
-        if (
-          !(
-            message.params &&
-            Array.isArray(message?.params) &&
-            message.params.length > 0
-          )
-        ) {
-          Logger.log(`invalid message format!`);
-          throw new Error('Invalid message format');
-        }
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const { TransactionController } = Engine.context;
-        try {
-          const hash = await (
-            await TransactionController.addTransaction(
-              message.params[0],
-              this.originatorInfo?.url
-                ? MM_SDK_REMOTE_ORIGIN + this.originatorInfo?.url
-                : undefined,
-              WalletDevice.MM_MOBILE,
-            )
-          ).result;
-          this.sendMessage({
-            data: {
-              id: message.id,
-              jsonrpc: '2.0',
-              result: hash,
-            },
-            name: 'metamask-provider',
-          });
-        } catch (error) {
-          this.sendMessage({
-            data: {
-              error,
-              id: message.id,
-              jsonrpc: '2.0',
-            },
-            name: 'metamask-provider',
-          });
-        }
-        return;
-      }
-
-      this.backgroundBridge?.onMessage({
-        name: 'metamask-provider',
-        data: message,
-        origin: 'sdk',
-      });
+    this.remote.on('conncection_status', (status: ConnectionStatus) => {
+      Logger.log(`Connection::on::conncection_status ${status} `);
     });
 
     this.remote.connectToChannel(id);
@@ -401,19 +419,42 @@ export class SDKConnect {
       approvedHosts: SDKConnect.approvedHosts,
     });
     SDKConnect.connections[id] = { id, otherPublicKey, origin };
+    this.watchConnection(SDKConnect.connected[id]);
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify(SDKConnect.connections),
     );
-    SDKConnect.connected[id].remote.on(
+  }
+
+  private static watchConnection(connection: Connection) {
+    connection.remote.on(
       MessageType.CONNECTION_STATUS,
       (connectionStatus: ConnectionStatus) => {
-        this._connectionStatusHandler({ channelId: id, connectionStatus });
+        if (connectionStatus === ConnectionStatus.TERMINATED) {
+          Logger.log(`SHOULD DISCONNECT channel=${connection.channelId} HERE`);
+          SDKConnect.removeChannel(connection.channelId);
+        }
       },
     );
   }
 
-  static async reconnect() {
+  static async reconnect({ channelId }: { channelId: string }) {
+    const connection = SDKConnect.connections[channelId];
+    if (!connection) {
+      Logger.log(`invalid channel ${channelId}`);
+      return;
+    }
+    Logger.log(`SDKConnect::reconnect() channelId=${channelId}`, connection);
+    SDKConnect.connected[channelId] = new Connection({
+      ...connection,
+      reconnect: true,
+      approveHost: SDKConnect._approveHost,
+      approvedHosts: SDKConnect.approvedHosts,
+    });
+    this.watchConnection(SDKConnect.connected[channelId]);
+  }
+
+  static async reconnectAll() {
     Logger.log(
       `SDKConnect::reconnect() SDKConnect.reconnected=${SDKConnect.reconnected}`,
     );
@@ -433,21 +474,7 @@ export class SDKConnect {
     }
 
     for (const id in SDKConnect.connections) {
-      SDKConnect.connected[id] = new Connection({
-        ...SDKConnect.connections[id],
-        reconnect: true,
-        approveHost: SDKConnect._approveHost,
-        approvedHosts: SDKConnect.approvedHosts,
-      });
-      SDKConnect.connected[id].on(
-        MessageType.CONNECTION_STATUS,
-        (connectionStatus: ConnectionStatus) => {
-          SDKConnect._connectionStatusHandler({
-            channelId: id,
-            connectionStatus,
-          });
-        },
-      );
+      SDKConnect.reconnect({ channelId: id });
     }
     SDKConnect.reconnected = true;
   }
@@ -456,20 +483,6 @@ export class SDKConnect {
   static registerEventListener(listener: SDKEventListener) {
     //TODO remove after debugging session persistence, refactor with a hook
     SDKConnect.sdkEventListeners.push(listener);
-  }
-
-  private static _connectionStatusHandler({
-    channelId,
-    connectionStatus,
-  }: {
-    channelId: string;
-    connectionStatus: ConnectionStatus;
-  }) {
-    if (connectionStatus === ConnectionStatus.TERMINATED) {
-      Logger.log(`SHOULD DISCONNECT channel=${channelId} HERE`);
-      SDKConnect.removeChannel(channelId);
-    }
-    SDKConnect.emit(connectionStatus);
   }
 
   private static emit(eventName: string) {
@@ -586,7 +599,7 @@ export class SDKConnect {
     Logger.log(`SDKConnect::init set listeners and reconnect`);
     AppState.removeEventListener('change', SDKConnect._handleAppState);
     AppState.addEventListener('change', SDKConnect._handleAppState);
-    SDKConnect.reconnect();
+    SDKConnect.reconnectAll();
   }
 }
 
