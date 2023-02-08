@@ -141,7 +141,8 @@ class TypedSign extends PureComponent {
   };
 
   signMessage = async () => {
-    const { messageParams, fromAddress } = this.props;
+    const { messageParams } = this.props;
+    const { from } = messageParams;
     const { KeyringController, TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
@@ -172,9 +173,7 @@ class TypedSign extends PureComponent {
         );
       };
 
-      const isLedgerAccount = isHardwareAccount(fromAddress, [
-        KeyringTypes.ledger,
-      ]);
+      const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
 
       if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
