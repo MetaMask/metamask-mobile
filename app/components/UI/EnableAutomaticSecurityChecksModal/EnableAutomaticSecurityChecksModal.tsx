@@ -3,7 +3,7 @@ import { View, Image, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
@@ -12,6 +12,7 @@ import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useDispatch } from 'react-redux';
 import {
@@ -98,16 +99,17 @@ const EnableAutomaticSecurityChecksModal = () => {
         >
           <Image source={onboardingDeviceImage} />
         </View>
-        <Text variant={TextVariants.lHeadingLG} style={styles.title}>
+        <Text variant={TextVariant.DisplayMD} style={styles.title}>
           {strings('enable_automatic_security_check_modal.title')}
         </Text>
-        <Text variant={TextVariants.sBodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
           {strings('enable_automatic_security_check_modal.description')}
         </Text>
       </ScrollView>
       <View style={styles.actionButtonWrapper}>
         <Button
           variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
           label={strings(
             'enable_automatic_security_check_modal.primary_action',
           )}
@@ -116,6 +118,7 @@ const EnableAutomaticSecurityChecksModal = () => {
         />
         <Button
           variant={ButtonVariants.Link}
+          width={ButtonWidthTypes.Full}
           label={strings(
             'enable_automatic_security_check_modal.secondary_action',
           )}

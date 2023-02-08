@@ -3,7 +3,7 @@ import { View, Image, Linking, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
@@ -13,6 +13,7 @@ import Logger from '../../../util/Logger';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -76,22 +77,24 @@ const UpdateNeeded = () => {
         <View style={styles.images}>
           <Image source={onboardingDeviceImage} />
         </View>
-        <Text variant={TextVariants.lHeadingLG} style={styles.title}>
+        <Text variant={TextVariant.DisplayMD} style={styles.title}>
           {strings('update_needed.title')}
         </Text>
-        <Text variant={TextVariants.sBodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
           {strings('update_needed.description')}
         </Text>
       </ScrollView>
       <View style={styles.actionButtonWrapper}>
         <Button
           variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
           label={strings('update_needed.primary_action')}
           onPress={onUpdatePressed}
           style={styles.actionButton}
         />
         <Button
           variant={ButtonVariants.Link}
+          width={ButtonWidthTypes.Full}
           label={strings('update_needed.secondary_action')}
           size={ButtonSize.Md}
           onPress={triggerClose}

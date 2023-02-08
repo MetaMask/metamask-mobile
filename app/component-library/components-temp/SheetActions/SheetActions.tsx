@@ -7,6 +7,7 @@ import { useStyles } from '../../hooks';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../components/Buttons/Button';
 import Loader from '../Loader';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -38,6 +39,7 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
               <View>
                 <Button
                   variant={ButtonVariants.Link}
+                  width={ButtonWidthTypes.Full}
                   onPress={onPress}
                   label={label}
                   size={ButtonSize.Lg}

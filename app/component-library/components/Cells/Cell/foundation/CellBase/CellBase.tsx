@@ -6,7 +6,7 @@ import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import Text, { TextVariants } from '../../../../Texts/Text';
+import Text, { TextVariant } from '../../../../Texts/Text';
 import AvatarSize from '../../../../Avatars/Avatar/Avatar';
 import Tag from '../../../../Tags/Tag';
 import Avatar from '../../../../Avatars/Avatar';
@@ -46,7 +46,7 @@ const CellBase = ({
       <View style={styles.cellBaseInfo}>
         <Text
           numberOfLines={1}
-          variant={TextVariants.sHeadingSMRegular}
+          variant={TextVariant.HeadingSMRegular}
           testID={CELL_TITLE_TEST_ID}
           {...generateTestId(Platform, CELL_TITLE_TEST_ID)}
         >
@@ -55,7 +55,7 @@ const CellBase = ({
         {!!secondaryText && (
           <Text
             numberOfLines={1}
-            variant={TextVariants.sBodyMD}
+            variant={TextVariant.BodyMD}
             style={styles.secondaryText}
             testID={CELL_SECONDARY_TEXT_TEST_ID}
           >
@@ -65,7 +65,7 @@ const CellBase = ({
         {!!tertiaryText && (
           <Text
             numberOfLines={1}
-            variant={TextVariants.sBodyMD}
+            variant={TextVariant.BodyMD}
             style={styles.tertiaryText}
             testID={CELL_TERTIARY_TEXT_TEST_ID}
           >

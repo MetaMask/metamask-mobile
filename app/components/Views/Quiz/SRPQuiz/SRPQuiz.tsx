@@ -69,7 +69,8 @@ const SRPQuiz = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      privateCredentialName: 'seed_phrase',
+      credentialName: 'seed_phrase',
+      hasNavigation: true,
     });
   }, [navigation]);
 
@@ -290,7 +291,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Primary,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
