@@ -18,11 +18,11 @@ class LoginScreen {
   }
 
   get passwordInput() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_PASSWORD_INPUT_ID);
+    return Selectors.getElementByPlatform(LOGIN_VIEW_PASSWORD_INPUT_ID);
   }
 
   get unlockButton() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_UNLOCK_BUTTON_ID);
+    return Selectors.getElementByPlatform(LOGIN_VIEW_UNLOCK_BUTTON_ID);
   }
 
   get title() {

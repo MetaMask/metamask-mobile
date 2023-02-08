@@ -52,7 +52,11 @@ import {
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { LOGIN_VIEW_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
+import {
+  LOGIN_VIEW_PASSWORD_INPUT_ID,
+  LOGIN_VIEW_TITLE_ID,
+  LOGIN_VIEW_UNLOCK_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -542,6 +546,7 @@ class Login extends PureComponent {
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
                   testID={'login-password-input'}
+                  {...generateTestId(Platform, LOGIN_VIEW_PASSWORD_INPUT_ID)}
                   returnKeyType={'done'}
                   autoCapitalize="none"
                   secureTextEntry
@@ -575,7 +580,11 @@ class Login extends PureComponent {
                   {this.state.error}
                 </Text>
               )}
-              <View style={styles.ctaWrapper} testID={'log-in-button'}>
+              <View
+                style={styles.ctaWrapper}
+                testID={'log-in-button'}
+                {...generateTestId(Platform, LOGIN_VIEW_UNLOCK_BUTTON_ID)}
+              >
                 <StyledButton type={'confirm'} onPress={this.triggerLogIn}>
                   {this.state.loading ? (
                     <ActivityIndicator
