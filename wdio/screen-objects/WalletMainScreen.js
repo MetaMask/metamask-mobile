@@ -1,7 +1,9 @@
 /* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
+import {
+  WALLET_CONTAINER_ID,
+} from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
@@ -54,7 +56,7 @@ class WalletMainScreen {
   }
 
   get WalletScreenContainer() {
-    return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(WALLET_CONTAINER_ID);
   }
 
   get networkInNavBar() {
@@ -138,7 +140,8 @@ class WalletMainScreen {
     return element.isDisplayed();
   }
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const element = await this.WalletScreenContainer;
+    await element.waitForDisplayed();
   }
 
   async isNetworkNameCorrect(network) {

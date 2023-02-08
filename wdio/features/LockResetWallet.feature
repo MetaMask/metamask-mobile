@@ -9,7 +9,7 @@ Feature: Lock and Reset Wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
 
-  Scenario: Lock Wallet
+  Scenario Outline: Lock Wallet
     When I tap burger icon
     And I tap Lock menu item
     Then device alert <alert_msg> is displayed
