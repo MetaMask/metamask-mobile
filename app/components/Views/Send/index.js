@@ -268,8 +268,6 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    let ensRecipient;
-
     const to = await getAddress(recipient, this.props.network);
 
     if (!to) {
@@ -281,7 +279,7 @@ class Send extends PureComponent {
       });
       this.props.navigation.navigate('WalletView');
     }
-    return { ensRecipient, to };
+    return { to };
   };
 
   /**
