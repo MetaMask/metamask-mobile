@@ -34,13 +34,17 @@ const Input: React.FC<InputProps> = ({
   });
 
   const onBlurHandler = (e: any) => {
-    setIsFocused(false);
-    onBlur?.(e);
+    if (!disabled) {
+      setIsFocused(false);
+      onBlur?.(e);
+    }
   };
 
   const onFocusHandler = (e: any) => {
-    setIsFocused(true);
-    onFocus?.(e);
+    if (!disabled) {
+      setIsFocused(true);
+      onFocus?.(e);
+    }
   };
   return (
     <TextInput

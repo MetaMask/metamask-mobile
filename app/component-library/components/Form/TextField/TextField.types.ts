@@ -16,6 +16,11 @@ export enum TextFieldSize {
 export interface TextFieldProps
   extends Omit<InputProps, 'textVariant' | 'disableStateStyles'> {
   /**
+   * Size of the TextField.
+   * @default TextFieldSize.Md
+   */
+  size?: TextFieldSize;
+  /**
    * Optional content to display before the Input.
    */
   startAccessory?: React.ReactNode;
@@ -28,4 +33,8 @@ export interface TextFieldProps
    * @default false
    */
   error?: boolean;
+  /**
+   * Optional prop to replace defaulted input with custom Input.
+   */
+  inputComponent?: React.ReactNode;
 }

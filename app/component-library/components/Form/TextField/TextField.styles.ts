@@ -13,16 +13,35 @@ import { Theme } from '../../../../util/theme/models';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: any }) => {
-  const { vars } = params;
-  const { style } = vars;
+  const { theme, vars } = params;
+  const { style, size, error, disabled, isFocused } = vars;
+  let borderColor = theme.colors.border.default;
+  if (error) {
+    borderColor = theme.colors.error.default;
+  }
+  if (isFocused) {
+    borderColor = theme.colors.primary.default;
+  }
+
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
-        margin: -8,
+        alignItems: 'center',
+        borderRadius: 8,
+        height: Number(size),
+        borderWidth: 1,
+        borderColor,
+        opacity: disabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    startAccessory: {
+      marginRight: 8,
+    },
+    endAccessory: {
+      marginLeft: 8,
+    },
   });
 };
 

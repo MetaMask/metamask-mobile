@@ -1,11 +1,10 @@
-// /* eslint-disable import/prefer-default-export */
+/* eslint-disable import/prefer-default-export */
 
-// // Internal dependencies.
-// import { TextFieldProps } from './TextField.types';
+// Internal dependencies.
+import { TextFieldSize } from './TextField.types';
 
-// // Defaults
-// export const DEFAULT_LIST_ITEM_VERTICAL_ALIGNMENT =
-//   VerticalAlignmentOptions.Top;
+// Defaults
+export const DEFAULT_TEXTFIELD_SIZE = TextFieldSize.Md;
 
 // // Sample consts
 
