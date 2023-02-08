@@ -72,10 +72,19 @@ const PaymentMethods = () => {
       setSelectedPaymentMethodId(id);
       trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
         payment_method_id: id,
+        available_payment_method_ids: paymentMethods?.map(
+          (paymentMethod) => paymentMethod.id,
+        ) as string[],
+        region: selectedRegion?.id as string,
         location: 'Payment Method Screen',
       });
     },
-    [setSelectedPaymentMethodId, trackEvent],
+    [
+      paymentMethods,
+      selectedRegion?.id,
+      setSelectedPaymentMethodId,
+      trackEvent,
+    ],
   );
 
   const handleResetState = useCallback(() => {
@@ -93,10 +102,21 @@ const PaymentMethods = () => {
 
   const handleContinueToAmount = useCallback(() => {
     trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
+      available_payment_method_ids: paymentMethods?.map(
+        (paymentMethod) => paymentMethod.id,
+      ) as string[],
+      payment_method_id: currentPaymentMethod?.id as string,
+      region: selectedRegion?.id as string,
       location: 'Payment Method Screen',
     });
     navigation.navigate(...createAmountToBuyNavDetails());
-  }, [navigation, trackEvent]);
+  }, [
+    currentPaymentMethod?.id,
+    navigation,
+    paymentMethods,
+    selectedRegion?.id,
+    trackEvent,
+  ]);
 
   useEffect(() => {
     navigation.setOptions(
