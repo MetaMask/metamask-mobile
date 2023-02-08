@@ -35,14 +35,19 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_VIEW_BURGER_ICON_ID,
   HAMBURGER_MENU_BUTTON,
-} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
-} from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
-import { SEND_CANCEL_BUTTON } from '../../../../wdio/features/testIDs/Screens/SendScreen.testIds';
-import { CONTACT_EDIT_BUTTON } from '../../../../wdio/features/testIDs/Screens/Contacts.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/features/testIDs/Screens/AssetSearch.testIds';
+  NETWORK_SCREEN_CLOSE_ICON,
+} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { CONTACT_EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
+import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import {
+  PAYMENT_REQUEST_CLOSE_BUTTON,
+  REQUEST_SEARCH_RESULTS_BACK_BUTTON,
+} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -215,6 +220,7 @@ export function getNavigationOptionsTitle(
             name={'ios-close'}
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
+            {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
           />
         </TouchableOpacity>
       ) : null,
@@ -349,7 +355,7 @@ export function getPaymentRequestOptionsTitle(
         <TouchableOpacity
           onPress={goBack}
           style={styles.backButton}
-          testID={'request-search-asset-back-button'}
+          {...generateTestId(Platform, REQUEST_SEARCH_RESULTS_BACK_BUTTON)}
         >
           <IonicIcon
             name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -405,7 +411,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => navigation.pop()}
         style={styles.closeButton}
-        testID={'send-link-close-button'}
+        {...generateTestId(Platform, PAYMENT_REQUEST_CLOSE_BUTTON)}
       >
         <IonicIcon
           name="ios-close"

@@ -2189,5 +2189,32 @@
     "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác.",
     "primary_action": "Bật kiểm tra bảo mật tự động",
     "secondary_action": "Không, cảm ơn"
+  },
+  "srp_security_quiz": {
+    "title": "Câu hỏi bảo mật",
+    "introduction": "Để hiển thị Cụm từ khôi phục bí mật, bạn cần trả lời đúng hai câu hỏi",
+    "get_started": "Bắt đầu",
+    "learn_more": "Tìm hiểu thêm",
+    "try_again": "Thử lại",
+    "continue": "Tiếp tục",
+    "of": "trên",
+    "question_one": {
+      "question": "Nếu bạn làm mất Cụm từ khôi phục bí mật, MetaMask...",
+      "right_answer": "Không thể giúp bạn",
+      "wrong_answer": "Có thể lấy lại cho bạn",
+      "right_answer_title": "Đúng! Không ai có thể giúp bạn lấy lại Cụm từ khôi phục bí mật",
+      "right_answer_description": "Hãy viết ra, khắc lên kim loại hoặc cất giữ ở nhiều nơi bí mật để bạn không bao giờ làm mất nó. Nếu bạn làm mất, nó sẽ bị mất vĩnh viễn.",
+      "wrong_answer_title": "Sai! Không ai có thể giúp bạn lấy lại Cụm từ khôi phục bí mật",
+      "wrong_answer_description": "Nếu bạn làm mất Cụm từ khôi phục bí mật, nó sẽ bị mất vĩnh viễn. Dù mọi người có nói gì, thì cũng không ai có thể giúp bạn lấy lại."
+    },
+    "question_two": {
+      "question": "Nếu có bất kỳ ai, kể cả nhân viên hỗ trợ, hỏi về Cụm từ khôi phục bí mật của bạn...",
+      "right_answer": "Bạn đang bị lừa đảo",
+      "right_answer_title": "Chính xác! Chia sẻ Cụm từ khôi phục bí mật chưa bao giờ là một ý hay",
+      "right_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn.",
+      "wrong_answer": "Bạn nên đưa nó cho họ",
+      "wrong_answer_title": "Không! Tuyệt đối không bao giờ chia sẻ Cụm từ khôi phục bí mật của bạn với bất kỳ ai",
+      "wrong_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn."
+    }
   }
 }
