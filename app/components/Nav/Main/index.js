@@ -221,7 +221,7 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector((state) => selectProviderConfig(state));
+  const networkProvider = useSelector(selectProviderConfig);
   const prevNetworkProvider = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 

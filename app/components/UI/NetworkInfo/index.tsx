@@ -117,9 +117,7 @@ interface NetworkInfoProps {
 
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
-  const networkProvider = useSelector((state: any) =>
-    selectProviderConfig(state),
-  );
+  const networkProvider = useSelector(selectProviderConfig);
   const {
     nickname,
     type,

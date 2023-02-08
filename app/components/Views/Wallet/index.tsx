@@ -138,9 +138,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector((state: any) =>
-    selectProviderConfig(state),
-  );
+  const networkProvider = useSelector(selectProviderConfig);
   const dispatch = useDispatch();
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),

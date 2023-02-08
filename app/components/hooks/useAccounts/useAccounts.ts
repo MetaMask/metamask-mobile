@@ -41,7 +41,7 @@ const useAccounts = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,
   );
-  const network = useSelector((state: any) => selectNetwork(state));
+  const network = useSelector(selectNetwork);
   const selectedAddress = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -59,7 +59,7 @@ const useAccounts = ({
     (state: any) =>
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
   );
-  const ticker = useSelector((state: any) => selectTicker(state));
+  const ticker = useSelector(selectTicker);
 
   const fetchENSNames = useCallback(
     async ({

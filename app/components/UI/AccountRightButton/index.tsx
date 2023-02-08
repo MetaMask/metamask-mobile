@@ -68,9 +68,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const networkProvider = useSelector((state: any) =>
-    selectProviderConfig(state),
-  );
+  const networkProvider = useSelector(selectProviderConfig);
   const dispatch = useDispatch();
 
   const handleKeyboardVisibility = useCallback(
