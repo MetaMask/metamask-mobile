@@ -198,6 +198,7 @@ const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
 
 /**
  * View where returning users can authenticate
@@ -354,6 +355,13 @@ class Login extends PureComponent {
         this.setState({
           loading: false,
           error: strings('login.clean_vault_error'),
+        });
+      } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
+        console.log('vault/ Login deny pin error: ', error);
+        //TODO: what do we wanna do here?
+        this.setState({
+          loading: false,
+          error: 'Please type PIN to use Pin login',
         });
       } else {
         this.setState({ loading: false, error });
