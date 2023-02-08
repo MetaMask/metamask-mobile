@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 5.14.1 - Feb 8, 2023
+- [#5605](https://github.com/MetaMask/metamask-mobile/pull/5605): [FIX] Handle ENS Address Error
+- [#5656](https://github.com/MetaMask/metamask-mobile/pull/5656): [FIX] ENS Resolves to Wrong Address when DeepLink
 ## 5.14.0 - Jan 27, 2023
 - [#5631](https://github.com/MetaMask/metamask-mobile/pull/5631): [FIX] Modal confirmation refactoring
 - [#5624](https://github.com/MetaMask/metamask-mobile/pull/5624): [FIX] Fix currency display
