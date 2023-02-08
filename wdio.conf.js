@@ -26,19 +26,10 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/**/*.feature'],
-  suites: {
-    browserFlow: [
-      './wdio/features/BrowserFlow/AddFavorite.feature',
-      './wdio/features/BrowserFlow/AddressBar.feature',
-      './wdio/features/BrowserFlow/ENSWebsite.feature',
-      './wdio/features/BrowserFlow/InvalidURL.feature',
-      './wdio/features/BrowserFlow/NavigationControls.feature',
-      './wdio/features/BrowserFlow/OptionMenu.feature',
-      './wdio/features/BrowserFlow/PhishingDetection.feature',
-      './wdio/features/BrowserFlow/SwitchAccount.feature',
-    ],
-  },
+  specs: ['./wdio/features/*.feature',
+          './wdio/features/**/*.feature'
+  ],
+
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -140,6 +131,14 @@ export const config = {
   /** services: ['chromedriver','appium'], ***/
   services: ['appium'],
 
+  // Appium service with custom chrome driver path
+  /*services: [
+    ['appium', {
+      args: {
+        chromedriverExecutable: '',
+      }
+    }]
+  ],*/
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
   // see also: https://webdriver.io/docs/frameworks
@@ -185,7 +184,7 @@ export const config = {
   // If you are using Cucumber you need to specify the location of your step definitions.
   cucumberOpts: {
     // <string[]> (file/dir) require files before executing features
-    require: ['./wdio/features/step-definitions/*.js'],
+    require: ['./wdio/step-definitions/*.js'],
     // <boolean> show full backtrace for errors
     backtrace: false,
     // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
@@ -203,7 +202,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 90000,
+    timeout: 110000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },

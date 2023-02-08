@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useContext,
+  useMemo,
 } from 'react';
 import {
   RefreshControl,
@@ -12,11 +13,13 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
+  TextStyle,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { Theme } from '@metamask/design-tokens';
+import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
@@ -34,9 +37,14 @@ import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
-const createStyles = (colors: any) =>
+const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
@@ -51,11 +59,10 @@ const createStyles = (colors: any) =>
     },
     tabBar: {
       borderColor: colors.border.muted,
+      marginTop: 16,
     },
     textStyle: {
-      fontSize: 12,
-      letterSpacing: 0.5,
-      ...(fontStyles.bold as any),
+      ...(typography.HeadingSM as TextStyle),
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -72,8 +79,9 @@ const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
   const [refreshing, setRefreshing] = useState(false);
   const accountOverviewRef = useRef(null);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
+  const { colors } = theme;
   /**
    * Map of accounts to information objects including balances
    */
@@ -126,6 +134,31 @@ const Wallet = ({ navigation }: any) => {
    * Current onboarding wizard step
    */
   const wizardStep = useSelector((state: any) => state.wizard.step);
+  /**
+   * Current network
+   */
+  const networkProvider = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const dispatch = useDispatch();
+  const networkName = useMemo(
+    () => getNetworkNameFromProvider(networkProvider),
+    [networkProvider],
+  );
+
+  const networkImageSource = useMemo(
+    () =>
+      getNetworkImageSource({
+        networkType: networkProvider.type,
+        chainId: networkProvider.chainId,
+      }),
+    [networkProvider],
+  );
+
+  /**
+   * Callback to trigger when pressing the navigation title.
+   */
+  const onTitlePress = () => dispatch(toggleNetworkModal());
 
   const { colors: themeColors } = useTheme();
 
@@ -172,14 +205,16 @@ const Wallet = ({ navigation }: any) => {
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
-        'wallet.title',
+        networkName,
+        networkImageSource,
+        onTitlePress,
         navigation,
         drawerRef,
         themeColors,
       ),
     );
     /* eslint-disable-next-line */
-  }, [navigation, themeColors]);
+  }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
@@ -207,8 +242,8 @@ const Wallet = ({ navigation }: any) => {
     () => (
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.alternative}
+        activeTextColor={colors.text.default}
+        inactiveTextColor={colors.text.muted}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
@@ -248,7 +283,7 @@ const Wallet = ({ navigation }: any) => {
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo.png',
+          logo: '../images/eth-logo-new.png',
         },
         ...(tokens || []),
       ];

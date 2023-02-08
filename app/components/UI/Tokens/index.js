@@ -35,7 +35,9 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -327,7 +329,7 @@ class Tokens extends PureComponent {
   showDetectedTokens = () => {
     const { NetworkController } = Engine.context;
     const { detectedTokens } = this.props;
-    this.props.navigation.navigate('DetectedTokens');
+    this.props.navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
