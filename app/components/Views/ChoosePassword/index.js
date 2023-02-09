@@ -25,7 +25,10 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import { passcodeType } from '../../../util/authentication/passcodeType';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -555,6 +558,7 @@ class ChoosePassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
+    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 

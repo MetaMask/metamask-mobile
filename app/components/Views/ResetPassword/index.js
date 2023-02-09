@@ -44,7 +44,10 @@ import {
   passwordRequirementsMet,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
-import { passcodeType } from '../../../util/authentication/passcodeType';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -468,6 +471,7 @@ class ResetPassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
+    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 

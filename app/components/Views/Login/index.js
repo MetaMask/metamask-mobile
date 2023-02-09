@@ -23,7 +23,10 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
-import { passcodeType } from '../../../util/authentication/passcodeType';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
@@ -357,12 +360,8 @@ class Login extends PureComponent {
           error: strings('login.clean_vault_error'),
         });
       } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
-        console.log('vault/ Login deny pin error: ', error);
-        //TODO: what do we wanna do here?
-        this.setState({
-          loading: false,
-          error: 'Please type PIN to use Pin login',
-        });
+        this.setState({ loading: false });
+        this.updateBiometryChoice(false);
       } else {
         this.setState({ loading: false, error });
       }
@@ -405,6 +404,7 @@ class Login extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
+    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 

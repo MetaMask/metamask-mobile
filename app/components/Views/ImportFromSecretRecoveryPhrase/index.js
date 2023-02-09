@@ -68,7 +68,10 @@ import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { passcodeType } from '../../../util/authentication/passcodeType';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -144,6 +147,7 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   const updateBiometryChoice = async (biometryChoice) => {
+    await updateAuthTypeStorageFlags(biometryChoice);
     setBiometryChoice(biometryChoice);
   };
 
