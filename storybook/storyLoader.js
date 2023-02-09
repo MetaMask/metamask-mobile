@@ -27,6 +27,8 @@ function loadStories() {
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
+  require('../app/component-library/components/Form/HelpText/HelpText.stories');
+  require('../app/component-library/components/Form/Label/Label.stories');
   require('../app/component-library/components/Form/TextField/TextField.stories');
   require('../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories');
   require('../app/component-library/components/Icon/Icon.stories');
@@ -83,6 +85,8 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
+  '../app/component-library/components/Form/HelpText/HelpText.stories',
+  '../app/component-library/components/Form/Label/Label.stories',
   '../app/component-library/components/Form/TextField/TextField.stories',
   '../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories',
   '../app/component-library/components/Icon/Icon.stories',

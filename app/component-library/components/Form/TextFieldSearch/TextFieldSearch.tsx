@@ -4,7 +4,6 @@
 import React, { useCallback, useState } from 'react';
 
 // External dependencies.
-import TextField from '../TextField/TextField';
 import ButtonIcon, { ButtonIconSizes } from '../../Buttons/ButtonIcon';
 import Icon, { IconName, IconSize } from '../../Icon';
 
