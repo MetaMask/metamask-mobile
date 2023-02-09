@@ -26,10 +26,14 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
-  async isScreenTitleVisible() {
+  async waitForSplashAnimationToDisplay() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await expect(elem).toBeDisplayed();
-    await driver.pause(20000);
+    await elem.waitForDisplayed();
+  }
+
+  async waitForSplashAnimationToNotExit() {
+    const elem = await this.splashScreenMetamaskAnimationId;
+    await elem.waitForExist({ reverse: true });
   }
 
   async verifyCarouselTitle(key) {

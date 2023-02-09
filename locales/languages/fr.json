@@ -2232,7 +2232,7 @@
     },
     "question_two": {
       "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre phrase secrète de récupération...",
-      "right_answer": "Ne la lui fournissez pas, car cette personne essaie de vous arnaquer",
+      "right_answer": "Vous risquez de vous faire arnaquer",
       "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
       "right_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer.",
       "wrong_answer": "Vous devez la lui fournir",

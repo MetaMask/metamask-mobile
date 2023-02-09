@@ -39,7 +39,6 @@ Then(/^I tap on the navbar network title button/, async () => {
 });
 
 Then(/^I am on the wallet screen/, async () => {
-  await driver.pause(2000);
   await WalletMainScreen.isVisible();
 });
 Then(/^I am on the wallet view/, async () => {

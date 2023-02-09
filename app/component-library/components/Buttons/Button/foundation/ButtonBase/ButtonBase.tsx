@@ -5,7 +5,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariants } from '../../../../Texts/Text';
+import Text, { TextVariant } from '../../../../Texts/Text';
 import Icon, { IconSize } from '../../../../Icon';
 import { useStyles } from '../../../../../hooks';
 import {
@@ -48,7 +48,7 @@ const ButtonBase = ({
           style={styles.icon}
         />
       )}
-      <Text variant={TextVariants.sBodyMD} style={styles.label}>
+      <Text variant={TextVariant.BodyMD} style={styles.label}>
         {label}
       </Text>
     </TouchableOpacity>

@@ -10,7 +10,7 @@ import Button, {
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './styles';
@@ -32,7 +32,7 @@ const QuizContent = ({
       <>
         <View style={styles.header}>
           <View style={styles.spacer} />
-          <Text variant={TextVariants.sHeadingSM} style={styles.headerText}>
+          <Text variant={TextVariant.HeadingSM} style={styles.headerText}>
             {header}
           </Text>
           <TouchableOpacity onPress={dismiss}>
@@ -47,13 +47,13 @@ const QuizContent = ({
         {icon ? icon() : null}
         {image ? <Image source={image} style={styles.image} /> : null}
         <Text
-          variant={TextVariants.sHeadingLG}
+          variant={TextVariant.HeadingLG}
           style={{ ...styles.title, ...title.style }}
         >
           {title.content}
         </Text>
         {content ? (
-          <Text variant={TextVariants.sBodyMD} style={styles.content}>
+          <Text variant={TextVariant.BodyMD} style={styles.content}>
             {content}
           </Text>
         ) : null}
