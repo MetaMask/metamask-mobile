@@ -21,6 +21,7 @@ import {
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
+import { getCapitalizedString } from '../../../util/strings';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -162,11 +163,6 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     [networkProvider],
   );
 
-  const getCapitalizeNetworkName = (networkName: string) => {
-    const firstLetterUppercase = networkName.charAt(0).toUpperCase();
-    return `${firstLetterUppercase}${networkName.slice(1)}`;
-  };
-
   const getNetworkName = useCallback(() => {
     let networkName = '';
     if (ticker === undefined) {
@@ -182,7 +178,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               type,
             })}`;
     }
-    return type === RPC ? networkName : getCapitalizeNetworkName(networkName);
+    return type === RPC ? networkName : getCapitalizedString(networkName);
   }, [ticker, type, isMainnet, nickname]);
 
   const networkName = getNetworkName();
