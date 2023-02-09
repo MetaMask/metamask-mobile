@@ -340,8 +340,11 @@ class DeeplinkManager {
             params?.autosign,
             origin,
           );
+        } else if (
+          url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
+        ) {
+          this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
         }
-
         break;
       default:
         return false;
