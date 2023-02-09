@@ -212,6 +212,10 @@ const App = ({ userLoggedIn }) => {
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
   );
 
+  const network = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.network,
+  );
+
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
       trackErrorAsAnalytics(error, 'Branch:');
@@ -257,6 +261,7 @@ const App = ({ userLoggedIn }) => {
           },
         },
         frequentRpcList,
+        network,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -277,7 +282,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
+  }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
     const initAnalytics = async () => {
