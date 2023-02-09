@@ -126,7 +126,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -155,7 +155,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -239,7 +239,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -486,7 +486,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           },
                                           undefined,
                                           Object {
-                                            "borderColor": "#037DD6",
+                                            "borderColor": "#0376C9",
                                           },
                                           undefined,
                                         ]
@@ -1985,7 +1985,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                         "padding": 15,
                                       },
                                       Object {
-                                        "backgroundColor": "#037DD6",
+                                        "backgroundColor": "#0376C9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -2166,7 +2166,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -2195,7 +2195,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -2279,7 +2279,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3578,7 +3578,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3607,7 +3607,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -3691,7 +3691,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3938,7 +3938,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#037DD6",
+                                          "color": "#0376C9",
                                         },
                                       ],
                                       Object {
@@ -4086,7 +4086,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                           "padding": 15,
                                         },
                                         Object {
-                                          "backgroundColor": "#037DD6",
+                                          "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -4268,7 +4268,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4297,7 +4297,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -4381,7 +4381,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4628,7 +4628,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#D73A49",
+                                          "color": "#D73847",
                                         },
                                       ],
                                       Object {
@@ -4774,7 +4774,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                           "padding": 15,
                                         },
                                         Object {
-                                          "backgroundColor": "#037DD6",
+                                          "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -4956,7 +4956,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4985,7 +4985,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -5069,7 +5069,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6368,7 +6368,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6397,7 +6397,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -6481,7 +6481,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -7209,7 +7209,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           },
                                           undefined,
                                           Object {
-                                            "borderColor": "#037DD6",
+                                            "borderColor": "#0376C9",
                                           },
                                           undefined,
                                         ]
@@ -8285,7 +8285,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                         "padding": 15,
                                       },
                                       Object {
-                                        "backgroundColor": "#037DD6",
+                                        "backgroundColor": "#0376C9",
                                         "minHeight": 50,
                                       },
                                       undefined,
@@ -8466,7 +8466,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -8495,7 +8495,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -8579,7 +8579,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -8826,7 +8826,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#D73A49",
+                                          "color": "#D73847",
                                         },
                                       ],
                                       Object {
@@ -8972,7 +8972,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                           "padding": 15,
                                         },
                                         Object {
-                                          "backgroundColor": "#037DD6",
+                                          "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -9161,7 +9161,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     "flex": 1,
                   }
                 }
-                testID="open-networks-button"
+                testID="navbar-title-text"
               >
                 <Text
                   numberOfLines={1}
@@ -9245,7 +9245,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -9492,7 +9492,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           },
                                           undefined,
                                           Object {
-                                            "borderColor": "#037DD6",
+                                            "borderColor": "#0376C9",
                                           },
                                           undefined,
                                         ]
@@ -10991,7 +10991,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                         "padding": 15,
                                       },
                                       Object {
-                                        "backgroundColor": "#037DD6",
+                                        "backgroundColor": "#0376C9",
                                         "minHeight": 50,
                                       },
                                       undefined,

@@ -282,6 +282,13 @@ describe('PaymentMethods View', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
       {
+        available_payment_method_ids: [
+          '/payments/instant-bank-transfer',
+          '/payments/apple-pay',
+          '/payments/debit-credit-card',
+        ],
+        payment_method_id: '/payments/instant-bank-transfer',
+        region: '/regions/cl',
         location: 'Payment Method Screen',
       },
     );
