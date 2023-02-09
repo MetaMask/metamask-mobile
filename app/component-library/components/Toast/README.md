@@ -69,6 +69,7 @@ const showToast = () => {
       { label: LABEL_CHUNK_2, isBold: true },
     ],
     accountAddress: ACCOUNT_ADDRESS,
+    accountAvatarType: ACCOUNT_AVATAR_TYPE,
     linkButtonOptions: {
       label: LINK_LABEL,
       onPress: ONPRESS_HANDLER,

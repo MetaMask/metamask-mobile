@@ -12,7 +12,12 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
+import {
+  doENSLookup,
+  doENSReverseLookup,
+  ENSCache,
+  isDefaultAccountName,
+} from '../../util/ENSUtils';
 import { isMainnetByChainId } from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
 import {
@@ -95,9 +100,15 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+  const { NetworkController } = Engine.context;
+  const network = NetworkController.state.network;
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
-    return identities[address].name;
+    const identityName = identities[address].name;
+    const ensName = ENSCache.cache[`${network}${address}`]?.name || '';
+    return isDefaultAccountName(identityName) && ensName
+      ? ensName
+      : identityName;
   }
   return renderShortAddress(address);
 }
@@ -364,13 +375,13 @@ export async function validateAddressOrENS(params) {
      * Check if it's smart contract address
      */
     /*
-			const smart = false; //
+               const smart = false; //
 
-			if (smart) {
-				addressError = strings('transaction.smartContractAddressWarning');
-				isOnlyWarning = true;
-			}
-			*/
+               if (smart) {
+                    addressError = strings('transaction.smartContractAddressWarning');
+                    isOnlyWarning = true;
+               }
+               */
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
@@ -437,3 +448,19 @@ export const stripHexPrefix = (str) => {
   }
   return isHexPrefixed(str) ? str.slice(2) : str;
 };
+
+/**
+ * Method to check if address is ENS and return the address
+ * @param {String} toAccount - Address or ENS
+ * @param {String} network - Network id
+ * @returns {String} - Address or null
+ */
+export async function getAddress(toAccount, network) {
+  if (isENS(toAccount)) {
+    return await doENSLookup(toAccount, network);
+  }
+  if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    return toAccount;
+  }
+  return null;
+}

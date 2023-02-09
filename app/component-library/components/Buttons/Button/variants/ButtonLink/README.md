@@ -19,10 +19,10 @@ Function to trigger when pressing the link.
 ```javascript
 // Replace import with relative path.
 import ButtonLink, from 'app/component-library/components/ButtonLink';
-import { TextVariants } from 'app/component-library/components/Texts/Text';
+import { TextVariant } from 'app/component-library/components/Texts/Text';
 
 <ButtonLink
-  variant={TextVariants.lBodyMDBold}
-  onPress={ONPRESS_HANDLER)}
+  variant={TextVariant.HeadingSM}
+  onPress={ONPRESS_HANDLER}
 >{LINK_LABEL}</ButtonLink>;
 ```

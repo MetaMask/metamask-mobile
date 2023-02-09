@@ -440,11 +440,34 @@
     "create_new_account": "Créer un nouveau compte",
     "import_account": "Importer un compte",
     "connect_hardware": "Connecter un portefeuille matériel",
-    "imported": "IMPORTÉ",
+    "imported": "Importés",
     "remove_account_title": "Suppression du compte",
     "remove_account_message": "Souhaitez-vous vraiment supprimer ce compte ?",
     "no": "Non",
-    "yes_remove_it": "Oui, supprimez-le"
+    "yes_remove_it": "Oui, supprimez-le",
+    "accounts_title": "Comptes",
+    "connect_account_title": "Connecter le compte",
+    "connect_accounts_title": "Connecter les comptes",
+    "connected_accounts_title": "Comptes connectés",
+    "connect_description": "Partagez l’adresse, le solde, l’activité de votre compte et autorisez le site à effectuer des transactions.",
+    "connect_multiple_accounts": "Connecter plusieurs comptes",
+    "connect_more_accounts": "Connecter plus de comptes",
+    "cancel": "Annuler",
+    "connect": "Connecter",
+    "connect_with_count": "Connecter{{countLabel}}",
+    "select_all": "Tout sélectionner",
+    "permissions": "Autorisations",
+    "disconnect": "Déconnecter",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "revoke": "Révoquer",
+    "revoke_all": "Révoquer tout"
+  },
+  "toast": {
+    "connected_and_active": "connecté et actif.",
+    "now_active": "maintenant actif.",
+    "revoked": "révoqué.",
+    "revoked_all": "Tous les comptes ont été révoqués.",
+    "accounts_connected": "comptes connectés."
   },
   "connect_qr_hardware": {
     "title": "Connecter un hardware wallet (portefeuille matériel) basé sur code QR",
@@ -2192,29 +2215,29 @@
   },
   "srp_security_quiz": {
     "title": "Quiz sur la sécurité",
-    "introduction": "Pour révéler votre Phrase secrète de récupération, vous devez répondre correctement à deux questions",
+    "introduction": "Pour révéler votre phrase secrète de récupération, vous devez répondre correctement à deux questions",
     "get_started": "Commencer",
     "learn_more": "En savoir plus",
     "try_again": "Réessayer",
     "continue": "Continuer",
     "of": "sur",
     "question_one": {
-      "question": "Si vous perdez votre Phrase secrète de récupération, MetaMask...",
+      "question": "Si vous perdez votre phrase secrète de récupération, MetaMask...",
       "right_answer": "Ne pourra pas vous aider",
       "wrong_answer": "Pourra la récupérer pour vous",
-      "right_answer_title": "En effet ! Personne ne peut vous aider à récupérer votre Phrase secrète de récupération.",
+      "right_answer_title": "En effet ! Personne ne peut vous aider à récupérer votre phrase secrète de récupération.",
       "right_answer_description": "Gravez-la sur une plaque en métal ou inscrivez-la sur plusieurs bouts de papier et cachez-les dans différents endroits secrets pour ne jamais la perdre. Si vous la perdez, il n'y a aucun moyen de la récupérer.",
-      "wrong_answer_title": "C'est faux ! Personne ne peut vous aider à récupérer votre Phrase secrète de récupération.",
-      "wrong_answer_description": "Personne ne peut vous aider à récupérer votre Phrase secrète de récupération si jamais vous la perdez. "
+      "wrong_answer_title": "C'est faux ! Personne ne peut vous aider à récupérer votre phrase secrète de récupération.",
+      "wrong_answer_description": "Personne ne peut vous aider à récupérer votre phrase secrète de récupération si jamais vous la perdez."
     },
     "question_two": {
-      "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre Phrase secrète de récupération...",
-      "right_answer": "Ne la lui fournissez pas, car cette personne essaie de vous arnaquer.",
-      "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre Phrase secrète de récupération avec qui que ce soit.",
-      "right_answer_description": "Toute personne qui vous demande votre Phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer. ",
+      "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre phrase secrète de récupération...",
+      "right_answer": "Vous risquez de vous faire arnaquer",
+      "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
+      "right_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer.",
       "wrong_answer": "Vous devez la lui fournir",
-      "wrong_answer_title": "C'est faux ! Vous ne devez jamais partager votre Phrase secrète de récupération avec qui que ce soit.",
-      "wrong_answer_description": "Toute personne qui vous demande votre Phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer. "
+      "wrong_answer_title": "C'est faux ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
+      "wrong_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer."
     }
   }
 }

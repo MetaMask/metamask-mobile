@@ -14,7 +14,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
       onError={[Function]}
       source={
         Object {
-          "uri": "https://api.faviconkit.com/url.com/64",
+          "uri": "https://api.faviconkit.com/url.com/50",
         }
       }
     />

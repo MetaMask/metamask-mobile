@@ -25,7 +25,7 @@ import {
   MULTI_TAB_CLOSE_ALL_BUTTON,
   MULTI_TAB_DONE_BUTTON,
   MULTI_TAB_NO_TABS_MESSAGE,
-} from '../../../../wdio/features/testIDs/BrowserScreen/MultiTab.testIds';
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -94,11 +94,10 @@ const createStyles = (colors, shadows) =>
     tabActions: {
       paddingHorizontal: 20,
       flexDirection: 'row',
-      marginBottom: Device.isIphoneX() ? 0 : 0,
       paddingTop: 17,
       ...shadows.size.md,
       backgroundColor: colors.background.default,
-      height: Device.isIphoneX() ? 80 : 50,
+      height: 50,
     },
     tabs: {
       flex: 1,

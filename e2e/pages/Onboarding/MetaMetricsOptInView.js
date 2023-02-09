@@ -3,7 +3,7 @@ import {
   OPTIN_METRICS_NO_THANKS_BUTTON_ID,
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
   METAMETRICS_OPT_IN_CONTAINER_ID,
-} from '../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
+} from '../../../wdio/screen-objects/testIDs/Screens/OptinMetricsScreen.testIds';
 import TestHelpers from '../../helpers';
 export default class MetaMetricsOptIn {
   static async tapAgreeButton() {

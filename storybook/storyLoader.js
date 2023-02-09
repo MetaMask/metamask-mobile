@@ -17,18 +17,17 @@ function loadStories() {
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
-  require('../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories');
-  require('../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
-  require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
+  require('../app/component-library/components/Form/TextInput/TextInput.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories');
@@ -57,6 +56,7 @@ function loadStories() {
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
+  require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
 }
 
 const stories = [
@@ -73,19 +73,17 @@ const stories = [
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
-  '../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories',
-  '../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories',
+  '../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Cards/Card/Card.stories',
   '../app/component-library/components/Cells/Cell/Cell.stories',
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
-  '../app/component-library/components-temp/ContractBox/ContractBox.stories',
-  '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
+  '../app/component-library/components/Form/TextInput/TextInput.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
@@ -104,7 +102,7 @@ const stories = [
   '../app/component-library/components/Toast/Toast.stories',
   '../app/components/Base/Alert.stories',
   '../app/components/Base/ListItem.stories',
-  '../app/components/Base/Text.stories',
+  '../app/components/Base/Text/Text.stories',
   '../app/components/Base/Title.stories',
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
@@ -113,6 +111,7 @@ const stories = [
   '../app/components/UI/WarningAlert/WarningAlert.stories',
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
+  '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
 ];
 
 module.exports = {
