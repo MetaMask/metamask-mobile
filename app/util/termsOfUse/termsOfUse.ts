@@ -40,8 +40,6 @@ export default async function navigateTermsOfUse(
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: true,
-        scrollEndBottomMargin:
-          AppConstants.TERMS_OF_USE.SCROLL_END_BOTTOM_MARGIN,
       },
     });
   }
