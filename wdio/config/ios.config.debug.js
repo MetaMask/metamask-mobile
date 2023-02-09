@@ -9,8 +9,8 @@ config.capabilities = [
     fullReset: false,
     maxInstances: 1,
     automationName: 'XCUITest',
-    deviceName: 'iPhone 11 Pro',
-    platformVersion: '15.5',
+    deviceName: 'testiPhone',
+    platformVersion: '16.1.1',
     app: './ios/build/Build/Products/Debug-iphonesimulator/MetaMask-QA.app',
     settings: {
       snapshotMaxDepth: 100, // Enable testID on deep nested elements
