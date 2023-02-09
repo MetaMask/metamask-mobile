@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @smoke
 Feature: This feature file covers adding favorite websites in browser.
 
 

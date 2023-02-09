@@ -8,7 +8,6 @@ import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import ButtonPrimary from './ButtonPrimary';
-import { ButtonPrimaryVariants } from './ButtonPrimary.types';
 
 describe('ButtonPrimary', () => {
   it('should render correctly', () => {
@@ -18,7 +17,6 @@ describe('ButtonPrimary', () => {
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
-        buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
       />,
     );
     expect(wrapper).toMatchSnapshot();
