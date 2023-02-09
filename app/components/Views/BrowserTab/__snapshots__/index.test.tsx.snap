@@ -1,107 +1,40 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Browser should render correctly 1`] = `
-<ErrorBoundary
-  view="BrowserTab"
->
-  <View
-    style={
-      Array [
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "flex": 1,
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
         },
-        false,
-      ]
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
-  >
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "zIndex": 1,
-        }
-      }
-    />
-    <View
-      style={
-        Object {
-          "height": 3,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-          "width": "100%",
-          "zIndex": 999999,
-        }
-      }
-    >
-      <WebviewProgressBar
-        progress={0}
-      />
-    </View>
-    <ReactNativeModal
-      animationIn="slideInUp"
-      animationInTiming={300}
-      animationOut="slideOutDown"
-      animationOutTiming={300}
-      avoidKeyboard={false}
-      backdropColor="#D73A49"
-      backdropOpacity={1}
-      backdropTransitionInTiming={300}
-      backdropTransitionOutTiming={300}
-      coverScreen={true}
-      customBackdrop={null}
-      deviceHeight={null}
-      deviceWidth={null}
-      hasBackdrop={true}
-      hideModalContentWhileAnimating={false}
-      isVisible={false}
-      onBackButtonPress={[Function]}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalShow={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      panResponderThreshold={4}
-      propagateSwipe={false}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      style={
-        Object {
-          "flex": 1,
-        }
-      }
-      supportedOrientations={
-        Array [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeThreshold={100}
-      useNativeDriver={true}
-    >
-      <PhishingModal
-        continueToPhishingSite={[Function]}
-        goBackToSafety={[Function]}
-        goToETHPhishingDetector={[Function]}
-        goToEtherscam={[Function]}
-        goToFilePhishingIssue={[Function]}
-      />
-    </ReactNativeModal>
-    <BrowserBottomBar
-      canGoBack={false}
-      canGoForward={false}
-      goBack={[Function]}
-      goForward={[Function]}
-      goHome={[Function]}
-      showTabs={[Function]}
-      showUrlModal={[Function]}
-      toggleOptions={[Function]}
-    />
-  </View>
-</ErrorBoundary>
+  }
+>
+  <BrowserTab
+    defaultProtocol="https://"
+    initialUrl="https://metamask.io"
+  />
+</ContextProvider>
 `;

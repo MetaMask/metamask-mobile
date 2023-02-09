@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 /* global driver */
 import { Then } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
@@ -13,7 +12,7 @@ Then(/^I tap on the "Add contact" button/, async () => {
   await Contacts.tapOnText('Add contact');
 });
 
-Then(/^I tap button "([^"]*)?" which is now enabled/, async (text) => {
+Then(/^I tap button Add contact which is now enabled/, async () => {
   await Contacts.isAddContactButtonEnabled();
   await AddContact.tapOnAddContactButton();
 });
@@ -56,7 +55,7 @@ Then(/I tap on Edit button to edit Saved contact details/, async () => {
 });
 
 Then(/I can edit the contact name to "([^"]*)?"/, async (name) => {
-  await Contacts.changeContactName(name);
+  await AddContact.changeContactName(name);
 });
 
 Then(

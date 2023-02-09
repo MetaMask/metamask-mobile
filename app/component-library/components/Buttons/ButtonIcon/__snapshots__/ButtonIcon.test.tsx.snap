@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonIcon should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.5}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "height": 24,
+      "justifyContent": "center",
+      "width": 24,
+    }
+  }
+>
+  <Icon
+    color="#0376C9"
+    name="AddSquareFilled"
+    size="16"
+  />
+</TouchableOpacity>
+`;

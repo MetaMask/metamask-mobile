@@ -19,7 +19,10 @@ import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NOTIFICATION_REMIND_ME_LATER_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import {
+  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+  SECURE_WALLET_BACKUP_ALERT_MODAL,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -67,10 +70,10 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     modalViewInBrowserView: {
-      bottom: Device.isIphoneX() ? 90 : 80,
+      bottom: Device.isIphoneX() ? 180 : 170,
     },
     modalViewNotInBrowserView: {
-      bottom: Device.isIphoneX() ? 20 : 10,
+      bottom: Device.isIphoneX() ? 120 : 110,
     },
     buttonsWrapper: {
       flexDirection: 'row-reverse',
@@ -209,7 +212,10 @@ class BackupAlert extends PureComponent {
         ]}
       >
         <View style={styles.backupAlertWrapper}>
-          <View style={styles.touchableView} testID={'backup-alert'}>
+          <View
+            style={styles.touchableView}
+            {...generateTestId(Platform, SECURE_WALLET_BACKUP_ALERT_MODAL)}
+          >
             <View style={styles.backupAlertIconWrapper}>
               <EvilIcons name="bell" style={styles.backupAlertIcon} />
             </View>

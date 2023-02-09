@@ -1,5 +1,7 @@
-@androidApp
-@ChainScenarios
+@androidApp 
+@ChainScenarios 
+@smoke
+
 Feature: Creating account in wallet
 
   Scenario: Import account

@@ -5,7 +5,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { IconName, IconProps, IconSize } from '../../Icon';
-import { TextVariants } from '../Text/Text.types';
+import { TextVariant } from '../Text/Text.types';
 
 // Internal dependencies.
 import TextWithPrefixIcon from './TextWithPrefixIcon';
@@ -27,10 +27,10 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
       IconSize.Md,
       groupId,
     );
-    const textVariantsSelector = select(
+    const textVariantSelector = select(
       'Variant',
-      TextVariants,
-      TextVariants.lBodyMD,
+      TextVariant,
+      TextVariant.HeadingSMRegular,
       groupId,
     );
     const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
@@ -40,7 +40,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
     };
 
     return (
-      <TextWithPrefixIcon variant={textVariantsSelector} iconProps={iconProps}>
+      <TextWithPrefixIcon variant={textVariantSelector} iconProps={iconProps}>
         {inputText}
       </TextWithPrefixIcon>
     );

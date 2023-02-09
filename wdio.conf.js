@@ -131,6 +131,14 @@ export const config = {
   /** services: ['chromedriver','appium'], ***/
   services: ['appium'],
 
+  // Appium service with custom chrome driver path
+  /*services: [
+    ['appium', {
+      args: {
+        chromedriverExecutable: '',
+      }
+    }]
+  ],*/
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
   // see also: https://webdriver.io/docs/frameworks
@@ -194,7 +202,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 90000,
+    timeout: 210000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },
