@@ -24,6 +24,7 @@ import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
+import { allowedToBuy } from '../components/UI/FiatOnRampAggregator';
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;
@@ -185,6 +186,14 @@ class DeeplinkManager {
     });
   }
 
+  _handleBuyCrypto() {
+    if (allowedToBuy(this.network)) {
+      this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    } else {
+      // Do nothing for now
+    }
+  }
+
   parse(url, { browserCallBack, origin, onHandled }) {
     const urlObj = new URL(
       url
@@ -251,6 +260,8 @@ class DeeplinkManager {
             );
             // loops back to open the link with the right protocol
             this.parse(url, { browserCallBack });
+          } else if (action === ACTIONS.BUY_CRYPTO) {
+            this._handleBuyCrypto();
           } else {
             // If it's our universal link or Apple store deep link don't open it in the browser
             if (
@@ -343,7 +354,7 @@ class DeeplinkManager {
         } else if (
           url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
         ) {
-          this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+          this._handleBuyCrypto();
         }
         break;
       default:
