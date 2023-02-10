@@ -1537,10 +1537,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@1.6.1":
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.6.1.tgz#ebe14b3dfe00e1e7c204c702b1e51cb8fe358f79"
-  integrity sha512-I0MTKzL1ZEzM6UMaWlV7kpVJQx460+8W6QgNItoh9qleX0cfS/SZMsbGIToIX95n2WrvCmT3oPB/OADYGMrq5A==
+"@consensys/on-ramp-sdk@1.8.1":
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.8.1.tgz#05c2115c16526f4fb5913e7f3b8fad71c38c3b1e"
+  integrity sha512-F2POd3UquAByg1cIlAg38XMKP2yjNBxR7UBrfkCA32iNEivFeDu68RMMwYhgnDL4w+eI5U5umw/yumvUZn/b5w==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -4844,10 +4844,10 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@sideway/formula@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@sideway/formula/-/formula-3.0.0.tgz#fe158aee32e6bd5de85044be615bc08478a0a13c"
-  integrity sha512-vHe7wZ4NOXVfkoRb8T5otiENVlT7a3IAiw7H5M2+GO+9CDgcVUUsX1zalAztCmwyOr2RUTGJdgB+ZvSVqmdHmg==
+"@sideway/formula@3.0.1", "@sideway/formula@^3.0.0":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@sideway/formula/-/formula-3.0.1.tgz#80fcbcbaf7ce031e0ef2dd29b1bfc7c3f583611f"
+  integrity sha512-/poHZJJVjx3L+zVD6g9KgHfYnb443oi7wLu/XKojDviHy6HOEOA6z1Trk5aR1dGcmPenJEgb2sK2I80LeS3MIg==
 
 "@sideway/pinpoint@^2.0.0":
   version "2.0.0"
