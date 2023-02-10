@@ -134,6 +134,8 @@ workflows:
           title: Detox Build & Test
           is_always_run: false
   start_e2e_tests:
+    before_run:
+      - code_setup_cache
     steps:
       - build-router-start@0:
           inputs:
