@@ -157,6 +157,7 @@ workflows:
           inputs:
             - command: add axios
           title: Install axios
+          is_always_run: true
       - yarn@0:
           inputs:
             - command: e2e:announce
