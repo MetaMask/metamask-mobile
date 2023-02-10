@@ -67,6 +67,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { isEqual } from 'lodash';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -235,7 +236,7 @@ const HomeTabs = () => {
 
   const options = {
     home: {
-      tabBarLabel: 'Wallet',
+      tabBarLabel: strings('drawer.wallet'),
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
@@ -244,7 +245,7 @@ const HomeTabs = () => {
       },
     },
     browser: {
-      tabBarLabel: 'Browser',
+      tabBarLabel: strings('drawer.browser'),
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
