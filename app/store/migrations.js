@@ -328,12 +328,13 @@ export const migrations = {
     return state;
   },
   13: (state) => {
-    const { approvedHosts } = state.privacy;
+    // approvedHosts fallsback to empty object when
+    // previous app state do not have any dapp connected
+    const { approvedHosts = {} } = state.privacy;
     const { selectedAddress } =
       state.engine.backgroundState.PreferencesController;
 
     const hosts = Object.keys(approvedHosts);
-
     if (!hosts) return state;
 
     const { subjects } = hosts.reduce(
