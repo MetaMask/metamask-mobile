@@ -328,14 +328,19 @@ export const migrations = {
     return state;
   },
   13: (state) => {
-    // approvedHosts fallsback to empty object when
-    // previous app state do not have any dapp connected
-    const { approvedHosts = {} } = state.privacy;
+    // If for some reason we already have PermissionController state, bail out.
+    const hasPermissionControllerState = Boolean(
+      state.engine.backgroundState.PermissionController?.subjects,
+    );
+    if (hasPermissionControllerState) return state;
+
+    const { approvedHosts } = state.privacy;
     const { selectedAddress } =
       state.engine.backgroundState.PreferencesController;
 
     const hosts = Object.keys(approvedHosts);
-    if (!hosts) return state;
+    // If no dapps connected, bail out.
+    if (hosts.length < 1) return state;
 
     const { subjects } = hosts.reduce(
       (accumulator, host, index) => ({
