@@ -22,7 +22,7 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
       await WelcomeScreen.waitForSplashAnimationToDisplay();
-      await WelcomeScreen.waitForSplashAnimationToDisappear();
+      await WelcomeScreen.waitForSplashAnimationToNotExit();
       break;
     case 'Wallet setup':
       await OnboardingScreen.isScreenTitleVisible();
