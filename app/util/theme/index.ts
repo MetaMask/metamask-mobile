@@ -64,7 +64,7 @@ export const getAssetFromTheme = (
  * @param delay - Optional delay for throttling setting the system theme.
  * @returns - The system's theme, light or dark.
  */
-const useColorSchemeCustom = (delay = 250) => {
+const useColorSchemeCustom = (delay = 350) => {
   const [colorScheme, setColorScheme] = useState(Appearance.getColorScheme());
   const onColorSchemeChange = useCallback(
     throttle(
