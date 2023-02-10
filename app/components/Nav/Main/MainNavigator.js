@@ -165,7 +165,10 @@ const WalletTabStackFlow = () => (
 
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
+    <Stack.Screen
+      name={Routes.WALLET.TAB_STACK_FLOW}
+      component={WalletTabStackFlow}
+    />
   </Stack.Navigator>
 );
 
@@ -243,6 +246,7 @@ const HomeTabs = () => {
           chain_id: chainId,
         });
       },
+      rootScreenName: Routes.WALLET_VIEW,
     },
     browser: {
       tabBarLabel: strings('drawer.browser'),
@@ -255,6 +259,7 @@ const HomeTabs = () => {
           number_of_open_tabs: amountOfBrowserOpenTabs,
         });
       },
+      rootScreenName: Routes.BROWSER_VIEW,
     },
   };
 
