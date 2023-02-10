@@ -65,6 +65,7 @@ import {
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Logger from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -410,6 +411,19 @@ class ResetPassword extends PureComponent {
       this.setState({ loading: true });
 
       await this.recreateVault();
+      // Set biometrics for new password
+      await Authentication.resetPassword();
+      try {
+        // compute and store the new authentication method
+        const authData = await Authentication.componentAuthenticationType(
+          this.state.biometryChoice,
+          this.state.rememberMe,
+        );
+        console.log('vault/ recreateVault authData', authData);
+        await Authentication.storePassword(password, authData.currentAuthType);
+      } catch (error) {
+        Logger.error(error);
+      }
 
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.props.passwordSet();
@@ -443,6 +457,7 @@ class ResetPassword extends PureComponent {
    */
   recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
+    // Recreate keyring with password
     await recreateVaultWithNewPassword(
       originalPassword,
       newPassword,
