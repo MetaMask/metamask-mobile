@@ -135,29 +135,24 @@ workflows:
           is_always_run: false
   start_e2e_tests:
     before_run:
-      - setup
+      - code_setup_cache
     steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                ios_e2e_test
-            - wait_for_builds: 'true'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+#      - build-router-start@0:
+#          inputs:
+#            - workflows: |-
+#                ios_e2e_test
+#            - wait_for_builds: 'true'
+#            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+#      - build-router-wait@0:
+#          inputs:
+#            - abort_on_fail: 'yes'
+#            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
-      - yarn@0:
-          inputs:
-            - command: add axios
-          title: Install axios
-          is_always_run: true
       - yarn@0:
           inputs:
             - command: e2e:announce

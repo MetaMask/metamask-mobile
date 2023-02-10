@@ -22,14 +22,17 @@ async function start() {
         ? ':large_green_circle: SUCCESSFUL'
         : ':red_circle: FAILED'
     } E2E tests* for ${BITRISE_APP_TITLE} <${BITRISE_BUILD_URL}|build #${BITRISE_BUILD_NUMBER}>`,
-    attachments: [
+  };
+
+  if (BITRISE_GIT_COMMIT) {
+    content.attachements = [
       {
         title_link: `${GIT_REPOSITORY_URL}/commit/${BITRISE_GIT_COMMIT}`,
         title: `commit #${BITRISE_GIT_COMMIT}`,
         text: BITRISE_GIT_COMMIT_MESSAGE,
       },
-    ],
-  };
+    ];
+  }
 
   const JSON_PAYLOAD = JSON.stringify(content);
   const SLACK_API_URI = `https://hooks.slack.com/services/${SLACK_TOKEN}/${SLACK_SECRET}/${SLACK_ROOM}`;
