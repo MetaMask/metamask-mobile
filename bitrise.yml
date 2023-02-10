@@ -135,7 +135,7 @@ workflows:
           is_always_run: false
   start_e2e_tests:
     before_run:
-      - code_setup_cache
+      - setup
     steps:
       - build-router-start@0:
           inputs:
@@ -153,6 +153,10 @@ workflows:
                 #!/usr/bin/env bash echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
+      - yarn@0:
+          inputs:
+            - command: add axios
+          title: Install axios
       - yarn@0:
           inputs:
             - command: e2e:announce
