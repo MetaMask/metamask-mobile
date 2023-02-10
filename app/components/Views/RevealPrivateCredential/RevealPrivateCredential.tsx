@@ -175,7 +175,7 @@ const RevealPrivateCredential = ({
   }, []);
 
   const navigateBack = () => {
-    hasNavigation && navigation.pop();
+    if (hasNavigation || route.params?.hasNavigation) navigation.pop();
   };
 
   const cancelReveal = () => {
