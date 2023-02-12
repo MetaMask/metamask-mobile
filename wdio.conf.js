@@ -324,9 +324,12 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {
+  beforeScenario: async function (world, context) {
+    const currentAppState = await driver.queryAppState('io.metamask.qa'); // Check if app is running to avoid double launches
     if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.closeApp();
+      if (!currentAppState === 4){
+        await driver.launchApp();
+      }
     }
   },
   /**
