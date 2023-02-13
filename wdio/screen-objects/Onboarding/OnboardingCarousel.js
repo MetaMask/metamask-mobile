@@ -28,10 +28,11 @@ class WelcomeScreen {
 
   async waitForSplashAnimationToDisplay() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForDisplayed();
+    await elem.waitForExist({ reverse: false });
+    await elem.waitForExist({ reverse: true });
   }
 
-  async waitForSplashAnimationToNotExit() {
+  async waitForSplashAnimationToNotExist() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await elem.waitForExist({ reverse: true });
   }

@@ -20,7 +20,7 @@ Given(/^the app displayed the splash animation$/, async () => {
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -36,7 +36,6 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -64,8 +63,7 @@ Given(
 );
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 20000;
-  await driver.pause(setTimeout);
+  await WelcomeScreen.waitForSplashAnimationToNotExist();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.tapIAgreeButton();
