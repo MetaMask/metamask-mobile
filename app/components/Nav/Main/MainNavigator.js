@@ -67,6 +67,7 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import DebugSDKSessionsManager from '../../Views/SDKSessionsManager/DebugSDKSessionsManager';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -283,6 +284,11 @@ const SettingsFlow = () => (
       name="AdvancedSettings"
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="SDKSessionsManager"
+      component={SDKSessionsManager}
+      options={SDKSessionsManager.navigationOptions}
     />
     <Stack.Screen
       name="SecuritySettings"
@@ -596,16 +602,16 @@ const MainNavigator = () => (
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
     <Stack.Screen
-      name="SDKSessionsManagerView"
-      component={SDKSessionsManager}
-    />
-    <Stack.Screen
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}
     />
     <Stack.Screen
       name="ConnectQRHardwareFlow"
       component={ConnectQRHardwareFlow}
+    />
+    <Stack.Screen
+      name="DebugSDKSessionsManagerView"
+      component={DebugSDKSessionsManager}
     />
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />

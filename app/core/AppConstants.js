@@ -124,7 +124,6 @@ export default {
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
-    SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
   },
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',

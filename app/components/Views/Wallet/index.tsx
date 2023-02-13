@@ -74,6 +74,8 @@ const Wallet = ({ navigation }: any) => {
   const accountOverviewRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const showEarn = useSelector((state: any) => state.settings.showEarn);
+
   /**
    * Map of accounts to information objects including balances
    */
@@ -279,6 +281,14 @@ const Wallet = ({ navigation }: any) => {
             navigation={navigation}
             tokens={assets}
           />
+          {showEarn && (
+            <Tokens
+              tabLabel={'Earnings'}
+              key={'earnings-tab'}
+              navigation={navigation}
+              tokens={assets}
+            />
+          )}
           <CollectibleContracts
             tabLabel={strings('wallet.collectibles')}
             key={'nfts-tab'}

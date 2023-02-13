@@ -1,22 +1,16 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import SDKConnect, {
-  Connection,
-  ConnectionProps,
-} from '../../../core/SDKConnect/SDKConnect';
-import SDKSessionView from './SDKSessionView';
+import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
+import { SDKConnect, Connection } from '../../../core/SDKConnect/SDKConnect';
+import StyledButton from '../../UI/StyledButton';
+import SDKSessionItem from './SDKSessionItem';
 
 interface Props {
   navigation: StackNavigationProp<{
@@ -28,14 +22,18 @@ interface Props {
 const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
   StyleSheet.create({
     wrapper: {
-      paddingBottom: 0,
-      display: 'flex',
-      flexGrow: 1,
-      alignItems: 'center',
-      backgroundColor: colors.background.alternative,
-    },
-    scrollView: {
       backgroundColor: colors.background.default,
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      marginBottom: 24,
+    },
+    disconnectAllContainer: {
+      borderColor: colors.error.default,
+    },
+    disconnectAllFont: { color: colors.error.default },
+    scrollView: {
+      // keep in case necessary
     },
     title: {
       fontSize: 30,
@@ -45,113 +43,80 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
 const SDKSessionsManager = (props: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   // const dispatch = useDispatch();
+  const sdk = SDKConnect.getInstance();
   const { colors } = useTheme();
   const styles = createStyles(colors, safeAreaInsets);
-  const [connections, setConnections] = useState<ConnectionProps[]>([]);
   const [connected, setConnected] = useState<Connection[]>([]);
 
   const refreshSDKState = () => {
-    const _connections = SDKConnect.getConnections();
-    const _connected = SDKConnect.getConnected();
-    const connectionList = Object.values(_connections);
+    const _connected = sdk.getConnected();
     const connectedList = Object.values(_connected);
     Logger.log(
-      `SDKSEssionManager::refreshSDKState connectedList=${connectedList.length} connectionsList=${connectionList.length}`,
-      _connections,
+      `SDKSEssionManager::refreshSDKState connectedList=${connectedList.length}`,
     );
-    setConnections(connectionList);
     setConnected(connectedList);
+  };
+
+  const updateNavBar = () => {
+    const { navigation } = props;
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.manage_sdk_connections_title'),
+        navigation,
+        false,
+        colors,
+        null,
+      ),
+    );
   };
 
   useEffect(() => {
     // should listen for changes in connection state -- switch to redux
     refreshSDKState();
-    SDKConnect.registerEventListener((eventName: string) => {
-      Logger.log(`SDKSEssionManager::useEffect event=${eventName}`);
-      refreshSDKState();
-    });
+    updateNavBar();
+    // const listenerId = sdk.registerEventListener((eventName: string) => {
+    //   Logger.log(`SDKSEssionManager::useEffect event=${eventName}`);
+    //   refreshSDKState();
+    // });
+
+    return () => {
+      //   sdk.removeEventListener(listenerId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <View style={styles.wrapper}>
-      <ScrollView
-        bounces={false}
-        keyboardShouldPersistTaps={'never'}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollView}
-        testID={'account-overview'}
-      >
+  const renderSDKSessions = () => (
+    <>
+      <ScrollView style={styles.scrollView}>
         <View>
-          <Text style={styles.title}>MetaMask SDK Sessions Manager</Text>
-          <TouchableOpacity
-            // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
-            style={{
-              height: 30,
-              marginTop: 20,
-              flexGrow: 1,
-              backgroundColor: 'blue',
-            }}
-            onPress={() => {
-              Logger.log(`SDKSessions TODO `, props);
-              const navigation = props.navigation;
-              navigation.navigate('Home');
-            }}
-          >
-            <Text
-              // eslint-disable-next-line
-              style={{ color: 'white' }}
-            >
-              Back to Main Page
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
-            style={{
-              height: 30,
-              marginTop: 20,
-              flexGrow: 1,
-              marginBottom: 20,
-              backgroundColor: 'blue',
-            }}
-            onPress={() => {
-              Logger.log(`connections`, connections);
-              refreshSDKState();
-            }}
-          >
-            <Text
-              // eslint-disable-next-line
-              style={{ color: 'white' }}
-            >
-              List Connections
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
-            style={{
-              height: 30,
-              marginTop: 10,
-              marginBottom: 10,
-              width: 300,
-              backgroundColor: 'blue',
-            }}
-            onPress={() => {
-              SDKConnect.removeAll();
-            }}
-          >
-            <Text
-              // eslint-disable-next-line
-              style={{ color: 'white' }}
-            >
-              Disconnect all
-            </Text>
-          </TouchableOpacity>
-          <Text>Registered DAPPS: {connected.length}</Text>
-          {/* <Text>Active Connections: {Object.keys(connected).length}</Text> */}
           {connected.map((sdkSession, _index) => (
-            <SDKSessionView key={`s${_index}`} connection={sdkSession} />
+            <SDKSessionItem key={`s${_index}`} connection={sdkSession} />
           ))}
         </View>
       </ScrollView>
+      <StyledButton
+        type="normal"
+        onPress={() => {
+          sdk.removeAll();
+        }}
+        containerStyle={styles.disconnectAllContainer}
+        style={[styles.disconnectAllContainer, styles.disconnectAllFont]}
+        fontStyle={styles.disconnectAllFont}
+      >
+        {strings('sdk.disconnect_all')}
+      </StyledButton>
+    </>
+  );
+
+  const renderEmptyResult = () => (
+    <>
+      <Text>{strings('sdk.no_connections')}</Text>
+    </>
+  );
+
+  return (
+    <View style={styles.wrapper} testID={'sdk-session-manager'}>
+      {connected.length > 0 ? renderSDKSessions() : renderEmptyResult()}
     </View>
   );
 };

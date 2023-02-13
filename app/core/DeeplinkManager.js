@@ -22,6 +22,7 @@ import { showAlert } from '../actions/alert';
 import SDKConnect from './SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
+import Logger from '../util/Logger';
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
@@ -172,6 +173,7 @@ class DeeplinkManager {
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
+    Logger.log(`parse: ${url}`);
     const urlObj = new URL(
       url
         .replace(
@@ -210,10 +212,20 @@ class DeeplinkManager {
           const action = urlObj.pathname.split('/')[1];
 
           if (action === ACTIONS.CONNECT) {
+            if (params?.otp) {
+              Logger.log(
+                `AAAAAAAAAAAAAAAAAAAAAAAAAAA DEEEEEPLINKK ${params.otp}`,
+              );
+              // Automatically re-approve hosts.
+              SDKConnect.getInstance().revalidateChannel({
+                channelId: params.otp,
+              });
+            }
+
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
+            } else if (params.channelId) {
+              SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,
@@ -304,10 +316,18 @@ class DeeplinkManager {
       case PROTOCOLS.METAMASK:
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+          if (params?.otp) {
+            Logger.log(`CCCCCCCCCCCCCCCCCCC DEEEEEPLINKK ${params.otp}`);
+            // Automatically re-approve hosts.
+            SDKConnect.getInstance().revalidateChannel({
+              channelId: params.otp,
+            });
+          }
+
           if (params.redirect) {
             Minimizer.goBack();
-          } else {
-            SDKConnect.connectToChannel({
+          } else if (params.channelId) {
+            SDKConnect.getInstance().connectToChannel({
               id: params.channelId,
               commLayer: params.comm,
               origin,

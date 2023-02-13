@@ -1,3 +1,4 @@
+import { SETTINGS_ACTIONS_TYPE } from '../../actions/settings';
 import AppConstants from '../../core/AppConstants';
 
 const initialState = {
@@ -6,6 +7,7 @@ const initialState = {
   lockTime: -1, // Disabled by default
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
+  showEarn: false,
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -44,6 +46,11 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         primaryCurrency: action.primaryCurrency,
+      };
+    case SETTINGS_ACTIONS_TYPE.SHOW_EARN:
+      return {
+        ...state,
+        showEarn: action.showEarn,
       };
     default:
       return state;

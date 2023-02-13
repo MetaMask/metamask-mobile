@@ -517,8 +517,27 @@ class AccountOverview extends PureComponent {
                 backgroundColor: 'blue',
               }}
               onPress={() => {
+                this.props.testModal();
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                Toggle Modal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={() => {
                 const { navigation } = this.props;
-                navigation.navigate('SDKSessionsManagerView');
+                navigation.navigate('DebugSDKSessionsManagerView');
               }}
             >
               <Text
@@ -551,6 +570,7 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
+  testModal: () => dispatch(toggleAccountsModal()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),

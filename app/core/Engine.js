@@ -129,6 +129,7 @@ class Engine {
           end: (arg0: null, arg1: any[]) => void,
           payload: { hostname: string | number },
         ) => {
+          console.debug(`Engine::getAccounts()`, payload);
           const { approvedHosts, privacyMode } = store.getState();
           const isEnabled = !privacyMode || approvedHosts[payload.hostname];
           const { KeyringController } = this.context;

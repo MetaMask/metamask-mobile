@@ -219,6 +219,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   onStateUpdate(memState) {
+    console.debug(`BackgroundBridge::onStateUpdate`, memState);
     const provider = Engine.context.NetworkController.provider;
     const blockTracker = provider._blockTracker;
     this.setProviderAndBlockTracker({ provider, blockTracker });
@@ -253,10 +254,12 @@ export class BackgroundBridge extends EventEmitter {
 
   getProviderState() {
     const memState = this.getState();
-    return {
+    const providerState = {
       isUnlocked: this.isUnlocked(),
       ...this.getProviderNetworkState(memState),
     };
+    console.debug(`BackgroundBridge::getProviderState`, providerState);
+    return providerState;
   }
 
   sendStateUpdate = () => {
@@ -264,6 +267,7 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
+    console.debug(`BackgroundBridge::onMessage`, msg);
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 
@@ -352,6 +356,7 @@ export class BackgroundBridge extends EventEmitter {
    * @returns {Object} status
    */
   getState() {
+    console.debug(`BackgroundBridge::getState()`);
     const vault = Engine.context.KeyringController.state.vault;
     const { network, selectedAddress } = Engine.datamodel.flatState;
     return {

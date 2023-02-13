@@ -101,6 +101,15 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
           />
         );
       }
+      case 'earn': {
+        return (
+          <MaterialCommunityIcon
+            name="currency-usd"
+            size={25}
+            style={[styles.buttonIcon, styles.swapsIcon]}
+          />
+        );
+      }
       case 'buy': {
         return (
           <FeatherIcon

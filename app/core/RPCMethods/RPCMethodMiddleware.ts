@@ -172,23 +172,29 @@ export const getRpcMethodMiddleware = ({
         ethErrors.provider.userRejectedRequest(),
       );
 
+      const fullRequestData = {
+        ...requestData,
+        pageMeta: {
+          url: url.current,
+          title: title.current,
+          icon: icon.current,
+          analytics: {
+            request_source: getSource(),
+            request_platform: analytics?.platform,
+          },
+        },
+      };
+      console.debug(
+        `RPCMethodMiddleware::requestUserApproval type=${type}`,
+        fullRequestData,
+      );
       const responseData = await Engine.context.ApprovalController.add({
         origin: hostname,
         type,
-        requestData: {
-          ...requestData,
-          pageMeta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        },
+        requestData: fullRequestData,
         id: random(),
       });
+      console.debug(`RPCMethodMiddleware::requestUserApproval responseData`, responseData);
       return responseData;
     };
 
@@ -250,11 +256,17 @@ export const getRpcMethodMiddleware = ({
 
         selectedAddress = selectedAddress?.toLowerCase();
 
+        console.debug(
+          `AAAA eth_requestAccounts hostname=${hostname} privacyMode=${privacyMode} approvedHost=${
+            getApprovedHosts()[hostname]
+          }`,
+        );
         if (
           isWalletConnect ||
           !privacyMode ||
           ((!params || !params.force) && getApprovedHosts()[hostname])
         ) {
+          console.debug(`BBBB skip user approval, already approved`);
           res.result = [selectedAddress];
         } else {
           try {

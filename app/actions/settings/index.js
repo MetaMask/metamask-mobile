@@ -1,3 +1,7 @@
+export const SETTINGS_ACTIONS_TYPE = {
+  SHOW_EARN: 'SET_SHOW_EARN',
+};
+
 export function setSearchEngine(searchEngine) {
   return {
     type: 'SET_SEARCH_ENGINE',
@@ -44,5 +48,12 @@ export function setUseBlockieIcon(useBlockieIcon) {
   return {
     type: 'SET_USE_BLOCKIE_ICON',
     useBlockieIcon,
+  };
+}
+
+export function setShowEarn(showEarn) {
+  return {
+    type: SETTINGS_ACTIONS_TYPE.SHOW_EARN,
+    showEarn,
   };
 }

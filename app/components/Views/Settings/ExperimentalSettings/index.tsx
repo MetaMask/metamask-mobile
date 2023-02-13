@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, ScrollView, View } from 'react-native';
+import { StyleSheet, Text, ScrollView, View, Switch } from 'react-native';
 import StyledButton from '../../../UI/StyledButton';
 import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -9,6 +9,8 @@ import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../../util/theme';
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../../../core/AppConstants';
+import { setShowEarn } from '../../../../actions/settings';
+import { useDispatch, useSelector } from 'react-redux';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -35,6 +37,9 @@ const createStyles = (colors: any) =>
     },
     setting: {
       marginVertical: 18,
+    },
+    earn: {
+      marginTop: 15,
     },
     clearHistoryConfirm: {
       marginTop: 18,
@@ -83,8 +88,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const [showClearMMSDKConnectionsModal, setshowClearMMSDKConnectionsModal] =
     useState(false);
 
+  const dispatch = useDispatch();
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const { colors } = useTheme();
+  const showEarn = useSelector((state) => state.settings.showEarn);
   const styles = createStyles(colors);
 
   useEffect(
@@ -149,23 +156,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       <View style={styles.setting}>
         <View>
           <Text style={styles.title}>
-            {strings('app_settings.sdk_connections')}
-          </Text>
-          <Text style={styles.desc}>
-            {strings('app_settings.clear_sdk_connections_title')}
-          </Text>
-          <StyledButton
-            type="signingCancel"
-            onPress={toggleClearMMSDKConnectionModal}
-            containerStyle={styles.clearHistoryConfirm}
-          >
-            {strings('app_settings.clear_sdk_connections_title')}
-          </StyledButton>
-        </View>
-      </View>
-      <View style={styles.setting}>
-        <View>
-          <Text style={styles.title}>
             {strings('experimental_settings.wallet_connect_dapps')}
           </Text>
           <Text style={styles.desc}>
@@ -178,6 +168,26 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           >
             {strings('experimental_settings.wallet_connect_dapps_cta')}
           </StyledButton>
+        </View>
+      </View>
+      <View style={styles.setting}>
+        <View>
+          <Text style={styles.title}>Earn</Text>
+          <Text style={styles.desc}>
+            Allow lending protocol directly from Metamask
+          </Text>
+          <Switch
+            value={showEarn}
+            onValueChange={(_showEarn: boolean) => {
+              dispatch(setShowEarn(_showEarn));
+            }}
+            style={styles.earn}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            ios_backgroundColor={colors.border.muted}
+          />
         </View>
       </View>
       {renderMMSDKConnectionsModal()}

@@ -256,7 +256,12 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    SDKConnect.init();
+    const sdk = SDKConnect.getInstance();
+    sdk.init();
+
+    return () => {
+      sdk.unmount();
+    };
   }, []);
 
   useEffect(() => {

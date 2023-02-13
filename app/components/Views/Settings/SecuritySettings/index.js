@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -591,6 +592,11 @@ class Settings extends PureComponent {
     });
   };
 
+  goToSDKSessionManager = () => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.MANAGE_SDK_SESSIONS);
+    this.props.navigation.navigate('SDKSessionsManager');
+  };
+
   selectLockTime = (lockTime) => {
     this.props.setLockTime(parseInt(lockTime, 10));
   };
@@ -887,30 +893,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderClearBrowserHistorySection = () => {
-    const { browserHistory } = this.props;
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={styles.setting}>
-        <Text style={styles.title}>
-          {strings('app_settings.clear_browser_history_desc')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.clear_history_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.toggleClearBrowserHistoryModal}
-          disabled={browserHistory.length === 0}
-          containerStyle={styles.confirm}
-        >
-          {strings('app_settings.clear_browser_history_desc')}
-        </StyledButton>
-      </View>
-    );
-  };
-
   renderPrivacyModeSection = () => {
     const { privacyMode } = this.props;
     const { styles, colors } = this.getStyles();
@@ -1047,6 +1029,53 @@ class Settings extends PureComponent {
     );
   };
 
+  renderClearBrowserHistorySection = () => {
+    const { browserHistory } = this.props;
+    const { styles } = this.getStyles();
+
+    return (
+      <View style={styles.setting}>
+        <Text style={styles.title}>
+          {strings('app_settings.clear_browser_history_desc')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.clear_history_desc')}
+        </Text>
+        <StyledButton
+          type="normal"
+          onPress={this.toggleClearBrowserHistoryModal}
+          disabled={browserHistory.length === 0}
+          containerStyle={styles.confirm}
+        >
+          {strings('app_settings.clear_browser_history_desc')}
+        </StyledButton>
+      </View>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <>
+        <View style={styles.setting}>
+          <View>
+            <Text style={styles.title}>
+              {strings('app_settings.manage_sdk_connections_title')}
+            </Text>
+            <Text style={styles.desc}>
+              {strings('app_settings.manage_sdk_connections_text')}
+            </Text>
+            <StyledButton type="normal" containerStyle={styles.confirm}
+              onPress={this.goToSDKSessionManager}>
+              {strings('app_settings.manage_sdk_connections_title')}
+            </StyledButton>
+          </View>
+        </View>
+      </>
+    );
+  };
+
   renderOpenSeaSettings = () => {
     const { openSeaEnabled, useNftDetection } = this.props;
     const { styles, colors } = this.getStyles();
@@ -1134,7 +1163,8 @@ class Settings extends PureComponent {
             this.renderDevicePasscodeSection()}
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
-          {this.renderClearPrivacySection()}
+          {/* {this.renderClearPrivacySection()} */}
+          {this.renderSDKSettings()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
           {this.renderPrivacyModeSection()}
