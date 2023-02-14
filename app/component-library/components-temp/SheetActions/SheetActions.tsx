@@ -4,8 +4,11 @@ import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
-import ButtonTertiary from '../../components/Buttons/Button/variants/ButtonTertiary';
-import { ButtonSize } from '../../components/Buttons/Button';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../components/Buttons/Button';
 import Loader from '../Loader';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
@@ -19,7 +22,7 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
   const renderActions = useCallback(
     () =>
       actions.map(
-        ({ label, onPress, testID, isLoading, disabled, variant }, index) => {
+        ({ label, onPress, testID, isLoading, disabled, isDanger }, index) => {
           const key = `${label}-${index}`;
           // Avoid drawing separator above the first element
           const isFirstElement = index === 0;
@@ -34,13 +37,15 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
                 <View style={styles.separator} />
               )}
               <View>
-                <ButtonTertiary
+                <Button
+                  variant={ButtonVariants.Link}
+                  width={ButtonWidthTypes.Full}
                   onPress={onPress}
                   label={label}
                   size={ButtonSize.Lg}
                   disabled={disabled || isLoading}
                   style={buttonStyle}
-                  variant={variant}
+                  isDanger={isDanger}
                   {...generateTestId(Platform, testID)}
                 />
                 {isLoading && <Loader size={'small'} />}

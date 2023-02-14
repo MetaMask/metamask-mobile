@@ -79,7 +79,7 @@ exports[`Tabs should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#037DD6",
+              "color": "#0376C9",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
@@ -107,7 +107,7 @@ exports[`Tabs should render correctly 1`] = `
           Object {
             "alignContent": "flex-start",
             "alignSelf": "center",
-            "backgroundColor": "#037DD6",
+            "backgroundColor": "#0376C9",
             "borderRadius": 100,
             "height": 30,
             "justifyContent": "flex-start",
@@ -155,7 +155,7 @@ exports[`Tabs should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#037DD6",
+              "color": "#0376C9",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",

@@ -31,7 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexGrow: 1,
       marginRight: 16,
       color: colors.text.default,
-      ...typography.sBodyMD,
+      ...typography.BodyMD,
     } as TextStyle,
     maxValueText: {
       color: theme.colors.text.alternative,

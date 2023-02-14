@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
-import Text, { TextVariants } from '../../../components/Texts/Text';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
 import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
 import {
@@ -29,15 +29,15 @@ const AccountBase = ({
         />
       </BadgeWrapper>
       <View>
-        <Text variant={TextVariants.sBodySM}>{accountNetwork}</Text>
-        <Text variant={TextVariants.lBodySMBold}>{accountName}</Text>
+        <Text variant={TextVariant.BodySM}>{accountNetwork}</Text>
+        <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
       </View>
     </View>
     <View>
-      <Text variant={TextVariants.sBodySM} style={styles.label}>
+      <Text variant={TextVariant.BodySM} style={styles.label}>
         {accountBalanceLabel}
       </Text>
-      <Text variant={TextVariants.lBodySMBold}>
+      <Text variant={TextVariant.BodyMDBold}>
         {accountBalance} {accountNativeCurrency}
       </Text>
     </View>

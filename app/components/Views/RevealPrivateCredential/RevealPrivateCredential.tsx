@@ -83,19 +83,16 @@ const RevealPrivateCredential = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const privateCredentialName =
-    credentialName || route.params.privateCredentialName;
+  const privateCredentialName = credentialName || route.params.credentialName;
 
   const updateNavBar = () => {
-    if (!hasNavigation) {
+    if (!hasNavigation && !route.params?.hasNavigation) {
       return;
     }
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings(
-          `reveal_credential.${
-            route.params?.privateCredentialName ?? ''
-          }_title`,
+          `reveal_credential.${route.params?.credentialName ?? ''}_title`,
         ),
         navigation,
         false,
@@ -106,7 +103,7 @@ const RevealPrivateCredential = ({
   };
 
   const isPrivateKey = () => {
-    const credential = credentialName || route.params.privateCredentialName;
+    const credential = credentialName || route.params.credentialName;
     return credential === PRIVATE_KEY;
   };
 
@@ -178,7 +175,7 @@ const RevealPrivateCredential = ({
   }, []);
 
   const navigateBack = () => {
-    hasNavigation && navigation.pop();
+    if (hasNavigation || route.params?.hasNavigation) navigation.pop();
   };
 
   const cancelReveal = () => {

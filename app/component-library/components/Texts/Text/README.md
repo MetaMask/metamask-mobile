@@ -12,13 +12,13 @@ Optional enum to select between Typography variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [TextVariants](./Text.types.ts#L6)                   | No                                                      | sBodyMD                                                |
+| [TextVariant](./Text.types.ts#L6)                   | No                                                      | BodyMD                                                |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
-import Text, { TextVariants } from 'app/component-library/components/Texts/Text';
+import Text, { TextVariant } from 'app/component-library/components/Texts/Text';
 
-<Text variant={TextVariants.lBodyMDBold}>{TEXT_LABEL}</Text>;
+<Text variant={TextVariant.HeadingSM}>{TEXT_LABEL}</Text>;
 ```

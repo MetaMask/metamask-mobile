@@ -217,7 +217,7 @@ exports[`GetStarted renders correctly 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -599,7 +599,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       "padding": 15,
                                     },
                                     Object {
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "minHeight": 50,
                                     },
                                     undefined,
@@ -870,7 +870,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1296,7 +1296,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 <Text
                   style={
                     Object {
-                      "color": "#037DD6",
+                      "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1543,7 +1543,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#D73A49",
+                                          "color": "#D73847",
                                         },
                                       ],
                                       Object {
@@ -1689,7 +1689,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                           "padding": 15,
                                         },
                                         Object {
-                                          "backgroundColor": "#037DD6",
+                                          "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
                                         undefined,

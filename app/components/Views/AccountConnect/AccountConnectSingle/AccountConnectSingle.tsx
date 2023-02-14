@@ -14,8 +14,6 @@ import Cell, {
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import { ButtonPrimaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -102,7 +100,6 @@ const AccountConnectSingle = ({
       <View style={[styles.ctaButtonsContainer, isLoading && styles.disabled]}>
         <Button
           variant={ButtonVariants.Secondary}
-          buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={() => {
             onUserAction(USER_INTENT.Cancel);
@@ -114,7 +111,6 @@ const AccountConnectSingle = ({
         <View style={styles.buttonSeparator} />
         <Button
           variant={ButtonVariants.Primary}
-          buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect')}
           onPress={() => {
             onUserAction(USER_INTENT.Confirm);

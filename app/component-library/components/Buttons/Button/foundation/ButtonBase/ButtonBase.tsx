@@ -5,28 +5,37 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariants } from '../../../../Texts/Text';
+import Text, { TextVariant } from '../../../../Texts/Text';
 import Icon, { IconSize } from '../../../../Icon';
 import { useStyles } from '../../../../../hooks';
+import {
+  DEFAULT_BUTTON_SIZE,
+  DEFAULT_BUTTON_WIDTH,
+} from '../../Button.constants';
 
 // Internal dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';
-import { ButtonSize } from '../../Button.types';
 import styleSheet from './ButtonBase.styles';
 
 const ButtonBase = ({
   label,
   iconName,
-  size = ButtonSize.Md,
+  size = DEFAULT_BUTTON_SIZE,
   onPress,
   style,
   labelColor,
+  width = DEFAULT_BUTTON_WIDTH,
   ...props
 }: ButtonBaseProps) => {
-  const { styles } = useStyles(styleSheet, { style, size, labelColor });
+  const { styles } = useStyles(styleSheet, {
+    style,
+    size,
+    labelColor,
+    width,
+  });
   return (
     <TouchableOpacity
-      activeOpacity={1}
+      activeOpacity={0.5}
       onPress={onPress}
       style={styles.base}
       {...props}
@@ -39,7 +48,7 @@ const ButtonBase = ({
           style={styles.icon}
         />
       )}
-      <Text variant={TextVariants.sBodyMD} style={styles.label}>
+      <Text variant={TextVariant.BodyMD} style={styles.label}>
         {label}
       </Text>
     </TouchableOpacity>

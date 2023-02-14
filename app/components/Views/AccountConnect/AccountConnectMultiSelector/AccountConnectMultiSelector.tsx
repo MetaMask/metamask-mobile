@@ -9,18 +9,15 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import { ButtonPrimaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 
 // Internal dependencies.
 import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
-import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
 import { USER_INTENT } from '../../../../constants/permissions';
 
 const AccountConnectMultiSelector = ({
@@ -82,7 +79,8 @@ const AccountConnectMultiSelector = ({
   const renderSelectAllButton = useCallback(
     () =>
       Boolean(accounts.length) && (
-        <ButtonLink
+        <Button
+          variant={ButtonVariants.Link}
           onPress={() => {
             if (isLoading) return;
             const allSelectedAccountAddresses = accounts.map(
@@ -94,9 +92,8 @@ const AccountConnectMultiSelector = ({
             ...styles.selectAllButton,
             ...(isLoading && styles.disabled),
           }}
-        >
-          {strings('accounts.select_all')}
-        </ButtonLink>
+          label={strings('accounts.select_all')}
+        />
       ),
     [accounts, isLoading, onSelectAddress, styles],
   );
@@ -104,7 +101,8 @@ const AccountConnectMultiSelector = ({
   const renderUnselectAllButton = useCallback(
     () =>
       Boolean(accounts.length) && (
-        <ButtonLink
+        <Button
+          variant={ButtonVariants.Link}
           onPress={() => {
             if (isLoading) return;
             onSelectAddress([]);
@@ -113,9 +111,8 @@ const AccountConnectMultiSelector = ({
             ...styles.selectAllButton,
             ...(isLoading && styles.disabled),
           }}
-        >
-          {strings('accounts.unselect_all')}
-        </ButtonLink>
+          label={strings('accounts.unselect_all')}
+        />
       ),
     [accounts, isLoading, onSelectAddress, styles],
   );
@@ -127,7 +124,6 @@ const AccountConnectMultiSelector = ({
       <View style={styles.ctaButtonsContainer}>
         <Button
           variant={ButtonVariants.Secondary}
-          buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={() => onUserAction(USER_INTENT.Cancel)}
           size={ButtonSize.Lg}
@@ -136,7 +132,6 @@ const AccountConnectMultiSelector = ({
         <View style={styles.buttonSeparator} />
         <Button
           variant={ButtonVariants.Primary}
-          buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect_with_count', {
             countLabel: selectedAddresses.length
               ? ` (${selectedAddresses.length})`
