@@ -70,7 +70,7 @@ import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import createStyles from './styles';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -307,6 +307,7 @@ class ApproveTransactionReview extends PureComponent {
           spenderAddress,
           chainId,
         );
+
         if (!isContract) {
           const { standard, name, decimals, symbol } = await getTokenDetails(
             to,
@@ -680,7 +681,7 @@ class ApproveTransactionReview extends PureComponent {
             }}
           />
           <Text
-            variant={TextVariants.lHeadingMD}
+            variant={TextVariant.HeadingMD}
             style={styles.title}
             testID={'allow-access'}
           >
@@ -690,25 +691,28 @@ class ApproveTransactionReview extends PureComponent {
               }`,
             )}{' '}
             {!fetchingUpdateDone && (
-              <Text variant={TextVariants.lHeadingMD}>
+              <Text variant={TextVariant.HeadingMD}>
                 {strings('spend_limit_edition.token')}
               </Text>
             )}
             {tokenType === ERC20 && (
-              <Text variant={TextVariants.sHeadingMD}>{tokenSymbol}</Text>
+              <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
             )}
             {(tokenType === ERC721 || tokenType === ERC1155) && (
-              <ButtonLink onPress={showBlockExplorer}>
-                <Text
-                  variant={TextVariants.sHeadingMD}
-                  style={styles.buttonColor}
-                >
-                  {token?.tokenName ||
-                    token?.symbol ||
-                    strings(`spend_limit_edition.nft`)}{' '}
-                  (#{token?.tokenId})
-                </Text>
-              </ButtonLink>
+              <ButtonLink
+                onPress={showBlockExplorer}
+                label={
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    style={styles.buttonColor}
+                  >
+                    {token?.tokenName ||
+                      token?.symbol ||
+                      strings(`spend_limit_edition.nft`)}{' '}
+                    (#{token?.tokenId})
+                  </Text>
+                }
+              />
             )}
           </Text>
 
