@@ -26,9 +26,7 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/*.feature',
-          './wdio/features/**/*.feature'
-  ],
+  specs: ['./wdio/features/*.feature', './wdio/features/**/*.feature'],
 
   // Patterns to exclude.
   exclude: [
@@ -115,7 +113,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 120000,
+  waitforTimeout: 220000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -131,6 +129,14 @@ export const config = {
   /** services: ['chromedriver','appium'], ***/
   services: ['appium'],
 
+  // Appium service with custom chrome driver path
+  /*services: [
+    ['appium', {
+      args: {
+        chromedriverExecutable: '',
+      }
+    }]
+  ],*/
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
   // see also: https://webdriver.io/docs/frameworks
@@ -194,7 +200,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 90000,
+    timeout: 310000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },

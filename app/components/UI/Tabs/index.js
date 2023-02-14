@@ -93,11 +93,10 @@ const createStyles = (colors, shadows) =>
     tabActions: {
       paddingHorizontal: 20,
       flexDirection: 'row',
-      marginBottom: Device.isIphoneX() ? 0 : 0,
       paddingTop: 17,
       ...shadows.size.md,
       backgroundColor: colors.background.default,
-      height: Device.isIphoneX() ? 80 : 50,
+      height: 50,
     },
     tabs: {
       flex: 1,

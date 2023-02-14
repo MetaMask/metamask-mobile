@@ -1,9 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
-import URL from 'url-parse';
-
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import SignatureRequest from '../SignatureRequest';
@@ -16,7 +14,6 @@ import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { fontStyles } from '../../../styles/common';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const createStyles = (colors) =>
@@ -49,10 +46,6 @@ const createStyles = (colors) =>
  */
 class TypedSign extends PureComponent {
   static propTypes = {
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     /**
      * react-navigation object used for switching between screens
      */
@@ -89,13 +82,12 @@ class TypedSign extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, messageParams, selectedAddress } =
-        this.props;
+      const { currentPageInformation, messageParams } = this.props;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
       return {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
@@ -266,6 +258,7 @@ class TypedSign extends PureComponent {
       currentPageInformation,
       showExpandedMessage,
       toggleExpandedMessage,
+      messageParams: { from },
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -300,6 +293,7 @@ class TypedSign extends PureComponent {
         currentPageInformation={currentPageInformation}
         truncateMessage={truncateMessage}
         type="typedSign"
+        fromAddress={from}
       >
         <View
           style={messageWrapperStyles}
@@ -315,9 +309,4 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(TypedSign);
+export default TypedSign;

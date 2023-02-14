@@ -8,7 +8,7 @@ import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../../util/theme';
-import Text, { TextVariants } from '../../../Texts/Text';
+import Text, { TextVariant } from '../../../Texts/Text';
 
 // Internal dependencies.
 import SelectItem from './SelectItem';
@@ -30,7 +30,7 @@ const SelectItemExample = () => {
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
     </SelectItem>
   );
@@ -54,7 +54,7 @@ storiesOf('Component Library / SelectItem', module)
             justifyContent: 'center',
           }}
         >
-          <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+          <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
         </View>
       </SelectItem>
     );

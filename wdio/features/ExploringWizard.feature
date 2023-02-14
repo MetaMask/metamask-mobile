@@ -1,8 +1,11 @@
 @androidApp
+@regression
+
 Feature: Exploring wizard
 
   Scenario: A user should be able to go through the start exploring tutorial
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And the onboarding wizard is visible on wallet view
 
@@ -23,7 +26,7 @@ Feature: Exploring wizard
     Then the account nickname should read "Big Bank"
 
     When On the onboarding wizard I tap on "Got it" button
-    Then the tutorial modal heading should read "Main Navigation"
+    Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the burger menu.
     And I should see the "Skip Tutorial" button
 
@@ -33,7 +36,7 @@ Feature: Exploring wizard
     And I should see the "Skip Tutorial" button
 
     When On the onboarding wizard I tap on "Back" button
-    Then the tutorial modal heading should read "Main Navigation"
+    Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the burger menu.
     And I should see the "Skip Tutorial" button
 
@@ -52,7 +55,8 @@ Feature: Exploring wizard
     And the "Skip" button is no longer visible
 
   Scenario: A user should be able to tap the Skip button and the onboarding tutorial modal should disappear
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And the onboarding wizard is visible on wallet view
 

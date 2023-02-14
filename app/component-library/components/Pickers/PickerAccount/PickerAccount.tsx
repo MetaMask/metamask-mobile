@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
 
@@ -35,8 +35,8 @@ const PickerAccount = ({
         style={styles.accountAvatar}
       />
       <View>
-        <Text variant={TextVariants.sHeadingSMRegular}>{accountName}</Text>
-        <Text variant={TextVariants.sBodyMD} style={styles.accountAddressLabel}>
+        <Text variant={TextVariant.HeadingSMRegular}>{accountName}</Text>
+        <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>
           {shortenedAddress}
         </Text>
       </View>

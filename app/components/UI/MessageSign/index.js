@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -39,10 +38,6 @@ const createStyles = (colors) =>
 class MessageSign extends PureComponent {
   static propTypes = {
     /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
@@ -78,12 +73,15 @@ class MessageSign extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, selectedAddress } = this.props;
+      const {
+        currentPageInformation,
+        messageParams: { from },
+      } = this.props;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
       return {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(from),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
@@ -219,6 +217,7 @@ class MessageSign extends PureComponent {
       navigation,
       showExpandedMessage,
       toggleExpandedMessage,
+      messageParams: { from },
     } = this.props;
     const styles = this.getStyles();
 
@@ -239,6 +238,7 @@ class MessageSign extends PureComponent {
         toggleExpandedMessage={toggleExpandedMessage}
         type="ethSign"
         showWarning
+        fromAddress={from}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
       </SignatureRequest>
@@ -249,9 +249,4 @@ class MessageSign extends PureComponent {
 
 MessageSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(MessageSign);
+export default MessageSign;

@@ -437,6 +437,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
+      transaction: { from },
     } = this.props;
     const {
       actionKey,
@@ -486,7 +487,7 @@ class TransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     <View style={styles.accountInfoCardWrapper}>
-                      <AccountInfoCard />
+                      <AccountInfoCard fromAddress={from} />
                     </View>
                     <TransactionReviewInformation
                       navigation={navigation}
@@ -537,7 +538,11 @@ class TransactionReview extends PureComponent {
 
   renderQRDetails() {
     const currentPageInformation = { url: this.getUrlFromBrowser() };
-    const { QRState } = this.props;
+    const {
+      QRState,
+      transaction: { from },
+    } = this.props;
+
     const styles = this.getStyles();
     return (
       <View style={styles.actionViewQRObject}>
@@ -548,6 +553,7 @@ class TransactionReview extends PureComponent {
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     );

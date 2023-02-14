@@ -53,7 +53,14 @@ class Step2 extends PureComponent {
     ref &&
       ref.current &&
       ref.current.measure((fx, fy, width, height, px, py) => {
-        this.setState({ coachmarkTop: py + height - INDICATOR_HEIGHT });
+        this.setState({
+          coachmarkTop:
+            py +
+            height -
+            INDICATOR_HEIGHT -
+            // TODO: FIX Hardcoded offset to account for tab tab.
+            82,
+        });
       });
   };
 

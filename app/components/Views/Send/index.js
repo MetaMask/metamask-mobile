@@ -36,7 +36,7 @@ import {
   generateTransferData,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
-import { isENS, isValidHexAddress } from '../../../util/address';
+import { getAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
@@ -45,7 +45,6 @@ import { getTokenList } from '../../../reducers/tokens';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { doENSLookup } from '../../../util/ENSUtils';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -267,17 +266,8 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    let ensRecipient, to;
-    if (isENS(recipient)) {
-      ensRecipient = recipient;
-      to = await doENSLookup(ensRecipient, this.props.network);
-    }
-    if (
-      recipient &&
-      isValidHexAddress(recipient, { mixedCaseUseChecksum: true })
-    ) {
-      to = recipient;
-    }
+    const to = await getAddress(recipient, this.props.network);
+
     if (!to) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
@@ -287,7 +277,7 @@ class Send extends PureComponent {
       });
       this.props.navigation.navigate('WalletView');
     }
-    return { ensRecipient, to };
+    return { to };
   };
 
   /**

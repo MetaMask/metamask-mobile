@@ -22,7 +22,5 @@ export const UNISWAP_CONNECT_BUTTON = 'Connect';
 
 export const UNISWAP_METAMASK_WALLET_BUTTON = 'Uniswap Interface';
 
-export const UNISWAP_PAGE = 'Swap';
-
 export const UNISWAP_WALLET_PROFILE_ICON =
   '//android.view.View[@resource-id="root"]/android.view.View[1]/android.view.View/android.widget.Button';

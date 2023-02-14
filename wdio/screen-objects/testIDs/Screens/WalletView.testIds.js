@@ -13,6 +13,11 @@ export const WALLET_ACCOUNT_NAME_LABEL_TEXT = 'edit-account-label';
 export const WALLET_ACCOUNT_NAME_LABEL_INPUT = 'account-label-text-input';
 
 export const ACCOUNT_OVERVIEW_ID = 'account-overview';
+export const NAVBAR_NETWORK_BUTTON = 'open-networks-button';
+
+export const NFT_TAB_CONTAINER_ID = 'collectible-contracts';
 
 export const NOTIFICATION_REMIND_ME_LATER_BUTTON_ID =
   'notification-remind-later-button';
+
+export const SECURE_WALLET_BACKUP_ALERT_MODAL = 'backup-alert';

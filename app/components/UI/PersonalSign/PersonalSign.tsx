@@ -7,7 +7,6 @@ import { hexToText } from '@metamask/controller-utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
@@ -32,11 +31,6 @@ const PersonalSign = ({
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
@@ -56,7 +50,7 @@ const PersonalSign = ({
       const url = new URL(currentPageInformation?.url);
 
       return {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
@@ -66,7 +60,7 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, selectedAddress]);
+  }, [currentPageInformation, messageParams]);
 
   useEffect(() => {
     trackEvent(MetaMetricsEvents.SIGN_REQUEST_STARTED, getAnalyticsParams());
@@ -196,6 +190,7 @@ const PersonalSign = ({
       toggleExpandedMessage={toggleExpandedMessage}
       truncateMessage={truncateMessage}
       type="personalSign"
+      fromAddress={messageParams.from}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>
