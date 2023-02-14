@@ -4,12 +4,13 @@ import {
   StatusBar,
   ColorSchemeName,
   Appearance,
+  Platform,
 } from 'react-native';
+import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import Device from '../device';
-import { throttle } from 'lodash';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -60,11 +61,14 @@ export const getAssetFromTheme = (
  * Custom useColorScheme hook that throttles updating the system theme color.
  * Replaces RN's useColorScheme hook, which has a bug where it resolves briefly to the wrong color.
  * https://github.com/expo/expo/issues/10815#issuecomment-719113200
+ * This only affects iOS so we apply 0 delay on Android.
  *
  * @param delay - Optional delay for throttling setting the system theme.
  * @returns - The system's theme, light or dark.
  */
-const useColorSchemeCustom = (delay = 350) => {
+const useColorSchemeCustom = (
+  delay = Platform.select({ android: 0, ios: 350 }),
+) => {
   const [colorScheme, setColorScheme] = useState(Appearance.getColorScheme());
   const onColorSchemeChange = useCallback(
     throttle(
