@@ -32,6 +32,8 @@ export const createStyles = (colors: any) =>
     },
     installBtn: {
       marginHorizontal: 10,
+      width: '60%',
+      alignSelf: 'center',
     },
     button: {
       flex: 1,
