@@ -1,6 +1,5 @@
 export interface SignatureAnalayticsProps {
   currentPageInformation: any;
-  selectedAddress: string;
   type: string;
   messageParams?: any;
 }

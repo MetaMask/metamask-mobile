@@ -26,7 +26,7 @@ const TypedSign = ({
   currentPageInformation,
   toggleExpandedMessage,
   showExpandedMessage,
-  messageParams: { from }
+  messageParams: { from },
 }: SignatureProps) => {
   const [rejectMessage, signMessage] = useMessage({
     messageParams,
@@ -38,27 +38,28 @@ const TypedSign = ({
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
-  const signatureAnalyticsCallback = useCallback(() => {
-    return signatureAnalytics({
-      currentPageInformation,
-      type: SignatureType.TYPED,
-      messageParams,
-    });
-  }, [currentPageInformation, messageParams]);
-
+  const signatureAnalyticsCallback = useCallback(
+    () =>
+      signatureAnalytics({
+        currentPageInformation,
+        type: SignatureType.TYPED,
+        messageParams,
+      }),
+    [currentPageInformation, messageParams],
+  );
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
       signatureAnalyticsCallback(),
     );
-  }, [currentPageInformation, messageParams]);
+  }, [signatureAnalyticsCallback]);
 
   const cancelSignature = () => {
     rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      signatureAnalyticsCallback()
+      signatureAnalyticsCallback(),
     );
     onCancel();
   };
@@ -75,7 +76,7 @@ const TypedSign = ({
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          signatureAnalyticsCallback()
+          signatureAnalyticsCallback(),
         );
         onCancel();
       }
