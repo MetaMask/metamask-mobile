@@ -66,6 +66,7 @@ export const getAssetFromTheme = (
  * @param delay - Optional delay for throttling setting the system theme.
  * @returns - The system's theme, light or dark.
  */
+/* eslint-disable */
 const useColorSchemeCustom = (
   delay = Platform.select({ android: 0, ios: 350 }),
 ) => {
@@ -91,6 +92,7 @@ const useColorSchemeCustom = (
   }, []);
   return colorScheme;
 };
+/* eslint-enable */
 
 export const useAppTheme = (): Theme => {
   const osThemeName = useColorSchemeCustom();

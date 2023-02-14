@@ -66,6 +66,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { strings } from '../../../../locales/i18n';
 
@@ -239,6 +240,7 @@ const HomeTabs = () => {
 
   const options = {
     home: {
+      tabBarIconKey: TabBarIconKey.Wallet,
       tabBarLabel: strings('drawer.wallet'),
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
@@ -249,6 +251,7 @@ const HomeTabs = () => {
       rootScreenName: Routes.WALLET_VIEW,
     },
     browser: {
+      tabBarIconKey: TabBarIconKey.Browser,
       tabBarLabel: strings('drawer.browser'),
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
