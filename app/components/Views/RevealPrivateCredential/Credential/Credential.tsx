@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { BlurView, Text } from '@react-native-community/blur';
+import { BlurView } from '@react-native-community/blur';
+import { createStyles } from './styles';
 
-const Credential = () => {
-  const [blur, setBlur] = useState<boolean>(true);
+interface ICredentialBlurProps {
+  credential: React.ReactNode;
+  blur: boolean;
+}
+
+export type Address = `0x${string}` | Buffer;
+
+const CredentialBlur = ({ credential, blur }: ICredentialBlurProps) => {
+  const styles = createStyles();
 
   return (
     <View>
+      {credential}
       {blur ? (
         <BlurView
           style={styles.blurView}
-          blurType="light" // Values = dark, light, xlight .
-          blurAmount={10}
+          blurType="xlight" // Values = dark, light, xlight .
+          blurAmount={50}
           reducedTransparencyFallbackColor="white"
         />
       ) : null}
     </View>
   );
 };
+
+export default CredentialBlur;

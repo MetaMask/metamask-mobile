@@ -42,6 +42,7 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
+import CredentialBlur from './Credential/Credential';
 import { createStyles } from './styles';
 
 const PRIVATE_KEY = 'private_key';
@@ -296,7 +297,48 @@ const RevealPrivateCredential = ({
     }
   };
 
-  const renderTabView = (privCredentialName: string) => {
+  const credential = () => (
+    <>
+      <Text style={styles.boldText}>
+        {strings(`reveal_credential.${privateCredentialName}`)}
+      </Text>
+      <View style={styles.seedPhraseView}>
+        <CredentialBlur
+          blur
+          credential={
+            <>
+              <TextInput
+                value={clipboardPrivateCredential}
+                numberOfLines={3}
+                multiline
+                selectTextOnFocus
+                style={styles.seedPhrase}
+                editable={false}
+                testID={'private-credential-text'}
+                placeholderTextColor={colors.text.muted}
+                keyboardAppearance={themeAppearance}
+              />
+              {isAndroidSupportedVersion && (
+                <TouchableOpacity
+                  style={styles.privateCredentialAction}
+                  onPress={() =>
+                    copyPrivateCredentialToClipboard(privateCredentialName)
+                  }
+                  testID={'private-credential-touchable'}
+                >
+                  <Text style={styles.blueText}>
+                    {strings('reveal_credential.copy_to_clipboard')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          }
+        />
+      </View>
+    </>
+  );
+
+  const renderTabView = () => {
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
         if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
@@ -313,35 +355,7 @@ const RevealPrivateCredential = ({
           tabLabel={strings(`reveal_credential.text`)}
           style={styles.tabContent}
         >
-          <Text style={styles.boldText}>
-            {strings(`reveal_credential.${privCredentialName}`)}
-          </Text>
-          <View style={styles.seedPhraseView}>
-            <TextInput
-              value={clipboardPrivateCredential}
-              numberOfLines={3}
-              multiline
-              selectTextOnFocus
-              style={styles.seedPhrase}
-              editable={false}
-              testID={'private-credential-text'}
-              placeholderTextColor={colors.text.muted}
-              keyboardAppearance={themeAppearance}
-            />
-            {isAndroidSupportedVersion && (
-              <TouchableOpacity
-                style={styles.privateCredentialAction}
-                onPress={() =>
-                  copyPrivateCredentialToClipboard(privCredentialName)
-                }
-                testID={'private-credential-touchable'}
-              >
-                <Text style={styles.blueText}>
-                  {strings('reveal_credential.copy_to_clipboard')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          {credential()}
         </View>
         <View
           tabLabel={strings(`reveal_credential.qr_code`)}
