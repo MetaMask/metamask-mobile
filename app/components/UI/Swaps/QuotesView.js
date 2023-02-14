@@ -933,6 +933,9 @@ function SwapsQuotesView({
       selectedQuote,
       sourceToken,
       updateSwapsTransactions,
+      selectedAddress,
+      setRecipient,
+      resetTransaction,
     ],
   );
 
