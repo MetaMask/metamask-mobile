@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { View } from 'react-native';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -72,16 +72,18 @@ const VerifyContractDetails = ({
     <View style={styles.container}>
       <ConnectHeader
         action={closeVerifyContractView}
-        title={strings('confirmation.token_allowance.verify_contract_details')}
+        title={strings(
+          'contract_allowance.token_allowance.verify_contract_details',
+        )}
       />
       <Text style={styles.description}>
-        <Text variant={TextVariants.sBodyMD} style={styles.text}>
-          {strings('confirmation.token_allowance.protect_from_scams')}
+        <Text variant={TextVariant.BodyMD} style={styles.text}>
+          {strings('contract_allowance.token_allowance.protect_from_scams')}
         </Text>
       </Text>
       <View>
-        <Text variant={TextVariants.lBodySM} style={styles.title}>
-          {strings('confirmation.token_allowance.contract_type', {
+        <Text variant={TextVariant.BodySM} style={styles.title}>
+          {strings('contract_allowance.token_allowance.contract_type', {
             type: 'Token',
           })}
         </Text>
@@ -97,8 +99,10 @@ const VerifyContractDetails = ({
             onContractPress={() => showNickname(tokenAddress)}
           />
         </View>
-        <Text variant={TextVariants.lBodySM} style={styles.title}>
-          {strings('confirmation.token_allowance.contract_requesting_text')}
+        <Text variant={TextVariant.BodySM} style={styles.title}>
+          {strings(
+            'contract_allowance.token_allowance.contract_requesting_text',
+          )}
         </Text>
         <View style={styles.contractSection}>
           <ContractBox

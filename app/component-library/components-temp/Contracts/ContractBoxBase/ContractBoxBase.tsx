@@ -70,7 +70,7 @@ const ContractBoxBase = ({
             />
           )}
           {tokenSymbol ? (
-            <Text variant={TextVariants.lBodyMDBold}>{tokenSymbol}</Text>
+            <Text variant={TextVariant.BodyMDBold}>{tokenSymbol}</Text>
           ) : (
             <Identicon address={contractAddress} diameter={25} />
           )}
@@ -87,6 +87,7 @@ const ContractBoxBase = ({
             <Button
               variant={ButtonVariants.Link}
               textVariant={TextVariant.HeadingMD}
+              label={formattedAddress}
               style={styles.header}
               onPress={onContractPress}
             />

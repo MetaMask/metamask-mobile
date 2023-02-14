@@ -762,11 +762,11 @@ class ApproveTransactionReview extends PureComponent {
             )}`}
           </Text>
           <ButtonLink
-            variant={TextVariants.sBodyMD}
+            variant={TextVariant.BodyMD}
             onPress={showVerifyContractDetails}
             style={styles.verifyContractLink}
             label={strings(
-              'confirmation.token_allowance.verify_contract_details',
+              'contract_allowance.token_allowance.verify_contract_details',
             )}
           />
           <View style={styles.actionViewWrapper}>

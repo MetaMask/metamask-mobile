@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -48,7 +48,7 @@ class ConnectHeader extends Component {
             color={colors.text.default}
           />
         </TouchableOpacity>
-        <Text variant={TextVariants.sHeadingSMRegular} style={styles.title}>
+        <Text variant={TextVariant.HeadingSMRegular} style={styles.title}>
           {title}
         </Text>
       </View>

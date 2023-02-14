@@ -2261,7 +2261,7 @@
     "primary_action": "Enable automatic security checks",
     "secondary_action": "No thanks"
   },
-  "confirmation": {
+  "contract_allowance": {
     "custom_spend_cap": {
       "max": "Max",
       "edit": "Edit",

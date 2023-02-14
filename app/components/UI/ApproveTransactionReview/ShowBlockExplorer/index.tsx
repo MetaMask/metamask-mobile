@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import WebviewProgressBar from '../../../UI/WebviewProgressBar';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import {
   getEtherscanAddressUrl,
@@ -85,7 +85,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={headerWrapperStyle}>
-        <Text variant={TextVariants.lBodyMDBold} style={headerTextStyle}>
+        <Text variant={TextVariant.BodyMDBold} style={headerTextStyle}>
           {title}
         </Text>
         <AntDesignIcon
