@@ -900,6 +900,7 @@ function SwapsQuotesView({
       }
 
       try {
+        resetTransaction();
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             ...selectedQuote.trade,
@@ -917,7 +918,7 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
-
+        setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
