@@ -54,8 +54,8 @@ const QRSigningModal = ({
     dispatch(resetTransaction());
   };
 
-  const handleFailure = () => {
-    onFailure?.();
+  const handleFailure = (error: string) => {
+    onFailure?.(error);
     dispatch(resetTransaction());
   };
 
