@@ -78,6 +78,7 @@ import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 import { isQRHardwareAccount } from '../../../util/address';
+import { resetTransaction, setRecipient } from '../../../actions/transaction';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -364,6 +365,8 @@ function SwapsQuotesView({
   gasFeeEstimates,
   usedGasEstimate,
   usedCustomGas,
+  setRecipient,
+  resetTransaction,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -914,6 +917,7 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
+
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
@@ -939,6 +943,7 @@ function SwapsQuotesView({
       isHardwareAccount,
     ) => {
       try {
+        resetTransaction();
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             ...approvalTransaction,
@@ -950,6 +955,9 @@ function SwapsQuotesView({
           process.env.MM_FOX_CODE,
           WalletDevice.MM_MOBILE,
         );
+
+        setRecipient(selectedAddress);
+
         approvalTransactionMetaId = transactionMeta.id;
         newSwapsTransactions[transactionMeta.id] = {
           action: 'approval',
@@ -989,6 +997,9 @@ function SwapsQuotesView({
       handleSwapTransaction,
       sourceToken.address,
       sourceToken.decimals,
+      selectedAddress,
+      setRecipient,
+      resetTransaction,
     ],
   );
 
@@ -2315,6 +2326,8 @@ SwapsQuotesView.propTypes = {
   gasFeeEstimates: PropTypes.object,
   usedGasEstimate: PropTypes.object,
   usedCustomGas: PropTypes.object,
+  setRecipient: PropTypes.func,
+  resetTransaction: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -2354,4 +2367,9 @@ const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensSelector(state),
 });
 
-export default connect(mapStateToProps)(SwapsQuotesView);
+const mapDispatchToProps = (dispatch) => ({
+  setRecipient: (from) => dispatch(setRecipient(from, '', '', '', '')),
+  resetTransaction: () => dispatch(resetTransaction()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SwapsQuotesView);
