@@ -70,7 +70,7 @@ const SnapElement = (snap: any) => {
       <Button
         label={'Execute Snap Method'}
         onPress={executeSnapMethod}
-        variant={ButtonVariants.Tertiary}
+        variant={ButtonVariants.Primary}
         size={ButtonSize.Sm}
         style={styles.installBtn}
       />
