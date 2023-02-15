@@ -539,7 +539,7 @@
     "protect_cta": "Protect",
     "protect_title": "Protect your wallet",
     "video_failed": "Video Failed to Load.",
-    "protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in various places like on a piece of paper, password manager and/or the cloud.",
+    "protect_desc": "This is the Secret Recovery Phrase for your wallet. Never share your Secret Recovery Phrase ever. Anyone who says they need it is scamming you.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
     "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
@@ -703,21 +703,20 @@
     "confirm": "Next",
     "seed_phrase_explanation": [
       "The",
-      "Secret Recovery Phrase (SRP)",
+      "Secret Recovery Phrase",
       "gives",
-      "full access to your wallet, funds and accounts.\n\n",
+      "full access to your wallet, funds, and accounts.\n\n",
       "MetaMask is a",
       "non-custodial wallet.",
-      "That means,",
-      "you are the owner of your SRP."
+      "That means",
+      "you are the owner of your Secret Recovery Phrase."
     ],
-    "private_key_explanation": "Save it somewhere safe and secret.",
-    "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation": [
+    "private_key_explanation": "Your private key gives full access to your account and your funds, so never share it. Keep it somewhere safe and secret. Anyone with your private key can take all of your assets, and you will never get them back.",
+    "private_key_warning": "This is the private key for the account you're currently using: {{accountName}}. Anyone with your private key can control your account and take all of your assets.",
+    "credential_warning_explanation": [
       "Make sure nobody is looking at your screen. ",
       "MetaMask Support will never request this."
     ],
-    "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
     "reveal_credential_modal": [
       "Your {{credentialName}} provides ",
       "full access to your account and funds.\n\nDo not share this with anyone.\n",
