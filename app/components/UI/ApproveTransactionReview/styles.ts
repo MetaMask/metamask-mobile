@@ -59,8 +59,15 @@ const createStyles = (colors: any) =>
       color: colors.primary.default,
       fontSize: 12,
       lineHeight: 16,
-      marginTop: 8,
+      marginHorizontal: 4,
       textAlign: 'center',
+    },
+    iconContainer: {
+      flexDirection: 'row',
+      marginTop: 8,
+    },
+    iconDropdown: {
+      color: colors.icon.alternative,
     },
     actionTouchable: {
       flexDirection: 'column',
@@ -102,6 +109,9 @@ const createStyles = (colors: any) =>
     underline: {
       textDecorationLine: 'underline',
       ...fontStyles.bold,
+    },
+    actionViewChildren: {
+      height: 300,
     },
     actionViewQRObject: {
       height: 648,

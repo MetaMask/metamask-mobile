@@ -34,6 +34,7 @@ import TransactionTypes from '../../core/TransactionTypes';
 const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
+
 /**
  * Returns full checksummed address
  *

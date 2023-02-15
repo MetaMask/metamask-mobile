@@ -269,11 +269,7 @@ class Tokens extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
 
-    // console.log(tokenBalances, 'tokenBalances')
-
     const itemAddress = safeToChecksumAddress(asset.address);
-    // console.log('itemAddress', itemAddress)
-    // console.log(asset, 'asset')
     const logo = tokenList?.[itemAddress?.toLowerCase?.()]?.iconUrl;
     const exchangeRate =
       itemAddress in tokenExchangeRates
@@ -288,9 +284,6 @@ class Tokens extends PureComponent {
       asset.balanceFiat ||
       balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
     const balanceValue = `${balance} ${asset.symbol}`;
-
-    // console.log(balance, 'balance')
-
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
@@ -428,7 +421,6 @@ class Tokens extends PureComponent {
 
   renderList() {
     const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
-    // console.log(tokens, 'hideZeroBalanceTokens')
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
           const { address, isETH } = token;
@@ -506,8 +498,6 @@ class Tokens extends PureComponent {
     const { tokens } = this.props;
     const styles = this.getStyles();
     const themeAppearance = this.context.themeAppearance;
-
-    // console.log(this.props.tokenBalances, 'tokenBalances')
 
     return (
       <View

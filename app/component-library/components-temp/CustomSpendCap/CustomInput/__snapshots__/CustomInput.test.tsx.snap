@@ -3,13 +3,16 @@
 exports[`CustomInput should render correctly 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "borderRadius": 8,
-      "flexDirection": "row",
-      "justifyContent": "space-between",
-      "padding": 16,
-    }
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 8,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 16,
+      },
+      undefined,
+    ]
   }
   testID="custom-input-test-id"
 >
