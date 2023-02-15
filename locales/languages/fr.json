@@ -953,8 +953,6 @@
     "minimum": "1,00 {{tokenSymbol}} minimum",
     "cancel": "Annuler",
     "approve": "Approuver",
-    "allow_to_access": "Autoriser l’accès à votre {{tokenSymbol}} ?",
-    "allow_to_address_access": "Donner à cette adresse l’accès à vos {{tokenSymbol}} ?",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
     "you_trust_this_address": "Faites-vous confiance à cette adresse ? En accordant cette permission, vous autorisez cette adresse à accéder à vos fonds.",
     "edit_permission": "Modifier l’autorisation",
