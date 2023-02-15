@@ -12,24 +12,19 @@ import SnapDuplex from './SnapDuplex';
 
 // const ObjectMultiplex = require('obj-multiplex');
 
-type IframeExecutionEnvironmentServiceArgs = {
-  iframeUrl: URL;
-} & ExecutionServiceArgs;
+// type IframeExecutionEnvironmentServiceArgs = {
+//   iframeUrl: URL;
+// } & ExecutionServiceArgs;
 
 export default class WebviewExecutionService extends AbstractExecutionService<Window> {
-  public iframeUrl: URL;
   #snapDuplexMap: SnapDuplex[];
 
-  constructor({
-    iframeUrl,
-    messenger,
-    setupSnapProvider,
-  }: IframeExecutionEnvironmentServiceArgs) {
+  constructor({ messenger, setupSnapProvider }: ExecutionServiceArgs) {
     super({
       messenger,
       setupSnapProvider,
     });
-    this.iframeUrl = iframeUrl;
+    // this.iframeUrl = iframeUrl;
     this.#snapDuplexMap = {};
   }
 
