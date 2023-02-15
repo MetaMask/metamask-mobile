@@ -212,7 +212,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: build:announce
-          title: Announcing pre-release
+          title: Accouncing pre-release
           is_always_run: false
   create_qa_builds:
     before_run:
