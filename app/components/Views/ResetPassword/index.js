@@ -419,7 +419,6 @@ class ResetPassword extends PureComponent {
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        console.log('vault/ recreateVault authData', authData);
         await Authentication.storePassword(password, authData.currentAuthType);
       } catch (error) {
         Logger.error(error);

@@ -3,6 +3,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
+  EXISTING_USER,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -80,6 +81,38 @@ describe('Authentication', () => {
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
+  });
+
+  it('should return a type AUTHENTICATION_TYPE.REMEMBER_ME if the user exists and there are no available biometrics options and the password exist in the keychain', async () => {
+    SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
+    const mockCredentials = { username: 'test', password: 'test' };
+    SecureKeychain.getGenericPassword = jest
+      .fn()
+      .mockReturnValue(mockCredentials);
+    await AsyncStorage.setItem(EXISTING_USER, TRUE);
+    const result = await Authentication.getType();
+    expect(result.availableBiometryType).toBeNull();
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
+  });
+
+  it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user exists and there are no available biometrics options but the password does not exist in the keychain', async () => {
+    SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
+    await AsyncStorage.setItem(EXISTING_USER, TRUE);
+    const result = await Authentication.getType();
+    expect(result.availableBiometryType).toBeNull();
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
+  });
+
+  it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user  does not exists and there are no available biometrics options', async () => {
+    SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
+    const mockCredentials = { username: 'test', password: 'test' };
+    SecureKeychain.getGenericPassword = jest
+      .fn()
+      .mockReturnValue(mockCredentials);
+    await AsyncStorage.setItem(EXISTING_USER, TRUE);
+    const result = await Authentication.getType();
+    expect(result.availableBiometryType).toBeNull();
+    expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.REMEMBER_ME', async () => {

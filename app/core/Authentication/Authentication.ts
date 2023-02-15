@@ -138,6 +138,52 @@ class AuthenticationService {
   private wipeSensitiveData = () => '';
 
   /**
+   * Checks the authetincation type configured in the previous login
+   * @returns @AuthData
+   */
+  private checkAuthenticationMethod = async (): Promise<AuthData> => {
+    const availableBiometryType: any =
+      await SecureKeychain.getSupportedBiometryType();
+    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+
+    if (
+      availableBiometryType &&
+      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
+    ) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType,
+      };
+    } else if (
+      availableBiometryType &&
+      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+    ) {
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
+    }
+    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    if (existingUser) {
+      if (await SecureKeychain.getGenericPassword()) {
+        return {
+          currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          availableBiometryType,
+        };
+      }
+    }
+    return {
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      availableBiometryType,
+    };
+  };
+
+  /**
    * Reset vault will empty password used to clear/reset vault upon errors during login/creation
    */
   resetVault = async (): Promise<void> => {
@@ -210,48 +256,6 @@ class AuthenticationService {
    */
   getPassword: () => Promise<false | UserCredentials | null> = async () =>
     await SecureKeychain.getGenericPassword();
-
-  /**
-   * Checks the authetincation type configured in the previous login
-   * @returns @AuthData
-   */
-  checkAuthenticationMethod = async (): Promise<AuthData> => {
-    const availableBiometryType: any =
-      await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
-      PASSCODE_DISABLED,
-    );
-
-    if (
-      availableBiometryType &&
-      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType,
-      };
-    } else if (
-      availableBiometryType &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType,
-      };
-    } else if (await SecureKeychain.getGenericPassword()) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
-        availableBiometryType,
-      };
-    }
-    return {
-      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-      availableBiometryType,
-    };
-  };
 
   /**
    * Takes a component's input to determine what @enum {AuthData} should be provided when creating a new password, wallet, etc..
