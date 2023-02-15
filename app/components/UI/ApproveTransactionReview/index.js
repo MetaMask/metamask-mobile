@@ -35,8 +35,6 @@ import {
   minimumTokenAllowance,
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
-import Feather from 'react-native-vector-icons/Feather';
-import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
