@@ -82,7 +82,6 @@ const createStyles = (colors) =>
       height: 624,
     },
     accountInfoCardWrapper: {
-      paddingHorizontal: 24,
       paddingBottom: 12,
     },
     transactionData: {
