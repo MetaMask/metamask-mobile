@@ -477,24 +477,16 @@ const RevealPrivateCredential = ({
     </Text>
   );
 
-  const renderWarning = (privCredentialName: string) => (
+  const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
         <Icon style={styles.icon} name="eye-slash" size={20} solid />
-        {privCredentialName === PRIVATE_KEY ? (
-          <Text style={styles.warningMessageText}>
-            {strings(
-              `reveal_credential.${privCredentialName}_warning_explanation`,
-            )}
+        <Text style={styles.warningMessageText}>
+          {strings('reveal_credential.credential_warning_explanation')[0]}
+          <Text style={styles.boldText}>
+            {strings('reveal_credential.credential_warning_explanation')[1]}
           </Text>
-        ) : (
-          <Text style={styles.warningMessageText}>
-            {strings('reveal_credential.seed_phrase_warning_explanation')[0]}
-            <Text style={styles.boldText}>
-              {strings('reveal_credential.seed_phrase_warning_explanation')[1]}
-            </Text>
-          </Text>
-        )}
+        </Text>
       </View>
     </View>
   );
