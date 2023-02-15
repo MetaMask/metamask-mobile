@@ -2,10 +2,12 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
+// External depencies
+import TEST_ADDRESS from '../../../../constants/address';
+
 // Internal dependencies.
 import ContractBox from './ContractBox';
 import {
-  CONTRACT_ADDRESS,
   CONTRACT_PET_NAME,
   CONTRACT_LOCAL_IMAGE,
   CONTRACT_COPY_ADDRESS,
@@ -18,7 +20,7 @@ import {
 storiesOf('Component Library / Contract Box', module)
   .add('Address Not Saved', () => (
     <ContractBox
-      contractAddress={CONTRACT_ADDRESS}
+      contractAddress={TEST_ADDRESS}
       contractLocalImage={CONTRACT_LOCAL_IMAGE}
       onCopyAddress={CONTRACT_COPY_ADDRESS}
       onExportAddress={CONTRACT_EXPORT_ADDRESS}
@@ -29,7 +31,7 @@ storiesOf('Component Library / Contract Box', module)
   ))
   .add('Saved Address', () => (
     <ContractBox
-      contractAddress={CONTRACT_ADDRESS}
+      contractAddress={TEST_ADDRESS}
       contractPetName={CONTRACT_PET_NAME}
       contractLocalImage={CONTRACT_LOCAL_IMAGE}
       onCopyAddress={CONTRACT_COPY_ADDRESS}

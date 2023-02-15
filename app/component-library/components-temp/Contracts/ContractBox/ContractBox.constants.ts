@@ -1,11 +1,8 @@
 /* eslint-disable no-console */
 import { ImageSourcePropType } from 'react-native';
-import DEFAULT_ADDRESS from '../../../../constants/address';
 
 const imageSource =
   'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
-
-export const CONTRACT_ADDRESS = DEFAULT_ADDRESS;
 
 export const CONTRACT_PET_NAME = 'DAI';
 export const CONTRACT_BOX_TEST_ID = 'contract-box';
