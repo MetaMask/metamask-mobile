@@ -26,6 +26,10 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
   }
 
+  get screen() {
+    return Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_CONTAINER_ID);
+  }
+
   async waitForSplashAnimationToDisplay() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await elem.waitForDisplayed();
@@ -76,6 +80,11 @@ class WelcomeScreen {
 
   async clickGetStartedButton() {
     await Gestures.waitAndTap(this.getStartedButton);
+  }
+
+  async waitForScreenToDisplay() {
+    const element = await this.screen;
+    await element.waitForDisplayed({ interval: 500 });
   }
 }
 

@@ -145,7 +145,8 @@ class Gestures {
   static async checkIfDisplayedWithSwipeUp(element, maxScrolls, amount = 0) {
     // If the element is not displayed and we haven't scrolled the max amount of scrolls
     // then scroll and execute the method again
-    if (!(await element.isDisplayed()) && amount <= maxScrolls) {
+    const elem = await element;
+    if (!(await elem.isDisplayed()) && amount <= maxScrolls) {
       await this.swipeUp(0.85);
       await this.checkIfDisplayedWithSwipeUp(element, maxScrolls, amount + 1);
     } else if (amount > maxScrolls) {

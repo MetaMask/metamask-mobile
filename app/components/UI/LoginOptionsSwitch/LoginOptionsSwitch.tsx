@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Switch, Text } from 'react-native';
+import { View, Switch, Text, Platform } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
@@ -9,6 +9,7 @@ import {
   LOGIN_WITH_REMEMBER_ME_SWITCH,
 } from '../../../constants/test-ids';
 import { useSelector } from 'react-redux';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 interface Props {
   shouldRenderBiometricOption: BIOMETRY_TYPE | null;
@@ -88,6 +89,7 @@ const LoginOptionsSwitch = ({
           thumbColor={colors.white}
           ios_backgroundColor={colors.border.muted}
           testID={LOGIN_WITH_REMEMBER_ME_SWITCH}
+          {...generateTestId(Platform, LOGIN_WITH_REMEMBER_ME_SWITCH)}
         />
       </View>
     );
