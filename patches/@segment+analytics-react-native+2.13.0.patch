@@ -1,5 +1,5 @@
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
-index 4229c6a..e6babb4 100644
+index 4229c6a..83882e2 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
 +++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
 @@ -383,8 +383,8 @@ export class SegmentClient {
@@ -27,24 +27,21 @@ index 4229c6a..e6babb4 100644
      });
  
      await this.process(event);
-@@ -517,8 +519,14 @@ export class SegmentClient {
+@@ -517,8 +519,11 @@ export class SegmentClient {
        newUserId,
      });
  
 -    await this.process(event);
 -    this.logger.info('ALIAS event saved', event);
-+    const newTimestamp = new Date();
-+    console.log(newTimestamp);
-+  
++    const newTimestamp = new Date();  
 +    newTimestamp.setSeconds(newTimestamp.getSeconds() - 1);
-+    console.log(newTimestamp);
 +
 +    await this.process(event, newTimestamp.toISOString());
 +    this.logger.info('ALIAS event saved', event, 'with timestamp', newTimestamp);
    }
  
    /**
-@@ -629,12 +637,7 @@ export class SegmentClient {
+@@ -629,12 +634,7 @@ export class SegmentClient {
      this.appState = nextAppState;
    }
  
@@ -59,7 +56,7 @@ index 4229c6a..e6babb4 100644
        anonymousId,
        userId: undefined,
 diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
-index fe1a369..93db6e1 100644
+index fe1a369..dc058ee 100644
 --- a/node_modules/@segment/analytics-react-native/src/events.ts
 +++ b/node_modules/@segment/analytics-react-native/src/events.ts
 @@ -16,13 +16,19 @@ import {
@@ -87,12 +84,12 @@ index fe1a369..93db6e1 100644
  });
  
 -export const applyRawEventData = (event: SegmentEvent): SegmentEvent => {
-+export const applyRawEventData = (event: SegmentEvent, timestamp?: string): SegmentEvent => {
++export const applyRawEventData = (event: SegmentEvent, timestamp: string = new Date().toISOString()): SegmentEvent => {
    return {
      ...event,
      messageId: getUUID(),
 -    timestamp: new Date().toISOString(),
-+    timestamp: timestamp || new Date().toISOString(),
++    timestamp,
      integrations: event.integrations ?? {},
    };
  };
