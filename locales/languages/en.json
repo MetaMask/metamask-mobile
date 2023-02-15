@@ -1006,7 +1006,9 @@
     "all_set": "All set!",
     "all_set_desc": "You’ve successfully set permissions for this site.",
     "must_be_at_least": "Must be at least {{allowance}}",
-    "access_up_to": "Access up to:"
+    "access_up_to": "Access up to:",
+    "spending_cap": "Spending cap:",
+    "approve_asset": "Approve Asset:"
   },
   "browser": {
     "title": "Browser",

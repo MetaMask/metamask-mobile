@@ -892,6 +892,7 @@ class ApproveTransactionReview extends PureComponent {
         tokenSymbol={tokenSymbol}
         data={data}
         tokenId={token?.tokenId}
+        tokenName={token?.tokenName}
         tokenType={tokenType}
         method={method}
         displayViewData={viewData}
