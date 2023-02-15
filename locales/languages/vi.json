@@ -953,8 +953,6 @@
     "minimum": "tối thiểu 1,00 {{tokenSymbol}}",
     "cancel": "Hủy",
     "approve": "Phê duyệt",
-    "allow_to_access": "Cấp quyền để truy cập vào {{tokenSymbol}} của bạn?",
-    "allow_to_address_access": "Cho phép địa chỉ này truy cập {{tokenSymbol}}của bạn?",
     "you_trust_this_site": "Bằng cách cấp quyền, bạn đang cho phép hợp đồng sau đây truy cập vào số tiền của bạn.",
     "you_trust_this_address": "Bạn tin tưởng địa chỉ này? Bằng cách cấp quyền, bạn đang cho phép địa chỉ này truy cập tiền của bạn.",
     "edit_permission": "Sửa quyền",

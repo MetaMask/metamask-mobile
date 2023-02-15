@@ -953,8 +953,6 @@
     "minimum": "1.00 {{tokenSymbol}} pinakamababa",
     "cancel": "Kanselahin",
     "approve": "Aprubahan",
-    "allow_to_access": "Bigyan ng pahintulot ang site na ito na i-access ang iyong {{tokenSymbol}}?",
-    "allow_to_address_access": "Bigyan ang address na ito ng access sa iyong {{tokenSymbol}}?",
     "you_trust_this_site": "Pinagkakatiwalaan mo ba ang site na ito? Sa pamamagitan ng pagbibigay ng pahintulot na ito, pinapayagan mo ang site na ito na i-access ang iyong pondo.",
     "you_trust_this_address": "Pinagkakatiwalaan mo ba ang address na ito? Sa pamamagitan ng pagbibigay ng pahintulot na ito, pinapayagan mo ang address na ito na i-access ang iyong pondo.",
     "edit_permission": "Pahintulot sa pag-edit",
