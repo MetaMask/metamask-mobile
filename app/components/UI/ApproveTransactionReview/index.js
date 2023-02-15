@@ -784,39 +784,72 @@ class ApproveTransactionReview extends PureComponent {
                   spenderAddress={spenderAddress}
                   url={activeTabUrl}
                 />
-                <Text reset style={styles.title} testID={'allow-access'}>
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  style={styles.title}
+                  testID={'allow-access'}
+                >
                   {strings(
                     `spend_limit_edition.${
                       originIsDeeplink
                         ? 'allow_to_address_access'
                         : 'allow_to_access'
                     }`,
-                    { tokenSymbol },
+                  )}{' '}
+                  {!fetchingUpdateDone && (
+                    <Text variant={TextVariant.HeadingMD}>
+                      {strings('spend_limit_edition.token')}
+                    </Text>
+                  )}
+                  {tokenType === ERC20 && (
+                    <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
+                  )}
+                  {(tokenType === ERC721 || tokenType === ERC1155) && (
+                    <ButtonLink
+                      onPress={showBlockExplorer}
+                      label={
+                        <Text
+                          variant={TextVariant.HeadingMD}
+                          style={styles.buttonColor}
+                        >
+                          {token?.tokenName ||
+                            token?.symbol ||
+                            strings(`spend_limit_edition.nft`)}{' '}
+                          (#{token?.tokenId})
+                        </Text>
+                      }
+                    />
                   )}
                 </Text>
-                {originalApproveAmount && (
-                  <View style={styles.tokenAccess}>
-                    <Text bold style={styles.tokenKey}>
-                      {` ${strings('spend_limit_edition.access_up_to')} `}
-                    </Text>
-                    <Text numberOfLines={4} style={styles.tokenValue}>
-                      {` ${
-                        customSpendAmount
-                          ? formatNumber(customSpendAmount)
-                          : originalApproveAmount &&
-                            formatNumber(originalApproveAmount)
-                      } ${tokenSymbol}`}
-                    </Text>
-                  </View>
-                )}
-                <TouchableOpacity
-                  style={styles.actionTouchable}
-                  onPress={this.toggleEditPermission}
-                >
-                  <Text reset style={styles.editPermissionText}>
-                    {strings('spend_limit_edition.edit_permission')}
-                  </Text>
-                </TouchableOpacity>
+                {tokenType !== ERC721 &&
+                  tokenType !== ERC1155 &&
+                  originalApproveAmount && (
+                    <View style={styles.tokenAccess}>
+                      <Text bold style={styles.tokenKey}>
+                        {` ${strings('spend_limit_edition.access_up_to')} `}
+                      </Text>
+                      <Text numberOfLines={4} style={styles.tokenValue}>
+                        {` ${
+                          customSpendAmount
+                            ? formatNumber(customSpendAmount)
+                            : originalApproveAmount &&
+                              formatNumber(originalApproveAmount)
+                        } ${tokenSymbol}`}
+                      </Text>
+                    </View>
+                  )}
+                {fetchingUpdateDone &&
+                  tokenType !== ERC721 &&
+                  tokenType !== ERC1155 && (
+                    <TouchableOpacity
+                      style={styles.actionTouchable}
+                      onPress={this.toggleEditPermission}
+                    >
+                      <Text reset style={styles.editPermissionText}>
+                        {strings('spend_limit_edition.edit_permission')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 <Text reset style={styles.explanation}>
                   {`${strings(
                     `spend_limit_edition.${
@@ -826,6 +859,7 @@ class ApproveTransactionReview extends PureComponent {
                     }`,
                   )}`}
                 </Text>
+
                 <View style={styles.contactWrapper}>
                   <Text>{strings('nickname.contract')}: </Text>
                   <TouchableOpacity
