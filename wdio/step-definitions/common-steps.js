@@ -1,5 +1,5 @@
 /* global driver */
-import { Given, Then } from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -12,10 +12,15 @@ import CommonScreen from '../screen-objects/CommonScreen';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
+import LoginScreen from '../screen-objects/LoginScreen';
+
+Given(/^the app displayed the splash animation$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+});
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.isScreenTitleVisible();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -28,10 +33,10 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.clickImportButton();
 });
 
-Given(/^I have created my wallet$/, async () => {
-  // should be in a common step file
+Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.isScreenTitleVisible();
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -39,21 +44,30 @@ Given(/^I have created my wallet$/, async () => {
   await MetaMetricsScreen.tapNoThanksButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
-  await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password);
-  // await SkipAccountSecurityModal.isVisible();
-  await CreateNewWalletScreen.tapRemindMeLater();
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-  // await CreateNewWalletScreen.isNotVisible();
-  await WalletMainScreen.tapRemindMeLaterOnNotification();
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+  await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
 });
 
+Given(
+  /^I tap the remind me later button on the Protect Your Wallet Modal$/,
+  async () => {
+    const timeOut = 3000;
+    await driver.pause(timeOut);
+    await WalletMainScreen.backupAlertModalIsVisible();
+    await WalletMainScreen.tapRemindMeLaterOnNotification();
+    await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+    if (await WalletMainScreen.backupAlertModalIsVisible()) {
+      // on some devices clicking testID is not viable, so we use xpath if modal still visible
+      await CommonScreen.tapOnText('Remind me later');
+      await SkipAccountSecurityModal.proceedWithoutWalletSecure();
+    }
+  },
+);
+
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 50000;
+  const setTimeout = 20000;
   await driver.pause(setTimeout);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.swipeUp();
   await MetaMetricsScreen.tapIAgreeButton();
   const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
@@ -84,5 +98,31 @@ Then(/^"([^"]*)?" is not displayed/, async (text) => {
 Then(/^I am on the main wallet view/, async () => {
   const timeout = 1000;
   await driver.pause(timeout);
+  await WalletMainScreen.isMainWalletViewVisible();
+});
+
+Then(/^I tap on button with text "([^"]*)?"/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.tapOnText(text);
+});
+
+Then(
+  /^I see "([^"]*)?" visible in the top navigation bar/,
+  async (networkName) => {
+    const timeout = 1000;
+    await driver.pause(timeout);
+    await WalletMainScreen.isNetworkNameCorrect(networkName);
+  },
+);
+
+When(/^I log into my wallet$/, async () => {
+  const validAccount = Accounts.getValidAccount();
+
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await LoginScreen.typePassword(validAccount.password);
+  await LoginScreen.tapTitle();
+  await LoginScreen.tapUnlockButton();
   await WalletMainScreen.isMainWalletViewVisible();
 });

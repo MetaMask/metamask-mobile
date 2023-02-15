@@ -11,7 +11,7 @@ import {
   TEST_REMOTE_IMAGE_SOURCE,
 } from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
@@ -34,7 +34,7 @@ storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
     </BadgeWrapper>
   );
