@@ -387,9 +387,9 @@ class Engine {
       };
 
       this.snapExecutionService = new WebviewExecutionService({
-        iframeUrl: new URL(
-          'https://metamask.github.io/iframe-execution-environment/0.11.0',
-        ),
+        // iframeUrl: new URL(
+        //   'https://metamask.github.io/iframe-execution-environment/0.11.0',
+        // ),
         messenger: this.controllerMessenger.getRestricted({
           name: 'ExecutionService',
         }),
