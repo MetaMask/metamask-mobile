@@ -134,30 +134,42 @@ workflows:
           title: Detox Build & Test
           is_always_run: false
   start_e2e_tests:
-    before_run:
-      - code_setup_cache
     steps:
-#      - build-router-start@0:
-#          inputs:
-#            - workflows: |-
-#                ios_e2e_test
-#            - wait_for_builds: 'true'
-#            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-#      - build-router-wait@0:
-#          inputs:
-#            - abort_on_fail: 'yes'
-#            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+      - build-router-start@0:
+          inputs:
+            - workflows: |-
+                ios_e2e_test
+            - wait_for_builds: 'true'
+            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+      - build-router-wait@0:
+          inputs:
+            - abort_on_fail: 'yes'
+            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
-      - yarn@0:
+      - slack@3:
           inputs:
-            - command: e2e:announce
-          title: Announcing e2e tests result
-          is_always_run: true
+            - text: "${BITRISE_APP_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *E2E tests succeeded!*"
+            - pretext_on_error: ":red_circle: *E2E tests failed!*"
+            - title: "Commit #${BITRISE_GIT_COMMIT}"
+            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
+            - message: ${BITRISE_GIT_MESSAGE}
+            - fields: |
+                App|${BITRISE_APP_TITLE}
+                Branch|${BITRISE_GIT_BRANCH}
+                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
+                Build|${BITRISE_BUILD_NUMBER}
+            - buttons: |
+                View app|${BITRISE_APP_URL}
+                View build|${BITRISE_BUILD_URL}
+                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
+            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
   # Parallel Build & Deploy Steps
   create_release_builds:
     before_run:
