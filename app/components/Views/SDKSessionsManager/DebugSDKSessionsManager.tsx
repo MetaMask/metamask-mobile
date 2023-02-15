@@ -65,7 +65,7 @@ const DebugSDKSessionsManager = (props: Props) => {
   const refreshSDKState = () => {
     const _connections = sdk.getConnections();
     const connectionsList = Object.values(_connections);
-    Logger.log(
+    console.debug(
       `SDKSEssionManager::refreshSDKState connectedList=${connectionsList.length}`,
     );
     setConnections(connectionsList);
@@ -105,7 +105,7 @@ const DebugSDKSessionsManager = (props: Props) => {
                 backgroundColor: 'blue',
               }}
               onPress={() => {
-                // Logger.log(`SDKSessions TODO `, props);
+                // console.debug(`SDKSessions TODO `, props);
                 const navigation = props.navigation;
                 navigation.navigate('Home');
               }}
@@ -127,10 +127,10 @@ const DebugSDKSessionsManager = (props: Props) => {
                 backgroundColor: 'blue',
               }}
               onPress={() => {
-                Logger.log(`connections`, connections.length);
+                console.debug(`connections`, connections.length);
                 refreshSDKState();
                 const sessions = SDKConnect.getInstance().getSessionsStorage();
-                Logger.log(`sessions: `, JSON.stringify(sessions, null, 4));
+                console.debug(`sessions: `, JSON.stringify(sessions, null, 4));
               }}
             >
               <Text
@@ -151,7 +151,7 @@ const DebugSDKSessionsManager = (props: Props) => {
               }}
               onPress={() => {
                 const hosts = sdk.getApprovedHosts('debug');
-                Logger.log(
+                console.debug(
                   `Approved Hosts [${Object.keys(hosts).length}]`,
                   hosts,
                 );
@@ -174,7 +174,7 @@ const DebugSDKSessionsManager = (props: Props) => {
                     originator={connections[_index].originatorInfo}
                   />
                 );
-              Logger.log(`invalid connection fro ${connectionProps.id}`);
+              console.debug(`invalid connection fro ${connectionProps.id}`);
               return <View key={`s${_index}`} />;
             })}
           </View>

@@ -51,7 +51,7 @@ const SDKSessionsManager = (props: Props) => {
   const refreshSDKState = () => {
     const _connected = sdk.getConnected();
     const connectedList = Object.values(_connected);
-    Logger.log(
+    console.debug(
       `SDKSEssionManager::refreshSDKState connectedList=${connectedList.length}`,
     );
     setConnected(connectedList);
@@ -75,7 +75,7 @@ const SDKSessionsManager = (props: Props) => {
     refreshSDKState();
     updateNavBar();
     // const listenerId = sdk.registerEventListener((eventName: string) => {
-    //   Logger.log(`SDKSEssionManager::useEffect event=${eventName}`);
+    //   console.debug(`SDKSEssionManager::useEffect event=${eventName}`);
     //   refreshSDKState();
     // });
 

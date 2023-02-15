@@ -172,45 +172,49 @@ export const getRpcMethodMiddleware = ({
         ethErrors.provider.userRejectedRequest(),
       );
       // check if existing approval request and wait for completion
-      const pending =
-        await Engine.context.ApprovalControllerapprovalController.has({
-          id: hostname,
-        });
+      // const pending =
+      //   await Engine.context.ApprovalControllerapprovalController.has({
+      //     id: hostname,
+      //   });
 
+      console.debug(
+        `RPCMethodMiddleWare::requestUserApproval pending=${pending} type=${type}`,
+        hostname,
+      );
       let responseData;
-      if (pending) {
-        responseData =
-          await Engine.context.ApprovalControllerapprovalController.get(
-            hostname,
-          );
-      } else {
-        const fullRequestData = {
-          ...requestData,
-          pageMeta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
+      // if (pending) {
+      //   responseData =
+      //     await Engine.context.ApprovalControllerapprovalController.get(
+      //       hostname,
+      //     );
+      // } else {
+      const fullRequestData = {
+        ...requestData,
+        pageMeta: {
+          url: url.current,
+          title: title.current,
+          icon: icon.current,
+          analytics: {
+            request_source: getSource(),
+            request_platform: analytics?.platform,
           },
-        };
-        console.debug(
-          `RPCMethodMiddleware::requestUserApproval type=${type}`,
-          fullRequestData,
-        );
-        responseData = await Engine.context.ApprovalController.add({
-          origin: hostname,
-          type,
-          requestData: fullRequestData,
-          id: hostname,
-        });
-        console.debug(
-          `RPCMethodMiddleware::requestUserApproval responseData`,
-          responseData,
-        );
-      }
+        },
+      };
+      console.debug(
+        `RPCMethodMiddleware::requestUserApproval type=${type}`,
+        fullRequestData,
+      );
+      responseData = await Engine.context.ApprovalController.add({
+        origin: hostname,
+        type,
+        requestData: fullRequestData,
+        id: random(),
+      });
+      console.debug(
+        `RPCMethodMiddleware::requestUserApproval responseData`,
+        responseData,
+      );
+      // }
 
       return responseData;
     };

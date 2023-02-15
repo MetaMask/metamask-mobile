@@ -31,7 +31,7 @@ export class SDKStorageManager implements StorageManager {
   }
 
   async persistChannelConfig(channelConfig: ChannelConfig): Promise<void> {
-    Logger.log(
+    console.debug(
       `SDKStorageManager::persistChannelConfig channelConfig`,
       channelConfig,
     );
@@ -63,7 +63,7 @@ export class SDKStorageManager implements StorageManager {
   async getPersistedChannelConfig(
     channelId: string,
   ): Promise<ChannelConfig | undefined> {
-    Logger.log(`channelId=${channelId}`);
+    console.debug(`channelId=${channelId}`);
     // const sdkSessions = await SDKStorageManager.getCurrentSessions();
     // return sdkSessions[channelId]?.channelConfig;
     return undefined;
@@ -97,12 +97,12 @@ export class SDKStorageManager implements StorageManager {
   }
 
   public static async reset() {
-    Logger.log(`SDKStorageManager::reset()`);
+    console.debug(`SDKStorageManager::reset()`);
     DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
   }
 
   public static async saveSession(session: SDKSession): Promise<void> {
-    Logger.log(
+    console.debug(
       `SDKStorageManager::saveSession`,
       JSON.stringify(session, null, 4),
     );
@@ -125,7 +125,7 @@ export class SDKStorageManager implements StorageManager {
     //   JSON.stringify(allSessions),
     // );
     // SDKConnect.getInstance().setSDKSessions(allSessions);
-    // Logger.log(`new sessions stored: `, JSON.stringify(allSessions, null, 4))
+    // console.debug(`new sessions stored: `, JSON.stringify(allSessions, null, 4))
   }
 }
 

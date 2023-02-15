@@ -173,7 +173,7 @@ class DeeplinkManager {
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
-    Logger.log(`parse: ${url}`);
+    console.debug(`parse: ${url}`);
     const urlObj = new URL(
       url
         .replace(
@@ -215,7 +215,7 @@ class DeeplinkManager {
           console.debug(`action=${action}, params=`, params);
           if (action === ACTIONS.OTP) {
             if (params?.otp) {
-              Logger.log(
+              console.debug(
                 `AAAAAAAAAAAAAAAAAAAAAAAAAAA DEEEEEPLINKK ${params.otp}`,
               );
               // Automatically re-approve hosts.
@@ -321,7 +321,7 @@ class DeeplinkManager {
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OTP}`)) {
           if (params?.otp) {
-            Logger.log(`CCCCCCCCCCCCCCCCCCC DEEEEEPLINKK ${params.otp}`);
+            console.debug(`CCCCCCCCCCCCCCCCCCC DEEEEEPLINKK ${params.otp}`);
             // Automatically re-approve hosts.
             SDKConnect.getInstance().revalidateChannel({
               channelId: params.otp,

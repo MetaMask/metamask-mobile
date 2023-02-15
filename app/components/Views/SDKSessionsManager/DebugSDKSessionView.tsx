@@ -78,7 +78,7 @@ export const SDKSessionView = ({
 
   const onRemoteEvent = (_status: ServiceStatus) => {
     setServiceStatus(_status);
-    Logger.log(
+    console.debug(
       `DebugSDKSessionView::onRemoteEvent channel=${connection.channelId}`,
       _status,
     );
@@ -139,7 +139,7 @@ export const SDKSessionView = ({
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          Logger.log('request to redirects', connection.requestsToRedirect);
+          console.debug('request to redirects', connection.requestsToRedirect);
         }}
       >
         <Text style={styles.buttonText}>Requests Redirect</Text>
@@ -164,9 +164,9 @@ export const SDKSessionView = ({
         onPress={() => {
           // connection.remote.testStorage();
           const sessions = SDKConnect.getInstance().getSessionsStorage();
-          Logger.log(`sessions: `, JSON.stringify(sessions, null, 4));
+          console.debug(`sessions: `, JSON.stringify(sessions, null, 4));
           // const s = connection.remote.getServiceStatus();
-          // Logger.log(`s`, JSON.stringify(s, null, 4));
+          // console.debug(`s`, JSON.stringify(s, null, 4));
         }}
       >
         <Text
@@ -179,7 +179,7 @@ export const SDKSessionView = ({
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          Logger.log(
+          console.debug(
             `keyInfo:`,
             JSON.stringify(connection.remote.getKeyInfo(), null, 4),
           );
@@ -190,7 +190,7 @@ export const SDKSessionView = ({
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          Logger.log(`rejoin channel:`);
+          console.debug(`rejoin channel:`);
           connection.remote
             .getCommunicationLayer()
             ?.emit(EventType.JOIN_CHANNEL, connection.channelId, `boom`);
@@ -230,8 +230,8 @@ export const SDKSessionView = ({
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          Logger.log(connection.remote.getServiceStatus());
-          Logger.log(`isConnected()=${connection.remote.isConnected()}`);
+          console.debug(connection.remote.getServiceStatus());
+          console.debug(`isConnected()=${connection.remote.isConnected()}`);
         }}
       >
         <Text style={styles.buttonText}>Print ServiceStatus</Text>
