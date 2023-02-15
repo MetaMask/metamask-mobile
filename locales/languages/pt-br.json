@@ -717,8 +717,6 @@
     "minimum": "Mínimo de 1,00 {{tokenSymbol}}",
     "cancel": "Cancelar",
     "approve": "Aprovar",
-    "allow_to_access": "Dar a este site permissão para acessar seus(suas) {{tokenSymbol}}?",
-    "allow_to_address_access": "Dar a este endereço acesso ao seu {{tokenSymbol}}?",
     "you_trust_this_site": "Você confia neste site? Ao conceder essa permissão, você permite que este site tenha acesso aos seus fundos.",
     "you_trust_this_address": "Você confia nesse endereço? Ao conceder essa permissão, você permite que este endereço tenha acesso aos seus fundos.",
     "edit_permission": "Editar permissão",

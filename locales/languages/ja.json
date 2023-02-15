@@ -953,8 +953,6 @@
     "minimum": "最低 1.00 {{tokenSymbol}}",
     "cancel": "キャンセル",
     "approve": "承認",
-    "allow_to_access": "{{tokenSymbol}}へのアクセスを許可しますか？",
-    "allow_to_address_access": "このアドレスに{{tokenSymbol}}へのアクセスを許可しますか？",
     "you_trust_this_site": "許可を与えることで、以下のコントラクトが資金にアクセスできるようになります。",
     "you_trust_this_address": "このアドレスは信用できますか？この許可を与えることで、このアドレスによる資金へのアクセスを許可することになります。",
     "edit_permission": "許可の編集",
