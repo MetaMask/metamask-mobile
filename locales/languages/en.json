@@ -711,7 +711,14 @@
       "That means",
       "you are the owner of your Secret Recovery Phrase."
     ],
-    "private_key_explanation": "Your private key gives full access to your account and your funds, so never share it. Keep it somewhere safe and secret. Anyone with your private key can take all of your assets, and you will never get them back.",
+    "private_key_explanation": [
+      "Your",
+      "private key",
+      "gives",
+      "full access to your account and your funds, so never share it.\n\n",
+      "Keep it somewhere safe and secret.",
+      "Anyone with your private key can take all of your assets, and you will never get them back."
+    ],
     "private_key_warning": "This is the private key for the account you're currently using: {{accountName}}. Anyone with your private key can control your account and take all of your assets.",
     "credential_warning_explanation": [
       "Make sure nobody is looking at your screen. ",

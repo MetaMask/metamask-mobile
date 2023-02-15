@@ -477,6 +477,23 @@ const RevealPrivateCredential = ({
     </Text>
   );
 
+  const renderPrivateKeyExplanation = () => (
+    <Text style={styles.normalText}>
+      {strings('reveal_credential.private_key_explanation')[0]}{' '}
+      <Text style={styles.normalText}>
+        {strings('reveal_credential.private_key_explanation')[1]}
+      </Text>{' '}
+      {strings('reveal_credential.private_key_explanation')[2]}{' '}
+      <Text style={styles.boldText}>
+        {strings('reveal_credential.private_key_explanation')[3]}
+      </Text>
+      {strings('reveal_credential.private_key_explanation')[4]}{' '}
+      <Text style={styles.normalText}>
+        {strings('reveal_credential.private_key_explanation')[5]}{' '}
+      </Text>
+    </Text>
+  );
+
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
@@ -511,13 +528,9 @@ const RevealPrivateCredential = ({
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey() ? (
-              <Text style={styles.normalText}>
-                {strings(`reveal_credential.private_key_explanation`)}
-              </Text>
-            ) : (
-              renderSRPExplanation()
-            )}
+            {isPrivateKey()
+              ? renderPrivateKeyExplanation()
+              : renderSRPExplanation()}
           </View>
           {renderWarning(privateCredentialName)}
 
