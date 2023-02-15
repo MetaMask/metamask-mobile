@@ -1008,7 +1008,7 @@
     "must_be_at_least": "Must be at least {{allowance}}",
     "access_up_to": "Access up to:",
     "spending_cap": "Spending cap:",
-    "approve_asset": "Approve Asset:"
+    "approve_asset": "Approve asset:"
   },
   "browser": {
     "title": "Browser",
