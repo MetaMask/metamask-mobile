@@ -6,7 +6,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // Internal dependencies.
 import TabBar from './TabBar';
-import { TabBarLabel } from './TabBar.types';
+import { TabBarIconKey } from './TabBar.types';
 
 const TabBarStorybook = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -22,12 +22,12 @@ const TabBarStorybook = () => {
     descriptors: {
       WalletRoute: {
         options: {
-          tabBarLabel: TabBarLabel.Wallet,
+          tabBarLabel: TabBarIconKey.Wallet,
         },
       },
       BrowserRoute: {
         options: {
-          tabBarLabel: TabBarLabel.Browser,
+          tabBarLabel: TabBarIconKey.Browser,
         },
       },
     },
