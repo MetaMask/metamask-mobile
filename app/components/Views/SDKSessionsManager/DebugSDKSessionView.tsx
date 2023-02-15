@@ -50,7 +50,10 @@ const createStyles = (
     },
   });
 
-export const SDKSessionView = ({ connection, originator }: SDKSessionViewProps) => {
+export const SDKSessionView = ({
+  connection,
+  originator,
+}: SDKSessionViewProps) => {
   const { colors } = useTheme();
   const sdk = SDKConnect.getInstance();
   const [serviceStatus, setServiceStatus] = useState<ServiceStatus>(
@@ -70,8 +73,8 @@ export const SDKSessionView = ({ connection, originator }: SDKSessionViewProps) 
     status === ConnectionStatus.WAITING;
   const hasResumeAction = true;
   const hasRemoveAction = true;
-  // const hasReconnectAction = true;
-  // const hasDisconnectAction = true;
+  const hasReconnectAction = true;
+  const hasDisconnectAction = true;
 
   const onRemoteEvent = (_status: ServiceStatus) => {
     setServiceStatus(_status);
@@ -142,6 +145,14 @@ export const SDKSessionView = ({ connection, originator }: SDKSessionViewProps) 
         <Text style={styles.buttonText}>Requests Redirect</Text>
       </TouchableOpacity>
       <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          connection.remote.keyCheck();
+        }}
+      >
+        <Text style={styles.buttonText}>Send KEYCHECK</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
         style={{
           height: 30,
@@ -168,10 +179,24 @@ export const SDKSessionView = ({ connection, originator }: SDKSessionViewProps) 
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          Logger.log(connection.remote.getKeyInfo());
+          Logger.log(
+            `keyInfo:`,
+            JSON.stringify(connection.remote.getKeyInfo(), null, 4),
+          );
         }}
       >
         <Text style={styles.buttonText}>Print KeyInfo</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          Logger.log(`rejoin channel:`);
+          connection.remote
+            .getCommunicationLayer()
+            ?.emit(EventType.JOIN_CHANNEL, connection.channelId, `boom`);
+        }}
+      >
+        <Text style={styles.buttonText}>rejoin</Text>
       </TouchableOpacity>
       {approved ? (
         <TouchableOpacity
@@ -231,7 +256,7 @@ export const SDKSessionView = ({ connection, originator }: SDKSessionViewProps) 
           <Text style={styles.buttonText}>Pause</Text>
         </TouchableOpacity>
       )}
-      {/* {hasReconnectAction && (
+      {hasReconnectAction && (
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
@@ -242,17 +267,17 @@ export const SDKSessionView = ({ connection, originator }: SDKSessionViewProps) 
         >
           <Text style={styles.buttonText}>Reconnect</Text>
         </TouchableOpacity>
-      )} */}
-      {/* {hasDisconnectAction && (
+      )}
+      {hasDisconnectAction && (
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            connection.disconnect();
+            connection.disconnect({ terminate: false });
           }}
         >
           <Text style={styles.buttonText}>Disconnect</Text>
         </TouchableOpacity>
-      )} */}
+      )}
       {hasRemoveAction && (
         <TouchableOpacity
           style={[styles.button, styles.removeButton]}

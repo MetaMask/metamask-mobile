@@ -3,6 +3,9 @@ const initialState = {
   accountsModalVisible: false,
   collectibleContractModalVisible: false,
   receiveModalVisible: false,
+  sdkLoadingModalVisible: false,
+  channelDisconnectModalVisible: false,
+  accountApprovalModalVisible: false,
   receiveAsset: undefined,
   dappTransactionModalVisible: false,
   approveModalVisible: false,
@@ -26,6 +29,37 @@ const modalsReducer = (state = initialState, action) => {
       return {
         ...state,
         accountsModalVisible: !state.accountsModalVisible,
+      };
+    case 'TOGGLE_CHANNEL_DISCONNECT_MODAL':
+      return {
+        ...state,
+        channelDisconnectModalVisible: !state.channelDisconnectModalVisible,
+        // channelId: action?.channelId,
+      };
+    case 'TOGGLE_SDKLOADING_MODAL':
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          sdkLoadingModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        sdkLoadingModalVisible: !state.sdkLoadingModalVisible,
+      };
+    case 'TOGGLE_ACCOUNT_APPROVAL_MODAL':
+      console.log(
+        `action.visible=${action.visible} vs state=${state.accountApprovalModalVisible}`,
+      );
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          accountApprovalModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        accountApprovalModalVisible: action.visible,
       };
     case 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL':
       return {

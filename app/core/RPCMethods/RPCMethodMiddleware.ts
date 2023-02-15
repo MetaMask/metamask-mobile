@@ -171,30 +171,47 @@ export const getRpcMethodMiddleware = ({
       await Engine.context.ApprovalController.clear(
         ethErrors.provider.userRejectedRequest(),
       );
+      // check if existing approval request and wait for completion
+      const pending =
+        await Engine.context.ApprovalControllerapprovalController.has({
+          id: hostname,
+        });
 
-      const fullRequestData = {
-        ...requestData,
-        pageMeta: {
-          url: url.current,
-          title: title.current,
-          icon: icon.current,
-          analytics: {
-            request_source: getSource(),
-            request_platform: analytics?.platform,
+      let responseData;
+      if (pending) {
+        responseData =
+          await Engine.context.ApprovalControllerapprovalController.get(
+            hostname,
+          );
+      } else {
+        const fullRequestData = {
+          ...requestData,
+          pageMeta: {
+            url: url.current,
+            title: title.current,
+            icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
-        },
-      };
-      console.debug(
-        `RPCMethodMiddleware::requestUserApproval type=${type}`,
-        fullRequestData,
-      );
-      const responseData = await Engine.context.ApprovalController.add({
-        origin: hostname,
-        type,
-        requestData: fullRequestData,
-        id: random(),
-      });
-      console.debug(`RPCMethodMiddleware::requestUserApproval responseData`, responseData);
+        };
+        console.debug(
+          `RPCMethodMiddleware::requestUserApproval type=${type}`,
+          fullRequestData,
+        );
+        responseData = await Engine.context.ApprovalController.add({
+          origin: hostname,
+          type,
+          requestData: fullRequestData,
+          id: hostname,
+        });
+        console.debug(
+          `RPCMethodMiddleware::requestUserApproval responseData`,
+          responseData,
+        );
+      }
+
       return responseData;
     };
 
@@ -256,10 +273,10 @@ export const getRpcMethodMiddleware = ({
 
         selectedAddress = selectedAddress?.toLowerCase();
 
+        const approvedHosts = getApprovedHosts();
         console.debug(
-          `AAAA eth_requestAccounts hostname=${hostname} privacyMode=${privacyMode} approvedHost=${
-            getApprovedHosts()[hostname]
-          }`,
+          `AAAA eth_requestAccounts hostname=${hostname} privacyMode=${privacyMode} approvedHost=${approvedHosts[hostname]}`,
+          approvedHosts,
         );
         if (
           isWalletConnect ||
@@ -482,6 +499,11 @@ export const getRpcMethodMiddleware = ({
           chainId,
           activeAccounts: getAccounts(),
         });
+
+        console.log(
+          `SIGN chainId=${chainId} address=${req.params[0]} activeAccounts`,
+          getAccounts(),
+        );
 
         const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
           {

@@ -207,11 +207,13 @@ class DeeplinkManager {
         // Universal links
         handled();
 
+        console.debug(`urlObj.hostname=${urlObj.hostname}`);
         if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === ACTIONS.CONNECT) {
+          console.debug(`action=${action}, params=`, params);
+          if (action === ACTIONS.OTP) {
             if (params?.otp) {
               Logger.log(
                 `AAAAAAAAAAAAAAAAAAAAAAAAAAA DEEEEEPLINKK ${params.otp}`,
@@ -222,6 +224,8 @@ class DeeplinkManager {
               });
             }
 
+            return;
+          } else if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
@@ -315,7 +319,7 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OTP}`)) {
           if (params?.otp) {
             Logger.log(`CCCCCCCCCCCCCCCCCCC DEEEEEPLINKK ${params.otp}`);
             // Automatically re-approve hosts.
@@ -323,7 +327,7 @@ class DeeplinkManager {
               channelId: params.otp,
             });
           }
-
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
           } else if (params.channelId) {

@@ -37,7 +37,7 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     disconnectContainer: {
       borderColor: colors.error.default,
       alignItems: 'center',
-      height: 24,
+      // height: 24,
       // paddingLeft: 25,
       // paddingRight: 25,
     },
@@ -47,6 +47,7 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
 export const SDKSessionItem = ({ connection }: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const sdk = SDKConnect.getInstance();
   const styles = createStyles(colors, safeAreaInsets);
   const [serviceStatus] = useState<ServiceStatus>(
     connection.remote.getServiceStatus(),
@@ -68,7 +69,7 @@ export const SDKSessionItem = ({ connection }: SDKSessionViewProps) => {
       <StyledButton
         type="normal"
         onPress={() => {
-          SDKConnect.removeChannel(connection.channelId);
+          sdk.removeChannel(connection.channelId);
         }}
         containerStyle={styles.disconnectContainer}
         style={[styles.disconnectContainer, styles.disconnectFont]}

@@ -164,13 +164,19 @@ const DebugSDKSessionsManager = (props: Props) => {
                 Approved Hosts
               </Text>
             </TouchableOpacity>
-            {connections.map((connectionProps, _index) => (
-              <SDKSessionView
-                key={`s${_index}`}
-                connection={sdk.getConnected()[connectionProps.id]}
-                originator={connections[_index].originatorInfo}
-              />
-            ))}
+            {connections.map((connectionProps, _index) => {
+              const connection = sdk.getConnected()[connectionProps.id];
+              if (connection)
+                return (
+                  <SDKSessionView
+                    key={`s${_index}`}
+                    connection={connection}
+                    originator={connections[_index].originatorInfo}
+                  />
+                );
+              Logger.log(`invalid connection fro ${connectionProps.id}`);
+              return <View key={`s${_index}`} />;
+            })}
           </View>
         </ScrollView>
         <StyledButton

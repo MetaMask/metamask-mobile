@@ -94,14 +94,12 @@ const RootRPCMethodsUI = (props) => {
   const setEtherTransaction = props.setEtherTransaction;
 
   const showPendingApprovalModal = ({ type, origin }) => {
-    console.debug(`RootRPCMethodsUI::showPendingApprovalModal type=${type}`, origin);
     InteractionManager.runAfterInteractions(() => {
       setShowPendingApproval({ type, origin });
     });
   };
 
   const onUnapprovedMessage = (messageParams, type, origin) => {
-    console.debug(`RootRPCMethodsUI::onUnapprovedMessage type=${type}`, messageParams);
     setCurrentPageMeta(messageParams.meta);
     const signMessageParams = { ...messageParams };
     delete signMessageParams.meta;
@@ -278,7 +276,6 @@ const RootRPCMethodsUI = (props) => {
 
   const onUnapprovedTransaction = useCallback(
     async (transactionMeta) => {
-      console.debug(`RootRPCMethodsUI::onUnapprovedTransaction()`, transactionMeta);
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
       const to = transactionMeta.transaction.to?.toLowerCase();
@@ -491,6 +488,7 @@ const RootRPCMethodsUI = (props) => {
             title: meta?.name,
             url: meta?.url,
             icon: meta?.icons?.[0],
+            reconnect: meta?.reconnect,
           }}
           walletConnectRequest
         />
@@ -711,6 +709,13 @@ const RootRPCMethodsUI = (props) => {
       }
       switch (request.type) {
         case ApprovalTypes.CONNECT_ACCOUNTS:
+          setHostToApprove({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.CONNECT_ACCOUNTS,
+            origin: request.origin,
+          });
+          break;
+        case ApprovalTypes.RECONNECT_ACCOUNTS:
           setHostToApprove({ data: requestData, id: request.id });
           showPendingApprovalModal({
             type: ApprovalTypes.CONNECT_ACCOUNTS,

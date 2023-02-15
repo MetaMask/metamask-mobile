@@ -41,6 +41,16 @@ const createStyles = (colors) =>
       marginBottom: 8,
       marginTop: 16,
     },
+    intro_reconnect: {
+      ...fontStyles.bold,
+      textAlign: 'center',
+      color: colors.text.default,
+      fontSize: Device.isSmallDevice() ? 16 : 20,
+      marginBottom: 8,
+      marginTop: 16,
+      marginLeft: 16,
+      marginRight: 16,
+    },
     warning: {
       ...fontStyles.thin,
       color: colors.text.default,
@@ -209,8 +219,26 @@ class AccountApproval extends PureComponent {
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
         <TransactionHeader currentPageInformation={currentPageInformation} />
-        <Text style={styles.intro}>{strings('accountApproval.action')}</Text>
-        <Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
+        {currentPageInformation.reconnect ? (
+          <>
+            <Text style={styles.intro_reconnect}>
+              {strings('accountApproval.action_reconnect')}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.intro}>
+              {strings('accountApproval.action')}
+            </Text>
+            <Text style={styles.warning}>
+              {strings('accountApproval.warning')}
+            </Text>
+          </>
+        )}
+
+        <View>
+          <Text>{JSON.stringify(currentPageInformation)}</Text>
+        </View>
         <View style={styles.accountCardWrapper}>
           <AccountInfoCard />
         </View>

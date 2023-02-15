@@ -22,8 +22,12 @@ import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import {
+  toggleAccountApprovalModal,
   toggleAccountsModal,
+  toggleApproveModal,
+  toggleChannelDisconnectModal,
   toggleReceiveModal,
+  toggleSDKLoadingModal,
 } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
@@ -51,6 +55,7 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
 } from '../../../../wdio/features/testIDs/Screens/WalletView.testIds';
+import { ApprovalTypes } from 'app/core/RPCMethods/RPCMethodMiddleware';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -185,6 +190,15 @@ class AccountOverview extends PureComponent {
      * Prompts protect wallet modal
      */
     protectWalletModalVisible: PropTypes.func,
+    /**
+     * Action that toggles the disconnect all confirmation modal
+     */
+    toggleChannelDisconnectModal: PropTypes.func.isRequired,
+    toggleAccountApprovalModal: PropTypes.func.isRequired,
+    /**
+     * Action that toggles the SDK loading modal
+     */
+    toggleSDKLoadingModal: PropTypes.func,
     /**
      * Start transaction with asset
      */
@@ -355,7 +369,7 @@ class AccountOverview extends PureComponent {
       const ens = await doENSReverseLookup(account.address, network);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
-    } catch { }
+    } catch {}
   };
 
   render() {
@@ -517,14 +531,71 @@ class AccountOverview extends PureComponent {
                 backgroundColor: 'blue',
               }}
               onPress={() => {
-                this.props.testModal();
+                this.props.toggleChannelDisconnectModal();
               }}
             >
               <Text
                 // eslint-disable-next-line
                 style={{ color: 'white' }}
               >
-                Toggle Modal
+                Disconnect Modal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={() => {
+                this.props.toggleSDKLoadingModal(true);
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                SDK Modal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={async () => {
+                this.props.toggleAccountApprovalModal(true);
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                toggleAccountApprovalModal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={() => {
+                this.props.toggleAccountsModal();
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                Account Modal
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -570,7 +641,12 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  testModal: () => dispatch(toggleAccountsModal()),
+  toggleChannelDisconnectModal: () => dispatch(toggleChannelDisconnectModal()),
+  toggleSDKConnectModal: () => dispatch(toggleChannelDisconnectModal()),
+  toggleAccountApprovalModal: (visible) =>
+    dispatch(toggleAccountApprovalModal(visible)),
+  toggleSDKLoadingModal: (visible) => dispatch(toggleSDKLoadingModal(visible)),
+  disconnectModal: () => dispatch(toggleChannelDisconnectModal()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
