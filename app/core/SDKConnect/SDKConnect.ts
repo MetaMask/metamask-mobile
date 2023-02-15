@@ -319,7 +319,10 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        console.debug(`permissions validated - send to json rpc`);
+        console.debug(
+          `permissions validated - send to json rpc`,
+          getApprovedHosts('debug'),
+        );
 
         console.debug(
           `Connection::on message rpcId=${message?.id} method: ${message?.method}`,
@@ -429,7 +432,9 @@ export class Connection extends EventEmitter2 {
           getProviderState,
           navigation: null, //props.navigation,
           getApprovedHosts: () => this.getApprovedHosts('rpcMethodMiddleWare'),
-          setApprovedHosts: () => null,
+          setApprovedHosts: () => {
+            console.debug(`SETAPPROVEDHOST`);
+          },
           approveHost: (approveHostname) =>
             this.approveHost({
               host: this.host,
@@ -526,7 +531,7 @@ export class Connection extends EventEmitter2 {
       },
       id: this.channelId,
     });
-    this.revalidate({ channelId: this.channelId });
+    // this.revalidate({ channelId: this.channelId });
 
     // // ApprovalController.accept(id, requestData);
 
@@ -816,7 +821,7 @@ export class SDKConnect extends EventEmitter2 {
 
   async reconnectAll() {
     console.debug(
-      `SDKConnect::reconnectAll() this.reconnected=${this.reconnected}`,
+      `SDKConnect::reconnectAll() this.reconnected=${this.reconnected} this.paused=${this.paused}`,
     );
     if (this.reconnected) {
       console.debug(`SDKConnect::reconnectAll() Already reconnected -- skip`);
@@ -844,6 +849,7 @@ export class SDKConnect extends EventEmitter2 {
       this.connected[id].pause();
     }
     this.paused = true;
+    DefaultPreference.set('paused', 'paused');
   }
 
   public removeChannel(channelId: string) {
@@ -995,7 +1001,7 @@ export class SDKConnect extends EventEmitter2 {
     console.debug(`SDKConnect::unmount()`);
     AppState.removeEventListener('change', this._handleAppState.bind(this));
     // Disconnect all connections - especially useful during dev otherwise rooms gets full.
-    this.pause();
+    // this.pause();
     if (this.timeout) clearTimeout(this.timeout);
     if (this.initTimeout) clearTimeout(this.initTimeout);
   }
@@ -1013,12 +1019,20 @@ export class SDKConnect extends EventEmitter2 {
     AppState.removeEventListener('change', this._handleAppState.bind(this));
     AppState.addEventListener('change', this._handleAppState.bind(this));
 
-    const [connectionsStorage] = await Promise.all([
+    const [connectionsStorage, pausedStorage] = await Promise.all([
       DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
+      DefaultPreference.get('paused'),
     ]);
 
     if (connectionsStorage) {
       this.connections = JSON.parse(connectionsStorage);
+    }
+
+    if (pausedStorage) {
+      if (!this.paused) {
+        console.debug(`INVALID STATE for this.paused`);
+      }
+      this.paused = true;
     }
 
     // this.initTimeout = setTimeout(() => {

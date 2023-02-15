@@ -277,7 +277,7 @@ export const getRpcMethodMiddleware = ({
 
         selectedAddress = selectedAddress?.toLowerCase();
 
-        const approvedHosts = getApprovedHosts();
+        const approvedHosts = getApprovedHosts('eth_requestsAccounts');
         console.debug(
           `AAAA eth_requestAccounts hostname=${hostname} privacyMode=${privacyMode} approvedHost=${approvedHosts[hostname]}`,
           approvedHosts,
