@@ -21,7 +21,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install **yarn@1 (classic)**
 
--   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
+-   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
