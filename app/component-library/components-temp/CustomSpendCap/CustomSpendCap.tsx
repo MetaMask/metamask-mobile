@@ -25,6 +25,9 @@ const CustomSpendCap = ({
   accountBalance,
   domain,
   onInputChanged,
+  noEdit,
+  customValue,
+  goBackPress,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -47,10 +50,13 @@ const CustomSpendCap = ({
       setInputHasError(false);
       return onInputChanged(value);
     }
+
+    value && onInputChanged(value);
     return setInputHasError(true);
   }, [value, onInputChanged]);
 
   const handlePress = () => {
+    if (noEdit) return goBackPress();
     setMaxSelected(false);
     setValue(dappProposedValue);
     setDefaultValueSelected(!defaultValueSelected);
@@ -180,7 +186,9 @@ const CustomSpendCap = ({
           onPress={handlePress}
           textVariant={TextVariant.BodyMD}
           label={
-            defaultValueSelected
+            noEdit
+              ? strings('contract_allowance.custom_spend_cap.edit')
+              : defaultValueSelected
               ? strings('contract_allowance.custom_spend_cap.edit')
               : strings('contract_allowance.custom_spend_cap.use_default')
           }
@@ -193,7 +201,8 @@ const CustomSpendCap = ({
           defaultValueSelected={defaultValueSelected}
           setMaxSelected={setMaxSelected}
           inputDisabled={inputDisabled}
-          value={value}
+          value={value || customValue}
+          noEdit={noEdit}
         />
       </View>
       {value.length > 0 && inputHasError && (
@@ -201,17 +210,19 @@ const CustomSpendCap = ({
           {strings('contract_allowance.custom_spend_cap.error_enter_number')}
         </Text>
       )}
-      <View style={styles.descriptionContainer}>
-        <Text variant={TextVariant.BodyMD} style={styles.description}>
-          {defaultValueSelected
-            ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-            : maxSelected
-            ? MAX_VALUE_SELECTED
-            : inputValueHigherThanAccountBalance
-            ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-            : NO_SELECTED}
-        </Text>
-      </View>
+      {!noEdit && (
+        <View style={styles.descriptionContainer}>
+          <Text variant={TextVariant.BodyMD} style={styles.description}>
+            {defaultValueSelected
+              ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
+              : maxSelected
+              ? MAX_VALUE_SELECTED
+              : inputValueHigherThanAccountBalance
+              ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
+              : NO_SELECTED}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
