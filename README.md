@@ -15,15 +15,19 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 ### Environment Setup
 
-The code is built using React-Native and running code locally requires a Mac or Linux OS.
+The code is built using React-Native and running code locally requires a Mac (Android and iOS) or Linux OS (officially Android only).
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 14 (latest stable) and yarn@1 (classic)**
+-   Install [yarn](https://github.com/yarnpkg/yarn) v1 (classic): `brew install yarn`
 
-    -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+    -   If `yarn -v` is v3, run `yarn set version classic`
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
+
+    -   But [Node](https://nodejs.org) v14 where mentioned _make sure it is Node 12 or newer_
+
+        -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
 
 ### Device Environment Setup
