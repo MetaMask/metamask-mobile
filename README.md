@@ -29,9 +29,9 @@ The code is built using React-Native and running code locally requires a Mac (An
     
         -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version from [.nvmrc](https://github.com/MetaMask/metamask-mobile/blob/f7e44adc7b61b71fdf6794b0fcad2531561c2f95/.nvmrc#L1)
 
-            -   nb: RN 0.69+ introduces [ios/.xcode.env](https://github.com/facebook/react-native/blob/0.69-stable/template/ios/_xcode.env) to source the environment used when running script phases inside Xcode
+            -   NB: RN 0.69+ introduces [ios/.xcode.env](https://github.com/facebook/react-native/blob/0.69-stable/template/ios/_xcode.env) to source the environment used when running script phases inside Xcode
 
-            -   nb: RN 0.70+ introduces [.node-version](https://github.com/facebook/react-native/blob/0.70-stable/template/_node-version) for node version managers
+            -   NB: RN 0.70+ introduces [.node-version](https://github.com/facebook/react-native/blob/0.70-stable/template/_node-version) for node version managers
 
 
 ### Device Environment Setup
@@ -60,8 +60,8 @@ The code is built using React-Native and running code locally requires a Mac (An
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
         -   The minimum SDK version we currently support is [23](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L7)
     -   You should use the following:
-        -   Android SDK Platform <s>30</s> 31 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L8-L9) compile and target API versions)
-        -   Android SDK Build-Tools <s>30.0.2</s> 30.0.3 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L6) build tools version)
+        -   **Android SDK Platform:** <s>30</s> 31 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L8-L9) compile and target API versions)
+        -   **Android SDK Build-Tools:** <s>30.0.2</s> 30.0.3 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L6) build tools version)
         -   **Device:** Google Pixel 3 (<s>R API Level 30 image</s> S API Level 31 image)
 -   Finally, start the emulator from Android Studio:
     -   Open "Virtual Device Manager"
