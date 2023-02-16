@@ -1,12 +1,49 @@
 // Third party dependencies.
 import { ViewProps } from 'react-native';
 
+// External dependencies.
+import { TextProps } from '../../Texts/Text/Text.types';
+import { ButtonProps } from '../../Buttons/Button/Button.types';
+import { ButtonIconProps } from '../../Buttons/ButtonIcon/ButtonIcon.types';
+
 /**
- * TextInput component props.
+ * BannerBase component props.
  */
-export interface TextInputProps extends ViewProps {
+export interface BannerBaseProps extends ViewProps {
   /**
-   * Content to wrap to display.
+   * Content to be displayed before the info section.
    */
-  children?: React.ReactNode;
+  startAccessory: React.ReactNode;
+  /**
+   * Title of the Banner.
+   */
+  title?: string;
+  /**
+   * Optional prop to control the title's props.
+   */
+  titleProps?: TextProps;
+  /**
+   * Optional description below the title. For custom description with links, pass in node element.
+   */
+  description?: string | React.ReactNode;
+  /**
+   * Label for optional action button below the description and title.
+   */
+  actionButtonLabel?: string;
+  /**
+   * Function to trigger when pressing the action button.
+   */
+  actionButtonOnPress?: () => void;
+  /**
+   * Optional prop to control the action button's props.
+   */
+  actionButtonProps?: ButtonProps;
+  /**
+   * Function to trigger when pressing the close button.
+   */
+  onClose?: () => void;
+  /**
+   * Optional prop to control the close button's props.
+   */
+  closeButtonProps?: ButtonIconProps;
 }

@@ -2,10 +2,10 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 /**
- * Style sheet function for TextInput component.
+ * Style sheet function for BannerBase component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -13,16 +13,27 @@ import { Theme } from '../../../../util/theme/models';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: any }) => {
-  const { vars } = params;
+  const { theme, vars } = params;
   const { style } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
-        margin: -8,
+        borderRadius: 4,
+        backgroundColor: theme.colors.background.default,
+        padding: 12,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    startAccessory: {
+      marginRight: 8,
+    },
+    info: {
+      flex: 1,
+    },
+    endAccessory: {
+      marginLeft: 12,
+    },
   });
 };
 

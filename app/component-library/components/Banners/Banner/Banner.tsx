@@ -8,12 +8,27 @@ import { View } from 'react-native';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import styleSheet from './TextInput.styles';
-import { TextInputProps } from './TextInput.types';
+import styleSheet from './BannerBase.styles';
+import { BannerBaseProps } from './BannerBase.types';
 
-const TextInput: React.FC<TextInputProps> = ({ style, children }) => {
+const BannerBase: React.FC<BannerBaseProps> = ({
+  style,
+  startAccessory,
+  title,
+  titleProps,
+  description,
+  actionButtonLabel,
+  actionButtonOnPress,
+  actionButtonProps,
+  onClose,
+  closeButtonProps,
+}) => {
   const { styles } = useStyles(styleSheet, { style });
-  return <View style={styles.base}>{children}</View>;
+  return (
+    <View style={styles.base}>
+      <View style={styles.startAccessory}>{startAccessory}</View>
+    </View>
+  );
 };
 
-export default TextInput;
+export default BannerBase;
