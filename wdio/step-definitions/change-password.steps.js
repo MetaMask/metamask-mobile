@@ -1,6 +1,7 @@
 import { When, Then } from '@wdio/cucumber-framework';
 import ChangePasswordScreens from '../screen-objects/ChangePasswordScreens';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
 
 When(
   /^on Change password screen I input "([^"]*)?" in confirm field/,
@@ -21,8 +22,9 @@ When(
   },
 );
 When(/^I tap Reset password/, async () => {
-    await CreateNewWalletScreen.tapSubmitButton();
+  await CreateNewWalletScreen.tapSubmitButton();
 });
-Then(/^Creating your password is displayed/, async () => {
-    await driver.pause(15000);
+Then(/^Creating password is displayed/, async () => {
+  await driver.pause(1000);
+  await WalletMainScreen.isTokenTextVisible('Creating password...');
 });
