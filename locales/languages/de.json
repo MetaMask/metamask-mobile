@@ -953,8 +953,6 @@
     "minimum": "1.0 {{tokenSymbol}} mindestens",
     "cancel": "Abbrechen",
     "approve": "Genehmigen",
-    "allow_to_access": "Berechtigung zum Zugriff auf Ihr {{tokenSymbol}} erteilen?",
-    "allow_to_address_access": "Dieser Adresse Zugriff auf Ihre {{tokenSymbol}} gewähren?",
     "you_trust_this_site": "Wenn Sie diese Berechtigung erteilen, gestattem Sie dem folgenden Contract Zugriff auf Ihr Guthaben.",
     "you_trust_this_address": "Vertrauen Sie dieser Adresse? Wenn Sie diese Berechtigung erteilen, gestatten Sie dieser Adresse Zugriff auf Ihr Guthaben.",
     "edit_permission": "Berechtigung bearbeiten",

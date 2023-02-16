@@ -25,7 +25,15 @@ import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
+import onUrlSubmit, {
+  getHost,
+  prefixUrlWithProtocol,
+  isTLD,
+  protocolAllowList,
+  getAlertMessage,
+  allowLinkOpen,
+  getUrlObj,
+} from '../../../util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
@@ -312,7 +320,8 @@ export const BrowserTab = (props) => {
    */
   const isHomepage = useCallback((checkUrl = null) => {
     const currentPage = checkUrl || url.current;
-    const { host: currentHost } = getUrlObj(currentPage);
+    const prefixedUrl = prefixUrlWithProtocol(currentPage);
+    const { host: currentHost } = getUrlObj(prefixedUrl);
     return currentHost === HOMEPAGE_HOST;
   }, []);
 
@@ -491,10 +500,9 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
-      const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
-      const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
-      const { hostname, query, pathname } = new URL(sanitizedURL);
-      let urlToGo = sanitizedURL;
+      const prefixedUrl = prefixUrlWithProtocol(url);
+      const { hostname, query, pathname } = new URL(prefixedUrl);
+      let urlToGo = prefixedUrl;
       urlToGo = sanitizeUrlInput(urlToGo);
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
@@ -523,18 +531,12 @@ export const BrowserTab = (props) => {
         }
 
         setProgress(0);
-        return sanitizedURL;
+        return prefixedUrl;
       }
       handleNotAllowedUrl(urlToGo);
       return null;
     },
-    [
-      firstUrlLoaded,
-      handleIpfsContent,
-      isAllowedUrl,
-      isHomepage,
-      props.defaultProtocol,
-    ],
+    [firstUrlLoaded, handleIpfsContent, isAllowedUrl],
   );
 
   /**
@@ -774,14 +776,38 @@ export const BrowserTab = (props) => {
   }, []);
 
   /**
-   * Stops normal loading when it's ens, instead call go to be properly set up
+   *  Function that allows custom handling of any web view requests.
+   *  Return `true` to continue loading the request and `false` to stop loading.
    */
   const onShouldStartLoadWithRequest = ({ url }) => {
+    // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
       go(url.replace(/^http:\/\//, 'https://'));
       return false;
     }
-    return true;
+
+    // Continue request loading it the protocol is whitelisted
+    const { protocol } = new URL(url);
+    if (protocolAllowList.includes(protocol)) return true;
+
+    const alertMsg = getAlertMessage(protocol, strings);
+
+    // Pop up an alert dialog box to prompt the user for permission
+    // to execute the request
+    Alert.alert(strings('onboarding.warning_title'), alertMsg, [
+      {
+        text: strings('browser.protocol_alert_options.ignore'),
+        onPress: () => null,
+        style: 'cancel',
+      },
+      {
+        text: strings('browser.protocol_alert_options.allow'),
+        onPress: () => allowLinkOpen(url),
+        style: 'default',
+      },
+    ]);
+
+    return false;
   };
 
   /**
@@ -871,8 +897,8 @@ export const BrowserTab = (props) => {
       await go(sanitizedInput);
     },
     /* we do not want to depend on the props object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -892,8 +918,8 @@ export const BrowserTab = (props) => {
       );
     },
     /* we do not want to depend on the props.navigation object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [onUrlInputSubmit],
   );
@@ -1016,8 +1042,8 @@ export const BrowserTab = (props) => {
 
     updateNavbar();
     /* we do not want to depend on the entire props object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, isTabActive, toggleUrlModal]);
 
@@ -1346,7 +1372,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
-              originWhitelist={['https://*', 'http://*']}
+              originWhitelist={['*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (

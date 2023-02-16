@@ -7,14 +7,11 @@ import { select, text, boolean } from '@storybook/addon-knobs';
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { IconName } from '../../../../Icon';
-import { ButtonSize } from '../../Button.types';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';
-import {
-  ButtonSecondaryVariants,
-  ButtonSecondaryProps,
-} from './ButtonSecondary.types';
+import { ButtonSecondaryProps } from './ButtonSecondary.types';
 
 export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
   const sizeSelector = select(
@@ -23,20 +20,22 @@ export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
     ButtonSize.Md,
     storybookPropsGroupID,
   );
-  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const ButtonSecondaryVariantsSelector = select(
-    'ButtonSecondaryVariants',
-    ButtonSecondaryVariants,
-    ButtonSecondaryVariants.Normal,
+  const widthSelector = select(
+    'width',
+    ButtonWidthTypes,
+    ButtonWidthTypes.Auto,
     storybookPropsGroupID,
   );
+  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
+  const isDanger = boolean('isDanger', false, storybookPropsGroupID);
   const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
 
   const buttonSecondaryStoryProps: ButtonSecondaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    buttonSecondaryVariants: ButtonSecondaryVariantsSelector,
+    isDanger,
     onPress: () => console.log("I'm clicked!"),
+    width: widthSelector,
   };
   if (includesIcon) {
     const iconNameSelector = select(

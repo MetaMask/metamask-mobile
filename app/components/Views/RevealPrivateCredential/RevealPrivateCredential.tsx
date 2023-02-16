@@ -51,7 +51,7 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: any;
-  navBarDisabled: boolean;
+  hasNavigation: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -59,7 +59,7 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
-  navBarDisabled,
+  hasNavigation,
 }: IRevealPrivateCredentialProps) => {
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
@@ -83,19 +83,16 @@ const RevealPrivateCredential = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const privateCredentialName =
-    credentialName || route.params.privateCredentialName;
+  const privateCredentialName = credentialName || route.params.credentialName;
 
   const updateNavBar = () => {
-    if (navBarDisabled) {
+    if (!hasNavigation && !route.params?.hasNavigation) {
       return;
     }
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings(
-          `reveal_credential.${
-            route.params?.privateCredentialName ?? ''
-          }_title`,
+          `reveal_credential.${route.params?.credentialName ?? ''}_title`,
         ),
         navigation,
         false,
@@ -106,7 +103,7 @@ const RevealPrivateCredential = ({
   };
 
   const isPrivateKey = () => {
-    const credential = credentialName || route.params.privateCredentialName;
+    const credential = credentialName || route.params.credentialName;
     return credential === PRIVATE_KEY;
   };
 
@@ -178,7 +175,7 @@ const RevealPrivateCredential = ({
   }, []);
 
   const navigateBack = () => {
-    navigation.pop();
+    if (hasNavigation || route.params?.hasNavigation) navigation.pop();
   };
 
   const cancelReveal = () => {
@@ -540,9 +537,11 @@ const RevealPrivateCredential = ({
         </>
       </ActionView>
       {renderModal(isPrivateKey(), privateCredentialName)}
+
       <ScreenshotDeterrent
         enabled={unlocked}
         isSRP={privateCredentialName !== PRIVATE_KEY}
+        hasNavigation={hasNavigation}
       />
     </SafeAreaView>
   );

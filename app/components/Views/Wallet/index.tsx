@@ -62,7 +62,7 @@ const createStyles = ({ colors, typography }: Theme) =>
       marginTop: 16,
     },
     textStyle: {
-      ...(typography.sHeadingSM as TextStyle),
+      ...(typography.HeadingSM as TextStyle),
     },
     loader: {
       backgroundColor: colors.background.default,
