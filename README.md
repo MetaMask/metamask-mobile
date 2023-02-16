@@ -41,9 +41,9 @@ The code is built using React-Native and running code locally requires a Mac (An
 -   Install [JDK](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies): `brew install --cask adoptopenjdk/openjdk/adoptopenjdk8`
     - To check if Java is already installed, run: `java -version`
     > If you have already installed JDK on your system, make sure it is JDK 8 or newer
--   Install the Android SDK, run: `brew install --cask android-studio` (or via [Android Studio](https://developer.android.com/studio))
+-   Install the Android SDK via [Android Studio](https://developer.android.com/studio)), or run: `brew install --cask android-studio`
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
--   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
+-   Install the Android NDK (version `21.4.7075529`) via Android Studio's SDK Manager ([screenshot](https://user-images.githubusercontent.com/1881059/219376674-5dca5e2a-d4ab-4df0-b0e3-6e870180db93.png))
     - Go to Preferences > Appearance & Behavior > System Settings > Android SDK
         - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
     - Select `SDK Tools` tab
