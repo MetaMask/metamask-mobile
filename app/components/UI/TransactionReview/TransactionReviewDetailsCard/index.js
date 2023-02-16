@@ -104,6 +104,7 @@ export default class TransactionReviewDetailsCard extends Component {
     nicknameExists: PropTypes.bool,
     tokenValue: PropTypes.string,
     tokenStandard: PropTypes.string,
+    tokenType: PropTypes.string,
     tokenName: PropTypes.string,
   };
 

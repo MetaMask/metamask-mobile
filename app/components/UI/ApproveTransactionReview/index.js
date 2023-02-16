@@ -254,6 +254,9 @@ class ApproveTransactionReview extends PureComponent {
     spenderAddress: '0x...',
     transaction: this.props.transaction,
     token: {},
+    spendLimitCreated: false,
+    customSpendValue: null,
+    showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
     fetchingUpdateDone: false,
@@ -314,6 +317,7 @@ class ApproveTransactionReview extends PureComponent {
     const encodedValue = hexToBN(encodedAmount).toString();
 
     let tokenSymbol, tokenDecimals, tokenName, tokenStandard;
+
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
       try {
@@ -598,9 +602,13 @@ class ApproveTransactionReview extends PureComponent {
         tokenValue,
         tokenDecimals,
       },
+      host,
+      spenderAddress,
       multiLayerL1FeeTotal,
       fetchingUpdateDone,
+      spendLimitCreated,
     } = this.state;
+
     const {
       accounts,
       selectedAddress,
@@ -785,13 +793,11 @@ class ApproveTransactionReview extends PureComponent {
                         gasObject={
                           !showFeeMarket ? legacyGasObject : eip1559GasObject
                         }
-                        updateTransactionState={updateTransactionState}
-                        onlyGas
-                        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
                       />
                   ) : (
                     <CustomSpendCap ticker={tokenSymbol} dappProposedValue={originalApproveAmount} accountBalance={confirmBalance} domain={host} onInputChanged={(val) => console.log(val, 'val')} />
                   )}
+
                     <TransactionReview
                       gasSelected={gasSelected}
                       primaryCurrency={primaryCurrency}
@@ -994,8 +1000,21 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   onConfirmPress = () => {
+    const {
+      spendLimitCreated,
+      token: { tokenStandard },
+    } = this.state;
     const { onConfirm } = this.props;
-    onConfirm && onConfirm();
+
+    if (tokenStandard === ERC20 && !spendLimitCreated) {
+      return this.setState({ spendLimitCreated: true });
+    }
+
+    if (tokenStandard === ERC20 && spendLimitCreated) {
+      return onConfirm && onConfirm();
+    }
+
+    return onConfirm && onConfirm();
   };
 
   goToFaucet = () => {
