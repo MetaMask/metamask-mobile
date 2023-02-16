@@ -27,7 +27,7 @@ The code is built using React-Native and running code locally requires a Mac (An
 
     -   But [Node](https://nodejs.org) v14 where mentioned _make sure it is Node 12 or newer_
 
-        -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+        -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version from [.nvmrc](https://github.com/MetaMask/metamask-mobile/blob/f7e44adc7b61b71fdf6794b0fcad2531561c2f95/.nvmrc#L1) (0.70+ uses [.node-version](https://github.com/facebook/react-native/blob/0.70-stable/template/_node-version))
 
 
 ### Device Environment Setup
