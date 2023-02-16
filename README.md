@@ -65,13 +65,13 @@ The code is built using React-Native and running code locally requires a Mac (An
         -   **Device:** Google Pixel 3 (<s>R API Level 30 image</s> S API Level 31 image)
 -   Finally, start the emulator from Android Studio:
     -   Open "Virtual Device Manager"
-    -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+    -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies)>"
 
 
 #### iOS
 
 -   Install the iOS dependencies
-    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
         -   You do **not** need CocoaPods
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
