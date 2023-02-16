@@ -12,3 +12,7 @@ export const ADD_THIS_ADDRESS_TO_BOOK = 'add-to-address-book';
 export const SEND_CANCEL_BUTTON = 'send-cancel-button';
 
 export const ADD_ADDRESS_BUTTON = 'add-address-button-a';
+
+export const TRANSACTION_INPUT_ID = 'txn-amount-input';
+
+export const COMFIRM_TXN_AMOUNT = 'confirm-txn-amount';

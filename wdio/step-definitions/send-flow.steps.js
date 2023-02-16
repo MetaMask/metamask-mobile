@@ -3,6 +3,7 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
@@ -25,7 +26,7 @@ Then(/^I tap the Save button/, async () => {
 });
 
 Given(
-  /^I enter address "([^"]*)?" in the sender's input box/,
+  /^I enter address "([^"]*)?" in the senders input box/,
   async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
   },
@@ -41,6 +42,18 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
 
 Then(/^I proceed to the amount view/, async () => {
   await SendScreen.isAmountScreenDisplayed();
+});
+
+Then(/^I should be taken to the transaction confirmation view/, async () => {
+  await SendScreen.isConfirmScreenVisible();
+});
+
+Then(/^the token (.*) being sent is visible/, async (token) => {
+  await SendScreen.isCorrectTokenConfirm(token);
+});
+
+Then(/^the token amount (.*) to be sent is visible/, async (amount) => {
+  await SendScreen.isCorrectTokenAmountDisplayed(amount);
 });
 
 Then(
@@ -80,5 +93,16 @@ Then(
   /^I enter invalid address "([^"]*)?" into senders input field/,
   async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
+  },
+);
+
+Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
+  await SendScreen.enterAmount(amount);
+});
+
+Then(
+  /^the transaction is submitted with Transaction Complete! toast/,
+  async () => {
+    await WalletMainScreen.isToastNotificationDisplayed();
   },
 );

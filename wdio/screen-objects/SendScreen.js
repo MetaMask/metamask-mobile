@@ -7,6 +7,8 @@ import {
   AMOUNT_SCREEN,
   ADD_ADDRESS_BUTTON,
   SEND_CANCEL_BUTTON,
+  TRANSACTION_INPUT_ID,
+  COMFIRM_TXN_AMOUNT,
 } from './testIDs/Screens/SendScreen.testIds';
 
 class SendScreen {
@@ -20,6 +22,14 @@ class SendScreen {
 
   get sendCancelButton() {
     return Selectors.getElementByPlatform(SEND_CANCEL_BUTTON);
+  }
+
+  get amountInputField() {
+    return Selectors.getElementByPlatform(TRANSACTION_INPUT_ID);
+  }
+
+  get confirmAmount() {
+    return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
   }
 
   get understandWarningcontinue() {
@@ -60,6 +70,25 @@ class SendScreen {
 
   async isAmountScreenDisplayed() {
     await expect(this.amountScreen).toBeDisplayed();
+  }
+
+  async enterAmount(text) {
+    await Gestures.tap(this.amountInputField);
+    await Gestures.typeText(this.amountInputField, text);
+  }
+
+  async isConfirmScreenVisible() {
+    await expect(this.confirmAmount).toBeDisplayed();
+  }
+
+  async isCorrectTokenConfirm(token) {
+    const element = await this.confirmAmount;
+    expect(await element.getText()).toContain(token);
+  }
+
+  async isCorrectTokenAmountDisplayed(amount) {
+    const element = await this.confirmAmount;
+    expect(await element.getText()).toContain(amount);
   }
 
   async isChangedContactNameVisible(contactName) {

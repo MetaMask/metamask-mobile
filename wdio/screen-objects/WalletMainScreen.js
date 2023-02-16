@@ -1,9 +1,7 @@
 /* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import {
-  WALLET_CONTAINER_ID,
-} from './testIDs/Screens/WalletScreen-testIds.js';
+import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
@@ -20,6 +18,7 @@ import {
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
   SECURE_WALLET_BACKUP_ALERT_MODAL,
 } from './testIDs/Screens/WalletView.testIds';
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notifications.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
@@ -46,6 +45,10 @@ class WalletMainScreen {
 
   get ImportNFT() {
     return Selectors.getElementByPlatform(IMPORT_NFT_BUTTON_ID);
+  }
+
+  get TokenNotificationTitle() {
+    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
   get HamburgerButton() {
@@ -159,7 +162,14 @@ class WalletMainScreen {
   }
 
   async isMainWalletViewVisible() {
-    await expect(this.mainWalletView).toBeDisplayed();
+    const element = await this.mainWalletView;
+    await element.waitForDisplayed();
+  }
+
+  async isToastNotificationDisplayed() {
+    const element = await this.TokenNotificationTitle;
+    expect(await element.getText()).toContain('Transaction');
+    expect(await element.getText()).toContain('Complete!');
   }
 }
 
