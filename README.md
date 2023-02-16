@@ -56,7 +56,7 @@ The code is built using React-Native and running code locally requires a Mac (An
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
 -   Install the correct emulator
     -   Follow the instructions at:
-        -   [React Native Getting Started - Android](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   [React Native Getting Started - Android](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
     -   You should use the following:
         -   **Android OS Version:** Latest, unless told otherwise
