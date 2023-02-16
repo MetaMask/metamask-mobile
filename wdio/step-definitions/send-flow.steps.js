@@ -111,3 +111,7 @@ Then(
 Then(/^I am taken to the token overview screen/, async () => {
   await TokenScreen.isTokenOverviewVisible();
 });
+
+Then(/^I tap back from the Token overview page/, async () => {
+  await TokenScreen.tapBackButton();
+});

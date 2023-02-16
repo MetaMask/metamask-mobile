@@ -168,6 +168,7 @@ class WalletMainScreen {
 
   async isToastNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
+    await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
   }
