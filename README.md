@@ -58,9 +58,11 @@ The code is built using React-Native and running code locally requires a Mac (An
     -   Follow the instructions at:
         -   [React Native Getting Started - Android](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
+        -   The minimum SDK version we currently support is [23](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L7)
     -   You should use the following:
-        -   **Android OS Version:** Latest, unless told otherwise
-        -   **Device:** Google Pixel 3
+        -   Android SDK Platform <s>30</s> 31 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L8-L9) compile and target API versions)
+        -   Android SDK Build-Tools <s>30.0.2</s> 30.0.3 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L6) build tools version)
+        -   **Device:** Google Pixel 3 (<s>R API Level 30 image</s> S API Level 31 image)
 -   Finally, start the emulator from Android Studio:
     -   Open "Virtual Device Manager"
     -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
