@@ -323,7 +323,7 @@ class Confirm extends PureComponent {
     }
 
     const weiBalance = contractBalances[selectedAsset.address];
-    if (weiBalance.isZero()) {
+    if (weiBalance?.isZero()) {
       await TokensController.ignoreTokens([selectedAsset.address]);
     }
   };
