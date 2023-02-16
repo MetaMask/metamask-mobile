@@ -31,6 +31,9 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import {
   toggleNetworkModal,
   toggleReceiveModal,
+  toggleSDKLoadingModal,
+  toggleChannelDisconnectModal,
+  toggleAccountApprovalModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -82,6 +85,8 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import AccountApproval from '../AccountApproval';
+import SDKLoadingModal from '../SDKLoadingModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -379,6 +384,30 @@ class DrawerView extends PureComponent {
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func.isRequired,
+    /**
+     * Boolean that determines the status of the channel disconnect modal
+     */
+    channelDisconnectModalVisible: PropTypes.bool,
+    /**
+     * Boolean that determines the status of the SDK loading modal
+     */
+    sdkLoadingModalVisible: PropTypes.bool,
+    /**
+     * Action that toggles the disconnect all confirmation modal
+     */
+    toggleChannelDisconnectModal: PropTypes.func,
+    /**
+     * Action that toggles the SDK loading modal
+     */
+    toggleSDKLoadingModal: PropTypes.func,
+    /**
+     * Action that toggles the Account approval modal
+     */
+    toggleAccountApprovalModal: PropTypes.func,
+    /**
+     * Boolean that determines the status of the account approval modal
+     */
+    accountApprovalModalVisible: PropTypes.bool,
     /**
      * Boolean that determines if the user has set a password before
      */
@@ -812,6 +841,18 @@ class DrawerView extends PureComponent {
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
     );
+  };
+
+  toggleAccountApprovalModal = async () => {
+    this.props.toggleAccountApprovalModal(false);
+  };
+
+  toggleSDKLoadingModal = () => {
+    this.props.toggleSDKLoadingModal(false);
+  };
+
+  toggleChannelDisconnectModal = () => {
+    this.props.toggleChannelDisconnectModal();
   };
 
   showHelp = () => {
@@ -1382,6 +1423,36 @@ class DrawerView extends PureComponent {
             onClose={this.closeInvalidCustomNetworkAlert}
           />
         </Modal>
+        <Modal
+          isVisible={this.props.accountApprovalModalVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleAccountApprovalModal}
+          onBackButtonPress={this.toggleAccountApprovalModal}
+          onSwipeComplete={this.toggleAccountApprovalModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <AccountApproval
+            onCancel={this.toggleAccountApprovalModal}
+            onConfirm={this.toggleAccountApprovalModal}
+            currentPageInformation={{ reconnect: true }}
+          />
+        </Modal>
+        <Modal
+          isVisible={this.props.sdkLoadingModalVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleSDKLoadingModal}
+          onBackButtonPress={this.toggleSDKLoadingModal}
+          onSwipeComplete={this.toggleSDKLoadingModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <SDKLoadingModal />
+        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1418,6 +1489,10 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
+  accountsModalVisible: state.modals.accountsModalVisible,
+  sdkLoadingModalVisible: state.modals.sdkLoadingModalVisible,
+  channelDisconnectModalVisible: state.modals.channelDisconnectModalVisible,
+  accountApprovalModalVisible: state.modals.accountApprovalModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
@@ -1437,6 +1512,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+  toggleSDKLoadingModal: () => dispatch(toggleSDKLoadingModal()),
+  toggleAccountApprovalModal: (visible) =>
+    dispatch(toggleAccountApprovalModal(visible)),
+  toggleChannelDisconnectModal: () => dispatch(toggleChannelDisconnectModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

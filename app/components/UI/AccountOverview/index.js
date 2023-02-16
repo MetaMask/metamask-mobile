@@ -21,7 +21,13 @@ import { strings } from '../../../../locales/i18n';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
-import { toggleReceiveModal } from '../../../actions/modals';
+import {
+  toggleAccountApprovalModal,
+  toggleAccountsModal,
+  toggleChannelDisconnectModal,
+  toggleReceiveModal,
+  toggleSDKLoadingModal,
+} from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
 import { renderFiat } from '../../../util/number';
@@ -50,6 +56,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import { createNavigationDetails } from '../../../../app/util/navigation/navUtils';
 const createStyles = (colors) =>
   StyleSheet.create({
     scrollView: {
@@ -167,6 +174,24 @@ class AccountOverview extends PureComponent {
     /* Triggers global alert
     */
     showAlert: PropTypes.func,
+
+    //TODO this section needs to be removed
+    /**
+     * Action that toggles the accounts modal
+     */
+    toggleAccountsModal: PropTypes.func,
+    /**
+     * Action that toggles the disconnect all confirmation modal
+     */
+    toggleChannelDisconnectModal: PropTypes.func.isRequired,
+    /**
+     *
+     */
+    toggleAccountApprovalModal: PropTypes.func.isRequired,
+    /**
+     * Action that toggles the SDK loading modal
+     */
+    toggleSDKLoadingModal: PropTypes.func,
     /**
      * whether component is being rendered from onboarding wizard
      */
@@ -223,6 +248,7 @@ class AccountOverview extends PureComponent {
 
   openAccountSelector = () => {
     const { onboardingWizard, navigation } = this.props;
+    console.debug(`navigate account`, ...createAccountSelectorNavDetails({}));
     !onboardingWizard &&
       navigation.navigate(...createAccountSelectorNavDetails({}));
   };
@@ -495,6 +521,65 @@ class AccountOverview extends PureComponent {
                 />
               )}
             </View>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={() => {
+                this.props.toggleSDKLoadingModal(true);
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                SDK Loading Modal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={async () => {
+                this.props.toggleAccountApprovalModal(true);
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                toggleAccountApprovalModal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
+              onPress={() => {
+                const { navigation } = this.props;
+                // navigation.navigate('DebugSDKSessionsManagerView');
+                navigation.navigate('DebugSDKSessionsManagerView');
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                Manage sessions
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
@@ -515,6 +600,13 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
+  toggleChannelDisconnectModal: () => dispatch(toggleChannelDisconnectModal()),
+  toggleSDKConnectModal: () => dispatch(toggleChannelDisconnectModal()),
+  toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+  toggleAccountApprovalModal: (visible) =>
+    dispatch(toggleAccountApprovalModal(visible)),
+  toggleSDKLoadingModal: (visible) => dispatch(toggleSDKLoadingModal(visible)),
+  disconnectModal: () => dispatch(toggleChannelDisconnectModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   newAssetTransaction: (selectedAsset) =>

@@ -5,7 +5,7 @@ import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ActionModal from '../../../../components/UI/ActionModal';
-import SDKConnect from '../../../../core/SDKConnect';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../../util/theme';
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../../../core/AppConstants';
@@ -112,7 +112,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   };
 
   const clearMMSDKConnections = async () => {
-    SDKConnect.disconnectAll();
+    SDKConnect.getInstance().removeAll();
     await DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify({}),
@@ -123,7 +123,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     );
     toggleClearMMSDKConnectionModal();
   };
-
   const renderMMSDKConnectionsModal = () => (
     <ActionModal
       modalVisible={showClearMMSDKConnectionsModal}
@@ -149,10 +148,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       <View style={styles.setting}>
         <View>
           <Text style={styles.title}>
-            {strings('app_settings.sdk_connections')}
+            {strings('app_settings.clear_sdk_connections_title')}
           </Text>
           <Text style={styles.desc}>
-            {strings('app_settings.clear_sdk_connections_title')}
+            {strings('app_settings.clear_sdk_connections_text')}
           </Text>
           <StyledButton
             type="signingCancel"

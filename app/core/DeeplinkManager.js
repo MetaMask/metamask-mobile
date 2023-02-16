@@ -19,7 +19,7 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import NotificationManager from '../core/NotificationManager';
@@ -187,6 +187,7 @@ class DeeplinkManager {
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
+    console.debug(`parse: ${url}`);
     const urlObj = new URL(
       url
         .replace(
@@ -219,16 +220,39 @@ class DeeplinkManager {
       case PROTOCOLS.HTTPS:
         // Universal links
         handled();
-
         if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === ACTIONS.CONNECT) {
+          if (action === ACTIONS.OTP) {
+            if (params?.channelId) {
+              const channelId = params.channelId;
+              const channelExists =
+                SDKConnect.getInstance().getConnections()[channelId];
+              if (channelExists) {
+                // Automatically re-approve hosts.
+                SDKConnect.getInstance().revalidateChannel({
+                  channelId,
+                });
+              } else {
+                // Establish a new connection
+                SDKConnect.getInstance().connectToChannel({
+                  id: channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
+            } else {
+              console.warn(`DeepLinkManager invalid OTP params`);
+            }
+
+            return;
+          } else if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
+            } else if (params.channelId) {
+              SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,
@@ -318,7 +342,28 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OTP}`)) {
+          if (params?.otp) {
+            console.debug(`CCCCCCCCCCCCCCCCCCC DEEEEEPLINKK ${params.otp}`);
+            const channelExists =
+              SDKConnect.getInstance().getApprovedHosts()[params.otp];
+
+            if (channelExists) {
+              // Automatically re-approve hosts.
+              SDKConnect.getInstance().revalidateChannel({
+                channelId: params.otp,
+              });
+            } else {
+              // Establish a new connection
+              SDKConnect.getInstance().connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
+          }
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
           } else {

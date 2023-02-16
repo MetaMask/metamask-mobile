@@ -67,6 +67,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { isEqual } from 'lodash';
+import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import DebugSDKSessionsManager from '../../Views/SDKSessionsManager/DebugSDKSessionsManager';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -333,6 +335,11 @@ const SettingsFlow = () => (
       name="AdvancedSettings"
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="SDKSessionsManager"
+      component={SDKSessionsManager}
+      options={SDKSessionsManager.navigationOptions}
     />
     <Stack.Screen
       name="SecuritySettings"
@@ -621,7 +628,15 @@ const MainNavigator = () => (
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
+    <Stack.Screen
+      name="SDKSessionsManagerView"
+      component={SDKSessionsManager}
+    />
     <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
+    <Stack.Screen
+      name="DebugSDKSessionsManagerView"
+      component={DebugSDKSessionsManager}
+    />
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

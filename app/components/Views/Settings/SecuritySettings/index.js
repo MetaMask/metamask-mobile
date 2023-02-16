@@ -804,6 +804,11 @@ class Settings extends PureComponent {
     );
   };
 
+  goToSDKSessionManager = () => {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.MANAGE_SDK_SESSIONS);
+    this.props.navigation.navigate('SDKSessionsManager');
+  };
+
   renderApprovalModal = () => {
     const { approvalModalVisible } = this.state;
     const { styles } = this.getStyles();
@@ -851,6 +856,32 @@ class Settings extends PureComponent {
           </Text>
         </View>
       </ActionModal>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <>
+        <View style={styles.setting} testID={'sdk-section'}>
+          <View>
+            <Text style={styles.title}>
+              {strings('app_settings.manage_sdk_connections_title')}
+            </Text>
+            <Text style={styles.desc}>
+              {strings('app_settings.manage_sdk_connections_text')}
+            </Text>
+            <StyledButton
+              type="normal"
+              containerStyle={styles.confirm}
+              onPress={this.goToSDKSessionManager}
+            >
+              {strings('app_settings.manage_sdk_connections_title')}
+            </StyledButton>
+          </View>
+        </View>
+      </>
     );
   };
 
@@ -953,7 +984,7 @@ class Settings extends PureComponent {
             this.renderDevicePasscodeSection()}
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
-          {this.renderClearPrivacySection()}
+          {this.renderSDKSettings()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
           {this.renderMetaMetricsSection()}
