@@ -277,10 +277,12 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+      data &&
+      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      (!value || isZeroValue(value));
     const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
-    if (approveTransaction && (!value || isZeroValue(value))) {
+    if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
       if (!contract) {
         contract = tokens.find(
