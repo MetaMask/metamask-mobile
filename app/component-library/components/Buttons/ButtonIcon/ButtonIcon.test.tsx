@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../../../Icons/Icon';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
@@ -13,8 +13,8 @@ describe('ButtonIcon', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonIcon
-        buttonIconVariants={ButtonIconVariants.Primary}
-        IconName={IconName.AddSquare}
+        variant={ButtonIconVariants.Primary}
+        iconName={IconName.AddSquare}
         onPress={jest.fn}
       />,
     );

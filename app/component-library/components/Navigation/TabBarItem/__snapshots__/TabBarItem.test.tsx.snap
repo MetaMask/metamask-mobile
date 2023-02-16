@@ -11,14 +11,14 @@ exports[`TabBarItem should render correctly 1`] = `
   }
 >
   <Icon
-    color="#037DD6"
+    color="#0376C9"
     name="Bank"
     size="24"
   />
   <Text
     style={
       Object {
-        "color": "#037DD6",
+        "color": "#0376C9",
       }
     }
     variant="sBodySM"

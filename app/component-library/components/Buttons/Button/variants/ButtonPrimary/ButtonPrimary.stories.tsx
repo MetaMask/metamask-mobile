@@ -7,14 +7,11 @@ import { select, text, boolean } from '@storybook/addon-knobs';
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { IconName } from '../../../../Icons/Icon';
-import { ButtonSize } from '../../Button.types';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 // Internal dependencies.
 import ButtonPrimary from './ButtonPrimary';
-import {
-  ButtonPrimaryVariants,
-  ButtonPrimaryProps,
-} from './ButtonPrimary.types';
+import { ButtonPrimaryProps } from './ButtonPrimary.types';
 
 export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
   const sizeSelector = select(
@@ -23,20 +20,22 @@ export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
     ButtonSize.Md,
     storybookPropsGroupID,
   );
-  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const ButtonPrimaryVariantsSelector = select(
-    'ButtonPrimaryVariants',
-    ButtonPrimaryVariants,
-    ButtonPrimaryVariants.Normal,
+  const widthSelector = select(
+    'width',
+    ButtonWidthTypes,
+    ButtonWidthTypes.Auto,
     storybookPropsGroupID,
   );
+  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
+  const isDanger = boolean('isDanger', false, storybookPropsGroupID);
   const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
 
   const buttonPrimaryStoryProps: ButtonPrimaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    buttonPrimaryVariants: ButtonPrimaryVariantsSelector,
+    isDanger,
     onPress: () => console.log("I'm clicked!"),
+    width: widthSelector,
   };
   if (includesIcon) {
     const IconNameSelector = select(
@@ -45,7 +44,7 @@ export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
       IconName.AddSquare,
       storybookPropsGroupID,
     );
-    buttonPrimaryStoryProps.IconName = IconNameSelector;
+    buttonPrimaryStoryProps.iconName = IconNameSelector;
   }
   return buttonPrimaryStoryProps;
 };

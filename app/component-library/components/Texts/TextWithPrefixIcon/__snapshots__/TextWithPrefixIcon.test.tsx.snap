@@ -22,7 +22,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
       }
     }
     testID="text-with-prefix-icon-text"
-    variant="lBodyMD"
+    variant="sHeadingSMRegular"
   >
     Sample Text
   </Text>

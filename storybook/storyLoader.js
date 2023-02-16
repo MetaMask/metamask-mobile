@@ -17,17 +17,18 @@ function loadStories() {
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
-  require('../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
+  require('../app/component-library/components/Form/TextInput/TextInput.stories');
   require('../app/component-library/components/Icons/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
@@ -72,17 +73,18 @@ const stories = [
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
-  '../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories',
+  '../app/component-library/components/Buttons/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Cards/Card/Card.stories',
   '../app/component-library/components/Cells/Cell/Cell.stories',
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
+  '../app/component-library/components/Form/TextInput/TextInput.stories',
   '../app/component-library/components/Icons/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',

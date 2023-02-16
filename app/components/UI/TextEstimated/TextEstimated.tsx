@@ -9,7 +9,7 @@ import {
   IconProps,
 } from '../../../component-library/components/Icons/Icon';
 import TextWithPrefixIcon from '../../../component-library/components/Texts/TextWithPrefixIcon';
-import { TextVariants } from '../../../component-library/components/Texts/Text/Text.types';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
 // Internal dependencies.
 import {
@@ -19,7 +19,7 @@ import {
 import { TextEstimatedProps } from './TextEstimated.types';
 
 const TextEstimated: React.FC<TextEstimatedProps> = ({
-  variant = TextVariants.sBodyMD,
+  variant = TextVariant.BodyMD,
   children,
   ...props
 }) => {

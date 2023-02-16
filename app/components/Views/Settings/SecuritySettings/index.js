@@ -517,7 +517,8 @@ class Settings extends PureComponent {
   goToExportPrivateKey = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      privateCredentialName: 'private_key',
+      credentialName: 'private_key',
+      hasNavigation: true,
     });
   };
 

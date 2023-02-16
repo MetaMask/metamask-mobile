@@ -7,9 +7,6 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import ButtonIconStory, {
-  getButtonIconStoryProps,
-} from './variants/ButtonIcon/ButtonIcon.stories';
 import ButtonLinkStory, {
   getButtonLinkStoryProps,
 } from './variants/ButtonLink/ButtonLink.stories';
@@ -19,9 +16,6 @@ import ButtonPrimaryStory, {
 import ButtonSecondaryStory, {
   getButtonSecondaryStoryProps,
 } from './variants/ButtonSecondary/ButtonSecondary.stories';
-import ButtonTertiaryStory, {
-  getButtonTertiaryStoryProps,
-} from './variants/ButtonTertiary/ButtonTertiary.stories';
 
 // Internal dependencies.
 import { ButtonVariants, ButtonProps } from './Button.types';
@@ -33,17 +27,11 @@ export const getButtonStoryProps = (): ButtonProps => {
   const buttonVariantsSelector = select(
     'Button Variant',
     ButtonVariants,
-    ButtonVariants.Icon,
+    ButtonVariants.Primary,
     storybookPropsGroupID,
   );
 
   switch (buttonVariantsSelector) {
-    case ButtonVariants.Icon:
-      buttonProps = {
-        variant: ButtonVariants.Icon,
-        ...getButtonIconStoryProps(),
-      };
-      break;
     case ButtonVariants.Link:
       buttonProps = {
         variant: ButtonVariants.Link,
@@ -62,12 +50,6 @@ export const getButtonStoryProps = (): ButtonProps => {
         ...getButtonSecondaryStoryProps(),
       };
       break;
-    case ButtonVariants.Tertiary:
-      buttonProps = {
-        variant: ButtonVariants.Tertiary,
-        ...getButtonTertiaryStoryProps(),
-      };
-      break;
   }
 
   return buttonProps;
@@ -76,10 +58,8 @@ const ButtonStory = () => <Button {...getButtonStoryProps()} />;
 
 storiesOf('Component Library / Buttons', module)
   .add('Button', ButtonStory)
-  .add('Variants / ButtonIcon', ButtonIconStory)
   .add('Variants / ButtonLink', ButtonLinkStory)
   .add('Variants / ButtonPrimary', ButtonPrimaryStory)
-  .add('Variants / ButtonSecondary', ButtonSecondaryStory)
-  .add('Variants / ButtonTertiary', ButtonTertiaryStory);
+  .add('Variants / ButtonSecondary', ButtonSecondaryStory);
 
 export default ButtonStory;

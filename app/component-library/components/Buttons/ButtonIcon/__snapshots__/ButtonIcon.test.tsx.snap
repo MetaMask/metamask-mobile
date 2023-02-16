@@ -2,23 +2,23 @@
 
 exports[`ButtonIcon should render correctly 1`] = `
 <TouchableOpacity
-  activeOpacity={1}
+  activeOpacity={0.5}
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}
   style={
     Object {
       "alignItems": "center",
-      "height": 32,
+      "height": 24,
       "justifyContent": "center",
-      "width": 32,
+      "width": 24,
     }
   }
 >
   <Icon
-    color="#037DD6"
+    color="#0376C9"
     name="AddSquare"
-    size="24"
+    size="16"
   />
 </TouchableOpacity>
 `;

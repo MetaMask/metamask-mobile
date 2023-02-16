@@ -69,7 +69,8 @@ const SRPQuiz = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      privateCredentialName: 'seed_phrase',
+      credentialName: 'seed_phrase',
+      hasNavigation: true,
     });
   }, [navigation]);
 
@@ -97,7 +98,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -130,7 +131,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -163,7 +164,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -196,7 +197,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -229,7 +230,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -262,7 +263,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}
@@ -295,7 +296,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.learn_more'),
             onPress: openSupportArticle,
-            variant: ButtonVariants.Tertiary,
+            variant: ButtonVariants.Link,
           },
         ]}
         dismiss={dismissModal}

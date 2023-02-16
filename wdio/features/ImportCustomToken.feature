@@ -1,13 +1,16 @@
 @androidApp
 @ChainScenarios
+@smoke
+
 Feature: Adding a custom token to your wallet
 
   Scenario: Import account
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
 
-  Scenario: Adding AVAX testnet to my networks list
+  Scenario Outline: Adding AVAX testnet to my networks list
     When I tap on the navbar network title button
     And I tap on the Add a Network button
 
@@ -26,7 +29,7 @@ Feature: Adding a custom token to your wallet
       | Network   | rpcUrl                                  | ChainID | Symbol |
       | AVAX Fuji | https://api.avax-test.network/ext/C/rpc | 43113   | AVAX   |
 
-  Scenario: Importing Custom tokens
+  Scenario Outline: Importing Custom tokens
     When I tap on the navbar network title button
     And I tap on <NETWORK> on Networks list to switch
     And I tap on Got it in the network education modal

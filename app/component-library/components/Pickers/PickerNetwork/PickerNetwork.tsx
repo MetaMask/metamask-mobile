@@ -7,7 +7,7 @@ import { TouchableOpacity } from 'react-native';
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
 import Icon, { IconName, IconSize } from '../../Icons/Icon';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -31,11 +31,7 @@ const PickerNetwork = ({
         name={label}
         imageSource={imageSource}
       />
-      <Text
-        style={styles.label}
-        numberOfLines={1}
-        variant={TextVariants.sBodyMD}
-      >
+      <Text style={styles.label} numberOfLines={1} variant={TextVariant.BodyMD}>
         {label}
       </Text>
       <Icon size={IconSize.Xs} name={IconName.ArrowDown} />

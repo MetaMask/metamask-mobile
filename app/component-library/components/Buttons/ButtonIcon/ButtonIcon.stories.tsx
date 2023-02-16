@@ -3,18 +3,29 @@
 // Third party dependencies.
 import React from 'react';
 import { select, boolean } from '@storybook/addon-knobs';
+import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { IconName } from '../../../../Icons/Icon';
+import { storybookPropsGroupID } from '../../../constants/storybook.constants';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
-import { ButtonIconVariants, ButtonIconProps } from './ButtonIcon.types';
+import {
+  ButtonIconVariants,
+  ButtonIconProps,
+  ButtonIconSizes,
+} from './ButtonIcon.types';
 
 export const getButtonIconStoryProps = (): ButtonIconProps => {
-  const IconNameSelector = select(
-    'IconName',
+  const sizeSelector = select(
+    'size',
+    ButtonIconSizes,
+    ButtonIconSizes.Lg,
+    storybookPropsGroupID,
+  );
+  const iconNameSelector = select(
+    'iconName',
     IconName,
     IconName.Lock,
     storybookPropsGroupID,
@@ -27,13 +38,19 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
   );
   const disabledSelector = boolean('disabled', false, storybookPropsGroupID);
   return {
-    buttonIconVariants: variantSelector,
-    IconName: IconNameSelector,
+    variant: variantSelector,
+    iconName: iconNameSelector,
     disabled: disabledSelector,
     onPress: () => console.log("I'm clicked!"),
+    size: sizeSelector,
   };
 };
 
 const ButtonIconStory = () => <ButtonIcon {...getButtonIconStoryProps()} />;
+
+storiesOf('Component Library / Buttons', module).add(
+  'ButtonIcon',
+  ButtonIconStory,
+);
 
 export default ButtonIconStory;

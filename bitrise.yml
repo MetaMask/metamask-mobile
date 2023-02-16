@@ -151,6 +151,25 @@ workflows:
                 #!/usr/bin/env bash echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
+      - slack@3:
+          inputs:
+            - text: "${BITRISE_APP_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *E2E tests succeeded!*"
+            - pretext_on_error: ":red_circle: *E2E tests failed!*"
+            - title: "Commit #${BITRISE_GIT_COMMIT}"
+            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
+            - message: ${BITRISE_GIT_MESSAGE}
+            - fields: |
+                App|${BITRISE_APP_TITLE}
+                Branch|${BITRISE_GIT_BRANCH}
+                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
+                Build|${BITRISE_BUILD_NUMBER}
+            - buttons: |
+                View app|${BITRISE_APP_URL}
+                View build|${BITRISE_BUILD_URL}
+                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
+            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
   # Parallel Build & Deploy Steps
   create_release_builds:
     before_run:
@@ -259,7 +278,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
   build_android_qa:
     before_run:
-      - code_setup
+      - code_setup_cache
     after_run:
       - _upload_apk_to_browserstack
     steps:
@@ -318,9 +337,29 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - deploy-to-bitrise-io@1:
+          inputs:
+            - deploy_path: browserstack_uploaded_apps.json
+          title: Bitrise Deploy Browserstack Uploaded Apps
+      - build-router-start@0:
+          inputs:
+            - workflows: |-
+                wdio_android_e2e_test
+            - wait_for_builds: 'false'
+            - abort_on_fail: 'yes'
+            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+            - environment_key_list:
+                BROWSERSTACK_APP_URL
+
+                BROWSERSTACK_DEVICE
+
+                BROWSERSTACK_OS_VERSION
+
+                BROWSERSTACK_TAG_EXPRESSION
   wdio_android_e2e_test:
     before_run:
-      - build_android_qa
+      - code_setup_cache
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
@@ -334,10 +373,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo $BITRISE_TEST_RESULT_DIR
-                echo $BITRISE_SOURCE_DIR
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
-                ls -la $BITRISE_TEST_RESULT_DIR
       - deploy-to-bitrise-io@1:
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
