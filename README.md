@@ -26,8 +26,12 @@ The code is built using React-Native and running code locally requires a Mac (An
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
 
     -   But [Node](https://nodejs.org) v14 where mentioned _make sure it is Node 12 or newer_
+    
+        -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version from [.nvmrc](https://github.com/MetaMask/metamask-mobile/blob/f7e44adc7b61b71fdf6794b0fcad2531561c2f95/.nvmrc#L1)
 
-        -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version from [.nvmrc](https://github.com/MetaMask/metamask-mobile/blob/f7e44adc7b61b71fdf6794b0fcad2531561c2f95/.nvmrc#L1) (0.70+ uses [.node-version](https://github.com/facebook/react-native/blob/0.70-stable/template/_node-version))
+            -   nb: RN 0.69+ introduces [ios/.xcode.env](https://github.com/facebook/react-native/blob/0.69-stable/template/ios/_xcode.env) to source the environment used when running script phases inside Xcode
+
+            -   nb: RN 0.70+ introduces [.node-version](https://github.com/facebook/react-native/blob/0.70-stable/template/_node-version) for node version managers
 
 
 ### Device Environment Setup
