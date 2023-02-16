@@ -269,7 +269,7 @@ class Login extends PureComponent {
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
         biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
-        hasBiometricCredentials: !this.props.route?.params?.logout,
+        hasBiometricCredentials: !this.props.route?.params?.locked,
       });
     } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
       this.setState({
@@ -284,7 +284,7 @@ class Login extends PureComponent {
         biometryPreviouslyDisabled: !!previouslyDisabled,
         hasBiometricCredentials:
           authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
-          !this.props.route?.params?.logout,
+          !this.props.route?.params?.locked,
       });
     }
   }

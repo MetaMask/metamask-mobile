@@ -70,6 +70,7 @@ import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -223,6 +224,16 @@ const App = ({ selectedAddress, userLoggedIn }) => {
           navigator.navigate(Routes.ONBOARDING.HOME_NAV);
         }
       } catch (error) {
+        // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
+        if (
+          error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
+        ) {
+          navigator.dispatch(
+            CommonActions.setParams({
+              locked: true,
+            }),
+          );
+        }
         await Authentication.lockApp(false);
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',

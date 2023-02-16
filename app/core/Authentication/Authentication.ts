@@ -17,6 +17,16 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
+import {
+  AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+  AUTHENTICATION_FAILED_TO_LOGIN,
+  AUTHENTICATION_FAILED_WALLET_CREATION,
+  AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED,
+  AUTHENTICATION_RESET_PASSWORD_FAILED,
+  AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
+  AUTHENTICATION_STORE_PASSWORD_FAILED,
+} from '../../constants/error';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -86,7 +96,7 @@ class AuthenticationService {
       } catch (e: any) {
         throw new AuthenticationError(
           (e as Error).message,
-          'Unable to recreate vault',
+          AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED,
           this.authData,
         );
       }
@@ -232,7 +242,7 @@ class AuthenticationService {
     } catch (error) {
       throw new AuthenticationError(
         (error as Error).message,
-        'Authentication.storePassword failed',
+        AUTHENTICATION_STORE_PASSWORD_FAILED,
         this.authData,
       );
     }
@@ -244,8 +254,10 @@ class AuthenticationService {
       await SecureKeychain.resetGenericPassword();
     } catch (error) {
       throw new AuthenticationError(
-        `resetPassword failed when calling SecureKeychain.resetGenericPassword with ${error}`,
-        'Authentication.resetPassword',
+        `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${
+          (error as Error).message
+        }`,
+        AUTHENTICATION_RESET_PASSWORD_FAILED,
         this.authData,
       );
     }
@@ -329,7 +341,7 @@ class AuthenticationService {
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
-        'Failed wallet creation',
+        AUTHENTICATION_FAILED_WALLET_CREATION,
         this.authData,
       );
     }
@@ -360,7 +372,7 @@ class AuthenticationService {
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
-        'Failed wallet creation',
+        AUTHENTICATION_FAILED_WALLET_CREATION,
         this.authData,
       );
     }
@@ -388,7 +400,7 @@ class AuthenticationService {
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
-        'Failed to login',
+        AUTHENTICATION_FAILED_TO_LOGIN,
         this.authData,
       );
     }
@@ -405,8 +417,8 @@ class AuthenticationService {
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
-          'Password does not exist when calling SecureKeychain.getGenericPassword',
-          'appTriggeredAuth failed to login',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
+          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
           this.authData,
         );
       }
@@ -416,7 +428,7 @@ class AuthenticationService {
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
-        'appTriggeredAuth failed to login',
+        AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         this.authData,
       );
     }

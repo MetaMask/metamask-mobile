@@ -746,7 +746,7 @@ class DrawerView extends PureComponent {
         params: { screen: 'Onboarding' },
       });
     } else {
-      this.props.navigation.replace(Routes.ONBOARDING.LOGIN, { logout: true });
+      this.props.navigation.replace(Routes.ONBOARDING.LOGIN, { locked: true });
     }
   };
 
