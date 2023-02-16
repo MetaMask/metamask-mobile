@@ -88,7 +88,7 @@ git clone ...
 cd metamask-mobile
 ```
 
--   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
+-   _MetaMask Only:_ Rename the `.*.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 -   _Non-MetaMask Only:_ In the project root folder run
 ```
   cp .ios.env.example .ios.env && \
