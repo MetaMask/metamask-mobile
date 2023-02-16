@@ -17,7 +17,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And On the Main Wallet view I tap "Send"
 
   Scenario Outline: Validate invalid and valid wallet address <Case>
-    When I enter address "<contractAddress>" in the sender's input box
+    When I enter address "<contractAddress>" in the senders input box
     Then I should see a warning message "<Warning>"
 
     Examples:
@@ -33,7 +33,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
   Scenario Outline: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
     When On the Main Wallet view I tap "Send"
 
-    When I enter address "<Address>" in the sender's input box
+    When I enter address "<Address>" in the senders input box
     And I tap on button with text "Add this address to your address book"
     Then On the Address book modal Cancel button is enabled
 

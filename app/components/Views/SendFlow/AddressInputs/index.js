@@ -22,7 +22,7 @@ import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -328,7 +328,7 @@ export const AddressTo = (props) => {
               onSubmitEditing={onSubmit}
               value={toSelectedAddress}
               testID={'txn-to-address-input'}
-              {...generateTestId(Platform, SEND_ADDRESS_INPUT_FIELD)}
+              {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
               keyboardAppearance={themeAppearance}
             />
           </View>

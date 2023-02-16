@@ -87,6 +87,12 @@ Then(/^"([^"]*)?" is visible/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^"([^"]*)?" is displayed on (.*) (.*) view/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);

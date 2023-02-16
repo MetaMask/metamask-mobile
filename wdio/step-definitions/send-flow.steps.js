@@ -4,6 +4,7 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import TokenScreen from '../screen-objects/TokenScreen';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
@@ -106,3 +107,7 @@ Then(
     await WalletMainScreen.isToastNotificationDisplayed();
   },
 );
+
+Then(/^I am taken to the token overview screen/, async () => {
+  await TokenScreen.isTokenOverviewVisible();
+});
