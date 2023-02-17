@@ -434,17 +434,11 @@ export function weiToFiat(
 ) {
   if (!conversionRate) return undefined;
   if (!wei || !isBN(wei) || !conversionRate) {
-    if (currencySymbols[currencyCode]) {
-      return `${currencySymbols[currencyCode]}${0.0}`;
-    }
-    return `0.00 ${currencyCode}`;
+    return addCurrencySymbol(0, currencyCode);
   }
   decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
-  if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${value}`;
-  }
-  return `${value} ${currencyCode}`;
+  return addCurrencySymbol(value, currencyCode);
 }
 
 /**
