@@ -1,6 +1,7 @@
 import { When, Then } from '@wdio/cucumber-framework';
 import ChangePasswordScreens from '../screen-objects/ChangePasswordScreens';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen';
+import SecurityAndPrivacyScreen from '../screen-objects/SecurityAndPrivacyScreen';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 
 When(
@@ -26,6 +27,6 @@ When(/^I tap Reset password/, async () => {
 });
 Then(/^Creating password is displayed/, async () => {
   await driver.pause(1000);
-  await WalletMainScreen.isTokenTextVisible('Creating password...');
+  await SecurityAndPrivacyScreen.isChangePasswordTextVisible('Creating password...');
   await driver.pause(8000);
 });
