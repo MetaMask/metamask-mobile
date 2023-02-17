@@ -9,7 +9,7 @@ import AppConstants from '../../../core/AppConstants';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icon';
+} from '../../../component-library/components/Icons/Icon';
 import Text from '../../../component-library/components/Texts/Text';
 
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
@@ -37,9 +37,7 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const contentProtocol = getURLProtocol(url);
   const isHttps = contentProtocol === PROTOCOLS.HTTPS;
 
-  const secureConnectionIcon = isHttps
-    ? IconName.LockFilled
-    : IconName.LockSlashFilled;
+  const secureConnectionIcon = isHttps ? IconName.Lock : IconName.LockSlash;
 
   const mainUrl = getDappMainUrl();
 

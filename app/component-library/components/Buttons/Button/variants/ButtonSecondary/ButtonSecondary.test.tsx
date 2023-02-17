@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { ButtonSize } from '../../Button.types';
-import { IconName } from '../../../../Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';
@@ -13,7 +13,7 @@ describe('ButtonSecondary', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonSecondary
-        iconName={IconName.BankFilled}
+        iconName={IconName.Bank}
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
