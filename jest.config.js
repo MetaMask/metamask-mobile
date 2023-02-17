@@ -15,7 +15,7 @@ const config = {
   coveragePathIgnorePatterns: ['/node_modules/', '__mocks__', '<rootDir>/e2e/'],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
-  maxWorkers: process.env.NODE_ENV !== 'production' ? '25%' : '50%',
+  maxWorkers: process.env.NODE_ENV !== 'production' ? '25%' : '100%',
 };
 
 // eslint-disable-next-line import/no-commonjs
