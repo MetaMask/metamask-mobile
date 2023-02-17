@@ -1,7 +1,6 @@
 @iosApp
 @androidApp
 @ChainScenarios
-@regression
 Feature: Lock and Reset Wallet
 
   Scenario: Import account
@@ -14,10 +13,8 @@ Feature: Lock and Reset Wallet
     When I tap burger icon
     And I tap Lock menu item
     Then device alert <alert_msg> is displayed
-
     When I tap Yes on alert
     Then Login screen is displayed
-
     Examples:
       | alert_msg                               |
       | Do you really want to lock your wallet? |

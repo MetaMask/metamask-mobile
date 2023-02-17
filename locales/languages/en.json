@@ -977,8 +977,10 @@
     "minimum": "1.00 {{tokenSymbol}} minimum",
     "cancel": "Cancel",
     "approve": "Approve",
-    "allow_to_access": "Give permission to access your {{tokenSymbol}}?",
-    "allow_to_address_access": "Give this address access your {{tokenSymbol}}?",
+    "allow_to_access": "Give permission to access your",
+    "allow_to_address_access": "Give this address access your",
+    "token": "token",
+    "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following contract to access your funds.",
     "you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
     "edit_permission": "Edit permission",
@@ -1004,7 +1006,9 @@
     "all_set": "All set!",
     "all_set_desc": "You’ve successfully set permissions for this site.",
     "must_be_at_least": "Must be at least {{allowance}}",
-    "access_up_to": "Access up to:"
+    "access_up_to": "Access up to:",
+    "spending_cap": "Spending cap:",
+    "approve_asset": "Approve asset:"
   },
   "browser": {
     "title": "Browser",
