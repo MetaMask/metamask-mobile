@@ -12,6 +12,7 @@ export enum IconColor {
   Muted = 'Muted',
   Primary = 'Primary',
   Success = 'Success',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   Error = 'Error',
   Warning = 'Warning',
   Info = 'Info',
