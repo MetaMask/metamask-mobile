@@ -4058,6 +4058,18 @@
     eth-sig-util "^3.0.1"
     ethereumjs-util "^7.1.4"
 
+"@ledgerhq/metamask-keyring@0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.3.3.tgz#f497e10c386497cb71c6174e39f7d57d3b7f8817"
+  integrity sha512-bbty4Orcm6TZn9RRpVRNwkrid9tyT+Gs+Pcb4sXZQuqI3iYKSnLtWeo1T+iWp4nj9E3x/Mt4YRtMDDmg2iSY2Q==
+  dependencies:
+    "@ethereumjs/tx" "^3.5.0"
+    "@ledgerhq/hw-app-eth" "6.26.1"
+    "@ledgerhq/hw-transport" "6.24.1"
+    buffer "^6.0.3"
+    eth-sig-util "^3.0.1"
+    ethereumjs-util "^7.1.4"
+
 "@ledgerhq/react-native-hw-transport-ble@^6.28.0":
   version "6.28.0"
   resolved "https://registry.yarnpkg.com/@ledgerhq/react-native-hw-transport-ble/-/react-native-hw-transport-ble-6.28.0.tgz#8bfbb31b994549da730400d68adbf9a013abb106"
@@ -4146,12 +4158,12 @@
     "@metamask/controller-utils" "^1.0.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^1.1.2-preview.331a808", "@metamask/base-controller@^1.1.2-preview.78f7c03":
-  version "1.1.2-preview.78f7c03"
-  resolved "https://npm.pkg.github.com/download/@metamask/base-controller/1.1.2-preview.78f7c03/910bffd2add7efcc7c23f1a68e659748b91d417f#910bffd2add7efcc7c23f1a68e659748b91d417f"
-  integrity sha512-U628w0harJTU65Mj7z6FtvHf4fhuCxgWsv6A1soTkiHh/lT6HmfJXK5YEMjJpLtMosLnTVo+AQs8mtWZk3Ldxw==
+"@metamask/base-controller@^1.1.2-preview.045168b", "@metamask/base-controller@^1.1.2-preview.9ab6024":
+  version "1.1.2-preview.9ab6024"
+  resolved "https://npm.pkg.github.com/download/@metamask/base-controller/1.1.2-preview.9ab6024/b23cf93428c2844e4ce3a3a42bd81457e26ae008#b23cf93428c2844e4ce3a3a42bd81457e26ae008"
+  integrity sha512-RkwS1iYpf4+Xxu+vTz8tspAj3y6aNcWfo/L5a6ivJBkww5oU8RphaCFTabOjHpZKsuwSOwR34guZqZNIXDM/Bg==
   dependencies:
-    "@metamask/controller-utils" "^2.0.0-preview.78f7c03"
+    "@metamask/controller-utils" "^2.0.0-preview.9ab6024"
     immer "^9.0.6"
 
 "@metamask/base-controller@~1.0.0":
@@ -4196,10 +4208,10 @@
     fast-deep-equal "^3.1.3"
     isomorphic-fetch "^3.0.0"
 
-"@metamask/controller-utils@^2.0.0-preview.331a808", "@metamask/controller-utils@^2.0.0-preview.78f7c03":
-  version "2.0.0-preview.78f7c03"
-  resolved "https://npm.pkg.github.com/download/@metamask/controller-utils/2.0.0-preview.78f7c03/f2d90f70539e7970d7b6251666e99f5971823fa3#f2d90f70539e7970d7b6251666e99f5971823fa3"
-  integrity sha512-zQFGUnexhI+oMNtApelJzCpFxnj8nXm6sYHxR1jH/p7vAS6KYSEPKEc/sI9rQEl6NI4HQdySa7vlyh8ycOsRrg==
+"@metamask/controller-utils@^2.0.0-preview.045168b", "@metamask/controller-utils@^2.0.0-preview.9ab6024":
+  version "2.0.0-preview.9ab6024"
+  resolved "https://npm.pkg.github.com/download/@metamask/controller-utils/2.0.0-preview.9ab6024/4d1270a56dabf081d421ba116a8f18318b900cb7#4d1270a56dabf081d421ba116a8f18318b900cb7"
+  integrity sha512-0ma33BgFH2EiqeqHVVma2549i82Ag+JMe0uFb78g8TzEufF7QQrA4WzJ/HJ0iSBR5g90BYpyXhC7dGyvtpFC3w==
   dependencies:
     eth-ens-namehash "^2.0.8"
     eth-rpc-errors "^4.0.0"
@@ -4318,21 +4330,21 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/keyring-controller@2.0.0-preview.331a808":
-  version "2.0.0-preview.331a808"
-  resolved "https://npm.pkg.github.com/download/@metamask/keyring-controller/2.0.0-preview.331a808/53fe22eb073dbdc05d50275803cff947ad9f5044#53fe22eb073dbdc05d50275803cff947ad9f5044"
-  integrity sha512-23o2HpZAdJMbkZ6eWgUlIBJoSzgfwfSwDQcT0y2LcKwIMi23mzDWwAh93iFjgFMZs16mipvOlgNUAvVr4CfykA==
+"@metamask/keyring-controller@3.0.0-preview.045168b":
+  version "3.0.0-preview.045168b"
+  resolved "https://npm.pkg.github.com/download/@metamask/keyring-controller/3.0.0-preview.045168b/b7940381e11ff1b9463fe1e1d0959e192111fe7a#b7940381e11ff1b9463fe1e1d0959e192111fe7a"
+  integrity sha512-mnn6X/USIwivB/O8vqdax5QREALUzLHThxWMd7+VMUracYzzPl8X2ThB78s04RMvejZ23VhH5Bpj65aZzSVtqg==
   dependencies:
     "@keystonehq/metamask-airgapped-keyring" "^0.6.1"
     "@ledgerhq/hw-transport" "6.24.1"
-    "@ledgerhq/metamask-keyring" "0.3.2"
-    "@metamask/base-controller" "^1.1.2-preview.331a808"
-    "@metamask/controller-utils" "^2.0.0-preview.331a808"
-    "@metamask/eth-sig-util" "^5.0.2"
-    "@metamask/message-manager" "^1.0.2-preview.331a808"
-    "@metamask/preferences-controller" "^1.0.2-preview.331a808"
+    "@ledgerhq/metamask-keyring" "0.3.3"
+    "@metamask/base-controller" "^1.1.2-preview.045168b"
+    "@metamask/controller-utils" "^2.0.0-preview.045168b"
+    "@metamask/message-manager" "^1.0.2-preview.045168b"
+    "@metamask/preferences-controller" "^1.0.2-preview.045168b"
     async-mutex "^0.2.6"
     eth-keyring-controller "^7.0.2"
+    eth-sig-util "^3.0.0"
     ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
 
@@ -4349,13 +4361,13 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^1.0.2-preview.331a808":
-  version "1.0.2-preview.78f7c03"
-  resolved "https://npm.pkg.github.com/download/@metamask/message-manager/1.0.2-preview.78f7c03/13cf7175c4b875c9ff632d44fbad348d7ffe1945#13cf7175c4b875c9ff632d44fbad348d7ffe1945"
-  integrity sha512-tmr7VjGL4dh4M1WktwWFifZx5ZNXkW78pDCPz81l/6ozUJ6MDB6rlk5nxHMTOXPX/ccI+LR6b/CafN0IBwNIhg==
+"@metamask/message-manager@^1.0.2-preview.045168b":
+  version "1.0.2-preview.9ab6024"
+  resolved "https://npm.pkg.github.com/download/@metamask/message-manager/1.0.2-preview.9ab6024/abbcdd4a80c65d0e299e067b6834e5b6b9b04bda#abbcdd4a80c65d0e299e067b6834e5b6b9b04bda"
+  integrity sha512-mUeWNH9HOT+2LFd9OWGQyDxsz93MzXof0PafaMgMYbV5gH9VQqM4t4doIm8/GxDSKO96wpFlwH7wrdKEMKExDQ==
   dependencies:
-    "@metamask/base-controller" "^1.1.2-preview.78f7c03"
-    "@metamask/controller-utils" "^2.0.0-preview.78f7c03"
+    "@metamask/base-controller" "^1.1.2-preview.9ab6024"
+    "@metamask/controller-utils" "^2.0.0-preview.9ab6024"
     "@types/uuid" "^8.3.0"
     eth-sig-util "^3.0.0"
     ethereumjs-util "^7.0.10"
@@ -4430,13 +4442,13 @@
     "@metamask/base-controller" "^1.1.1"
     "@metamask/controller-utils" "^1.0.0"
 
-"@metamask/preferences-controller@^1.0.2-preview.331a808":
-  version "1.0.2-preview.78f7c03"
-  resolved "https://npm.pkg.github.com/download/@metamask/preferences-controller/1.0.2-preview.78f7c03/bcfbf59a3b07a7de58f212cd61e79cf316ace2c0#bcfbf59a3b07a7de58f212cd61e79cf316ace2c0"
-  integrity sha512-YdjxGvmD8iSUEl+vgkK4UA69wKqnJT/XpFH8bfh0fxRtkzJtx3AGwDlj0+uLY3KRUTJeg+pJ7SuQJt+0kB723A==
+"@metamask/preferences-controller@^1.0.2-preview.045168b":
+  version "1.0.2-preview.9ab6024"
+  resolved "https://npm.pkg.github.com/download/@metamask/preferences-controller/1.0.2-preview.9ab6024/9bac7414c050f7c3f49c69e56121c3c721c1aaf3#9bac7414c050f7c3f49c69e56121c3c721c1aaf3"
+  integrity sha512-EMx37OoKB3s+FCItlYYMBM9e/qmpaucMWcAmVdd+9JRjiEZFSsSdxTaMJkMCySNr3cHEeQhc36ycJlNDfWpivw==
   dependencies:
-    "@metamask/base-controller" "^1.1.2-preview.78f7c03"
-    "@metamask/controller-utils" "^2.0.0-preview.78f7c03"
+    "@metamask/base-controller" "^1.1.2-preview.9ab6024"
+    "@metamask/controller-utils" "^2.0.0-preview.9ab6024"
 
 "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"

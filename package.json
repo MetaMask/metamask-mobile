@@ -151,7 +151,7 @@
     "@metamask/eth-sig-util": "^5.0.2",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^1.0.0",
-    "@metamask/keyring-controller": "2.0.0-preview.331a808",
+    "@metamask/keyring-controller": "3.0.0-preview.045168b",
     "@metamask/message-manager": "^1.0.1",
     "@metamask/network-controller": "^1.0.0",
     "@metamask/permission-controller": "^1.0.2",
