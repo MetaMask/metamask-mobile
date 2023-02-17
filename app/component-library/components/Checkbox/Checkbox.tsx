@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react';
 
 // External dependencies.
-import Icon, { IconName, IconSize } from '../Icon';
+import Icon, { IconName, IconSize } from '../Icons/Icon';
 import { useStyles } from '../../hooks';
 
 // Internal dependencies.
@@ -18,8 +18,7 @@ const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
     theme: { colors },
   } = useStyles(styleSheet, { style, isSelected });
   const iconName = useMemo(
-    () =>
-      isSelected ? IconName.CheckBoxOnFilled : IconName.CheckBoxOffOutline,
+    () => (isSelected ? IconName.CheckBoxOn : IconName.CheckBoxOff),
     [isSelected],
   );
   const iconColor = useMemo(
