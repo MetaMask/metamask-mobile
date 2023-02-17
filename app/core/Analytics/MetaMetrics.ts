@@ -151,7 +151,7 @@ class MetaMetrics implements IMetaMetrics {
       this.#segmentClient.track(
         event,
         properties,
-        undefined,
+        METAMETRICS_ANONYMOUS_ID,
         METAMETRICS_ANONYMOUS_ID,
       );
     } else {
