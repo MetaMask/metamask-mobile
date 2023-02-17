@@ -7,6 +7,7 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import Icon, { IconName } from '../../../component-library/components/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -28,6 +29,7 @@ const createStyles = (colors) =>
       paddingLeft: 1,
       justifyContent: 'center',
       alignContent: 'center',
+      alignItems: 'center',
       backgroundColor: colors.primary.default,
     },
     buttonIcon: {
@@ -107,6 +109,15 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
             name="credit-card"
             size={20}
             style={[styles.buttonIcon, styles.buyIcon]}
+          />
+        );
+      }
+      case 'portfolio': {
+        return (
+          <Icon
+            name={IconName.DiagramOutline}
+            size={20}
+            style={styles.buttonIcon}
           />
         );
       }

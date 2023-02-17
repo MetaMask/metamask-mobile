@@ -714,6 +714,7 @@
     "send_button": "Send",
     "buy_button": "Buy",
     "receive_button": "Receive",
+    "portfolio_button": "Portfolio",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",

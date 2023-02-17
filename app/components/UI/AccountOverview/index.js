@@ -339,6 +339,16 @@ class AccountOverview extends PureComponent {
     } catch {}
   };
 
+  onPortfolio = () => {
+    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
+      screen: Routes.BROWSER_VIEW,
+      params: {
+        newTabUrl: 'https://portfolio.metamask.io/?metamaskEntry=mobile',
+        timestamp: Date.now(),
+      },
+    });
+  };
+
   render() {
     const {
       account: { address, name },
@@ -485,6 +495,11 @@ class AccountOverview extends PureComponent {
                   isAssetAllowed
                 />
               )}
+              <AssetActionButton
+                icon="portfolio"
+                onPress={this.onPortfolio}
+                label={strings('asset_overview.portfolio_button')}
+              />
             </View>
           </View>
         </ScrollView>
