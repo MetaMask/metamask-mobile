@@ -21,6 +21,7 @@ Given(/^the app displayed the splash animation$/, async () => {
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   await WelcomeScreen.waitForScreenToDisplay();
+  await driver.pause(1000);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();

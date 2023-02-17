@@ -1,20 +1,33 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { SECURITY_PRIVACY_REMEMBER_ME_TOGGLE } from './testIDs/Screens/SecurityPrivacy.testIds';
+import {SECURITY_PRIVACY_REMEMBER_ME_TOGGLE, SECURITY_PRIVACY_VIEW_ID} from './testIDs/Screens/SecurityPrivacy.testIds';
 
 class SecurityPrivacyScreen {
   get rememberMeToggle() {
     return Selectors.getElementByPlatform(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
   }
 
+  get container () {
+    return Selectors.getElementByPlatform(SECURITY_PRIVACY_VIEW_ID);
+  }
+
   async tapRememberToggle() {
-    await Gestures.checkIfDisplayedWithSwipeUp(this.rememberMeToggle, 10);
-    await Gestures.waitAndTap(this.rememberMeToggle);
+    const element = await this.rememberMeToggle;
+    while (!(await element.isDisplayed())) {
+      await Gestures.swipeUp();
+    }
+
+    await Gestures.waitAndTap(element);
   }
 
   async isRememberMeToggle(value) {
     const element = await this.rememberMeToggle;
     await expect(await element.getText()).toEqual(value);
+  }
+
+  async isScreenDisplayed() {
+    const element = await this.container;
+    await element.waitForDisplayed({ interval: 500});
   }
 }
 
