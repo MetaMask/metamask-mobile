@@ -953,8 +953,6 @@
     "minimum": "最少 1.00 {{tokenSymbol}}",
     "cancel": "取消",
     "approve": "批准",
-    "allow_to_access": "准许此站点访问您的 {{tokenSymbol}}？",
-    "allow_to_address_access": "准许此地址访问您的 {{tokenSymbol}}？",
     "you_trust_this_site": "您是否信任此站点？授予此权限，即表示您允许此站点访问您的资金。",
     "you_trust_this_address": "您是否信任此地址？授予此权限，即表示您允许此地址访问您的资金。",
     "edit_permission": "编辑权限",

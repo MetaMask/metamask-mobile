@@ -1,11 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  StyleSheet,
-  Alert,
-  InteractionManager,
-  AppState,
-  View,
-} from 'react-native';
+import { Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -43,25 +37,14 @@ import {
 import {
   selectChainId,
   selectNetwork,
+  selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
+import createStyles from './styles';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
-
-const styles = StyleSheet.create({
-  keyboardAwareWrapper: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  bottomModal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
-  updateNickView: {
-    margin: 0,
-  },
-});
 
 /**
  * PureComponent that manages ERC20 approve from the dapp browser
@@ -153,6 +136,7 @@ class Approve extends PureComponent {
     eip1559GasTransaction: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
+    isBlockExplorerVisible: false,
   };
 
   computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
@@ -543,7 +527,14 @@ class Approve extends PureComponent {
     });
   };
 
+  setIsBlockExplorerVisible = (val) => {
+    this.setState({ isBlockExplorerVisible: val });
+  };
+
   render = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
     const {
       mode,
       ready,
@@ -566,6 +557,7 @@ class Approve extends PureComponent {
       gasFeeEstimates,
       primaryCurrency,
       chainId,
+      providerType,
     } = this.props;
 
     const selectedGasObject = {
@@ -584,8 +576,6 @@ class Approve extends PureComponent {
       legacyGasLimit: legacyGasObject?.legacyGasLimit,
       suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
     };
-
-    const colors = this.context.colors || mockTheme.colors;
 
     const addressData = checkIfAddressIsSaved(
       addressBook,
@@ -623,6 +613,15 @@ class Approve extends PureComponent {
                 : ''
             }
           />
+        ) : this.state.isBlockExplorerVisible ? (
+          <ShowBlockExplorer
+            setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
+            type={providerType}
+            contractAddress={transaction.to}
+            headerWrapperStyle={styles.headerWrapper}
+            headerTextStyle={styles.headerText}
+            iconStyle={styles.icon}
+          />
         ) : (
           <KeyboardAwareScrollView
             contentContainerStyle={styles.keyboardAwareWrapper}
@@ -647,6 +646,7 @@ class Approve extends PureComponent {
                   isAnimating={isAnimating}
                   gasEstimationReady={ready}
                   transactionConfirmed={transactionConfirmed}
+                  showBlockExplorer={this.setIsBlockExplorerVisible}
                   onUpdateContractNickname={this.onUpdateContractNickname}
                   nicknameExists={addressData && !!addressData.length}
                   nickname={
@@ -731,6 +731,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   network: selectNetwork(state),
+  providerType: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
