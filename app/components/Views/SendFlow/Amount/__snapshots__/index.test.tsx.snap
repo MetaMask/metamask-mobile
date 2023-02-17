@@ -5357,7 +5357,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -5429,7 +5429,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -5534,7 +5534,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#037DD6",
+                                              "color": "#0376C9",
                                               "fontSize": 16,
                                             },
                                             Object {
@@ -5606,8 +5606,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -5619,7 +5618,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -5814,7 +5813,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -6338,7 +6337,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -6452,7 +6451,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
+                                            "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
@@ -6553,8 +6552,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -6566,7 +6564,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
@@ -9185,7 +9183,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#037DD6",
+                                      "backgroundColor": "#0376C9",
                                       "borderRadius": 100,
                                       "flexDirection": "row",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -9257,7 +9255,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     style={
                                       Object {
                                         "alignSelf": "flex-end",
-                                        "color": "#037DD6",
+                                        "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -9355,8 +9353,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                           }
                         >
                           <TouchableOpacity
-                            accessibilityComponentType="button"
-                            accessibilityTraits="button"
+                            accessibilityRole="button"
                             activeOpacity={1}
                             disabled={true}
                             style={
@@ -9368,7 +9365,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     "padding": 15,
                                   },
                                   Object {
-                                    "backgroundColor": "#037DD6",
+                                    "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
                                   Object {
