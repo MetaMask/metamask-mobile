@@ -17,7 +17,10 @@ import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN } from '@metamask/controller-utils';
-import { fromTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
+import {
+  fromTokenMinimalUnit,
+  renderFromTokenMinimalUnit,
+} from '../../../util/number';
 import {
   getTicker,
   getNormalizedTxState,
@@ -301,7 +304,8 @@ class ApproveTransactionReview extends PureComponent {
       transaction: { origin, to, data, from },
       tokenList,
     } = this.props;
-    const { AssetsContractController, TokenBalancesController } = Engine.context;
+    const { AssetsContractController, TokenBalancesController } =
+      Engine.context;
 
     let host;
 
@@ -312,14 +316,16 @@ class ApproveTransactionReview extends PureComponent {
     } else {
       host = getHost(origin);
     }
-    
+
     let tokenSymbol, tokenDecimals, tokenName, tokenStandard;
-   
+
     const { spenderAddress, encodedAmount } = decodeApproveData(data);
     const encodedValue = hexToBN(encodedAmount).toString();
 
-    let tokenBalance = await TokenBalancesController.getERC20BalanceOf(to, from)
-    
+    let tokenBalance = await TokenBalancesController.getERC20BalanceOf(
+      to,
+      from,
+    );
 
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
@@ -784,18 +790,18 @@ class ApproveTransactionReview extends PureComponent {
               <View style={styles.paddingHorizontal}>
                 <View style={styles.section}>
                   {tokenStandard === ERC20 && (
-                      <CustomSpendCap
-                        ticker={tokenSymbol}
-                        dappProposedValue={originalApproveAmount}
-                        accountBalance={tokenBalance}
-                        domain={host}
-                        noEdit={spendLimitCreated}
-                        customValue={customSpendValue}
-                        goBackPress={this.goBackToSpendLimit}
-                        onInputChanged={(value) =>
-                          this.setState({ customSpendValue: value })
-                        }
-                      />
+                    <CustomSpendCap
+                      ticker={tokenSymbol}
+                      dappProposedValue={originalApproveAmount}
+                      accountBalance={tokenBalance}
+                      domain={host}
+                      noEdit={spendLimitCreated}
+                      customValue={customSpendValue}
+                      goBackPress={this.goBackToSpendLimit}
+                      onInputChanged={(value) =>
+                        this.setState({ customSpendValue: value })
+                      }
+                    />
                   )}
                   {(spendLimitCreated || tokenStandard !== ERC20) && (
                     <TransactionReview
