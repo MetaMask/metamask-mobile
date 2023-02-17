@@ -3,7 +3,7 @@
 import { TildeIconSizeByTextVariant } from './TextEstimated.types';
 
 // External dependencies.
-import { IconSize } from '../../../component-library/components/Icon';
+import { IconSize } from '../../../component-library/components/Icons/Icon';
 import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
 export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
