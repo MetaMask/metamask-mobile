@@ -38,13 +38,13 @@ export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
     width: widthSelector,
   };
   if (includesIcon) {
-    const IconNameSelector = select(
+    const iconNameSelector = select(
       'IconName',
       IconName,
       IconName.AddSquare,
       storybookPropsGroupID,
     );
-    buttonPrimaryStoryProps.iconName = IconNameSelector;
+    buttonPrimaryStoryProps.iconName = iconNameSelector;
   }
   return buttonPrimaryStoryProps;
 };

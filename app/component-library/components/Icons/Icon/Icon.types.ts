@@ -4,6 +4,20 @@ import { ViewProps } from 'react-native';
 import { SvgProps } from 'react-native-svg';
 
 /**
+ * Icon color
+ */
+export enum IconColor {
+  Default = 'Default',
+  Alternative = 'Alternative',
+  Muted = 'Muted',
+  Primary = 'Primary',
+  Success = 'Success',
+  Error = 'Error',
+  Warning = 'Warning',
+  Info = 'Info',
+}
+
+/**
  * Icon sizes
  */
 export enum IconSize {
@@ -31,14 +45,7 @@ export interface IconProps extends ViewProps {
   /**
    * Color of the icon.
    */
-  color?: string;
-}
-
-/**
- * Style sheet input parameters.
- */
-export interface IconStyleSheetVars extends Pick<IconProps, 'style'> {
-  size: IconSize;
+  color?: string | IconColor;
 }
 
 /**

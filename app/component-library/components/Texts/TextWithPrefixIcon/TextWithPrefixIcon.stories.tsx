@@ -15,7 +15,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
   'Default',
   () => {
     const groupId = 'Props';
-    const IconNameSelector = select(
+    const iconNameSelector = select(
       'iconProps.name',
       IconName,
       IconName.Lock,
@@ -35,7 +35,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
     );
     const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
     const iconProps: IconProps = {
-      name: IconNameSelector,
+      name: iconNameSelector,
       size: iconSizeSelector,
     };
 

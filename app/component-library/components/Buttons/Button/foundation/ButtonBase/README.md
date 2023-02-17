@@ -44,7 +44,7 @@ Icon name of the icon that will be displayed.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icon/Icon.types.ts#53)                | False                                                   |
+| [IconName](../Icons/Icon.types.ts)                | False                                                   |
 
 ### `isDanger`
 
@@ -74,7 +74,7 @@ import { IconName } from 'app/component-library/components/Icons/Icon';
 <ButtonBase
   label={LABEL}
   labelColor={LABEL_COLOR}
-  IconName={IconName.Bank}
+  iconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   isDanger

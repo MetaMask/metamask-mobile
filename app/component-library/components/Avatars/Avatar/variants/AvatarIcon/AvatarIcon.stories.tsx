@@ -18,7 +18,7 @@ export const getAvatarIconStoryProps = (): AvatarIconProps => {
     AvatarSize.Md,
     storybookPropsGroupID,
   );
-  const IconNameSelector = select(
+  const iconNameSelector = select(
     'name',
     IconName,
     IconName.Lock,
@@ -27,7 +27,7 @@ export const getAvatarIconStoryProps = (): AvatarIconProps => {
 
   return {
     size: sizeSelector,
-    name: IconNameSelector,
+    name: iconNameSelector,
   };
 };
 const AvatarIconStory = () => <AvatarIcon {...getAvatarIconStoryProps()} />;
