@@ -389,9 +389,9 @@ describe('Number utils :: isDecimal', () => {
 describe('Number utils :: weiToFiat', () => {
   it('weiToFiat', () => {
     const wei = toWei('1');
-    expect(weiToFiat(wei, 1, 'usd')).toEqual('$1');
-    expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.5');
-    expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.1');
+    expect(weiToFiat(wei, 1, 'usd')).toEqual('$1.00');
+    expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.50');
+    expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.10');
   });
 });
 
