@@ -45,6 +45,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     confirmButton: {
       marginTop: 16,
+      width: '100%',
     },
     scrollToEndButton: {
       width: 32,

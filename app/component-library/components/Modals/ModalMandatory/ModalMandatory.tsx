@@ -19,9 +19,7 @@ import ReusableModal, {
 } from '../../../../components/UI/ReusableModal';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { IconName } from '../../../../component-library/components/Icon';
-import ButtonIcon, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 
 // Internal dependencies
 import {
@@ -121,11 +119,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         },
       ]}
     >
-      <ButtonIcon
-        onPress={scrollToEnd}
-        iconName={IconName.ArrowDownOutline}
-        variant={ButtonVariants.Icon}
-      />
+      <ButtonIcon onPress={scrollToEnd} iconName={IconName.ArrowDownOutline} />
     </View>
   );
 
