@@ -21,7 +21,9 @@ import Button, {
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName } from '../../../../component-library/components/Icon';
+import Icon, {
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
@@ -147,7 +149,7 @@ const AccountConnectSingle = ({
         style={isLoading && styles.disabled}
       >
         <View style={styles.downCaretContainer}>
-          <Icon name={IconName.ArrowDownOutline} />
+          <Icon name={IconName.ArrowDown} />
         </View>
       </Cell>
     );

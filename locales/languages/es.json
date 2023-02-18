@@ -953,8 +953,6 @@
     "minimum": "1,00 {{tokenSymbol}} mínimo",
     "cancel": "Cancelar",
     "approve": "Aprobar",
-    "allow_to_access": "¿Dar a este sitio permiso para acceder a su {{tokenSymbol}}?",
-    "allow_to_address_access": "¿Dar a esta dirección acceso a su {{tokenSymbol}}?",
     "you_trust_this_site": "¿Este sitio es de confianza? Al conceder este permiso, autoriza que este sitio acceda a sus fondos.",
     "you_trust_this_address": "¿Esta dirección es de confianza? Al conceder este permiso, autoriza que esta dirección acceda a sus fondos.",
     "edit_permission": "Editar permiso",

@@ -38,13 +38,13 @@ Function to trigger when pressing the button.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | Function                                            | Yes                                                     |
 
-### `iconName`
+### `IconName`
 
 Icon name of the icon that will be displayed.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icon/Icon.types.ts#53)                | False                                                   |
+| [IconName](../Icons/Icon.types.ts)                | False                                                   |
 
 ### `isDanger`
 
@@ -69,12 +69,12 @@ Optional param to control the width of the button.
 import ButtonBase, {
   ButtonSize,
 } from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import { IconName } from 'app/component-library/components/Icon';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 <ButtonBase
   label={LABEL}
   labelColor={LABEL_COLOR}
-  iconName={IconName.BankFilled}
+  iconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   isDanger

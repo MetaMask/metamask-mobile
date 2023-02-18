@@ -717,8 +717,6 @@
     "minimum": "1.00 {{tokenSymbol}} minimum",
     "cancel": "Batal",
     "approve": "Setujui",
-    "allow_to_access": "Berikan izin situs ini untuk mengakses {{tokenSymbol}} Anda?",
-    "allow_to_address_access": "Berikan alamat ini akses {{tokenSymbol}} Anda?",
     "you_trust_this_site": "Anda percaya situs ini? Dengan memberikan izin ini, Anda mengizinkan situs ini untuk mengakses dana Anda.",
     "you_trust_this_address": "Anda percaya alamat ini? Dengan memberikan izin ini, Anda mengizinkan alamat ini untuk mengakses dana Anda.",
     "edit_permission": "Edit izin",
