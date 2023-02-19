@@ -13,6 +13,6 @@ export default (str: any): any => {
   if (!isString(str)) {
     return str;
   }
-  const regex = /\u202E/giu;
-  return str.replaceAll(regex, '\\u202E');
+  // Ref: https://stackoverflow.com/questions/69297024/why-is-string-replaceall-not-a-function-on-android-react-native
+  return str.split('\u202E').join('\\u202E');
 };
