@@ -20,6 +20,14 @@ class SecurityPrivacyScreen {
     await Gestures.waitAndTap(element);
   }
 
+  async tapToskipVideo() {
+    await this.isScreenDisplayed();
+    await driver.pause(1000);
+    await Gestures.tapByCoordinatesPercentage(12.3, 48);
+    await driver.pause(1000);
+    await Gestures.tapByCoordinatesPercentage(12.3, 48);
+  }
+  
   async isRememberMeToggle(value) {
     const element = await this.rememberMeToggle;
     await expect(await element.getText()).toEqual(value);
@@ -27,7 +35,7 @@ class SecurityPrivacyScreen {
 
   async isScreenDisplayed() {
     const element = await this.container;
-    await element.waitForDisplayed({ interval: 500});
+    await element.waitForDisplayed({ interval: 1000});
   }
 }
 

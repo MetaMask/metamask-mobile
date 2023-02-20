@@ -4,7 +4,8 @@ import SecurityPrivacyScreen from '../screen-objects/SecurityPrivacyScreen';
 import LoginScreen from '../screen-objects/LoginScreen';
 
 Then(/^on Security & Privacy screen I toggle on Remember me/, async () => {
-  await SecurityPrivacyScreen.isScreenDisplayed();
+  // await SecurityPrivacyScreen.isScreenDisplayed();
+  await SecurityPrivacyScreen.tapToskipVideo();
   await SecurityPrivacyScreen.tapRememberToggle();
   await SecurityPrivacyScreen.isRememberMeToggle('ON');
 });
