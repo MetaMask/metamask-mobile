@@ -160,7 +160,7 @@
     "@metamask/rpc-methods": "0.24.1",
     "@metamask/post-message-stream": "6.0.0",
     "@metamask/sdk-communication-layer": "^0.1.0",
-    "@metamask/snap-controllers": "0.23.0",
+    "@metamask/snaps-controllers": "0.25.0",
     "@metamask/snaps-utils": "0.24.1",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^1.0.0",
@@ -508,7 +508,7 @@
     "constants": "constants-browserify"
   },
   "engines": {
-    "node": "^16.10.0",
+    "node": "^16.13.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
