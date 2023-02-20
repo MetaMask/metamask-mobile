@@ -1,0 +1,83 @@
+diff --git a/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js b/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
+index 689d2b8..dd62971 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
++++ b/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
+@@ -24,6 +24,8 @@ const json_rpc_middleware_stream_1 = require("json-rpc-middleware-stream");
+ const nanoid_1 = require("nanoid");
+ const pump_1 = __importDefault(require("pump"));
+ const utils_2 = require("../utils");
++import { v4 as uuidv4 } from 'uuid';
++
+ const controllerName = 'ExecutionService';
+ class AbstractExecutionService {
+     constructor({ setupSnapProvider, messenger, terminationTimeout = utils_1.Duration.Second, }) {
+@@ -70,7 +72,7 @@ class AbstractExecutionService {
+             jsonrpc: '2.0',
+             method: 'terminate',
+             params: [],
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+         }), __classPrivateFieldGet(this, _AbstractExecutionService_terminationTimeout, "f"));
+         if (result === utils_2.hasTimedOut || result !== 'OK') {
+             // We tried to shutdown gracefully but failed. This probably means the Snap is in infite loop and
+@@ -102,7 +104,7 @@ class AbstractExecutionService {
+      * @returns Information regarding the created job.
+      */
+     async initJob() {
+-        const jobId = (0, nanoid_1.nanoid)();
++        const jobId = uuidv4();
+         const { streams, worker } = await this.initStreams(jobId);
+         const rpcEngine = new json_rpc_engine_1.JsonRpcEngine();
+         const jsonRpcConnection = (0, json_rpc_middleware_stream_1.createStreamMiddleware)();
+@@ -215,7 +217,7 @@ class AbstractExecutionService {
+         await this.command(job.id, {
+             jsonrpc: '2.0',
+             method: 'ping',
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+         });
+         const rpcStream = job.streams.rpc;
+         this.setupSnapProvider(snapData.snapId, rpcStream);
+@@ -223,7 +225,7 @@ class AbstractExecutionService {
+             jsonrpc: '2.0',
+             method: 'executeSnap',
+             params: snapData,
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+         });
+         __classPrivateFieldGet(this, _AbstractExecutionService_instances, "m", _AbstractExecutionService_createSnapHooks).call(this, snapData.snapId, job.id);
+         return result;
+@@ -265,7 +267,7 @@ _AbstractExecutionService_snapRpcHooks = new WeakMap(), _AbstractExecutionServic
+ }, _AbstractExecutionService_createSnapHooks = function _AbstractExecutionService_createSnapHooks(snapId, workerId) {
+     const rpcHook = async ({ origin, handler, request }) => {
+         return await this.command(workerId, {
+-            id: (0, nanoid_1.nanoid)(),
++            id: uuidv4(),
+             jsonrpc: '2.0',
+             method: 'snapRpc',
+             params: {
+diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
+index 7ebb6ca..1d19654 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
++++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
+@@ -1176,16 +1176,16 @@ async function _SnapController_fetchLocalSnap(localhostUrl) {
+     if (!snaps_utils_1.LOCALHOST_HOSTNAMES.has(manifestUrl.hostname)) {
+         throw new Error(`Invalid URL: Locally hosted Snaps must be hosted on localhost. Received URL: "${manifestUrl.toString()}"`);
+     }
+-    const manifest = await (await __classPrivateFieldGet(this, _SnapController_fetchFunction, "f").call(this, manifestUrl.toString(), fetchOptions)).json();
++    const manifest = await (await __classPrivateFieldGet(this, _SnapController_fetchFunction, "f").call(this, 'GET', manifestUrl.toString(), fetchOptions)).json();
+     (0, snaps_utils_1.assertIsSnapManifest)(manifest);
+     const { source: { location: { npm: { filePath, iconPath }, }, }, } = manifest;
+     const [sourceCode, svgIcon] = await Promise.all([
+-        (await __classPrivateFieldGet(this, _SnapController_fetchFunction, "f").call(this, new URL(filePath, localhostUrl).toString(), fetchOptions)).text(),
++        (await __classPrivateFieldGet(this, _SnapController_fetchFunction, "f").call(this, 'GET', new URL(filePath, localhostUrl).toString(), fetchOptions)).text(),
+         iconPath
+-            ? (await __classPrivateFieldGet(this, _SnapController_fetchFunction, "f").call(this, new URL(iconPath, localhostUrl).toString(), fetchOptions)).text()
++            ? (await __classPrivateFieldGet(this, _SnapController_fetchFunction, "f").call(this, 'GET',new URL(iconPath, localhostUrl).toString(), fetchOptions)).text()
+             : undefined,
+     ]);
+-    (0, snaps_utils_1.validateSnapShasum)(manifest, sourceCode);
++    // (0, snaps_utils_1.validateSnapShasum)(manifest, sourceCode);
+     return { manifest, sourceCode, svgIcon };
+ }, _SnapController_processSnapPermissions = function _SnapController_processSnapPermissions(initialPermissions) {
+     return (0, snaps_utils_1.fromEntries)(Object.entries(initialPermissions).map(([initialPermission, value]) => {
