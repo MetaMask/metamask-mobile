@@ -1,4 +1,4 @@
-import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snap-controllers';
+import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snaps-controllers';
 import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/rpc-methods';
 import {
   constructPermission,
@@ -10,7 +10,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
 /**
  * This file contains the specifications of the permissions and caveats
  * that are recognized by our permission system. See the PermissionController
- * README in @metamask/snap-controllers for details.
+ * README in @metamask/snaps-controllers for details.
  */
 
 /**
