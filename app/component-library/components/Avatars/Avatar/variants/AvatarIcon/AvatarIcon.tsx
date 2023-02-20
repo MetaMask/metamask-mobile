@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
 import { AvatarSize } from '../../Avatar.types';
-import Icon from '../../../../Icon';
+import Icon from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.

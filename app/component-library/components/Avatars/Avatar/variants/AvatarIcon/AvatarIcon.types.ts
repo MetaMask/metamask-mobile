@@ -1,7 +1,7 @@
 // External dependencies.
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
 import { AvatarVariants, AvatarSize } from '../../Avatar.types';
-import { IconProps, IconSize } from '../../../../Icon/Icon.types';
+import { IconProps, IconSize } from '../../../../Icons/Icon';
 
 /**
  * AvatarIcon component props.
