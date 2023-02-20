@@ -67,6 +67,7 @@ const Routes = {
   },
   WALLET: {
     HOME: 'WalletTabHome',
+    TAB_STACK_FLOW: 'WalletTabStackFlow',
   },
 };
 
