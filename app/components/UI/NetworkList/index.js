@@ -15,6 +15,7 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
+  getNetworkImageSource,
   isSafeChainId,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
@@ -27,19 +28,19 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
-import getImage from '../../../util/getImage';
 import {
   NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
 } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
-import Avatar, {
+import {
   AvatarVariants,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -286,17 +287,15 @@ export class NetworkList extends PureComponent {
         >
           {selected}
         </View>
-        {isCustomRpc &&
-          // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
-          (image ? (
-            <Avatar
-              variant={AvatarVariants.Network}
-              name={name}
-              imageSource={image}
-              style={styles.networkIcon}
-              size={AvatarSize.Xs}
-            />
-          ) : null)}
+        {isCustomRpc ? (
+          <AvatarNetwork
+            variant={AvatarVariants.Network}
+            name={name}
+            imageSource={image}
+            style={styles.networkIcon}
+            size={AvatarSize.Xs}
+          />
+        ) : null}
         {!isCustomRpc &&
           (image ? (
             <ImageIcon
@@ -347,7 +346,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     return frequentRpcList.map(({ nickname, rpcUrl, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
-      const image = getImage(chainId);
+      const image = getNetworkImageSource({ chainId });
       const isCustomRpc = true;
       const rpcTargetHref =
         provider.rpcTarget && new URL(provider.rpcTarget)?.href;

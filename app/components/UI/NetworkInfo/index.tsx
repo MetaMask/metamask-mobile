@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -15,8 +15,8 @@ import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import {
-  isMainnetByChainId,
   getNetworkImageSource,
+  getNetworkNameFromProvider,
 } from '../../../util/networks';
 import Avatar, {
   AvatarVariants,
@@ -66,9 +66,6 @@ const createStyles = (colors: {
       textAlign: 'center',
       paddingRight: 10,
       marginLeft: 8,
-    },
-    capitalizeText: {
-      textTransform: 'capitalize',
     },
     messageTitle: {
       fontSize: 14,
@@ -128,19 +125,12 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     onClose,
     ticker,
     isTokenDetectionEnabled,
-    networkProvider: {
-      nickname,
-      type,
-      ticker: networkTicker,
-      rpcTarget,
-      chainId,
-    },
+    networkProvider: { type, ticker: networkTicker, rpcTarget, chainId },
   } = props;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
     isTokenDetectionSupportedForNetwork(chainId);
-  const isMainnet = isMainnetByChainId(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {
@@ -162,25 +152,10 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     [networkProvider],
   );
 
-  const getNetworkName = useCallback(() => {
-    let networkName = '';
-    if (ticker === undefined) {
-      networkName =
-        `${nickname}` || strings('network_information.unknown_network');
-    } else {
-      networkName =
-        type === RPC
-          ? `${nickname}`
-          : isMainnet
-          ? `${type}`
-          : `${strings('network_information.testnet_network', {
-              type,
-            })}`;
-    }
-    return type === RPC ? networkName : networkName.toUpperCase();
-  }, [ticker, type, isMainnet, nickname]);
-
-  const networkName = getNetworkName();
+  const networkName = useMemo(
+    () => getNetworkNameFromProvider(networkProvider),
+    [networkProvider],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -199,7 +174,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               imageSource={networkImageSource}
             />
             <Text
-              style={[styles.tokenText, styles.capitalizeText]}
+              style={styles.tokenText}
               testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
             >
               {networkName}
