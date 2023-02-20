@@ -23,7 +23,7 @@ The code is built using React-Native and running code locally requires a Mac (An
 
     -   If `yarn -v` is v3, run `yarn set version classic`
 
--   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
+-   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
 
     -   But [Node](https://nodejs.org) v14 where mentioned _make sure it is Node 12 or newer_
     
@@ -38,7 +38,7 @@ The code is built using React-Native and running code locally requires a Mac (An
 
 #### Android
 
--   Install [JDK](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies): `brew install --cask adoptopenjdk/openjdk/adoptopenjdk8`
+-   Install [JDK](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies): `brew install --cask adoptopenjdk/openjdk/adoptopenjdk8`
     - To check if Java is already installed, run: `java -version`
     > If you have already installed JDK on your system, make sure it is JDK 8 or newer
 -   [Download Android Studio](https://developer.android.com/studio) or run: `brew install --cask android-studio`
@@ -57,7 +57,7 @@ The code is built using React-Native and running code locally requires a Mac (An
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
 -   Install the correct emulator
     -   Follow the instructions at:
-        -   [React Native Getting Started - Android](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   [React Native Getting Started - Android](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
         -   The minimum SDK version we currently support is [23](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L7)
     -   You should use the following:
@@ -72,7 +72,7 @@ The code is built using React-Native and running code locally requires a Mac (An
 #### iOS
 
 -   Install the iOS dependencies
-    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/0.65/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
         -   You do **not** need CocoaPods
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
