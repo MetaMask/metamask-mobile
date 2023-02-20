@@ -235,7 +235,10 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
       <PanGestureHandler {...gestureHandler}>
         <Animated.View style={[animatedStyles.modal, style]}>
           <Animated.View style={animatedStyles.overlayBackgroundTouchable}>
-            <TouchableOpacity style={styles.fill} onPress={dismissOverlay} />
+            <TouchableOpacity
+              style={styles.fill}
+              onPress={isDismissable ? dismissOverlay : () => {}}
+            />
           </Animated.View>
           {children}
         </Animated.View>
