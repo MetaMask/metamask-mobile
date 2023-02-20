@@ -5,6 +5,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
+import URL from 'url-parse';
 import AppConstants from '../../../core/AppConstants';
 import Icon, {
   IconName,
