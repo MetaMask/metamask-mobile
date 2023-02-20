@@ -22,7 +22,6 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
       await WelcomeScreen.waitForSplashAnimationToDisplay();
-      await WelcomeScreen.waitForSplashAnimationToNotExit();
       break;
     case 'Wallet setup':
       await OnboardingScreen.isScreenTitleVisible();
@@ -161,6 +160,7 @@ When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
 });
 
 When(/^I select remind me later on secure wallet screen/, async () => {
+  await CreateNewWalletScreen.tapPauseVideoByCoordinatesOnProtectWallet();
   await CreateNewWalletScreen.tapRemindMeLater();
 });
 

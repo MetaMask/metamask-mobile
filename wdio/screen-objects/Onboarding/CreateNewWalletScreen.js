@@ -66,8 +66,7 @@ class CreateNewWalletScren {
   }
 
   async isAccountCreated() {
-    await driver.pause(5000);
-    await expect(this.secureWalletScreen).toBeDisplayed();
+    await this.tapPauseVideoByCoordinatesOnProtectWallet();
   }
 
   async isScreenDescriptionVisible() {
@@ -84,6 +83,14 @@ class CreateNewWalletScren {
 
   async isNotVisible() {
     await expect(this.SECURE_WALLET_SCREEN).not.toBeDisplayed();
+  }
+
+  async tapPauseVideoByCoordinatesOnProtectWallet() {
+    const element = await this.secureWalletScreen;
+    await element.waitForExist();
+    await Gestures.tapByCoordinatesPercentage(10.4, 49.79)
+    await driver.pause(1000);
+    await Gestures.tapByCoordinatesPercentage(10.4, 49.79)
   }
 }
 

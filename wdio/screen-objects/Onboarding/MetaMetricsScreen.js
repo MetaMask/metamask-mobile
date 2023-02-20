@@ -29,8 +29,9 @@ class MetaMetricsScreen {
   }
 
   async tapIAgreeButton() {
-    await this.swipeUp();
     const element = await this.iAgreeButton;
+    await element.waitForDisplayed();
+    await this.swipeUp();
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.iAgreeButton);
   }

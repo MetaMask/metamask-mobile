@@ -1,5 +1,4 @@
 @androidApp
-@ChainScenarios
 @regression
 
 Feature: This feature file covers the option menu in the browser.

@@ -20,7 +20,6 @@ Given(/^the app displayed the splash animation$/, async () => {
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -35,7 +34,6 @@ Given(/^I have imported my wallet$/, async () => {
 
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -99,12 +97,6 @@ Then(/^"([^"]*)?" is not displayed/, async (text) => {
   await CommonScreen.isTextElementNotDisplayed(text);
 });
 
-Then(/^I am on the main wallet view/, async () => {
-  const timeout = 1000;
-  await driver.pause(timeout);
-  await WalletMainScreen.isMainWalletViewVisible();
-});
-
 Then(/^Sending token takes me to main wallet view/, async () => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -130,7 +122,6 @@ When(/^I log into my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
   await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await LoginScreen.typePassword(validAccount.password);
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();

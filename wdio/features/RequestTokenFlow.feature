@@ -6,8 +6,8 @@ Feature: Request Token
   This feature goes through the request token flow
 
   Scenario: Create wallet and then add a network
-
-    Given I create a new wallet
+    Given the app displayed the splash animation
+    And I create a new wallet
     And I select remind me later on secure wallet screen
     And Select "Skip" on remind secure modal
     And I tap No Thanks on the Enable security check screen

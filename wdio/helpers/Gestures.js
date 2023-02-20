@@ -113,6 +113,26 @@ class Gestures {
     }
   }
 
+  static async tapByCoordinatesPercentage(
+    xAxisPercent,
+    yAxisPercentage,
+    tapCount = 1,
+  ) {
+    const { width, height } = await driver.getWindowSize();
+    const widthPoint = (width * xAxisPercent) / 100;
+    const heightPoint = (height * yAxisPercentage) / 100;
+    await driver.touchPerform([
+      {
+        action: 'tap',
+        options: {
+          x: widthPoint,
+          y: heightPoint,
+          count: tapCount,
+        },
+      },
+    ]);
+  }
+
   static async longPress(element, waitTime) {
     const elem = await element;
     (await elem).touchAction([
