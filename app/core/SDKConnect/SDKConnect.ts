@@ -10,6 +10,7 @@ import {
 import BackgroundTimer from 'react-native-background-timer';
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../AppConstants';
+import { v1 as random } from 'uuid';
 
 import {
   TransactionController,
@@ -64,7 +65,7 @@ export interface SDKSessions {
 }
 
 export interface ApprovedHosts {
-  [host: string]: string;
+  [host: string]: number;
 }
 
 export interface approveHostProps {
@@ -82,8 +83,8 @@ const CONNECTION_LOADING_EVENT = 'loading';
 
 export const CONNECTION_CONFIG = {
   // Adjust the serverUrl during local dev if need to debug the communication protocol.
-  // serverUrl: 'http://192.168.50.114:4000',
-  serverUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
+  serverUrl: 'http://192.168.50.114:4000',
+  // serverUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
   platform: 'metamask-mobile',
   context: 'mm-mobile',
   sdkRemoteOrigin: 'MMSDKREMOTE::',
@@ -158,6 +159,7 @@ export class Connection extends EventEmitter2 {
    * Should only be accesses via getter / setter.
    */
   private _loading = false;
+  private approvalPromise?: Promise<unknown>;
 
   approveHost: ({ host, hostname }: approveHostProps) => void;
   getApprovedHosts: (context: string) => ApprovedHosts;
@@ -258,9 +260,9 @@ export class Connection extends EventEmitter2 {
           clientsReadyMsg,
         );
 
-        if (!this.isResumed) {
-          this.disapprove(this.channelId);
-        }
+        // if (!this.isResumed) {
+        //   this.disapprove(this.channelId);
+        // }
 
         if (this.isReady) {
           console.debug(
@@ -300,6 +302,13 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        // handle termination message
+        if (message.type === MessageType.TERMINATE) {
+          // Delete connection from storage
+          this.onTerminate({ channelId: this.channelId });
+          return;
+        }
+
         // ignore anything other than RPC methods.
         if (!message.method || !message.id) {
           console.debug(`received invalid rpc message`, message);
@@ -320,25 +329,24 @@ export class Connection extends EventEmitter2 {
 
         await waitForKeychainUnlocked();
 
-        // handle termination message
-        if (message.type === MessageType.TERMINATE) {
-          // Delete connection from storage
-          this.onTerminate({ channelId: this.channelId });
-          return;
-        }
-
+        console.debug(
+          `Connection::on 'message' method=${message?.method} needsRedirect=${
+            this.requestsToRedirect[message?.id]
+          }`,
+        );
         // Check if channel is permitted
         try {
           if (METHODS_TO_REDIRECT[message?.method]) {
             // Let the rpcMethodController handle permission when requesting account.
-            await this.checkPermissions();
+            await this.checkPermissions(message);
           } else {
             console.debug(`Allowed method`, message);
           }
         } catch (error) {
           // Approval failed - redirect to app with error.
-          console.debug(
+          console.warn(
             `Permissions failed -- sending error and might redirect.`,
+            error,
           );
           this.sendMessage({
             data: {
@@ -406,7 +414,10 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        console.debug(`Connection::on message recalling backgroundbrigde`);
+        console.debug(
+          `Connection::on message recalling backgroundbrigde`,
+          message,
+        );
         this.backgroundBridge?.onMessage({
           name: 'metamask-provider',
           data: message,
@@ -510,7 +521,7 @@ export class Connection extends EventEmitter2 {
     });
   }
 
-  private async checkPermissions() {
+  private async checkPermissions(message: CommunicationLayerMessage) {
     // only ask approval if needed
     const approved = this.isApproved({
       channelId: this.channelId,
@@ -522,6 +533,10 @@ export class Connection extends EventEmitter2 {
     ).PreferencesController;
     const selectedAddress = preferencesController.state.selectedAddress;
 
+    console.debug(
+      `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress}`,
+      message,
+    );
     if (approved && selectedAddress) {
       return;
     }
@@ -530,14 +545,31 @@ export class Connection extends EventEmitter2 {
       Engine.context as { ApprovalController: ApprovalController }
     ).ApprovalController;
 
-    // Request new otp
-    // TODO check if an approval is already in progress or add it.
-    if (approvalController.has({ id: this.host })) {
-      // Request already pending, nothing todo.
+    // // Request new otp
+    // // TODO check if an approval is already in progress or add it.
+    // if (approvalController.has({ id: this.host })) {
+    //   // Request already pending, nothing todo.
+    //   console.warn(`Approval request already ongoing`);
+    //   await approvalController.get(this.host);
+    //   return;
+    // }
+    let approvalResult;
+
+    if (this.approvalPromise) {
+      console.debug(
+        `Connection::checkPermissions approval already pending -- waiting for result`,
+      );
+      // Wait for result and clean the promise afterwards.
+      approvalResult = await this.approvalPromise;
+      console.debug(`Connection::checkPermissions result=${approvalResult}`);
+      this.approvalPromise = undefined;
       return;
     }
 
-    await approvalController.add({
+    console.debug(
+      `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress}`,
+    );
+    this.approvalPromise = approvalController.add({
       origin: this.host,
       type: ApprovalTypes.CONNECT_ACCOUNTS,
       requestData: {
@@ -555,9 +587,13 @@ export class Connection extends EventEmitter2 {
           },
         },
       },
-      id: this.channelId,
+      id: random(),
     });
+
+    await this.approvalPromise;
+    // Clear previous permissions if already approved.
     this.revalidate({ channelId: this.channelId });
+    this.approvalPromise = undefined;
   }
 
   pause() {
@@ -572,7 +608,9 @@ export class Connection extends EventEmitter2 {
 
   disconnect({ terminate }: { terminate: boolean }) {
     if (terminate) {
-      this.remote.sendMessage({ type: MessageType.TERMINATE });
+      this.remote.sendMessage({
+        type: MessageType.TERMINATE,
+      });
     }
     this.remote.disconnect();
   }
@@ -585,12 +623,15 @@ export class Connection extends EventEmitter2 {
   }
 
   sendMessage(msg: any) {
+    const needsRedirect = this.requestsToRedirect[msg?.data?.id];
     console.debug(
-      `Connection::sendMessage requestsToRedirect`,
+      `Connection::sendMessage requestsToRedirect redirect=${needsRedirect}`,
       this.requestsToRedirect,
     );
     this.remote.sendMessage(msg);
-    if (!this.requestsToRedirect[msg?.data?.id]) return;
+
+    if (!needsRedirect) return;
+
     delete this.requestsToRedirect[msg?.data?.id];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
@@ -630,6 +671,8 @@ export class SDKConnect extends EventEmitter2 {
   }: ConnectionProps) {
     if (this.connecting[id]) {
       console.debug(`connection already in progress...`);
+      // Try to ping to make sure to wake up the connection
+      this.connected[id].remote.ping();
       return;
     }
 
@@ -652,9 +695,12 @@ export class SDKConnect extends EventEmitter2 {
       `SDKConnect::connectToChannel() id=${id}, origin=${origin}`,
       otherPublicKey,
     );
+
+    const initialConnection = this.approvedHosts[id] !== undefined;
+
     this.connected[id] = new Connection({
       ...this.connections[id],
-      initialConnection: true,
+      initialConnection,
       updateOriginatorInfos: this.updateOriginatorInfos.bind(this),
       approveHost: this._approveHost.bind(this),
       disapprove: this.disapproveChannel.bind(this),
@@ -832,6 +878,7 @@ export class SDKConnect extends EventEmitter2 {
       this.connected[id].pause();
     }
     this.paused = true;
+    this.connecting = {};
     DefaultPreference.set('paused', 'paused');
   }
 
@@ -845,6 +892,10 @@ export class SDKConnect extends EventEmitter2 {
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_CONNECTIONS,
         JSON.stringify(this.connections),
+      );
+      DefaultPreference.set(
+        AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+        JSON.stringify(this.approvedHosts),
       );
       this.emit('refresh');
     }
@@ -861,6 +912,7 @@ export class SDKConnect extends EventEmitter2 {
     this.connected = {};
     this.connecting = {};
     DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
+    DefaultPreference.clear(AppConstants.MM_SDK.SDK_APPROVEDHOSTS);
   }
 
   public getConnected() {
@@ -915,17 +967,13 @@ export class SDKConnect extends EventEmitter2 {
 
   private _approveHost({ host, hostname }: approveHostProps) {
     console.debug(`SDKConnect::_approveHost host=${host} hostname=${hostname}`);
-    this.approvedHosts[host] = hostname;
-    const approvalController = (
-      Engine.context as { ApprovalController: ApprovalController }
-    ).ApprovalController;
-
-    // Request new otp
-    // TODO check if an approval is already in progress or add it.
-    if (approvalController.has({ id: host })) {
-      console.debug(`APPROVING now`);
-      approvalController.accept(host);
-    }
+    // Host is approved for 24h.
+    this.approvedHosts[host] = Date.now() + DAY_IN_MS;
+    // Save to preferences
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+      JSON.stringify(this.approvedHosts),
+    );
     this.emit('refresh');
   }
 
@@ -1000,12 +1048,37 @@ export class SDKConnect extends EventEmitter2 {
     AppState.removeEventListener('change', this._handleAppState.bind(this));
     AppState.addEventListener('change', this._handleAppState.bind(this));
 
-    const [connectionsStorage] = await Promise.all([
+    const [connectionsStorage, hostsStorage] = await Promise.all([
       DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
+      DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
     ]);
 
     if (connectionsStorage) {
       this.connections = JSON.parse(connectionsStorage);
+    }
+
+    if (hostsStorage) {
+      const uncheckedHosts = JSON.parse(hostsStorage) as ApprovedHosts;
+      // Check if the approved hosts haven't timed out.
+      const approvedHosts: ApprovedHosts = {};
+      let expiredCounter = 0;
+      for (const host in uncheckedHosts) {
+        const expirationTime = uncheckedHosts[host];
+        if (Date.now() < expirationTime) {
+          // Host is valid, add it to the list.
+          approvedHosts[host] = expirationTime;
+        } else {
+          expiredCounter += 1;
+        }
+      }
+      if (expiredCounter > 1) {
+        // Update the list of approved hosts excluding the expired ones.
+        DefaultPreference.set(
+          AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+          JSON.stringify(approvedHosts),
+        );
+      }
+      this.approvedHosts = approvedHosts;
     }
 
     // this.initTimeout = setTimeout(() => {
