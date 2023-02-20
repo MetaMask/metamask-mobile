@@ -52,7 +52,7 @@ Feature: Sending Native and ERC Tokens
     Scenario Outline: A user can send native tokens to an Address via the wallet view send button
         Given I see "<NETWORK>" visible in the top navigation bar
         When On the Main Wallet view I tap "Send"
-        Then I enter address "<Address>" in the senders input box
+        Then I enter address "<Address>" in the sender's input box
 
         When I tap button "Next" on Send To view
         Then I proceed to the amount view
@@ -60,14 +60,12 @@ Feature: Sending Native and ERC Tokens
         When I type amount "<AMOUNT>" into amount input field
         And I tap button "Next" on the Amount view
         Then I should be taken to the transaction confirmation view
-
         And the token <TOKEN> being sent is visible
         And the token amount <AMOUNT> to be sent is visible
-        # And the fiat value conversion of the tokens being sent is below
-        # And the Estimated gas fee field is populated with a suggested gas price
+
         When I tap button "Send" on Confirm Amount view
         Then Sending token takes me to main wallet view
-        Then the transaction is submitted with Transaction Complete! toast appearing
+        And the transaction is submitted with Transaction Complete! toast appearing
 
         Examples:
             | NETWORK   | TOKEN | AMOUNT | Address                                    |
@@ -79,18 +77,20 @@ Feature: Sending Native and ERC Tokens
         And I see "<NETWORK>" visible in the top navigation bar
         When I tap Token "<TOKEN>" on Main Wallet view
         Then I am taken to the token overview screen
-        And I tap button "Send" on Token screen view
-        And I enter address "<Address>" in the senders input box
-        When I tap button "Next" on Send To view
+
+        When I tap button "Send" on Token screen view
+        And I enter address "<Address>" in the sender's input box
+        And I tap button "Next" on Send To view
         And I type amount "<AMOUNT>" into amount input field
         And I tap button "Next" on the Amount view
         Then I should be taken to the transaction confirmation view
         And the token <TOKEN> being sent is visible
         And the token amount <AMOUNT> to be sent is visible
+
         When I tap button "Send" on Confirm Amount view
         Then I am taken to the token overview screen
-        Then the transaction is submitted with Transaction Complete! toast appearing
-        And I tap back from the Token overview page
+        And the transaction is submitted with Transaction Complete! toast appearing
+
 
         Examples:
             | NETWORK   | TOKEN | AMOUNT | Address                                    |
@@ -99,9 +99,11 @@ Feature: Sending Native and ERC Tokens
 
 
     Scenario Outline: A user tries to send an invalid amount
-        Given I am on the wallet view
+        Given I tap back from the Token overview page
+        And I am on the wallet view
         And I tap button "Send" to navigate to Send view
-        And I enter address "<Address>" in the senders input box
+        And I enter address "<Address>" in the sender's input box
+        
         When I tap button "Next" on Send To view
         And I type amount "<AMOUNT>" into amount input field
         And I tap button "Next" on the Amount view

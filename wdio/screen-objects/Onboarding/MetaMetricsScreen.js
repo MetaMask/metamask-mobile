@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 /* global driver */
 import Gestures from '../../helpers/Gestures';
 import {

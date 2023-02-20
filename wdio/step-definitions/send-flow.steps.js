@@ -27,7 +27,7 @@ Then(/^I tap the Save button/, async () => {
 });
 
 Given(
-  /^I enter address "([^"]*)?" in the senders input box/,
+  /^I enter address "([^"]*)?" in the sender's input box/,
   async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
   },

@@ -1224,7 +1224,6 @@ class Confirm extends PureComponent {
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
-
               <Text
                 style={styles.textAmount}
                 {...generateTestId(Platform, COMFIRM_TXN_AMOUNT)}
