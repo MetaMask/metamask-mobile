@@ -5,7 +5,7 @@ import {
   Job,
   AbstractExecutionService,
   ExecutionServiceArgs,
-} from '@metamask/snap-controllers';
+} from '@metamask/snaps-controllers';
 import snapsState from './SnapsState';
 // import SnapWebviewPostMessageStream from './SnapWebviewPostMessageStream';
 import SnapDuplex from './SnapDuplex';
@@ -28,7 +28,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     this.#snapDuplexMap = {};
   }
 
-  protected async _initEnvStream(jobId: string): Promise<{
+  protected async initEnvStream(jobId: string): Promise<{
     worker;
     stream: BasePostMessageStream;
   }> {
@@ -52,7 +52,7 @@ export default class WebviewExecutionService extends AbstractExecutionService<Wi
     return { worker: iframeWindow, stream: snapStream };
   }
 
-  protected _terminate(jobWrapper: Job<Window>): void {
+  protected terminateJob(jobWrapper: Job<Window>): void {
     this.#snapDuplexMap[jobWrapper.id].destroy();
     delete this.#snapDuplexMap[jobWrapper.id];
 
