@@ -326,6 +326,10 @@ export const migrations = {
 
     return state;
   },
+  13: (state) => {
+    delete state.engine.backgroundState.PhishingController;
+    return state;
+  },
 };
 
 export const version = 12;

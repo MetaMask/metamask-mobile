@@ -20,7 +20,6 @@ describe('logs :: generateStateLogs', () => {
           AssetsContractController: {},
           TokenDetectionController: {},
           NftDetectionController: {},
-          PhishingController: {},
           KeyringController: {
             vault: 'vault mock',
           },
@@ -33,7 +32,6 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('AssetsContractController')).toBe(false);
     expect(logs.includes('TokenDetectionController')).toBe(false);
     expect(logs.includes('NftDetectionController')).toBe(false);
-    expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 });
