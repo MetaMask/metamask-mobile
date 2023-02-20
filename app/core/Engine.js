@@ -20,7 +20,6 @@ import {
   TypedMessageManager,
 } from '@metamask/message-manager';
 import { NetworkController } from '@metamask/network-controller';
-import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
   Transaction,
@@ -252,9 +251,6 @@ class Engine {
         showApprovalRequest: () => null,
       });
 
-      const phishingController = new PhishingController();
-      phishingController.updatePhishingLists();
-
       const additionalKeyrings = [QRHardwareKeyring];
 
       const getIdentities = () => {
@@ -350,7 +346,6 @@ class Engine {
         new PersonalMessageManager(),
         new MessageManager(),
         networkController,
-        phishingController,
         preferencesController,
         new TokenBalancesController(
           {
@@ -865,7 +860,6 @@ export default {
       PersonalMessageManager,
       NetworkController,
       PreferencesController,
-      PhishingController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
@@ -898,7 +892,6 @@ export default {
       KeyringController,
       PersonalMessageManager,
       NetworkController,
-      PhishingController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,

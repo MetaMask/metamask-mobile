@@ -83,6 +83,7 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+import { PhishingController } from '@metamask/phishing-controller';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -396,17 +397,16 @@ export const BrowserTab = (props) => {
    * Check if a hostname is allowed
    */
   const isAllowedUrl = useCallback((hostname) => {
-    const { PhishingController } = Engine.context;
-
+    const phishingController = new PhishingController();
     // Update phishing configuration if it is out-of-date
-    const phishingListsAreOutOfDate = PhishingController.isOutOfDate();
+    const phishingListsAreOutOfDate = phishingController.isOutOfDate();
     if (phishingListsAreOutOfDate) {
       // This is async but we are not `await`-ing it here intentionally, so that we don't slow
       // down network requests. The configuration is updated for the next request.
-      PhishingController.updatePhishingLists();
+      phishingController.updatePhishingLists();
     }
 
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    const phishingControllerTestResult = phishingController.test(hostname);
 
     // Only assign the if the hostname is on the block list
     if (phishingControllerTestResult.result)

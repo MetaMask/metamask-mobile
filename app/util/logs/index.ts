@@ -8,7 +8,6 @@ export const generateStateLogs = (state: any): string => {
   delete fullState.engine.backgroundState.TokensController;
   delete fullState.engine.backgroundState.TokenDetectionController;
   delete fullState.engine.backgroundState.NftDetectionController;
-  delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
 
   // Remove encrypted vault from logs

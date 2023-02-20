@@ -30,7 +30,6 @@ class EngineService {
       { name: 'KeyringController' },
       { name: 'AccountTrackerController' },
       { name: 'NetworkController' },
-      { name: 'PhishingController' },
       { name: 'PreferencesController' },
       { name: 'TokenBalancesController' },
       { name: 'TokenRatesController' },
