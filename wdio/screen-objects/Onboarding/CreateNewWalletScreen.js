@@ -88,9 +88,9 @@ class CreateNewWalletScren {
   async tapPauseVideoByCoordinatesOnProtectWallet() {
     const element = await this.secureWalletScreen;
     await element.waitForExist();
-    await Gestures.tapByCoordinatesPercentage(10.4, 49.79)
+    await Gestures.tapByCoordinatesPercentage(10.4, 49.79);
     await driver.pause(1000);
-    await Gestures.tapByCoordinatesPercentage(10.4, 49.79)
+    await Gestures.tapByCoordinatesPercentage(10.4, 49.79);
   }
 }
 

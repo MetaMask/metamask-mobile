@@ -18,7 +18,6 @@ Then(/^the app should launch within x seconds$/, async () => {
   stopTimer = new Date().getTime();
   const result = stopTimer - startTimer;
   cucumberJson.attach(`Milliseconds: ${result}`);
-  console.log(`Milliseconds: ${result}`)
 });
 
 Given(/^the app is launched$/, async () => {
