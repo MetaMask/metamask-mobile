@@ -4,7 +4,7 @@
 import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
-import { IconByTabBarIconKey, TabBarIconKey } from './TabBar.types';
+import { IconByTabBarLabel, TabBarLabel } from './TabBar.types';
 
 export const ICON_BY_TAB_BAR_LABEL: IconByTabBarLabel = {
   [TabBarLabel.Wallet]: IconName.Wallet,

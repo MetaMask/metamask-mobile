@@ -10,7 +10,7 @@ import { IconName } from '../../Icons/Icon';
 /**
  * Enum for supported tab bar labels.
  */
-export enum TabBarIconKey {
+export enum TabBarLabel {
   Wallet = 'Wallet',
   Browser = 'Browser',
 }
@@ -18,8 +18,8 @@ export enum TabBarIconKey {
 /**
  * Mapping of icon name by tab bar label.
  */
-export type IconByTabBarIconKey = {
-  [key in TabBarIconKey]: IconName;
+export type IconByTabBarLabel = {
+  [key in TabBarLabel]: IconName;
 };
 
 type TabBarOptions = BottomTabBarOptions & {
