@@ -253,6 +253,7 @@ class Engine {
       });
 
       const phishingController = new PhishingController();
+      phishingController.maybeUpdateState();
 
       const additionalKeyrings = [QRHardwareKeyring];
 
