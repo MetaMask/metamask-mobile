@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../Icon';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies
 import TabBarItem from './TabBarItem';
@@ -13,7 +13,7 @@ describe('TabBarItem', () => {
     const wrapper = shallow(
       <TabBarItem
         label={'Tab'}
-        icon={IconName.BankFilled}
+        icon={IconName.Bank}
         isSelected
         onPress={jest.fn}
       />,

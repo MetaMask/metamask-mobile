@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName, IconProps, IconSize } from '../../Icon';
+import { IconName, IconProps, IconSize } from '../../Icons/Icon';
 import { TextVariant } from '../Text/Text.types';
 
 // Internal dependencies.
@@ -16,7 +16,7 @@ import {
 } from './TextWithPrefixIcon.constants';
 
 const sampleIconProps: IconProps = {
-  name: IconName.AddOutline,
+  name: IconName.Add,
 };
 
 describe('TextWithPrefixIcon - Snapshot', () => {
@@ -49,7 +49,7 @@ describe('TextWithPrefixIcon', () => {
     expect(TextWithPrefixIconComponent.exists()).toBe(true);
   });
   it('should render the given icon name and size', () => {
-    const testIconName = IconName.BankFilled;
+    const testIconName = IconName.Bank;
     const testIconSize = IconSize.Xss;
     sampleIconProps.name = testIconName;
     sampleIconProps.size = testIconSize;

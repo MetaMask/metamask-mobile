@@ -2,7 +2,7 @@
 import { ColorValue, TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../../../Icon';
+import { IconProps } from '../../../../Icons/Icon';
 import {
   ButtonSize,
   ButtonVariants,
