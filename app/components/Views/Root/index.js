@@ -12,7 +12,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import { setupSentry } from '../../../util/sentryUtils';
 /**
  * Top level of the component hierarchy
  * App component is wrapped by the provider from react-redux
@@ -28,13 +28,14 @@ export default class Root extends PureComponent {
 
   constructor(props) {
     super(props);
+    SplashScreen.hide();
     if (props.foxCode === '') {
       Logger.error('WARN - foxCode is an empty string');
     }
     SecureKeychain.init(props.foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
-    SplashScreen.hide();
+    setupSentry();
   }
 
   render = () => (

@@ -84,6 +84,7 @@ class Engine {
    * Creates a CoreController instance
    */
   constructor(initialState = {}) {
+    console.log('Engine Instance', Engine.instance);
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(
@@ -253,6 +254,11 @@ class Engine {
       });
 
       const phishingController = new PhishingController();
+      const startTime = Date.now()
+      phishingController.updatePhishingLists();
+      const endTime = Date.now()
+      const result = endTime - startTime;
+      console.log('result', result);
 
       const additionalKeyrings = [QRHardwareKeyring];
 
