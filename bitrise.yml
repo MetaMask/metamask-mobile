@@ -8,7 +8,7 @@ workflows:
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6: { }
+      - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
             - node_version: '14'
@@ -16,7 +16,7 @@ workflows:
     before_run:
       - setup
     steps:
-      - cache-pull@2: { }
+      - cache-pull@2: {}
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
@@ -33,7 +33,7 @@ workflows:
             - cache_local_deps: 'yes'
             - command: lint
           is_always_run: true
-      - cache-push@2: { }
+      - cache-push@2: {}
   code_setup:
     before_run:
       - setup
@@ -77,9 +77,9 @@ workflows:
                 WORKFLOW_TRIGGER='Push'
 
                 if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
-                COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
-                BRANCH_HEIGHT='HEAD'
-                WORKFLOW_TRIGGER='Manual'
+                  COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
+                  BRANCH_HEIGHT='HEAD'
+                  WORKFLOW_TRIGGER='Manual'
                 fi
 
                 envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
@@ -139,9 +139,6 @@ workflows:
             - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
-  #########################
-  # Triggerable workflows #
-  #########################
   # CI Steps
   ci_test:
     before_run:
@@ -184,7 +181,7 @@ workflows:
             - api_level: '29'
             - create_command_flags: '--sdcard 4096M'
             - profile: pixel
-      - wait-for-android-emulator@1: { }
+      - wait-for-android-emulator@1: {}
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
@@ -202,7 +199,7 @@ workflows:
     after_run:
       - _e2e_notify_on_slack
     steps:
-      - certificate-and-profile-installer@1: { }
+      - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
@@ -448,7 +445,7 @@ workflows:
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $BITRISE_TEST_RESULT_DIR
+              - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
     before_run:
@@ -477,13 +474,13 @@ workflows:
     after_run:
       - _build_failure_notify_on_slack
     steps:
-      - certificate-and-profile-installer@1: { }
+      - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - cocoapods-install@2: { }
+      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -510,13 +507,13 @@ workflows:
     after_run:
       - _build_failure_notify_on_slack
     steps:
-      - certificate-and-profile-installer@1: { }
+      - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - cocoapods-install@2: { }
+      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
