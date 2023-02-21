@@ -10,7 +10,7 @@ import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import { TabBarIconKey, TabBarProps } from './TabBar.types';
+import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_LABEL } from './TabBar.constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -23,8 +23,8 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
-      const tabBarIconKey = options.tabBarIconKey as TabBarIconKey;
-      const label = options.tabBarLabel;
+      const tabBarIconKey = options.tabBarIconKey;
+      const label = options.tabBarLabel as string;
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;
