@@ -497,7 +497,7 @@ class AccountOverview extends PureComponent {
               )}
               <AssetActionButton
                 icon="portfolio"
-                onPress={this.onPortfolio}
+                onPress={this.onOpenPortfolio}
                 label={strings('asset_overview.portfolio_button')}
               />
             </View>
