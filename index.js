@@ -9,7 +9,7 @@ import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
 import { AppRegistry, LogBox } from 'react-native';
-import Root from './app/components/Views/Root';
+import Root from './app/components/Views/Root/index.tsx';
 import { name } from './app.json';
 
 // List of warnings that we're ignoring

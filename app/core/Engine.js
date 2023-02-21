@@ -254,11 +254,6 @@ class Engine {
       });
 
       const phishingController = new PhishingController();
-      const startTime = Date.now()
-      phishingController.updatePhishingLists();
-      const endTime = Date.now()
-      const result = endTime - startTime;
-      console.log('result', result);
 
       const additionalKeyrings = [QRHardwareKeyring];
 

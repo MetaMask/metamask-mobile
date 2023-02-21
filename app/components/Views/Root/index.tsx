@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store/';
@@ -48,7 +47,7 @@ const Root = ({ foxCode = 'null' }: Props) => {
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
     SplashScreen.hide();
-  }, []);
+  }, [foxCode]);
 
   return (
     <Provider store={store}>
