@@ -345,7 +345,7 @@ class AccountOverview extends PureComponent {
     } catch {}
   };
 
-  onPortfolio = () => {
+  onOpenPortfolio = () => {
     this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
       screen: Routes.BROWSER_VIEW,
       params: {
