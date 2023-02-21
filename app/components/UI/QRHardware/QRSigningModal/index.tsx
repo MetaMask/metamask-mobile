@@ -3,7 +3,10 @@ import Modal from 'react-native-modal';
 import { IQRState } from '../types';
 import { StyleSheet, View } from 'react-native';
 import QRSigningDetails from '../QRSigningDetails';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
+import { useDispatch, useSelector } from 'react-redux';
+import { getNormalizedTxState } from '../../../../util/transactions';
+import { resetTransaction } from '../../../../actions/transaction';
 
 interface IQRSigningModalProps {
   isVisible: boolean;
@@ -36,9 +39,26 @@ const QRSigningModal = ({
   onCancel,
   onFailure,
 }: IQRSigningModalProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
+  const dispatch = useDispatch();
   const styles = createStyles(colors);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
+  const { from } = useSelector(getNormalizedTxState);
+
+  const handleCancel = () => {
+    onCancel?.();
+    dispatch(resetTransaction());
+  };
+  const handleSuccess = () => {
+    onSuccess?.();
+    dispatch(resetTransaction());
+  };
+
+  const handleFailure = (error: string) => {
+    onFailure?.(error);
+    dispatch(resetTransaction());
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -65,10 +85,11 @@ const QRSigningModal = ({
           tighten
           showHint
           shouldStartAnimated={isModalCompleteShow}
-          successCallback={onSuccess}
-          cancelCallback={onCancel}
-          failureCallback={onFailure}
+          successCallback={handleSuccess}
+          cancelCallback={handleCancel}
+          failureCallback={handleFailure}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     </Modal>

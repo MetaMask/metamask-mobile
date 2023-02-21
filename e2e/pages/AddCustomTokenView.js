@@ -1,20 +1,23 @@
 import TestHelpers from '../helpers';
-
-const CUSTOM_TOKEN_CONTAINER_ID = 'add-custom-token-screen';
-const TOKEN_ADDRESS_INPUT_BOX_ID = 'input-token-address';
-const TOKEN_ADDRESS_SYMBOL_ID = 'input-token-symbol';
-const NFT_ADDRESS_INPUT_BOX_ID = 'input-collectible-address';
-const NFT_ADDRESS_WARNING_MESSAGE_ID = 'collectible-address-warning';
-const NFT_IDENTIFIER_WARNING_MESSAGE_ID = 'collectible-identifier-warning';
-
-const TOKEN_ADDRESS_WARNING_MESSAGE_ID = 'token-address-warning';
-const TOKEN_PRECISION_WARNING_MESSAGE_ID = 'token-decimals-warning';
-const BACK_BUTTON_ID = 'asset-back-button';
-const NFT_IDENTIFIER_INPUT_BOX_ID = 'input-token-decimals';
-const TOKEN_IMPORT_BUTTON_ID = 'add-custom-asset-confirm-button';
+import {
+  CUSTOM_TOKEN_CONTAINER_ID,
+  TOKEN_ADDRESS_INPUT_BOX_ID,
+  TOKEN_ADDRESS_SYMBOL_ID,
+  TOKEN_ADDRESS_WARNING_MESSAGE_ID,
+  TOKEN_PRECISION_WARNING_MESSAGE_ID,
+  CUSTOM_TOKEN_BACK_BUTTON_ID,
+  TOKEN_IMPORT_BUTTON_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import {
+  NFT_ADDRESS_INPUT_BOX_ID,
+  NFT_ADDRESS_WARNING_MESSAGE_ID,
+  NFT_IDENTIFIER_WARNING_MESSAGE_ID,
+  NFT_IDENTIFIER_INPUT_BOX_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 
 export default class AddCustomTokenView {
   static async tapImportButton() {
+    //await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
     await TestHelpers.tapByText('IMPORT');
   }
 
@@ -30,7 +33,7 @@ export default class AddCustomTokenView {
     if (device.getPlatform() === 'android') {
       await device.pressBack();
     } else {
-      await TestHelpers.tap(BACK_BUTTON_ID);
+      await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
     }
   }
   static async tapTokenSymbolInputBox() {
@@ -39,6 +42,10 @@ export default class AddCustomTokenView {
 
   static async tapTokenSymbolText() {
     await TestHelpers.tapByText('Token Symbol');
+  }
+
+  static async scrollDownOnImportCustomTokens() {
+    await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
   }
 
   static async typeTokenAddress(address) {

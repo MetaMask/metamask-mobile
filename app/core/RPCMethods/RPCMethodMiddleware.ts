@@ -4,7 +4,7 @@ import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { NetworksChainId, NetworkType } from '@metamask/controllers';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -12,11 +12,13 @@ import Networks, {
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
-import { resemblesAddress } from '../../util/address';
+import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
+import { getPermittedAccounts } from '../Permissions';
+import AppConstants from '../AppConstants.js';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -26,21 +28,16 @@ export enum ApprovalTypes {
   SIGN_MESSAGE = 'SIGN_MESSAGE',
   ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
+  REQUEST_PERMISSIONS = 'wallet_requestPermissions',
 }
 
 interface RPCMethodsMiddleParameters {
   hostname: string;
   getProviderState: () => any;
   navigation: any;
-  getApprovedHosts: any;
-  setApprovedHosts: (approvedHosts: any) => void;
-  approveHost: (fullHostname: string) => void;
   url: { current: string };
   title: { current: string };
-  icon: { current: string };
-  approvalRequest: {
-    current: { resolve: (value: boolean) => void; reject: () => void };
-  };
+  icon: { current: string | undefined };
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -52,20 +49,41 @@ interface RPCMethodsMiddleParameters {
   tabId: string;
   // For WalletConnect
   isWalletConnect: boolean;
+  // For MM SDK
+  isMMSDK: boolean;
+  getApprovedHosts: any;
+  setApprovedHosts: (approvedHosts: any) => void;
+  approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
+  analytics: { [key: string]: string | boolean };
 }
 
-export const checkActiveAccountAndChainId = ({
+// Also used by WalletConnect.js.
+export const checkActiveAccountAndChainId = async ({
   address,
   chainId,
-  activeAccounts,
+  checkSelectedAddress,
+  hostname,
 }: any) => {
+  let isInvalidAccount = false;
   if (address) {
-    if (
-      !activeAccounts ||
-      !activeAccounts.length ||
-      address.toLowerCase() !== activeAccounts?.[0]?.toLowerCase()
-    ) {
+    const formattedAddress = safeToChecksumAddress(address);
+    if (checkSelectedAddress) {
+      const selectedAddress =
+        Engine.context.PreferencesController.state.selectedAddress;
+      if (formattedAddress !== safeToChecksumAddress(selectedAddress)) {
+        isInvalidAccount = true;
+      }
+    } else {
+      // For Browser use permissions
+      const accounts = await getPermittedAccounts(hostname);
+      const normalizedAccounts = accounts.map(safeToChecksumAddress);
+
+      if (!normalizedAccounts.includes(formattedAddress)) {
+        isInvalidAccount = true;
+      }
+    }
+    if (isInvalidAccount) {
       throw ethErrors.rpc.invalidParams({
         message: `Invalid parameters: must provide an Ethereum address.`,
       });
@@ -115,9 +133,6 @@ export const getRpcMethodMiddleware = ({
   hostname,
   getProviderState,
   navigation,
-  getApprovedHosts,
-  setApprovedHosts,
-  approveHost,
   // Website info
   url,
   title,
@@ -133,22 +148,31 @@ export const getRpcMethodMiddleware = ({
   tabId,
   // For WalletConnect
   isWalletConnect,
+  // For MM SDK
+  isMMSDK,
+  getApprovedHosts,
+  approveHost,
   injectHomePageScripts,
+  // For analytics
+  analytics,
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
+    // Utility function for getting accounts for either WalletConnect or MetaMask SDK.
     const getAccounts = (): string[] => {
-      const {
-        privacy: { privacyMode },
-      } = store.getState();
-
       const selectedAddress =
         Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-
-      const isEnabled =
-        isWalletConnect || !privacyMode || getApprovedHosts()[hostname];
-
+      const isEnabled = isWalletConnect || getApprovedHosts()[hostname];
       return isEnabled && selectedAddress ? [selectedAddress] : [];
+    };
+
+    // Used by eth_accounts and eth_coinbase RPCs.
+    const getEthAccounts = async () => {
+      if (isMMSDK || isWalletConnect) {
+        res.result = getAccounts();
+      } else {
+        res.result = await getPermittedAccounts(hostname);
+      }
     };
 
     const checkTabActive = () => {
@@ -156,6 +180,13 @@ export const getRpcMethodMiddleware = ({
       const { browser } = store.getState();
       if (tabId !== browser.activeTab)
         throw ethErrors.provider.userRejectedRequest();
+    };
+
+    const getSource = () => {
+      if (analytics?.isRemoteConn)
+        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -173,6 +204,10 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         },
         id: random(),
@@ -215,6 +250,15 @@ export const getRpcMethodMiddleware = ({
           res.result = `0x${parseInt(chainId, 10).toString(16)}`;
         }
       },
+      eth_hashrate: () => {
+        res.result = '0x00';
+      },
+      eth_mining: () => {
+        res.result = false;
+      },
+      net_listening: () => {
+        res.result = true;
+      },
       net_version: async () => {
         const {
           provider: { type: networkType },
@@ -230,55 +274,63 @@ export const getRpcMethodMiddleware = ({
       },
       eth_requestAccounts: async () => {
         const { params } = req;
-        const {
-          privacy: { privacyMode },
-        } = store.getState();
-
-        let { selectedAddress } = Engine.context.PreferencesController.state;
-
-        selectedAddress = selectedAddress?.toLowerCase();
-
-        if (
-          isWalletConnect ||
-          !privacyMode ||
-          ((!params || !params.force) && getApprovedHosts()[hostname])
-        ) {
+        if (isWalletConnect) {
+          let { selectedAddress } = Engine.context.PreferencesController.state;
+          selectedAddress = selectedAddress?.toLowerCase();
           res.result = [selectedAddress];
-        } else {
+        } else if (isMMSDK) {
           try {
+            let { selectedAddress } =
+              Engine.context.PreferencesController.state;
+            selectedAddress = selectedAddress?.toLowerCase();
+            // Prompts user approval UI in RootRPCMethodsUI.js.
             await requestUserApproval({
               type: ApprovalTypes.CONNECT_ACCOUNTS,
               requestData: { hostname },
             });
-            const fullHostname = new URL(url.current).hostname;
-            approveHost?.(fullHostname);
-            setApprovedHosts?.({
-              ...getApprovedHosts?.(),
-              [fullHostname]: true,
-            });
-
+            // Stores approvals in SDKConnect.ts.
+            approveHost?.(hostname);
             res.result = selectedAddress ? [selectedAddress] : [];
           } catch (e) {
             throw ethErrors.provider.userRejectedRequest(
               'User denied account authorization.',
             );
           }
+        } else {
+          // Check against permitted accounts.
+          const permittedAccounts = await getPermittedAccounts(hostname);
+          if (!params?.force && permittedAccounts.length) {
+            res.result = permittedAccounts;
+          } else {
+            try {
+              checkTabActive();
+              await Engine.context.ApprovalController.clear();
+              await Engine.context.PermissionController.requestPermissions(
+                { origin: hostname },
+                { eth_accounts: {} },
+                { id: random() },
+              );
+              const acc = await getPermittedAccounts(hostname);
+              res.result = acc;
+            } catch (error) {
+              if (error) {
+                throw ethErrors.provider.userRejectedRequest(
+                  'User denied account authorization.',
+                );
+              }
+            }
+          }
         }
       },
-      eth_accounts: async () => {
-        res.result = await getAccounts();
-      },
-
-      eth_coinbase: async () => {
-        const accounts = await getAccounts();
-        res.result = accounts.length > 0 ? accounts[0] : null;
-      },
-      eth_sendTransaction: () => {
+      eth_accounts: getEthAccounts,
+      eth_coinbase: getEthAccounts,
+      eth_sendTransaction: async () => {
         checkTabActive();
-        checkActiveAccountAndChainId({
+        await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[0].from,
           chainId: req.params[0].chainId,
-          activeAccounts: getAccounts(),
+          checkSelectedAddress: isMMSDK || isWalletConnect,
         });
         next();
       },
@@ -294,16 +346,21 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
         checkTabActive();
-        checkActiveAccountAndChainId({
-          address: req.params[0].from,
-          activeAccounts: getAccounts(),
-        });
 
         if (req.params[1].length === 66 || req.params[1].length === 67) {
+          await checkActiveAccountAndChainId({
+            hostname,
+            address: req.params[0].from,
+            checkSelectedAddress: isMMSDK || isWalletConnect,
+          });
           const rawSig = await MessageManager.addUnapprovedMessageAsync({
             data: req.params[1],
             from: req.params[0],
@@ -313,9 +370,8 @@ export const getRpcMethodMiddleware = ({
 
           res.result = rawSig;
         } else {
-          throw ethErrors.rpc.invalidParams(
-            'eth_sign requires 32 byte message hash',
-          );
+          res.result = AppConstants.ETH_SIGN_ERROR;
+          throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
         }
       },
 
@@ -338,13 +394,18 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
         checkTabActive();
-        checkActiveAccountAndChainId({
+        await checkActiveAccountAndChainId({
+          hostname,
           address: params.from,
-          activeAccounts: getAccounts(),
+          checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
         const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
@@ -363,13 +424,18 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
         checkTabActive();
-        checkActiveAccountAndChainId({
+        await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[1],
-          activeAccounts: getAccounts(),
+          checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
         const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -396,14 +462,19 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
         checkTabActive();
-        checkActiveAccountAndChainId({
+        await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[0],
           chainId,
-          activeAccounts: getAccounts(),
+          checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
         const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -430,14 +501,19 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
           },
         };
 
         checkTabActive();
-        checkActiveAccountAndChainId({
+        await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[0],
           chainId,
-          activeAccounts: getAccounts(),
+          checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
         const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -503,9 +579,13 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         try {
+          const permittedAccounts = await getPermittedAccounts(hostname);
+          // This should return the current active account on the Dapp.
+          const interactingAddress = permittedAccounts?.[0];
           const watchAssetResult = await TokensController.watchAsset(
             { address, symbol, decimals, image },
             type,
+            interactingAddress,
           );
           await watchAssetResult.result;
           res.result = true;
@@ -605,7 +685,7 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         res.result = {
           ...getProviderState(),
-          accounts: await getAccounts(),
+          accounts: await getPermittedAccounts(hostname),
         };
       },
 
@@ -624,6 +704,10 @@ export const getRpcMethodMiddleware = ({
           req,
           res,
           requestUserApproval,
+          analytics: {
+            request_source: getSource(),
+            request_platform: analytics?.platform,
+          },
         });
       },
 
@@ -633,6 +717,10 @@ export const getRpcMethodMiddleware = ({
           req,
           res,
           requestUserApproval,
+          analytics: {
+            request_source: getSource(),
+            request_platform: analytics?.platform,
+          },
         });
       },
     };

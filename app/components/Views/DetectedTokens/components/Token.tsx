@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Token as TokenType } from '@metamask/controllers';
+import { Token as TokenType } from '@metamask/assets-controllers';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import CheckBox from '@react-native-community/checkbox';
@@ -14,7 +14,7 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../../util/number';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -84,7 +84,7 @@ interface Props {
 
 const Token = ({ token, selected, toggleSelected }: Props) => {
   const { address, symbol, aggregators, decimals } = token;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
   const tokenExchangeRates = useSelector(

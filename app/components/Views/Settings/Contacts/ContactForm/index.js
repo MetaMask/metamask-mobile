@@ -17,16 +17,26 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
-import { doENSLookup } from '../../../../../util/ENSUtils';
 import {
-  isValidHexAddress,
-  isENS,
   renderShortAddress,
+  validateAddressOrENS,
 } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import {
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../../../constants/error';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createQRScannerNavDetails } from '../../../QRScanner';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  CONTACT_NAME_INPUT,
+  CONTACT_ADD_BUTTON,
+  CONTACT_ADDRESS_INPUT,
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -129,16 +139,21 @@ class ContactForm extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Network chainId
+     */
+    chainId: PropTypes.string,
   };
 
   state = {
-    name: undefined,
-    address: undefined,
-    addressError: undefined,
-    toEnsName: undefined,
+    name: null,
+    address: null,
+    addressError: null,
+    toEnsName: null,
+    toEnsAddress: null,
     addressReady: false,
     mode: this.props.route.params?.mode ?? ADD,
-    memo: undefined,
+    memo: null,
     editable: true,
     inputWidth: Platform.OS === 'android' ? '99%' : undefined,
   };
@@ -207,43 +222,35 @@ class ContactForm extends PureComponent {
     this.setState({ name });
   };
 
-  checkIfAlreadySaved = (address) => {
-    const { addressBook, network, identities } = this.props;
-    const { mode } = this.state;
-    const networkAddressBook = addressBook[network] || {};
-    const checksummedResolvedAddress = toChecksumAddress(address);
-    if (
-      mode === ADD &&
-      (networkAddressBook[checksummedResolvedAddress] ||
-        identities[checksummedResolvedAddress])
-    ) {
-      return strings('address_book.address_already_saved');
-    }
-    return;
+  validateAddressOrENSFromInput = async (address) => {
+    const { network, addressBook, identities, chainId } = this.props;
+
+    const {
+      addressError,
+      toEnsName,
+      addressReady,
+      toEnsAddress,
+      errorContinue,
+    } = await validateAddressOrENS({
+      toAccount: address,
+      network,
+      addressBook,
+      identities,
+      chainId,
+    });
+
+    this.setState({
+      addressError,
+      toEnsName,
+      addressReady,
+      toEnsAddress,
+      errorContinue,
+    });
   };
 
-  onChangeAddress = async (address) => {
-    const { network } = this.props;
-    let addressError, toEnsName;
-    let addressReady = false;
-    if (isValidHexAddress(address, { mixedCaseUseChecksum: true })) {
-      addressError = this.checkIfAlreadySaved(address);
-      addressReady = true;
-    } else if (isENS(address)) {
-      const resolvedAddress = await doENSLookup(address, network);
-      if (resolvedAddress) {
-        const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
-        toEnsName = address;
-        address = resolvedAddress;
-        addressError = this.checkIfAlreadySaved(checksummedResolvedAddress);
-        addressReady = true;
-      } else {
-        addressError = strings('transaction.could_not_resolve_ens');
-      }
-    } else if (address.length >= 42) {
-      addressError = strings('transaction.invalid_address');
-    }
-    this.setState({ address, addressError, toEnsName, addressReady });
+  onChangeAddress = (address) => {
+    this.validateAddressOrENSFromInput(address);
+    this.setState({ address });
   };
 
   onChangeMemo = (memo) => {
@@ -261,11 +268,16 @@ class ContactForm extends PureComponent {
   };
 
   saveContact = () => {
-    const { name, address, memo } = this.state;
+    const { name, address, memo, toEnsAddress } = this.state;
     const { network, navigation } = this.props;
     const { AddressBookController } = Engine.context;
     if (!name || !address) return;
-    AddressBookController.set(toChecksumAddress(address), name, network, memo);
+    AddressBookController.set(
+      toChecksumAddress(toEnsAddress || address),
+      name,
+      network,
+      memo,
+    );
     navigation.pop();
   };
 
@@ -278,17 +290,41 @@ class ContactForm extends PureComponent {
   };
 
   onScan = () => {
-    this.props.navigation.navigate('QRScanner', {
-      onScanSuccess: (meta) => {
-        if (meta.target_address) {
-          this.onChangeAddress(meta.target_address);
-        }
-      },
-    });
+    this.props.navigation.navigate(
+      ...createQRScannerNavDetails({
+        onScanSuccess: (meta) => {
+          if (meta.target_address) {
+            this.onChangeAddress(meta.target_address);
+          }
+        },
+        origin: Routes.SETTINGS.CONTACT_FORM,
+      }),
+    );
   };
 
   createActionSheetRef = (ref) => {
     this.actionSheet = ref;
+  };
+
+  renderErrorMessage = (addressError) => {
+    let errorMessage = addressError;
+
+    if (addressError === CONTACT_ALREADY_SAVED) {
+      errorMessage = strings('address_book.address_already_saved');
+    }
+    if (addressError === SYMBOL_ERROR) {
+      errorMessage = `${
+        strings('transaction.tokenContractAddressWarning_1') +
+        strings('transaction.tokenContractAddressWarning_2') +
+        strings('transaction.tokenContractAddressWarning_3')
+      }`;
+    }
+
+    return errorMessage;
+  };
+
+  onErrorContinue = () => {
+    this.setState({ addressError: null });
   };
 
   render = () => {
@@ -302,6 +338,8 @@ class ContactForm extends PureComponent {
       memo,
       editable,
       inputWidth,
+      toEnsAddress,
+      errorContinue,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -328,7 +366,7 @@ class ContactForm extends PureComponent {
               ]}
               value={name}
               onSubmitEditing={this.jumpToAddressInput}
-              testID={'contact-name-input'}
+              {...generateTestId(Platform, CONTACT_NAME_INPUT)}
               keyboardAppearance={themeAppearance}
             />
 
@@ -353,12 +391,12 @@ class ContactForm extends PureComponent {
                   value={toEnsName || address}
                   ref={this.addressInput}
                   onSubmitEditing={this.jumpToMemoInput}
-                  testID={'contact-address-input'}
+                  {...generateTestId(Platform, CONTACT_ADDRESS_INPUT)}
                   keyboardAppearance={themeAppearance}
                 />
-                {toEnsName && (
+                {toEnsName && toEnsAddress && (
                   <Text style={styles.resolvedInput}>
-                    {renderShortAddress(address)}
+                    {renderShortAddress(toEnsAddress)}
                   </Text>
                 )}
               </View>
@@ -406,7 +444,13 @@ class ContactForm extends PureComponent {
             </View>
           </View>
 
-          {addressError && <ErrorMessage errorMessage={addressError} />}
+          {addressError && (
+            <ErrorMessage
+              errorMessage={this.renderErrorMessage(addressError)}
+              errorContinue={!!errorContinue}
+              onContinue={this.onErrorContinue}
+            />
+          )}
 
           {!!editable && (
             <View style={styles.buttonsWrapper}>
@@ -416,7 +460,7 @@ class ContactForm extends PureComponent {
                     type={'confirm'}
                     disabled={!addressReady || !name || !!addressError}
                     onPress={this.saveContact}
-                    testID={'contact-add-contact-button'}
+                    testID={CONTACT_ADD_BUTTON}
                   >
                     {strings(`address_book.${mode}_contact`)}
                   </StyledButton>
@@ -461,6 +505,7 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
   network: state.engine.backgroundState.NetworkController.network,
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 export default connect(mapStateToProps)(ContactForm);

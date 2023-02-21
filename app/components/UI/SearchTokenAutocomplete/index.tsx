@@ -11,13 +11,15 @@ import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -54,7 +56,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [selectedAsset, setSelectedAsset] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { address, symbol, decimals, image } = selectedAsset as any;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(
@@ -64,10 +66,6 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const chainId = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.provider.chainId,
-  );
-  const networkType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.type,
   );
 
   const setFocusState = useCallback(
@@ -83,14 +81,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       return {
         token_address: address,
         token_symbol: symbol,
-        network_name: networkType,
         chain_id: chainId,
         source: 'Add token dropdown',
       };
     } catch (error) {
       return {};
     }
-  }, [address, symbol, chainId, networkType]);
+  }, [address, symbol, chainId]);
 
   const cancelAddToken = useCallback(() => {
     navigation.goBack();
@@ -115,10 +112,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     const { TokensController } = Engine.context as any;
     await TokensController.addToken(address, symbol, decimals, image);
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
-      getAnalyticsParams(),
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
     // Clear state before closing
     setSearchResults([]);

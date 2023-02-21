@@ -10,14 +10,15 @@ import {
   Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import RevealPrivateCredential from '../RevealPrivateCredential';
+import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
 import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
+import { ROOT } from './constants';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -102,7 +103,7 @@ const createStyles = (colors) =>
   });
 
 const Fallback = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -210,7 +211,7 @@ class ErrorBoundary extends Component {
   };
 
   getErrorMessage = () =>
-    `View: ${this.props.view}\n${this.state.error.toString()}`;
+    `View: ${this.props.view}\n${this.state?.error?.toString()}`;
 
   copyErrorToClipboard = async () => {
     await ClipboardManager.setString(this.getErrorMessage());
@@ -232,9 +233,9 @@ class ErrorBoundary extends Component {
   render() {
     return this.state.backupSeedphrase ? (
       <RevealPrivateCredential
-        navBarDisabled
-        privateCredentialName={'seed_phrase'}
+        credentialName={'seed_phrase'}
         cancel={this.cancelExportSeedphrase}
+        hasNavigation={this.props.view !== ROOT}
       />
     ) : this.state.error ? (
       <Fallback

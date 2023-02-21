@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -14,8 +20,9 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-
+import { useTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -86,10 +93,10 @@ const createStyles = (colors) =>
       marginLeft: 4,
       paddingHorizontal: 8,
       ...fontStyles.bold,
-      color: colors.primary.alternative,
+      color: colors.text.alternative,
       borderWidth: 1,
       borderRadius: 8,
-      borderColor: colors.primary.alternative,
+      borderColor: colors.border.default,
       fontSize: 10,
     },
     textBalance: {
@@ -167,7 +174,7 @@ const createStyles = (colors) =>
   });
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   if (confusableCollection.length) {
     const texts = toAddressName?.split('').map((char, index) => {
@@ -224,7 +231,7 @@ export const AddressTo = (props) => {
     isConfirmScreen = false,
     isFromAddressBook = false,
   } = props;
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const isInputFilled = toSelectedAddress?.length;
@@ -254,8 +261,7 @@ export const AddressTo = (props) => {
             )}
             <View style={styles.toInputWrapper}>
               <View style={[styles.address, styles.checkAddress]}>
-                {(isENS(toAddressName) ||
-                  toAddressName?.substring(0, 2) !== '0x') && (
+                {isENS(toAddressName) && (
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
@@ -322,6 +328,7 @@ export const AddressTo = (props) => {
               onSubmitEditing={onSubmit}
               value={toSelectedAddress}
               testID={'txn-to-address-input'}
+              {...generateTestId(Platform, SEND_ADDRESS_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
           </View>
@@ -539,7 +546,7 @@ export const AddressFrom = (props) => {
     fromAccountAddress,
   } = props;
   const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

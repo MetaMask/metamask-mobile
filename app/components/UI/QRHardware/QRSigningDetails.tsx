@@ -28,9 +28,11 @@ import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useNavigation } from '@react-navigation/native';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 
 interface IQRSigningDetails {
@@ -44,6 +46,7 @@ interface IQRSigningDetails {
   showHint?: boolean;
   shouldStartAnimated?: boolean;
   bypassAndroidCameraAccessCheck?: boolean;
+  fromAddress: string;
 }
 
 const createStyles = (colors: any) =>
@@ -122,8 +125,9 @@ const QRSigningDetails = ({
   showHint = true,
   shouldStartAnimated = true,
   bypassAndroidCameraAccessCheck = true,
+  fromAddress,
 }: IQRSigningDetails) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
@@ -223,13 +227,10 @@ const QRSigningDetails = ({
         setSentOrCanceled(true);
         successCallback?.();
       } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR,
-          {
-            error:
-              'received signature request id is not matched with origin request',
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+          error:
+            'received signature request id is not matched with origin request',
+        });
         setErrorMessage(strings('transaction.mismatched_qr_request_id'));
         failureCallback?.(strings('transaction.mismatched_qr_request_id'));
       }
@@ -288,7 +289,10 @@ const QRSigningDetails = ({
               ]}
             >
               <View style={styles.accountInfoCardWrapper}>
-                <AccountInfoCard showFiatBalance={false} />
+                <AccountInfoCard
+                  showFiatBalance={false}
+                  fromAddress={fromAddress}
+                />
               </View>
               {renderAlert()}
               {renderCameraAlert()}

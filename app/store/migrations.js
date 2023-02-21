@@ -1,4 +1,5 @@
-import { NetworksChainId } from '@metamask/controllers';
+import { v1 as random } from 'uuid';
+import { NetworksChainId } from '@metamask/controller-utils';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
 import { toLowerCaseEquals } from '../util/general';
@@ -300,6 +301,86 @@ export const migrations = {
     };
     return state;
   },
+  12: (state) => {
+    const {
+      allCollectibles,
+      allCollectibleContracts,
+      ignoredCollectibles,
+      ...unexpectedCollectiblesControllerState
+    } = state.engine.backgroundState.CollectiblesController;
+    state.engine.backgroundState.NftController = {
+      ...unexpectedCollectiblesControllerState,
+      allNfts: allCollectibles,
+      allNftContracts: allCollectibleContracts,
+      ignoredNfts: ignoredCollectibles,
+    };
+    delete state.engine.backgroundState.CollectiblesController;
+
+    state.engine.backgroundState.NftDetectionController =
+      state.engine.backgroundState.CollectibleDetectionController;
+    delete state.engine.backgroundState.CollectibleDetectionController;
+
+    state.engine.backgroundState.PreferencesController.useNftDetection =
+      state.engine.backgroundState.PreferencesController.useCollectibleDetection;
+    delete state.engine.backgroundState.PreferencesController
+      .useCollectibleDetection;
+
+    return state;
+  },
+  13: (state) => {
+    // If for some reason we already have PermissionController state, bail out.
+    const hasPermissionControllerState = Boolean(
+      state.engine.backgroundState.PermissionController?.subjects,
+    );
+    if (hasPermissionControllerState) return state;
+
+    const { approvedHosts } = state.privacy;
+    const { selectedAddress } =
+      state.engine.backgroundState.PreferencesController;
+
+    const hosts = Object.keys(approvedHosts);
+    // If no dapps connected, bail out.
+    if (hosts.length < 1) return state;
+
+    const { subjects } = hosts.reduce(
+      (accumulator, host, index) => ({
+        subjects: {
+          ...accumulator.subjects,
+          [host]: {
+            origin: host,
+            permissions: {
+              eth_accounts: {
+                id: random(),
+                parentCapability: 'eth_accounts',
+                invoker: host,
+                caveats: [
+                  {
+                    type: 'restrictReturnedAccounts',
+                    value: [
+                      {
+                        address: selectedAddress,
+                        lastUsed: Date.now() - index,
+                      },
+                    ],
+                  },
+                ],
+                date: Date.now(),
+              },
+            },
+          },
+        },
+      }),
+      {},
+    );
+
+    const newState = { ...state };
+
+    newState.engine.backgroundState.PermissionController = {
+      subjects,
+    };
+
+    return newState;
+  },
 };
 
-export const version = 11;
+export const version = 13;

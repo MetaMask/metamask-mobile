@@ -717,8 +717,6 @@
     "minimum": "Tối thiểu là 1,00 {{tokenSymbol}}",
     "cancel": "Hủy",
     "approve": "Phê duyệt",
-    "allow_to_access": "Cấp cho trang web này quyền truy cập {{tokenSymbol}} của bạn?",
-    "allow_to_address_access": "Cho phép địa chỉ này truy cập {{tokenSymbol}} của bạn?",
     "you_trust_this_site": "Bạn có tin tưởng trang web này không? Bằng việc cấp quyền này, bạn sẽ cho phép trang web này truy cập tiền của bạn.",
     "you_trust_this_address": "Bạn có tin tưởng địa chỉ này không? Bằng việc cấp quyền này, bạn sẽ cho phép địa chỉ này truy cập tiền của bạn.",
     "edit_permission": "Chỉnh sửa quyền",

@@ -52,7 +52,7 @@ exports[`PhishingModal should render correctly 1`] = `
         size={15}
         style={
           Object {
-            "color": "#D73A49",
+            "color": "#D73847",
             "marginRight": 10,
           }
         }
@@ -60,7 +60,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#D73A49",
+            "color": "#D73847",
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
             "textAlign": "center",
@@ -223,7 +223,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
       style={
         Object {
-          "color": "#D73A49",
+          "color": "#D73847",
           "fontSize": 12,
         }
       }

@@ -14,23 +14,10 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
     bold={true}
     centered={true}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     noMargin={true}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "fontSize": 24,
@@ -40,29 +27,12 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         "marginTop": 16,
       }
     }
-    underline={false}
-    upper={false}
   >
     New network added
   </Text>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     noMargin={true}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "fontSize": 13,
@@ -72,72 +42,17 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         "width": "100%",
       }
     }
-    underline={false}
-    upper={false}
   >
-    <Text
-      bigger={false}
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      muted={false}
-      primary={false}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
-      underline={false}
-      upper={false}
-    >
+    <Text>
       <Text
-        bigger={false}
-        black={false}
-        blue={false}
         bold={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        muted={false}
         noMargin={true}
         primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
       >
         ""
       </Text>
       <Text
-        bigger={false}
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        muted={false}
         noMargin={true}
-        primary={false}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
       >
          
         is now available in the network selector.

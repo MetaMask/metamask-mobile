@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 import { colors as importedColors } from '../../styles/common';
 
 const createStyles = (colors) =>
@@ -26,7 +26,7 @@ const createStyles = (colors) =>
   });
 
 function ModalDragger({ borderless }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

@@ -20,6 +20,12 @@ const initialState = {
   networkOnboarded: {
     networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
   },
+  modals: {
+    shouldNetworkSwitchPopToWallet: false,
+  },
+  navigation: {
+    currentBottomNavRoute: 'Wallet',
+  },
 };
 const store = mockStore(initialState);
 

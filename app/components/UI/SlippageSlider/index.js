@@ -14,8 +14,8 @@ import {
   Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { fontStyles } from '../../../styles/common';
+import { useTheme } from '../../../util/theme';
 import Svg, { Path } from 'react-native-svg';
 
 /* eslint-disable import/no-commonjs */
@@ -29,7 +29,7 @@ const TOOLTIP_HEIGHT = 36;
 const TOOLTIP_WIDTH = 40;
 const COMPONENT_HEIGHT = DIAMETER + TOOLTIP_HEIGHT + 10;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     root: {
       position: 'relative',
@@ -47,13 +47,7 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.background.default,
       bottom: 0,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 0,
-      },
-      shadowOpacity: 0.18,
-      shadowRadius: 14,
+      ...shadows.size.md,
     },
     trackBackContainer: {
       position: 'absolute',
@@ -115,8 +109,8 @@ const SlippageSlider = ({
   disabled,
   changeOnRelease,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
   /* Reusable/truncated references to the range prop values */
   const [r0, r1] = useMemo(() => range, [range]);
   const fullRange = useMemo(() => r1 - r0, [r0, r1]);

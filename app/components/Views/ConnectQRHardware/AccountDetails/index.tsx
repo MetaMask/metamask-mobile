@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import Device from '../../../../util/device';
 import { renderFromWei } from '../../../../util/number';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../../UI/EthereumAddress';
 
@@ -44,7 +44,7 @@ const createStyle = (colors: any) =>
   });
 
 const AccountDetails = (props: IAccountDetailsProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyle(colors);
   const { index, address, balance, ticker, toBlockExplorer } = props;
   const defaultTicker = 'ETH';

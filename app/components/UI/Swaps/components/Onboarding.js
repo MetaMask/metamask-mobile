@@ -9,16 +9,13 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import {
-  useAppThemeFromContext,
-  mockTheme,
-  useAssetFromTheme,
-} from '../../../../util/theme';
+import { useTheme, useAssetFromTheme } from '../../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const onboardingDeviceImage = require('../../../../images/swaps_onboard_device.png');
@@ -26,7 +23,7 @@ const swapsAggregatorsLight = require('../../../../images/swaps_aggs-light.png')
 const swapsAggregatorsDark = require('../../../../images/swaps_aggs-dark.png');
 /* eslint-enable import/no-commonjs */
 
-const createStyles = (colors) =>
+const createStyles = (colors, bottomInset) =>
   StyleSheet.create({
     screen: {
       flex: 1,
@@ -61,6 +58,7 @@ const createStyles = (colors) =>
     },
     actionButtonWrapper: {
       width: '100%',
+      paddingBottom: bottomInset,
     },
     actionButton: {
       marginVertical: 10,
@@ -76,8 +74,9 @@ if (
 
 function Onboarding({ setHasOnboarded }) {
   const navigation = useNavigation();
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const { colors } = useTheme();
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const styles = createStyles(colors, bottomInset);
   const swapsAggregators = useAssetFromTheme(
     swapsAggregatorsLight,
     swapsAggregatorsDark,

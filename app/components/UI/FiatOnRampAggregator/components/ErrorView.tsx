@@ -1,16 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import BaseTitle from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
-import BaseText from '../../../Base/Text';
+import Title from '../../../Base/Title';
+import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { Colors } from '../../../../util/theme/models';
-
-// TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
-const Title = BaseTitle as any;
+import { ScreenLocation } from '../types';
+import useAnalytics from '../hooks/useAnalytics';
+import { useFiatOnRampSDK } from '../sdk';
 
 type IconType = 'error' | 'info';
 
@@ -52,6 +51,7 @@ interface Props {
   ctaLabel?: string; // The CTA button label, default will be "Try again" (Optional)
   ctaOnPress?: () => any; // The optional callback to be invoked when pressing the CTA button (Optional)
   icon?: IconType;
+  location: ScreenLocation;
 }
 
 function ErrorIcon({ icon }: { icon: IconType }) {
@@ -80,14 +80,37 @@ function ErrorView({
   title,
   ctaLabel,
   ctaOnPress,
+  location,
   icon = 'error',
 }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const trackEvent = useAnalytics();
+  const {
+    selectedPaymentMethodId,
+    selectedRegion,
+    selectedAsset,
+    selectedFiatCurrencyId,
+  } = useFiatOnRampSDK();
 
   const ctaOnPressCallback = useCallback(() => {
     ctaOnPress?.();
   }, [ctaOnPress]);
+
+  useEffect(() => {
+    trackEvent('ONRAMP_ERROR', {
+      location,
+      message: description,
+      payment_method_id: selectedPaymentMethodId as string,
+      region: selectedRegion?.id,
+      currency_source: selectedFiatCurrencyId as string,
+      currency_destination: selectedAsset?.symbol,
+    });
+    // Dependency array does not include extra data since it can mutate after the error
+    // is displayed. This is a safe guard to prevent the error from being tracked multiple
+    // times.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [description, location, trackEvent]);
 
   return (
     <View style={styles.screen}>

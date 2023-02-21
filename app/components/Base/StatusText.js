@@ -4,7 +4,7 @@ import Text from './Text';
 import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 
 const styles = StyleSheet.create({
   status: {
@@ -18,7 +18,7 @@ export const ConfirmedText = (props) => (
   <Text bold green style={styles.status} {...props} />
 );
 export const PendingText = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   return (
     <Text
       bold
@@ -28,7 +28,7 @@ export const PendingText = (props) => {
   );
 };
 export const FailedText = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   return (
     <Text
       bold

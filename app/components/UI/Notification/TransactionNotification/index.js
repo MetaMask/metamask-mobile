@@ -19,10 +19,10 @@ import TransactionDetails from '../../TransactionElement/TransactionDetails';
 import BaseNotification from './../BaseNotification';
 import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -113,7 +113,7 @@ function TransactionNotification(props) {
   const actionXAnimated = useRef(new Animated.Value(0)).current;
   const detailsAnimated = useRef(new Animated.Value(0)).current;
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const detailsFadeIn = useCallback(async () => {

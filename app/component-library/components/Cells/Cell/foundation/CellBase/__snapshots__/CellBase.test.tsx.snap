@@ -1,0 +1,186 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellBase - Snapshot should render default settings correctly 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <Avatar
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-avatar"
+    type="JazzIcon"
+    variant="Account"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`CellBase - Snapshot should render label when given 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <Avatar
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-avatar"
+    type="JazzIcon"
+    variant="Account"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+    <Tag
+      label="Imported"
+      style={
+        Object {
+          "marginTop": 4,
+        }
+      }
+      testID="cell-label"
+    />
+  </View>
+</View>
+`;
+
+exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <Avatar
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-avatar"
+    type="JazzIcon"
+    variant="Account"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "color": "#535A61",
+        }
+      }
+      testID="cell-secondary-text"
+      variant="sBodyMD"
+    >
+      0x2990079bcdEe240329a520d2444386FC119da21a
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <Avatar
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-avatar"
+    type="JazzIcon"
+    variant="Account"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "color": "#535A61",
+        }
+      }
+      testID="cell-tertiary-text"
+      variant="sBodyMD"
+    >
+      Updated 1 sec ago
+    </Text>
+  </View>
+</View>
+`;

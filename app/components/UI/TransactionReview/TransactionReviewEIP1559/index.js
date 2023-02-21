@@ -3,7 +3,7 @@ import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { isMainnetByChainId } from '../../../../util/networks';
+import { isMainnetByChainId, isTestNet } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../Swaps/components/InfoModal';
@@ -14,7 +14,7 @@ import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,7 +67,7 @@ const createStyles = (colors) =>
 
 // eslint-disable-next-line react/prop-types
 const Skeleton = ({ width, noStyle }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -116,7 +116,7 @@ const TransactionReviewEIP1559 = ({
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
   }, []);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const openLinkAboutGas = useCallback(
@@ -156,6 +156,7 @@ const TransactionReviewEIP1559 = ({
   }
 
   const valueToWatchAnimation = `${gasFeeNative}${gasFeeMaxNative}`;
+  const isTestNetwork = isTestNet(chainId);
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -226,7 +227,7 @@ const TransactionReviewEIP1559 = ({
                 <Text
                   primary
                   bold
-                  upper
+                  upper={!isTestNetwork}
                   grey={!nativeCurrencySelected}
                   link={nativeCurrencySelected}
                   underline={nativeCurrencySelected}
@@ -331,7 +332,7 @@ const TransactionReviewEIP1559 = ({
                   <Text
                     bold
                     primary
-                    upper
+                    upper={!isTestNetwork}
                     right
                     noMargin
                     style={[Device.isSmallDevice() && styles.flex]}

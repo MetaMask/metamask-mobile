@@ -1,0 +1,12 @@
+/app/core/InpageBridgeWeb3.js
+/app/util/blockies.js
+__snapshots__
+android
+coverage
+ios
+jest.preprocessor.js
+node_modules
+CHANGELOG.md
+# Ignore auto generated file used for react-native-storybook-loader
+/storybook/storyLoader.js
+wdio

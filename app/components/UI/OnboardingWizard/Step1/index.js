@@ -1,15 +1,27 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet, InteractionManager } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  InteractionManager,
+  Platform,
+} from 'react-native';
 import Coachmark from '../Coachmark';
 import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
+
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
@@ -46,13 +58,10 @@ class Step1 extends PureComponent {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(2);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STARTED,
-        {
-          tutorial_step_count: 1,
-          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
+        tutorial_step_count: 1,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
+      });
     });
   };
 
@@ -85,7 +94,10 @@ class Step1 extends PureComponent {
 
   render() {
     return (
-      <View style={styles.main} testID={'onboarding-wizard-step1-view'}>
+      <View
+        style={styles.main}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
+      >
         <View style={styles.coachmarkContainer}>
           <Coachmark
             title={strings('onboarding_wizard.step1.title')}

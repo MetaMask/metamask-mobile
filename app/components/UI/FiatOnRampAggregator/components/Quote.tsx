@@ -4,6 +4,7 @@ import {
   View,
   TouchableOpacity,
   LayoutChangeEvent,
+  ActivityIndicator,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Animated, {
@@ -12,11 +13,12 @@ import Animated, {
   useSharedValue,
   withDelay,
   withTiming,
+  WithTimingConfig,
 } from 'react-native-reanimated';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import CustomText from '../../../Base/Text';
-import CustomTitle from '../../../Base/Title';
+import Text from '../../../Base/Text';
+import Title from '../../../Base/Title';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import {
@@ -26,14 +28,12 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
-import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 
 import { Colors } from '../../../../util/theme/models';
 
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
-const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: Colors) =>
@@ -53,6 +53,7 @@ const createStyles = (colors: Colors) =>
       color: colors.icon.alternative,
     },
     data: {
+      marginTop: 4,
       overflow: 'hidden',
     },
   });
@@ -62,10 +63,11 @@ interface Props {
   onPress?: () => any;
   onPressBuy?: () => any;
   highlighted?: boolean;
+  isLoading?: boolean;
   showInfo: () => any;
 }
 
-const animationConfig: Animated.WithTimingConfig = {
+const animationConfig: WithTimingConfig = {
   duration: 150,
   easing: Easing.elastic(0.3),
 };
@@ -75,11 +77,11 @@ const Quote: React.FC<Props> = ({
   onPress,
   onPressBuy,
   showInfo,
+  isLoading,
   highlighted,
 }: Props) => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
   const {
     networkFee = 0,
     providerFee = 0,
@@ -130,31 +132,29 @@ const Quote: React.FC<Props> = ({
       >
         <ListItem.Content>
           <ListItem.Body>
-            <ListItem.Title>
-              <TouchableOpacity
-                onPress={highlighted ? showInfo : undefined}
-                disabled={!highlighted}
-                accessibilityLabel={quote.provider?.name}
-              >
-                <View style={styles.title}>
-                  {quote.provider?.logos?.[logoKey] ? (
-                    <RemoteImage
-                      style={{
-                        width: quote.provider.logos.width,
-                        height: quote.provider.logos.height,
-                      }}
-                      source={{ uri: quote.provider?.logos?.[logoKey] }}
-                    />
-                  ) : (
-                    <Title>{quote?.provider?.name}</Title>
-                  )}
+            <TouchableOpacity
+              onPress={highlighted ? showInfo : undefined}
+              disabled={!highlighted}
+              accessibilityLabel={quote.provider?.name}
+            >
+              <View style={styles.title}>
+                {quote.provider?.logos?.[themeAppearance] ? (
+                  <RemoteImage
+                    style={{
+                      width: quote.provider.logos.width,
+                      height: quote.provider.logos.height,
+                    }}
+                    source={{ uri: quote.provider?.logos?.[themeAppearance] }}
+                  />
+                ) : (
+                  <Title>{quote?.provider?.name}</Title>
+                )}
 
-                  {quote?.provider && (
-                    <Feather name="info" size={12} style={styles.infoIcon} />
-                  )}
-                </View>
-              </TouchableOpacity>
-            </ListItem.Title>
+                {quote?.provider && (
+                  <Feather name="info" size={12} style={styles.infoIcon} />
+                )}
+              </View>
+            </TouchableOpacity>
           </ListItem.Body>
           <ListItem.Amounts>
             <Text big primary bold right>
@@ -167,23 +167,23 @@ const Quote: React.FC<Props> = ({
           </ListItem.Amounts>
         </ListItem.Content>
 
-        <ListItem.Content>
-          <ListItem.Body>
-            <Text small>
-              {strings('fiat_on_ramp_aggregator.price')} {fiatCode}
-            </Text>
-          </ListItem.Body>
-          <ListItem.Amounts>
-            <Text small right>
-              ≈ {fiatSymbol} {renderFiat(price, fiatCode, fiat?.decimals)}
-            </Text>
-          </ListItem.Amounts>
-        </ListItem.Content>
-
         <Animated.View
           onLayout={handleOnLayout}
           style={[styles.data, animatedStyle]}
         >
+          <ListItem.Content>
+            <ListItem.Body>
+              <Text small>
+                {strings('fiat_on_ramp_aggregator.price')} {fiatCode}
+              </Text>
+            </ListItem.Body>
+            <ListItem.Amounts>
+              <Text small right>
+                ≈ {fiatSymbol} {renderFiat(price, fiatCode, fiat?.decimals)}
+              </Text>
+            </ListItem.Amounts>
+          </ListItem.Content>
+
           <ListItem.Content>
             <ListItem.Body>
               <Text black small>
@@ -244,10 +244,21 @@ const Quote: React.FC<Props> = ({
                 label={strings('fiat_on_ramp_aggregator.pay_with')}
               />
             ) : (
-              <StyledButton type={'blue'} onPress={onPressBuy}>
-                {strings('fiat_on_ramp_aggregator.buy_with', {
-                  provider: provider.name,
-                })}
+              <StyledButton
+                type={'blue'}
+                onPress={onPressBuy}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator
+                    size={'small'}
+                    color={colors.primary.inverse}
+                  />
+                ) : (
+                  strings('fiat_on_ramp_aggregator.buy_with', {
+                    provider: provider.name,
+                  })
+                )}
               </StyledButton>
             )}
           </View>

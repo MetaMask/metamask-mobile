@@ -10,8 +10,9 @@ import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
-import { getNetworkTypeById } from '../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
+import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
+import { WalletDevice } from '@metamask/transaction-controller';
+import NotificationManager from '../core/NotificationManager';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -19,14 +20,17 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
+import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
-
+import Minimizer from 'react-native-minimizer';
+import { getAddress } from '../util/address';
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
+    this.network = network;
   }
 
   setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -42,55 +46,24 @@ class DeeplinkManager {
    */
   _handleNetworkSwitch = (switchToChainId) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
+    const network = handleNetworkSwitch(switchToChainId, this.frequentRpcList, {
+      networkController: NetworkController,
+      currencyRateController: CurrencyRateController,
+    });
 
-    // If not specified, use the current network
-    if (!switchToChainId) {
-      return;
-    }
+    if (!network) return;
 
-    // If current network is the same as the one we want to switch to, do nothing
-    if (
-      NetworkController?.state?.provider?.chainId === String(switchToChainId)
-    ) {
-      return;
-    }
-
-    const rpc = this.frequentRpcList.find(
-      ({ chainId }) => chainId === switchToChainId,
+    this.dispatch(
+      showAlert({
+        isVisible: true,
+        autodismiss: 5000,
+        content: 'clipboard-alert',
+        data: { msg: strings('send.warn_network_change') + network },
+      }),
     );
-
-    if (rpc) {
-      const { rpcUrl, chainId, ticker, nickname } = rpc;
-      CurrencyRateController.setNativeCurrency(ticker);
-      NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-      this.dispatch(
-        showAlert({
-          isVisible: true,
-          autodismiss: 5000,
-          content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + nickname },
-        }),
-      );
-      return;
-    }
-
-    const networkType = getNetworkTypeById(switchToChainId);
-
-    if (networkType) {
-      CurrencyRateController.setNativeCurrency('ETH');
-      NetworkController.setProviderType(networkType);
-      this.dispatch(
-        showAlert({
-          isVisible: true,
-          autodismiss: 5000,
-          content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + networkType },
-        }),
-      );
-    }
   };
 
-  _approveTransaction = (ethUrl, origin) => {
+  _approveTransaction = async (ethUrl, origin) => {
     const {
       parameters: { address, uint256 },
       target_address,
@@ -113,11 +86,22 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
+    const spenderAddress = await getAddress(address, this.network);
+    if (!spenderAddress) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: strings('transaction.invalid_recipient_description'),
+      });
+      this.navigation.navigate('WalletView');
+    }
+
     const txParams = {
       to: target_address.toString(),
       from: PreferencesController.state.selectedAddress.toString(),
       value: '0x0',
-      data: generateApproveData({ spender: address, value }),
+      data: generateApproveData({ spender: spenderAddress, value }),
     };
 
     TransactionController.addTransaction(
@@ -190,8 +174,8 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
-        this.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-          screen: Routes.BROWSER_VIEW,
+        this.navigation.navigate(Routes.BROWSER.HOME, {
+          screen: Routes.BROWSER.VIEW,
           params: {
             newTabUrl: url,
             timestamp: Date.now(),
@@ -239,7 +223,18 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === ACTIONS.WC && params?.uri) {
+          if (action === ACTIONS.CONNECT) {
+            if (params.redirect) {
+              Minimizer.goBack();
+            } else {
+              SDKConnect.connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
+          } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
               params.redirectUrl,
@@ -322,8 +317,18 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-
-        if (url.startsWith('metamask://wc')) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+          if (params.redirect) {
+            Minimizer.goBack();
+          } else {
+            SDKConnect.connectToChannel({
+              id: params.channelId,
+              commLayer: params.comm,
+              origin,
+              otherPublicKey: params.pubkey,
+            });
+          }
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
 
@@ -349,8 +354,13 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch }) => {
-    instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
+  init: ({ navigation, frequentRpcList, dispatch, network }) => {
+    instance = new DeeplinkManager({
+      navigation,
+      frequentRpcList,
+      dispatch,
+      network,
+    });
   },
   parse: (url, args) => instance.parse(url, args),
   setDeeplink: (url) => instance.setDeeplink(url),
