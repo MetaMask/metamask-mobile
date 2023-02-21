@@ -343,7 +343,7 @@ class AccountOverview extends PureComponent {
     this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
       screen: Routes.BROWSER_VIEW,
       params: {
-        newTabUrl: 'https://portfolio.metamask.io/?metamaskEntry=mobile',
+        newTabUrl: `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`,
         timestamp: Date.now(),
       },
     });
