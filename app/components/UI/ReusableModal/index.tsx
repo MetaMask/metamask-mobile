@@ -39,7 +39,7 @@ import {
   timing,
 } from 'react-native-redash/src/v1';
 import createStyles from './styles';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 const screenHeight = Dimensions.get('window').height;
 
 type DismissModalCallback = () => void;
@@ -62,7 +62,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
   const navigation = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
   const trigger = useRef<DismissModalCallback>();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   // Animation config

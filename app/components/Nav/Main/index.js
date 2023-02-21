@@ -1,28 +1,35 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from 'react';
 
 import {
   ActivityIndicator,
   AppState,
   StyleSheet,
   View,
+  Linking,
   PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
-import I18n from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOrders';
+import FiatOrders from '../../UI/FiatOnRampAggregator';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -33,7 +40,7 @@ import {
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
 import {
@@ -43,10 +50,23 @@ import {
 
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
+import WarningAlert from '../../../components/UI/WarningAlert';
+import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
+import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '../../hooks/MinimumVersions';
 
 const Stack = createStackNavigator();
 
@@ -68,7 +88,8 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const backgroundMode = useRef(false);
@@ -79,6 +100,9 @@ const Main = (props) => {
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
   const prevLockTime = usePrevious(props.lockTime);
+
+  useEnableAutomaticSecurityChecks();
+  useMinimumVersions();
 
   const pollForIncomingTransactions = useCallback(async () => {
     props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
@@ -109,7 +133,7 @@ const Main = (props) => {
     if (props.providerType !== 'rpc') {
       try {
         const { TransactionController } = Engine.context;
-        await util.query(TransactionController.ethQuery, 'blockNumber', []);
+        await query(TransactionController.ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
@@ -190,6 +214,44 @@ const Main = (props) => {
     if (skipCheckbox) toggleRemindLater();
   };
 
+  /**
+   * Current network
+   */
+  const networkProvider = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const prevNetworkProvider = useRef(undefined);
+  const { toastRef } = useContext(ToastContext);
+
+  // Show network switch confirmation.
+  useEffect(() => {
+    if (
+      prevNetworkProvider.current &&
+      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
+        networkProvider.type !== prevNetworkProvider.current.type)
+    ) {
+      const { type, chainId } = networkProvider;
+      const networkImage = getNetworkImageSource({
+        networkType: type,
+        chainId,
+      });
+      const networkName = getNetworkNameFromProvider(networkProvider);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: `${networkName} `,
+            isBold: true,
+          },
+          { label: strings('toast.now_active') },
+        ],
+        networkName,
+        networkImageSource: networkImage,
+      });
+    }
+    prevNetworkProvider.current = networkProvider;
+  }, [networkProvider, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
@@ -257,6 +319,29 @@ const Main = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const openDeprecatedNetworksArticle = () => {
+    Linking.openURL(MM_DEPRECATED_NETWORKS);
+  };
+
+  const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
+    const { wizardStep } = props;
+    const { type } = network.provider;
+    if (
+      (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
+      showDeprecatedAlert &&
+      !wizardStep
+    ) {
+      return (
+        <WarningAlert
+          text={strings('networks.deprecated_network_msg')}
+          dismissAlert={() => setShowDeprecatedAlert(false)}
+          onPressLearnMore={openDeprecatedNetworksArticle}
+          precedentAlert={backUpSeedphraseVisible}
+        />
+      );
+    }
+  };
+
   return (
     <React.Fragment>
       <View style={styles.flex}>
@@ -274,6 +359,10 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
+        {renderDeprecatedNetworkAlert(
+          props.network,
+          props.backUpSeedphraseVisible,
+        )}
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}
@@ -336,12 +425,27 @@ Main.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Object representing the selected network
+   */
+  network: PropTypes.object,
+  /**
+   * redux flag that indicates if the alert should be shown
+   */
+  backUpSeedphraseVisible: PropTypes.bool,
+  /**
+   * Onboarding wizard step.
+   */
+  wizardStep: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  network: state.engine.backgroundState.NetworkController,
+  backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  wizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({

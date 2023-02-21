@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
@@ -14,8 +15,17 @@ import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  MULTI_TAB_ADD_BUTTON,
+  MULTI_TAB_CLOSE_ALL_BUTTON,
+  MULTI_TAB_DONE_BUTTON,
+  MULTI_TAB_NO_TABS_MESSAGE,
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -28,7 +38,7 @@ const ROWS_VISIBLE = Math.floor(
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     noTabs: {
       flex: 1,
@@ -84,17 +94,10 @@ const createStyles = (colors) =>
     tabActions: {
       paddingHorizontal: 20,
       flexDirection: 'row',
-      marginBottom: Device.isIphoneX() ? 0 : 0,
       paddingTop: 17,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 12,
-      },
-      shadowOpacity: 0.58,
-      shadowRadius: 15.0,
+      ...shadows.size.md,
       backgroundColor: colors.background.default,
-      height: Device.isIphoneX() ? 80 : 50,
+      height: 50,
     },
     tabs: {
       flex: 1,
@@ -219,7 +222,8 @@ export default class Tabs extends PureComponent {
 
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
-    return createStyles(colors);
+    const shadows = this.context.shadows || mockTheme.shadows;
+    return createStyles(colors, shadows);
   };
 
   renderNoTabs() {
@@ -227,7 +231,10 @@ export default class Tabs extends PureComponent {
 
     return (
       <View style={styles.noTabs}>
-        <Text style={styles.noTabsTitle}>
+        <Text
+          style={styles.noTabsTitle}
+          {...generateTestId(Platform, MULTI_TAB_NO_TABS_MESSAGE)}
+        >
           {strings('browser.no_tabs_title')}
         </Text>
         <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
@@ -265,7 +272,7 @@ export default class Tabs extends PureComponent {
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
       option_chosen: 'Browser Bottom Bar Menu',
       number_of_tabs: tabsNumber,
     });
@@ -280,6 +287,7 @@ export default class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={closeAllTabs}
+          {...generateTestId(Platform, MULTI_TAB_CLOSE_ALL_BUTTON)}
         >
           <Text
             style={[
@@ -294,6 +302,7 @@ export default class Tabs extends PureComponent {
           <TouchableOpacity
             style={styles.newTabIconButton}
             onPress={this.onNewTabPress}
+            {...generateTestId(Platform, MULTI_TAB_ADD_BUTTON)}
           >
             <MaterialCommunityIcon
               name="plus"
@@ -306,6 +315,7 @@ export default class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
           onPress={closeTabsView}
+          {...generateTestId(Platform, MULTI_TAB_DONE_BUTTON)}
         >
           <Text
             style={[

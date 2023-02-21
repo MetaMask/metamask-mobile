@@ -26,7 +26,7 @@ import { ToastContextWrapper } from 'app/component-library/components/Toast';
 
 const App = () => (
   <ToastContextWrapper>
-    <Root />
+    <SampleRootComponent />
   </ToastContextWrapper>
 );
 ```
@@ -37,12 +37,12 @@ const App = () => (
 // Replace import with relative path.
 import Toast, { ToastContext } from 'app/component-library/components/Toast';
 
-const Root = () => {
+const SampleRootComponent = () => {
   const { toastRef } = useContext(ToastContext);
 
   return (
     <>
-      <YourContent />
+      <SampleContent />
       <Toast ref={toastRef} />
     </>
   );
@@ -53,28 +53,27 @@ const Root = () => {
 
 ```javascript
 // Replace import with relative path.
-import Toast, { ToastContext } from 'app/component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from 'app/component-library/components/Toast';
 
-const NestedComponent = () => {
-  const { toastRef } = useContext(ToastContext);
+const { toastRef } = useContext(ToastContext);
 
-  const showToast = () => {
-    // Example of showing toast with Account variant.
-    toastRef.current?.showToast({
-      variant: ToastVariant.Account,
-      labelOptions: [
-        { label: 'Switching to' },
-        { label: ' Account 2.', isBold: true },
-      ],
-      accountAddress:
-        '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092',
-      linkOption: {
-        label: 'Click here.',
-        onPress: () => {},
-      },
-    });
-  };
-
-  return <TouchableOpacity onPress={showToast} />;
+const showToast = () => {
+  // Example of showing toast with Account variant.
+  toastRef.current?.showToast({
+    variant: ToastVariants.Account,
+    labelOptions: [
+      { label: LABEL_CHUNK_1 },
+      { label: LABEL_CHUNK_2, isBold: true },
+    ],
+    accountAddress: ACCOUNT_ADDRESS,
+    accountAvatarType: ACCOUNT_AVATAR_TYPE,
+    linkButtonOptions: {
+      label: LINK_LABEL,
+      onPress: ONPRESS_HANDLER,
+    },
+  });
 };
 ```

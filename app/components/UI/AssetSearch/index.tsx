@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useCallback } from 'react';
-import { TextInput, View, StyleSheet } from 'react-native';
+import { TextInput, View, StyleSheet, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Fuse from 'fuse.js';
@@ -7,8 +7,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { getTokenListArray } from '../../../reducers/tokens';
-import { TokenListToken } from '@metamask/controllers';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { TokenListToken } from '@metamask/assets-controllers';
+import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TOKEN_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -70,7 +72,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [inputDimensions, setInputDimensions] = useState('85%');
   const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(() => {
@@ -111,7 +113,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
         placeholder={strings('token.search_tokens_placeholder')}
         placeholderTextColor={colors.text.muted}
         onChangeText={handleSearch}
-        testID={'input-search-asset'}
+        {...generateTestId(Platform, TOKEN_INPUT_BOX_ID)}
         keyboardAppearance={themeAppearance}
       />
     </View>

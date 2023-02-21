@@ -29,16 +29,6 @@ exports[`SendTo should render correctly 1`] = `
       },
     }
   }
-  keyrings={
-    Array [
-      Object {
-        "accounts": Array [
-          "0x",
-        ],
-        "type": "HD Key Tree",
-      },
-    ]
-  }
   network="1"
   newAssetTransaction={[Function]}
   providerType="mainnet"
@@ -46,6 +36,7 @@ exports[`SendTo should render correctly 1`] = `
   selectedAsset={Object {}}
   setRecipient={[Function]}
   setSelectedAsset={[Function]}
+  showAlert={[Function]}
   ticker="ETH"
 />
 `;

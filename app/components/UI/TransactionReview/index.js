@@ -7,6 +7,13 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
+import Eth from 'ethjs-query';
+import {
+  isMultiLayerFeeNetwork,
+  fetchEstimatedMultiLayerL1Fee,
+} from '../../../util/networks';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -23,6 +30,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   fromTokenMinimalUnit,
+  isZeroValue,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
@@ -30,7 +38,7 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
@@ -40,6 +48,11 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+
+const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
+
+let intervalIdForEstimatedL1Fee;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -225,13 +238,36 @@ class TransactionReview extends PureComponent {
     assetAmount: undefined,
     conversionRate: undefined,
     fiatValue: undefined,
+    multiLayerL1FeeTotal: '0x0',
+  };
+
+  fetchEstimatedL1Fee = async () => {
+    const { transaction, chainId } = this.props;
+    if (!transaction?.transaction) {
+      return;
+    }
+    try {
+      const eth = new Eth(Engine.context.NetworkController.provider);
+      const result = await fetchEstimatedMultiLayerL1Fee(eth, {
+        txParams: transaction.transaction,
+        chainId,
+      });
+      this.setState({
+        multiLayerL1FeeTotal: result,
+      });
+    } catch (e) {
+      Logger.error(e, 'fetchEstimatedMultiLayerL1Fee call failed');
+      this.setState({
+        multiLayerL1FeeTotal: '0x0',
+      });
+    }
   };
 
   componentDidMount = async () => {
     const {
       validate,
       transaction,
-      transaction: { data, to },
+      transaction: { data, to, value },
       tokens,
       chainId,
       tokenList,
@@ -241,7 +277,9 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+      data &&
+      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      (!value || isZeroValue(value));
     const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
@@ -266,8 +304,19 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
+      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     });
+    if (isMultiLayerFeeNetwork(chainId)) {
+      this.fetchEstimatedL1Fee();
+      intervalIdForEstimatedL1Fee = setInterval(
+        this.fetchEstimatedL1Fee,
+        POLLING_INTERVAL_ESTIMATED_L1_FEE,
+      );
+    }
+  };
+
+  componentWillUnmount = async () => {
+    clearInterval(intervalIdForEstimatedL1Fee);
   };
 
   async componentDidUpdate(prevProps) {
@@ -319,7 +368,7 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange } = this.props;
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION);
+    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -352,10 +401,16 @@ class TransactionReview extends PureComponent {
     let url;
     if (
       transaction.origin &&
-      transaction.origin.includes(WALLET_CONNECT_ORIGIN)
+      transaction.origin.startsWith(WALLET_CONNECT_ORIGIN)
     ) {
       return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
+    } else if (
+      transaction.origin &&
+      transaction.origin.startsWith(MM_SDK_REMOTE_ORIGIN)
+    ) {
+      return transaction.origin.split(MM_SDK_REMOTE_ORIGIN)[1];
     }
+
     browser.tabs.forEach((tab) => {
       if (tab.id === browser.activeTab) {
         url = tab.url;
@@ -384,6 +439,8 @@ class TransactionReview extends PureComponent {
       navigation,
       dappSuggestedGasWarning,
       gasSelected,
+      chainId,
+      transaction: { from },
     } = this.props;
     const {
       actionKey,
@@ -392,6 +449,7 @@ class TransactionReview extends PureComponent {
       conversionRate,
       fiatValue,
       approveTransaction,
+      multiLayerL1FeeTotal,
     } = this.state;
     const currentPageInformation = { url: this.getUrlFromBrowser() };
     const styles = this.getStyles();
@@ -412,6 +470,7 @@ class TransactionReview extends PureComponent {
             fiatValue={fiatValue}
             approveTransaction={approveTransaction}
             primaryCurrency={primaryCurrency}
+            chainId={chainId}
           />
           <View style={styles.actionViewWrapper}>
             <ActionView
@@ -431,7 +490,7 @@ class TransactionReview extends PureComponent {
                     onStartShouldSetResponder={() => true}
                   >
                     <View style={styles.accountInfoCardWrapper}>
-                      <AccountInfoCard />
+                      <AccountInfoCard fromAddress={from} />
                     </View>
                     <TransactionReviewInformation
                       navigation={navigation}
@@ -454,6 +513,7 @@ class TransactionReview extends PureComponent {
                       onUpdatingValuesEnd={onUpdatingValuesEnd}
                       animateOnChange={animateOnChange}
                       isAnimating={isAnimating}
+                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
                     />
                   </View>
                 </ScrollView>
@@ -481,7 +541,11 @@ class TransactionReview extends PureComponent {
 
   renderQRDetails() {
     const currentPageInformation = { url: this.getUrlFromBrowser() };
-    const { QRState } = this.props;
+    const {
+      QRState,
+      transaction: { from },
+    } = this.props;
+
     const styles = this.getStyles();
     return (
       <View style={styles.actionViewQRObject}>
@@ -492,6 +556,7 @@ class TransactionReview extends PureComponent {
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     );

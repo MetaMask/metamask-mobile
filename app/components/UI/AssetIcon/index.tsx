@@ -8,7 +8,7 @@ import {
 import isUrl from 'is-url';
 import RemoteImage from '../../Base/RemoteImage';
 import staticLogos from 'images/static-logos';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 interface Props {
   /**
@@ -45,7 +45,7 @@ const createStyles = (colors: any) =>
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = memo((props: Props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   if (!props.logo) return null;
 

@@ -1,8 +1,13 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// External dependencies.
+import { IconName } from '../Icons/Icon';
+
+// Internal dependencies.
 import Checkbox from './Checkbox';
-import { CHECKBOX_ICON_ID } from '../../../constants/test-ids';
-import { IconName } from '../Icon';
+import { CHECKBOX_ICON_ID } from './Checkbox.constants';
 
 describe('Checkbox', () => {
   it('should render correctly', () => {
@@ -16,7 +21,7 @@ describe('Checkbox', () => {
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
     const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconName.CheckBoxOnFilled);
+    expect(iconName).toBe(IconName.CheckBoxOn);
   });
 
   it('should render correct icon when not selected', () => {
@@ -25,6 +30,6 @@ describe('Checkbox', () => {
       (node) => node.prop('testID') === CHECKBOX_ICON_ID,
     );
     const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconName.CheckBoxOffOutline);
+    expect(iconName).toBe(IconName.CheckBoxOff);
   });
 });

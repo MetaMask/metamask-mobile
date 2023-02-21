@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -55,53 +55,53 @@ const createStyles = (colors) =>
   });
 
 const ListItem = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.wrapper, style]} {...props} />;
 };
 
 const ListItemDate = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.date, style]} {...props} />;
 };
 const ListItemContent = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.content, style]} {...props} />;
 };
 const ListItemActions = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.actions, style]} {...props} />;
 };
 const ListItemIcon = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.icon, style]} {...props} />;
 };
 const ListItemBody = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.body, style]} {...props} />;
 };
 const ListItemTitle = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.title, style]} {...props} />;
 };
 const ListItemAmounts = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.amounts, style]} {...props} />;
 };
 const ListItemAmount = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.amount, style]} {...props} />;
 };
 const ListItemFiatAmount = ({ style, ...props }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.fiatAmount, style]} {...props} />;
 };

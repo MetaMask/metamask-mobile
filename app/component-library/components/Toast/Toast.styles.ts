@@ -1,3 +1,4 @@
+// Third party dependencies.
 import { StyleSheet, Dimensions } from 'react-native';
 import { darkTheme } from '@metamask/design-tokens';
 
@@ -26,6 +27,7 @@ const styleSheet = StyleSheet.create({
     marginRight: 8,
   },
   labelsContainer: {
+    flex: 1,
     justifyContent: 'center',
   },
   label: {

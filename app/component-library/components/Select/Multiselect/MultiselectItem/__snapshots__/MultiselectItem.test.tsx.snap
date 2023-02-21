@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MultiselectItem should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "alignItems": "flex-start",
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#0376C919",
+        "bottom": 0,
+        "flexDirection": "row",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+    testID="multiselect-item-underlay"
+  />
+  <Checkbox
+    isSelected={true}
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  />
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <View />
+  </View>
+</TouchableOpacity>
+`;

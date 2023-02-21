@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomInput should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 8,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "padding": 16,
+    }
+  }
+  testID="custom-input-test-id"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+      }
+    }
+  >
+    <TextInput
+      keyboardType="numeric"
+      multiline={true}
+      onChangeText={[Function]}
+      placeholder="Enter a number here (DAI)"
+      style={
+        Object {
+          "color": "#24272A",
+          "flexGrow": 1,
+          "marginRight": 16,
+          "paddingBottom": 0,
+          "paddingTop": 0,
+        }
+      }
+      value="123"
+    />
+  </View>
+  <Text
+    onPress={[Function]}
+    style={
+      Object {
+        "color": "#535A61",
+      }
+    }
+    variant="sBodySM"
+  >
+    Max
+  </Text>
+</View>
+`;

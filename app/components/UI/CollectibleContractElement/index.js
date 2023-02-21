@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -95,7 +95,7 @@ function CollectibleContractElement({
   );
   const actionSheetRef = useRef();
   const longPressedCollectible = useRef(null);
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   const toggleCollectibles = useCallback(() => {
@@ -117,14 +117,14 @@ function CollectibleContractElement({
     longPressedCollectible.current = collectible;
   }, []);
 
-  const removeCollectible = () => {
-    const { CollectiblesController } = Engine.context;
+  const removeNft = () => {
+    const { NftController } = Engine.context;
     removeFavoriteCollectible(
       selectedAddress,
       chainId,
       longPressedCollectible.current,
     );
-    CollectiblesController.removeAndIgnoreCollectible(
+    NftController.removeAndIgnoreNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
@@ -135,9 +135,9 @@ function CollectibleContractElement({
   };
 
   const refreshMetadata = () => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
 
-    CollectiblesController.addCollectible(
+    NftController.addNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
@@ -145,7 +145,7 @@ function CollectibleContractElement({
 
   const handleMenuAction = (index) => {
     if (index === 1) {
-      removeCollectible();
+      removeNft();
     } else if (index === 0) {
       refreshMetadata();
     }

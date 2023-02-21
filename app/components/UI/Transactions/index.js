@@ -17,6 +17,7 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
+  isMainnetByChainId,
 } from '../../../util/networks';
 import {
   getEtherscanAddressUrl,
@@ -28,7 +29,7 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
@@ -56,7 +57,6 @@ const createStyles = (colors) =>
       margin: 0,
     },
     emptyContainer: {
-      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colors.background.default,
@@ -172,6 +172,7 @@ class Transactions extends PureComponent {
      */
     thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
+    chainId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -209,10 +210,19 @@ class Transactions extends PureComponent {
       this.init();
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
+    this.setState({
+      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
+    });
+  };
 
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  updateBlockExplorer = () => {
     const {
       network: {
-        provider: { rpcTarget, type },
+        provider: { type, rpcTarget },
       },
       frequentRpcList,
     } = this.props;
@@ -222,14 +232,12 @@ class Transactions extends PureComponent {
         findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
         NO_RPC_BLOCK_EXPLORER;
     }
+
     this.setState({ rpcBlockExplorer: blockExplorer });
-    this.setState({
-      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
-    });
   };
 
-  componentWillUnmount() {
-    this.mounted = false;
+  componentDidUpdate() {
+    this.updateBlockExplorer();
   }
 
   init() {
@@ -367,6 +375,26 @@ class Transactions extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const {
+      chainId,
+      network: {
+        provider: { type },
+      },
+    } = this.props;
+    const blockExplorerText = () => {
+      if (isMainnetByChainId(chainId) || type !== RPC) {
+        return strings('transactions.view_full_history_on_etherscan');
+      }
+
+      if (NO_RPC_BLOCK_EXPLORER !== this.state.rpcBlockExplorer) {
+        return `${strings(
+          'transactions.view_full_history_on',
+        )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
+      }
+
+      return null;
+    };
+
     return (
       <View style={styles.viewMoreBody}>
         <TouchableOpacity
@@ -374,11 +402,7 @@ class Transactions extends PureComponent {
           style={styles.touchableViewOnEtherscan}
         >
           <Text reset style={styles.viewOnEtherscan}>
-            {(this.state.rpcBlockExplorer &&
-              `${strings(
-                'transactions.view_full_history_on',
-              )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`) ||
-              strings('transactions.view_full_history_on_etherscan')}
+            {blockExplorerText()}
           </Text>
         </TouchableOpacity>
       </View>
@@ -462,21 +486,15 @@ class Transactions extends PureComponent {
     });
   };
 
-  speedUpTransaction = async (EIP1559TransactionData) => {
+  speedUpTransaction = async (transactionObject) => {
     try {
-      if (EIP1559TransactionData) {
-        await Engine.context.TransactionController.speedUpTransaction(
-          this.speedUpTxId,
-          {
-            maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
-          },
-        );
-      } else {
-        await Engine.context.TransactionController.speedUpTransaction(
-          this.speedUpTxId,
-        );
-      }
+      await Engine.context.TransactionController.speedUpTransaction(
+        this.speedUpTxId,
+        transactionObject?.suggestedMaxFeePerGasHex && {
+          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+        },
+      );
       this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -493,21 +511,15 @@ class Transactions extends PureComponent {
     await Engine.context.TransactionController.cancelTransaction(tx.id);
   };
 
-  cancelTransaction = async (EIP1559TransactionData) => {
+  cancelTransaction = async (transactionObject) => {
     try {
-      if (EIP1559TransactionData) {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-          {
-            maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
-          },
-        );
-      } else {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-        );
-      }
+      await Engine.context.TransactionController.stopTransaction(
+        this.cancelTxId,
+        transactionObject?.suggestedMaxFeePerGasHex && {
+          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+        },
+      );
       this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);

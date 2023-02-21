@@ -11,7 +11,7 @@ import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { hexToBN, fromWei } from '../../../util/number';
+import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -44,19 +44,21 @@ import {
   toggleApproveModal,
 } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+
+import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   },
 });
 const RootRPCMethodsUI = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [signMessageParams, setSignMessageParams] = useState({ data: '' });
   const [signType, setSignType] = useState(false);
@@ -111,11 +113,14 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const initializeWalletConnect = () => {
+    WalletConnect.init();
+  };
+
+  const onWalletConnectSessionRequest = () => {
     WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
       setWalletConnectRequest(true);
       setWalletConnectRequestInfo(peerInfo);
     });
-    WalletConnect.init();
   };
 
   const trackSwaps = useCallback(
@@ -135,25 +140,25 @@ const RootRPCMethodsUI = (props) => {
           TransactionController.state.transactions.find(
             ({ id }) => id === approvalTransactionMetaId,
           );
-        const ethBalance = await util.query(
+        const ethBalance = await query(
           TransactionController.ethQuery,
           'getBalance',
           [props.selectedAddress],
         );
-        const receipt = await util.query(
+        const receipt = await query(
           TransactionController.ethQuery,
           'getTransactionReceipt',
           [transactionMeta.transactionHash],
         );
 
-        const currentBlock = await util.query(
+        const currentBlock = await query(
           TransactionController.ethQuery,
           'getBlockByHash',
           [receipt.blockHash, false],
         );
         let approvalReceipt;
         if (approvalTransaction?.transactionHash) {
-          approvalReceipt = await util.query(
+          approvalReceipt = await query(
             TransactionController.ethQuery,
             'getTransactionReceipt',
             [approvalTransaction.transactionHash],
@@ -211,9 +216,9 @@ const RootRPCMethodsUI = (props) => {
           Analytics.trackEventWithParameters(event, parameters, true);
         });
       } catch (e) {
-        Logger.error(e, ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED);
+        Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SWAP_TRACKING_FAILED, {
+          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
             error: e,
           });
         });
@@ -236,7 +241,7 @@ const RootRPCMethodsUI = (props) => {
               });
             } else {
               if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_FAILED, transactionMeta);
+                trackSwaps(MetaMetricsEvents.SWAP_FAILED, transactionMeta);
               }
               throw transactionMeta.error;
             }
@@ -246,7 +251,7 @@ const RootRPCMethodsUI = (props) => {
           `${transactionMeta.id}:confirmed`,
           (transactionMeta) => {
             if (props.swapsTransactions[transactionMeta.id]?.analytics) {
-              trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
+              trackSwaps(MetaMetricsEvents.SWAP_COMPLETED, transactionMeta);
             }
           },
         );
@@ -262,7 +267,7 @@ const RootRPCMethodsUI = (props) => {
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           );
         }
       }
@@ -350,7 +355,11 @@ const RootRPCMethodsUI = (props) => {
           });
         }
 
-        if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+        if (
+          data &&
+          data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+          (!value || isZeroValue(value))
+        ) {
           toggleApproveModal();
         } else {
           toggleDappTransactionModal();
@@ -394,7 +403,6 @@ const RootRPCMethodsUI = (props) => {
     >
       {signType === 'personal' && (
         <PersonalSign
-          navigation={props.navigation}
           messageParams={signMessageParams}
           onCancel={onSignAction}
           onConfirm={onSignAction}
@@ -505,11 +513,17 @@ const RootRPCMethodsUI = (props) => {
       <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
     );
 
+  // Reject pending approval using MetaMask SDK.
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
-    ApprovalController.reject(id, error);
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
   };
 
+  // Accept pending approval using MetaMask SDK.
   const acceptPendingApproval = (id, requestData) => {
     const { ApprovalController } = Engine.context;
     ApprovalController.accept(id, requestData);
@@ -529,7 +543,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to add chain to wallet.
    */
   const renderAddCustomNetworkModal = () => (
     <Modal
@@ -571,7 +585,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to switch chain on wallet.
    */
   const renderSwitchCustomNetworkModal = () => (
     <Modal
@@ -600,7 +614,7 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * When user clicks on approve to connect with a dapp
+   * When user clicks on approve to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsConfirm = () => {
     acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
@@ -608,7 +622,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * When user clicks on reject to connect with a dapp
+   * When user clicks on reject to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsReject = () => {
     rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
@@ -616,7 +630,7 @@ const RootRPCMethodsUI = (props) => {
   };
 
   /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
+   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
    */
   const renderAccountsApprovalModal = () => (
     <Modal
@@ -698,7 +712,29 @@ const RootRPCMethodsUI = (props) => {
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
       }
+
       switch (request.type) {
+        case ApprovalTypes.REQUEST_PERMISSIONS:
+          if (requestData?.permissions?.eth_accounts) {
+            const {
+              metadata: { id },
+            } = requestData;
+
+            const totalAccounts = props.accountsLength;
+
+            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+              number_of_accounts: totalAccounts,
+              source: 'PERMISSION SYSTEM',
+            });
+
+            props.navigation.navigate(
+              ...createAccountConnectNavDetails({
+                hostInfo: requestData,
+                permissionRequestId: id,
+              }),
+            );
+          }
+          break;
         case ApprovalTypes.CONNECT_ACCOUNTS:
           setHostToApprove({ data: requestData, id: request.id });
           showPendingApprovalModal({
@@ -730,6 +766,7 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
+    onWalletConnectSessionRequest();
 
     Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
       onUnapprovedMessage(messageParams, 'eth'),
@@ -779,9 +816,9 @@ const RootRPCMethodsUI = (props) => {
       {renderApproveModal()}
       {renderAddCustomNetworkModal()}
       {renderSwitchCustomNetworkModal()}
-      {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderAccountsApprovalModal()}
     </React.Fragment>
   );
 };
@@ -834,6 +871,7 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
+  accountsLength: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -846,6 +884,9 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({

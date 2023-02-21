@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import { Text, View } from 'react-native';
 import StyledButton from '../StyledButton';
 import ActionModal from '../ActionModal';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 
 interface ISettingsButtonSectionProps {
@@ -33,7 +33,7 @@ const SettingsButtonSection = ({
   modalOnConfirm,
 }: ISettingsButtonSectionProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const updateShowModalState = () => setModalVisible(!modalVisible);

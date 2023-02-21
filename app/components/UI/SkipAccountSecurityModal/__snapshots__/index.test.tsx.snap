@@ -9,11 +9,11 @@ exports[`HintModal should render correctly 1`] = `
   }
   cancelButtonDisabled={false}
   cancelButtonMode="normal"
-  cancelTestID=""
+  cancelTestID="Cancel-Skip"
   cancelText="Secure now"
   confirmButtonMode="confirm"
   confirmDisabled={true}
-  confirmTestID=""
+  confirmTestID="Skip-button"
   confirmText="Skip"
   displayCancelButton={true}
   displayConfirmButton={true}
@@ -65,10 +65,10 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "center",
-          "color": "#D73A49",
+          "color": "#D73847",
         }
       }
-      testID="skip_backup_warning"
+      testID="skip-backup-warning"
     />
     <Text
       style={
@@ -109,7 +109,7 @@ exports[`HintModal should render correctly 1`] = `
         tintColors={
           Object {
             "false": "#BBC0C5",
-            "true": "#037DD6",
+            "true": "#0376C9",
           }
         }
         value={false}

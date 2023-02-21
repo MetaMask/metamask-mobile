@@ -1,4 +1,6 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, {
   forwardRef,
   useImperativeHandle,
@@ -13,28 +15,31 @@ import {
   ViewStyle,
 } from 'react-native';
 import Animated, {
+  cancelAnimation,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
-import { BaseAvatarSize } from '../BaseAvatar';
-import BaseText, { BaseTextVariant } from '../BaseText';
-import Link from '../Link';
-import styles from './Toast.styles';
-import {
-  ToastLabelOptions,
-  ToastLinkOption,
-  ToastOptions,
-  ToastRef,
-  ToastVariant,
-} from './Toast.types';
-import NetworkAvatar from '../NetworkAvatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const visibilityDuration = 2500;
+// External dependencies.
+import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
+import Text, { TextVariant } from '../Texts/Text';
+import Button, { ButtonVariants } from '../Buttons/Button';
+
+// Internal dependencies.
+import {
+  ToastLabelOptions,
+  ToastLinkButtonOptions,
+  ToastOptions,
+  ToastRef,
+  ToastVariants,
+} from './Toast.types';
+import styles from './Toast.styles';
+
+const visibilityDuration = 2750;
 const animationDuration = 250;
 const bottomPadding = 16;
 const screenHeight = Dimensions.get('window').height;
@@ -56,10 +61,15 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     );
 
   const showToast = (options: ToastOptions) => {
+    let timeoutDuration = 0;
     if (toastOptions) {
-      return;
+      // Reset animation.
+      cancelAnimation(translateYProgress);
+      timeoutDuration = 100;
     }
-    setToastOptions(options);
+    setTimeout(() => {
+      setToastOptions(options);
+    }, timeoutDuration);
   };
 
   useImperativeHandle(ref, () => ({
@@ -77,81 +87,87 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       translateYProgress.value = withTiming(
         translateYToValue,
         { duration: animationDuration },
-        () =>
-          (translateYProgress.value = withDelay(
+        () => {
+          translateYProgress.value = withDelay(
             visibilityDuration,
             withTiming(
               height,
               { duration: animationDuration },
               runOnJS(resetState),
             ),
-          )),
+          );
+        },
       );
     }
   };
 
   const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <BaseText variant={BaseTextVariant.sBodyMD}>
+    <Text variant={TextVariant.BodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
-        <BaseText
+        <Text
           key={`toast-label-${index}`}
-          variant={
-            isBold ? BaseTextVariant.sBodyMDBold : BaseTextVariant.sBodyMD
-          }
+          variant={isBold ? TextVariant.BodyMDBold : TextVariant.BodyMD}
           style={styles.label}
         >
           {label}
-        </BaseText>
+        </Text>
       ))}
-    </BaseText>
+    </Text>
   );
 
-  const renderLink = (linkOption?: ToastLinkOption) =>
-    linkOption ? (
-      <Link onPress={linkOption.onPress} variant={BaseTextVariant.sBodyMD}>
-        {linkOption.label}
-      </Link>
-    ) : null;
+  const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
+    linkButtonOptions && (
+      <Button
+        variant={ButtonVariants.Link}
+        onPress={linkButtonOptions.onPress}
+        textVariant={TextVariant.BodyMD}
+        label={linkButtonOptions.label}
+      />
+    );
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
-      case ToastVariant.Plain:
+      case ToastVariants.Plain:
         return null;
-      case ToastVariant.Account: {
+      case ToastVariants.Account: {
         const { accountAddress } = toastOptions;
+        const { accountAvatarType } = toastOptions;
         return (
-          <AccountAvatar
+          <Avatar
+            variant={AvatarVariants.Account}
             accountAddress={accountAddress}
-            type={AccountAvatarType.JazzIcon}
-            size={BaseAvatarSize.Md}
+            // TODO PS: respect avatar global configs
+            // should receive avatar type as props
+            type={accountAvatarType}
+            size={AvatarSize.Md}
             style={styles.avatar}
           />
         );
       }
-      case ToastVariant.Network: {
-        {
-          const { networkImageUrl } = toastOptions;
-          return (
-            <NetworkAvatar
-              networkImageUrl={networkImageUrl}
-              size={BaseAvatarSize.Md}
-              style={styles.avatar}
-            />
-          );
-        }
+      case ToastVariants.Network: {
+        const { networkImageSource, networkName } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariants.Network}
+            name={networkName}
+            imageSource={networkImageSource}
+            size={AvatarSize.Md}
+            style={styles.avatar}
+          />
+        );
       }
     }
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkOption } = options;
+    const { labelOptions, linkButtonOptions } = options;
 
     return (
       <>
         {renderAvatar()}
         <View style={styles.labelsContainer}>
           {renderLabel(labelOptions)}
-          {renderLink(linkOption)}
+          {renderButtonLink(linkButtonOptions)}
         </View>
       </>
     );

@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
@@ -23,10 +23,12 @@ import Device from '../../../util/device';
 import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
+import setOnboardingWizardStep from '../../../actions/wizard';
 import {
   ONBOARDING_WIZARD,
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -109,6 +111,10 @@ class ManualBackupStep3 extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Action to set onboarding wizard step
+     */
+    setOnboardingWizardStep: PropTypes.func,
   };
 
   updateNavBar = () => {
@@ -133,9 +139,7 @@ class ManualBackupStep3 extends PureComponent {
       hintText: manualBackup,
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_COMPLETED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
     });
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
@@ -184,7 +188,7 @@ class ManualBackupStep3 extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       );
     });
   };
@@ -194,6 +198,7 @@ class ManualBackupStep3 extends PureComponent {
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {
+      this.props.setOnboardingWizardStep(1);
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     }
   };
@@ -273,6 +278,7 @@ ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
+  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep3);

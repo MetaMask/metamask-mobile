@@ -17,7 +17,7 @@ import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../../util/networks';
 import Device from '../../../../util/device';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
 
@@ -96,7 +96,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
     onUnlock,
     canUnlock,
   } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyle(colors);
   const navigation = useNavigation();
   const provider = useSelector(

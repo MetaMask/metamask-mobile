@@ -21,15 +21,15 @@ import {
   renderFromWei,
   toWei,
   weiToFiat,
+  calculateEthFeeForMultiLayer,
 } from '../../../../util/number';
 import { getQuotesSourceMessage } from '../utils';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import Ratio from './Ratio';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-import { colors as importedColors } from '../../../../styles/common';
+import { useTheme } from '../../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
@@ -37,13 +37,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       marginVertical: 50,
       borderRadius: 10,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 5,
-      },
-      shadowOpacity: 0.36,
-      shadowRadius: 6.68,
+      ...shadows.size.sm,
       elevation: 11,
     },
     modal: {
@@ -152,14 +146,15 @@ function QuotesModal({
   quoteValues,
   showOverallValue,
   ticker,
+  multiLayerL1ApprovalFeeTotal,
 }) {
   const bestOverallValue =
     quoteValues?.[quotes[0].aggregator]?.overallValueOfQuote ?? 0;
   const [displayDetails, setDisplayDetails] = useState(false);
   const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] =
     useState(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   // When index/quotes change we get a new selected quote in case it exists
   // (quotes.length can be shorter than selected index)
@@ -229,6 +224,14 @@ function QuotesModal({
       setDisplayDetails(false);
     }
   }, [displayDetails, selectedDetailsQuote]);
+
+  let selectedDetailsQuoteValuesEthFee = selectedDetailsQuoteValues?.ethFee;
+  if (multiLayerL1ApprovalFeeTotal) {
+    selectedDetailsQuoteValuesEthFee = calculateEthFeeForMultiLayer({
+      multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
+      ethFee: selectedDetailsQuoteValuesEthFee,
+    });
+  }
 
   return (
     <Modal
@@ -322,14 +325,14 @@ function QuotesModal({
                   <View style={styles.detailsRow}>
                     <Text small>{strings('swaps.estimated_network_fees')}</Text>
                     <Text primary>
-                      {renderFromWei(toWei(selectedDetailsQuoteValues.ethFee))}{' '}
+                      {renderFromWei(toWei(selectedDetailsQuoteValuesEthFee))}{' '}
                       <Text reset bold>
                         {ticker}
                       </Text>{' '}
                       <Text>
                         (~
                         {weiToFiat(
-                          toWei(selectedDetailsQuoteValues.ethFee),
+                          toWei(selectedDetailsQuoteValuesEthFee),
                           conversionRate,
                           currentCurrency,
                         )}
@@ -393,6 +396,13 @@ function QuotesModal({
                       const { aggregator } = quote;
                       const isSelected = aggregator === selectedQuote;
                       const quoteValue = quoteValues[aggregator];
+                      let quoteEthFee = quoteValue?.ethFee;
+                      if (multiLayerL1ApprovalFeeTotal) {
+                        quoteEthFee = calculateEthFeeForMultiLayer({
+                          multiLayerL1FeeTotal: multiLayerL1ApprovalFeeTotal,
+                          ethFee: quoteEthFee,
+                        });
+                      }
                       return (
                         <TouchableOpacity
                           key={aggregator}
@@ -415,7 +425,7 @@ function QuotesModal({
                           <View style={styles.columnFee}>
                             <Text primary bold={isSelected}>
                               {weiToFiat(
-                                toWei(quoteValue?.ethFee ?? 0),
+                                toWei(quoteEthFee),
                                 conversionRate,
                                 currentCurrency,
                               )}
@@ -511,6 +521,7 @@ QuotesModal.propTypes = {
   ticker: PropTypes.string,
   quoteValues: PropTypes.object,
   showOverallValue: PropTypes.bool,
+  multiLayerL1ApprovalFeeTotal: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-  privacy: { approvedHosts: {}, privacyMode: true },
+  privacy: { approvedHosts: {} },
   browser: { history: [] },
   settings: { lockTime: 1000 },
   user: { passwordSet: true },
@@ -26,6 +26,9 @@ const initialState = {
         },
       },
     },
+  },
+  security: {
+    allowLoginWithRememberMe: true,
   },
 };
 const store = mockStore(initialState);

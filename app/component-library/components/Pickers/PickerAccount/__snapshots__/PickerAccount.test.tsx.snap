@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PickerAccount should render correctly 1`] = `
+<PickerBase
+  onPress={[Function]}
+  style={Object {}}
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Avatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      type="JazzIcon"
+      variant="Account"
+    />
+    <View>
+      <Text
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#535A61",
+          }
+        }
+        variant="sBodyMD"
+      >
+        0x2990...a21a
+      </Text>
+    </View>
+  </View>
+</PickerBase>
+`;

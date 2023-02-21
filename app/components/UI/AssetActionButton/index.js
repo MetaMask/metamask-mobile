@@ -6,8 +6,8 @@ import Ionicon from 'react-native-vector-icons/Ionicons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import Icon, { IconName } from '../../../component-library/components/Icon';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -60,7 +60,7 @@ const createStyles = (colors) =>
   });
 
 function AssetActionButton({ onPress, icon, label, disabled }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const maxStringLength = 10;

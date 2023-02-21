@@ -7,10 +7,10 @@ import { getOrders } from '../../../reducers/fiatOrders';
 import ModalHandler from '../../Base/ModalHandler';
 import OrderListItem from './OrderListItem';
 import OrderDetails from './OrderDetails';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
-import Routes from '../../../constants/navigation/Routes';
+import { createOrderDetailsNavDetails } from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -27,7 +27,7 @@ const createStyles = (colors) =>
     },
   });
 function FiatOrdersView({ orders, ...props }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
@@ -35,9 +35,11 @@ function FiatOrdersView({ orders, ...props }) {
 
   const handleNavigateToTxDetails = useCallback(
     (orderId) => {
-      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS, {
-        orderId,
-      });
+      navigation.navigate(
+        ...createOrderDetailsNavDetails({
+          orderId,
+        }),
+      );
     },
     [navigation],
   );

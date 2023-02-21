@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -9,7 +9,8 @@ import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { CONTACTS_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -93,11 +94,10 @@ class Contacts extends PureComponent {
   };
 
   deleteContact = () => {
-    this.setState({ reloadAddressList: true });
     const { AddressBookController } = Engine.context;
     const { network } = this.props;
     AddressBookController.delete(network, this.contactAddressToRemove);
-    this.setState({ reloadAddressList: false });
+    this.updateAddressList();
   };
 
   onAddressPress = (address) => {
@@ -124,7 +124,10 @@ class Contacts extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'contacts-screen'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        {...generateTestId(Platform, CONTACTS_CONTAINER_ID)}
+      >
         <AddressList
           onlyRenderAddressBook
           reloadAddressList={reloadAddressList}

@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BadgeWrapper - snapshots should render badge with default position correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignSelf": "flex-start",
+    }
+  }
+>
+  <View>
+    <Tag
+      label="Children"
+    />
+  </View>
+  <Badge
+    imageSource={
+      Object {
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      }
+    }
+    name="Ethereum"
+    testID="badge-wrapper-badge"
+    variant="network"
+  />
+</View>
+`;

@@ -1,14 +1,18 @@
 import TestHelpers from '../helpers';
 
+import {
+  WALLET_ACCOUNT_ICON,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
+  WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  IMPORT_NFT_BUTTON_ID,
+  IMPORT_TOKEN_BUTTON_ID,
+  NAVBAR_NETWORK_BUTTON,
+  NFT_TAB_CONTAINER_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
-const NETWORKS_BUTTON_ID = 'open-networks-button';
 const NETWORK_NAME_TEXT_ID = 'network-name';
-const EDIT_ACCOUNT_TEXT_ID = 'edit-account-label';
-const ACCOUNT_NAME_TEXT_ID = 'account-label-text-input';
-const IDENTICON_ID = 'wallet-account-identicon';
-const IMPORT_NFT_BUTTON_ID = 'add-collectible-button';
-const IMPORT_TOKEN_BUTTON_ID = 'add-token-button';
 const NFT_CONTAINER_ID = 'collectible-name';
 export default class WalletView {
   static async tapOKAlertButton() {
@@ -16,21 +20,33 @@ export default class WalletView {
   }
 
   static async tapIdenticon() {
-    await TestHelpers.tap(IDENTICON_ID);
+    await TestHelpers.tap(WALLET_ACCOUNT_ICON);
   }
 
   static async tapDrawerButton() {
     await TestHelpers.tap(DRAWER_BUTTON_ID);
   }
 
+  static async tapBrowser() {
+    await TestHelpers.tapByText('Browser');
+    await TestHelpers.delay(1000);
+  }
+
   static async tapNetworksButtonOnNavBar() {
-    await TestHelpers.waitAndTap(NETWORKS_BUTTON_ID);
+    await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
   }
   static async tapNftTab() {
     await TestHelpers.tapByText('NFTs');
   }
   static async tapTokensTab() {
-    await TestHelpers.tapByText('TOKENS');
+    await TestHelpers.tapByText('Tokens');
+  }
+  static async scrollDownOnNFTsTab() {
+    await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'up', 'slow', 0.6);
+  }
+
+  static async scrollUpOnNFTsTab() {
+    await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'down', 'slow', 0.6);
   }
 
   static async tapImportNFTButton() {
@@ -52,12 +68,15 @@ export default class WalletView {
   static async editAccountName(accountName) {
     // For now this method only works for android.
     if (device.getPlatform() === 'android') {
-      await TestHelpers.tapAndLongPress(EDIT_ACCOUNT_TEXT_ID);
+      await TestHelpers.tapAndLongPress(WALLET_ACCOUNT_NAME_LABEL_TEXT);
       // Clear text
-      await TestHelpers.clearField(ACCOUNT_NAME_TEXT_ID);
+      await TestHelpers.clearField(WALLET_ACCOUNT_NAME_LABEL_INPUT);
       // Change account name
-      await TestHelpers.replaceTextInField(ACCOUNT_NAME_TEXT_ID, accountName);
-      await element(by.id(ACCOUNT_NAME_TEXT_ID)).tapReturnKey();
+      await TestHelpers.replaceTextInField(
+        WALLET_ACCOUNT_NAME_LABEL_INPUT,
+        accountName,
+      );
+      await element(by.id(WALLET_ACCOUNT_NAME_LABEL_INPUT)).tapReturnKey();
     }
   }
 
@@ -94,7 +113,7 @@ export default class WalletView {
 
   static async isAccountNameCorrect(accountName) {
     await TestHelpers.checkIfElementHasString(
-      ACCOUNT_NAME_TEXT_ID,
+      WALLET_ACCOUNT_NAME_LABEL_INPUT,
       accountName,
     );
   }

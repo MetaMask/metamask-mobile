@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Logger from '../../../util/Logger';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Analytics from '../../../core/Analytics/Analytics';
 import DefaultPreference from 'react-native-default-preference';
@@ -28,7 +29,7 @@ import {
   NEXT_MAKER_REMINDER,
   TRUE,
 } from '../../../constants/storage';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
@@ -45,7 +46,8 @@ import {
 import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
+import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -107,7 +109,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const seedWordsRef = useRef(null);
   const importedAccountsRef = useRef(null);
   const dataToSyncRef = useRef<any>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
@@ -211,8 +213,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
         dataToSyncRef.current = null;
-        track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_SUCCESSFUL);
-        track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED, {
+        track(MetaMetricsEvents.WALLET_SYNC_SUCCESSFUL);
+        track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'sync',
           new_wallet: false,
         });
@@ -220,7 +222,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
         navigation.push('SyncWithExtensionSuccess');
         unsetLoading();
       } catch (e) {
-        track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+        track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'sync',
           error_type: e.toString(),
         });
@@ -317,7 +319,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
           strings('sync_with_extension.error_title'),
           strings('sync_with_extension.error_message'),
         );
-        track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+        track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'sync',
           error_type: 'onErrorSync',
         });
@@ -365,7 +367,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
         );
       }
       Logger.error(e, { message: 'Sync::startSync', firstAttempt: true });
-      track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
+      track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'sync',
         error_type: e.message(),
       });
@@ -452,7 +454,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
       <StyledButton
         type={'blue'}
         onPress={triggerScan}
-        testID={'create-wallet-button'}
+        testID={WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID}
       >
         {strings('onboarding.scan')}
       </StyledButton>

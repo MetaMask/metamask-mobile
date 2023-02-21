@@ -1,10 +1,16 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useMemo } from 'react';
+
+// External dependencies.
+import Icon, { IconName, IconSize } from '../Icons/Icon';
 import { useStyles } from '../../hooks';
-import Icon, { IconName, IconSize } from '../Icon';
-import styleSheet from './Checkbox.styles';
+
+// Internal dependencies.
 import { CheckboxProps } from './Checkbox.types';
-import { CHECKBOX_ICON_ID } from '../../../constants/test-ids';
+import { CHECKBOX_ICON_ID } from './Checkbox.constants';
+import styleSheet from './Checkbox.styles';
 
 const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
   const {
@@ -12,8 +18,7 @@ const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
     theme: { colors },
   } = useStyles(styleSheet, { style, isSelected });
   const iconName = useMemo(
-    () =>
-      isSelected ? IconName.CheckBoxOnFilled : IconName.CheckBoxOffOutline,
+    () => (isSelected ? IconName.CheckBoxOn : IconName.CheckBoxOff),
     [isSelected],
   );
   const iconColor = useMemo(

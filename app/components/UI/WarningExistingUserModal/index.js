@@ -4,7 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import ActionModal from '../ActionModal';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -32,7 +32,7 @@ const createStyles = (colors) =>
   });
 
 const Default = () => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -67,10 +67,14 @@ export default function WarningExistingUserModal({
   children,
   cancelText,
   confirmText,
+  confirmTestID,
+  cancelTestID,
 }) {
   return (
     <ActionModal
       modalVisible={warningModalVisible}
+      cancelTestID={cancelTestID}
+      confirmTestID={confirmTestID}
       cancelText={cancelText || strings('onboarding.warning_proceed')}
       confirmText={confirmText || strings('onboarding.warning_cancel')}
       onCancelPress={onCancelPress}
@@ -91,6 +95,9 @@ WarningExistingUserModal.propTypes = {
   cancelButtonDisabled: PropTypes.bool,
   confirmText: PropTypes.string,
   children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
+  cancelTestID: PropTypes.string,
+  confirmTestID: PropTypes.string,
+
   /**
    * Whether the modal is visible
    */
