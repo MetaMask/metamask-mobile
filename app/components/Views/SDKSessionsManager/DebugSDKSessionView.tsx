@@ -8,7 +8,7 @@ import {
   ServiceStatus,
 } from '@metamask/sdk-communication-layer';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Connection, SDKConnect } from '../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../util/theme';
 
@@ -46,6 +46,12 @@ const createStyles = (
     },
     removeButton: {
       backgroundColor: colors.warning.default,
+    },
+    icon: {
+      width: 30,
+      height: 30,
+      borderWidth: 1,
+      borderColor: 'red',
     },
   });
 
@@ -110,7 +116,12 @@ export const SDKSessionView = ({
       {/* <Text>{connection.originatorInfo?.platform}</Text>
       <Text>{connection.originatorInfo?.title}</Text> */}
       {/* <Text>{JSON.stringify(connection.remote.getKeyInfo())}</Text> */}
-      <Text>originator: {JSON.stringify(originator)}</Text>
+
+      {originator?.icon && (
+        <Image style={styles.icon} source={{ uri: originator?.icon }} />
+      )}
+      <Text>title: {originator?.title}</Text>
+      <Text>url: {originator?.url}</Text>
       <Text>key_exchange_step: {serviceStatus?.keyInfo?.step}</Text>
       <Text>key_exchanged: {serviceStatus?.keyInfo?.keysExchanged + ''}</Text>
       <View style={{ padding: 5 }}>
@@ -139,6 +150,7 @@ export const SDKSessionView = ({
         style={styles.button}
         onPress={() => {
           console.debug('request to redirects', connection.requestsToRedirect);
+          console.debug(originator?.icon);
         }}
       >
         <Text style={styles.buttonText}>Requests Redirect</Text>
