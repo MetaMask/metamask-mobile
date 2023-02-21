@@ -352,14 +352,6 @@ workflows:
       - _build_failure_notify_on_slack
       - _upload_apk_to_browserstack
     steps:
-      # TODO DEBUG TO MAKE WORKFLOW FAIL. REMOVE ONCE TESTED!
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                exit 1
-          title: DEBUG TO MAKE WORKFLOW FAIL. REMOVE ONCE TESTED!
-          is_always_run: true
       - change-android-versioncode-and-versionname@1:
           inputs:
             - new_version_name: $VERSION_NAME
