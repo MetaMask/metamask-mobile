@@ -2,11 +2,12 @@
 
 exports[`ButtonBase should render correctly 1`] = `
 <TouchableOpacity
-  activeOpacity={1}
+  activeOpacity={0.5}
   onPress={[Function]}
   style={
     Object {
       "alignItems": "center",
+      "alignSelf": "flex-start",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
       "flexDirection": "row",
@@ -17,7 +18,7 @@ exports[`ButtonBase should render correctly 1`] = `
   }
 >
   <Icon
-    name="BankFilled"
+    name="Bank"
     size="16"
     style={
       Object {

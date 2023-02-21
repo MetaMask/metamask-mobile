@@ -250,6 +250,15 @@ export const getRpcMethodMiddleware = ({
           res.result = `0x${parseInt(chainId, 10).toString(16)}`;
         }
       },
+      eth_hashrate: () => {
+        res.result = '0x00';
+      },
+      eth_mining: () => {
+        res.result = false;
+      },
+      net_listening: () => {
+        res.result = true;
+      },
       net_version: async () => {
         const {
           provider: { type: networkType },

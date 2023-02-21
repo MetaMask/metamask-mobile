@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 6.0.0 - Feb 21, 2023
+## 6.0.1 - Feb 21, 2023
 - [#5799](https://github.com/MetaMask/metamask-mobile/pull/5799): [FIX] Browser: handle unsupported URLs
 
 ## 6.0.0 - Feb 15, 2023

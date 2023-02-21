@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // Third party dependencies.
-import { IconName } from '../../Icon';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { IconByTabBarIconKey, TabBarIconKey } from './TabBar.types';

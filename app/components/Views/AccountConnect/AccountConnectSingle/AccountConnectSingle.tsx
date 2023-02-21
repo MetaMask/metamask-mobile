@@ -14,8 +14,6 @@ import Cell, {
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import { ButtonPrimaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
-import { ButtonSecondaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -23,7 +21,9 @@ import Button, {
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName } from '../../../../component-library/components/Icon';
+import Icon, {
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
@@ -102,7 +102,6 @@ const AccountConnectSingle = ({
       <View style={[styles.ctaButtonsContainer, isLoading && styles.disabled]}>
         <Button
           variant={ButtonVariants.Secondary}
-          buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={() => {
             onUserAction(USER_INTENT.Cancel);
@@ -114,7 +113,6 @@ const AccountConnectSingle = ({
         <View style={styles.buttonSeparator} />
         <Button
           variant={ButtonVariants.Primary}
-          buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect')}
           onPress={() => {
             onUserAction(USER_INTENT.Confirm);
@@ -151,7 +149,7 @@ const AccountConnectSingle = ({
         style={isLoading && styles.disabled}
       >
         <View style={styles.downCaretContainer}>
-          <Icon name={IconName.ArrowDownOutline} />
+          <Icon name={IconName.ArrowDown} />
         </View>
       </Cell>
     );

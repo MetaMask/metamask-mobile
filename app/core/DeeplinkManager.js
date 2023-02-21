@@ -12,6 +12,7 @@ import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
 import { WalletDevice } from '@metamask/transaction-controller';
+import NotificationManager from '../core/NotificationManager';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -22,7 +23,6 @@ import { showAlert } from '../actions/alert';
 import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
-import NotificationManager from '../core/NotificationManager';
 import { getAddress } from '../util/address';
 
 class DeeplinkManager {

@@ -2,7 +2,7 @@
 
 exports[`ButtonPrimary should render correctly 1`] = `
 <ButtonBase
-  iconName="BankFilled"
+  iconName="Bank"
   label="Click me!"
   labelColor="#FCFCFC"
   onPress={[Function]}
@@ -11,7 +11,7 @@ exports[`ButtonPrimary should render correctly 1`] = `
   size="40"
   style={
     Object {
-      "backgroundColor": "#037DD6",
+      "backgroundColor": "#0376C9",
     }
   }
 />
