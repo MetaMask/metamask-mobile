@@ -73,11 +73,13 @@ workflows:
                 COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
                 BRANCH_HEIGHT=''
                 WORKFLOW_TRIGGER='Push'
-                if [ ! -n "$BITRISE_GIT_COMMIT" ]; then
-                    COMMIT_SHORT_HASH=`git rev-parse --short HEAD`
-                    BRANCH_HEIGHT='HEAD'
-                    WORKFLOW_TRIGGER='Manual'
+
+                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
+                COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
+                BRANCH_HEIGHT='HEAD'
+                WORKFLOW_TRIGGER='Manual'
                 fi
+
                 envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
                 envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
                 envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
@@ -92,6 +94,7 @@ workflows:
           is_always_run: true
           run_if: .IsBuildFailed
           inputs:
+            - text: "${BITRISE_APP_TITLE} workflow notification"
             - pretext_on_error: ":red_circle: *${BITRISE_APP_TITLE} build failed!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
@@ -108,9 +111,35 @@ workflows:
             - footer: "Notification sent by Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
-  ############################
-  ### Triggerable workflows ##
-  ############################
+  # Send a Slack message when e2e workflow fails or succeeds
+  _e2e_notify_on_slack:
+    before_run:
+      - _get_workflow_info
+    steps:
+      - slack@3:
+          is_always_run: true
+          inputs:
+            - text: "${BITRISE_APP_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *E2E tests succeeded!*"
+            - pretext_on_error: ":red_circle: *E2E tests failed!*"
+            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
+            - message: ${BITRISE_GIT_MESSAGE}
+            - fields: |
+                Branch|${BITRISE_GIT_BRANCH}
+                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
+                Trigger|${WORKFLOW_TRIGGER}
+                Build|${BITRISE_BUILD_NUMBER}
+            - buttons: |
+                View app|${BITRISE_APP_URL}
+                View build|${BITRISE_BUILD_URL}
+                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
+            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
+
+  #########################
+  # Triggerable workflows #
+  #########################
   # CI Steps
   ci_test:
     before_run:
@@ -141,6 +170,8 @@ workflows:
     before_run:
       - code_setup
       - e2e_setup
+    after_run:
+      - _e2e_notify_on_slack
     steps:
       - install-missing-android-tools@2:
           inputs:
@@ -166,6 +197,8 @@ workflows:
     before_run:
       - code_setup
       - e2e_setup
+    after_run:
+      - _e2e_notify_on_slack
     steps:
       - certificate-and-profile-installer@1: { }
       - set-xcode-build-number@1:
@@ -202,31 +235,6 @@ workflows:
           inputs:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash echo 'weew - everything passed!'
-          title: All Tests Passed
-          is_always_run: false
-      - slack@3:
-          inputs:
-            - text: "${BITRISE_APP_TITLE} workflow notification"
-            - pretext: ":large_green_circle: *E2E tests succeeded!*"
-            - pretext_on_error: ":red_circle: *E2E tests failed!*"
-            - title: "Commit #${BITRISE_GIT_COMMIT}"
-            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
-            - message: ${BITRISE_GIT_MESSAGE}
-            - fields: |
-                App|${BITRISE_APP_TITLE}
-                Branch|${BITRISE_GIT_BRANCH}
-                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
-                Build|${BITRISE_BUILD_NUMBER}
-            - buttons: |
-                View app|${BITRISE_APP_URL}
-                View build|${BITRISE_BUILD_URL}
-                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
   # Parallel Build & Deploy Steps
   create_release_builds:
     before_run:
@@ -420,6 +428,8 @@ workflows:
   wdio_android_e2e_test:
     before_run:
       - code_setup_cache
+    after_run:
+      - _e2e_notify_on_slack
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
