@@ -137,3 +137,11 @@ When(/^I fill my password in the Login screen$/, async () => {
   await LoginScreen.typePassword(validAccount.password);
   await LoginScreen.tapTitle();
 });
+When(/^I unlock wallet with (.*)$/, async (password) => {
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await LoginScreen.typePassword(password);
+  await LoginScreen.tapTitle();
+  await LoginScreen.tapUnlockButton();
+  await WalletMainScreen.isMainWalletViewVisible();
+});

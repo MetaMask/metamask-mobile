@@ -23,7 +23,7 @@ class AddCustomImportToken {
     await Gestures.typeText(this.customTokenAddressField, text);
   }
   async scrollToImportButton() {
-    await Gestures.swipe({ x: 400, y: 1450 }, { x: 100, y: 10 });
+    await Gestures.swipe({ x: 300, y: 1000 }, { x: 300, y: 10 });
   }
 
   async tapImportButton() {
