@@ -148,7 +148,7 @@ class WalletMainScreen {
   }
 
   async isNetworkNameCorrect(network) {
-    const networkName = Selectors.getXpathElementByText(network);
+    const networkName = Selectors.getXpathElementByTextContains(network);
     await expect(networkName).toBeDisplayed();
   }
 
