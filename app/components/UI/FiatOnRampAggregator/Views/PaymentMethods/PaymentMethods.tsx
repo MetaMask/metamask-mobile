@@ -28,12 +28,12 @@ import {
 
 import { createAmountToBuyNavDetails } from '../AmountToBuy';
 
-interface PaymenthMethodsParams {
+interface PaymentMethodsParams {
   showBack?: boolean;
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymenthMethodsParams>(
+  createNavigationDetails<PaymentMethodsParams>(
     Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
   );
 
@@ -41,7 +41,7 @@ const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const { showBack } = useParams<PaymenthMethodsParams>();
+  const { showBack } = useParams<PaymentMethodsParams>();
 
   const {
     setSelectedRegion,
