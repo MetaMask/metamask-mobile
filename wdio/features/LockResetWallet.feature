@@ -3,7 +3,7 @@
 @ChainScenarios
 Feature: Lock and Reset Wallet
 
-  Scenario: Import account
+  Scenario: Import wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen

@@ -94,7 +94,7 @@ const AccountPermissionsRevoke = ({
               disabled: isLoading,
               isDanger: true,
             },
-          ]}
+                    ]}
         />
       </View>
     ),

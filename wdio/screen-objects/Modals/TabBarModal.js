@@ -15,7 +15,7 @@ class TabBarModal {
   }
 
   async tapWalletButton() {
-    await Gestures.waitAndTap(this.walletButton);
+    await Gestures.tapTextByXpath(this.walletButton);
   }
 
   async tapBrowserButton() {

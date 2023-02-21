@@ -53,7 +53,7 @@ describe('Deep linking Tests', () => {
     jest.setTimeout(150000);
   });
 
-  it('should import via seed phrase and validate in settings', async () => {
+  it('should import wallet with secret recovery phrase', async () => {
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -64,10 +64,6 @@ describe('Deep linking Tests', () => {
     await MetaMetricsOptIn.tapAgreeButton();
 
     await ImportWalletView.isVisible();
-  });
-
-  it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    //await ImportWalletView.toggleRememberMe();
     await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);

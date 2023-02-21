@@ -1,4 +1,5 @@
 @androidApp @smoke
+@ChainScenarios
 Feature: This feature file covers adding favorite websites in browser.
 
 

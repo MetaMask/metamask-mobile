@@ -56,6 +56,13 @@ When(/^the account list should be visible/, async () => {
   await AccountListComponent.isComponentDisplayed();
 });
 
+When(/^I long press to remove "([^"]*)"/, async () => {
+  // should be in a common-step file
+  await driver.pause(3000);
+  await AccountListComponent.longPressOnAccount();
+  await driver.acceptAlert();
+});
+
 When(/^the account list should not be visible/, async () => {
   // should be in a common-step file
   await driver.pause(3000);

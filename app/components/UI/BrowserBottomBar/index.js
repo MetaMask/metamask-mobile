@@ -12,6 +12,15 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  HOME_BUTTON,
+  TABS_BUTTON,
+  FORWARD_BUTTON,
+  BACK_BUTTON,
+  OPTIONS_BUTTON,
+  SEARCH_BUTTON,
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 // NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
 // TODO: test on an android device
@@ -147,7 +156,7 @@ export default class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={onBackPress}
           style={styles.iconButton}
-          testID={'go-back-button'}
+          {...generateTestId(Platform, BACK_BUTTON)}
           disabled={!canGoBack}
         >
           <Icon
@@ -159,7 +168,7 @@ export default class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={onForwardPress}
           style={styles.iconButton}
-          testID={'go-forward-button'}
+          {...generateTestId(Platform, FORWARD_BUTTON)}
           disabled={!canGoForward}
         >
           <Icon
@@ -171,7 +180,7 @@ export default class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={onSearchPress}
           style={styles.iconButton}
-          testID={'search-button'}
+          {...generateTestId(Platform, SEARCH_BUTTON)}
         >
           <FeatherIcons name="search" size={24} style={styles.icon} />
         </TouchableOpacity>
@@ -179,14 +188,14 @@ export default class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={showTabs}
           style={styles.iconButton}
-          testID={'show-tabs-button'}
+          {...generateTestId(Platform, TABS_BUTTON)}
         >
           <TabCountIcon style={styles.tabIcon} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onHomePress}
           style={styles.iconButton}
-          testID={'home-button'}
+          {...generateTestId(Platform, HOME_BUTTON)}
         >
           <SimpleLineIcons name="home" size={22} style={styles.icon} />
         </TouchableOpacity>
@@ -194,7 +203,7 @@ export default class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={toggleOptions}
           style={styles.iconButton}
-          testID={'options-button'}
+          {...generateTestId(Platform, OPTIONS_BUTTON)}
         >
           <MaterialIcon name="more-horiz" size={22} style={styles.icon} />
         </TouchableOpacity>

@@ -287,7 +287,7 @@ describe('Wallet Tests', () => {
     await WalletView.isTokenVisibleInWallet('0 BLT');
   });
 
-  it('should switch to Goerli network', async () => {
+  it('should switch back to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.changeNetwork(GOERLI);
