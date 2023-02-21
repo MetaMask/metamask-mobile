@@ -130,9 +130,10 @@ const AccountPermissionsConnected = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      <View style={styles.body}          
-       {...generateTestId(Platform, "accounts-connected-modal-container")}
-       >
+      <View
+        style={styles.body}
+        {...generateTestId(Platform, 'accounts-connected-modal-container')}
+      >
         <TagUrl
           imageSource={favicon}
           label={hostname}
@@ -147,8 +148,7 @@ const AccountPermissionsConnected = ({
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}
-          {...generateTestId(Platform, "accounts-connected-network-picker")}
-
+          {...generateTestId(Platform, 'accounts-connected-network-picker')}
         />
       </View>
       <AccountSelectorList

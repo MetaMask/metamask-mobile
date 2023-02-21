@@ -38,7 +38,6 @@ import {
 } from '../../../../../app/constants/test-ids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
-
 const AccountConnectSingle = ({
   defaultSelectedAccount,
   onSetScreen,
@@ -167,7 +166,10 @@ const AccountConnectSingle = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
-      <View style={styles.body} {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}>
+      <View
+        style={styles.body}
+        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+      >
         <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}

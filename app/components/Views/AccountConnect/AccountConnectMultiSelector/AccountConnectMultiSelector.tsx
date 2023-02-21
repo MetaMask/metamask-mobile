@@ -145,8 +145,7 @@ const AccountConnectMultiSelector = ({
             ...(isConnectDisabled && styles.disabled),
           }}
           disabled={isConnectDisabled}
-          {...generateTestId(Platform, "multiconnect-connect-button")}
-
+          {...generateTestId(Platform, 'multiconnect-connect-button')}
         />
       </View>
     );

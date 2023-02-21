@@ -165,7 +165,7 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await AccountListView.accountNameNotVisible('Account 2');
   });
 
-  it('should navigate to browser', async () => {
+  it('should return to browser', async () => {
     await AccountListView.swipeToDimssAccountsModal();
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
