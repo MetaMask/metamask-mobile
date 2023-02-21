@@ -8,7 +8,7 @@ workflows:
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6: {}
+      - git-clone@6: { }
       - nvm@1.3.0:
           inputs:
             - node_version: '14'
@@ -16,7 +16,7 @@ workflows:
     before_run:
       - setup
     steps:
-      - cache-pull@2: {}
+      - cache-pull@2: { }
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
@@ -33,7 +33,7 @@ workflows:
             - cache_local_deps: 'yes'
             - command: lint
           is_always_run: true
-      - cache-push@2: {}
+      - cache-push@2: { }
   code_setup:
     before_run:
       - setup
@@ -54,6 +54,63 @@ workflows:
             - cache_local_deps: 'yes'
             - command: lint
           is_always_run: true
+
+  # Notifications utility workflows
+  # Provides values for commit or branch message and path depending on commit env setup initialised or not
+  _get_workflow_info:
+    steps:
+      - activate-ssh-key@4:
+          is_always_run: true
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6:
+          is_always_run: true
+      - script@1:
+          is_always_run: true
+          inputs:
+            - content: |
+                #!/bin/bash
+                # generate reference to commit from env or using git
+                COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
+                BRANCH_HEIGHT=''
+                WORKFLOW_TRIGGER='Push'
+                if [ ! -n "$BITRISE_GIT_COMMIT" ]; then
+                    COMMIT_SHORT_HASH=`git rev-parse --short HEAD`
+                    BRANCH_HEIGHT='HEAD'
+                    WORKFLOW_TRIGGER='Manual'
+                fi
+                envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
+                envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
+                envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
+          title: Get commit or branch name and path variables
+
+  # Send a Slack message when build workflow fails
+  _build_failure_notify_on_slack:
+    before_run:
+      - _get_workflow_info
+    steps:
+      - slack@3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - pretext_on_error: ":red_circle: *${BITRISE_APP_TITLE} build failed!*"
+            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
+            - message: ${BITRISE_GIT_MESSAGE}
+            - fields: |
+                Branch|${BITRISE_GIT_BRANCH}
+                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
+                Trigger|${WORKFLOW_TRIGGER}
+                Build|${BITRISE_BUILD_NUMBER}
+            - buttons: |
+                View app|${BITRISE_APP_URL}
+                View build|${BITRISE_BUILD_URL}
+                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
+            - footer: "Notification sent by Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow"
+            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
+
+  ############################
+  ### Triggerable workflows ##
+  ############################
   # CI Steps
   ci_test:
     before_run:
@@ -94,7 +151,7 @@ workflows:
             - api_level: '29'
             - create_command_flags: '--sdcard 4096M'
             - profile: pixel
-      - wait-for-android-emulator@1: {}
+      - wait-for-android-emulator@1: { }
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
@@ -110,7 +167,7 @@ workflows:
       - code_setup
       - e2e_setup
     steps:
-      - certificate-and-profile-installer@1: {}
+      - certificate-and-profile-installer@1: { }
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
@@ -234,6 +291,8 @@ workflows:
   build_android_release:
     before_run:
       - code_setup
+    after_run:
+      - _build_failure_notify_on_slack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -280,6 +339,7 @@ workflows:
     before_run:
       - code_setup_cache
     after_run:
+      - _build_failure_notify_on_slack
       - _upload_apk_to_browserstack
     steps:
       - change-android-versioncode-and-versionname@1:
@@ -376,7 +436,7 @@ workflows:
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
       - deploy-to-bitrise-io@1:
           inputs:
-              - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
     before_run:
@@ -402,14 +462,16 @@ workflows:
   build_ios_release:
     before_run:
       - code_setup_cache
+    after_run:
+      - _build_failure_notify_on_slack
     steps:
-      - certificate-and-profile-installer@1: {}
+      - certificate-and-profile-installer@1: { }
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - cocoapods-install@2: {}
+      - cocoapods-install@2: { }
       - script@1:
           inputs:
             - content: |-
@@ -433,14 +495,16 @@ workflows:
   build_ios_qa:
     before_run:
       - code_setup_cache
+    after_run:
+      - _build_failure_notify_on_slack
     steps:
-      - certificate-and-profile-installer@1: {}
+      - certificate-and-profile-installer@1: { }
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - cocoapods-install@2: {}
+      - cocoapods-install@2: { }
       - script@1:
           inputs:
             - content: |-
