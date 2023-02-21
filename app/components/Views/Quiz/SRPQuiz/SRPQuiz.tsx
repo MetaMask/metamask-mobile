@@ -58,7 +58,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.Confirm}
+        name={IconName.Confirmation}
         color={colors.success.default}
       />
     ),
