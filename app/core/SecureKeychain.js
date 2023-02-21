@@ -56,14 +56,12 @@ class SecureKeychain {
 let instance;
 
 export default {
-  init(salt) {
+  async init(salt) {
     instance = new SecureKeychain(salt);
+    Object.freeze(instance);
 
     if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
       AnalyticsV2.trackEvent(MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE);
-
-    Object.freeze(instance);
-    return instance;
   },
 
   getInstance() {
