@@ -39,7 +39,6 @@ interface Props {
 const Root = ({ foxCode = 'null' }: Props) => {
   useEffect(() => {
     if (foxCode === '') {
-      // @ts-ignore
       Logger.error('WARN - foxCode is an empty string');
     }
 

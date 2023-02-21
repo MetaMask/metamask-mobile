@@ -84,7 +84,6 @@ class Engine {
    * Creates a CoreController instance
    */
   constructor(initialState = {}) {
-    console.log('Engine Instance', Engine.instance);
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(
