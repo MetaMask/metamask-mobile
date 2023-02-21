@@ -353,6 +353,12 @@ class AccountOverview extends PureComponent {
         timestamp: Date.now(),
       },
     });
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
+      {
+        portfolioUrl: AppConstants.PORTFOLIO_URL,
+      },
+    );
   };
 
   render() {
