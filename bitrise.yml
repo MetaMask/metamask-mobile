@@ -32,7 +32,7 @@ workflows:
           inputs:
             # The Yarn cache is easier and safer to cache than `node_modules`, which could include
             # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: "$YARN_CACHE_DIR"
+            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
       - yarn@0:
           title: Lint
           inputs:
