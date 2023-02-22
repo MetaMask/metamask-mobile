@@ -6,6 +6,13 @@ workflows:
   # Code Setups
   setup:
     steps:
+      - script@1:
+          is_always_run: true
+          inputs:
+            - content: |
+                #!/bin/bash
+                exit ${DEBUG_EXIT_CODE:-0}
+          title: DEBUG STEP TO MAKE WORKFLOW FAIL, REMOVE AFTER 441 is tested!
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
@@ -270,9 +277,9 @@ workflows:
             - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $BITRISE_DEPLOY_DIR/app-prod-release.apk
           title: Bitrise Deploy APK
       - yarn@0:
@@ -325,41 +332,41 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
   build_android_qa:
     before_run:
       - code_setup_cache
     after_run:
-      - _build_failure_notify_on_slack
       - _upload_apk_to_browserstack
+      - _build_failure_notify_on_slack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -383,33 +390,33 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
   _upload_apk_to_browserstack:
@@ -428,9 +435,9 @@ workflows:
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
       - build-router-start@0:
@@ -468,9 +475,9 @@ workflows:
                 #!/usr/bin/env bash
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-              - is_always_run: false
-              - is_skippable: true
               - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
@@ -516,21 +523,21 @@ workflows:
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
@@ -555,21 +562,21 @@ workflows:
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@1:
+          is_always_run: false
+          is_skippable: true
           inputs:
-            - is_always_run: false
-            - is_skippable: true
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
 app:
