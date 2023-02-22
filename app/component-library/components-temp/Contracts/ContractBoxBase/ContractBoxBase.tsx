@@ -40,21 +40,9 @@ const ContractBoxBase = ({
     theme: { colors },
   } = useStyles(styleSheet, {});
 
-  const IconView = ({
-    onPress,
-    name,
-    size,
-    testID,
-    hasBlockExplorerIcon,
-  }: IconViewProps) => (
-    <Pressable onPress={onPress} testID={testID}>
-      <Icon
-        color={
-          hasBlockExplorerIcon ? colors.icon.alternative : colors.icon.muted
-        }
-        name={name}
-        size={size}
-      />
+  const IconView = ({ onPress, name, size, testID }: IconViewProps) => (
+    <Pressable style={styles.icon} onPress={onPress} testID={testID}>
+      <Icon color={colors.icon.alternative} name={name} size={size} />
     </Pressable>
   );
 
@@ -101,13 +89,14 @@ const ContractBoxBase = ({
           size={IconSize.Lg}
           testID={COPY_ICON_TEST_ID}
         />
-        <IconView
-          name={IconName.Export}
-          onPress={hasBlockExplorer ? onExportAddress : undefined}
-          size={IconSize.Md}
-          testID={EXPORT_ICON_TEST_ID}
-          hasBlockExplorerIcon={hasBlockExplorer}
-        />
+        {hasBlockExplorer && (
+          <IconView
+            name={IconName.Export}
+            onPress={onExportAddress}
+            size={IconSize.Md}
+            testID={EXPORT_ICON_TEST_ID}
+          />
+        )}
       </View>
     </View>
   );

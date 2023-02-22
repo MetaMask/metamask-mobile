@@ -12,8 +12,12 @@ import createStyles from './VerifyContractDetails.styles';
 import { VerifyContractDetailsProps } from './VerifyContractDetails.types';
 import { findBlockExplorerForRpc } from '../../../../util/networks';
 import { RPC } from '../../../../constants/network';
-
+import TransactionTypes from '../../../../core/TransactionTypes';
 import { safeToChecksumAddress } from '../../../../util/address';
+
+const {
+  ASSET: { ERC20, ERC1155, ERC721 },
+} = TransactionTypes;
 
 const VerifyContractDetails = ({
   contractAddress,
@@ -26,6 +30,7 @@ const VerifyContractDetails = ({
   tokenSymbol,
   networkProvider: { rpcTarget, type },
   frequentRpcList,
+  tokenStandard,
 }: VerifyContractDetailsProps) => {
   const [contractNickname, setContractNickname] = React.useState<string>('');
   const [tokenNickname, setTokenNickname] = React.useState<string>('');
@@ -84,7 +89,12 @@ const VerifyContractDetails = ({
       <View>
         <Text variant={TextVariant.BodySM} style={styles.title}>
           {strings('contract_allowance.token_allowance.contract_type', {
-            type: 'Token',
+            type:
+              tokenStandard === ERC20
+                ? strings('contract_allowance.token_allowance.token')
+                : tokenStandard === ERC721 || tokenStandard === ERC1155
+                ? strings('contract_allowance.token_allowance.nft')
+                : '',
           })}
         </Text>
         <View style={styles.contractSection}>
@@ -102,6 +112,14 @@ const VerifyContractDetails = ({
         <Text variant={TextVariant.BodySM} style={styles.title}>
           {strings(
             'contract_allowance.token_allowance.contract_requesting_text',
+            {
+              action:
+                tokenStandard === ERC20
+                  ? strings('contract_allowance.token_allowance.spending_cap')
+                  : tokenStandard === ERC721 || tokenStandard === ERC1155
+                  ? strings('contract_allowance.token_allowance.access')
+                  : '',
+            },
           )}
         </Text>
         <View style={styles.contractSection}>

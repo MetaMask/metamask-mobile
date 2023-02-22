@@ -30,5 +30,4 @@ export interface IconViewProps {
   onPress?: () => void;
   testID?: string;
   color?: string;
-  hasBlockExplorerIcon?: boolean;
 }

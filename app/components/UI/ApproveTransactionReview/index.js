@@ -1036,6 +1036,7 @@ class ApproveTransactionReview extends PureComponent {
         tokenSymbol={symbol}
         networkProvider={provider}
         frequentRpcList={frequentRpcList}
+        tokenStandard={this.state.token?.tokenStandard}
       />
     );
   };

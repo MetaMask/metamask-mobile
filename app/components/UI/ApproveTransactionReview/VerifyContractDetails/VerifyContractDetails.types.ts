@@ -18,6 +18,7 @@ export interface VerifyContractDetailsProps {
    * toggle nickname view
    */
   showNickname: (address: string) => void;
+  tokenStandard: string;
   tokenSymbol: string;
   networkProvider: {
     type: string;

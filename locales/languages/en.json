@@ -2279,10 +2279,14 @@
     },
     "token_allowance": {
       "verify_contract_details": "Verify contract details",
-      "token_contract": "Token contract",
       "protect_from_scams": "To protect yourself against scammers, take a moment to verify contract details.",
       "learn_to_verify": "Learn how to verify contract details",
-      "contract_requesting_text": "Contract requesting spending cap",
+      "spending_cap": "spending cap",
+      "access": "access",
+      "nft": "NFT",
+      "token": "Token",
+      "contract_requesting_text": "Contract requesting {{action}}",
+
       "contract_type": "{{type}} contract"
     }
   },

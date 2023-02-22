@@ -64,7 +64,6 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
         "alignItems": "center",
         "flexDirection": "row",
         "justifyContent": "space-between",
-        "width": 60,
       }
     }
   >
@@ -72,11 +71,6 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       name="Copy"
       size="24"
       testID="copy-icon"
-    />
-    <IconView
-      name="Export"
-      size="20"
-      testID="export-icon"
     />
   </View>
 </View>
