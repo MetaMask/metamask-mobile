@@ -7,7 +7,7 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icon';
+} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -47,7 +47,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.DangerFilled}
+        name={IconName.Danger}
         color={colors.error.default}
       />
     ),
@@ -58,7 +58,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.CheckCircleOnFilled}
+        name={IconName.Confirmation}
         color={colors.success.default}
       />
     ),
@@ -69,7 +69,8 @@ const SRPQuiz = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      privateCredentialName: 'seed_phrase',
+      credentialName: 'seed_phrase',
+      hasNavigation: true,
     });
   }, [navigation]);
 
@@ -290,7 +291,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Primary,
           },
           {
             label: strings('srp_security_quiz.learn_more'),

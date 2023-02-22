@@ -202,7 +202,7 @@ class NetworksScreen {
   }
 
   async tapBackButtonInSettingsScreen() {
-    await Gestures.tap(this.settingsPageAndroidBackButton);
+    await Gestures.waitAndTap(this.settingsPageAndroidBackButton);
   }
 
   async tapCloseNetworkScreen() {

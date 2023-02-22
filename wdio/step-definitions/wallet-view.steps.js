@@ -39,7 +39,6 @@ Then(/^I tap on the navbar network title button/, async () => {
 });
 
 Then(/^I am on the wallet screen/, async () => {
-  await driver.pause(2000);
   await WalletMainScreen.isVisible();
 });
 Then(/^I am on the wallet view/, async () => {
@@ -66,4 +65,7 @@ When(/^the account list should not be visible/, async () => {
 When(/^I dismiss the account list/, async () => {
   await driver.pause(2500);
   await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
+});
+Then(/^Wallet view is displayed$/, async () => {
+  await WalletMainScreen.isMainWalletViewVisible();
 });

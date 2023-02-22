@@ -9,7 +9,7 @@ import Avatar, {
 } from '../../../components/Avatars/Avatar';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName, IconSize } from '../../../components/Icon';
+import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
 import Button, { ButtonVariants } from '../../../components/Buttons/Button';
 
@@ -71,13 +71,13 @@ const ContractBoxBase = ({
       <View style={styles.iconContainer}>
         <IconView
           onPress={onCopyAddress}
-          name={IconName.CopyFilled}
+          name={IconName.Copy}
           size={IconSize.Lg}
           testID={COPY_ICON_TEST_ID}
         />
         <IconView
           onPress={onExportAddress}
-          name={IconName.ExportOutline}
+          name={IconName.Export}
           size={IconSize.Md}
           testID={EXPORT_ICON_TEST_ID}
         />

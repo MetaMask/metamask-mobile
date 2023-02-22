@@ -17,7 +17,7 @@ import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 import customSpendCapStyles from './CustomSpendCap.styles';
-import Icon, { IconName, IconSize } from '../../components/Icon';
+import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
 
 const CustomSpendCap = ({
   ticker,
@@ -124,7 +124,7 @@ const CustomSpendCap = ({
     <>
       <Icon
         size={IconSize.Sm}
-        name={IconName.DangerFilled}
+        name={IconName.Danger}
         color={colors.error.default}
       />
       <Text variant={TextVariant.BodyMDBold} style={styles.modalTitleDanger}>
@@ -166,11 +166,7 @@ const CustomSpendCap = ({
           <Pressable onPress={toggleModal}>
             <Icon
               size={IconSize.Sm}
-              name={
-                defaultValueSelected
-                  ? IconName.DangerFilled
-                  : IconName.QuestionFilled
-              }
+              name={defaultValueSelected ? IconName.Danger : IconName.Question}
               color={
                 defaultValueSelected ? colors.error.default : colors.icon.muted
               }

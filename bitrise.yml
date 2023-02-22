@@ -151,6 +151,25 @@ workflows:
                 #!/usr/bin/env bash echo 'weew - everything passed!'
           title: All Tests Passed
           is_always_run: false
+      - slack@3:
+          inputs:
+            - text: "${BITRISE_APP_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *E2E tests succeeded!*"
+            - pretext_on_error: ":red_circle: *E2E tests failed!*"
+            - title: "Commit #${BITRISE_GIT_COMMIT}"
+            - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
+            - message: ${BITRISE_GIT_MESSAGE}
+            - fields: |
+                App|${BITRISE_APP_TITLE}
+                Branch|${BITRISE_GIT_BRANCH}
+                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
+                Build|${BITRISE_BUILD_NUMBER}
+            - buttons: |
+                View app|${BITRISE_APP_URL}
+                View build|${BITRISE_BUILD_URL}
+                View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${BITRISE_GIT_COMMIT}
+            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
   # Parallel Build & Deploy Steps
   create_release_builds:
     before_run:
@@ -473,10 +492,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.14.0
+      VERSION_NAME: 6.0.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1055
+      VERSION_NUMBER: 1068
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -10,10 +10,11 @@ import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import { TabBarLabel, TabBarProps } from './TabBar.types';
+import { TabBarIconKey, TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_LABEL } from './TabBar.constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import Routes from '../../../../constants/navigation/Routes';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -22,17 +23,30 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
-      const label = options.tabBarLabel as TabBarLabel;
+      const tabBarIconKey = options.tabBarIconKey as TabBarIconKey;
+      const label = options.tabBarLabel;
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
+      const rootScreenName = options.rootScreenName;
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
-      const icon = ICON_BY_TAB_BAR_LABEL[label];
+      const icon = ICON_BY_TAB_BAR_LABEL[tabBarIconKey];
       const onPress = () => {
-        if (isSelected) return;
-
         callback?.();
-        navigation.navigate(route.name);
+        switch (rootScreenName) {
+          case Routes.WALLET_VIEW:
+            navigation.navigate(Routes.WALLET.HOME, {
+              screen: Routes.WALLET.TAB_STACK_FLOW,
+              params: {
+                screen: Routes.WALLET_VIEW,
+              },
+            });
+            break;
+          case Routes.BROWSER_VIEW:
+            navigation.navigate(Routes.BROWSER.HOME, {
+              screen: Routes.BROWSER_VIEW,
+            });
+        }
       };
 
       return (

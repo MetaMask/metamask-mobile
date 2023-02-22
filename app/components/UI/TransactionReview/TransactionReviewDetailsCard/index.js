@@ -9,6 +9,11 @@ import Feather from 'react-native-vector-icons/Feather';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 import formatNumber from '../../../../util/formatNumber';
+import TransactionTypes from '../../../../core/TransactionTypes';
+
+const {
+  ASSET: { ERC20 },
+} = TransactionTypes;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,6 +101,9 @@ export default class TransactionReviewDetailsCard extends Component {
     method: PropTypes.string,
     nickname: PropTypes.string,
     nicknameExists: PropTypes.bool,
+    tokenValue: PropTypes.string,
+    tokenStandard: PropTypes.string,
+    tokenName: PropTypes.string,
   };
 
   render() {
@@ -112,6 +120,9 @@ export default class TransactionReviewDetailsCard extends Component {
       displayViewData,
       nickname,
       nicknameExists,
+      tokenValue,
+      tokenName,
+      tokenStandard,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -152,10 +163,14 @@ export default class TransactionReviewDetailsCard extends Component {
           </View>
           <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
-              {strings('spend_limit_edition.allowance')}
+              {tokenStandard === ERC20
+                ? strings('spend_limit_edition.spending_cap')
+                : strings('spend_limit_edition.approve_asset')}
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
-              {formatNumber(allowance)} {tokenSymbol}
+              {tokenStandard === ERC20
+                ? `${formatNumber(allowance)} ${tokenSymbol}`
+                : `${tokenName} (#${tokenValue})`}
             </Text>
           </View>
         </View>

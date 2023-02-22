@@ -12,7 +12,7 @@ import Animated, {
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import Icon, { IconSize, IconName } from '../../../../Icon';
+import Icon, { IconSize, IconName } from '../../../../Icons/Icon';
 import Text, { TextVariant } from '../../../../Texts/Text';
 import { ACCORDION_EXPAND_TRANSITION_DURATION } from '../../Accordion.constants';
 
@@ -72,7 +72,7 @@ const AccordionHeader = ({
         testID={ACCORDION_HEADER_ARROW_ICON_ANIMATION_TEST_ID}
       >
         <Icon
-          name={IconName.ArrowUpOutline}
+          name={IconName.ArrowUp}
           size={IconSize.Sm}
           color={styles.title.color}
           testID={ACCORDION_HEADER_ARROW_ICON_TEST_ID}

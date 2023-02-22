@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.14.0",
+  "version": "6.0.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -90,6 +90,7 @@
     "**/json-schema": "^0.4.0",
     "@sentry/react-native/**/xmldom": "^0.6.0",
     "@sentry/**/simple-plist": "^1.3.1",
+    "@sideway/formula": "3.0.1",
     "react-native/**/simple-plist": "^1.3.1",
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/set-value": "^4.0.1",
@@ -129,7 +130,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.6.1",
+    "@consensys/on-ramp-sdk": "1.8.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -171,7 +172,7 @@
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
     "@rnhooks/keyboard": "^0.0.3",
-    "@segment/analytics-react-native": "2.9.1",
+    "@segment/analytics-react-native": "2.13.0",
     "@segment/sovran-react-native": "0.4.5",
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "2.4.2",
