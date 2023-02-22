@@ -37,7 +37,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
-import RNFetchBlob from 'rn-fetch-blob';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -63,6 +62,8 @@ import {
   WebviewExecutionService,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
+  detectSnapLocation,
+  fetchFunction,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import {
@@ -451,14 +452,13 @@ class Engine {
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: initialState.snapController || {},
         messenger: snapControllerMessenger,
-        fetchFunction: RNFetchBlob.config({ fileCache: true }).fetch.bind(
-          RNFetchBlob,
-        ),
         // TO DO
         closeAllConnections: () =>
           console.log(
             'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
           ),
+        detectSnapLocation: (location, options) =>
+          detectSnapLocation(location, { ...options, fetch: fetchFunction }),
       });
 
       const controllers = [
