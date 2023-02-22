@@ -66,3 +66,6 @@ When(/^I dismiss the account list/, async () => {
   await driver.pause(2500);
   await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
 });
+Then(/^Wallet view is displayed$/, async () => {
+  await WalletMainScreen.isMainWalletViewVisible();
+});

@@ -15,20 +15,24 @@ import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Networks, { getAllNetworks, isMainNet } from '../../../../util/networks';
+import Networks, {
+  getAllNetworks,
+  getNetworkImageSource,
+  isMainNet,
+} from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import getImage from '../../../../util/getImage';
 import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
-import Avatar, {
+import {
   AvatarSize,
   AvatarVariants,
 } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -214,18 +218,15 @@ class NetworksSettings extends PureComponent {
               testID={'select-network'}
             >
               <View style={styles.network}>
-                {isCustomRPC &&
-                  // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
-                  (image ? (
-                    <ImageIcons image={image} style={styles.networkIcon} />
-                  ) : (
-                    <Avatar
-                      variant={AvatarVariants.Network}
-                      name={name}
-                      style={styles.networkIcon}
-                      size={AvatarSize.Xs}
-                    />
-                  ))}
+                {isCustomRPC ? (
+                  <AvatarNetwork
+                    variant={AvatarVariants.Network}
+                    name={name}
+                    imageSource={image}
+                    style={styles.networkIcon}
+                    size={AvatarSize.Xs}
+                  />
+                ) : null}
                 {!isCustomRPC &&
                   (image ? (
                     <ImageIcons
@@ -267,7 +268,7 @@ class NetworksSettings extends PureComponent {
     const { frequentRpcList } = this.props;
     return frequentRpcList.map(({ rpcUrl, nickname, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl };
-      const image = getImage(chainId);
+      const image = getNetworkImageSource({ chainId });
       return this.networkElement(name, image, i, rpcUrl, true);
     });
   };
@@ -350,7 +351,7 @@ class NetworksSettings extends PureComponent {
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
         const { network, chainId, name, color, isCustomRPC } = data;
-        const image = getImage(chainId);
+        const image = getNetworkImageSource(chainId);
         return this.networkElement(
           name,
           image || color,

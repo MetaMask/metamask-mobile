@@ -128,6 +128,14 @@ When(/^I log into my wallet$/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
 });
 
+When(/^I unlock wallet with (.*)$/, async (password) => {
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await LoginScreen.typePassword(password);
+  await LoginScreen.tapTitle();
+  await LoginScreen.tapUnlockButton();
+});
+
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
   async (elementType, button, screen, type) => {

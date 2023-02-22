@@ -93,10 +93,10 @@ const createStyles = (colors) =>
       marginLeft: 4,
       paddingHorizontal: 8,
       ...fontStyles.bold,
-      color: colors.primary.alternative,
+      color: colors.text.alternative,
       borderWidth: 1,
       borderRadius: 8,
-      borderColor: colors.primary.alternative,
+      borderColor: colors.border.default,
       fontSize: 10,
     },
     textBalance: {
