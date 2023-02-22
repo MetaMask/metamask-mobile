@@ -101,8 +101,8 @@ export default class TransactionReviewDetailsCard extends Component {
     method: PropTypes.string,
     nickname: PropTypes.string,
     nicknameExists: PropTypes.bool,
-    tokenId: PropTypes.string,
-    tokenType: PropTypes.string,
+    tokenValue: PropTypes.string,
+    tokenStandard: PropTypes.string,
     tokenName: PropTypes.string,
   };
 
@@ -120,9 +120,9 @@ export default class TransactionReviewDetailsCard extends Component {
       displayViewData,
       nickname,
       nicknameExists,
-      tokenId,
+      tokenValue,
       tokenName,
-      tokenType,
+      tokenStandard,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -163,14 +163,14 @@ export default class TransactionReviewDetailsCard extends Component {
           </View>
           <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
-              {tokenType === ERC20
+              {tokenStandard === ERC20
                 ? strings('spend_limit_edition.spending_cap')
                 : strings('spend_limit_edition.approve_asset')}
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
-              {tokenType === ERC20
+              {tokenStandard === ERC20
                 ? `${formatNumber(allowance)} ${tokenSymbol}`
-                : `${tokenName} (#${tokenId})`}
+                : `${tokenName} (#${tokenValue})`}
             </Text>
           </View>
         </View>
