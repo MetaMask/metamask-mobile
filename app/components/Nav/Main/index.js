@@ -67,7 +67,6 @@ import {
 } from '../../../component-library/components/Toast';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const Stack = createStackNavigator();
 
@@ -319,16 +318,6 @@ const Main = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const termsOfUse = useCallback(async () => {
-    if (props.navigation) {
-      await navigateTermsOfUse(props.navigation.navigate);
-    }
-  }, [props.navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(MM_DEPRECATED_NETWORKS);
