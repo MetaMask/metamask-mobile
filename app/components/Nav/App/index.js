@@ -221,7 +221,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       try {
         if (existingUser && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
-          navigator.navigate(Routes.ONBOARDING.HOME_NAV);
+          // we need to reset the navigator here so that the user cannot go back to the login screen
+          navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         }
       } catch (error) {
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
