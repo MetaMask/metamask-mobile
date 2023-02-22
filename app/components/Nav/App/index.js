@@ -87,7 +87,6 @@ import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const Stack = createStackNavigator();
 /**
@@ -354,16 +353,6 @@ const App = ({ userLoggedIn }) => {
     };
     startAnimation();
   }, [isAuthChecked]);
-
-  const termsOfUse = useCallback(async () => {
-    if (navigator) {
-      await navigateTermsOfUse(navigator.navigate);
-    }
-  }, [navigator]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
