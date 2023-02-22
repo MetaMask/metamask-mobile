@@ -17,7 +17,6 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { getHost } from '../../../util/browser';
 import {
   safeToChecksumAddress,
-  renderShortAddress,
   getAddressAccountType,
   getTokenDetails,
 } from '../../../util/address';
@@ -982,7 +981,7 @@ class ApproveTransactionReview extends PureComponent {
         copyContractAddress={this.copyContractAddress}
         nickname={nickname}
         nicknameExists={nicknameExists}
-        address={renderShortAddress(to)}
+        address={to}
         host={host}
         allowance={allowance}
         tokenSymbol={tokenSymbol}
