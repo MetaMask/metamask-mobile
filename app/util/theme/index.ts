@@ -1,5 +1,12 @@
-import React, { useContext } from 'react';
-import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import {
+  useColorScheme,
+  StatusBar,
+  ColorSchemeName,
+  Appearance,
+  Platform,
+} from 'react-native';
+import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme } from '@metamask/design-tokens';
@@ -50,8 +57,45 @@ export const getAssetFromTheme = (
   return asset;
 };
 
+/**
+ * Custom useColorScheme hook that throttles updating the system theme color.
+ * Replaces RN's useColorScheme hook, which has a bug where it resolves briefly to the wrong color.
+ * https://github.com/expo/expo/issues/10815#issuecomment-719113200
+ * This only affects iOS so we apply 0 delay on Android.
+ *
+ * @param delay - Optional delay for throttling setting the system theme.
+ * @returns - The system's theme, light or dark.
+ */
+/* eslint-disable */
+const useColorSchemeCustom = (
+  delay = Platform.select({ android: 0, ios: 350 }),
+) => {
+  const [colorScheme, setColorScheme] = useState(Appearance.getColorScheme());
+  const onColorSchemeChange = useCallback(
+    throttle(
+      ({ colorScheme }) => {
+        setColorScheme(colorScheme);
+      },
+      delay,
+      {
+        leading: false,
+      },
+    ),
+    [],
+  );
+  useEffect(() => {
+    Appearance.addChangeListener(onColorSchemeChange);
+    return () => {
+      onColorSchemeChange.cancel();
+      Appearance.removeChangeListener(onColorSchemeChange);
+    };
+  }, []);
+  return colorScheme;
+};
+/* eslint-enable */
+
 export const useAppTheme = (): Theme => {
-  const osThemeName = useColorScheme();
+  const osThemeName = useColorSchemeCustom();
   const appTheme: AppThemeKey = useSelector(
     (state: any) => state.user.appTheme,
   );

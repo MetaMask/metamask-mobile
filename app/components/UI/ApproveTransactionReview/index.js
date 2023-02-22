@@ -34,7 +34,6 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
-  isSmartContractAddress,
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
 import Feather from 'react-native-vector-icons/Feather';
@@ -232,7 +231,6 @@ class ApproveTransactionReview extends PureComponent {
     host: undefined,
     originalApproveAmount: undefined,
     customSpendAmount: null,
-    tokenSymbol: undefined,
     spendLimitUnlimitedSelected: true,
     spendLimitCustomValue: undefined,
     ticker: getTicker(this.props.ticker),
@@ -243,7 +241,6 @@ class ApproveTransactionReview extends PureComponent {
     showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
-    tokenType: undefined,
     fetchingUpdateDone: false,
   };
 
@@ -302,31 +299,23 @@ class ApproveTransactionReview extends PureComponent {
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
       try {
-        const isContract = await isSmartContractAddress(
-          spenderAddress,
-          chainId,
+        const { standard, name, decimals, symbol } = await getTokenDetails(
+          to,
+          from,
+          encodedValue,
         );
 
-        if (!isContract) {
-          const { standard, name, decimals, symbol } = await getTokenDetails(
-            to,
-            from,
-            encodedValue,
-          );
-          if (standard === ERC721 || standard === ERC1155) {
-            tokenName = name;
-            tokenSymbol = symbol;
-            tokenStandard = standard;
-          } else {
-            tokenDecimals = decimals;
-            tokenSymbol = symbol;
-            tokenStandard = standard;
-          }
-        } else {
+        if (standard === ERC721 || standard === ERC1155) {
+          tokenName = name;
+          tokenSymbol = symbol;
+          tokenStandard = standard;
           tokenDecimals = await AssetsContractController.getERC20TokenDecimals(
             to,
           );
-          tokenSymbol = await AssetsContractController.getERC721AssetSymbol(to);
+        } else {
+          tokenDecimals = decimals;
+          tokenSymbol = symbol;
+          tokenStandard = standard;
         }
       } catch (e) {
         tokenSymbol = 'ERC20 Token';
@@ -350,16 +339,15 @@ class ApproveTransactionReview extends PureComponent {
         host,
         method,
         originalApproveAmount: approveAmount,
-        tokenSymbol,
         token: {
-          symbol: tokenSymbol,
-          decimals: tokenDecimals,
+          tokenSymbol,
+          tokenDecimals,
           tokenName,
-          tokenId: encodedValue,
+          tokenValue: encodedValue,
+          tokenStandard,
         },
         spenderAddress,
         encodedAmount,
-        tokenType: tokenStandard,
         fetchingUpdateDone: true,
         spendLimitCustomValue: minTokenAllowance,
       },
@@ -386,7 +374,11 @@ class ApproveTransactionReview extends PureComponent {
   getAnalyticsParams = () => {
     try {
       const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
-      const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
+      const {
+        token: { tokenSymbol },
+        originalApproveAmount,
+        encodedAmount,
+      } = this.state;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.provider || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
@@ -454,8 +446,10 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   onPressSpendLimitUnlimitedSelected = () => {
-    const { token } = this.state;
-    const minTokenAllowance = minimumTokenAllowance(token.decimals);
+    const {
+      token: { tokenDecimals },
+    } = this.state;
+    const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
     this.setState({
       spendLimitUnlimitedSelected: true,
       spendLimitCustomValue: minTokenAllowance,
@@ -500,7 +494,7 @@ class ApproveTransactionReview extends PureComponent {
 
   onEditPermissionSetAmount = () => {
     const {
-      token,
+      token: { tokenDecimals },
       spenderAddress,
       spendLimitUnlimitedSelected,
       originalApproveAmount,
@@ -514,7 +508,7 @@ class ApproveTransactionReview extends PureComponent {
         spendLimitUnlimitedSelected
           ? originalApproveAmount
           : spendLimitCustomValue,
-        token.decimals,
+        tokenDecimals,
         spenderAddress,
         transaction,
       );
@@ -523,7 +517,7 @@ class ApproveTransactionReview extends PureComponent {
 
       const approveAmount = fromTokenMinimalUnit(
         hexToBN(encodedAmount),
-        token.decimals,
+        tokenDecimals,
       );
 
       this.setState({ customSpendAmount: approveAmount });
@@ -588,12 +582,11 @@ class ApproveTransactionReview extends PureComponent {
     const {
       host,
       spendLimitUnlimitedSelected,
-      tokenSymbol,
       spendLimitCustomValue,
       originalApproveAmount,
-      token,
+      token: { tokenSymbol, tokenDecimals },
     } = this.state;
-    const minimumSpendLimit = minimumTokenAllowance(token.decimals);
+    const minimumSpendLimit = minimumTokenAllowance(tokenDecimals);
 
     return (
       <EditPermission
@@ -624,13 +617,11 @@ class ApproveTransactionReview extends PureComponent {
   renderDetails = () => {
     const {
       host,
-      tokenSymbol,
       spenderAddress,
       originalApproveAmount,
       customSpendAmount,
-      tokenType,
+      token: { tokenStandard, tokenSymbol, tokenName, tokenValue },
       multiLayerL1FeeTotal,
-      token,
       fetchingUpdateDone,
     } = this.state;
     const {
@@ -694,10 +685,10 @@ class ApproveTransactionReview extends PureComponent {
                 {strings('spend_limit_edition.token')}
               </Text>
             )}
-            {tokenType === ERC20 && (
+            {tokenStandard === ERC20 && (
               <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
             )}
-            {(tokenType === ERC721 || tokenType === ERC1155) && (
+            {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
               <ButtonLink
                 onPress={showBlockExplorer}
                 label={
@@ -705,18 +696,18 @@ class ApproveTransactionReview extends PureComponent {
                     variant={TextVariant.HeadingMD}
                     style={styles.buttonColor}
                   >
-                    {token?.tokenName ||
-                      token?.symbol ||
+                    {tokenName ||
+                      tokenSymbol ||
                       strings(`spend_limit_edition.nft`)}{' '}
-                    (#{token?.tokenId})
+                    (#{tokenValue})
                   </Text>
                 }
               />
             )}
           </Text>
 
-          {tokenType !== ERC721 &&
-            tokenType !== ERC1155 &&
+          {tokenStandard !== ERC721 &&
+            tokenStandard !== ERC1155 &&
             originalApproveAmount && (
               <View style={styles.tokenAccess}>
                 <Text bold style={styles.tokenKey}>
@@ -734,8 +725,8 @@ class ApproveTransactionReview extends PureComponent {
             )}
 
           {fetchingUpdateDone &&
-            tokenType !== ERC721 &&
-            tokenType !== ERC1155 && (
+            tokenStandard !== ERC721 &&
+            tokenStandard !== ERC1155 && (
               <TouchableOpacity
                 style={styles.actionTouchable}
                 onPress={this.toggleEditPermission}
@@ -865,12 +856,10 @@ class ApproveTransactionReview extends PureComponent {
       host,
       method,
       viewData,
-      tokenSymbol,
       originalApproveAmount,
       spendLimitUnlimitedSelected,
       spendLimitCustomValue,
-      token,
-      tokenType,
+      token: { tokenStandard, tokenSymbol, tokenValue, tokenName },
     } = this.state;
     const {
       transaction: { to, data },
@@ -890,9 +879,9 @@ class ApproveTransactionReview extends PureComponent {
         allowance={allowance}
         tokenSymbol={tokenSymbol}
         data={data}
-        tokenId={token?.tokenId}
-        tokenName={token?.tokenName}
-        tokenType={tokenType}
+        tokenValue={tokenValue}
+        tokenName={tokenName}
+        tokenStandard={tokenStandard}
         method={method}
         displayViewData={viewData}
       />

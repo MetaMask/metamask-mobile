@@ -66,7 +66,9 @@ import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { TabBarLabel } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -164,7 +166,10 @@ const WalletTabStackFlow = () => (
 
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
+    <Stack.Screen
+      name={Routes.WALLET.TAB_STACK_FLOW}
+      component={WalletTabStackFlow}
+    />
   </Stack.Navigator>
 );
 
@@ -235,16 +240,19 @@ const HomeTabs = () => {
 
   const options = {
     home: {
-      tabBarLabel: 'Wallet',
+      tabBarIconKey: TabBarLabel.Wallet,
+      tabBarLabel: strings('drawer.wallet'),
       callback: () => {
         trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
         });
       },
+      rootScreenName: Routes.WALLET_VIEW,
     },
     browser: {
-      tabBarLabel: 'Browser',
+      tabBarIconKey: TabBarLabel.Browser,
+      tabBarLabel: strings('drawer.browser'),
       callback: () => {
         trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
@@ -254,6 +262,7 @@ const HomeTabs = () => {
           number_of_open_tabs: amountOfBrowserOpenTabs,
         });
       },
+      rootScreenName: Routes.BROWSER_VIEW,
     },
   };
 
