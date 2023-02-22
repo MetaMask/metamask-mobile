@@ -71,7 +71,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#0376C9",
+            "color": "#037DD6",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",

@@ -15,7 +15,7 @@ exports[`MultiselectItem should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#0376C919",
+        "backgroundColor": "#037DD619",
         "bottom": 0,
         "flexDirection": "row",
         "left": 0,

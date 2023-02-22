@@ -7,7 +7,7 @@ exports[`SliderButton should render correctly 1`] = `
     Array [
       Object {
         "elevation": 0,
-        "shadowColor": "#0376C933",
+        "shadowColor": "#037DD633",
         "shadowOffset": Object {
           "height": 2,
           "width": 0,

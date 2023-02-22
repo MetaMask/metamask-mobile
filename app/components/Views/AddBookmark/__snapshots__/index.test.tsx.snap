@@ -65,7 +65,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73847",
+              "color": "#D73A49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -113,7 +113,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73847",
+              "color": "#D73A49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }

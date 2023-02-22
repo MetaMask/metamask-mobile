@@ -15,7 +15,7 @@ exports[`Collectibles should render correctly 1`] = `
       <RefreshControlMock
         colors={
           Array [
-            "#0376C9",
+            "#037DD6",
           ]
         }
         refreshing={false}

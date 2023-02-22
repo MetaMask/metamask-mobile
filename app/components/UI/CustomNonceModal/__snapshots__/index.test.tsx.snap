@@ -173,7 +173,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#0376C9",
+                  "color": "#037DD6",
                 }
               }
             />
@@ -192,7 +192,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#0376C9",
+                  "color": "#037DD6",
                 }
               }
             />

@@ -12,7 +12,7 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
-import { ICON_BY_TAB_BAR_LABEL } from './TabBar.constants';
+import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -30,7 +30,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const rootScreenName = options.rootScreenName;
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
-      const icon = ICON_BY_TAB_BAR_LABEL[tabBarIconKey];
+      const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const onPress = () => {
         callback?.();
         switch (rootScreenName) {
