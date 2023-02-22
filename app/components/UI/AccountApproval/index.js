@@ -9,7 +9,8 @@ import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -114,15 +115,20 @@ class AccountApproval extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, chainId, networkType, selectedAddress } =
-        this.props;
+      const {
+        currentPageInformation,
+        chainId,
+        selectedAddress,
+        accountsLength,
+      } = this.props;
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: networkType,
         chain_id: chainId,
+        number_of_accounts: accountsLength,
+        source: 'SDK / WalletConnect',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {
@@ -132,8 +138,8 @@ class AccountApproval extends PureComponent {
 
   componentDidMount = () => {
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_STARTED,
+      trackEvent(
+        MetaMetricsEvents.CONNECT_REQUEST_STARTED,
         this.getAnalyticsParams(),
       );
     });
@@ -160,8 +166,8 @@ class AccountApproval extends PureComponent {
    */
   onConfirm = () => {
     this.props.onConfirm();
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_COMPLETED,
+    trackEvent(
+      MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       this.getAnalyticsParams(),
     );
     this.showWalletConnectNotification(true);
@@ -171,8 +177,8 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONNECT_REQUEST_CANCELLED,
+    trackEvent(
+      MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
 
@@ -202,7 +208,7 @@ class AccountApproval extends PureComponent {
   };
 
   render = () => {
-    const { currentPageInformation } = this.props;
+    const { currentPageInformation, selectedAddress } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -212,7 +218,7 @@ class AccountApproval extends PureComponent {
         <Text style={styles.intro}>{strings('accountApproval.action')}</Text>
         <Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
         <View style={styles.accountCardWrapper}>
-          <AccountInfoCard />
+          <AccountInfoCard fromAddress={selectedAddress} />
         </View>
         <View style={styles.actionContainer}>
           <StyledButton

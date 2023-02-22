@@ -44,24 +44,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <Text
-              bigger={false}
               black={true}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              muted={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             >
               Edit priority
             </Text>
@@ -91,24 +75,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           >
             <Text
               adjustsFontSizeToFit={true}
-              bigger={false}
               black={true}
-              blue={false}
-              bold={false}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              muted={false}
               noMargin={true}
               numberOfLines={1}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
               style={
                 Object {
                   "flex": 1,
@@ -116,59 +85,24 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   "textAlign": "center",
                 }
               }
-              underline={false}
-              upper={false}
             >
               ~
             </Text>
           </View>
           <Text
             big={true}
-            bigger={false}
             black={true}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            muted={false}
             noMargin={true}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
             style={
               Object {
                 "marginBottom": 6,
               }
             }
-            underline={false}
-            upper={false}
           >
             <Text
-              bigger={false}
               black={true}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              muted={false}
               noMargin={true}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             >
               Max fee
               :
@@ -186,24 +120,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             }
           >
             <Text
-              bigger={false}
-              black={false}
-              blue={false}
               bold={true}
-              centered={false}
-              disclaimer={false}
               green={false}
-              link={false}
-              modal={false}
-              muted={false}
-              primary={false}
               red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
-              underline={false}
-              upper={false}
             />
           </View>
         </FadeAnimationView>
@@ -254,54 +173,22 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 }
               >
                 <Text
-                  bigger={false}
-                  black={false}
-                  blue={false}
                   bold={true}
-                  centered={false}
-                  disclaimer={false}
-                  green={false}
                   link={true}
-                  modal={false}
-                  muted={false}
                   noMargin={true}
-                  primary={false}
-                  red={false}
-                  reset={false}
-                  right={false}
-                  small={false}
-                  strikethrough={false}
-                  underline={false}
-                  upper={false}
                 >
                   Advanced options
                 </Text>
                 <Text
-                  bigger={false}
-                  black={false}
-                  blue={false}
                   bold={true}
-                  centered={false}
-                  disclaimer={false}
-                  green={false}
                   link={true}
-                  modal={false}
-                  muted={false}
                   noMargin={true}
-                  primary={false}
-                  red={false}
-                  reset={false}
-                  right={false}
-                  small={false}
-                  strikethrough={false}
                   style={
                     Object {
                       "marginLeft": 5,
                       "paddingTop": 1,
                     }
                   }
-                  underline={false}
-                  upper={false}
                 >
                   <Icon
                     allowFontScaling={false}
@@ -336,25 +223,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          bigger={false}
                           black={true}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          muted={false}
                           noMargin={true}
-                          primary={false}
-                          red={false}
-                          reset={false}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Gas limit
                            
@@ -408,25 +279,9 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          bigger={false}
                           black={true}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          muted={false}
                           noMargin={true}
-                          primary={false}
-                          red={false}
-                          reset={false}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Max priority fee
                            
@@ -460,46 +315,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        bigger={false}
-                        black={false}
-                        blue={false}
-                        bold={false}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
                         grey={true}
-                        link={false}
-                        modal={false}
-                        muted={false}
                         noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
                         small={true}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
                       >
                         <Text
-                          bigger={false}
-                          black={false}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          muted={false}
-                          primary={false}
-                          red={false}
                           reset={true}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Estimate
                           :
@@ -533,25 +355,10 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
-                          bigger={false}
                           black={true}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          muted={false}
                           noMargin={true}
-                          primary={false}
                           red={false}
-                          reset={false}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Max fee
                            
@@ -585,46 +392,13 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
-                        bigger={false}
-                        black={false}
-                        blue={false}
-                        bold={false}
-                        centered={false}
-                        disclaimer={false}
-                        green={false}
                         grey={true}
-                        link={false}
-                        modal={false}
-                        muted={false}
                         noMargin={true}
-                        primary={false}
-                        red={false}
-                        reset={false}
-                        right={false}
                         small={true}
-                        strikethrough={false}
-                        underline={false}
-                        upper={false}
                       >
                         <Text
-                          bigger={false}
-                          black={false}
-                          blue={false}
                           bold={true}
-                          centered={false}
-                          disclaimer={false}
-                          green={false}
-                          link={false}
-                          modal={false}
-                          muted={false}
-                          primary={false}
-                          red={false}
                           reset={true}
-                          right={false}
-                          small={false}
-                          strikethrough={false}
-                          underline={false}
-                          upper={false}
                         >
                           Estimate
                           :
@@ -651,24 +425,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               }
             >
               <Text
-                bigger={false}
-                black={false}
-                blue={false}
-                bold={false}
                 centered={true}
-                disclaimer={false}
-                green={false}
                 link={true}
-                modal={false}
-                muted={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
               >
                 How should I choose?
               </Text>
@@ -695,26 +453,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           body={
             <View>
               <Text
-                bigger={false}
-                black={false}
-                blue={false}
-                bold={false}
-                centered={false}
-                disclaimer={false}
-                green={false}
                 grey={true}
                 infoModal={true}
-                link={false}
-                modal={false}
-                muted={false}
-                primary={false}
-                red={false}
-                reset={false}
-                right={false}
-                small={false}
-                strikethrough={false}
-                underline={false}
-                upper={false}
               >
                 We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
               </Text>
@@ -737,189 +477,69 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 <TouchableWithoutFeedback>
                   <View>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       grey={true}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
                     >
                       Selecting the right gas fee depends on the type of transaction and how important it is to you.
                     </Text>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
                       bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
                       style={
                         Object {
                           "marginTop": 9,
                         }
                       }
-                      underline={false}
-                      upper={false}
                     >
                       Low
                     </Text>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       grey={true}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
                     >
                       Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.
                     </Text>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
                       bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
                       style={
                         Object {
                           "marginTop": 9,
                         }
                       }
-                      underline={false}
-                      upper={false}
                     >
                       Market
                     </Text>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       grey={true}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
                     >
                       Use Market for fast processing at current market price.
                     </Text>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
                       bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
                       primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
                       style={
                         Object {
                           "marginTop": 9,
                         }
                       }
-                      underline={false}
-                      upper={false}
                     >
                       Aggresive
                     </Text>
                     <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
                       grey={true}
                       infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
                       noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
                     >
                       High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.
                     </Text>

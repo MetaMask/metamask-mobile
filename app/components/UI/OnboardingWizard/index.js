@@ -1,14 +1,15 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
-  TouchableOpacity,
   View,
   StyleSheet,
-  Text,
-  Dimensions,
   InteractionManager,
+  Platform,
+  Text,
+  TouchableOpacity,
 } from 'react-native';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -17,19 +18,22 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { strings } from '../../../../locales/i18n';
 import DefaultPreference from 'react-native-default-preference';
-import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
-import Device from '../../../util/device';
-import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../core/Analytics';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
+import ElevatedView from 'react-native-elevated-view';
 import { useTheme } from '../../../util/theme';
+import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import Device from '../../../util/device';
 
-const MIN_HEIGHT = Dimensions.get('window').height;
-const createStyles = (colors) =>
+const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
     root: {
       top: 0,
@@ -48,12 +52,12 @@ const createStyles = (colors) =>
     smallSkipWrapper: {
       alignItems: 'center',
       alignSelf: 'center',
-      bottom: Device.isIos() ? 30 : 35,
+      bottom: Device.isIos() ? 25 : 30,
     },
     largeSkipWrapper: {
       alignItems: 'center',
       alignSelf: 'center',
-      bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
+      bottom: Device.isIos() && Device.isIphoneX() ? 93 : 61,
     },
     skipButtonContainer: {
       height: 30,
@@ -66,16 +70,8 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    androidElevated: {
-      width: 120,
-      borderRadius: 30,
-    },
-    iosTouchable: {
-      width: 120,
-    },
     skipText: {
-      ...fontStyles.normal,
-      fontSize: 12,
+      ...typography.BodyMD,
       color: colors.primary.default,
     },
   });
@@ -86,10 +82,11 @@ const OnboardingWizard = (props) => {
     navigation,
     wizard: { step },
     coachmarkRef,
+    isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
@@ -99,16 +96,11 @@ const OnboardingWizard = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(0);
     drawerRef?.current?.dismissDrawer?.();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_SKIPPED,
-        {
-          tutorial_step_count: step,
-          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
-        },
-      );
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_COMPLETED,
-      );
+      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
+        tutorial_step_count: step,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
+      });
+      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
     });
   };
 
@@ -124,13 +116,7 @@ const OnboardingWizard = (props) => {
           navigation={navigation}
         />
       ),
-      5: (
-        <Step5
-          coachmarkRef={coachmarkRef}
-          drawerRef={drawerRef}
-          navigation={navigation}
-        />
-      ),
+      5: <Step5 drawerRef={drawerRef} navigation={navigation} />,
       6: (
         <Step6
           coachmarkRef={coachmarkRef}
@@ -156,6 +142,10 @@ const OnboardingWizard = (props) => {
     return setOnboardingWizardStep(step - 1);
   };
 
+  if (isAutomaticSecurityChecksModalOpen) {
+    return null;
+  }
+
   return (
     <Modal
       animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
@@ -165,7 +155,7 @@ const OnboardingWizard = (props) => {
       disableAnimation
       transparent
       onBackButtonPress={getBackButtonBehavior}
-      style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
+      style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (
@@ -181,6 +171,10 @@ const OnboardingWizard = (props) => {
           <TouchableOpacity
             style={[styles.skipButtonContainer, styles.skipButton]}
             onPress={closeOnboardingWizard}
+            {...generateTestId(
+              Platform,
+              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
+            )}
           >
             <Text style={styles.skipText}>
               {strings('onboarding_wizard.skip_tutorial')}
@@ -198,6 +192,8 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   wizard: state.wizard,
+  isAutomaticSecurityChecksModalOpen:
+    state.security.isAutomaticSecurityChecksModalOpen,
 });
 
 OnboardingWizard.propTypes = {
@@ -217,6 +213,10 @@ OnboardingWizard.propTypes = {
    * Coachmark ref to get position
    */
   coachmarkRef: PropTypes.object,
+  /**
+   * Boolean that determines if the user has selected the automatic security check option
+   */
+  isAutomaticSecurityChecksModalOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OnboardingWizard);

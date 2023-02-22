@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -42,7 +43,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -53,7 +54,7 @@ import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-} from '../../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -307,14 +308,14 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
           },
         });
       }
@@ -337,14 +338,14 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate('ExtensionSync', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+        this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ExtensionSync', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+            this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
           },
         });
       }
@@ -357,12 +358,12 @@ class Onboarding extends PureComponent {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
         this.props.navigation.push('ImportFromSeed');
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ImportFromSeed');
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
           },
         });
       }
@@ -373,7 +374,7 @@ class Onboarding extends PureComponent {
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
       if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
+        trackEvent(...eventArgs);
         return;
       }
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);

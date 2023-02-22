@@ -28,11 +28,11 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       size="48"
       variant="Token"
     />
-    <View>
+    <Component>
       <Text
         style={
           Object {
-            "color": "#037DD6",
+            "color": "#0376C9",
           }
         }
         variant="sHeadingMD"
@@ -44,7 +44,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       >
         0x2990...a21a
       </Text>
-    </View>
+    </Component>
   </View>
   <View
     style={
@@ -57,12 +57,12 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
     }
   >
     <IconView
-      name="CopyFilled"
+      name="Copy"
       size="24"
       testID="copy-icon"
     />
     <IconView
-      name="ExportOutline"
+      name="Export"
       size="20"
       testID="export-icon"
     />

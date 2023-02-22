@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
+import { Alert, Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import {
   MetaMetrics,
   DataDeleteStatus,
+  MetaMetricsEvents,
   DataDeleteResponseStatus,
 } from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
@@ -11,9 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
-import AnalyticsV2, {
-  ANALYTICS_EVENTS_V2,
-} from '../../../../../util/analyticsV2';
+import { trackEvent } from '../../../../../util/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 
 const createStyles = (colors: any) =>
@@ -31,6 +30,9 @@ const createStyles = (colors: any) =>
     },
     blueText: {
       color: colors.primary.default,
+    },
+    extraTopMargin: {
+      marginTop: 10,
     },
   });
 
@@ -75,14 +77,11 @@ const DeleteMetaMetricsData = () => {
     const deviceOSVersion = Platform.Version;
     const deviceBrand = await getBrand();
     const deviceId = await getDeviceId();
-    AnalyticsV2.trackEvent(
-      ANALYTICS_EVENTS_V2.ANALYTICS_REQUEST_DATA_DELETION,
-      {
-        os: deviceOS,
-        os_version: deviceOSVersion,
-        device_model: `${deviceBrand} ${deviceId}`,
-      },
-    );
+    trackEvent(MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION, {
+      os: deviceOS,
+      os_version: deviceOSVersion,
+      device_model: `${deviceBrand} ${deviceId}`,
+    });
   };
 
   const deleteMetaMetrics = async () => {
@@ -109,54 +108,59 @@ const DeleteMetaMetricsData = () => {
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
   return (
-    <SettingsButtonSection
-      needsModal
-      sectionTitle={strings('app_settings.delete_metrics_title')}
-      sectionButtonText={strings('app_settings.delete_metrics_button')}
-      descriptionText={
-        hasCollectedData ? (
-          <>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_one')}
-            </Text>{' '}
-            <Text style={[styles.boldText]}>
-              {strings('app_settings.delete_metrics_description_part_two')}
-            </Text>{' '}
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_three')}
-            </Text>{' '}
-            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
-              {strings('app_settings.consensys_privacy_policy')}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_four')}
-            </Text>{' '}
-            <Text>{deletionTaskDate}</Text>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_five')}
-            </Text>{' '}
-            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
-              {strings('app_settings.consensys_privacy_policy')}
-            </Text>
-          </>
-        )
-      }
-      buttonDisabled={!hasCollectedData}
-      modalTitleText={strings(
-        'app_settings.delete_metrics_confirm_modal_title',
-      )}
-      modalDescriptionText={strings(
-        'app_settings.delete_metrics_confirm_modal_description',
-      )}
-      modalConfirmButtonText={strings('app_settings.clear')}
-      modalCancelButtonText={strings(
-        'app_settings.reset_account_cancel_button',
-      )}
-      modalOnConfirm={deleteMetaMetrics}
-    />
+    <View>
+      <SettingsButtonSection
+        needsModal
+        sectionTitle={strings('app_settings.delete_metrics_title')}
+        sectionButtonText={strings('app_settings.delete_metrics_button')}
+        descriptionText={
+          hasCollectedData ? (
+            <>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_one')}
+              </Text>{' '}
+              <Text style={[styles.boldText]}>
+                {strings('app_settings.delete_metrics_description_part_two')}
+              </Text>{' '}
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_three')}
+              </Text>{' '}
+              <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+                {strings('app_settings.consensys_privacy_policy')}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_four')}
+              </Text>{' '}
+              <Text>{deletionTaskDate}</Text>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_five')}
+              </Text>{' '}
+              <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+                {strings('app_settings.consensys_privacy_policy')}
+              </Text>
+            </>
+          )
+        }
+        buttonDisabled={!hasCollectedData}
+        modalTitleText={strings(
+          'app_settings.delete_metrics_confirm_modal_title',
+        )}
+        modalDescriptionText={strings(
+          'app_settings.delete_metrics_confirm_modal_description',
+        )}
+        modalConfirmButtonText={strings('app_settings.clear')}
+        modalCancelButtonText={strings(
+          'app_settings.reset_account_cancel_button',
+        )}
+        modalOnConfirm={deleteMetaMetrics}
+      />
+      <Text style={[styles.blueText, styles.extraTopMargin]}>
+        MetaMetrics ID: {MetaMetrics.getMetaMetricsId()}
+      </Text>
+    </View>
   );
 };
 

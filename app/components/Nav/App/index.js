@@ -44,7 +44,10 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
-import { setCurrentRoute } from '../../../actions/navigation';
+import {
+  setCurrentRoute,
+  setCurrentBottomNavRoute,
+} from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -55,7 +58,34 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AccountSelector from '../../../components/Views/AccountSelector';
+import AccountConnect from '../../../components/Views/AccountConnect';
+import AccountPermissions from '../../../components/Views/AccountPermissions';
+import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
+import DetectedTokens from '../../Views/DetectedTokens';
+import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
+import AssetOptions from '../../Views/AssetOptions';
+import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+    cardStyleInterpolator: () => ({
+      overlayStyle: {
+        opacity: 0,
+      },
+    }),
+  },
+  animationEnabled: false,
+};
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -115,6 +145,7 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -125,7 +156,7 @@ const OnboardingNav = () => (
 const SimpleWebviewScreen = () => (
   <Stack.Navigator mode={'modal'}>
     <Stack.Screen
-      name="SimpleWebview"
+      name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
       options={SimpleWebview.navigationOptions}
     />
@@ -149,7 +180,7 @@ const OnboardingRootNav = () => (
       header={null}
     />
     <Stack.Screen
-      name="Webview"
+      name={Routes.WEBVIEW.MAIN}
       header={null}
       component={SimpleWebviewScreen}
     />
@@ -170,10 +201,19 @@ const App = ({ userLoggedIn }) => {
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
   const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
-  const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+  const triggerSetCurrentRoute = (route) => {
+    dispatch(setCurrentRoute(route));
+    if (route === 'Wallet' || route === 'BrowserView') {
+      dispatch(setCurrentBottomNavRoute(route));
+    }
+  };
   const frequentRpcList = useSelector(
     (state) =>
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
+  );
+
+  const network = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.network,
   );
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -221,6 +261,7 @@ const App = ({ userLoggedIn }) => {
           },
         },
         frequentRpcList,
+        network,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -241,7 +282,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
+  }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
     const initAnalytics = async () => {
@@ -256,7 +297,7 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    async function checkExsiting() {
+    async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
@@ -266,15 +307,15 @@ const App = ({ userLoggedIn }) => {
         triggerCheckedAuth();
       }
     }
-
-    checkExsiting();
-  });
+    checkExisting();
+    /* eslint-disable react-hooks/exhaustive-deps */
+  }, []);
 
   useEffect(() => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        const currentVersion = await getVersion();
+        const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
@@ -343,15 +384,22 @@ const App = ({ userLoggedIn }) => {
     return null;
   };
 
-  const RootModalFlow = () => (
+  const DetectedTokensFlow = () => (
     <Stack.Navigator
       mode={'modal'}
-      screenOptions={{
-        headerShown: false,
-        cardStyle: { backgroundColor: importedColors.transparent },
-        animationEnabled: false,
-      }}
+      screenOptions={clearStackNavigatorOptions}
+      initialRouteName={'DetectedTokens'}
     >
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+      <Stack.Screen
+        name={'DetectedTokensConfirmation'}
+        component={DetectedTokensConfirmation}
+      />
+    </Stack.Navigator>
+  );
+
+  const RootModalFlow = () => (
+    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
@@ -362,9 +410,67 @@ const App = ({ userLoggedIn }) => {
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_SELECTOR}
+        component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_CONNECT}
+        component={AccountConnect}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+        component={AccountPermissions}
+      />
+      <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
         component={TurnOffRememberMeModal}
       />
+      <Stack.Screen
+        name={'AssetHideConfirmation'}
+        component={AssetHideConfirmation}
+      />
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen
+        name={Routes.MODAL.UPDATE_NEEDED}
+        component={UpdateNeeded}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+        component={EnableAutomaticSecurityChecksModal}
+      />
+      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    </Stack.Navigator>
+  );
+
+  const ImportPrivateKeyView = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+      <Stack.Screen
+        name="ImportPrivateKeySuccess"
+        component={ImportPrivateKeySuccess}
+      />
+      <Stack.Screen
+        name={Routes.QR_SCANNER}
+        component={QRScanner}
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </Stack.Navigator>
+  );
+
+  const ConnectQRHardwareFlow = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
     </Stack.Navigator>
   );
 
@@ -415,6 +521,16 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
+            />
+            <Stack.Screen
+              name="ImportPrivateKeyView"
+              component={ImportPrivateKeyView}
+              options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name="ConnectQRHardwareFlow"
+              component={ConnectQRHardwareFlow}
+              options={{ animationEnabled: true }}
             />
           </Stack.Navigator>
         </NavigationContainer>

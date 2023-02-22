@@ -9,6 +9,7 @@ import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
 import ImportAccountView from '../pages/ImportAccountView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
 import SendView from '../pages/SendView';
@@ -63,6 +64,12 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
   });
 
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
+  });
+
   it('should tap on the close button to dismiss the whats new modal', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2500);
@@ -106,15 +113,12 @@ describe('Wallet Tests', () => {
     await ImportAccountView.tapImportButton();
     await ImportAccountView.tapOKAlertButton();
 
-    // Input incorrect private key
-    await ImportAccountView.enterPrivateKey('1234');
-    await ImportAccountView.tapOKAlertButton();
-    await ImportAccountView.clearPrivateKeyInputBox();
-
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
     // Check that we are on the account succesfully imported screen
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
+
+    await AccountListView.swipeToDimssAccountsModal();
 
     await WalletView.isVisible();
     await WalletView.isAccountNameCorrect('Account 3');
@@ -128,6 +132,7 @@ describe('Wallet Tests', () => {
     await DrawerView.tapAccountCaretButton();
 
     await AccountListView.isVisible();
+    await AccountListView.swipeOnAccounts();
     await AccountListView.tapAccountByName('Account 1');
 
     await WalletView.tapDrawerButton();
@@ -164,6 +169,7 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
     // Tap on COLLECTIBLES tab
     await WalletView.tapNftTab();
+    await WalletView.scrollDownOnNFTsTab();
     // Tap on the add collectibles button
     await WalletView.tapImportNFTButton();
 
@@ -193,6 +199,8 @@ describe('Wallet Tests', () => {
     await WalletView.tapOnNFTInWallet('Refinable721');
 
     await WalletView.isNFTNameVisible('Refinable721 #179');
+
+    await WalletView.scrollUpOnNFTsTab();
   });
 
   it('should switch back to Mainnet network', async () => {
@@ -269,6 +277,7 @@ describe('Wallet Tests', () => {
     await AddCustomTokenView.typeTokenAddress(BLT_TOKEN_ADDRESS);
     await AddCustomTokenView.tapTokenSymbolInputBox();
     await AddCustomTokenView.tapTokenSymbolText();
+    await AddCustomTokenView.scrollDownOnImportCustomTokens();
     await AddCustomTokenView.tapCustomTokenImportButton();
 
     // Check that we are on the wallet screen

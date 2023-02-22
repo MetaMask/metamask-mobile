@@ -3,7 +3,7 @@ import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../app/constants/test-ids';
+} from '../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
 import { strings } from '../../../locales/i18n';
 
 const manuallyAddTokenText = strings('network_information.add_token');

@@ -8,25 +8,19 @@ import {
   ScrollView,
   View,
   ActivityIndicator,
-  TouchableOpacity,
   Keyboard,
   InteractionManager,
-  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
-import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import {
-  clearHosts,
-  setPrivacyMode,
-  setThirdPartyApiMode,
-} from '../../../../actions/privacy';
+import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import {
   fontStyles,
   colors as importedColors,
@@ -36,7 +30,6 @@ import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -49,24 +42,25 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
-import AnalyticsV2, {
+import {
+  trackEvent,
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
-import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
-  REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../constants/test-ids';
-import ClearCookiesSection from './Sections/ClearCookiesSection';
-import { LEARN_MORE_URL } from '../../../../constants/urls';
-import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
-import DeleteWalletData from './Sections/DeleteWalletData';
-import RememberMeOptionSection from './Sections/RememberMeOptionSection';
-import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
+import {
+  ClearCookiesSection,
+  DeleteMetaMetricsData,
+  DeleteWalletData,
+  RememberMeOptionSection,
+  AutomaticSecurityChecks,
+  ProtectYourWallet,
+} from './Sections';
+import Routes from '../../../../constants/navigation/Routes';
 
 const isIos = Device.isIos();
 
@@ -86,9 +80,6 @@ const createStyles = (colors) =>
       paddingTop: 4,
       marginTop: -4,
     },
-    bump: {
-      marginBottom: 10,
-    },
     heading: {
       fontSize: 24,
       lineHeight: 30,
@@ -100,12 +91,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
-    },
-    learnMore: {
-      ...fontStyles.normal,
-      color: colors.primary.default,
-      fontSize: 14,
-      lineHeight: 20,
     },
     switchElement: {
       marginTop: 18,
@@ -161,25 +146,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    warningText: {
-      color: colors.text.default,
-      fontSize: 12,
-      flex: 1,
-      ...fontStyles.normal,
-    },
-    warningTextRed: {
-      color: colors.text.default,
-    },
-    warningTextGreen: {
-      color: colors.text.default,
-    },
-    warningBold: {
-      ...fontStyles.bold,
-      color: colors.primary.default,
-    },
-    viewHint: {
-      padding: 5,
-    },
     switch: {
       alignSelf: 'flex-start',
     },
@@ -193,14 +159,6 @@ const Heading = ({ children, first }) => {
     <View style={[styles.setting, first && styles.firstSetting]}>
       <Text style={[styles.title, styles.heading]}>{children}</Text>
     </View>
-  );
-};
-
-const WarningIcon = () => {
-  const { colors } = useTheme();
-
-  return (
-    <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
   );
 };
 
@@ -218,14 +176,6 @@ Heading.propTypes = {
 class Settings extends PureComponent {
   static propTypes = {
     /**
-     * Indicates whether privacy mode is enabled
-     */
-    privacyMode: PropTypes.bool,
-    /**
-     * Called to toggle privacy mode
-     */
-    setPrivacyMode: PropTypes.func,
-    /**
      * Called to toggle set party api mode
      */
     setThirdPartyApiMode: PropTypes.func,
@@ -241,14 +191,6 @@ class Settings extends PureComponent {
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
-    /**
-     * Map of hostnames with approved account access
-     */
-    approvedHosts: PropTypes.object,
-    /**
-     * Called to clear all hostnames with account access
-     */
-    clearHosts: PropTypes.func,
     /**
      * Array of visited websites
      */
@@ -289,7 +231,7 @@ class Settings extends PureComponent {
     /**
      * State of NFT detection toggle
      */
-    useCollectibleDetection: PropTypes.bool,
+    useNftDetection: PropTypes.bool,
     /**
      * Route passed in props from navigation
      */
@@ -371,9 +313,9 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SECURITY_SETTINGS);
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
-    const analyticsEnabled = Analytics.checkEnabled();
+    const analyticsEnabled = MetaMetrics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -518,17 +460,14 @@ class Settings extends PureComponent {
   };
 
   clearApprovals = () => {
-    this.props.clearHosts();
+    const { PermissionController } = Engine.context;
+    PermissionController?.clearState?.();
     this.toggleClearApprovalsModal();
   };
 
   clearBrowserHistory = () => {
     this.props.clearBrowserHistory();
     this.toggleClearBrowserHistoryModal();
-  };
-
-  togglePrivacy = (value) => {
-    this.props.setPrivacyMode(value);
   };
 
   toggleThirdPartyAPI = (value) => {
@@ -538,12 +477,12 @@ class Settings extends PureComponent {
   toggleOpenSeaApi = (value) => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setOpenSeaEnabled(value);
-    if (!value) PreferencesController?.setUseCollectibleDetection(value);
+    if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
   toggleNftAutodetect = (value) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setUseCollectibleDetection(value);
+    PreferencesController.setUseNftDetection(value);
   };
 
   /**
@@ -552,63 +491,35 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: true,
-        },
-      );
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: true,
+      });
     });
   };
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      Analytics.enable();
+      MetaMetrics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      Analytics.disable();
+      MetaMetrics.disable();
       this.setState({ analyticsEnabled: false });
-      Alert.alert(
-        strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_restart_required'),
-      );
     }
   };
 
-  goToRevealPrivateCredential = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_INITIATED);
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CTA);
-    this.props.navigation.navigate('RevealPrivateCredentialView', {
-      privateCredentialName: 'seed_phrase',
-    });
-  };
-
   goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_INITIATED,
-    );
-    this.props.navigation.navigate('RevealPrivateCredentialView', {
-      privateCredentialName: 'private_key',
+    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      credentialName: 'private_key',
+      hasNavigation: true,
     });
   };
 
   selectLockTime = (lockTime) => {
     this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
-  goToBackup = () => {
-    this.props.navigation.navigate('AccountBackupStep1B');
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED,
-        {
-          source: 'Settings',
-        },
-      );
-    });
   };
 
   resetPassword = () => {
@@ -651,91 +562,6 @@ class Settings extends PureComponent {
         value={hintText}
         onChangeText={this.handleChangeText}
       />
-    );
-  };
-
-  onBack = () => this.props.navigation.goBack();
-
-  renderProtectYourWalletSection = () => {
-    const { seedphraseBackedUp } = this.props;
-    const { hintText } = this.state;
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={[styles.setting, styles.firstSetting]}>
-        <Text style={[styles.title, styles.bump]}>
-          {!seedphraseBackedUp ? (
-            <>
-              <WarningIcon />{' '}
-            </>
-          ) : null}
-          <Text style={[styles.title, styles.bump]}>
-            {strings('app_settings.protect_title')}
-          </Text>
-        </Text>
-
-        <SeedPhraseVideo onClose={this.onBack} />
-
-        <Text style={styles.desc}>
-          {strings(
-            seedphraseBackedUp
-              ? 'app_settings.protect_desc'
-              : 'app_settings.protect_desc_no_backup',
-          )}
-        </Text>
-
-        {!seedphraseBackedUp && (
-          <TouchableOpacity onPress={() => Linking.openURL(LEARN_MORE_URL)}>
-            <Text style={styles.learnMore}>
-              {strings('app_settings.learn_more')}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <SettingsNotification isWarning={!seedphraseBackedUp}>
-          <Text
-            style={[
-              styles.warningText,
-              seedphraseBackedUp
-                ? styles.warningTextGreen
-                : styles.warningTextRed,
-              styles.marginLeft,
-            ]}
-          >
-            {strings(
-              seedphraseBackedUp
-                ? 'app_settings.seedphrase_backed_up'
-                : 'app_settings.seedphrase_not_backed_up',
-            )}
-          </Text>
-          {hintText && seedphraseBackedUp ? (
-            <TouchableOpacity style={styles.viewHint} onPress={this.toggleHint}>
-              <Text style={[styles.warningText, styles.warningBold]}>
-                {strings('app_settings.view_hint')}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-        </SettingsNotification>
-
-        {!seedphraseBackedUp ? (
-          <StyledButton
-            type="blue"
-            onPress={this.goToBackup}
-            containerStyle={styles.confirm}
-          >
-            {strings('app_settings.back_up_now')}
-          </StyledButton>
-        ) : (
-          <StyledButton
-            type="normal"
-            onPress={this.goToRevealPrivateCredential}
-            containerStyle={styles.confirm}
-            testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
-          >
-            {strings('reveal_credential.seed_phrase_title')}
-          </StyledButton>
-        )}
-      </View>
     );
   };
 
@@ -868,7 +694,6 @@ class Settings extends PureComponent {
   };
 
   renderClearPrivacySection = () => {
-    const { approvedHosts } = this.props;
     const { styles } = this.getStyles();
 
     return (
@@ -885,7 +710,6 @@ class Settings extends PureComponent {
         <StyledButton
           type="normal"
           onPress={this.toggleClearApprovalsModal}
-          disabled={Object.keys(approvedHosts).length === 0}
           containerStyle={styles.confirm}
         >
           {strings('app_settings.clear_privacy_title')}
@@ -914,33 +738,6 @@ class Settings extends PureComponent {
         >
           {strings('app_settings.clear_browser_history_desc')}
         </StyledButton>
-      </View>
-    );
-  };
-
-  renderPrivacyModeSection = () => {
-    const { privacyMode } = this.props;
-    const { styles, colors } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'privacy-mode-section'}>
-        <Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.privacy_mode_desc')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={privacyMode}
-            onValueChange={this.togglePrivacy}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
       </View>
     );
   };
@@ -1055,7 +852,7 @@ class Settings extends PureComponent {
   };
 
   renderOpenSeaSettings = () => {
-    const { openSeaEnabled, useCollectibleDetection } = this.props;
+    const { openSeaEnabled, useNftDetection } = this.props;
     const { styles, colors } = this.getStyles();
 
     return (
@@ -1093,7 +890,7 @@ class Settings extends PureComponent {
           </Text>
           <View style={styles.switchElement}>
             <Switch
-              value={useCollectibleDetection}
+              value={useNftDetection}
               onValueChange={this.toggleNftAutodetect}
               trackColor={{
                 true: colors.primary.default,
@@ -1110,8 +907,16 @@ class Settings extends PureComponent {
     );
   };
 
+  openSRPQuiz = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    });
+  };
+
   render = () => {
-    const { biometryType, biometryChoice, loading } = this.state;
+    const { hintText, biometryType, biometryChoice, loading } = this.state;
+    const { seedphraseBackedUp } = this.props;
     const { styles } = this.getStyles();
 
     if (loading)
@@ -1131,7 +936,11 @@ class Settings extends PureComponent {
       >
         <View style={styles.inner}>
           <Heading first>{strings('app_settings.security_heading')}</Heading>
-          {this.renderProtectYourWalletSection()}
+          <ProtectYourWallet
+            srpBackedup={seedphraseBackedUp}
+            hintText={hintText}
+            toggleHint={this.toggleHint}
+          />
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
           {biometryType && this.renderBiometricOptionsSection()}
@@ -1144,7 +953,6 @@ class Settings extends PureComponent {
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
-          {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
@@ -1152,7 +960,7 @@ class Settings extends PureComponent {
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
-          {__DEV__ ? <AutomaticSecurityChecks /> : null}
+          <AutomaticSecurityChecks />
           {this.renderHint()}
         </View>
       </ScrollView>
@@ -1163,10 +971,8 @@ class Settings extends PureComponent {
 Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  approvedHosts: state.privacy.approvedHosts,
   browserHistory: state.browser.history,
   lockTime: state.settings.lockTime,
-  privacyMode: state.privacy.privacyMode,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -1175,8 +981,8 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   openSeaEnabled:
     state.engine.backgroundState.PreferencesController.openSeaEnabled,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: state.engine.backgroundState.NetworkController.provider.type,
@@ -1184,9 +990,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   clearBrowserHistory: () => dispatch(clearHistory()),
-  clearHosts: () => dispatch(clearHosts()),
   setLockTime: (lockTime) => dispatch(setLockTime(lockTime)),
-  setPrivacyMode: (enabled) => dispatch(setPrivacyMode(enabled)),
   setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
   passwordSet: () => dispatch(passwordSet()),
 });

@@ -5,17 +5,25 @@ import {
   View,
   TouchableOpacity,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
+import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+  SECURE_WALLET_BACKUP_ALERT_MODAL,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
@@ -62,10 +70,10 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     modalViewInBrowserView: {
-      bottom: Device.isIphoneX() ? 90 : 80,
+      bottom: Device.isIphoneX() ? 180 : 170,
     },
     modalViewNotInBrowserView: {
-      bottom: Device.isIphoneX() ? 20 : 10,
+      bottom: Device.isIphoneX() ? 120 : 110,
     },
     buttonsWrapper: {
       flexDirection: 'row-reverse',
@@ -116,6 +124,11 @@ class BackupAlert extends PureComponent {
      * currently used to toggle the backup reminder modal (a second time)
      */
     onDismiss: PropTypes.func,
+    /**
+     * Used to determine if onboarding has been completed
+     * we only want to render the backup alert after onboarding
+     */
+    onboardingWizardStep: PropTypes.number,
   };
 
   state = {
@@ -146,13 +159,10 @@ class BackupAlert extends PureComponent {
       screen: 'AccountBackupStep1',
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+        wallet_protection_required: false,
+        source: 'Backup Alert',
+      });
     });
   };
 
@@ -160,25 +170,31 @@ class BackupAlert extends PureComponent {
     const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
     backUpSeedphraseAlertNotVisible();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
+        wallet_protection_required: false,
+        source: 'Backup Alert',
+      });
     });
     if (onDismiss) onDismiss();
   };
 
   render() {
-    const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
+    const {
+      seedphraseBackedUp,
+      backUpSeedphraseVisible,
+      onboardingWizardStep,
+    } = this.props;
     const { inBrowserView, blockedView } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible)
-      return null;
+    const shouldNotRenderAlert =
+      seedphraseBackedUp ||
+      blockedView ||
+      !backUpSeedphraseVisible ||
+      onboardingWizardStep !== 0;
+
+    if (shouldNotRenderAlert) return null;
     return (
       <ElevatedView
         elevation={99}
@@ -190,7 +206,10 @@ class BackupAlert extends PureComponent {
         ]}
       >
         <View style={styles.backupAlertWrapper}>
-          <View style={styles.touchableView} testID={'backup-alert'}>
+          <View
+            style={styles.touchableView}
+            {...generateTestId(Platform, SECURE_WALLET_BACKUP_ALERT_MODAL)}
+          >
             <View style={styles.backupAlertIconWrapper}>
               <EvilIcons name="bell" style={styles.backupAlertIcon} />
             </View>
@@ -210,7 +229,10 @@ class BackupAlert extends PureComponent {
                 >
                   <Text
                     style={styles.backupAlertMessage}
-                    testID={'notification-remind-later-button'}
+                    {...generateTestId(
+                      Platform,
+                      NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
+                    )}
                   >
                     {strings('backup_alert.left_button')}
                   </Text>
@@ -227,6 +249,7 @@ class BackupAlert extends PureComponent {
 const mapStateToProps = (state) => ({
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  onboardingWizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({

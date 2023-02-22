@@ -7,6 +7,7 @@ import {
   StyleSheet,
   InteractionManager,
   BackHandler,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -14,8 +15,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  IMPORT_SUCESS_SCREEN_ID,
+  IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/ImportSuccessScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -84,14 +90,12 @@ class ImportPrivateKeySuccess extends PureComponent {
 
   componentDidMount = () => {
     InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.forbid();
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     });
   };
 
   componentWillUnmount = () => {
     InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.allow();
       BackHandler.removeEventListener(
         'hardwareBackPress',
         this.handleBackPress,
@@ -104,8 +108,9 @@ class ImportPrivateKeySuccess extends PureComponent {
   };
 
   dismiss = () => {
-    this.props.navigation.popToTop();
-    this.props.navigation.goBack(null);
+    const { popToTop, canGoBack, goBack } = this.props.navigation;
+    popToTop();
+    canGoBack() && goBack(null);
   };
 
   render() {
@@ -119,11 +124,17 @@ class ImportPrivateKeySuccess extends PureComponent {
           style={styles.mainWrapper}
           testID={'first-incoming-transaction-screen'}
         >
-          <View style={styles.content} testID={'import-success-screen'}>
+          <View
+            style={styles.content}
+            {...generateTestId(Platform, IMPORT_SUCESS_SCREEN_ID)}
+          >
             <TouchableOpacity
               onPress={this.dismiss}
               style={styles.navbarRightButton}
-              testID={'import-close-button'}
+              {...generateTestId(
+                Platform,
+                IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
+              )}
             >
               <MaterialIcon name="close" size={15} style={styles.closeIcon} />
             </TouchableOpacity>
@@ -144,6 +155,7 @@ class ImportPrivateKeySuccess extends PureComponent {
             </View>
           </View>
         </ScrollView>
+        <ScreenshotDeterrent enabled isSRP={false} />
       </View>
     );
   }

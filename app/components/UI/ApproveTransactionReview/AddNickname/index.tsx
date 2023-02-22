@@ -10,7 +10,8 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackEvent } from '../../../../util/analyticsV2';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import StyledButton from '../../StyledButton';
@@ -118,17 +119,7 @@ interface AddNicknameProps {
   type: string;
 }
 
-const getAnalyticsParams = () => {
-  try {
-    const { NetworkController } = Engine.context as any;
-    const { type } = NetworkController?.state?.provider || {};
-    return {
-      network_name: type,
-    };
-  } catch (error) {
-    return {};
-  }
-};
+const getAnalyticsParams = () => ({});
 
 const AddNickname = (props: AddNicknameProps) => {
   const {
@@ -158,14 +149,11 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
   };
 
   const saveTokenNickname = () => {
-    const { AddressBookController } = Engine.context;
+    const { AddressBookController } = Engine.context as any;
     if (!newNickname || !contractAddress) return;
     AddressBookController.set(
       toChecksumAddress(contractAddress),
@@ -173,8 +161,8 @@ const AddNickname = (props: AddNicknameProps) => {
       network,
     );
     onUpdateContractNickname();
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_NICKNAME,
+    trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );
   };

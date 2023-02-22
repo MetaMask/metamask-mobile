@@ -1,11 +1,10 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
-import Engine from '../../core/Engine';
-
-import NotificationManager from '../../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
+import Engine from '../../core/Engine';
+import NotificationManager from '../../core/NotificationManager';
 /* eslint-disable import/no-namespace */
 import * as themeUtils from '../theme';
 
@@ -125,6 +124,19 @@ jest.mock(
   () => mockRNAsyncStorage,
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
+
+const mockReactNativeWebRTC = {
+  RTCPeerConnection: () => null,
+  RTCIceCandidate: () => null,
+  RTCSessionDescription: () => null,
+  RTCView: () => null,
+  MediaStream: () => null,
+  MediaStreamTrack: () => null,
+  mediaDevices: () => null,
+  registerGlobals: () => null,
+};
+
+jest.mock('react-native-webrtc', () => mockReactNativeWebRTC);
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),

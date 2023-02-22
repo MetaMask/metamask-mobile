@@ -1,20 +1,21 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
-import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
@@ -149,6 +150,10 @@ class SignatureRequest extends PureComponent {
      * Expands the message box on press.
      */
     toggleExpandedMessage: PropTypes.func,
+    /**
+     * Active address of account that triggered signing.
+     */
+    fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
   };
@@ -158,8 +163,8 @@ class SignatureRequest extends PureComponent {
    */
   onCancel = () => {
     this.props.onCancel();
-    Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE,
+    trackLegacyEvent(
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
   };
@@ -169,8 +174,8 @@ class SignatureRequest extends PureComponent {
    */
   onConfirm = () => {
     this.props.onConfirm();
-    Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE,
+    trackLegacyEvent(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );
   };
@@ -224,6 +229,7 @@ class SignatureRequest extends PureComponent {
       currentPageInformation,
       truncateMessage,
       toggleExpandedMessage,
+      fromAddress,
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
@@ -232,7 +238,7 @@ class SignatureRequest extends PureComponent {
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
-          <AccountInfoCard operation="signing" />
+          <AccountInfoCard operation="signing" fromAddress={fromAddress} />
         </View>
         <TouchableOpacity
           style={styles.children}
@@ -321,7 +327,7 @@ class SignatureRequest extends PureComponent {
   }
 
   renderQRDetails() {
-    const { QRState } = this.props;
+    const { QRState, fromAddress } = this.props;
     const styles = this.getStyles();
 
     return (
@@ -331,6 +337,7 @@ class SignatureRequest extends PureComponent {
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={fromAddress}
         />
       </View>
     );

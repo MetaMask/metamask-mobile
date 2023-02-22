@@ -18,7 +18,11 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   SKIP_BUTTON,
   CANCEL_BUTTON,
-} from '../../../../wdio/features/testIDs/Components/SkipAccountSecurityModalTestIds';
+} from '../../../../wdio/screen-objects/testIDs/Components/SkipAccountSecurityModalTestIds';
+import {
+  SKIP_BACKUP_MODAL,
+  SKIP_BACKUP_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -116,7 +120,7 @@ const SkipAccountSecurityModal = ({
         </Text>
         <View
           style={styles.skipModalActionButtons}
-          {...generateTestId(Platform, 'skip-backup-modal')}
+          {...generateTestId(Platform, SKIP_BACKUP_MODAL)}
         >
           <CheckBox
             style={styles.skipModalCheckbox}
@@ -132,7 +136,7 @@ const SkipAccountSecurityModal = ({
           <Text
             onPress={toggleSkipCheckbox}
             style={styles.skipModalText}
-            {...generateTestId(Platform, 'skip-backup-text')}
+            {...generateTestId(Platform, SKIP_BACKUP_TEXT)}
           >
             {strings('account_backup_step_1.skip_check')}
           </Text>

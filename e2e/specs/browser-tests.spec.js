@@ -8,8 +8,8 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import ConnectModal from '../pages/modals/ConnectModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
@@ -56,6 +56,12 @@ describe('Browser Tests', () => {
     await WalletView.isVisible();
   });
 
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
+  });
+
   it('should tap on the close button to dismiss the whats new modal', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(2000);
@@ -92,34 +98,15 @@ describe('Browser Tests', () => {
   });
 
   it('should navigate to browser', async () => {
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapBrowser();
+    await WalletView.tapBrowser();
     // Check that we are on the browser screen
     await Browser.isVisible();
-  });
-
-  it('should go to first explore tab and navigate back to homepage', async () => {
-    // This can only be done on Android since we removed option for iOS due to Appstore
-    if (!device.getPlatform() === 'android') {
-      // Tap on first category
-      await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 100, y: 425 });
-      // Tap on first option
-      await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 80, y: 100 });
-      // Tap back button
-      await Browser.tapBrowserBackButton();
-      await Browser.tapBrowserBackButton();
-      await TestHelpers.delay(1000);
-      // Check that we are on the browser screen
-      await Browser.isVisible();
-    }
   });
 
   it('should go to sushi swap', async () => {
     await TestHelpers.delay(3000);
     // Tap on search in bottom navbar
-    await Browser.tapBrowser();
+    await Browser.tapUrlInputBox();
     await Browser.navigateToURL(SUSHI_SWAP);
 
     // Wait for page to load

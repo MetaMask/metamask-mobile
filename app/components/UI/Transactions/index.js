@@ -29,7 +29,7 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
@@ -57,7 +57,6 @@ const createStyles = (colors) =>
       margin: 0,
     },
     emptyContainer: {
-      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colors.background.default,

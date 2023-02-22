@@ -7,10 +7,11 @@ import Avatar, {
   AvatarSize,
   AvatarVariants,
 } from '../../../components/Avatars/Avatar';
-import Text, { TextVariants } from '../../../components/Texts/Text';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName, IconSize } from '../../../components/Icon';
+import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
+import Button, { ButtonVariants } from '../../../components/Buttons/Button';
 
 // Internal dependencies.
 import { ContractBoxBaseProps, IconViewProps } from './ContractBoxBase.types';
@@ -28,6 +29,7 @@ const ContractBoxBase = ({
   contractPetName,
   onCopyAddress,
   onExportAddress,
+  onContractPress,
 }: ContractBoxBaseProps) => {
   const formattedAddress = formatAddress(contractAddress, 'short');
   const { styles } = useStyles(styleSheet, {});
@@ -47,30 +49,35 @@ const ContractBoxBase = ({
           imageSource={contractLocalImage}
         />
         {contractPetName ? (
-          <View>
-            <Text style={styles.header} variant={TextVariants.sHeadingMD}>
+          <Pressable onPress={onContractPress}>
+            <Text style={styles.header} variant={TextVariant.HeadingMD}>
               {contractPetName}
             </Text>
-            <Text variant={TextVariants.sBodyMD}>{formattedAddress}</Text>
-          </View>
+            <Text variant={TextVariant.BodyMD}>{formattedAddress}</Text>
+          </Pressable>
         ) : (
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
-            <Text style={styles.header} variant={TextVariants.sHeadingMD}>
+            <Button
+              variant={ButtonVariants.Link}
+              textVariant={TextVariant.HeadingMD}
+              style={styles.header}
+              onPress={onContractPress}
+            >
               {formattedAddress}
-            </Text>
+            </Button>
           </View>
         )}
       </View>
       <View style={styles.iconContainer}>
         <IconView
           onPress={onCopyAddress}
-          name={IconName.CopyFilled}
+          name={IconName.Copy}
           size={IconSize.Lg}
           testID={COPY_ICON_TEST_ID}
         />
         <IconView
           onPress={onExportAddress}
-          name={IconName.ExportOutline}
+          name={IconName.Export}
           size={IconSize.Md}
           testID={EXPORT_ICON_TEST_ID}
         />

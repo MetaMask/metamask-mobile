@@ -5,21 +5,33 @@ import {
   View,
   StyleSheet,
   InteractionManager,
+  Platform,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import NotificationManager from '../../../core/NotificationManager';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
-import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
+import { fontStyles } from '../../../styles/common';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  CUSTOM_TOKEN_CONTAINER_ID,
+  TOKEN_ADDRESS_INPUT_BOX_ID,
+  TOKEN_ADDRESS_SYMBOL_ID,
+  TOKEN_ADDRESS_WARNING_MESSAGE_ID,
+  TOKEN_CANCEL_IMPORT_BUTTON_ID,
+  TOKEN_PRECISION_WARNING_MESSAGE_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -83,12 +95,11 @@ export default class AddCustomToken extends PureComponent {
   getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const { address, symbol } = this.state;
       return {
         token_address: address,
         token_symbol: symbol,
-        network_name: type,
         chain_id: chainId,
         source: 'Custom token',
       };
@@ -103,10 +114,7 @@ export default class AddCustomToken extends PureComponent {
     const { address, symbol, decimals } = this.state;
     await TokensController.addToken(address, symbol, decimals);
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
-      this.getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, this.getAnalyticsParams());
 
     // Clear state before closing
     this.setState(
@@ -328,14 +336,17 @@ export default class AddCustomToken extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} testID={'add-custom-token-screen'}>
+      <View
+        style={styles.wrapper}
+        {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
+      >
         <ActionView
           cancelTestID={'add-custom-asset-cancel-button'}
           confirmTestID={'add-custom-asset-confirm-button'}
           cancelText={strings('add_asset.tokens.cancel_add_token')}
           confirmText={strings('add_asset.tokens.add_token')}
           onCancelPress={this.cancelAddToken}
-          testID={'add-asset-cancel-button'}
+          {...generateTestId(Platform, TOKEN_CANCEL_IMPORT_BUTTON_ID)}
           onConfirmPress={this.addToken}
           confirmDisabled={!(address && symbol && decimals)}
         >
@@ -352,12 +363,15 @@ export default class AddCustomToken extends PureComponent {
                 value={this.state.address}
                 onChangeText={this.onAddressChange}
                 onBlur={this.onAddressBlur}
-                testID={'input-token-address'}
+                {...generateTestId(Platform, TOKEN_ADDRESS_INPUT_BOX_ID)}
                 onSubmitEditing={this.jumpToAssetSymbol}
                 returnKeyType={'next'}
                 keyboardAppearance={themeAppearance}
               />
-              <Text style={styles.warningText} testID={'token-address-warning'}>
+              <Text
+                style={styles.warningText}
+                {...generateTestId(Platform, TOKEN_ADDRESS_WARNING_MESSAGE_ID)}
+              >
                 {this.state.warningAddress}
               </Text>
             </View>
@@ -372,7 +386,7 @@ export default class AddCustomToken extends PureComponent {
                 value={this.state.symbol}
                 onChangeText={this.onSymbolChange}
                 onBlur={this.validateCustomTokenSymbol}
-                testID={'input-token-symbol'}
+                {...generateTestId(Platform, TOKEN_ADDRESS_SYMBOL_ID)}
                 ref={this.assetSymbolInput}
                 onSubmitEditing={this.jumpToAssetPrecision}
                 returnKeyType={'next'}
@@ -393,7 +407,7 @@ export default class AddCustomToken extends PureComponent {
                 placeholderTextColor={colors.text.muted}
                 onChangeText={this.onDecimalsChange}
                 onBlur={this.validateCustomTokenDecimals}
-                testID={'input-token-decimals'}
+                {...generateTestId(Platform, NFT_IDENTIFIER_INPUT_BOX_ID)}
                 ref={this.assetPrecisionInput}
                 onSubmitEditing={this.addToken}
                 returnKeyType={'done'}
@@ -401,7 +415,10 @@ export default class AddCustomToken extends PureComponent {
               />
               <Text
                 style={styles.warningText}
-                testID={'token-decimals-warning'}
+                {...generateTestId(
+                  Platform,
+                  TOKEN_PRECISION_WARNING_MESSAGE_ID,
+                )}
               >
                 {this.state.warningDecimals}
               </Text>

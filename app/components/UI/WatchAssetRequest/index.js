@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import URL from 'url-parse';
 import ActionView from '../ActionView';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
-import URL from 'url-parse';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
+import { fontStyles } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -92,7 +94,7 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
-  const { asset } = suggestedAssetMeta;
+  const { asset, interactingAddress } = suggestedAssetMeta;
   let [balance] = useTokenBalance(asset.address, selectedAddress);
   balance = renderFromTokenMinimalUnit(balance, asset.decimals);
   const { colors } = useTheme();
@@ -110,7 +112,7 @@ const WatchAssetRequest = ({
   const getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -118,7 +120,6 @@ const WatchAssetRequest = ({
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         source: 'Dapp suggested (watchAsset)',
       };
@@ -129,13 +130,14 @@ const WatchAssetRequest = ({
 
   const onConfirmPress = async () => {
     const { TokensController } = Engine.context;
-    await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
+    await TokensController.acceptWatchAsset(
+      suggestedAssetMeta.id,
+      // TODO - Ideally, this is already checksummed.
+      safeToChecksumAddress(interactingAddress),
+    );
     onConfirm && onConfirm();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
-        getAnalyticsParams(),
-      );
+      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

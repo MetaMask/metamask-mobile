@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -19,6 +20,8 @@ import {
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { URL_CLEAR_ICON } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -26,7 +29,7 @@ export interface BrowserUrlParams {
 }
 
 export const createBrowserUrlModalNavDetails =
-  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER_URL_MODAL);
+  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER.URL_MODAL);
 
 const BrowserUrlModal = () => {
   const { onUrlInputSubmit, url } = useParams<BrowserUrlParams>();
@@ -94,7 +97,12 @@ const BrowserUrlModal = () => {
               onPress={clearSearchInput}
               style={styles.clearButton}
             >
-              <Icon name="times-circle" size={18} color={colors.icon.default} />
+              <Icon
+                name="times-circle"
+                size={18}
+                color={colors.icon.default}
+                {...generateTestId(Platform, URL_CLEAR_ICON)}
+              />
             </TouchableOpacity>
           ) : null}
         </View>

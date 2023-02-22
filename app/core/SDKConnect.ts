@@ -7,7 +7,7 @@ import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from './Engine';
-import { WalletDevice } from '@metamask/controllers';
+import { WalletDevice } from '@metamask/transaction-controller';
 import DefaultPreference from 'react-native-default-preference';
 
 import {
@@ -85,6 +85,8 @@ enum Sources {
   'web-mobile' = 'web-mobile',
   'nodejs' = 'nodejs',
   'unity' = 'unity',
+  'ios' = 'ios',
+  'android' = 'android',
 }
 
 const parseSource = (source: string) => {
@@ -146,6 +148,7 @@ class Connection {
     }
 
     this.RemoteConn.on('clients_ready', ({ originatorInfo }) => {
+      const isMMSDK = true;
       if (this.isReady) return;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -156,6 +159,7 @@ class Connection {
         sendMessage: this.sendMessage,
         getApprovedHosts: () => approvedHosts,
         remoteConnHost: this.host,
+        isMMSDK,
         getRpcMethodMiddleware: ({
           getProviderState,
         }: {
@@ -181,6 +185,7 @@ class Connection {
             wizardScrollAdjusted: { current: false },
             tabId: '',
             isWalletConnect: false,
+            isMMSDK,
             analytics: {
               isRemoteConn: true,
               platform: parseSource(originatorInfo?.platform),

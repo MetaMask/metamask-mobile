@@ -3,6 +3,7 @@ import type {
   UserTraits,
   GroupTraits,
 } from '@segment/analytics-react-native';
+import { EVENT_NAME } from './MetaMetrics.events';
 
 // Represents a custom implementation of the Segment ClientMethods type
 export interface ISegmentClient {
@@ -35,9 +36,9 @@ export interface IMetaMetrics {
   // Method to add an user to a specific group
   group(groupId: string, groupTraits?: GroupTraits): void;
   // Method track an anonymous event
-  trackAnonymousEvent(event: string, properties?: JsonMap): void;
+  trackAnonymousEvent(event: EVENT_NAME, properties?: JsonMap): void;
   // Method track an event
-  trackEvent(event: string, properties?: JsonMap): void;
+  trackEvent(event: EVENT_NAME, properties?: JsonMap): void;
   // Method to clear the internal state of the library for the current user and group.
   reset(): void;
   // Method to create a new deletion regulation
@@ -56,11 +57,20 @@ export interface IMetaMetrics {
 // Represents an MetaMetrics event
 export interface IMetaMetricsEvent {
   // Event name to track
-  name: string;
+  name: EVENT_NAME;
   properties?: {
     name?: string;
     action?: string;
   };
+}
+
+// Interface to asign user properties
+export interface UserIdentityProperties {
+  'Enable OpenSea API'?: string;
+  'NFT AutoDetection'?: string;
+  Theme?: string;
+  'Authentication Type'?: string;
+  token_detection_enable?: string;
 }
 
 // Expected deletion task status

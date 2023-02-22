@@ -5,7 +5,6 @@ import axios from 'axios';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import { store } from '../../store';
 import { MIXPANEL_ENDPOINT_BASE_URL } from './MetaMetrics.constants';
 import {
@@ -21,6 +20,7 @@ import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
 } from './MetaMetrics.types';
+import { MetaMetricsEvents } from './MetaMetrics.events';
 
 const RCTAnalytics = NativeModules.Analytics;
 
@@ -35,7 +35,7 @@ const USER_PROFILE_PROPERTY = {
 };
 
 /**
- * Class to handle analytics through the app
+ * @deprecated - Class to handle analytics through the app
  */
 class Analytics {
   /**
@@ -104,7 +104,7 @@ class Analytics {
     );
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
-      preferencesController?.useCollectibleDetection
+      preferencesController?.useNftDetection
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );
@@ -129,7 +129,7 @@ class Analytics {
     { event, params = {}, value, info, anonymously = false },
   ) {
     const isAnalyticsPreferenceSelectedEvent =
-      ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+      MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
     this._setUserProfileProperties();
     if (!__DEV__) {

@@ -3,18 +3,25 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
-import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { MAINNET, RPC } from '../../../constants/network';
-import { connect } from 'react-redux';
+import { RPC } from '../../../constants/network';
+import { connect, useSelector } from 'react-redux';
 import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
-import { util as controllerUtils } from '@metamask/controllers';
-import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import Avatar, {
+  AvatarVariants,
+} from '../../../component-library/components/Avatars/Avatar';
+
 const createStyles = (colors: {
   background: { default: string };
   text: { default: string };
@@ -58,9 +65,7 @@ const createStyles = (colors: {
       color: colors.text.default,
       textAlign: 'center',
       paddingRight: 10,
-    },
-    capitalizeText: {
-      textTransform: 'capitalize',
+      marginLeft: 8,
     },
     messageTitle: {
       fontSize: 14,
@@ -120,18 +125,12 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     onClose,
     ticker,
     isTokenDetectionEnabled,
-    networkProvider: {
-      nickname,
-      type,
-      ticker: networkTicker,
-      rpcTarget,
-      chainId,
-    },
+    networkProvider: { type, ticker: networkTicker, rpcTarget, chainId },
   } = props;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
-    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
+    isTokenDetectionSupportedForNetwork(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {
@@ -139,6 +138,24 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     }
     return false;
   }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
+
+  const networkProvider = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+
+  const networkImageSource = useMemo(
+    () =>
+      getNetworkImageSource({
+        networkType: networkProvider.type,
+        chainId: networkProvider.chainId,
+      }),
+    [networkProvider],
+  );
+
+  const networkName = useMemo(
+    () => getNetworkNameFromProvider(networkProvider),
+    [networkProvider],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -151,37 +168,17 @@ const NetworkInfo = (props: NetworkInfoProps) => {
         </Text>
         <View style={styles.tokenView}>
           <View style={styles.tokenType}>
-            {ticker === undefined ? (
-              <>
-                <View style={styles.unknownWrapper}>
-                  <Text style={styles.unknownText}>?</Text>
-                </View>
-                <Text style={styles.tokenText}>
-                  {`${nickname}` ||
-                    strings('network_information.unknown_network')}
-                </Text>
-              </>
-            ) : (
-              <>
-                <NetworkMainAssetLogo style={styles.ethLogo} />
-                <Text
-                  style={
-                    type === RPC
-                      ? styles.tokenText
-                      : [styles.tokenText, styles.capitalizeText]
-                  }
-                  testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
-                >
-                  {type === RPC
-                    ? `${nickname}`
-                    : type === MAINNET
-                    ? `${type}`
-                    : `${strings('network_information.testnet_network', {
-                        type,
-                      })}`}
-                </Text>
-              </>
-            )}
+            <Avatar
+              variant={AvatarVariants.Network}
+              name={networkName.toUpperCase()}
+              imageSource={networkImageSource}
+            />
+            <Text
+              style={styles.tokenText}
+              testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
+            >
+              {networkName}
+            </Text>
           </View>
           {ticker === undefined && (
             <Text style={styles.rpcUrl}>{rpcTarget}</Text>

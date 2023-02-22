@@ -36,7 +36,7 @@
 			</intent-filter>
 		</activity>
 		<activity
-			android:launchMode="singleInstance"
+			android:launchMode="singleTask"
 			android:name=".MainActivity"
 			android:label="@string/app_name"
 			android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
@@ -64,7 +64,6 @@
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
-				<data android:host="metamask.io" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>

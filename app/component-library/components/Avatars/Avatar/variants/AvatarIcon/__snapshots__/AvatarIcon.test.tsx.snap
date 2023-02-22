@@ -6,14 +6,14 @@ exports[`AvatarIcon should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
-      "backgroundColor": "#037DD619",
+      "backgroundColor": "#0376C919",
       "justifyContent": "center",
     }
   }
 >
   <Icon
-    color="#037DD6"
-    name="AddSquareFilled"
+    color="#0376C9"
+    name="AddSquare"
     size="24"
   />
 </AvatarBase>

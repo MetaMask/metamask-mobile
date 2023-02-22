@@ -48,7 +48,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onPress={[Function]}
           style={
             Object {
-              "color": "#037DD6",
+              "color": "#0376C9",
             }
           }
           suppressHighlighting={true}
@@ -99,7 +99,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -151,7 +151,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -204,7 +204,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "#D73847",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,

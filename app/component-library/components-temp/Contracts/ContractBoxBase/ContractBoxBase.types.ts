@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { IconName, IconSize } from '../../../components/Icon';
+import { IconName, IconSize } from '../../../components/Icons/Icon';
 
 export interface ContractBoxBaseProps {
   contractAddress: string;
@@ -10,9 +10,13 @@ export interface ContractBoxBaseProps {
    */
   onCopyAddress: () => void;
   /**
-   * function that opens contract in block explorer
+   * function that opens contract in block explorer if present
    */
-  onExportAddress: () => void;
+  onExportAddress?: () => void;
+  /**
+   * functions that called when the user clicks on the contract name
+   */
+  onContractPress: () => void;
 }
 
 export interface IconViewProps {
