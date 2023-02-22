@@ -1,76 +1,50 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../Base/Text';
-import ScreenLayout from '../components/ScreenLayout';
-import PaymentMethod from '../components/PaymentMethod';
-import { useFiatOnRampSDK } from '../sdk';
-import { strings } from '../../../../../locales/i18n';
-import StyledButton from '../../StyledButton';
-import { useTheme } from '../../../../util/theme';
-import { getFiatOnRampAggNavbar } from '../../Navbar';
-import SkeletonBox from '../components/SkeletonBox';
-import SkeletonText from '../components/SkeletonText';
-import BaseListItem from '../../../Base/ListItem';
-import Box from '../components/Box';
-import ErrorView from '../components/ErrorView';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
-import usePaymentMethods from '../hooks/usePaymentMethods';
-import useRegions from '../hooks/useRegions';
+
+import Text from '../../../../Base/Text';
+import Row from '../../components/Row';
+import ScreenLayout from '../../components/ScreenLayout';
+import PaymentMethod from '../../components/PaymentMethod';
+import SkeletonPaymentMethod from '../../components/SkeletonPaymentMethod';
+import ErrorView from '../../components/ErrorView';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import StyledButton from '../../../StyledButton';
+
+import { useFiatOnRampSDK } from '../../sdk';
+import { useTheme } from '../../../../../util/theme';
+import { getFiatOnRampAggNavbar } from '../../../Navbar';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+
+import useAnalytics from '../../hooks/useAnalytics';
+import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useRegions from '../../hooks/useRegions';
+
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../util/navigation/navUtils';
-import { createAmountToBuyNavDetails } from './AmountToBuy';
-// TODO: Convert into typescript and correctly type
-const ListItem = BaseListItem as any;
+} from '../../../../../util/navigation/navUtils';
 
-interface PaymenthMehodsParams {
+import { createAmountToBuyNavDetails } from '../AmountToBuy';
+
+interface PaymentMethodsParams {
   showBack?: boolean;
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymenthMehodsParams>(
+  createNavigationDetails<PaymentMethodsParams>(
     Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
   );
-
-const styles = StyleSheet.create({
-  row: {
-    marginVertical: 8,
-  },
-  boxMargin: {
-    marginVertical: 10,
-  },
-});
-
-const SkeletonPaymentOption = () => (
-  <Box style={styles.boxMargin}>
-    <ListItem>
-      <ListItem.Content>
-        <ListItem.Icon>
-          <SkeletonBox />
-        </ListItem.Icon>
-        <ListItem.Body>
-          <ListItem.Title>
-            <SkeletonText thin title />
-          </ListItem.Title>
-        </ListItem.Body>
-      </ListItem.Content>
-    </ListItem>
-  </Box>
-);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const params = useParams<PaymenthMehodsParams>();
+  const { showBack } = useParams<PaymentMethodsParams>();
 
   const {
     setSelectedRegion,
-    selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
@@ -98,16 +72,25 @@ const PaymentMethods = () => {
       setSelectedPaymentMethodId(id);
       trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
         payment_method_id: id,
+        available_payment_method_ids: paymentMethods?.map(
+          (paymentMethod) => paymentMethod.id,
+        ) as string[],
+        region: selectedRegion?.id as string,
         location: 'Payment Method Screen',
       });
     },
-    [setSelectedPaymentMethodId, trackEvent],
+    [
+      paymentMethods,
+      selectedRegion?.id,
+      setSelectedPaymentMethodId,
+      trackEvent,
+    ],
   );
 
   const handleResetState = useCallback(() => {
     setSelectedRegion(null);
     setSelectedPaymentMethodId(null);
-    const needsReset = params.showBack === false;
+    const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
         routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
@@ -115,16 +98,25 @@ const PaymentMethods = () => {
     } else {
       navigation.goBack();
     }
-  }, [
-    params.showBack,
-    setSelectedPaymentMethodId,
-    setSelectedRegion,
-    navigation,
-  ]);
+  }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
+    trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
+      available_payment_method_ids: paymentMethods?.map(
+        (paymentMethod) => paymentMethod.id,
+      ) as string[],
+      payment_method_id: currentPaymentMethod?.id as string,
+      region: selectedRegion?.id as string,
+      location: 'Payment Method Screen',
+    });
     navigation.navigate(...createAmountToBuyNavDetails());
-  }, [navigation]);
+  }, [
+    currentPaymentMethod?.id,
+    navigation,
+    paymentMethods,
+    selectedRegion?.id,
+    trackEvent,
+  ]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -134,13 +126,13 @@ const PaymentMethods = () => {
           title: strings(
             'fiat_on_ramp_aggregator.payment_method.payment_method',
           ),
-          showBack: params.showBack,
+          showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params.showBack]);
+  }, [navigation, colors, handleCancelPress, showBack]);
 
   if (sdkError) {
     return (
@@ -174,9 +166,15 @@ const PaymentMethods = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <SkeletonPaymentOption />
-            <SkeletonPaymentOption />
-            <SkeletonPaymentOption />
+            <Row first>
+              <SkeletonPaymentMethod />
+            </Row>
+            <Row>
+              <SkeletonPaymentMethod />
+            </Row>
+            <Row last>
+              <SkeletonPaymentMethod />
+            </Row>
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -213,18 +211,22 @@ const PaymentMethods = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            {paymentMethods.map((payment) => (
-              <View key={payment.id} style={styles.row}>
+            {paymentMethods.map((payment, index) => (
+              <Row
+                key={payment.id}
+                first={index === 0}
+                last={index === paymentMethods.length - 1}
+              >
                 <PaymentMethod
                   payment={payment}
-                  highlighted={payment.id === selectedPaymentMethodId}
+                  highlighted={payment.id === currentPaymentMethod?.id}
                   onPress={
-                    payment.id === selectedPaymentMethodId
+                    payment.id === currentPaymentMethod?.id
                       ? undefined
                       : () => handlePaymentMethodPress(payment.id)
                   }
                 />
-              </View>
+              </Row>
             ))}
           </ScreenLayout.Content>
         </ScrollView>
@@ -232,23 +234,23 @@ const PaymentMethods = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           {currentPaymentMethod?.disclaimer ? (
-            <View style={styles.row}>
+            <Row>
               <Text small grey centered>
                 {currentPaymentMethod.disclaimer}
               </Text>
-            </View>
+            </Row>
           ) : null}
-          <View style={styles.row}>
+          <Row>
             <StyledButton
               type={'confirm'}
               onPress={handleContinueToAmount}
-              disabled={!selectedPaymentMethodId}
+              disabled={!currentPaymentMethod}
             >
               {strings(
                 'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
               )}
             </StyledButton>
-          </View>
+          </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
