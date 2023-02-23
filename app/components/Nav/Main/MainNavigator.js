@@ -49,7 +49,7 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
+import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
@@ -69,6 +69,7 @@ import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { strings } from '../../../../locales/i18n';
+import isUrl from 'is-url';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -226,7 +227,7 @@ const HomeTabs = () => {
   /* activeTab: state.browser.activeTab, */
   const activeConnectedDapp = useSelector((state) => {
     const activeTabUrl = getActiveTabUrl(state);
-    if (!activeTabUrl) return [];
+    if (!isUrl(activeTabUrl)) return [];
 
     const permissionsControllerState =
       state.engine.backgroundState.PermissionController;
