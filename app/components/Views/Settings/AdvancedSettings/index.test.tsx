@@ -12,7 +12,7 @@ const initialState = {
       PreferencesController: {
         ipfsGateway: 'https://ipfs.io/ipfs/',
         disabledRpcMethodPreferences: {
-          eth_sign: false
+          eth_sign: false,
         },
       },
       NetworkController: {
