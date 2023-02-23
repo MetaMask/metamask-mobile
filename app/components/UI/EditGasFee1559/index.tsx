@@ -160,8 +160,8 @@ const EditGasFee1559 = ({
       suggestedGasLimit: gasObject?.suggestedGasLimit,
     };
 
-    onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject]);
+    onSave(gasTransaction, newGasPriceObject, selectedOption);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, selectedOption]);
 
   const changeGas = useCallback(
     (gas, option) => {

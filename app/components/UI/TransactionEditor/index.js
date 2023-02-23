@@ -539,9 +539,12 @@ class TransactionEditor extends PureComponent {
     });
   };
 
-  saveGasEdition = (eip1559GasTransaction, eip1559GasObject) => {
+  saveGasEdition = (eip1559GasTransaction, eip1559GasObject, gasSelected) => {
     this.setState(
       {
+        gasSelected,
+        gasSelectedTemp: gasSelected,
+        advancedGasInserted: !gasSelected,
         dappSuggestedGasPrice: null,
         dappSuggestedEIP1559Gas: null,
         eip1559GasTransaction,
@@ -653,10 +656,12 @@ class TransactionEditor extends PureComponent {
     const selectedGasObject = {
       suggestedMaxFeePerGas:
         eip1559GasObject.suggestedMaxFeePerGas ||
-        gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
+        gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas ||
+        eip1559GasTransaction.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas:
         eip1559GasObject.suggestedMaxPriorityFeePerGas ||
-        gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+        gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas ||
+        eip1559GasTransaction.suggestedMaxPriorityFeePerGas,
       suggestedGasLimit:
         eip1559GasObject.suggestedGasLimit ||
         eip1559GasTransaction.suggestedGasLimit,

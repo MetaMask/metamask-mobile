@@ -238,6 +238,7 @@ class Confirm extends PureComponent {
     legacyGasObject: {},
     legacyGasTransaction: {},
     multiLayerL1FeeTotal: '0x0',
+    transactionDone: false,
   };
 
   setNetworkNonce = async () => {
@@ -786,6 +787,7 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
+        this.setState({ transactionDone: true });
         stopGasPolling();
         resetTransaction();
         navigation && navigation.dangerouslyGetParent()?.pop();
@@ -1176,6 +1178,7 @@ class Confirm extends PureComponent {
       isAnimating,
       animateOnChange,
       multiLayerL1FeeTotal,
+      transactionDone,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1286,27 +1289,29 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          <TransactionReviewCard
-            gasSelected={this.state.gasSelected}
-            primaryCurrency={primaryCurrency}
-            onEdit={() => this.edit(!showFeeMarket ? EDIT : EDIT_EIP1559)}
-            onUpdatingValuesStart={this.onUpdatingValuesStart}
-            onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-            animateOnChange={animateOnChange}
-            isAnimating={isAnimating}
-            gasEstimationReady={gasEstimationReady}
-            chainId={chainId}
-            gasObject={
-              !showFeeMarket
-                ? this.state.legacyGasObject
-                : this.state.EIP1559GasObject
-            }
-            updateTransactionState={this.updateTransactionState}
-            legacy={!showFeeMarket}
-            onlyGas={false}
-            multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-            transactionState={transactionState}
-          />
+          {!transactionDone && (
+            <TransactionReviewCard
+              gasSelected={this.state.gasSelected}
+              primaryCurrency={primaryCurrency}
+              onEdit={() => this.edit(!showFeeMarket ? EDIT : EDIT_EIP1559)}
+              onUpdatingValuesStart={this.onUpdatingValuesStart}
+              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+              animateOnChange={animateOnChange}
+              isAnimating={isAnimating}
+              gasEstimationReady={gasEstimationReady}
+              chainId={chainId}
+              gasObject={
+                !showFeeMarket
+                  ? this.state.legacyGasObject
+                  : this.state.EIP1559GasObject
+              }
+              updateTransactionState={this.updateTransactionState}
+              legacy={!showFeeMarket}
+              onlyGas={false}
+              multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+              transactionState={transactionState}
+            />
+          )}
           {showCustomNonce && (
             <CustomNonce
               nonce={nonce}
