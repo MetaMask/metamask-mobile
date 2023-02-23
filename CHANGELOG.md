@@ -1,6 +1,56 @@
 # Changelog
 
 ## Current Main Branch
+- [#5809](https://github.com/MetaMask/metamask-mobile/pull/5809): [FIX] Resolve tab bar merge conflicts
+- [#5795](https://github.com/MetaMask/metamask-mobile/pull/5795): 6.0.1
+- [#5461](https://github.com/MetaMask/metamask-mobile/pull/5461): On-ramp: Refactor Payment Methods view to componentization
+- [#5813](https://github.com/MetaMask/metamask-mobile/pull/5813): Add copy for portfolio button for translations
+- [#5729](https://github.com/MetaMask/metamask-mobile/pull/5729): bump react-native-reanimated to 2.14.0
+- [#5797](https://github.com/MetaMask/metamask-mobile/pull/5797): remove phishing list update engine removal
+- [#5812](https://github.com/MetaMask/metamask-mobile/pull/5812): [CONTENT] Ledger Integration english content
+- [#5806](https://github.com/MetaMask/metamask-mobile/pull/5806): [FIX] Screenshot Crash
+- [#5678](https://github.com/MetaMask/metamask-mobile/pull/5678): Updated hardware label to have the correct color
+- [#5801](https://github.com/MetaMask/metamask-mobile/pull/5801): [FIX] Update icon name in SRPQuiz
+- [#5800](https://github.com/MetaMask/metamask-mobile/pull/5800): TabBarIconKey to TabBarLabel
+- [#5725](https://github.com/MetaMask/metamask-mobile/pull/5725): Show transfer view to user for approve with value
+- [#5780](https://github.com/MetaMask/metamask-mobile/pull/5780): show token symbol when approving
+- [#5670](https://github.com/MetaMask/metamask-mobile/pull/5670): 6.0.0
+- [#5791](https://github.com/MetaMask/metamask-mobile/pull/5791): Adds 'ios' and 'android' to possible sources for MM SDK events
+- [#5340](https://github.com/MetaMask/metamask-mobile/pull/5340): Align icon names
+- [#5399](https://github.com/MetaMask/metamask-mobile/pull/5399): fix bug with updating gas price for legacy transactions
+- [#5778](https://github.com/MetaMask/metamask-mobile/pull/5778): Set different CPU capacity in jest tests
+- [#5777](https://github.com/MetaMask/metamask-mobile/pull/5777): Fix/primary currency fiat insufficient funds error
+- [#5776](https://github.com/MetaMask/metamask-mobile/pull/5776): change password scenario
+- [#5753](https://github.com/MetaMask/metamask-mobile/pull/5753): [FIX] fix Slack e2e announcement
+- [#5683](https://github.com/MetaMask/metamask-mobile/pull/5683): [FIX] RN Patch Version
+- [#5768](https://github.com/MetaMask/metamask-mobile/pull/5768): [UPGRADE] Segment Analytics 2.13.0
+- [#5587](https://github.com/MetaMask/metamask-mobile/pull/5587): ERC721 Approve view
+- [#5754](https://github.com/MetaMask/metamask-mobile/pull/5754): Revert "add e2e tests announcement on Slack (#5723)"
+- [#5748](https://github.com/MetaMask/metamask-mobile/pull/5748): E2e appium/add splash animation step
+- [#5749](https://github.com/MetaMask/metamask-mobile/pull/5749): [FIX] Back navigation CTAs in RevealPrivateCredential view
+- [#5744](https://github.com/MetaMask/metamask-mobile/pull/5744): Fix sideway/formula audit
+- [#5738](https://github.com/MetaMask/metamask-mobile/pull/5738): [FIX] On-ramp: upgrade on-ramp-sdk to v1.8.1
+- [#5739](https://github.com/MetaMask/metamask-mobile/pull/5739): fix CVE-2023-25166 by resolving @sideway/formula to 3.0.1
+- [#5723](https://github.com/MetaMask/metamask-mobile/pull/5723): add e2e tests announcement on Slack
+- [#5666](https://github.com/MetaMask/metamask-mobile/pull/5666): [IMPROVEMENT] E2E appium/app launch times
+- [#5719](https://github.com/MetaMask/metamask-mobile/pull/5719): [FIX] Remove false showBack param from order details
+- [#5595](https://github.com/MetaMask/metamask-mobile/pull/5595): On-ramp: Add orderProcessor index test
+- [#5730](https://github.com/MetaMask/metamask-mobile/pull/5730): [FIX] French content for SRP Quiz
+- [#5726](https://github.com/MetaMask/metamask-mobile/pull/5726): [FIX] Minor UI bugs in credential views
+- [#5656](https://github.com/MetaMask/metamask-mobile/pull/5656): [FIX] ENS Resolves to Wrong Address when DeepLink
+- [#5717](https://github.com/MetaMask/metamask-mobile/pull/5717): Updated button usage to use full width
+- [#5722](https://github.com/MetaMask/metamask-mobile/pull/5722): Fix env variables syntax in step
+- [#5679](https://github.com/MetaMask/metamask-mobile/pull/5679): Update design-tokens version and remove screen size from TextVariants
+- [#5713](https://github.com/MetaMask/metamask-mobile/pull/5713): Updated ButtonBase to use flex-start instead of baseline
+- [#5546](https://github.com/MetaMask/metamask-mobile/pull/5546): Adding smoke and regression tags to tests
+- [#5694](https://github.com/MetaMask/metamask-mobile/pull/5694): Added missing step definition
+- [#5343](https://github.com/MetaMask/metamask-mobile/pull/5343): Align buttons with Figma
+- [#5682](https://github.com/MetaMask/metamask-mobile/pull/5682): Componentize TextInput
+- [#5657](https://github.com/MetaMask/metamask-mobile/pull/5657): [FIX] fix the RequestTokenFlow E2E test
+- [#5675](https://github.com/MetaMask/metamask-mobile/pull/5675): fix eslint commit hook
+- [#5621](https://github.com/MetaMask/metamask-mobile/pull/5621): Refactor static method middlware
+- [#5218](https://github.com/MetaMask/metamask-mobile/pull/5218): Improve deeplinks experience
+- [#5608](https://github.com/MetaMask/metamask-mobile/pull/5608): [FIX] SRP recover when an error is thrown
 
 ## 6.0.1 - Feb 21, 2023
 - [#5799](https://github.com/MetaMask/metamask-mobile/pull/5799): [FIX] Browser: handle unsupported URLs
