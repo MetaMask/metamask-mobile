@@ -31,6 +31,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -181,9 +182,16 @@ class OnboardingCarousel extends PureComponent {
     );
   };
 
+  termsOfUse = async () => {
+    if (this.props.navigation) {
+      await navigateTermsOfUse(this.props.navigation.navigate);
+    }
+  };
+
   componentDidMount = () => {
     this.updateNavBar();
     this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    this.termsOfUse();
   };
 
   componentDidUpdate = () => {

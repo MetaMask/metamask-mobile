@@ -87,7 +87,6 @@ import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const Stack = createStackNavigator();
 /**
@@ -199,8 +198,6 @@ const App = ({ userLoggedIn }) => {
   const [animationPlayed, setAnimationPlayed] = useState();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  // Refactor to consolidate with other uses of isUnlocked
-  const isUnlockedForToU = Engine.context.KeyringController.isUnlocked();
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
@@ -362,21 +359,6 @@ const App = ({ userLoggedIn }) => {
       setNavigator(ref);
     }
   };
-
-  const termsOfUse = useCallback(async () => {
-    if (navigator) {
-      await navigateTermsOfUse(navigator.navigate);
-    }
-  }, [navigator]);
-
-  // This useEffect it's used for prompting the Terms of Use modal
-  useEffect(() => {
-    // First condition handles the existing users
-    // Second condition handle the on boarding flow
-    if ((isUnlockedForToU && userLoggedIn) || !userLoggedIn) {
-      termsOfUse();
-    }
-  }, [isUnlockedForToU, userLoggedIn, termsOfUse]);
 
   const onAnimationFinished = useCallback(() => {
     Animated.timing(opacity, {
