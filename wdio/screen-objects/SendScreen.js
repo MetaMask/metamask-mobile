@@ -69,7 +69,7 @@ class SendScreen {
   }
 
   async isAmountScreenDisplayed() {
-    await expect(this.amountScreen).toBeDisplayed();
+     expect(await this.amountScreen).toBeDisplayed();
   }
 
   async isChangedContactNameVisible(contactName) {

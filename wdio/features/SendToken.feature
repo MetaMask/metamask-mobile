@@ -22,7 +22,7 @@ Feature: Sending Native and ERC Tokens
         And I type "<Symbol>" into the Network symbol field
         When I tap on the Add button
         And I tap on Got it in the network education modal
-        Then I should see the added network name "<Network>" in the top navigation bar
+        Then I see "<Network>" visible in the top navigation bar
 
         Examples:
             | Network   | rpcUrl                                  | ChainID | Symbol |

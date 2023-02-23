@@ -99,6 +99,7 @@ class Gestures {
 
   static async tapTextByXpath(text, tapType = 'TAP') {
     const elem = await Selectors.getXpathElementByTextContains(text);
+    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
         await elem.touchAction(Actions.TAP);
