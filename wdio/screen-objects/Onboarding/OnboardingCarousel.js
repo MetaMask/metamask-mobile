@@ -1,13 +1,13 @@
 /* global $, driver */
 import {
-  WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+  WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
-import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
+import {SPLASH_SCREEN_METAMASK_ANIMATION_ID} from '../testIDs/Components/MetaMaskAnimation.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { WALLET_SETUP_SCREEN_TITLE_ID } from '../testIDs/Screens/WalletSetupScreen.testIds';
+import {WALLET_SETUP_SCREEN_TITLE_ID} from '../testIDs/Screens/WalletSetupScreen.testIds';
 
 class WelcomeScreen {
   constructor() {
@@ -37,7 +37,7 @@ class WelcomeScreen {
 
   async waitForSplashAnimationToNotExit() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForExist({ reverse: true });
+    await elem.waitForExist({reverse: true});
   }
 
   async verifyCarouselTitle(key) {
@@ -84,7 +84,7 @@ class WelcomeScreen {
 
   async waitForScreenToDisplay() {
     const element = await this.screen;
-    await element.waitForDisplayed({ interval: 500 });
+    await element.waitForDisplayed({interval: 500});
   }
 }
 

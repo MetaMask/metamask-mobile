@@ -1,13 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import { View, Switch, Text, Platform } from 'react-native';
+import { Platform, Switch, Text, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { createStyles } from './styles';
-import {
-  LOGIN_WITH_BIOMETRICS_SWITCH,
-  LOGIN_WITH_REMEMBER_ME_SWITCH,
-} from '../../../constants/test-ids';
+import { LOGIN_WITH_BIOMETRICS_SWITCH } from '../../../constants/test-ids';
+import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { useSelector } from 'react-redux';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
