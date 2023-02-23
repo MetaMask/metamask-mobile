@@ -23,6 +23,8 @@ import {
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+
 class WalletMainScreen {
   get wizardContainer() {
     return Selectors.getElementByPlatform(
@@ -46,6 +48,10 @@ class WalletMainScreen {
 
   get ImportNFT() {
     return Selectors.getElementByPlatform(IMPORT_NFT_BUTTON_ID);
+  }
+
+  get TokenNotificationTitle() {
+    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
   get HamburgerButton() {
@@ -150,7 +156,7 @@ class WalletMainScreen {
   }
 
   async isTokenTextVisible(token) {
-    const tokenText = Selectors.getXpathElementByText(token);
+    const tokenText = Selectors.getXpathElementByTextContains(token);
     await expect(tokenText).toBeDisplayed();
   }
 
@@ -159,7 +165,15 @@ class WalletMainScreen {
   }
 
   async isMainWalletViewVisible() {
-    await expect(this.mainWalletView).toBeDisplayed();
+    const element = await this.mainWalletView;
+    await element.waitForDisplayed();
+  }
+
+  async isToastNotificationDisplayed() {
+    const element = await this.TokenNotificationTitle;
+    await element.waitForDisplayed();
+    expect(await element.getText()).toContain('Transaction');
+    expect(await element.getText()).toContain('Complete!');
   }
 }
 
