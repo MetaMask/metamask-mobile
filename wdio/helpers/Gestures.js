@@ -75,7 +75,7 @@ class Gestures {
   static async tap(element, tapType = 'TAP') {
     // simple touch action on element
     const elem = await element;
-    await element.isDisplayed();
+    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
         (await elem).touchAction(Actions.TAP);
