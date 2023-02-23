@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -11,6 +12,7 @@ import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
@@ -19,8 +21,11 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   CANCEL_BUTTON_ID,
 } from '../../../constants/test-ids';
+import SelectItem from '../../../../app/component-library/components/Select/Select/SelectItem';
+import AppConstants from '../../../../app/core/AppConstants';
+import { shuffle } from 'lodash';
 
-const createStyles = (colors) =>
+const createStyles = (colors, themeAppearance = 'light') =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -50,6 +55,37 @@ const createStyles = (colors) =>
       marginTop: 16,
       marginLeft: 16,
       marginRight: 16,
+    },
+    otpNotice: {
+      ...fontStyles.thin,
+      color: colors.text.default,
+      paddingHorizontal: 24,
+      marginBottom: 16,
+      marginTop: 5,
+      fontSize: 14,
+      width: '100%',
+      textAlign: 'center',
+    },
+    otpContainer: {
+      borderWidth: 1,
+    },
+    otpText: {
+      color: colors.primary.default,
+    },
+    selectOtp: {
+      marginTop: 0,
+      padding: 2,
+      marginLeft: 20,
+      marginRight: 20,
+    },
+    otpView: {
+      height: 30,
+      backgroundColor: mockTheme.colors.background.alternative,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    firstChoice: {
+      marginTop: 10,
     },
     warning: {
       ...fontStyles.thin,
@@ -122,6 +158,13 @@ class AccountApproval extends PureComponent {
 
   state = {
     start: Date.now(),
+    confirmDisabled: true,
+    otpChoice: undefined,
+    otps: shuffle(this.props.currentPageInformation.otps || []),
+    otp:
+      this.props.currentPageInformation.origin ===
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
+      this.props.currentPageInformation.reconnect,
   };
 
   getAnalyticsParams = () => {
@@ -176,6 +219,15 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect confirmed event
    */
   onConfirm = () => {
+    if (
+      this.state.otp &&
+      this.state.otpChoice !== this.props.currentPageInformation.otps[0]
+    ) {
+      console.warn(`INVALID OTP --- CONNECTION RESET`);
+      this.onCancel();
+      return;
+    }
+
     this.props.onConfirm();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
@@ -192,6 +244,13 @@ class AccountApproval extends PureComponent {
       MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
+
+    if (this.props.currentPageInformation.channelId) {
+      SDKConnect.getInstance().removeChannel(
+        this.props.currentPageInformation.channelId,
+        true,
+      );
+    }
 
     this.props.onCancel();
     this.showWalletConnectNotification();
@@ -218,10 +277,20 @@ class AccountApproval extends PureComponent {
     };
   };
 
+  onOTP = (value) => {
+    this.setState({
+      ...this.state,
+      otpChoice: value,
+      confirmDisabled: false,
+    });
+  };
+
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
+
     const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const themeAppearance = this.context.themeAppearance;
+    const styles = createStyles(colors, themeAppearance);
 
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
@@ -245,6 +314,25 @@ class AccountApproval extends PureComponent {
         <View style={styles.accountCardWrapper}>
           <AccountInfoCard fromAddress={selectedAddress} />
         </View>
+        {this.state.otp && (
+          <View styles={styles.otpContainer}>
+            <Text style={styles.otpNotice}>
+              {'Please select the number you see on the DAPP to confirm'}
+            </Text>
+            {this.state.otps.map((otpValue, index) => (
+              <SelectItem
+                // style={styles.selectOtp}
+                key={`otp${index}`}
+                isSelected={this.state.otpChoice === otpValue}
+                onPress={() => this.onOTP(otpValue)}
+              >
+                <View style={styles.otpView}>
+                  <Text style={styles.otpText}>{otpValue}</Text>
+                </View>
+              </SelectItem>
+            ))}
+          </View>
+        )}
         <View style={styles.actionContainer}>
           <StyledButton
             type={'cancel'}
@@ -255,12 +343,15 @@ class AccountApproval extends PureComponent {
             {strings('accountApproval.cancel')}
           </StyledButton>
           <StyledButton
+            disabled={this.state.otp && this.state.confirmDisabled}
             type={'confirm'}
             onPress={this.onConfirm}
             containerStyle={[styles.button, styles.confirm]}
             testID={'connect-approve-button'}
           >
-            {strings('accountApproval.connect')}
+            {currentPageInformation.reconnect
+              ? strings('accountApproval.confirm')
+              : strings('accountApproval.connect')}
           </StyledButton>
         </View>
       </View>
