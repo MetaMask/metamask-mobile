@@ -11,6 +11,9 @@ const initialState = {
     backgroundState: {
       PreferencesController: {
         ipfsGateway: 'https://ipfs.io/ipfs/',
+        disabledRpcMethodPreferences: {
+          eth_sign: false
+        },
       },
       NetworkController: {
         provider: { chainId: '1' },
