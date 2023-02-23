@@ -6,7 +6,7 @@ workflows:
   # Code Setups
   setup:
     steps:
-      - script@1:
+      - script@1: # TODO remove this DEBUG script before final commit
           is_always_run: true
           inputs:
             - content: |
