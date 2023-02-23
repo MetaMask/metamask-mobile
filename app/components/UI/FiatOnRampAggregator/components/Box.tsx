@@ -66,6 +66,7 @@ const Box: React.FC<Props> = ({
         activeOpacity={activeOpacity}
         accessible={accessible}
         accessibilityLabel={accessibilityLabel}
+        accessibilityRole={onPress ? 'button' : undefined}
       >
         <View
           style={[

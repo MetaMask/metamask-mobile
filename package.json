@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -152,7 +152,7 @@
     "@metamask/message-manager": "^1.0.1",
     "@metamask/network-controller": "^1.0.0",
     "@metamask/permission-controller": "^1.0.2",
-    "@metamask/phishing-controller": "^1.1.0",
+    "@metamask/phishing-controller": "^2.0.0",
     "@metamask/preferences-controller": "^1.0.1",
     "@metamask/sdk-communication-layer": "^0.1.0",
     "@metamask/swaps-controller": "^6.8.0",
@@ -275,7 +275,7 @@
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
-    "react-native-reanimated": "2.11.0",
+    "react-native-reanimated": "2.14.0",
     "react-native-redash": "16.2.2",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "3.13.1",
