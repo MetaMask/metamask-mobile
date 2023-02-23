@@ -386,7 +386,7 @@ Given(/^I navigate to the browser$/, async () => {
 });
 
 When(/^I navigate to the wallet$/, async () => {
-  await driver.pause(3000);
+  await driver.pause(5000);
   await TabBarModal.tapWalletButton();
 });
 
