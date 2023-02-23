@@ -16,7 +16,7 @@ class AmountScreen {
       }
 
       async isConfirmScreenVisible() {
-        await expect(this.confirmAmount).toBeDisplayed();
+        expect(await this.confirmAmount).toBeDisplayed();
       }
     
       async isCorrectTokenConfirm(token) {

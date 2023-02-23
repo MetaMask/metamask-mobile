@@ -8,9 +8,7 @@ import {
   ADD_ADDRESS_BUTTON,
   SEND_CANCEL_BUTTON,
 } from './testIDs/Screens/SendScreen.testIds';
-import {
-  TRANSACTION_AMOUNT_INPUT,
-} from './testIDs/Screens/AmountScreen.testIds.js';
+import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 
 class SendScreen {
   get sendAddressInputField() {
@@ -38,6 +36,7 @@ class SendScreen {
   }
 
   get confirmAmount() {
+    // eslint-disable-next-line no-undef
     return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
   }
 

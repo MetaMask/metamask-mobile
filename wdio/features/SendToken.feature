@@ -13,16 +13,13 @@ Feature: Sending Native and ERC Tokens
         Then I am on the wallet view
 
     Scenario Outline: Adding AVAX testnet to my networks list
-        When I tap on the navbar network title button
+        Given I tap on the navbar network title button
         And I tap on the Add a Network button
-
-        When I tap on the "CUSTOM NETWORKS" tab
-
-        When I type "<Network>" into Network name field
+        And I tap on the "CUSTOM NETWORKS" tab
+        And I type "<Network>" into Network name field
         And I type "<rpcUrl>" into the RPC url field
         And I type "<ChainID>" into the Chain ID field
         And I type "<Symbol>" into the Network symbol field
-
         When I tap on the Add button
         And I tap on Got it in the network education modal
         Then I should see the added network name "<Network>" in the top navigation bar
@@ -32,7 +29,7 @@ Feature: Sending Native and ERC Tokens
             | AVAX Fuji | https://api.avax-test.network/ext/C/rpc | 43113   | AVAX   |
 
     Scenario Outline: Import Custom Token
-        When I tap on the navbar network title button
+        Given I tap on the navbar network title button
         And I tap on <NETWORK> on Networks list to switch
         And I tap on Got it in the network education modal
 
@@ -51,9 +48,8 @@ Feature: Sending Native and ERC Tokens
 
     Scenario Outline: A user can send native tokens to an Address via the wallet view send button
         Given I see "<NETWORK>" visible in the top navigation bar
-        When On the Main Wallet view I tap "Send"
-        Then I enter address "<Address>" in the sender's input box
-
+        And On the Main Wallet view I tap "Send"
+        And I enter address "<Address>" in the sender's input box
         When I tap button "Next" on Send To view
         Then I proceed to the amount view
 
