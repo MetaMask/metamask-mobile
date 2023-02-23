@@ -338,12 +338,6 @@ export class Connection extends EventEmitter2 {
         console.debug(
           `debug needsRedirect=${needsRedirect} isResumed=${this.isResumed}`,
         );
-        if (needsRedirect) {
-          // Stop loading display after we have responded to wallet initialization message such as metamask_getProviderState
-          this.setLoading(false);
-        } else if (this.isResumed) {
-          this.setLoading(false);
-        }
 
         await waitForKeychainUnlocked();
 
@@ -666,6 +660,7 @@ export class Connection extends EventEmitter2 {
       this.requestsToRedirect,
     );
     this.remote.sendMessage(msg);
+    this.setLoading(false);
 
     if (!needsRedirect) return;
 
