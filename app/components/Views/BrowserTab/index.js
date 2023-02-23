@@ -777,9 +777,17 @@ export const BrowserTab = (props) => {
    *  Return `true` to continue loading the request and `false` to stop loading.
    */
   const onShouldStartLoadWithRequest = ({ url }) => {
+    const { hostname } = new URL(url);
+
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
       go(url.replace(/^http:\/\//, 'https://'));
+      return false;
+    }
+
+    // Cancel loading the page if we detect its a phishing page
+    if (!isAllowedUrl(hostname)) {
+      handleNotAllowedUrl(url);
       return false;
     }
 
@@ -972,10 +980,6 @@ export const BrowserTab = (props) => {
       nativeEvent.navigationType === 'backforward'
     ) {
       changeAddressBar({ ...nativeEvent });
-    }
-
-    if (!isAllowedUrl(hostname)) {
-      return handleNotAllowedUrl(nativeEvent.url);
     }
 
     setError(false);
