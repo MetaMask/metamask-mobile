@@ -30,16 +30,15 @@ workflows:
             - command: setup
           title: Yarn Setup
       - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: audit:ci
-          title: Audit Dependencies
-      - yarn@0:
           title: Lint
           inputs:
             - cache_local_deps: 'yes'
             - command: lint
-          is_always_run: true
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: audit:ci
+          title: Audit Dependencies
       - cache-push@2: {}
   code_setup:
     before_run:
@@ -67,14 +66,14 @@ workflows:
   _get_workflow_info:
     steps:
       - activate-ssh-key@4:
-          is_always_run: true
+          is_always_run: true # always run to also feed failure notifications
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6:
           inputs:
-            - update_submodules: no
-          is_always_run: true
+            - update_submodules: 'no'
+          is_always_run: true # always run to also feed failure notifications
       - script@1:
-          is_always_run: true
+          is_always_run: true # always run to also feed failure notifications
           inputs:
             - content: |
                 #!/bin/bash
