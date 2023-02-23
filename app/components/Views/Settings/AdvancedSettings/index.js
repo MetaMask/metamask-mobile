@@ -505,7 +505,9 @@ const mapStateToProps = (state) => ({
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
-  enableEthSign: state.engine.backgroundState.PreferencesController.disabledRpcMethodPreferences['eth_sign'],
+  enableEthSign:
+    state.engine.backgroundState.PreferencesController
+      .disabledRpcMethodPreferences.eth_sign,
   fullState: state,
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
