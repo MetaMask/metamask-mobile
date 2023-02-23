@@ -257,6 +257,15 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+      });
+
+      const phishingController = new PhishingController();
+
       const additionalKeyrings = [QRHardwareKeyring];
 
       const getIdentities = () => {
@@ -289,13 +298,6 @@ class Engine {
         { encryptor, keyringTypes: additionalKeyrings },
         initialState.KeyringController,
       );
-
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
-      });
 
       const getSnapPermissionSpecifications = () => ({
         ...buildSnapEndowmentSpecifications(),
@@ -443,9 +445,6 @@ class Engine {
             'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
           ),
       });
-
-      const phishingController = new PhishingController();
-      phishingController.updatePhishingLists();
 
       const controllers = [
         keyringController,

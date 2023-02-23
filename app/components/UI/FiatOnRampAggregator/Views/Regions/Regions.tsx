@@ -22,7 +22,7 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods';
+import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
 import { useFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
