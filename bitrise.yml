@@ -6,13 +6,6 @@ workflows:
   # Code Setups
   setup:
     steps:
-      - script@1: # TODO remove this DEBUG script before final commit
-          is_always_run: true
-          inputs:
-            - content: |
-                #!/bin/bash
-                exit ${DEBUG_EXIT_CODE:-0}
-          title: DEBUG STEP TO MAKE WORKFLOW FAIL, REMOVE AFTER 441 is tested!
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
