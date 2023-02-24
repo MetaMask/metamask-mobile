@@ -26,7 +26,7 @@ The code is built using React-Native and running code locally requires a Mac (An
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
 
     -   But [Node](https://nodejs.org) v14 where mentioned _make sure it is Node 12 or newer_
-    
+
         -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm install` then `nvm use` will use the right node version from [.nvmrc](https://github.com/MetaMask/metamask-mobile/blob/f7e44adc7b61b71fdf6794b0fcad2531561c2f95/.nvmrc#L1)
 
             -   NB: RN 0.69+ introduces [ios/.xcode.env](https://github.com/facebook/react-native/blob/0.69-stable/template/ios/_xcode.env) to source the environment used when running script phases inside Xcode
@@ -50,7 +50,7 @@ The code is built using React-Native and running code locally requires a Mac (An
     - Select `SDK Tools` tab
     - Locate `NDK (Side-by-side)` option in the tools list
     - Check `Show Package Details` option below the tools list to show available versions
-    - Check NDK version `21.4.7075529` 
+    - Check NDK version `21.4.7075529`
     - Click "Apply" or "OK" to download
 -   Linux only:
     -   Ensure that you have the `secret-tool` binary on your machine.
