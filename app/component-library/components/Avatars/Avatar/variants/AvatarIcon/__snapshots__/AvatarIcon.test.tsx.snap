@@ -13,7 +13,7 @@ exports[`AvatarIcon should render correctly 1`] = `
 >
   <Icon
     color="#0376C9"
-    name="AddSquareFilled"
+    name="AddSquare"
     size="24"
   />
 </AvatarBase>

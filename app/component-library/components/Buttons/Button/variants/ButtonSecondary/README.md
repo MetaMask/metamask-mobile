@@ -11,7 +11,7 @@ This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts#L14) 
 ```javascript
 <ButtonSecondary
   label={SAMPLE_LABEL}
-  iconName={IconName.BankFilled}
+  iconName={IconName.Bank}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   isDanger

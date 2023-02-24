@@ -8,7 +8,6 @@ import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
@@ -53,7 +52,6 @@ const ScreenshotDeterrentWithNavigation = ({
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_CONFIRMATION,
       params: {
-        variant: ModalConfirmationVariants.Normal,
         title: strings('screenshot_deterrent.title'),
         description: strings('screenshot_deterrent.description', {
           credentialName: isSRP

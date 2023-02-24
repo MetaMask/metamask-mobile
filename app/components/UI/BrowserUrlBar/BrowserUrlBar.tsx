@@ -9,19 +9,20 @@ import AppConstants from '../../../core/AppConstants';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icon';
+} from '../../../component-library/components/Icons/Icon';
 import Text from '../../../component-library/components/Texts/Text';
 
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAVBAR_TITLE_NETWORK } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import Url from 'url-parse';
 
 const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const getDappMainUrl = () => {
     if (!url) return;
 
-    const urlObj = new URL(url);
+    const urlObj = new Url(url);
     const ensUrl = route.params?.currentEnsName ?? '';
 
     if (
@@ -37,9 +38,7 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const contentProtocol = getURLProtocol(url);
   const isHttps = contentProtocol === PROTOCOLS.HTTPS;
 
-  const secureConnectionIcon = isHttps
-    ? IconName.LockFilled
-    : IconName.LockSlashFilled;
+  const secureConnectionIcon = isHttps ? IconName.Lock : IconName.LockSlash;
 
   const mainUrl = getDappMainUrl();
 

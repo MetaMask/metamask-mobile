@@ -306,8 +306,26 @@ class Confirm extends PureComponent {
   };
 
   componentWillUnmount = async () => {
+    const {
+      contractBalances,
+      transactionState: { selectedAsset },
+    } = this.props;
+    const { TokensController } = Engine.context;
     await stopGasPolling(this.state.pollToken);
     clearInterval(intervalIdForEstimatedL1Fee);
+
+    /**
+     * Remove token that was added to the account temporarily
+     * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
+     */
+    if (selectedAsset.isETH || selectedAsset.tokenId) {
+      return;
+    }
+
+    const weiBalance = contractBalances[selectedAsset.address];
+    if (weiBalance?.isZero()) {
+      await TokensController.ignoreTokens([selectedAsset.address]);
+    }
   };
 
   fetchEstimatedL1Fee = async () => {
@@ -480,7 +498,7 @@ class Confirm extends PureComponent {
     prepareTransaction({ ...transaction, ...estimation });
   };
 
-  parseTransactionDataHeader = () => {
+  parseTransactionDataHeader = async () => {
     const {
       accounts,
       contractBalances,
@@ -494,6 +512,7 @@ class Confirm extends PureComponent {
       },
       ticker,
     } = this.props;
+
     const { fromSelectedAddress } = this.state;
     let fromAccountBalance,
       transactionValue,
@@ -540,7 +559,13 @@ class Confirm extends PureComponent {
       );
     } else {
       let rawAmount;
-      const { address, symbol = 'ERC20', decimals } = selectedAsset;
+      const { address, symbol = 'ERC20', decimals, image } = selectedAsset;
+      const { TokensController } = Engine.context;
+
+      if (!contractBalances[address]) {
+        await TokensController.addToken(address, symbol, decimals, image);
+      }
+
       fromAccountBalance = `${renderFromTokenMinimalUnit(
         contractBalances[address] ? contractBalances[address] : '0',
         decimals,

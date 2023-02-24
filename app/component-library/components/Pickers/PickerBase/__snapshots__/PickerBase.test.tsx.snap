@@ -18,7 +18,7 @@ exports[`PickerBase should render correctly 1`] = `
   <View />
   <Icon
     color="#6A737D"
-    name="ArrowDownOutline"
+    name="ArrowDown"
     size="20"
     style={
       Object {
