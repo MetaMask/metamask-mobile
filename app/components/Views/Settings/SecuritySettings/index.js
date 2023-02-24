@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Keyboard,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
@@ -61,6 +62,8 @@ import {
   ProtectYourWallet,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const isIos = Device.isIos();
 
@@ -933,7 +936,8 @@ class Settings extends PureComponent {
     return (
       <ScrollView
         style={styles.wrapper}
-        testID={'security-settings-scrollview'}
+        testID={SECURITY_PRIVACY_VIEW_ID}
+        {...generateTestId(Platform, SECURITY_PRIVACY_VIEW_ID)}
         ref={(view) => {
           this.scrollView = view;
         }}
