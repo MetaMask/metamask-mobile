@@ -5,7 +5,6 @@ import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/a
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 import Engine from '../../core/Engine';
 import NotificationManager from '../../core/NotificationManager';
-import { decode, encode } from 'base-64';
 /* eslint-disable import/no-namespace */
 import * as themeUtils from '../theme';
 
@@ -195,56 +194,6 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
-// crypto.getRandomValues
-if (!window.crypto) {
-  window.crypto = {};
-}
-if (!window.crypto.getRandomValues) {
-  window.crypto.getRandomValues = require('polyfill-crypto.getrandomvalues');
-}
-
-// btoa
-if (!global.btoa) {
-  global.btoa = encode;
-}
-
-if (!global.atob) {
-  global.atob = decode;
-}
-
-const mockAes = {
-  encrypt: jest.fn(() => Promise.resolve()),
-  decrypt: jest.fn(),
-  pbkdf2: jest.fn(() => '0'),
-  hmac256: jest.fn(),
-  hmac512: jest.fn(),
-  sha1: jest.fn(),
-  sha256: jest.fn(),
-  sha512: jest.fn(),
-  randomUuid: jest.fn(),
-  randomKey: jest.fn(),
-};
-
-// Aes https://github.com/tectiv3/react-native-aes
-NativeModules.Aes = {
-  ...mockAes,
-};
-
-const mockAesForked = {
-  encrypt: jest.fn(() => Promise.resolve()),
-  decrypt: jest.fn(),
-  pbkdf2: jest.fn(() => '0'),
-  hmac256: jest.fn(),
-  sha1: jest.fn(),
-  sha256: jest.fn(),
-  sha512: jest.fn(),
-};
-
-// AesForked: https://github.com/MetaMask/react-native-aes-crypto-forked
-NativeModules.AesForked = {
-  ...mockAesForked,
-};
-
 jest.mock('../../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,

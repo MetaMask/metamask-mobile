@@ -383,7 +383,6 @@
     "multiple-cucumber-html-reporter": "^3.0.1",
     "octonode": "0.10.2",
     "patch-package": "^6.2.2",
-    "polyfill-crypto.getrandomvalues": "^1.0.0",
     "prettier": "^2.2.1",
     "prettier-plugin-gherkin": "^1.1.1",
     "react-dom": "16.8.4",
