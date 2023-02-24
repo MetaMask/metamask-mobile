@@ -20517,6 +20517,11 @@ react-native-minimizer@^1.3.0:
   resolved "https://registry.yarnpkg.com/react-native-minimizer/-/react-native-minimizer-1.3.0.tgz#c52c2b40482921fa20bb4cbeda50e2f09e293698"
   integrity sha512-Km9C6Ibk9jdbY57IY+2mCNZ/If7n83JmOhb0Xs+ZhuO9tD9KHG7HNp1f0bOYtq8JiweGzw4w9oaC7VOK/uZ17A==
 
+react-native-mmkv-storage@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/react-native-mmkv-storage/-/react-native-mmkv-storage-0.8.0.tgz#2ece5f441a6a818224a85315c68e105e0d6446b5"
+  integrity sha512-L782Le5IuDYlDLGXF/qimbnzvkbYsSmV5PiDleo1DSS8Kr8Q31UK8YWtUICrDGQ9Fm7Xx4PxP9ffe2XzGeWaHQ==
+
 react-native-modal-datetime-picker@^7.4.2:
   version "7.6.1"
   resolved "https://registry.yarnpkg.com/react-native-modal-datetime-picker/-/react-native-modal-datetime-picker-7.6.1.tgz#463eaece1af98aa0b2fce00dab6cd203f89b86da"

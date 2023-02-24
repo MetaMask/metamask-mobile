@@ -81,6 +81,9 @@ PODS:
   - lottie-react-native (3.1.0):
     - lottie-ios (~> 2.5.0)
     - React
+  - MMKV (1.2.13):
+    - MMKVCore (~> 1.2.13)
+  - MMKVCore (1.2.15)
   - OpenSSL-Universal (1.1.180)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
@@ -317,6 +320,9 @@ PODS:
     - React
   - react-native-minimizer (1.3.0):
     - React
+  - react-native-mmkv-storage (0.8.0):
+    - MMKV (= 1.2.13)
+    - React-Core
   - react-native-netinfo (6.0.0):
     - React-Core
   - react-native-randombytes (3.6.1):
@@ -549,6 +555,7 @@ DEPENDENCIES:
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
   - react-native-minimizer (from `../node_modules/react-native-minimizer`)
+  - react-native-mmkv-storage (from `../node_modules/react-native-mmkv-storage`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -615,6 +622,8 @@ SPEC REPOS:
     - JitsiWebRTC
     - libevent
     - lottie-ios
+    - MMKV
+    - MMKVCore
     - OpenSSL-Universal
     - Sentry
     - YogaKit
@@ -678,6 +687,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-in-app-review"
   react-native-minimizer:
     :path: "../node_modules/react-native-minimizer"
+  react-native-mmkv-storage:
+    :path: "../node_modules/react-native-mmkv-storage"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-randombytes:
@@ -798,6 +809,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
   lottie-react-native: 7ca15c46249b61e3f9ffcf114cb4123e907a2156
+  MMKV: aac95d817a100479445633f2b3ed8961b4ac5043
+  MMKVCore: ddf41b9d9262f058419f9ba7598719af56c02cd3
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
   RCTRequired: 405e24508a0feed1771d48caebb85c581db53122
@@ -821,6 +834,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
   react-native-minimizer: bd07450123d8c685acb2dff64f0213b0c7b5dbd6
+  react-native-mmkv-storage: 8ba3c0216a6df283ece11205b442a3e435aec4e5
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79

@@ -13,6 +13,7 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import Device from '../util/device';
+import { MMKVLoader } from 'react-native-mmkv-storage';
 
 const TIMEOUT = 40000;
 
@@ -111,7 +112,8 @@ const persistConfig = {
   key: 'root',
   version,
   blacklist: ['onboarding'],
-  storage: MigratedStorage,
+  /* storage: MigratedStorage, */
+  storage: new MMKVLoader().initialize(),
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
