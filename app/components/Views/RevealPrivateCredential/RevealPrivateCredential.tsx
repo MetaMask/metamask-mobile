@@ -33,10 +33,10 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { Authentication } from '../../../core/';
 
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -156,13 +156,14 @@ const RevealPrivateCredential = ({
     }
 
     const unlockWithBiometrics = async () => {
-      const biometryType = await SecureKeychain.getSupportedBiometryType();
+      // Try to use biometrics to unlock
+      const { availableBiometryType } = await Authentication.getType();
       if (!passwordSet) {
         tryUnlockWithPassword('');
-      } else if (biometryType) {
+      } else if (availableBiometryType) {
         const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === biometryType) {
-          const credentials = await SecureKeychain.getGenericPassword();
+        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
+          const credentials = await Authentication.getPassword();
           if (credentials) {
             tryUnlockWithPassword(credentials.password);
           }

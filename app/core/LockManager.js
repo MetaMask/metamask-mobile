@@ -50,15 +50,13 @@ export default class LockManager {
   };
 
   gotoLockScreen = () => {
-    this.navigation.navigate('LockScreen', { backgroundMode: true });
-    this.locked = true;
+    this.navigation?.navigate('LockScreen', { backgroundMode: true });
   };
 
   lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
       const { KeyringController } = Engine.context;
       try {
-        // await SecureKeychain.resetGenericPassword();
         await KeyringController.setLocked();
         this.gotoLockScreen();
       } catch (e) {
