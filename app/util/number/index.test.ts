@@ -27,6 +27,8 @@ import {
   isNumberScientificNotationWhenString,
   calculateEthFeeForMultiLayer,
   limitToMaximumDecimalPlaces,
+  isZeroValue,
+  toBN,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -772,5 +774,20 @@ describe('Number utils :: limitToMaximumDecimalPlaces', () => {
 
   it('does not add any decimal places for a whole number', () => {
     expect(limitToMaximumDecimalPlaces(5)).toBe('5');
+  });
+});
+
+describe('Number utils :: isZeroValue', () => {
+  it('returns true for 0', () => {
+    expect(isZeroValue(0)).toBe(true);
+  });
+  it('returns true for 0x0', () => {
+    expect(isZeroValue('0x0')).toBe(true);
+  });
+  it('returns true for 0x0', () => {
+    expect(isZeroValue(0x0)).toBe(true);
+  });
+  it('returns true for BN zero value', () => {
+    expect(isZeroValue(toBN('0'))).toBe(true);
   });
 });

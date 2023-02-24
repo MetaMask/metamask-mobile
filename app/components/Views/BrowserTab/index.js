@@ -399,12 +399,9 @@ export const BrowserTab = (props) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
-    const phishingListsAreOutOfDate = PhishingController.isOutOfDate();
-    if (phishingListsAreOutOfDate) {
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.updatePhishingLists();
-    }
+    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+    // down network requests. The configuration is updated for the next request.
+    PhishingController.maybeUpdateState();
 
     const phishingControllerTestResult = PhishingController.test(hostname);
 

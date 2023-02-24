@@ -30,6 +30,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   fromTokenMinimalUnit,
+  isZeroValue,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
@@ -270,7 +271,7 @@ class TransactionReview extends PureComponent {
     const {
       validate,
       transaction,
-      transaction: { data, to },
+      transaction: { data, to, value },
       tokens,
       chainId,
       tokenList,
@@ -280,7 +281,9 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+      data &&
+      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      (!value || isZeroValue(value));
     const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
