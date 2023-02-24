@@ -55,8 +55,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
   Scenario Outline: A user has a saved address then deletes it
     When I tap on contact name "<ContactName>"
     And I tap on Edit button to edit Saved contact details
-    And I tap on button with text "Delete"
-    And I tap on button with text "Delete"
+    And I tap button "Delete" to navigate to Contacts view
     Then the deleted contact "<ContactName>" should not appear
 
     Examples:

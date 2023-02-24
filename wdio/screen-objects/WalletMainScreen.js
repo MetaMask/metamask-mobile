@@ -130,13 +130,13 @@ class WalletMainScreen {
   async tapNetworkNavBar() {
     const timeOut = 3000;
     await driver.pause(timeOut);
-    await Gestures.tap(this.networkInNavBar);
+    await Gestures.tap(await this.networkInNavBar);
     await driver.pause(timeOut);
   }
 
   async tapRemindMeLaterOnNotification() {
-    await Gestures.tap(this.remindMeLaterNotification, 'MOVETO');
-    await Gestures.tap(this.remindMeLaterNotification);
+    await Gestures.tap(await this.remindMeLaterNotification, 'MOVETO');
+    await Gestures.tap(await this.remindMeLaterNotification);
   }
 
   async backupAlertModalIsVisible() {
