@@ -17,6 +17,7 @@ import {
   ANALYTICS_DATA_DELETION_DATE,
   MIXPANEL_METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
+  DATA_SET_CONNECTED_FLAG,
 } from '../../constants/storage';
 import { store } from '../../store';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -46,12 +47,12 @@ class MetaMetrics implements IMetaMetrics {
   #state: States = States.disabled;
   #deleteRegulationDate = '';
   #isDataRecorded = false;
+  #dataSetConnectedFlag = false;
 
   // CONSTRUCTOR
 
   constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
-    this.#state = States.enabled;
     this.#init();
   }
 
@@ -61,7 +62,13 @@ class MetaMetrics implements IMetaMetrics {
    * Method to initialize private variables async.
    */
   async #init() {
+    this.#state = await this.#getMetricsPreference();
+    if (__DEV__) Logger.log(`Current MetaMatrics State: ${this.#state}`);
+
     this.#metametricsId = await this.#getMetaMetricsId();
+    // The alias method is used to merge two user identities
+    // by connecting two sets of user data as one.
+    await this.#alias();
     await this.#setInitialUserProperties();
   }
 
@@ -96,6 +103,29 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   /**
+   * Merge two user identities by connecting two sets of user data as one.
+   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#alias
+   *
+   * @param userId - User ID generated for Segment
+   * @param userTraits - Object containing user relevant traits or properties (optional).
+   */
+  async #alias(): Promise<void> {
+    if (this.#dataSetConnectedFlag) {
+      return;
+    }
+
+    if ((await DefaultPreference.get(DATA_SET_CONNECTED_FLAG)) === 'true') {
+      this.#dataSetConnectedFlag = true;
+      return;
+    }
+
+    this.#segmentClient.alias(this.#metametricsId);
+
+    this.#dataSetConnectedFlag = true;
+    await DefaultPreference.set('true', DATA_SET_CONNECTED_FLAG);
+  }
+
+  /**
    * Method to associate traits or properties to an user.
    * Check Segment documentation for more information.
    * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
@@ -104,9 +134,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
   #identify(userTraits: UserIdentityProperties): void {
-    // The alias method is used to merge two user identities
-    // by connecting two sets of user data as one.
-    this.#segmentClient.alias(this.#metametricsId);
+    this.#alias();
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
@@ -180,7 +208,7 @@ class MetaMetrics implements IMetaMetrics {
    * Method to update the user analytics preference and
    * store it in DefaultPreference.
    */
-  #storeMetricsOptInPreference = async () => {
+  #setMetricsPreference = async () => {
     try {
       await DefaultPreference.set(
         METRICS_OPT_IN,
@@ -189,6 +217,21 @@ class MetaMetrics implements IMetaMetrics {
     } catch (e: any) {
       const errorMsg = 'Error storing Metrics OptIn flag in user preferences';
       Logger.error(e, errorMsg);
+    }
+  };
+
+  /**
+   * Method to update the user analytics preference and
+   * store it in DefaultPreference.
+   */
+  #getMetricsPreference = async (): Promise<States> => {
+    try {
+      const preference = await DefaultPreference.get(METRICS_OPT_IN);
+      return preference === AGREED ? States.enabled : States.disabled;
+    } catch (e: any) {
+      const errorMsg = 'Error getting Metrics OptIn flag in user preferences';
+      Logger.error(e, errorMsg);
+      return States.disabled;
     }
   };
 
@@ -227,6 +270,8 @@ class MetaMetrics implements IMetaMetrics {
    * This is necessary to respect the GDPR and CCPA regulations.
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
+   *
+   * @returns Object containing the status and an error (optional)
    */
   #createSegmentDeleteRegulation = async (): Promise<{
     status: string;
@@ -329,6 +374,10 @@ class MetaMetrics implements IMetaMetrics {
 
   // PUBLIC METHODS
 
+  /**
+   * Method to create or get instance of MetaMetrics.
+   * @returns instance of MetaMetrics.
+   */
   public static getInstance(): IMetaMetrics {
     if (!MetaMetrics.#instance) {
       // This central client manages all the tracking events
@@ -345,12 +394,12 @@ class MetaMetrics implements IMetaMetrics {
 
   public enable(): void {
     this.#state = States.enabled;
-    this.#storeMetricsOptInPreference();
+    this.#setMetricsPreference();
   }
 
   public disable(): void {
     this.#state = States.disabled;
-    this.#storeMetricsOptInPreference();
+    this.#setMetricsPreference();
   }
 
   public state(): States {
@@ -362,10 +411,12 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   public addTraitsToUser(userTraits: UserIdentityProperties): void {
+    if (this.#state === States.disabled) return;
     this.#identify(userTraits);
   }
 
   public group(groupId: string, groupTraits?: GroupTraits): void {
+    if (this.#state === States.disabled) return;
     this.#group(groupId, groupTraits);
   }
 
@@ -373,16 +424,12 @@ class MetaMetrics implements IMetaMetrics {
     event: EVENT_NAME,
     properties: JsonMap = {},
   ): void {
-    if (this.#state === States.disabled) {
-      return;
-    }
+    if (this.#state === States.disabled) return;
     this.#trackEvent(event, true, properties);
   }
 
   public trackEvent(event: EVENT_NAME, properties: JsonMap = {}): void {
-    if (this.#state === States.disabled) {
-      return;
-    }
+    if (this.#state === States.disabled) return;
     this.#trackEvent(event, false, properties);
   }
 
@@ -390,18 +437,19 @@ class MetaMetrics implements IMetaMetrics {
     this.#reset();
   }
 
-  public createSegmentDeleteRegulation(): void {
-    this.#createSegmentDeleteRegulation();
+  public createSegmentDeleteRegulation(): Promise<{
+    status: string;
+    error?: string;
+  }> {
+    return this.#createSegmentDeleteRegulation();
   }
 
   public getMetaMetricsId(): string {
-    if (this.#state === States.disabled) {
-      throw new Error('MetaMetrics must be enabled to retrieve ID');
-    }
     return this.#metametricsId;
   }
 
-  public applyAuthenticationUserProperty(property: AUTHENTICATION_TYPE) {
+  public applyAuthenticationUserProperty(property: AUTHENTICATION_TYPE): void {
+    if (this.#state === States.disabled) return;
     this.#applyAuthenticationUserProperty(property);
   }
 }
