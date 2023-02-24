@@ -202,7 +202,7 @@ const ImportFromSeed = ({
         logIn();
         InteractionManager.runAfterInteractions(() => {
           trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
-            biometrics_enabled: Boolean(this.state.biometryType),
+            biometrics_enabled: Boolean(biometryType),
           });
           trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
             wallet_setup_type: 'import',
