@@ -6,6 +6,7 @@ import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import AmountScreen from '../screen-objects/AmountScreen';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import TokenOverviewScreen from '../screen-objects/TokenOverviewScreen';
+import TransactionConfirmScreen from '../screen-objects/TransactionConfirmScreen';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
@@ -47,15 +48,15 @@ Then(/^I proceed to the amount view/, async () => {
 });
 
 Then(/^I should be taken to the transaction confirmation view/, async () => {
-  await AmountScreen.isConfirmScreenVisible();
+  await TransactionConfirmScreen.isConfirmScreenVisible();
 });
 
 Then(/^the token (.*) being sent is visible/, async (token) => {
-  await AmountScreen.isCorrectTokenConfirm(token);
+  await TransactionConfirmScreen.isCorrectTokenConfirm(token);
 });
 
 Then(/^the token amount (.*) to be sent is visible/, async (amount) => {
-  await AmountScreen.isCorrectTokenAmountDisplayed(amount);
+  await TransactionConfirmScreen.isCorrectTokenAmountDisplayed(amount);
 });
 
 Then(

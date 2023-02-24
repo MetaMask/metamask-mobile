@@ -1,5 +1,5 @@
 import TestHelpers from '../helpers';
-import { COMFIRM_TXN_AMOUNT } from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
+import {COMFIRM_TXN_AMOUNT} from "../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds";
 
 
 const TRANSACTION_VIEW_CONTAINER_ID = 'txn-confirm-screen';

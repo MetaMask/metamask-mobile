@@ -145,12 +145,7 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
   async (elementType, button, screen, type) => {
-    const exactText = await Selectors.getXpathElementByText(button);
-    if (exactText.isDisplayed()) {
-      await CommonScreen.tapOnText(button);
-    } else {
-      await CommonScreen.tapTextContains(button);
-    }
+    await CommonScreen.tapTextContains(button);
   },
 );
 

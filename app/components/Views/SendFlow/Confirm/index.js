@@ -91,7 +91,7 @@ import {
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
+import {COMFIRM_TXN_AMOUNT} from "../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds";
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
