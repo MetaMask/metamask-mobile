@@ -1,6 +1,5 @@
 import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
-import scaling from '../../../util/scaling';
 import Device from '../../../util/device';
 
 const createStyles = (colors: any) =>
@@ -12,7 +11,6 @@ const createStyles = (colors: any) =>
     },
     title: {
       ...fontStyles.bold,
-      fontSize: scaling.scale(24),
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 34,
@@ -127,6 +125,9 @@ const createStyles = (colors: any) =>
       marginBottom: 10,
     },
     actionIcon: {
+      color: colors.primary.default,
+    },
+    buttonColor: {
       color: colors.primary.default,
     },
   });

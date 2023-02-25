@@ -5,12 +5,12 @@ import { IQuizInformationProps } from '../types';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icon';
+} from '../../../../component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './styles';
@@ -32,13 +32,13 @@ const QuizContent = ({
       <>
         <View style={styles.header}>
           <View style={styles.spacer} />
-          <Text variant={TextVariants.sHeadingSM} style={styles.headerText}>
+          <Text variant={TextVariant.HeadingSM} style={styles.headerText}>
             {header}
           </Text>
           <TouchableOpacity onPress={dismiss}>
             <Icon
               size={IconSize.Xs}
-              name={IconName.CloseOutline}
+              name={IconName.Close}
               color={colors.icon.default}
               style={styles.icon}
             />
@@ -47,13 +47,13 @@ const QuizContent = ({
         {icon ? icon() : null}
         {image ? <Image source={image} style={styles.image} /> : null}
         <Text
-          variant={TextVariants.sHeadingLG}
+          variant={TextVariant.HeadingLG}
           style={{ ...styles.title, ...title.style }}
         >
           {title.content}
         </Text>
         {content ? (
-          <Text variant={TextVariants.sBodyMD} style={styles.content}>
+          <Text variant={TextVariant.BodyMD} style={styles.content}>
             {content}
           </Text>
         ) : null}

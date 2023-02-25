@@ -953,8 +953,6 @@
     "minimum": "1,00 {{tokenSymbol}} minimum",
     "cancel": "Annuler",
     "approve": "Approuver",
-    "allow_to_access": "Autoriser l’accès à votre {{tokenSymbol}} ?",
-    "allow_to_address_access": "Donner à cette adresse l’accès à vos {{tokenSymbol}} ?",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
     "you_trust_this_address": "Faites-vous confiance à cette adresse ? En accordant cette permission, vous autorisez cette adresse à accéder à vos fonds.",
     "edit_permission": "Modifier l’autorisation",
@@ -2232,7 +2230,7 @@
     },
     "question_two": {
       "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre phrase secrète de récupération...",
-      "right_answer": "Ne la lui fournissez pas, car cette personne essaie de vous arnaquer",
+      "right_answer": "Vous risquez de vous faire arnaquer",
       "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
       "right_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer.",
       "wrong_answer": "Vous devez la lui fournir",

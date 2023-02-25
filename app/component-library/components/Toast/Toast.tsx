@@ -26,7 +26,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
-import Text, { TextVariants } from '../Texts/Text';
+import Text, { TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
@@ -102,11 +102,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <Text variant={TextVariants.sBodyMD}>
+    <Text variant={TextVariant.BodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
         <Text
           key={`toast-label-${index}`}
-          variant={isBold ? TextVariants.sBodyMDBold : TextVariants.sBodyMD}
+          variant={isBold ? TextVariant.BodyMDBold : TextVariant.BodyMD}
           style={styles.label}
         >
           {label}
@@ -120,10 +120,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       <Button
         variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
-        textVariants={TextVariants.sBodyMD}
-      >
-        {linkButtonOptions.label}
-      </Button>
+        textVariant={TextVariant.BodyMD}
+        label={linkButtonOptions.label}
+      />
     );
 
   const renderAvatar = () => {

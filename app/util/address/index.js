@@ -25,7 +25,11 @@ import {
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
+import TransactionTypes from '../../core/TransactionTypes';
 
+const {
+  ASSET: { ERC721, ERC1155 },
+} = TransactionTypes;
 /**
  * Returns full checksummed address
  *
@@ -496,4 +500,42 @@ export const stripHexPrefix = (str) => {
     return str;
   }
   return isHexPrefixed(str) ? str.slice(2) : str;
+};
+
+/**
+ * Method to check if address is ENS and return the address
+ * @param {String} toAccount - Address or ENS
+ * @param {String} network - Network id
+ * @returns {String} - Address or null
+ */
+export async function getAddress(toAccount, network) {
+  if (isENS(toAccount)) {
+    return await doENSLookup(toAccount, network);
+  }
+  if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    return toAccount;
+  }
+  return null;
+}
+
+export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
+  const { AssetsContractController } = Engine.context;
+  const tokenData = await AssetsContractController.getTokenStandardAndDetails(
+    tokenAddress,
+    userAddress,
+    tokenId,
+  );
+  const { standard, name, symbol, decimals } = tokenData;
+  if (standard === ERC721 || standard === ERC1155) {
+    return {
+      name,
+      symbol,
+      standard,
+    };
+  }
+  return {
+    symbol,
+    decimals,
+    standard,
+  };
 };

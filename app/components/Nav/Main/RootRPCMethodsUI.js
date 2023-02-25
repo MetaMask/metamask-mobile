@@ -12,8 +12,9 @@ import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { hexToBN, fromWei } from '../../../util/number';
+import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
 import { isHardwareAccount } from '../../../util/address';
+
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -384,7 +385,11 @@ const RootRPCMethodsUI = (props) => {
           });
         }
 
-        if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+        if (
+          data &&
+          data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+          (!value || isZeroValue(value))
+        ) {
           toggleApproveModal();
         } else {
           toggleDappTransactionModal();

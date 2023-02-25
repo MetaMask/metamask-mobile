@@ -1,11 +1,12 @@
-@androidApp
+@androidApp @regression
 Feature: This feature file cover the switch account on the browser flow.
 
   Scenario: Switching accounts while connected to a dapp.
     Use the search bar on the homepage to return a popular defi
     apps as a suggested search, connect to the dapp and then switch accounts
 
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser
