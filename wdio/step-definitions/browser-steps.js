@@ -6,6 +6,7 @@ import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 import ExternalWebsitesScreen from '../screen-objects/BrowserObject/ExternalWebsitesScreen';
 import MultiTabScreen from '../screen-objects/BrowserObject/MultiTabScreen';
+import CommonScreen from '../screen-objects/CommonScreen';
 
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
 import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
@@ -143,6 +144,12 @@ When(/^I tap on the browser home button$/, async () => {
   await BrowserScreen.tapHomeButton();
 });
 
+When(/^I dismiss the connected accounts modal/, async () => {
+  await driver.pause(2500);
+  await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
+  await driver.pause(2500);
+});
+
 When(/^I tap on Favorites on Home Website$/, async () => {
   await ExternalWebsitesScreen.tapHomeFavoritesButton();
 });
@@ -225,6 +232,11 @@ When(/^I tap on the tab button$/, async () => {
 });
 Then(/^I open a new tab$/, async () => {
   await OptionMenuModal.tapNewTabOption();
+});
+Then(/^I tap on browser tab with text "([^"]*)?"/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.tapOnText(text);
 });
 
 Then(/^multi browser tab view is displayed$/, async () => {
@@ -433,6 +445,7 @@ Then(/^the created account is selected$/, async () => {
 });
 When(/^I tap on the Network Icon$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
+  await driver.pause(3500);
 });
 Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
   if (url === 'https://www.reddit.com/') {

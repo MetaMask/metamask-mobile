@@ -12,11 +12,9 @@ Feature: Permission system in MetaMask Mobile
         When I navigate to the browser
         And I navigate to "https://metamask.github.io/test-dapp/"
         Then I connect my active wallet to the test dapp
-    #     Then I should be connected to the dapp
 
     Scenario: User revokes dapp permission
         When I tap on the Network Icon
         And I tap on button with text "Permissions"
-        # And I tap on button with text "connect multiple accounts"
         And I tap on button with text "Revoke"
         Then I should not be connected to the dapp
