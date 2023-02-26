@@ -2,7 +2,6 @@ const mm = 'MetaMask';
 const prefix = `@${mm}:`;
 
 export const EXISTING_USER = `${prefix}existingUser`;
-export const NEXT_MAKER_REMINDER = `${prefix}nextMakerReminder`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 

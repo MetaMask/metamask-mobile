@@ -20,6 +20,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -34,9 +38,9 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
-import { trackEvent } from '../../../util/analyticsV2';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
+import { trackEvent } from '../../../util/analyticsV2';
+import { Authentication } from '../../../core/';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
@@ -67,8 +71,7 @@ const RevealPrivateCredential = ({
   const [password, setPassword] = useState<string>('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState<string>('');
-  const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] =
-    useState<boolean>(false);
+  const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const selectedAddress = useSelector(
@@ -155,13 +158,14 @@ const RevealPrivateCredential = ({
     }
 
     const unlockWithBiometrics = async () => {
-      const biometryType = await SecureKeychain.getSupportedBiometryType();
+      // Try to use biometrics to unlock
+      const { availableBiometryType } = await Authentication.getType();
       if (!passwordSet) {
         tryUnlockWithPassword('');
-      } else if (biometryType) {
+      } else if (availableBiometryType) {
         const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === biometryType) {
-          const credentials = await SecureKeychain.getGenericPassword();
+        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
+          const credentials = await Authentication.getPassword();
           if (credentials) {
             tryUnlockWithPassword(credentials.password);
           }
@@ -292,67 +296,69 @@ const RevealPrivateCredential = ({
     }
   };
 
-  const renderTabView = (privCredentialName: string) => {
+  useEffect(() => {
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
         if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
-          setIsAndroidSupportedVersion(false);
+          setClipboardEnabled(false);
+          return;
         }
       });
 
-    return (
-      <ScrollableTabView
-        renderTabBar={() => renderTabBar()}
-        onChangeTab={(event: any) => onTabBarChange(event)}
+    setClipboardEnabled(true);
+  }, []);
+
+  const renderTabView = (privCredentialName: string) => (
+    <ScrollableTabView
+      renderTabBar={() => renderTabBar()}
+      onChangeTab={(event: any) => onTabBarChange(event)}
+    >
+      <View
+        tabLabel={strings(`reveal_credential.text`)}
+        style={styles.tabContent}
       >
-        <View
-          tabLabel={strings(`reveal_credential.text`)}
-          style={styles.tabContent}
-        >
-          <Text style={styles.boldText}>
-            {strings(`reveal_credential.${privCredentialName}`)}
-          </Text>
-          <View style={styles.seedPhraseView}>
-            <TextInput
-              value={clipboardPrivateCredential}
-              numberOfLines={3}
-              multiline
-              selectTextOnFocus
-              style={styles.seedPhrase}
-              editable={false}
-              testID={'private-credential-text'}
-              placeholderTextColor={colors.text.muted}
-              keyboardAppearance={themeAppearance}
+        <Text style={styles.boldText}>
+          {strings(`reveal_credential.${privCredentialName}`)}
+        </Text>
+        <View style={styles.seedPhraseView}>
+          <TextInput
+            value={clipboardPrivateCredential}
+            numberOfLines={3}
+            multiline
+            selectTextOnFocus
+            style={styles.seedPhrase}
+            editable={false}
+            testID={'private-credential-text'}
+            placeholderTextColor={colors.text.muted}
+            keyboardAppearance={themeAppearance}
+          />
+          {clipboardEnabled ? (
+            <Button
+              label={strings('reveal_credential.copy_to_clipboard')}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Sm}
+              onPress={() =>
+                copyPrivateCredentialToClipboard(privCredentialName)
+              }
+              testID={'private-credential-touchable'}
+              style={styles.clipboardButton}
             />
-            {isAndroidSupportedVersion && (
-              <TouchableOpacity
-                style={styles.privateCredentialAction}
-                onPress={() =>
-                  copyPrivateCredentialToClipboard(privCredentialName)
-                }
-                testID={'private-credential-touchable'}
-              >
-                <Text style={styles.blueText}>
-                  {strings('reveal_credential.copy_to_clipboard')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          ) : null}
         </View>
-        <View
-          tabLabel={strings(`reveal_credential.qr_code`)}
-          style={styles.tabContent}
-        >
-          <View style={styles.qrCodeWrapper}>
-            <QRCode
-              value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 176}
-            />
-          </View>
+      </View>
+      <View
+        tabLabel={strings(`reveal_credential.qr_code`)}
+        style={styles.tabContent}
+      >
+        <View style={styles.qrCodeWrapper}>
+          <QRCode
+            value={clipboardPrivateCredential}
+            size={Dimensions.get('window').width - 176}
+          />
         </View>
-      </ScrollableTabView>
-    );
-  };
+      </View>
+    </ScrollableTabView>
+  );
 
   const renderPasswordEntry = () => (
     <>

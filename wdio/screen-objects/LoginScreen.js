@@ -6,6 +6,7 @@ import {
   LOGIN_VIEW_SCREEN_ID,
   LOGIN_VIEW_TITLE_ID,
   LOGIN_VIEW_UNLOCK_BUTTON_ID,
+  LOGIN_WITH_REMEMBER_ME_SWITCH,
 } from './testIDs/Screens/LoginScreen.testIds';
 
 class LoginScreen {
@@ -29,8 +30,17 @@ class LoginScreen {
     return Selectors.getElementByPlatform(LOGIN_VIEW_TITLE_ID);
   }
 
+  get rememberMeToggle() {
+    return Selectors.getElementByPlatform(LOGIN_WITH_REMEMBER_ME_SWITCH);
+  }
+
   async isLoginScreenVisible() {
-    await expect(this.loginScreen).toBeDisplayed();
+    await expect(await this.loginScreen).toBeDisplayed();
+  }
+
+  async waitForScreenToDisplay() {
+    const element = await this.loginScreen;
+    await element.waitForDisplayed({ interval: 500 });
   }
 
   async tapResetWalletButton() {
@@ -47,6 +57,15 @@ class LoginScreen {
 
   async tapTitle() {
     await Gestures.waitAndTap(this.title);
+  }
+
+  async tapRememberMeToggle() {
+    await Gestures.waitAndTap(this.rememberMeToggle);
+  }
+
+  async isRememberMeToggle(value) {
+    const element = await this.rememberMeToggle;
+    await expect(await element.getText()).toEqual(value);
   }
 }
 

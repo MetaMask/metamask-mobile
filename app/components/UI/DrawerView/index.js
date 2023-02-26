@@ -32,7 +32,6 @@ import StyledButton from '../StyledButton';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
 import {
   toggleNetworkModal,
   toggleReceiveModal,
@@ -50,7 +49,7 @@ import AppConstants from '../../../core/AppConstants';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { logOut, protectWalletModalVisible } from '../../../actions/user';
+import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
@@ -65,6 +64,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { isZero } from '../../../util/lodash';
+import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import sanitizeUrl from '../../../util/sanitizeUrl';
@@ -415,7 +415,6 @@ class DrawerView extends PureComponent {
      * Prompts protect wallet modal
      */
     protectWalletModalVisible: PropTypes.func,
-    logOut: PropTypes.func,
     /**
      * Callback to close drawer
      */
@@ -734,27 +733,20 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
   };
 
-  logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
-  };
-
-  onPress = async () => {
+  onPressLock = async () => {
     const { passwordSet } = this.props;
-    const { KeyringController } = Engine.context;
-    await SecureKeychain.resetGenericPassword();
-    await KeyringController.setLocked();
+    await Authentication.lockApp();
     if (!passwordSet) {
       this.props.navigation.navigate('OnboardingRootNav', {
         screen: Routes.ONBOARDING.NAV,
         params: { screen: 'Onboarding' },
       });
     } else {
-      this.logOut();
+      this.props.navigation.replace(Routes.ONBOARDING.LOGIN, { locked: true });
     }
   };
 
-  logout = () => {
+  lock = () => {
     Alert.alert(
       strings('drawer.lock_title'),
       '',
@@ -766,7 +758,7 @@ class DrawerView extends PureComponent {
         },
         {
           text: strings('drawer.lock_ok'),
-          onPress: this.onPress,
+          onPress: this.onPressLock,
         },
       ],
       { cancelable: false },
@@ -992,7 +984,7 @@ class DrawerView extends PureComponent {
         {
           name: strings('drawer.lock'),
           icon: this.getFeatherIcon('log-out'),
-          action: this.logout,
+          action: this.lock,
           // ...generateTestId(Platform, DRAWER_VIEW_LOCK_ICON_ID),
           testID: DRAWER_VIEW_LOCK_TEXT_ID,
         },
@@ -1434,7 +1426,6 @@ const mapDispatchToProps = (dispatch) => ({
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  logOut: () => dispatch(logOut()),
   onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
