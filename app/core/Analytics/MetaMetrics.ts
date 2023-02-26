@@ -299,6 +299,7 @@ class MetaMetrics implements IMetaMetrics {
 
       if (status === 200) {
         const { regulateId } = data.data;
+        this.#isDataRecorded = false;
         await this.#storeDeleteRegulationId(regulateId);
         await this.#storeDeleteRegulationCreationDate();
         return { status: DataDeleteResponseStatus.ok };

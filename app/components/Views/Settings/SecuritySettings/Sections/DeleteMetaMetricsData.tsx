@@ -102,7 +102,7 @@ const DeleteMetaMetricsData = () => {
   };
 
   useEffect(() => {
-    setHasCollectedData(MetaMetrics.getIsDataRecorded() || enableDeleteData());
+    setHasCollectedData(MetaMetrics.getIsDataRecorded() && enableDeleteData());
   }, [enableDeleteData, dataDeleteStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
