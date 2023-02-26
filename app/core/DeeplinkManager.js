@@ -24,6 +24,7 @@ import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
+
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;

@@ -86,7 +86,7 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
-      const response = await MetaMetrics.createDeletionRegulation();
+      const response = await MetaMetrics.createDeleteRegulation();
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
