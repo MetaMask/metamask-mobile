@@ -28,6 +28,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
+import { CONNECTED_ACCOUNTS_MODAL_CONTAINER,CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
@@ -132,7 +133,7 @@ const AccountPermissionsConnected = ({
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
       <View
         style={styles.body}
-        {...generateTestId(Platform, 'accounts-connected-modal-container')}
+        {...generateTestId(Platform, CONNECTED_ACCOUNTS_MODAL_CONTAINER)}
       >
         <TagUrl
           imageSource={favicon}
@@ -148,7 +149,7 @@ const AccountPermissionsConnected = ({
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}
-          {...generateTestId(Platform, 'accounts-connected-network-picker')}
+          {...generateTestId(Platform, CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID)}
         />
       </View>
       <AccountSelectorList

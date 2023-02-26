@@ -5,6 +5,7 @@ import {
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { CELL_SELECT_TEST_ID } from '../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
 
 import { strings } from '../../locales/i18n';
 
@@ -24,7 +25,7 @@ export default class AccountListView {
   }
 
   static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex('cell-account-select', 1);
+    await TestHelpers.tapAndLongPressAtIndex(CELL_SELECT_TEST_ID, 1);
   }
 
   static async swipeOnAccounts() {

@@ -445,7 +445,6 @@ Then(/^the created account is selected$/, async () => {
 });
 When(/^I tap on the Network Icon$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
-  await driver.pause(3500);
 });
 Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
   if (url === 'https://www.reddit.com/') {

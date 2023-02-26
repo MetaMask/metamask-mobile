@@ -18,48 +18,33 @@ Feature: Importing account via private then revoking permissions
         And I connect my active wallet to the dapp
 
 
-    Scenario Outline: A user opens another dapp in a new browser tab
+    Scenario: A user opens another dapp in a new browser tab
         When I tap on browser control menu icon on the bottom right of the browser view
         When I tap the "New Tab" option on the Option Menu
         Then new browser tab is added
         And I navigate to "https://metamask.github.io/test-dapp/"
 
-    Scenario Outline: From the connect accounts modal, a user import an account via private key
+    Scenario: From the connect accounts modal, a user creates another account
 
         And I trigger the connect modal
         Then the connect modal should be displayed
         When I tap on button with text "Connect multiple accounts"
-        And I tap on button with text "Import an account"
-        When I type <PRIVATEKEY> into the private key input field
-        And I tap on the private key import button
-        Then The account is imported
+        And I tap on button with text "Create a new account"
+        Then "Account 2" is not displayed
         And I tap on button with text "Select all"
         When I connect multiple accounts to a dapp
         Then I should be connected to the dapp
-        And I set "Account 2" as my primary account
-
-        Examples:
-            | PRIVATEKEY                                                       |
-            | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 |
-
-    Scenario: Remove imported account
-        When I navigate to the wallet
-        And I tap on the Identicon
-        Then the account list should be visible
-        When I long press to remove "Account 2"
-        And I dismiss the account list
 
 
-    Scenario: Removed account is no longer connected to dapp
-        When I navigate to the browser
-        And I tap on the Network Icon
-        Then "Account 2" is not displayed
-
+    Scenario: Revoke all permissions on the test dapp
+        When I tap on the Network Icon
+        And I tap on button with text "Permissions"
+        And I tap on button with text "Revoke all"
+        Then I should not be connected to the dapp
 
     Scenario: User switches back to sushiswap and verifies that account 1 is still connected
 
-        When I dismiss the connected accounts modal
-        And I tap on the tab button
+        When I tap on the tab button
         And I tap on browser tab with text "app.sushi.com"
         Then I should be connected to the dapp
         And "Account 2" is not displayed

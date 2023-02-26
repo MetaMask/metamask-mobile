@@ -3,6 +3,12 @@ import {
   CANCEL_BUTTON_ID,
   CONNECT_BUTTON_ID,
 } from '../../../app/constants/test-ids';
+import {
+  CONNECTED_ACCOUNTS_MODAL_CONTAINER,
+  CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
+} from '../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
+import { CELL_SELECT_TEST_ID } from '../../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
+
 import { strings } from '../../../locales/i18n';
 
 const CONNECTED_ACCOUNTS_PERMISSION_LINK_TEXT = strings('accounts.permissions');
@@ -22,7 +28,9 @@ export default class ConnectedAccountsModal {
   static async tapPermissionsButton() {
     await TestHelpers.tapByText(CONNECTED_ACCOUNTS_PERMISSION_LINK_TEXT);
   }
-
+  static async tapNetworksPicker() {
+    await TestHelpers.waitAndTap(CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID);
+  }
   static async tapRevokeAllButton() {
     await TestHelpers.tapByText(CONNECTED_ACCOUNTS_REVOKE_ALL_TEXT);
   }
@@ -32,12 +40,12 @@ export default class ConnectedAccountsModal {
   }
 
   static async tapToSetAsPrimaryAccount() {
-    await TestHelpers.tapItemAtIndex('cell-account-select', 1); // selecting the second account on the list
+    await TestHelpers.tapItemAtIndex(CELL_SELECT_TEST_ID, 1); // selecting the second account on the list
   }
 
   static async swipeToDimssConnectedAccountsModal() {
     await TestHelpers.swipe(
-      'accounts-connected-modal-container',
+      CONNECTED_ACCOUNTS_MODAL_CONTAINER,
       'down',
       'slow',
       0.6,
@@ -45,10 +53,10 @@ export default class ConnectedAccountsModal {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible('accounts-connected-modal-container');
+    await TestHelpers.checkIfVisible(CONNECTED_ACCOUNTS_MODAL_CONTAINER);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible('accounts-connected-modal-container');
+    await TestHelpers.checkIfNotVisible(CONNECTED_ACCOUNTS_MODAL_CONTAINER);
   }
 }

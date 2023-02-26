@@ -5,9 +5,10 @@ import {
   CONNECT_BUTTON_ID,
 } from '../../../app/constants/test-ids';
 
+import { CONNECTED_ACCOUNTS_MODAL_CONTAINER } from '../testIDs/Components/ConnectedAccountsModal.testIds';
 class ConnectedAccountsModal {
   get connectedModalContainer() {
-    return Selectors.getElementByPlatform('accounts-connected-modal-container');
+    return Selectors.getElementByPlatform(CONNECTED_ACCOUNTS_MODAL_CONTAINER);
   }
   static async tapCancelButton() {
     await Gestures.tap(CANCEL_BUTTON_ID);

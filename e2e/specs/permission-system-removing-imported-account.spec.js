@@ -119,15 +119,9 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await ConnectModal.tapAccountConnectMultiSelectButton();
   });
 
-  it('should set the imported account as primary account', async () => {
-    await Browser.tapNetworkAvatarButtonOnBrowser();
-    await TestHelpers.delay(1500);
-    await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
-  });
-
   it('should switch to Goreli', async () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
-    await TestHelpers.tap('accounts-connected-network-picker');
+    await ConnectedAccountsModal.tapNetworksPicker();
     await NetworkListModal.changeNetwork(GOERLI);
   });
 
@@ -137,9 +131,9 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await NetworkEducationModal.isNotVisible();
   });
 
-  it('should dismiss the connected accounts modal', async () => {
-    await ConnectedAccountsModal.swipeToDimssConnectedAccountsModal();
-    await ConnectedAccountsModal.isNotVisible();
+  it('should set the imported account as primary account', async () => {
+    await TestHelpers.delay(1500);
+    await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
   });
 
   it('should submit a dapp transaction ', async () => {
@@ -174,7 +168,6 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
 
   it('imported account is not visible', async () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
-    // await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.isVisible();
     await AccountListView.accountNameNotVisible('Account 2');
   });
