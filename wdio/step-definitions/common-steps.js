@@ -20,7 +20,8 @@ Given(/^the app displayed the splash animation$/, async () => {
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await WelcomeScreen.waitForScreenToDisplay();
+  await driver.pause(1000);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -117,14 +118,24 @@ Then(
 );
 
 When(/^I log into my wallet$/, async () => {
-  const validAccount = Accounts.getValidAccount();
-
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
-  await LoginScreen.typePassword(validAccount.password);
-  await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();
   await WalletMainScreen.isMainWalletViewVisible();
+});
+
+When(/^I kill the app$/, async () => {
+  await driver.closeApp();
+});
+
+When(/^I relaunch the app$/, async () => {
+  await driver.startActivity('io.metamask.qa', 'io.metamask.MainActivity');
+});
+
+When(/^I fill my password in the Login screen$/, async () => {
+  const validAccount = Accounts.getValidAccount();
+
+  await LoginScreen.waitForScreenToDisplay();
+  await LoginScreen.typePassword(validAccount.password);
+  await LoginScreen.tapTitle();
 });
 When(/^I unlock wallet with (.*)$/, async (password) => {
   await WelcomeScreen.waitForSplashAnimationToDisplay();
