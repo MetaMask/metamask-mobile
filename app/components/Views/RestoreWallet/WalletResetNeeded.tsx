@@ -13,7 +13,7 @@ import { useAppThemeFromContext } from '../../../util/theme';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icon';
+} from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
