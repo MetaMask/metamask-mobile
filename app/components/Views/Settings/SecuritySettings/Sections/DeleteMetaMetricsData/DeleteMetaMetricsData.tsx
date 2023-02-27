@@ -1,40 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Alert, Linking, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Text, View } from 'react-native';
+import { getBrand, getDeviceId } from 'react-native-device-info';
 import {
   MetaMetrics,
   DataDeleteStatus,
   MetaMetricsEvents,
   DataDeleteResponseStatus,
-} from '../../../../../core/Analytics';
-import { useTheme } from '../../../../../util/theme';
-import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
-import { strings } from '../../../../../../locales/i18n';
-import { fontStyles } from '../../../../../styles/common';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
-import Logger from '../../../../../util/Logger';
-import { trackEvent } from '../../../../../util/analyticsV2';
-import { getBrand, getDeviceId } from 'react-native-device-info';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 15,
-      lineHeight: 20,
-      marginTop: 12,
-    },
-    boldText: {
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    blueText: {
-      color: colors.primary.default,
-    },
-    extraTopMargin: {
-      marginTop: 10,
-    },
-  });
+} from '../../../../../../core/Analytics';
+import { useTheme } from '../../../../../../util/theme';
+import SettingsButtonSection from '../../../../../UI/SettingsButtonSection';
+import { strings } from '../../../../../../../locales/i18n';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../../../../constants/urls';
+import Logger from '../../../../../../util/Logger';
+import { trackEvent } from '../../../../../../util/analyticsV2';
+import { createStyles } from './styles';
 
 const DeleteMetaMetricsData = () => {
   const { colors } = useTheme();
