@@ -91,7 +91,7 @@ import {
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {COMFIRM_TXN_AMOUNT} from "../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds";
+import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1249,7 +1249,10 @@ class Confirm extends PureComponent {
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
-              <Text style={styles.textAmount} {...generateTestId(Platform, COMFIRM_TXN_AMOUNT)}>
+              <Text
+                style={styles.textAmount}
+                {...generateTestId(Platform, COMFIRM_TXN_AMOUNT)}
+              >
                 {transactionValue}
               </Text>
               {isMainnetByChainId(chainId) && (

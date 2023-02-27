@@ -176,7 +176,10 @@ const BaseNotification = ({
             {getIcon(status, colors, styles)}
           </View>
           <View style={styles.flashLabel}>
-            <Text style={styles.flashTitle} {...generateTestId(Platform, NOTIFICATION_TITLE)}>
+            <Text
+              style={styles.flashTitle}
+              {...generateTestId(Platform, NOTIFICATION_TITLE)}
+            >
               {!title ? getTitle(status, data) : title}
             </Text>
             <Text style={styles.flashText}>
