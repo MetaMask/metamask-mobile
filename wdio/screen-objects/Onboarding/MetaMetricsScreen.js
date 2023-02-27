@@ -1,4 +1,3 @@
-/* global driver */
 import Gestures from '../../helpers/Gestures';
 import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
