@@ -339,7 +339,10 @@ class AssetOverview extends PureComponent {
       secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
     }
     return (
-      <View style={styles.wrapper} {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}>
+      <View
+        style={styles.wrapper}
+        {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
+      >
         <View style={styles.assetLogo}>{this.renderLogo()}</View>
         <View style={styles.balance}>
           {balanceError ? (
