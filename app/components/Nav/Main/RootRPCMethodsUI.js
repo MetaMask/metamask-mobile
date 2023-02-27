@@ -492,7 +492,7 @@ const RootRPCMethodsUI = (props) => {
             url: meta?.url,
             icon: meta?.icons?.[0],
           }}
-          walletConnectRequest={true}
+          walletConnectRequest
         />
       </Modal>
     );
