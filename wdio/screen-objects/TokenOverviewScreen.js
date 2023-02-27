@@ -1,4 +1,3 @@
-
 import {
   TOKEN_ASSET_OVERVIEW,
   ASSET_BACK_BUTTON,
@@ -8,21 +7,21 @@ import Gestures from '../helpers/Gestures';
 
 class TokenOverviewScreen {
   get tokenAssetOverview() {
-      return Selectors.getElementByPlatform(TOKEN_ASSET_OVERVIEW);
-    }
-  
-    get backButtonTokenOverview() {
-      return Selectors.getElementByPlatform(ASSET_BACK_BUTTON);
-    }
-  
-    async isTokenOverviewVisible() {
-      const element = await this.tokenAssetOverview;
-      await element.waitForDisplayed();
-    }
-  
-    async tapBackButton() {
-      await Gestures.tap(this.backButtonTokenOverview);
-    }
+    return Selectors.getElementByPlatform(TOKEN_ASSET_OVERVIEW);
   }
-  
-  export default new TokenOverviewScreen();
+
+  async tapBackButton() {
+    await Gestures.tap(this.backButtonTokenOverview);
+  }
+
+  get backButtonTokenOverview() {
+    return Selectors.getElementByPlatform(ASSET_BACK_BUTTON);
+  }
+
+  async isTokenOverviewVisible() {
+    const element = await this.tokenAssetOverview;
+    await element.waitForDisplayed();
+  }
+}
+
+export default new TokenOverviewScreen();

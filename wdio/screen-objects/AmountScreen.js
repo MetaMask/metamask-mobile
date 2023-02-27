@@ -14,7 +14,12 @@ class AmountScreen {
     return Selectors.getElementByPlatform(AMOUNT_SCREEN);
   }
 
-  async isCorrectTokenConfirm(token) {
+  async enterAmount(text) {
+    await Gestures.tap(this.amountInputField);
+    await Gestures.typeText(this.amountInputField, text);
+  }
+
+  async isTokenCorrect(token) {
     const element = await this.confirmAmount;
     expect(await element.getText()).toContain(token);
   }
@@ -22,11 +27,6 @@ class AmountScreen {
   async isCorrectTokenAmountDisplayed(amount) {
     const element = await this.confirmAmount;
     expect(await element.getText()).toContain(amount);
-  }
-
-  async enterAmount(text) {
-    await Gestures.tap(this.amountInputField);
-    await Gestures.typeText(this.amountInputField, text);
   }
 }
 export default new AmountScreen();

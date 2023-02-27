@@ -16,11 +16,11 @@ When(/^I tap (.*) of the token Address field/, async (label) => {
 });
 
 Then(/^The Token Symbol is displayed/, async () => {
+  await AddCustomImportTokensScreen.isTokenSymbolDisplayed();
   await AddCustomImportTokensScreen.tapTokenSymbolFieldAndDismissKeyboard();
 });
 
 When(/^I tap on the Import button/, async () => {
-  await driver.pause(2000); //added to run on physical device
   await AddCustomImportTokensScreen.tapImportButton();
 });
 
