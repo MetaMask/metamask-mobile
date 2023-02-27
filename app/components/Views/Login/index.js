@@ -332,6 +332,7 @@ class Login extends PureComponent {
               loading: false,
               error: null,
             });
+            return;
           } catch (e) {
             throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
           }
