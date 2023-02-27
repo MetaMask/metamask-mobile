@@ -471,6 +471,7 @@ const RootRPCMethodsUI = (props) => {
 
   const renderWalletConnectSessionRequestModal = () => {
     const meta = walletConnectRequestInfo.peerMeta || null;
+    if (!meta) return null;
     return (
       <Modal
         isVisible={walletConnectRequest}
