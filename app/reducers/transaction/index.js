@@ -107,6 +107,7 @@ const transactionReducer = (state = initialState, action) => {
         transaction: {
           ...state.transaction,
           ...getTxData(action.transaction),
+          data: action.transaction.data,
         },
         ...txMeta,
       };
