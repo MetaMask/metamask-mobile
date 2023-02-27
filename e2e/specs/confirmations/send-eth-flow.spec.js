@@ -1,18 +1,18 @@
 'use strict';
 
-import AmountView from '../pages/AmountView';
-import DrawerView from '../pages/Drawer/DrawerView';
-import SendView from '../pages/SendView';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
-import WalletView from '../pages/WalletView';
+import AmountView from '../../pages/AmountView';
+import DrawerView from '../../pages/Drawer/DrawerView';
+import SendView from '../../pages/SendView';
+import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import WalletView from '../../pages/WalletView';
 import {
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
-} from '../viewHelper';
+} from '../../viewHelper';
 
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
-describe('Addressbook Tests', () => {
+describe('Send ETH Tests', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
