@@ -9,7 +9,7 @@ const INCORRECT_PASSWORD = `12345679`;
 class Accounts {
   static getValidAccount() {
     return {
-      seedPhrase: CORRECT_SECRET_RECOVERY_PHRASE,
+      seedPhrase: process.env.WALLET_KEYS,
       password: CORRECT_PASSWORD,
     };
   }
@@ -23,7 +23,7 @@ class Accounts {
 
   static getShortPasswordAccount() {
     return {
-      seedPhrase: CORRECT_SECRET_RECOVERY_PHRASE,
+      seedPhrase: process.env.WALLET_KEYS,
       password: SHORT_PASSWORD,
     };
   }

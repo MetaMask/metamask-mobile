@@ -25,6 +25,8 @@ import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/Secu
 
 import WalletView from '../pages/WalletView';
 
+import Accounts from '../../wdio/helpers/Accounts';
+
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
 const PASSWORD = `12345678`;
@@ -48,6 +50,8 @@ const networkNotFoundText = 'Network not found';
 const networkErrorBodyMessage =
   'Network with chain id 56 not found in your wallet. Please add the network first.';
 
+const validAccount = Accounts.getValidAccount();
+
 describe('Deep linking Tests', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
@@ -68,7 +72,7 @@ describe('Deep linking Tests', () => {
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
     //await ImportWalletView.toggleRememberMe();
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
+    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
     await WalletView.isVisible();
