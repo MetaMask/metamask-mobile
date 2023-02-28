@@ -315,8 +315,13 @@ class MetaMetrics implements IMetaMetrics {
   #getDeleteRegulationId = async (): Promise<string> =>
     await DefaultPreference.get(METAMETRICS_SEGMENT_REGULATION_ID);
 
-  #getDeleteRegulationDate = async (): Promise<string> =>
-    await DefaultPreference.get(METAMETRICS_SEGMENT_REGULATION_ID);
+  #getDeleteRegulationDate = async (): Promise<string> => {
+    if (this.#deleteRegulationDate) {
+      return this.#deleteRegulationDate;
+    }
+
+    return await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+  };
 
   async #setInitialUserProperties(): Promise<void> {
     if (!this.#metametricsId) {
@@ -457,8 +462,8 @@ class MetaMetrics implements IMetaMetrics {
     return this.#getDeleteRegulationId();
   }
 
-  public getDeleteRegulationDate(): string {
-    return this.#deleteRegulationDate;
+  public getDeleteRegulationDate(): Promise<string> {
+    return this.#getDeleteRegulationDate();
   }
 
   public getIsDataRecorded(): boolean {

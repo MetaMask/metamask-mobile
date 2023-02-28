@@ -100,7 +100,7 @@ export interface IMetaMetrics {
    *
    * @returns Delete request creation date.
    */
-  getDeleteRegulationDate(): string;
+  getDeleteRegulationDate(): Promise<string>;
 
   /**
    * Method to get a flag indicating if the user has data recorded.

@@ -69,7 +69,7 @@ const DeleteMetaMetricsData = () => {
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
-        setDeletionTaskDate(MetaMetrics.getDeleteRegulationDate());
+        setDeletionTaskDate(await MetaMetrics.getDeleteRegulationDate());
         await trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
@@ -79,6 +79,15 @@ const DeleteMetaMetricsData = () => {
       Logger.log('Error deleteMetaMetrics -', error);
     }
   };
+
+  useEffect(() => {
+    const setDeletionDate = async () => {
+      const deletionDate = await MetaMetrics.getDeleteRegulationDate();
+      setDeletionTaskDate(deletionDate);
+    };
+
+    setDeletionDate();
+  }, []);
 
   useEffect(() => {
     setHasCollectedData(MetaMetrics.getIsDataRecorded() && enableDeleteData());
