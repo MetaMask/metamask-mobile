@@ -1,6 +1,6 @@
 import { Linking } from 'react-native';
 import isUrl from 'is-url';
-import URL from 'url-parse';
+import Url from 'url-parse';
 
 /**
  * Returns URL prefixed with protocol
@@ -61,7 +61,7 @@ export default function onUrlSubmit(
  * @returns - URL object
  */
 export function getUrlObj(url: string) {
-  return new URL(url);
+  return new Url(url);
 }
 
 /**
