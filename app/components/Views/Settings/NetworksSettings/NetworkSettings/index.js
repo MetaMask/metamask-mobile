@@ -72,6 +72,7 @@ import {
 import Button, {
   ButtonVariants,
   ButtonSize,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
@@ -946,6 +947,7 @@ class NetworkSettings extends PureComponent {
               label={strings('app_settings.networks_default_cta')}
               size={ButtonSize.Lg}
               disabled={isActionDisabled}
+              width={ButtonWidthTypes.Full}
             />
           ) : (
             (addMode || editable) && (
