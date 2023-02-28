@@ -86,7 +86,6 @@ export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
 
 /**
  * removes the vault backup from react-native-keychain
- * @returns Promise<Void>
  */
 export const resetVaultBackup = async (): Promise<void> => {
   await resetInternetCredentials(VAULT_BACKUP_KEY);
