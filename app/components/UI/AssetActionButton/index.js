@@ -116,11 +116,7 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
       }
       case 'portfolio': {
         return (
-          <Icon
-            name={IconName.DiagramOutline}
-            size={20}
-            style={styles.buttonIcon}
-          />
+          <Icon name={IconName.Diagram} size={20} style={styles.buttonIcon} />
         );
       }
       default: {
