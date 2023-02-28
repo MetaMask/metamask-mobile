@@ -2,7 +2,7 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../Icon';
+import { IconProps } from '../../Icons/Icon';
 
 /**
  * TabBarItem component props.

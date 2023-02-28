@@ -25,6 +25,7 @@ import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
 import { allowedToBuy } from '../components/UI/FiatOnRampAggregator';
+
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;

@@ -680,6 +680,7 @@ const AmountToBuy = () => {
           selectedPaymentMethodId={selectedPaymentMethodId}
           selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
+          selectedRegion={selectedRegion}
           location={'Amount to Buy Screen'}
         />
       </ScreenLayout>
@@ -835,6 +836,7 @@ const AmountToBuy = () => {
         selectedPaymentMethodId={selectedPaymentMethodId}
         selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
+        selectedRegion={selectedRegion}
         location={'Amount to Buy Screen'}
       />
       <RegionModal

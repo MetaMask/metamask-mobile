@@ -20,7 +20,6 @@ import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
@@ -36,6 +35,7 @@ import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-id
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { Authentication } from '../../../core';
 
 /**
  * View that's shown during the second step of
@@ -73,7 +73,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     const getSeedphrase = async () => {
       if (!words.length) {
         try {
-          const credentials = await SecureKeychain.getGenericPassword();
+          const credentials = await Authentication.getPassword();
           if (credentials) {
             setWords(await tryExportSeedPhrase(credentials.password));
           } else {

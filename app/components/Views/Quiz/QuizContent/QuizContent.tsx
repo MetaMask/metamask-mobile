@@ -5,7 +5,7 @@ import { IQuizInformationProps } from '../types';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icon';
+} from '../../../../component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
@@ -38,7 +38,7 @@ const QuizContent = ({
           <TouchableOpacity onPress={dismiss}>
             <Icon
               size={IconSize.Xs}
-              name={IconName.CloseOutline}
+              name={IconName.Close}
               color={colors.icon.default}
               style={styles.icon}
             />

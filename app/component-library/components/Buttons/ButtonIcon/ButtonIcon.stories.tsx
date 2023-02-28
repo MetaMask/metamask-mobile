@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import { IconName } from '../../Icon';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
@@ -27,7 +27,7 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
   const iconNameSelector = select(
     'iconName',
     IconName,
-    IconName.LockFilled,
+    IconName.Lock,
     storybookPropsGroupID,
   );
   const variantSelector = select(

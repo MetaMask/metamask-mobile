@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Text, { TextVariant } from '../../../../Texts/Text';
-import Icon, { IconSize } from '../../../../Icon';
+import Icon, { IconSize } from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 import {
   DEFAULT_BUTTON_SIZE,
