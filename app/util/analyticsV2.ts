@@ -8,11 +8,13 @@ import Logger from './Logger';
 
 export const checkEnabled = (): boolean => MetaMetrics.checkEnabled();
 
-export const getMetaMetricsId = (): string | undefined => {
+export const getMetaMetricsId = (): string => {
   try {
     return MetaMetrics.getMetaMetricsId();
   } catch {
-    // Skip error
+    throw new Error(
+      'MetaMetrics Error: Not able to retrieve the MetaMetrics ID',
+    );
   }
 };
 

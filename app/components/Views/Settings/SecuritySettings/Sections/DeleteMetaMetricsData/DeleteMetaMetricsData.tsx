@@ -136,9 +136,6 @@ const DeleteMetaMetricsData = () => {
         )}
         modalOnConfirm={deleteMetaMetrics}
       />
-      <Text style={[styles.blueText, styles.extraTopMargin]}>
-        MetaMetrics ID: {MetaMetrics.getMetaMetricsId()}
-      </Text>
     </View>
   );
 };
