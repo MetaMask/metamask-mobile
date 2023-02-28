@@ -22,9 +22,7 @@
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
-		15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; };
 		15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */ = {isa = PBXBuildFile; fileRef = 15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */; };
 		2370F9A340CF4ADFBCFB0543 /* EuclidCircularB-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 58572D81B5D54ED79A16A16D /* EuclidCircularB-RegularItalic.otf */; };
 		298242C958524BB38FB44CAE /* Roboto-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C9FD3FB1258A41A5A0546C83 /* Roboto-BoldItalic.ttf */; };
 		2A27FC9EEF1F4FD18E658544 /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = EF1C01B7F08047F9B8ADCFBA /* config.json */; };
@@ -46,13 +44,11 @@
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
 		B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		B339FF03289ABD70001B89FB /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
-		B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */ = {isa = PBXBuildFile; fileRef = 15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */; };
 		B339FF05289ABD70001B89FB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
 		B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
-		B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; };
 		B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		B339FF10289ABD70001B89FB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		B339FF11289ABD70001B89FB /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
@@ -343,7 +339,6 @@
 				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */,
-				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				0FD509E0336BF221F6527B24 /* libPods-MetaMask.a in Frameworks */,
 				D45BF85DECACCB74EDCBE88A /* libPods-MetaMask.a in Frameworks */,
@@ -359,7 +354,6 @@
 				B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */,
 				B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */,
 				B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */,
-				B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */,
 				B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */,
 				DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */,
 			);
@@ -1057,7 +1051,6 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
-				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1069,7 +1062,6 @@
 				CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */,
 				B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
-				B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */,
 				B339FF05289ABD70001B89FB /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
