@@ -14,6 +14,7 @@ import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import sanitizeString from '../../../util/string';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 
 const createStyles = (colors) =>
@@ -214,12 +215,15 @@ class TypedSign extends PureComponent {
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
           <View>
-            <Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
+            <Text style={[styles.messageText, styles.msgKey]}>
+              {sanitizeString(key)}:
+            </Text>
             <View>{this.renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
           <Text style={styles.messageText}>
-            <Text style={styles.msgKey}>{key}:</Text> {`${obj[key]}`}
+            <Text style={styles.msgKey}>{sanitizeString(key)}:</Text>{' '}
+            {sanitizeString(`${obj[key]}`)}
           </Text>
         )}
       </View>
@@ -236,10 +240,10 @@ class TypedSign extends PureComponent {
           {messageParams.data.map((obj, i) => (
             <View key={`${obj.name}_${i}`}>
               <Text style={[styles.messageText, styles.msgKey]}>
-                {obj.name}:
+                {sanitizeString(obj.name)}:
               </Text>
               <Text style={styles.messageText} key={obj.name}>
-                {` ${obj.value}`}
+                {sanitizeString(` ${obj.value}`)}
               </Text>
             </View>
           ))}

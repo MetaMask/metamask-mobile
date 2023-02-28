@@ -10,6 +10,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
+import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { useTheme } from '../../../util/theme';
@@ -136,7 +137,7 @@ const PersonalSign = ({
   };
 
   const renderMessageText = () => {
-    const textChild = hexToText(messageParams.data)
+    const textChild = sanitizeString(hexToText(messageParams.data))
       .split('\n')
       .map((line, i) => (
         <Text
