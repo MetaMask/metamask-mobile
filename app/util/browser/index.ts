@@ -1,5 +1,6 @@
 import { Linking } from 'react-native';
 import isUrl from 'is-url';
+import URL from 'url-parse';
 
 /**
  * Returns URL prefixed with protocol
