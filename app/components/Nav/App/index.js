@@ -48,7 +48,6 @@ import {
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { MetaMetrics } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect';
@@ -316,14 +315,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       prevNavigator.current = navigator;
     }
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
-
-  useEffect(() => {
-    const initAnalytics = async () => {
-      await MetaMetrics.init();
-    };
-
-    initAnalytics();
-  }, []);
 
   useEffect(() => {
     SDKConnect.init();
