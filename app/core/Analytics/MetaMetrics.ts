@@ -70,7 +70,7 @@ class MetaMetrics implements IMetaMetrics {
     // The alias method is used to merge two user identities
     // by connecting two sets of user data as one.
     await this.#alias();
-    await this.#setInitialUserProperties();
+    this.#state === States.enabled && (await this.#setInitialUserProperties());
   }
 
   /**
@@ -122,6 +122,7 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     this.#segmentClient.alias(this.#metametricsId);
+    this.#segmentClient.flush();
 
     this.#dataSetConnectedFlag = true;
     await DefaultPreference.set('true', DATA_SET_CONNECTED_FLAG);
@@ -136,7 +137,6 @@ class MetaMetrics implements IMetaMetrics {
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
   #identify(userTraits: UserIdentityProperties): void {
-    this.#alias();
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
