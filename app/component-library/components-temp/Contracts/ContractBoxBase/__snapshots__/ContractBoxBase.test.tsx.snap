@@ -35,10 +35,6 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
         size="32"
         variant="Token"
       />
-      <Connect(Component)
-        address="0x2990079bcdEe240329a520d2444386FC119da21a"
-        diameter={25}
-      />
     </View>
     <Component>
       <Text
