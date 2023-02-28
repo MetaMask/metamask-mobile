@@ -40,3 +40,17 @@ describe('backupVault', () => {
     expect(response.error).toBe(VAULT_BACKUP_FAILED);
   });
 });
+
+describe('getVaultFromBackup', () => {
+  it('should return a success response when the vault is retrieved from backup', async () => {
+    const mockResult = {
+      password: 'mockVault',
+    };
+    jest.mock('react-native-keychain', () => ({
+      getInternetCredentials: jest.fn().mockResolvedValue(mockResult),
+    }));
+    const response = await getVaultFromBackup();
+    expect(response.success).toBe(true);
+    expect(response.vault).toBe('vault');
+  });
+});
