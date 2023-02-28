@@ -65,7 +65,6 @@ Feature: Sending Native and ERC Tokens
 
         Examples:
             | NETWORK   | TOKEN | AMOUNT | Address                                    |
-            # | Goerli            | ETH   | 0.0004 | 0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb |
             | AVAX Fuji | AVAX  | 0.005  | 0xA7E129A38860432492708568465AE1A5ca50b373 |
 
     Scenario Outline: A user can send ERC-20 tokens to an Address via token overview screen
@@ -90,7 +89,6 @@ Feature: Sending Native and ERC Tokens
 
         Examples:
             | NETWORK   | TOKEN | AMOUNT | Address                                    |
-            # | Goerli            | LINK  | 0.003  | 0xA7E129A38860432492708568465AE1A5ca50b373 |
             | AVAX Fuji | USDC  | 0.002  | 0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb |
 
 
@@ -107,5 +105,4 @@ Feature: Sending Native and ERC Tokens
 
         Examples:
             | NETWORK   | TOKEN  | AMOUNT                | Address                                    |
-            # | Goerli            | LINK  | 121212121212121212121  | 0xA7E129A38860432492708568465AE1A5ca50b373 |
             | AVAX Fuji | 1 USDC | 121212121212121212121 | 0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb |
