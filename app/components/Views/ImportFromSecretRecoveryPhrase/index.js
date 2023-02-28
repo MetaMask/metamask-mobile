@@ -12,14 +12,17 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import DefaultPreference from 'react-native-default-preference';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import TermsAndConditions from '../TermsAndConditions';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
@@ -34,15 +37,10 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
-import TermsAndConditions from '../TermsAndConditions';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
@@ -53,6 +51,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
+import { trackEvent } from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -182,7 +181,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
+      trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     });
     let error = null;
     if (!passwordRequirementsMet(password)) {
@@ -200,7 +199,7 @@ const ImportFromSecretRecoveryPhrase = ({
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: error,
         });
@@ -232,10 +231,10 @@ const ImportFromSecretRecoveryPhrase = ({
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
+          trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(biometryType),
           });
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
             wallet_setup_type: 'import',
             new_wallet: false,
           });
@@ -263,7 +262,7 @@ const ImportFromSecretRecoveryPhrase = ({
           Logger.log('Error with seed phrase import', error.message);
         }
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
             wallet_setup_type: 'import',
             error_type: error.toString(),
           });
