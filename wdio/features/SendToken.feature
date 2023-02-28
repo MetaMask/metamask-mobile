@@ -70,7 +70,7 @@ Feature: Sending Native and ERC Tokens
     Scenario Outline: A user can send ERC-20 tokens to an Address via token overview screen
         Given I am on the wallet view
         And I see "<NETWORK>" visible in the top navigation bar
-        When I tap Token "<TOKEN>" on Main Wallet view
+        When I tap Token containing text "<TOKEN>"
         Then I am taken to the token overview screen
 
         When I tap button "Send" on Token screen view

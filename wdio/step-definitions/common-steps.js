@@ -13,7 +13,6 @@ import CommonScreen from '../screen-objects/CommonScreen';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
-import Selectors from '../helpers/Selectors';
 
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.waitForSplashAnimationToDisplay();
@@ -156,20 +155,18 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
   async (elementType, button, screen, type) => {
-    await CommonScreen.tapTextContains(button);
+    await CommonScreen.tapOnText(button);
   },
 );
+
+Then(/^I tap (.*) containing text "([^"]*)?"/, async (elementType, button) => {
+  await CommonScreen.tapTextContains(button);
+});
 
 Then(
   /^I tap button "([^"]*)?" to navigate to (.*) view/,
   async (button, screen) => {
     await CommonScreen.tapOnText(button);
-    const elem = await Selectors.getXpathElementByText(button);
-
-    if (await elem.isDisplayed()) {
-      // if still around tap again
-      await CommonScreen.tapOnText(button);
-    }
   },
 );
 

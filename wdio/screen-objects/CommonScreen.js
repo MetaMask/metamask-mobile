@@ -17,7 +17,7 @@ class CommonScreen {
 
   async tapTextContains(text) {
     // Taps text that contains the string
-    await Gestures.tapTextContains(text);
+    await Gestures.tapByTextContaining(text);
   }
 }
 
