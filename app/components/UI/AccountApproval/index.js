@@ -129,6 +129,7 @@ class AccountApproval extends PureComponent {
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         number_of_accounts: accountsLength,
+        number_of_accounts_connected: 1,
         source: 'SDK / WalletConnect',
         ...currentPageInformation?.analytics,
       };

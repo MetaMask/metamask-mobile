@@ -133,6 +133,26 @@ class Gestures {
     }
   }
 
+  static async tapByCoordinatesPercentage(
+    xAxisPercent,
+    yAxisPercentage,
+    tapCount = 1,
+  ) {
+    const { width, height } = await driver.getWindowSize();
+    const widthPoint = (width * xAxisPercent) / 100;
+    const heightPoint = (height * yAxisPercentage) / 100;
+    await driver.touchPerform([
+      {
+        action: 'tap',
+        options: {
+          x: widthPoint,
+          y: heightPoint,
+          count: tapCount,
+        },
+      },
+    ]);
+  }
+
   static async longPress(element, waitTime) {
     const elem = await element;
     (await elem).touchAction([
@@ -165,7 +185,8 @@ class Gestures {
   static async checkIfDisplayedWithSwipeUp(element, maxScrolls, amount = 0) {
     // If the element is not displayed and we haven't scrolled the max amount of scrolls
     // then scroll and execute the method again
-    if (!(await element.isDisplayed()) && amount <= maxScrolls) {
+    const elem = await element;
+    if (!(await elem.isDisplayed()) && amount <= maxScrolls) {
       await this.swipeUp(0.85);
       await this.checkIfDisplayedWithSwipeUp(element, maxScrolls, amount + 1);
     } else if (amount > maxScrolls) {
