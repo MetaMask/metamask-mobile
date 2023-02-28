@@ -2,7 +2,7 @@ import Engine from '../../../../core/Engine';
 import { getAddressAccountType } from '../../../../util/address';
 import { SignatureAnalayticsProps } from '../types';
 
-const getSignatureAnalytics = ({
+const signatureAnalytics = ({
   currentPageInformation,
   type,
   messageParams,
@@ -26,4 +26,4 @@ const getSignatureAnalytics = ({
   }
 };
 
-export default getSignatureAnalytics;
+export default signatureAnalytics;
