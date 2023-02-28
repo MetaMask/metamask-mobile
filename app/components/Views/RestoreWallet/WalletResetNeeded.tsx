@@ -67,7 +67,7 @@ const WalletResetNeeded = () => {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.images}>
           <Icon
-            name={IconName.DangerFilled}
+            name={IconName.Danger}
             size={IconSize.XXL}
             color={colors.error.default}
           />
