@@ -763,7 +763,7 @@ class ApproveTransactionReview extends PureComponent {
             onPress={showVerifyContractDetails}
             style={styles.verifyContractLink}
             label={strings(
-              'contract_allowance.token_allowance.verify_contract_details',
+              'contract_allowance.token_allowance.verify_third_party_details',
             )}
           />
           <View style={styles.actionViewWrapper}>
@@ -1008,7 +1008,7 @@ class ApproveTransactionReview extends PureComponent {
       transaction: { to },
       showBlockExplorerModal,
       spenderAddress,
-      token: { symbol },
+      token: { tokenSymbol },
     } = this.state;
 
     const toggleBlockExplorerModal = (address) => {
@@ -1033,7 +1033,7 @@ class ApproveTransactionReview extends PureComponent {
         savedContactListToArray={savedContactListToArray}
         copyAddress={this.copyContractAddress}
         providerType={providerType}
-        tokenSymbol={symbol}
+        tokenSymbol={tokenSymbol}
         networkProvider={provider}
         frequentRpcList={frequentRpcList}
         tokenStandard={this.state.token?.tokenStandard}

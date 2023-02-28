@@ -14,6 +14,7 @@ import { findBlockExplorerForRpc } from '../../../../util/networks';
 import { RPC } from '../../../../constants/network';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { Token as TokenType } from '@metamask/assets-controllers';
 
 const {
   ASSET: { ERC20, ERC1155, ERC721 },
@@ -38,20 +39,23 @@ const VerifyContractDetails = ({
   const styles = createStyles(colors);
 
   const tokens = useSelector(
-    (state: any) => state.engine.backgroundState.TokensController.tokens,
+    (state: any) =>
+      state.engine.backgroundState.TokensController.tokens as TokenType[],
   );
 
-  const filterTokensByTokenSymbol = useMemo(
-    () => tokens.filter((token: any) => token.symbol === tokenSymbol),
-    [tokens, tokenSymbol],
+  const tokenData = useMemo(
+    () =>
+      tokens.filter(
+        (token: any) => token.address === safeToChecksumAddress(tokenAddress),
+      ),
+    [tokens, tokenAddress],
   );
+
+  // console.log(tokenData, 'tokenData');
+
+  // const tokenAltIcon =
 
   const tokenSymbolFirstLetter = tokenSymbol?.charAt(0);
-
-  const tokenImage =
-    filterTokensByTokenSymbol.length > 0
-      ? filterTokensByTokenSymbol[0].image
-      : false;
 
   useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {
@@ -78,7 +82,7 @@ const VerifyContractDetails = ({
       <ConnectHeader
         action={closeVerifyContractView}
         title={strings(
-          'contract_allowance.token_allowance.verify_contract_details',
+          'contract_allowance.token_allowance.verify_third_party_details',
         )}
       />
       <Text style={styles.description}>
@@ -88,14 +92,11 @@ const VerifyContractDetails = ({
       </Text>
       <View>
         <Text variant={TextVariant.BodySM} style={styles.title}>
-          {strings('contract_allowance.token_allowance.contract_type', {
-            type:
-              tokenStandard === ERC20
-                ? strings('contract_allowance.token_allowance.token')
-                : tokenStandard === ERC721 || tokenStandard === ERC1155
-                ? strings('contract_allowance.token_allowance.nft')
-                : '',
-          })}
+          {tokenStandard === ERC20
+            ? strings('contract_allowance.token_allowance.token_contract')
+            : tokenStandard === ERC721 || tokenStandard === ERC1155
+            ? strings('contract_allowance.token_allowance.nft_contract')
+            : strings('contract_allowance.token_allowance.address')}
         </Text>
         <View style={styles.contractSection}>
           <ContractBox
@@ -103,15 +104,17 @@ const VerifyContractDetails = ({
             contractPetName={tokenNickname}
             onCopyAddress={() => copyAddress(tokenAddress)}
             onExportAddress={() => toggleBlockExplorer(tokenAddress)}
-            contractLocalImage={tokenImage && { uri: tokenImage }}
-            tokenSymbol={tokenSymbolFirstLetter}
+            contractLocalImage={
+              tokenData.length ? { uri: tokenData[0]?.image } : undefined
+            }
+            tokenSymbol={tokenSymbolFirstLetter && tokenSymbolFirstLetter}
             hasBlockExplorer={Boolean(hasBlockExplorer)}
             onContractPress={() => showNickname(tokenAddress)}
           />
         </View>
         <Text variant={TextVariant.BodySM} style={styles.title}>
           {strings(
-            'contract_allowance.token_allowance.contract_requesting_text',
+            'contract_allowance.token_allowance.third_party_requesting_text',
             {
               action:
                 tokenStandard === ERC20
