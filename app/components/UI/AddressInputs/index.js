@@ -6,23 +6,23 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import Identicon from '../../../UI/Identicon';
+import Identicon from '../Identicon';
 import {
   isQRHardwareAccount,
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
-} from '../../../../util/address';
-import { strings } from '../../../../../locales/i18n';
-import Text from '../../../Base/Text';
-import { hasZeroWidthPoints } from '../../../../util/confusables';
-import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+} from '../../../util/address';
+import { strings } from '../../../../locales/i18n';
+import Text from '../../Base/Text';
+import { hasZeroWidthPoints } from '../../../util/confusables';
+import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
