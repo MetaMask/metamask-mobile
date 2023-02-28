@@ -5,7 +5,7 @@ import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Engine from '../../../core/Engine';
-import { resetVaultBackup } from '../../../core/backupVault';
+import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
 
 const useDeleteWallet = () => {
   const resetWalletState = useCallback(async () => {

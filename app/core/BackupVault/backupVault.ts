@@ -1,5 +1,5 @@
 import { KeyringState } from '@metamask/keyring-controller';
-import Logger from '../util/Logger';
+import Logger from '../../util/Logger';
 import {
   getInternetCredentials,
   setInternetCredentials,
@@ -11,7 +11,7 @@ import {
   VAULT_BACKUP_FAILED,
   VAULT_BACKUP_FAILED_UNDEFINED,
   VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP,
-} from '../constants/error';
+} from '../../constants/error';
 
 const VAULT_BACKUP_KEY = 'VAULT_BACKUP';
 

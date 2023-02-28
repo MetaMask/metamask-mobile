@@ -58,7 +58,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from './Permissions/specifications.js';
-import { backupVault } from './backupVault';
+import { backupVault } from './BackupVault';
 
 const NON_EMPTY = 'NON_EMPTY';
 

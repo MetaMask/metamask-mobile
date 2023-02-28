@@ -59,7 +59,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
-import { getVaultFromBackup } from '../../../core/backupVault';
+import { getVaultFromBackup } from '../../../core/BackupVault';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;

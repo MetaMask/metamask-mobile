@@ -1,6 +1,6 @@
 import UntypedEngine from './Engine';
 import AppConstants from './AppConstants';
-import { getVaultFromBackup } from '../core/backupVault';
+import { getVaultFromBackup } from '../core/BackupVault';
 import { store as importedStore } from '../store';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
