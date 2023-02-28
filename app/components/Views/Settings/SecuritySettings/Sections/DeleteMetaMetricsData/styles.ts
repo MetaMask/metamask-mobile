@@ -18,7 +18,4 @@ export const createStyles = (colors: any) =>
     blueText: {
       color: colors.primary.default,
     },
-    extraTopMargin: {
-      marginTop: 10,
-    },
   });
