@@ -227,6 +227,7 @@ workflows:
           inputs:
             - workflows: |-
                 ios_e2e_test
+                wdio_android_e2e_test
             - wait_for_builds: 'true'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
       - build-router-wait@0:
@@ -618,3 +619,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-13.4.x
+
+trigger_map:
+  - push_branch: release/*
+    workflow: start_e2e_tests
