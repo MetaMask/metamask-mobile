@@ -45,7 +45,7 @@ export interface SignatureProps {
   showExpandedMessage?: boolean;
 }
 
-export interface UseMessageProps {
+export interface UseSignatureActionProps {
   messageParams: any;
   type: string;
 }

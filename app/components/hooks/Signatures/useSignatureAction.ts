@@ -1,8 +1,12 @@
 import Engine from '../../../core/Engine';
-import { UseMessageProps } from './useSignatureTypes';
+import { UseSignatureActionProps } from './useSignatureAction.types';
 import { showWalletConnectNotification } from '../../UI/SignatureRequest/Util';
+import { SignatureType } from '../../../constants/signature';
 
-const useMessage = ({ messageParams, type }: UseMessageProps) => {
+const useSignatureAction = ({
+  messageParams,
+  type,
+}: UseSignatureActionProps) => {
   const { TypedMessageManager, KeyringController }: any = Engine.context;
 
   const signMessage = async () => {
@@ -36,7 +40,8 @@ const useMessage = ({ messageParams, type }: UseMessageProps) => {
 
   const rejectMessage = () => {
     const messageId = messageParams.metamaskId;
-    if (type === 'typed') TypedMessageManager.rejectMessage(messageId);
+    if (type === SignatureType.TYPED)
+      TypedMessageManager.rejectMessage(messageId);
     showWalletConnectNotification({
       confirmation: false,
       messageParams,
@@ -47,4 +52,4 @@ const useMessage = ({ messageParams, type }: UseMessageProps) => {
   return [rejectMessage, signMessage];
 };
 
-export default useMessage;
+export default useSignatureAction;

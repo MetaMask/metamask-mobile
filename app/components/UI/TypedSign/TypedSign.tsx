@@ -8,9 +8,9 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
-import { SignatureProps } from '../../hooks/Signatures/useSignatureTypes';
+import { SignatureProps } from '../../hooks/Signatures/useSignatureAction.types';
 import { useNavigation } from '@react-navigation/native';
-import useMessage from '../../hooks/Signatures/useMessage';
+import useSignatureAction from '../../hooks/Signatures/useSignatureAction';
 import sanitizeString from '../../../util/string';
 import { signatureAnalytics } from '../SignatureRequest/Util';
 import { SignatureType, TYPED_VERSIONS } from '../../../constants/signature';
@@ -28,7 +28,7 @@ const TypedSign = ({
   showExpandedMessage,
   messageParams: { from },
 }: SignatureProps) => {
-  const [rejectMessage, signMessage] = useMessage({
+  const [rejectMessage, signMessage] = useSignatureAction({
     messageParams,
     type: SignatureType.TYPED,
   });
@@ -100,7 +100,9 @@ const TypedSign = ({
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
           <View>
-            <Text style={[styles.messageText, styles.msgKey]}>{sanitizeString(key)}:</Text>
+            <Text style={[styles.messageText, styles.msgKey]}>
+              {sanitizeString(key)}:
+            </Text>
             <View>{renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
@@ -123,10 +125,10 @@ const TypedSign = ({
             ) => (
               <View key={`${obj.name}_${i}`}>
                 <Text style={[styles.messageText, styles.msgKey]}>
-                {sanitizeString(obj.name)}:
+                  {sanitizeString(obj.name)}:
                 </Text>
                 <Text style={styles.messageText} key={obj.name}>
-                {sanitizeString(` ${obj.value}`)}
+                  {sanitizeString(` ${obj.value}`)}
                 </Text>
               </View>
             ),
