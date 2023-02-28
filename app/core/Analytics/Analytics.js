@@ -6,7 +6,7 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import { store } from '../../store';
-import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
+import { MIXPANEL_ENDPOINT_BASE_URL } from './MetaMetrics.constants';
 import {
   METRICS_OPT_IN,
   AGREED,

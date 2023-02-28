@@ -1,47 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Alert, Linking, Platform, StyleSheet, Text, View } from 'react-native';
-import Analytics from '../../../../../core/Analytics/Analytics';
-import {
-  DataDeleteStatus,
-  DataDeleteResponseStatus,
-} from '../../../../../core/Analytics/MetaMetrics.types';
-import { useTheme } from '../../../../../util/theme';
-import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
-import { strings } from '../../../../../../locales/i18n';
-import { fontStyles } from '../../../../../styles/common';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
-import Logger from '../../../../../util/Logger';
-import { trackEvent } from '../../../../../util/analyticsV2';
+import { Alert, Linking, Platform, Text, View } from 'react-native';
 import { getBrand, getDeviceId } from 'react-native-device-info';
-import { MetaMetricsEvents, MetaMetrics } from '../../../../../core/Analytics';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      ...fontStyles.normal,
-      color: colors.text.alternative,
-      fontSize: 15,
-      lineHeight: 20,
-      marginTop: 12,
-    },
-    boldText: {
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    blueText: {
-      color: colors.primary.default,
-    },
-    extraTopMargin: {
-      marginTop: 10,
-    },
-  });
+import {
+  MetaMetrics,
+  DataDeleteStatus,
+  MetaMetricsEvents,
+  DataDeleteResponseStatus,
+} from '../../../../../../core/Analytics';
+import { useTheme } from '../../../../../../util/theme';
+import SettingsButtonSection from '../../../../../UI/SettingsButtonSection';
+import { strings } from '../../../../../../../locales/i18n';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../../../../constants/urls';
+import Logger from '../../../../../../util/Logger';
+import { trackEvent } from '../../../../../../util/analyticsV2';
+import { createStyles } from './styles';
 
 const DeleteMetaMetricsData = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
-    Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
+    MetaMetrics.checkEnabled() || MetaMetrics.getIsDataRecorded(),
   );
   const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
     DataDeleteStatus.unknown,
@@ -86,11 +65,11 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
-      const response = await Analytics.createDataDeletionTask();
+      const response = await MetaMetrics.createDeleteRegulation();
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
-        setDeletionTaskDate(Analytics.getDeletionTaskDate());
+        setDeletionTaskDate(MetaMetrics.getDeleteRegulationDate());
         await trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
@@ -101,28 +80,9 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
-  const checkDataDeleteStatus = useCallback(async () => {
-    try {
-      const response = await Analytics.checkStatusDataDeletionTask();
-      setDataDeleteStatus(response.DataDeleteStatus);
-    } catch (error: any) {
-      Logger.log('Error checkDataDeleteStatus -', error);
-    }
-  }, []);
-
   useEffect(() => {
-    const checkStatus = async () => {
-      const deletionTaskId = Analytics.getDeletionTaskId();
-      if (deletionTaskId) {
-        await checkDataDeleteStatus();
-        setDeletionTaskDate(Analytics.getDeletionTaskDate());
-      }
-    };
-
-    setHasCollectedData(Analytics.getIsDataRecorded() || enableDeleteData());
-
-    checkStatus();
-  }, [checkDataDeleteStatus, enableDeleteData, dataDeleteStatus]);
+    setHasCollectedData(MetaMetrics.getIsDataRecorded() && enableDeleteData());
+  }, [enableDeleteData, dataDeleteStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 

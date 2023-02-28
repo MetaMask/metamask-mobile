@@ -93,10 +93,34 @@ export interface IMetaMetrics {
    *
    * @returns Object containing the status and an error (optional)
    */
-  createSegmentDeleteRegulation(): Promise<{ status: string; error?: string }>;
-  // TO DO: Add commentary
+  createDeleteRegulation(): Promise<{ status: string; error?: string }>;
+
+  /**
+   * Method to get the delete request creation date.
+   *
+   * @returns Delete request creation date.
+   */
+  getDeleteRegulationDate(): string;
+
+  /**
+   * Method to get a flag indicating if the user has data recorded.
+   *
+   * @returns Boolean indicating if the user has data recorded.
+   */
+  getIsDataRecorded(): boolean;
+
+  /**
+   * Method to get the delete regulation date.
+   *
+   * @returns The MetaMetrcis ID
+   */
   getMetaMetricsId(): string;
 
+  /**
+   * Method to apply an authentication user property.
+   *
+   * @param property Authentication user property declared in AUTHENTICATION_TYPE.
+   */
   applyAuthenticationUserProperty(property: AUTHENTICATION_TYPE): void;
 }
 

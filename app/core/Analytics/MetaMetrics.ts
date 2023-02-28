@@ -47,6 +47,7 @@ class MetaMetrics implements IMetaMetrics {
   #state: States = States.disabled;
   #deleteRegulationDate = '';
   #isDataRecorded = false;
+  #mixPanelBackwardsCompatibilityFlag = false;
   #dataSetConnectedFlag = false;
 
   // CONSTRUCTOR
@@ -83,6 +84,7 @@ class MetaMetrics implements IMetaMetrics {
     // Legacy ID from MixPanel integration
     metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
     if (metametricsId && !__DEV__) {
+      this.#mixPanelBackwardsCompatibilityFlag = true;
       return metametricsId;
     }
 
@@ -192,8 +194,8 @@ class MetaMetrics implements IMetaMetrics {
         this.#metametricsId,
         METAMETRICS_ANONYMOUS_ID,
       );
+      this.#isDataRecorded = true;
     }
-    this.#isDataRecorded = true;
   }
 
   /**
@@ -273,8 +275,8 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns Object containing the status and an error (optional)
    */
-  #createSegmentDeleteRegulation = async (): Promise<{
-    status: string;
+  #createDeleteRegulation = async (): Promise<{
+    status: DataDeleteResponseStatus;
     error?: string;
   }> => {
     const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
@@ -293,10 +295,11 @@ class MetaMetrics implements IMetaMetrics {
           subjectIds: [this.#metametricsId],
         }),
       });
-      const { result, status } = response as any;
+      const { data, status } = response as any;
 
-      if (status === '200') {
-        const { regulateId } = result.data;
+      if (status === 200) {
+        const { regulateId } = data.data;
+        this.#isDataRecorded = false;
         await this.#storeDeleteRegulationId(regulateId);
         await this.#storeDeleteRegulationCreationDate();
         return { status: DataDeleteResponseStatus.ok };
@@ -308,6 +311,12 @@ class MetaMetrics implements IMetaMetrics {
       return { status: DataDeleteResponseStatus.error, error };
     }
   };
+
+  #getDeleteRegulationId = async (): Promise<string> =>
+    await DefaultPreference.get(METAMETRICS_SEGMENT_REGULATION_ID);
+
+  #getDeleteRegulationDate = async (): Promise<string> =>
+    await DefaultPreference.get(METAMETRICS_SEGMENT_REGULATION_ID);
 
   async #setInitialUserProperties(): Promise<void> {
     if (!this.#metametricsId) {
@@ -402,12 +411,12 @@ class MetaMetrics implements IMetaMetrics {
     this.#setMetricsPreference();
   }
 
-  public state(): States {
-    return this.#state;
-  }
-
   public checkEnabled(): boolean {
     return this.#state === States.enabled;
+  }
+
+  public state(): States {
+    return this.#state;
   }
 
   public addTraitsToUser(userTraits: UserIdentityProperties): void {
@@ -437,11 +446,23 @@ class MetaMetrics implements IMetaMetrics {
     this.#reset();
   }
 
-  public createSegmentDeleteRegulation(): Promise<{
+  public createDeleteRegulation(): Promise<{
     status: string;
     error?: string;
   }> {
-    return this.#createSegmentDeleteRegulation();
+    return this.#createDeleteRegulation();
+  }
+
+  public getDeleteRegulationId(): Promise<string> {
+    return this.#getDeleteRegulationId();
+  }
+
+  public getDeleteRegulationDate(): string {
+    return this.#deleteRegulationDate;
+  }
+
+  public getIsDataRecorded(): boolean {
+    return this.#isDataRecorded;
   }
 
   public getMetaMetricsId(): string {
