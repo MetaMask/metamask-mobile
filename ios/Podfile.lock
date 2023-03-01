@@ -315,8 +315,8 @@ PODS:
     - React-Core
   - react-native-in-app-review (3.2.3):
     - React
-  - react-native-minimizer (1.3.0):
-    - React
+  - react-native-minimizer (1.3.4):
+    - React-Core
   - react-native-netinfo (6.0.0):
     - React-Core
   - react-native-randombytes (3.6.1):
@@ -823,7 +823,7 @@ SPEC CHECKSUMS:
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
-  react-native-minimizer: bd07450123d8c685acb2dff64f0213b0c7b5dbd6
+  react-native-minimizer: 8cb2cf59668411885ab7b09963897d4a20b3ac89
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
