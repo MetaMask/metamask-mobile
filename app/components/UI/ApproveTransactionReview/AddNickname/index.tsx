@@ -105,7 +105,8 @@ const AddNickname = (props: AddNicknameProps) => {
     if (!newNickname || !address) return;
     AddressBookController.set(toChecksumAddress(address), newNickname, network);
     closeModal();
-    trackEvent(      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
+    trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );
   };

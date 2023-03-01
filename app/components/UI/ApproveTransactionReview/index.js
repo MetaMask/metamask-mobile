@@ -675,97 +675,6 @@ class ApproveTransactionReview extends PureComponent {
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
-          <TransactionHeader
-            currentPageInformation={{
-              origin,
-              spenderAddress,
-              title: host,
-              url: activeTabUrl,
-            }}
-          />
-          <Text
-            variant={TextVariant.HeadingMD}
-            style={styles.title}
-            testID={'allow-access'}
-          >
-            {strings(
-              `spend_limit_edition.${
-                originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
-              }`,
-            )}{' '}
-            {!fetchingUpdateDone && (
-              <Text variant={TextVariant.HeadingMD}>
-                {strings('spend_limit_edition.token')}
-              </Text>
-            )}
-            {tokenStandard === ERC20 && (
-              <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
-            )}
-            {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-              <ButtonLink
-                onPress={showBlockExplorer}
-                label={
-                  <Text
-                    variant={TextVariant.HeadingMD}
-                    style={styles.buttonColor}
-                  >
-                    {tokenName ||
-                      tokenSymbol ||
-                      strings(`spend_limit_edition.nft`)}{' '}
-                    (#{tokenValue})
-                  </Text>
-                }
-              />
-            )}
-          </Text>
-
-          {tokenStandard !== ERC721 &&
-            tokenStandard !== ERC1155 &&
-            originalApproveAmount && (
-              <View style={styles.tokenAccess}>
-                <Text bold style={styles.tokenKey}>
-                  {` ${strings('spend_limit_edition.access_up_to')} `}
-                </Text>
-                <Text numberOfLines={4} style={styles.tokenValue}>
-                  {` ${
-                    customSpendAmount
-                      ? formatNumber(customSpendAmount)
-                      : originalApproveAmount &&
-                        formatNumber(originalApproveAmount)
-                  } ${tokenSymbol}`}
-                </Text>
-              </View>
-            )}
-
-          {fetchingUpdateDone &&
-            tokenStandard !== ERC721 &&
-            tokenStandard !== ERC1155 && (
-              <TouchableOpacity
-                style={styles.actionTouchable}
-                onPress={this.toggleEditPermission}
-              >
-                <Text reset style={styles.editPermissionText}>
-                  {strings('spend_limit_edition.edit_permission')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          <Text reset style={styles.explanation}>
-            {`${strings(
-              `spend_limit_edition.${
-                originIsDeeplink
-                  ? 'you_trust_this_address'
-                  : 'you_trust_this_site'
-              }`,
-            )}`}
-          </Text>
-          <ButtonLink
-            variant={TextVariant.BodyMD}
-            onPress={showVerifyContractDetails}
-            style={styles.verifyContractLink}
-            label={strings(
-              'contract_allowance.token_allowance.verify_third_party_details',
-            )}
-          />
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -858,35 +767,14 @@ class ApproveTransactionReview extends PureComponent {
                     }`,
                   )}`}
                 </Text>
-                <View style={styles.contactWrapper}>
-                  <Text>{strings('nickname.contract')}: </Text>
-                  <TouchableOpacity
-                    style={styles.addressWrapper}
-                    onPress={this.copyContractAddress}
-                    testID={'contract-address'}
-                  >
-                    <Identicon
-                      address={this.state.transaction.to}
-                      diameter={20}
-                    />
-                    {this.props.nicknameExists ? (
-                      <Text numberOfLines={1} style={styles.address}>
-                        {this.props.nickname}
-                      </Text>
-                    ) : (
-                      <EthereumAddress
-                        address={this.state.transaction.to}
-                        style={styles.address}
-                        type={'short'}
-                      />
-                    )}
-                    <Feather name="copy" size={18} style={styles.actionIcon} />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.nickname} onPress={this.toggleDisplay}>
-                  {this.props.nicknameExists ? 'Edit' : 'Add'}{' '}
-                  {strings('nickname.nickname')}
-                </Text>
+                <ButtonLink
+                  variant={TextVariant.BodyMD}
+                  onPress={showVerifyContractDetails}
+                  style={styles.verifyContractLink}
+                  label={strings(
+                    'contract_allowance.token_allowance.verify_third_party_details',
+                  )}
+                />
                 <View style={styles.paddingHorizontal}>
                   <View style={styles.section}>
                     <TransactionReview
