@@ -19,6 +19,7 @@ import { Theme } from '@metamask/design-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
@@ -27,8 +28,6 @@ import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
@@ -36,6 +35,7 @@ import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getNetworkImageSource,
@@ -256,9 +256,9 @@ const Wallet = ({ navigation }: any) => {
   const onChangeTab = useCallback((obj) => {
     InteractionManager.runAfterInteractions(() => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackLegacyEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
-        Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackLegacyEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
     });
   }, []);

@@ -11,16 +11,16 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { baseStyles } from '../../../styles/common';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
-import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
@@ -30,12 +30,10 @@ import {
   WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
+import { trackEvent } from '../../../util/analyticsV2';
 import { createStyles } from './styles';
-
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
-
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { Authentication } from '../../../core';
 
 /**
  * View that's shown during the second step of
@@ -73,7 +71,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     const getSeedphrase = async () => {
       if (!words.length) {
         try {
-          const credentials = await SecureKeychain.getGenericPassword();
+          const credentials = await Authentication.getPassword();
           if (credentials) {
             setWords(await tryExportSeedPhrase(credentials.password));
           } else {
@@ -109,7 +107,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
     });
   };
 

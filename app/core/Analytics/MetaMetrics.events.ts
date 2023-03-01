@@ -12,14 +12,14 @@ const generateOpt = (
 ): IMetaMetricsEvent => {
   if (action || description) {
     return {
-      category: name,
+      name,
       properties: {
         ...(action && { action }),
         ...(description && { name: description }),
       },
     };
   }
-  return { category: name };
+  return { name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
@@ -190,6 +190,7 @@ enum EVENT_NAME {
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
   ONRAMP_REGION_SELECTED = 'On-ramp Region Selected',
   ONRAMP_PAYMENT_METHOD_SELECTED = 'On-ramp Payment Method Selected',
+  ONRAMP_CONTINUE_TO_AMOUNT_CLICKED = 'On-ramp Continue To Amount Clicked',
   ONRAMP_QUOTES_REQUESTED = 'On-ramp Quotes Requested',
   ONRAMP_CANCELED = 'On-ramp Canceled',
   ONRAMP_QUOTES_RECEIVED = 'On-ramp Quotes Received',
@@ -321,7 +322,11 @@ enum ACTIONS {
 }
 
 const events = {
+  // V2 TRACKING EVENTS
+
+  // Error
   ERROR: generateOpt(EVENT_NAME.ERROR),
+  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -452,9 +457,7 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
-  // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
-  // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
   GO_BACK_SRP_SCREEN: generateOpt(EVENT_NAME.GO_BACK_SRP_SCREEN),
@@ -499,6 +502,9 @@ const events = {
   ONRAMP_REGION_SELECTED: generateOpt(EVENT_NAME.ONRAMP_REGION_SELECTED),
   ONRAMP_PAYMENT_METHOD_SELECTED: generateOpt(
     EVENT_NAME.ONRAMP_PAYMENT_METHOD_SELECTED,
+  ),
+  ONRAMP_CONTINUE_TO_AMOUNT_CLICKED: generateOpt(
+    EVENT_NAME.ONRAMP_CONTINUE_TO_AMOUNT_CLICKED,
   ),
   ONRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_REQUESTED),
   ONRAMP_CANCELED: generateOpt(EVENT_NAME.ONRAMP_CANCELED),

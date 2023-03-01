@@ -49,7 +49,7 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
+import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
@@ -62,13 +62,14 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
-import { TabBarLabel } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
+import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { strings } from '../../../../locales/i18n';
+import isUrl from 'is-url';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -226,7 +227,7 @@ const HomeTabs = () => {
   /* activeTab: state.browser.activeTab, */
   const activeConnectedDapp = useSelector((state) => {
     const activeTabUrl = getActiveTabUrl(state);
-    if (!activeTabUrl) return [];
+    if (!isUrl(activeTabUrl)) return [];
 
     const permissionsControllerState =
       state.engine.backgroundState.PermissionController;
@@ -240,10 +241,10 @@ const HomeTabs = () => {
 
   const options = {
     home: {
-      tabBarIconKey: TabBarLabel.Wallet,
+      tabBarIconKey: TabBarIconKey.Wallet,
       tabBarLabel: strings('drawer.wallet'),
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
         });
@@ -251,10 +252,10 @@ const HomeTabs = () => {
       rootScreenName: Routes.WALLET_VIEW,
     },
     browser: {
-      tabBarIconKey: TabBarLabel.Browser,
+      tabBarIconKey: TabBarIconKey.Browser,
       tabBarLabel: strings('drawer.browser'),
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
           source: 'Navigation Tab',

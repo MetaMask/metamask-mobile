@@ -3,6 +3,10 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
+import AmountScreen from '../screen-objects/AmountScreen';
+import WalletMainScreen from '../screen-objects/WalletMainScreen';
+import TokenOverviewScreen from '../screen-objects/TokenOverviewScreen';
+import TransactionConfirmScreen from '../screen-objects/TransactionConfirmScreen';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
@@ -41,6 +45,18 @@ When(/^I see a button with text "([^"]*)?"/, async (text) => {
 
 Then(/^I proceed to the amount view/, async () => {
   await SendScreen.isAmountScreenDisplayed();
+});
+
+Then(/^I should be taken to the transaction confirmation view/, async () => {
+  await TransactionConfirmScreen.isConfirmScreenVisible();
+});
+
+Then(/^the token (.*) being sent is visible/, async (token) => {
+  await TransactionConfirmScreen.isCorrectTokenConfirm(token);
+});
+
+Then(/^the token amount (.*) to be sent is visible/, async (amount) => {
+  await TransactionConfirmScreen.isCorrectTokenAmountDisplayed(amount);
 });
 
 Then(
@@ -82,3 +98,22 @@ Then(
     await SendScreen.typeAddressInSendAddressField(address);
   },
 );
+
+Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
+  await AmountScreen.enterAmount(amount);
+});
+
+Then(
+  /^the transaction is submitted with Transaction Complete! toast/,
+  async () => {
+    await WalletMainScreen.isToastNotificationDisplayed();
+  },
+);
+
+Then(/^I am taken to the token overview screen/, async () => {
+  await TokenOverviewScreen.isTokenOverviewVisible();
+});
+
+Then(/^I tap back from the Token overview page/, async () => {
+  await TokenOverviewScreen.tapBackButton();
+});

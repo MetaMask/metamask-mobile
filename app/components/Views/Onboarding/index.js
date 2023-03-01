@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -23,10 +24,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
-import SecureKeychain from '../../../core/SecureKeychain';
-import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
@@ -41,13 +39,11 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_SETUP_SCREEN_TITLE_ID,
@@ -55,6 +51,7 @@ import {
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -180,7 +177,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    logOut: PropTypes.func,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -273,21 +269,14 @@ class Onboarding extends PureComponent {
     }
   }
 
-  logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
-  };
-
   onLogin = async () => {
     const { passwordSet } = this.props;
     if (!passwordSet) {
-      const { KeyringController } = Engine.context;
-      // Restore vault with empty password
-      await KeyringController.submitPassword('');
-      await SecureKeychain.resetGenericPassword();
-      this.props.navigation.navigate('HomeNav');
+      await Authentication.resetVault();
+      this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      this.logOut();
+      await Authentication.lockApp();
+      this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
     }
   };
 
@@ -355,12 +344,16 @@ class Onboarding extends PureComponent {
     const action = async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
-        this.props.navigation.push('ImportFromSeed');
+        this.props.navigation.push(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        );
         this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
-            this.props.navigation.replace('ImportFromSeed');
+            this.props.navigation.replace(
+              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+            );
             this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
           },
         });
@@ -371,8 +364,8 @@ class Onboarding extends PureComponent {
 
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
+      if (MetaMetrics.checkEnabled()) {
+        trackEvent(...eventArgs);
         return;
       }
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);

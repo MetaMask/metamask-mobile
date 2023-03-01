@@ -26,7 +26,15 @@ export interface AnalyticsEvents {
   };
   ONRAMP_PAYMENT_METHOD_SELECTED: {
     payment_method_id: string;
+    available_payment_method_ids: string[];
+    region?: string;
     location?: ScreenLocation;
+  };
+  ONRAMP_CONTINUE_TO_AMOUNT_CLICKED: {
+    payment_method_id: string;
+    available_payment_method_ids: string[];
+    region: string;
+    location: ScreenLocation;
   };
   ONRAMP_QUOTES_REQUESTED: {
     currency_source: string;

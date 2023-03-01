@@ -28,9 +28,13 @@ import {
   weiToFiat,
 } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { trackLegacyAnonymousEvent } from '../../../../util/analyticsV2';
 import { isSwapsNativeAsset } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
+
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useTheme } from '../../../../util/theme';
 
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
@@ -41,9 +45,6 @@ import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -286,11 +287,11 @@ function TokenSelectModal({
     (item) => {
       const { address, symbol } = item;
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
-          { address, symbol, chain_id: chainId },
-          true,
-        );
+        trackLegacyAnonymousEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+          address,
+          symbol,
+          chain_id: chainId,
+        });
       });
       hideTokenImportModal();
       onItemPress(item);

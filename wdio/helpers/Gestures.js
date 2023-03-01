@@ -75,6 +75,7 @@ class Gestures {
   static async tap(element, tapType = 'TAP') {
     // simple touch action on element
     const elem = await element;
+    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
         (await elem).touchAction(Actions.TAP);
@@ -98,6 +99,7 @@ class Gestures {
 
   static async tapTextByXpath(text, tapType = 'TAP') {
     const elem = await Selectors.getXpathElementByText(text);
+    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
         await elem.touchAction(Actions.TAP);
@@ -111,6 +113,44 @@ class Gestures {
       default:
         throw new Error('Tap type not found');
     }
+  }
+
+  static async tapByTextContaining(text, tapType = 'TAP') {
+    const elem = await Selectors.getXpathElementByTextContains(text);
+    await elem.isDisplayed();
+    switch (tapType) {
+      case 'TAP':
+        await elem.touchAction(Actions.TAP);
+        break;
+      case 'LONGPRESS':
+        await elem.touchAction(Actions.LONGPRESS);
+        break;
+      case 'RELEASE':
+        await elem.touchAction(Actions.RELEASE);
+        break;
+      default:
+        throw new Error('Tap type not found');
+    }
+  }
+
+  static async tapByCoordinatesPercentage(
+    xAxisPercent,
+    yAxisPercentage,
+    tapCount = 1,
+  ) {
+    const { width, height } = await driver.getWindowSize();
+    const widthPoint = (width * xAxisPercent) / 100;
+    const heightPoint = (height * yAxisPercentage) / 100;
+    await driver.touchPerform([
+      {
+        action: 'tap',
+        options: {
+          x: widthPoint,
+          y: heightPoint,
+          count: tapCount,
+        },
+      },
+    ]);
   }
 
   static async longPress(element, waitTime) {
@@ -145,7 +185,8 @@ class Gestures {
   static async checkIfDisplayedWithSwipeUp(element, maxScrolls, amount = 0) {
     // If the element is not displayed and we haven't scrolled the max amount of scrolls
     // then scroll and execute the method again
-    if (!(await element.isDisplayed()) && amount <= maxScrolls) {
+    const elem = await element;
+    if (!(await elem.isDisplayed()) && amount <= maxScrolls) {
       await this.swipeUp(0.85);
       await this.checkIfDisplayedWithSwipeUp(element, maxScrolls, amount + 1);
     } else if (amount > maxScrolls) {
