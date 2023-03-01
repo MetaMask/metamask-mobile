@@ -12,7 +12,8 @@ import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { getNetworkNonce } from '../../../../util/networks';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { setTransactionObject } from '../../../../actions/transaction';
+import { setTransactionObject, setNonce,
+  setProposedNonce, } from '../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
@@ -27,6 +28,8 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import EditGasFee1559 from '../../../UI/EditGasFee1559';
+import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
@@ -124,6 +127,14 @@ class Approve extends PureComponent {
     network: PropTypes.string,
     frequentRpcList: PropTypes.array,
     providerRpcTarget: PropTypes.string,
+    /**
+     * Set transaction nonce
+     */
+    setNonce: PropTypes.func,
+    /**
+     * Set proposed nonce (from network)
+     */
+    setProposedNonce: PropTypes.func,
     /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
@@ -787,7 +798,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-    showCustomNonce: state.settings.showCustomNonce,
+  showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   network: selectNetwork(state),
   providerType: selectProviderType(state),
@@ -799,8 +810,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
-    setNonce: (nonce) => dispatch(setNonce(nonce)),
-    setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
+  setNonce: (nonce) => dispatch(setNonce(nonce)),
+  setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
 });
 
 Approve.contextType = ThemeContext;
