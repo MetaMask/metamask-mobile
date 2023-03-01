@@ -439,6 +439,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
+      transaction: { origin: transactionOrigin },
     } = this.props;
     const {
       actionKey,
@@ -465,7 +466,7 @@ class TransactionReview extends PureComponent {
           <ApproveTransactionHeader
             currentEnsName={currentEnsName}
             spenderAddress={spenderAddress}
-            origin={origin}
+            origin={origin || transactionOrigin}
             url={url}
           />
           <TransactionReviewSummary
