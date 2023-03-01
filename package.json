@@ -277,7 +277,7 @@
     "react-native-minimizer": "^1.3.0",
     "react-native-modal": "^12.1.0",
     "react-native-os": "^1.2.6",
-    "react-native-permissions": "^3.3.1",
+    "react-native-permissions": "^3.7.2",
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
