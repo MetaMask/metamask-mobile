@@ -12,15 +12,14 @@ import {
   StyleSheet,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { colors, fontStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { colors, fontStyles } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
+import { trackEvent } from '../../../util/analyticsV2';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 
 const styles = StyleSheet.create({
@@ -137,7 +136,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const onError = useCallback(
     (error) => {
       if (onScanError && error) {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
           purpose,
           error,
         });
@@ -160,7 +159,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
         if (urDecoder.isError()) {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
             purpose,
             error: urDecoder.resultError(),
           });
@@ -172,14 +171,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
           } else if (purpose === 'sync') {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
               purpose,
               received_ur_type: ur.type,
               error: 'invalid `sync` qr code',
             });
             onScanError(strings('transaction.invalid_qr_code_sync'));
           } else {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
               purpose,
               received_ur_type: ur.type,
               error: 'invalid `sign` qr code',

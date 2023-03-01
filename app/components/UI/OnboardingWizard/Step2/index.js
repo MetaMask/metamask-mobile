@@ -2,15 +2,15 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
-import Coachmark from '../Coachmark';
-import setOnboardingWizardStep from '../../../../actions/wizard';
-import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from './../styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import Coachmark from '../Coachmark';
+import setOnboardingWizardStep from '../../../../actions/wizard';
+import { strings } from '../../../../../locales/i18n';
+import onboardingStyles from './../styles';
+import { trackEvent } from '../../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const INDICATOR_HEIGHT = 10;
@@ -70,7 +70,7 @@ class Step2 extends PureComponent {
   onNext = () => {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(3);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 2,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
     });
@@ -82,7 +82,7 @@ class Step2 extends PureComponent {
   onBack = () => {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(1);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 2,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
     });

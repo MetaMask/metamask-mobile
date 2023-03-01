@@ -1,15 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
 import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { ethErrors } from 'eth-json-rpc-errors';
-
+import Modal from 'react-native-modal';
+import { BN } from 'ethereumjs-util';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { query } from '@metamask/controller-utils';
+import BigNumber from 'bignumber.js';
+import Engine from '../../../core/Engine';
+import {
+  trackEvent,
+  trackLegacyEvent,
+  trackLegacyAnonymousEvent,
+} from '../../../util/analyticsV2';
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
-import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
 import {
@@ -18,7 +26,6 @@ import {
 } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
-import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
 import {
   getMethodData,
@@ -30,7 +37,6 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
@@ -43,17 +49,11 @@ import {
   toggleDappTransactionModal,
   toggleApproveModal,
 } from '../../../actions/modals';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { query } from '@metamask/controller-utils';
-import Analytics from '../../../core/Analytics/Analytics';
-import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
@@ -73,9 +73,8 @@ const RootRPCMethodsUI = (props) => {
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [signMessageParams, setSignMessageParams] = useState({ data: '' });
   const [signType, setSignType] = useState(false);
-  const [walletConnectRequest, setWalletConnectRequest] = useState(false);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
-    useState(false);
+    useState(undefined);
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
 
@@ -118,7 +117,6 @@ const RootRPCMethodsUI = (props) => {
 
   const onWalletConnectSessionRequest = () => {
     WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
-      setWalletConnectRequest(true);
       setWalletConnectRequestInfo(peerInfo);
     });
   };
@@ -212,13 +210,13 @@ const RootRPCMethodsUI = (props) => {
             quote_vs_executionRatio: quoteVsExecutionRatio,
             token_to_amount_received: tokenToAmountReceived.toString(),
           };
-          Analytics.trackEventWithParameters(event, {});
-          Analytics.trackEventWithParameters(event, parameters, true);
+          trackLegacyEvent(event, {});
+          trackLegacyAnonymousEvent(event, parameters);
         });
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
+          trackLegacyEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
             error: e,
           });
         });
@@ -266,9 +264,7 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          );
+          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
         }
       }
     },
@@ -457,23 +453,24 @@ const RootRPCMethodsUI = (props) => {
 
   const onWalletConnectSessionApproval = () => {
     const { peerId } = walletConnectRequestInfo;
-    setWalletConnectRequest(false);
-    setWalletConnectRequestInfo({});
+    setWalletConnectRequestInfo(undefined);
     WalletConnect.hub.emit('walletconnectSessionRequest::approved', peerId);
   };
 
   const onWalletConnectSessionRejected = () => {
-    const peerId = walletConnectRequestInfo.peerId;
-    setWalletConnectRequest(false);
-    setWalletConnectRequestInfo({});
+    const peerId = walletConnectRequestInfo?.peerId;
+    setWalletConnectRequestInfo(undefined);
     WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
   };
 
   const renderWalletConnectSessionRequestModal = () => {
-    const meta = walletConnectRequestInfo.peerMeta || null;
+    const meta = walletConnectRequestInfo?.peerMeta || null;
+    // walletConnectRequestInfo is reset to undefined in onWalletConnectSessionApproval as soon as the approval happens
+    if (!meta) return;
+
     return (
       <Modal
-        isVisible={walletConnectRequest}
+        isVisible={!!meta}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
@@ -722,7 +719,7 @@ const RootRPCMethodsUI = (props) => {
 
             const totalAccounts = props.accountsLength;
 
-            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+            trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
               number_of_accounts: totalAccounts,
               source: 'PERMISSION SYSTEM',
             });
