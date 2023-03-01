@@ -167,6 +167,10 @@ const CollectibleOverview = ({
   const renderCollectibleInfoRow = useCallback(
     (key, value, onPress) => {
       if (!value) return null;
+
+      if (value.toLowerCase().includes('javascript')) {
+        return null;
+      }
       return (
         <View style={styles.collectibleInfoContainer} key={key}>
           <Text

@@ -8,7 +8,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -64,10 +64,7 @@ const PersonalSign = ({
   }, [currentPageInformation, messageParams]);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGN_REQUEST_STARTED, getAnalyticsParams());
   }, [getAnalyticsParams]);
 
   const showWalletConnectNotification = (confirmation = false) => {
@@ -108,24 +105,21 @@ const PersonalSign = ({
 
   const cancelSignature = () => {
     rejectMessage();
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGN_REQUEST_CANCELLED, getAnalyticsParams());
     onCancel();
   };
 
   const confirmSignature = async () => {
     try {
       await signMessage();
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         getAnalyticsParams(),
       );
       onConfirm();
     } catch (e: any) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(),
         );
