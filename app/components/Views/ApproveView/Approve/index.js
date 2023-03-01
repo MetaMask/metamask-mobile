@@ -232,7 +232,8 @@ class Approve extends PureComponent {
   };
 
   componentDidMount = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
+    const { setNonce, setProposedNonce, transaction, showCustomNonce } =
+      this.props;
     if (!this.props?.transaction?.id) {
       this.props.toggleApproveModal(false);
       return null;
@@ -240,9 +241,9 @@ class Approve extends PureComponent {
     if (!this.props?.transaction?.gas) this.handleGetGasLimit();
 
     this.startPolling();
-    this.props.showCustomNonce &&
-      (await NetworkNonce({ setNonce, setProposedNonce, transaction }));
-
+    if (showCustomNonce) {
+      NetworkNonce({ setNonce, setProposedNonce, transaction });
+    }
     AppState.addEventListener('change', this.handleAppStateChange);
   };
 

@@ -227,8 +227,9 @@ class TransactionReviewInformation extends PureComponent {
   componentDidMount = async () => {
     const { showCustomNonce, setNonce, setProposedNonce, transaction } =
       this.props;
-    showCustomNonce &&
-      (await NetworkNonce({ setNonce, setProposedNonce, transaction }));
+    if (showCustomNonce) {
+      NetworkNonce({ setNonce, setProposedNonce, transaction });
+    }
   };
 
   toggleNonceModal = () =>

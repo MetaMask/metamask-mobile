@@ -340,8 +340,9 @@ class Confirm extends PureComponent {
       setProposedNonce,
       transaction,
     } = this.props;
-    showCustomNonce &&
-      (await NetworkNonce({ setNonce, setProposedNonce, transaction }));
+    if (showCustomNonce) {
+      NetworkNonce({ setNonce, setProposedNonce, transaction });
+    }
     navigation.setParams({ providerType, isPaymentRequest });
     this.parseTransactionDataHeader();
     if (isMultiLayerFeeNetwork(chainId)) {
