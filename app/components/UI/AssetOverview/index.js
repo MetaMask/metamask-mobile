@@ -5,6 +5,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -42,6 +43,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { isTestNet } from '../../../util/networks';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -335,7 +338,10 @@ class AssetOverview extends PureComponent {
       secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
     }
     return (
-      <View style={styles.wrapper} testID={'token-asset-overview'}>
+      <View
+        style={styles.wrapper}
+        {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
+      >
         <View style={styles.assetLogo}>{this.renderLogo()}</View>
         <View style={styles.balance}>
           {balanceError ? (
