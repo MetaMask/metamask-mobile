@@ -95,7 +95,7 @@ export default class AddCustomToken extends PureComponent {
   getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const { address, symbol } = this.state;
       return {
         token_address: address,
@@ -178,7 +178,7 @@ export default class AddCustomToken extends PureComponent {
     const address = this.state.address;
     const isValidTokenAddress = isValidAddress(address);
     const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.provider || {};
+    const { chainId } = NetworkController?.state?.providerConfig || {};
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
     const addressWithoutSpaces = address.replace(/\s/g, '');

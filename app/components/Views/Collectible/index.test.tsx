@@ -12,7 +12,7 @@ const initialState = {
         selectedAddress: '0x0',
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
           chainId: '1',
         },

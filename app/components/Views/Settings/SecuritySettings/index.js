@@ -61,6 +61,7 @@ import {
   LoginOptionsSettings,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectProviderType } from '../../../../selectors/networkController';
 import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
@@ -905,7 +906,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  type: state.engine.backgroundState.NetworkController.provider.type,
+  type: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

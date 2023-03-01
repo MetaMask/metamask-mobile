@@ -29,7 +29,7 @@ describe('Tokens', () => {
             contractBalance: {},
           },
           NetworkController: {
-            provider: { chainId: '1' },
+            providerConfig: { chainId: '1' },
           },
           PreferencesController: { useTokenDetection: true },
         },
@@ -76,7 +76,7 @@ describe('Tokens', () => {
             },
           },
           NetworkController: {
-            provider: { chainId: '1' },
+            providerConfig: { chainId: '1' },
           },
           PreferencesController: { useTokenDetection: true },
         },
@@ -127,7 +127,7 @@ describe('Tokens', () => {
             },
           },
           NetworkController: {
-            provider: { chainId: '1' },
+            providerConfig: { chainId: '1' },
           },
           PreferencesController: { useTokenDetection: true },
         },

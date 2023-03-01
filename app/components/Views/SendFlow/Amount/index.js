@@ -85,6 +85,11 @@ import {
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
+
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
 const createStyles = (colors) =>
@@ -1366,11 +1371,11 @@ const mapStateToProps = (state, ownProps) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,

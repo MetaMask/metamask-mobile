@@ -48,6 +48,11 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 const createStyles = (colors) =>
@@ -508,9 +513,9 @@ const mapStateToProps = (state) => ({
   identities: state.engine.backgroundState.PreferencesController.identities,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  network: String(state.engine.backgroundState.NetworkController.network),
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
+  network: String(selectNetwork(state)),
   swapsIsLive: swapsLivenessSelector(state),
 });
 
