@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
+
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles } from '../../../styles/common';
@@ -166,11 +167,19 @@ const CollectibleOverview = ({
   }, [collectible.description]);
 
   const renderCollectibleInfoRow = useCallback(
-    (key, value, onPress) => {
+    ({ key, value, onPress, checkLink }) => {
       if (!value) return null;
 
-      if (value.toLowerCase().includes('javascript')) {
-        return null;
+      if (checkLink) {
+        try {
+          const url = new URL(value);
+          // eslint-disable-next-line no-script-url
+          if (url.protocol === 'javascript:') {
+            return null;
+          }
+        } catch (err) {
+          return null;
+        }
       }
       return (
         <View style={styles.collectibleInfoContainer} key={key}>
@@ -203,42 +212,47 @@ const CollectibleOverview = ({
   );
 
   const renderCollectibleInfo = () => [
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_token_standard'),
-      collectible?.standard,
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_last_sold'),
-      collectible?.lastSale?.event_timestamp &&
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_token_standard'),
+      value: collectible?.standard,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_last_sold'),
+      value:
+        collectible?.lastSale?.event_timestamp &&
         toLocaleDate(
           new Date(collectible?.lastSale?.event_timestamp),
         ).toString(),
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_last_price_sold'),
-      collectible?.lastSale?.total_price &&
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_last_price_sold'),
+      value:
+        collectible?.lastSale?.total_price &&
         `${renderFromWei(collectible?.lastSale?.total_price)} ETH`,
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_source'),
-      collectible?.imageOriginal,
-      () => openLink(collectible?.imageOriginal),
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_link'),
-      collectible?.externalLink,
-      () => openLink(collectible?.externalLink),
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_asset_contract'),
-      renderShortAddress(collectible?.address),
-      () => {
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_source'),
+      value: collectible?.imageOriginal,
+      onPress: () => openLink(collectible?.imageOriginal),
+      checkLink: true,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_link'),
+      value: collectible?.externalLink,
+      onPress: () => openLink(collectible?.externalLink),
+      checkLink: true,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_asset_contract'),
+      value: renderShortAddress(collectible?.address),
+      onPress: () => {
         if (isMainNet(chainId))
           openLink(
             etherscanLink.createTokenTrackerLink(collectible?.address, chainId),
           );
       },
-    ),
+      checkLink: false,
+    }),
   ];
 
   const collectibleToFavorites = useCallback(() => {
