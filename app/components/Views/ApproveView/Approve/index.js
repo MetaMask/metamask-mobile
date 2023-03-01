@@ -430,9 +430,6 @@ class Approve extends PureComponent {
       eip1559GasTransaction,
     } = this.state;
 
-    // const { nonce } = this.props.transaction;
-    // console.log(nonce, 'nonce')
-
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
     } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
