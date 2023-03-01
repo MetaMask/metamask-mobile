@@ -39,9 +39,13 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
-import { toggleSDKLoadingModal } from '../../../app/actions/modals';
+import {
+  toggleAccountApprovalModal,
+  toggleSDKLoadingModal,
+} from '../../../app/actions/modals';
 import { store } from '../../../app/store';
 import generateOTP from './generateOTP.util';
+import { ethErrors } from 'eth-rpc-errors';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -267,8 +271,17 @@ export class Connection extends EventEmitter2 {
           clientsReadyMsg,
         );
 
-        this.otps = generateOTP();
-        if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
+        if (
+          !this.initialConnection &&
+          this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+        ) {
+          const approvalController = (
+            Engine.context as { ApprovalController: ApprovalController }
+          ).ApprovalController;
+
+          approvalController.clear(ethErrors.provider.userRejectedRequest());
+
+          this.otps = generateOTP();
           this.sendMessage({
             type: MessageType.OTP,
             otpAnswer: this.otps?.[0],
@@ -338,6 +351,7 @@ export class Connection extends EventEmitter2 {
         console.debug(
           `debug needsRedirect=${needsRedirect} isResumed=${this.isResumed}`,
         );
+        store.dispatch(toggleSDKLoadingModal(false));
 
         await waitForKeychainUnlocked();
 
@@ -349,7 +363,6 @@ export class Connection extends EventEmitter2 {
         // Check if channel is permitted
         try {
           if (METHODS_TO_REDIRECT[message?.method]) {
-            // Let the rpcMethodController handle permission when requesting account.
             await this.checkPermissions(message);
           } else {
             console.debug(`Allowed method`, message);
@@ -584,11 +597,17 @@ export class Connection extends EventEmitter2 {
         `Connection::checkPermissions approval already pending -- waiting for result origin=${this.origin}`,
       );
 
+      // TODO force display the modal
+      store.dispatch(toggleAccountApprovalModal(true));
+
       // Wait for result and clean the promise afterwards.
       approvalResult = await this.approvalPromise;
-      console.debug(`Connection::checkPermissions result=${approvalResult}`);
+      console.debug(
+        `Connection::checkPermissions result=${approvalResult}`,
+        message,
+      );
       this.approvalPromise = undefined;
-      return;
+      return true;
     }
 
     console.debug(
@@ -597,7 +616,7 @@ export class Connection extends EventEmitter2 {
     );
 
     this.approvalPromise = approvalController.add({
-      origin: this.host,
+      origin: this.origin,
       type: ApprovalTypes.CONNECT_ACCOUNTS,
       requestData: {
         hostname: this.originatorInfo?.title ?? '',
@@ -692,8 +711,8 @@ export class SDKConnect extends EventEmitter2 {
   private connecting: { [channelId: string]: boolean } = {};
   private approvedHosts: ApprovedHosts = {};
   private sdkLoadingState: { [channelId: string]: boolean } = {};
-  // Contains the list of hosts that have been temporarily disabled because of a re-connection.
-  // This is a security measure to prevent session hi-jacking.
+  // Contains the list of hosts that have been set to not persist "Do Not Remember" on account approval modal.
+  // This should only affect web connection from qr-code.
   private disabledHosts: ApprovedHosts = {};
 
   private SDKConnect() {
@@ -705,22 +724,30 @@ export class SDKConnect extends EventEmitter2 {
     otherPublicKey,
     origin,
   }: ConnectionProps) {
-    if (this.connecting[id]) {
-      console.debug(`connection already in progress...`);
-      // Try to ping to make sure to wake up the connection
-      this.connected[id].remote.ping();
+    // if (this.connecting[id]) {
+    //   console.debug(`connection already in progress...`);
+    //   // Try to ping to make sure to wake up the connection
+    //   this.connected[id].remote.ping();
+    //   return;
+    // }
+    if (this.paused) {
+      console.debug(
+        `SDKConnect::connectToChannel -- connection was paused - wait for resume...`,
+      );
       return;
     }
 
-    this.connecting[id] = true;
-    const existingConnection = this.connected[id];
-    console.debug(`SDKConnect::connectToChannel() channel=${id}`);
+    const existingConnection = this.connected[id] !== undefined;
+    console.debug(
+      `SDKConnect::connectToChannel() existingConnection=${existingConnection} channel=${id}`,
+    );
     if (existingConnection) {
       // Was previously started
       this.reconnect({ channelId: id });
       return;
     }
 
+    this.connecting[id] = true;
     this.connections[id] = {
       id,
       otherPublicKey,
@@ -837,6 +864,13 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   async reconnect({ channelId }: { channelId: string }) {
+    if (this.paused) {
+      console.debug(
+        `SDKConnect::reconnect -- connection was paused - wait for resume...`,
+      );
+      return;
+    }
+
     if (this.connecting[channelId]) {
       console.debug(
         `SDKConnect::reconnect -- connection already in progress...`,
@@ -864,11 +898,14 @@ export class SDKConnect extends EventEmitter2 {
       if (connected) {
         // When does this happen?
         console.debug(`this::reconnect() interrupted - already connected.`);
+        existingConnection?.remote.ping();
         return;
       }
     }
 
-    console.debug(`Establishing reconnection...`);
+    console.debug(
+      `SDKConnect::reconnect() Establishing reconnection for ${channelId}`,
+    );
     const connection = this.connections[channelId];
     this.connecting[channelId] = true;
     this.connected[channelId] = new Connection({
@@ -928,6 +965,18 @@ export class SDKConnect extends EventEmitter2 {
     DefaultPreference.set('paused', 'paused');
   }
 
+  /**
+   * Invalidate a channel/session by preventing future connection to be established.
+   * Instead of removing the channel, it creates sets the session to timeout on next
+   * connection which will remove it while conitnuing current session.
+   *
+   * @param channelId
+   */
+  public invalidateChannel(channelId: string) {
+    const host = MM_SDK_REMOTE_ORIGIN + channelId;
+    this.disabledHosts[host] = 0;
+  }
+
   public removeChannel(channelId: string, sendTerminate?: boolean) {
     if (this.connected[channelId]) {
       this.connected[channelId].removeConnection({
@@ -937,6 +986,7 @@ export class SDKConnect extends EventEmitter2 {
       delete this.connections[channelId];
       delete this.connecting[channelId];
       delete this.approvedHosts[MM_SDK_REMOTE_ORIGIN + channelId];
+      delete this.disabledHosts[MM_SDK_REMOTE_ORIGIN + channelId];
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_CONNECTIONS,
         JSON.stringify(this.connections),
@@ -992,7 +1042,6 @@ export class SDKConnect extends EventEmitter2 {
   public async revalidateChannel({ channelId }: { channelId: string }) {
     console.debug(`SDKConnect::revalidateChannel() channelId=${channelId}`);
     const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
-    // if (this.disabledHosts[hostname]) {
     this._approveHost({ host: hostname, hostname });
   }
 
@@ -1017,11 +1066,14 @@ export class SDKConnect extends EventEmitter2 {
     console.debug(`SDKConnect::_approveHost host=${host} hostname=${hostname}`);
     // Host is approved for 24h.
     this.approvedHosts[host] = Date.now() + DAY_IN_MS;
-    // Save to preferences
-    DefaultPreference.set(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-      JSON.stringify(this.approvedHosts),
-    );
+    if (!this.disabledHosts[host]) {
+      console.debug(`SDKConnect::_approveHost prevent disabled hosts`);
+      // Prevent disabled hosts from being persisted.
+      DefaultPreference.set(
+        AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+        JSON.stringify(this.approvedHosts),
+      );
+    }
     this.emit('refresh');
   }
 

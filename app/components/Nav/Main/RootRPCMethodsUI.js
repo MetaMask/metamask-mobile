@@ -42,6 +42,7 @@ import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import {
   toggleDappTransactionModal,
   toggleApproveModal,
+  toggleAccountApprovalModal,
 } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
@@ -95,6 +96,9 @@ const RootRPCMethodsUI = (props) => {
   const setEtherTransaction = props.setEtherTransaction;
 
   const showPendingApprovalModal = ({ type, origin }) => {
+    console.debug(
+      `RootRPCMethodsUI::showPendingApprovalModal type=${type} origin=${origin}`,
+    );
     InteractionManager.runAfterInteractions(() => {
       setShowPendingApproval({ type, origin });
     });
@@ -613,16 +617,22 @@ const RootRPCMethodsUI = (props) => {
    * When user clicks on approve to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsConfirm = () => {
-    acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    if (hostToApprove) {
+      acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    }
     setShowPendingApproval(false);
+    props.toggleAccountApprovalModal(false);
   };
 
   /**
    * When user clicks on reject to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsReject = () => {
-    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    if (hostToApprove) {
+      rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    }
     setShowPendingApproval(false);
+    props.toggleAccountApprovalModal(false);
   };
 
   /**
@@ -630,7 +640,10 @@ const RootRPCMethodsUI = (props) => {
    */
   const renderAccountsApprovalModal = () => (
     <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.CONNECT_ACCOUNTS}
+      isVisible={
+        showPendingApproval?.type === ApprovalTypes.CONNECT_ACCOUNTS ||
+        props?.accountApprovalModalVisible
+      }
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -701,6 +714,9 @@ const RootRPCMethodsUI = (props) => {
   const handlePendingApprovals = async (approval) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
+    console.debug(
+      `RootRPCMethodsUI::handlePendingApprovals approval=${approval}`,
+    );
     if (approval.pendingApprovalCount > 0) {
       const key = Object.keys(approval.pendingApprovals)[0];
       const request = approval.pendingApprovals[key];
@@ -854,6 +870,11 @@ RootRPCMethodsUI.propTypes = {
   */
   approveModalVisible: PropTypes.bool,
   /**
+   * Boolean that determines the status of the account approval modal
+   */
+  accountApprovalModalVisible: PropTypes.bool,
+  toggleAccountApprovalModal: PropTypes.func,
+  /**
    * Selected address
    */
   selectedAddress: PropTypes.string,
@@ -877,6 +898,7 @@ const mapStateToProps = (state) => ({
   tokens: state.engine.backgroundState.TokensController.tokens,
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   approveModalVisible: state.modals.approveModalVisible,
+  accountApprovalModalVisible: state.modals.accountApprovalModalVisible,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
@@ -888,6 +910,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setEtherTransaction: (transaction) =>
     dispatch(setEtherTransaction(transaction)),
+  toggleAccountApprovalModal: (visible) =>
+    dispatch(toggleAccountApprovalModal(visible)),
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
   toggleDappTransactionModal: (show = null) =>

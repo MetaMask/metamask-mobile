@@ -26,6 +26,7 @@ import {
   toggleAccountsModal,
   toggleChannelDisconnectModal,
   toggleReceiveModal,
+  toggleSDKFeedbackModal,
   toggleSDKLoadingModal,
 } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -192,6 +193,10 @@ class AccountOverview extends PureComponent {
      * Action that toggles the SDK loading modal
      */
     toggleSDKLoadingModal: PropTypes.func,
+    /**
+     * Action that toggles the SDK feedback modal
+     */
+    toggleSDKFeedbackModal: PropTypes.func,
     /**
      * whether component is being rendered from onboarding wizard
      */
@@ -567,6 +572,25 @@ class AccountOverview extends PureComponent {
                 width: 300,
                 backgroundColor: 'blue',
               }}
+              onPress={async () => {
+                this.props.toggleSDKFeedbackModal(true);
+              }}
+            >
+              <Text
+                // eslint-disable-next-line
+                style={{ color: 'white' }}
+              >
+                SDK Feedback Modal
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // eslint-disable-next-line prettier/prettier, react-native/no-color-literals, react-native/no-inline-styles
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: 300,
+                backgroundColor: 'blue',
+              }}
               onPress={() => {
                 const { navigation } = this.props;
                 // navigation.navigate('DebugSDKSessionsManagerView');
@@ -606,6 +630,8 @@ const mapDispatchToProps = (dispatch) => ({
   toggleAccountApprovalModal: (visible) =>
     dispatch(toggleAccountApprovalModal(visible)),
   toggleSDKLoadingModal: (visible) => dispatch(toggleSDKLoadingModal(visible)),
+  toggleSDKFeedbackModal: (visible) =>
+    dispatch(toggleSDKFeedbackModal(visible)),
   disconnectModal: () => dispatch(toggleChannelDisconnectModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
