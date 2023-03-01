@@ -1,0 +1,25 @@
+/* eslint-disable no-script-url */
+import isLinkSafe from './linkCheck';
+
+describe('linkCheck', () => {
+  it('should correctly check links for safety', () => {
+    expect(isLinkSafe('https://www.example.com/')).toEqual(true);
+    expect(isLinkSafe('javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('j&Tab;avascript:alert(1);')).toEqual(false);
+    expect(isLinkSafe('&Tab;javascript:alert(1);&tab;')).toEqual(false);
+    expect(isLinkSafe('javas\x00cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x07cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x0Dcript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x0Acript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x08cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x02cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x03cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x04cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x01cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x05cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x0Bcript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x09cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x06cript:javascript:alert(1)')).toEqual(false);
+    expect(isLinkSafe('javas\x0Ccript:javascript:alert(1)')).toEqual(false);
+  });
+});
