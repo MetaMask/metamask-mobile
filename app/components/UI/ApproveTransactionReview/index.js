@@ -65,6 +65,12 @@ import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import createStyles from './styles';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectTicker,
+} from '../../../selectors/networkController';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Text, {
   TextVariant,
@@ -380,7 +386,7 @@ class ApproveTransactionReview extends PureComponent {
         encodedAmount,
       } = this.state;
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
@@ -973,17 +979,17 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
   ).length,
   tokensLength: state.engine.backgroundState.TokensController.tokens.length,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  network: state.engine.backgroundState.NetworkController.network,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  network: selectNetwork(state),
+  chainId: selectChainId(state),
   tokenList: getTokenList(state),
 });
 

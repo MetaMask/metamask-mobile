@@ -12,7 +12,7 @@ const initialState = {
         isCustomNetwork: false,
         network: '1',
         properties: {},
-        provider: { chainId: '1', ticker: 'ETH', type: 'mainnet' },
+        providerConfig: { chainId: '1', ticker: 'ETH', type: 'mainnet' },
       },
       AddressBookController: {
         addressBook: {

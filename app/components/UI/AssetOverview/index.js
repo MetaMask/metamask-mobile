@@ -42,6 +42,10 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { isTestNet } from '../../../util/networks';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
@@ -411,8 +415,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   swapsIsLive: swapsLivenessSelector(state),
   swapsTokens: swapsTokensObjectSelector(state),
   tokenList: getTokenList(state),

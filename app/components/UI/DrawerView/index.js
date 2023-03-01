@@ -79,6 +79,7 @@ import {
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import { selectTicker } from '../../../selectors/networkController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
@@ -593,7 +594,7 @@ class DrawerView extends PureComponent {
     ) {
       const ens = await doENSReverseLookup(
         selectedAddress,
-        network.provider.chainId,
+        network.providerConfig.chainId,
       );
       this.setState((state) => ({
         account: {
@@ -771,24 +772,23 @@ class DrawerView extends PureComponent {
       selectedAddress,
       network,
       network: {
-        provider: { rpcTarget },
+        providerConfig: { rpcTarget },
       },
       frequentRpcList,
     } = this.props;
-    if (network.provider.type === RPC) {
+    if (network.providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
       const url = `${blockExplorer}/address/${selectedAddress}`;
       const title = new URL(blockExplorer).hostname;
       this.goToBrowserUrl(url, title);
     } else {
       const url = getEtherscanAddressUrl(
-        network.provider.type,
+        network.providerConfig.type,
         selectedAddress,
       );
-      const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace(
-        'https://',
-        '',
-      );
+      const etherscan_url = getEtherscanBaseUrl(
+        network.providerConfig.type,
+      ).replace('https://', '');
       this.goToBrowserUrl(url, etherscan_url);
     }
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
@@ -830,7 +830,7 @@ class DrawerView extends PureComponent {
     if (providerType === RPC) {
       const {
         network: {
-          provider: { rpcTarget },
+          providerConfig: { rpcTarget },
         },
       } = this.props;
       const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
@@ -929,7 +929,7 @@ class DrawerView extends PureComponent {
   getSections = () => {
     const {
       network: {
-        provider: { type, rpcTarget },
+        providerConfig: { type, rpcTarget },
       },
       frequentRpcList,
     } = this.props;
@@ -1269,7 +1269,7 @@ class DrawerView extends PureComponent {
                           name &&
                           name.toLowerCase().indexOf('etherscan') !== -1
                         ) {
-                          const type = network.provider?.type;
+                          const type = network.providerConfig?.type;
                           return (
                             (type && this.hasBlockExplorer(type)) || undefined
                           );
@@ -1406,7 +1406,7 @@ const mapStateToProps = (state) => ({
   receiveModalVisible: state.modals.receiveModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   tokenBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
@@ -1415,7 +1415,6 @@ const mapStateToProps = (state) => ({
   currentRoute: getCurrentRoute(state),
   networkOnboarding: state.networkOnboarded.networkState,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
-  networkProvider: state.engine.backgroundState.NetworkController.provider,
   switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 

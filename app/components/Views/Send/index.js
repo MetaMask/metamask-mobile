@@ -45,6 +45,10 @@ import { getTokenList } from '../../../reducers/tokens';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  selectNetwork,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -730,9 +734,9 @@ const mapStateToProps = (state) => ({
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   transaction: state.transaction,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,

@@ -27,7 +27,7 @@ const initialState = {
         currentCurrency: 'inr',
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           ticker: 'eth',
         },
       },

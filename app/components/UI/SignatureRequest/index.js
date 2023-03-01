@@ -18,6 +18,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { trackLegacyEvent } from '../../../util/analyticsV2';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import { selectProviderType } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -352,7 +353,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
 });
 
 SignatureRequest.contextType = ThemeContext;

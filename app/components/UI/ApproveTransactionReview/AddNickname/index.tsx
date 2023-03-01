@@ -130,7 +130,7 @@ const AddNickname = (props: AddNicknameProps) => {
     showModalAlert,
     networkState: {
       network,
-      provider: { type },
+      providerConfig: { type },
     },
   } = props;
 

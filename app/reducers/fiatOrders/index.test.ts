@@ -469,7 +469,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '56',
               },
             },
@@ -550,7 +550,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '56',
               },
             },
@@ -606,7 +606,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -679,7 +679,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -701,7 +701,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '56',
               },
             },
@@ -759,7 +759,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -835,7 +835,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -857,7 +857,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '56',
               },
             },
@@ -905,7 +905,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -927,7 +927,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -998,7 +998,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '1',
               },
             },
@@ -1061,7 +1061,7 @@ describe('selectors', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              provider: {
+              providerConfig: {
                 chainId: '56',
               },
             },

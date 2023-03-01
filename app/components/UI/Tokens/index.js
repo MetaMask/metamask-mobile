@@ -34,6 +34,7 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { selectChainId } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 
 const createStyles = (colors) =>
@@ -332,7 +333,7 @@ class Tokens extends PureComponent {
       trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
         tokens: detectedTokens.map(
           (token) => `${token.symbol} - ${token.address}`,
@@ -392,7 +393,7 @@ class Tokens extends PureComponent {
       trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
       });
       this.setState({ isAddTokenEnabled: true });
@@ -425,7 +426,7 @@ class Tokens extends PureComponent {
           asset_type: 'token',
           tokens: [`${symbol} - ${tokenAddress}`],
           chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
+            NetworkController?.state?.providerConfig?.chainId,
           ),
         }),
       );
@@ -466,7 +467,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
