@@ -35,7 +35,6 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
-import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import {
   EXISTING_USER,
@@ -316,14 +315,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       prevNavigator.current = navigator;
     }
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
-
-  useEffect(() => {
-    const initAnalytics = async () => {
-      await Analytics.init();
-    };
-
-    initAnalytics();
-  }, []);
 
   useEffect(() => {
     SDKConnect.init();

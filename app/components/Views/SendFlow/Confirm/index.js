@@ -7,12 +7,14 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
-import { getSendFlowTitle } from '../../../UI/Navbar';
-import { AddressFrom, AddressTo } from '../AddressInputs';
+
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 import Eth from 'ethjs-query';
 import {
   renderFromWei,
@@ -51,8 +53,6 @@ import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
@@ -62,7 +62,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/confusables';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
@@ -72,6 +72,8 @@ import TransactionReview from '../../../UI/TransactionReview/TransactionReviewEI
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import CustomNonce from '../../../UI/CustomNonce';
+import { getSendFlowTitle } from '../../../UI/Navbar';
+import { AddressFrom, AddressTo } from '../AddressInputs';
 import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
@@ -92,6 +94,8 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -363,7 +367,7 @@ class Confirm extends PureComponent {
       pollToken,
     });
     // For analytics
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -485,9 +489,7 @@ class Confirm extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
+        trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
       });
     }
   };
@@ -830,6 +832,11 @@ class Confirm extends PureComponent {
         });
 
         this.setState({ transactionConfirmed: false });
+        this.checkRemoveCollectible();
+        trackEvent(
+          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
+          this.getAnalyticsParams(),
+        );
       };
 
       if (isHardwareAccount(transaction.from, [KeyringTypes.ledger])) {
@@ -859,9 +866,7 @@ class Confirm extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
     }
   };
@@ -1154,7 +1159,7 @@ class Confirm extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -1308,7 +1313,10 @@ class Confirm extends PureComponent {
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
-              <Text style={styles.textAmount} testID={'confirm-txn-amount'}>
+              <Text
+                style={styles.textAmount}
+                {...generateTestId(Platform, COMFIRM_TXN_AMOUNT)}
+              >
                 {transactionValue}
               </Text>
               {isMainnetByChainId(chainId) && (

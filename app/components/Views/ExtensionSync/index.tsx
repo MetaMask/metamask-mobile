@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
@@ -15,9 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Logger from '../../../util/Logger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import Analytics from '../../../core/Analytics/Analytics';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import {
@@ -168,8 +167,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const track = useCallback(
     (...eventArgs) => {
       InteractionManager.runAfterInteractions(async () => {
-        if (Analytics.checkEnabled()) {
-          AnalyticsV2.trackEvent(eventArgs[0], eventArgs[1]);
+        if (MetaMetrics.checkEnabled()) {
+          trackEvent(eventArgs[0], eventArgs[1]);
           return;
         }
         const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);

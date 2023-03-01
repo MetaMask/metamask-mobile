@@ -4,6 +4,7 @@ import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -11,12 +12,11 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   getAddressAccountType,
   isHardwareAccount,
 } from '../../../util/address';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
@@ -100,7 +100,7 @@ class MessageSign extends PureComponent {
   };
 
   componentDidMount = () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
@@ -136,8 +136,8 @@ class MessageSign extends PureComponent {
 
     const finalizeConfirmation = async (confirmed, rawSignature) => {
       if (!confirmed) {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+        trackEvent(
+          MetaMetricsEvents.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
           this.getAnalyticsParams(),
         );
         return this.rejectMessage(messageId);
@@ -146,7 +146,7 @@ class MessageSign extends PureComponent {
       MessageManager.setMessageStatusSigned(messageId, rawSignature);
       this.showWalletConnectNotification(messageParams, true);
 
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
@@ -156,7 +156,6 @@ class MessageSign extends PureComponent {
 
     if (isLedgerAccount) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
-      console.log('[MessageSign] in sign message ledger');
 
       this.props.navigation.navigate(
         ...createLedgerMessageSignModalNavDetails({
@@ -190,7 +189,7 @@ class MessageSign extends PureComponent {
     const messageId = messageParams.metamaskId;
 
     this.rejectMessage(messageId);
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -200,10 +199,14 @@ class MessageSign extends PureComponent {
   confirmSignature = async () => {
     try {
       await this.signMessage();
+      trackEvent(
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+        this.getAnalyticsParams(),
+      );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );

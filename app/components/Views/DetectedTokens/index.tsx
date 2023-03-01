@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { Token as TokenType } from '@metamask/assets-controllers';
@@ -13,9 +14,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import { getDecimalChainId } from '../../../util/networks';
 import { FlatList } from 'react-native-gesture-handler';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
@@ -127,7 +126,7 @@ const DetectedTokens = () => {
             await TokensController.addTokens(tokensToImport);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
-                AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
+                trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
                   token_address: address,
                   token_symbol: symbol,
                   chain_id: getDecimalChainId(
@@ -160,7 +159,7 @@ const DetectedTokens = () => {
       isHidingAll: true,
     });
     InteractionManager.runAfterInteractions(() =>
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+      trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
         location: 'token_detection',
         token_standard: 'ERC20',
         asset_type: 'token',
@@ -260,7 +259,7 @@ const DetectedTokens = () => {
     if (hasPendingAction) {
       return;
     }
-    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
       chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),

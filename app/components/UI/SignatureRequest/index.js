@@ -1,22 +1,23 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
-import Analytics from '../../../core/Analytics/Analytics';
 import { isHardwareAccount } from '../../../util/address';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
@@ -168,7 +169,7 @@ class SignatureRequest extends PureComponent {
    */
   onCancel = () => {
     this.props.onCancel();
-    Analytics.trackEventWithParameters(
+    trackLegacyEvent(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
@@ -179,7 +180,7 @@ class SignatureRequest extends PureComponent {
    */
   onConfirm = () => {
     this.props.onConfirm();
-    Analytics.trackEventWithParameters(
+    trackLegacyEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );

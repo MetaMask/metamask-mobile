@@ -3,13 +3,14 @@ import { Then } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import Contacts from '../screen-objects/Contacts';
 import AddContact from '../screen-objects/AddContact';
+import CommonScreen from '../screen-objects/CommonScreen';
 
 Then(/^I am on the contacts view/, async () => {
   await Contacts.isContactsScreenDisplayed();
 });
-Then(/^I tap on the "Add contact" button/, async () => {
+Then(/^I tap on the "([^"]*)?" button/, async (text) => {
   await driver.pause(2000);
-  await Contacts.tapOnText('Add contact');
+  await CommonScreen.tapOnText(text);
 });
 
 Then(/^I tap button Add contact which is now enabled/, async () => {

@@ -12,7 +12,7 @@ import SheetBottom, {
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import UntypedEngine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -52,7 +52,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     onSelectAccount?.(address);
     InteractionManager.runAfterInteractions(() => {
       // Track Event: "Switched Account"
-      AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+      trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
         source: 'Wallet Tab',
         number_of_accounts: accounts?.length,
       });
@@ -74,7 +74,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       setIsLoading(true);
       const { addedAccountAddress } = await KeyringController.addNewAccount();
       PreferencesController.setSelectedAddress(addedAccountAddress);
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+      trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
     } finally {
@@ -87,14 +87,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const openImportAccount = useCallback(() => {
     navigation.navigate('ImportPrivateKeyView');
     // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+    trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
     onOpenImportAccount?.();
   }, [onOpenImportAccount, navigation]);
 
   const openConnectHardwareWallet = useCallback(() => {
     navigation.navigate(Routes.HW.CONNECT);
     // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+    trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
     onOpenConnectHardwareWallet?.();
   }, [onOpenConnectHardwareWallet, navigation]);
 
