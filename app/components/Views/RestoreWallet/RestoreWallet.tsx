@@ -67,9 +67,7 @@ const RestoreWallet = () => {
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();
     if (restoreResult.success) {
-      // navigate(...createWalletRestoredNavDetails());
-      // Testing the WalletResetNeeded screen
-      navigate(...createWalletResetNeededNavDetails());
+      navigate(...createWalletRestoredNavDetails());
       setLoading(false);
     } else {
       navigate(...createWalletResetNeededNavDetails());
