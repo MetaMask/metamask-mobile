@@ -10,6 +10,6 @@
  *
  */
 const containsErrorMessage = (error: Error, message: string): boolean =>
-  error.message.toLowerCase().includes(message.toLowerCase());
+  error.toString().toLowerCase().includes(message.toLowerCase());
 
 export default containsErrorMessage;

@@ -55,7 +55,7 @@ const RestoreWallet = () => {
   useEffect(() => {
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
-      { deviceMetaData, previousScreen },
+      { ...deviceMetaData, previousScreen },
     );
   }, [deviceMetaData, previousScreen]);
 
