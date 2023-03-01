@@ -30,6 +30,7 @@ import {
 import { toggleNetworkModal } from '../../../actions/modals';
 import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -67,9 +68,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const networkProvider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const networkProvider = useSelector(selectProviderConfig);
   const dispatch = useDispatch();
 
   const handleKeyboardVisibility = useCallback(

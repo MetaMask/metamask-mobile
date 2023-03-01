@@ -10,7 +10,7 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: ROPSTEN,
           nickname: 'Ropsten',
         },

@@ -13,7 +13,7 @@ const initialState = {
         ipfsGateway: 'https://ipfs.io/ipfs/',
       },
       NetworkController: {
-        provider: { chainId: '1' },
+        providerConfig: { chainId: '1' },
       },
     },
   },

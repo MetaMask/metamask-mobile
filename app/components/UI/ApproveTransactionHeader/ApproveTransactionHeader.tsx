@@ -74,7 +74,8 @@ const ApproveTransactionHeader = ({
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.providerConfig,
   );
 
   useEffect(() => {

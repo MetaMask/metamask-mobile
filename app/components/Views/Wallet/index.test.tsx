@@ -51,7 +51,7 @@ const initialState = {
         },
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
           nickname: 'Ethereum mainnet',
           ticket: 'eth',

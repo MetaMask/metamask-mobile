@@ -98,11 +98,11 @@ class NavbarBrowserTitle extends PureComponent {
   getNetworkName(network) {
     let name = { ...Networks.rpc, color: null }.name;
 
-    if (network && network.provider) {
-      if (network.provider.nickname) {
-        name = network.provider.nickname;
-      } else if (network.provider.type) {
-        const currentNetwork = Networks[network.provider.type];
+    if (network && network.providerConfig) {
+      if (network.providerConfig.nickname) {
+        name = network.providerConfig.nickname;
+      } else if (network.providerConfig.type) {
+        const currentNetwork = Networks[network.providerConfig.type];
         if (currentNetwork && currentNetwork.name) {
           name = currentNetwork.name;
         }
@@ -117,8 +117,8 @@ class NavbarBrowserTitle extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const color =
-      (Networks[network.provider.type] &&
-        Networks[network.provider.type].color) ||
+      (Networks[network.providerConfig.type] &&
+        Networks[network.providerConfig.type].color) ||
       null;
     const name = this.getNetworkName(network);
 

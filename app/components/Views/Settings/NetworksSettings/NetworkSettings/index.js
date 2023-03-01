@@ -73,6 +73,7 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -240,9 +241,9 @@ class NetworkSettings extends PureComponent {
      */
     isCustomMainnet: PropTypes.bool,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
   };
 
   state = {
@@ -765,11 +766,11 @@ class NetworkSettings extends PureComponent {
   };
 
   removeRpcUrl = () => {
-    const { navigation, provider } = this.props;
+    const { navigation, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
-      compareSanitizedUrl(rpcUrl, provider.rpcTarget) &&
-      provider.type === RPC
+      compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
+      providerConfig.type === RPC
     ) {
       this.switchToMainnet();
     }
@@ -1114,7 +1115,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
