@@ -17,8 +17,6 @@
 		153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		15ACC9FB226555820063978B /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
-		15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
-		15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
@@ -47,7 +45,6 @@
 		B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
-		B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
 		B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		B339FF10289ABD70001B89FB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		B339FF11289ABD70001B89FB /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
@@ -81,7 +78,6 @@
 		B339FF2D289ABD70001B89FB /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		B339FF2E289ABD70001B89FB /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		B339FF33289ABD70001B89FB /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
 		B638844E306CAE9147B52C85 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0FF04C201CE95ED7EEEA82 /* libPods-MetaMask.a */; };
 		BF39E5BAE0F34F9091FF6AC0 /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
@@ -113,41 +109,6 @@
 			remoteGlobalIDString = E298D0511C73D1B800589D22;
 			remoteInfo = Branch;
 		};
-		15723E2C225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 62CA59B81E3C173B002D7188;
-			remoteInfo = Lottie_iOS;
-		};
-		15723E2E225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = FAE1F7E61E428CBE002E0974;
-			remoteInfo = Lottie_macOS;
-		};
-		15723E30225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8C5379761FB471D100C1BC65;
-			remoteInfo = Lottie_tvOS;
-		};
-		15723E32225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 84FE12EF1E4C1485009B157C;
-			remoteInfo = LottieLibraryIOS;
-		};
-		15ACC9FE22655C3A0063978B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
-			remoteInfo = Lottie_iOS;
-		};
 		650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
@@ -155,19 +116,40 @@
 			remoteGlobalIDString = 32D980DD1BE9F11C00FA27E5;
 			remoteInfo = RCTAesForked;
 		};
-		B339FEFA289ABD70001B89FB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
-			remoteInfo = Lottie_iOS;
-		};
 		B339FEFE289ABD70001B89FB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = E298D0511C73D1B800589D22;
 			remoteInfo = Branch;
+		};
+		CFB2365129B0187E0027D708 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2E80409A27A0725D006E74CB;
+			remoteInfo = "Lottie-iOS";
+		};
+		CFB2365329B0187E0027D708 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2EAF59AD27A0787B00E00531;
+			remoteInfo = "Lottie-macOS";
+		};
+		CFB2365529B0187E0027D708 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2EAF59B927A078E400E00531;
+			remoteInfo = "Lottie-tvOS";
+		};
+		CFB2365729B0187E0027D708 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2E8040AC27A072B8006E74CB;
+			remoteInfo = LottieTests;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -179,7 +161,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */,
-				15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -191,7 +172,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */,
-				B339FF33289ABD70001B89FB /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -291,7 +271,6 @@
 				F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */,
 				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
-				15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				0FD509E0336BF221F6527B24 /* libPods-MetaMask.a in Frameworks */,
 				D45BF85DECACCB74EDCBE88A /* libPods-MetaMask.a in Frameworks */,
@@ -306,7 +285,6 @@
 				B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */,
 				B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */,
 				B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */,
-				B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */,
 				B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */,
 				DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */,
 			);
@@ -364,10 +342,10 @@
 		15723E24225FD0B800A5B418 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				15723E2D225FD0B800A5B418 /* Lottie.framework */,
-				15723E2F225FD0B800A5B418 /* Lottie.framework */,
-				15723E31225FD0B800A5B418 /* Lottie.framework */,
-				15723E33225FD0B800A5B418 /* libLottie.a */,
+				CFB2365229B0187E0027D708 /* Lottie.framework */,
+				CFB2365429B0187E0027D708 /* Lottie.framework */,
+				CFB2365629B0187E0027D708 /* Lottie.framework */,
+				CFB2365829B0187E0027D708 /* LottieTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -549,7 +527,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				15ACC9FF22655C3A0063978B /* PBXTargetDependency */,
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
 			);
 			name = MetaMask;
@@ -574,7 +551,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B339FEF9289ABD70001B89FB /* PBXTargetDependency */,
 				B339FEFD289ABD70001B89FB /* PBXTargetDependency */,
 			);
 			name = "MetaMask-QA";
@@ -648,39 +624,39 @@
 			remoteRef = 153F84C82319B8DB00C19B63 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		15723E2D225FD0B800A5B418 /* Lottie.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Lottie.framework;
-			remoteRef = 15723E2C225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E2F225FD0B800A5B418 /* Lottie.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Lottie.framework;
-			remoteRef = 15723E2E225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E31225FD0B800A5B418 /* Lottie.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Lottie.framework;
-			remoteRef = 15723E30225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E33225FD0B800A5B418 /* libLottie.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libLottie.a;
-			remoteRef = 15723E32225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libRCTAesForked.a;
 			remoteRef = 650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CFB2365229B0187E0027D708 /* Lottie.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Lottie.framework;
+			remoteRef = CFB2365129B0187E0027D708 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CFB2365429B0187E0027D708 /* Lottie.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Lottie.framework;
+			remoteRef = CFB2365329B0187E0027D708 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CFB2365629B0187E0027D708 /* Lottie.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Lottie.framework;
+			remoteRef = CFB2365529B0187E0027D708 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CFB2365829B0187E0027D708 /* LottieTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = LottieTests.xctest;
+			remoteRef = CFB2365729B0187E0027D708 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -980,16 +956,6 @@
 			isa = PBXTargetDependency;
 			name = Branch;
 			targetProxy = 153F84CC2319B8FD00C19B63 /* PBXContainerItemProxy */;
-		};
-		15ACC9FF22655C3A0063978B /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Lottie_iOS;
-			targetProxy = 15ACC9FE22655C3A0063978B /* PBXContainerItemProxy */;
-		};
-		B339FEF9289ABD70001B89FB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Lottie_iOS;
-			targetProxy = B339FEFA289ABD70001B89FB /* PBXContainerItemProxy */;
 		};
 		B339FEFD289ABD70001B89FB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
