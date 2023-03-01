@@ -132,6 +132,10 @@ const createStyles = (colors) =>
     },
   });
 
+const FieldType = {
+  Link: 'Link',
+  Text: 'Text',
+};
 /**
  * View that displays the information of a specific ERC-721 Token
  */
@@ -167,10 +171,10 @@ const CollectibleOverview = ({
   }, [collectible.description]);
 
   const renderCollectibleInfoRow = useCallback(
-    ({ key, value, onPress, checkLink }) => {
+    ({ key, value, onPress, type }) => {
       if (!value) return null;
 
-      if (checkLink) {
+      if (type === FieldType.Link) {
         try {
           const url = new URL(value);
           // eslint-disable-next-line no-script-url
@@ -215,6 +219,7 @@ const CollectibleOverview = ({
     renderCollectibleInfoRow({
       key: strings('collectible.collectible_token_standard'),
       value: collectible?.standard,
+      type: FieldType.Text,
     }),
     renderCollectibleInfoRow({
       key: strings('collectible.collectible_last_sold'),
@@ -223,24 +228,26 @@ const CollectibleOverview = ({
         toLocaleDate(
           new Date(collectible?.lastSale?.event_timestamp),
         ).toString(),
+      type: FieldType.Text,
     }),
     renderCollectibleInfoRow({
       key: strings('collectible.collectible_last_price_sold'),
       value:
         collectible?.lastSale?.total_price &&
         `${renderFromWei(collectible?.lastSale?.total_price)} ETH`,
+      type: FieldType.Text,
     }),
     renderCollectibleInfoRow({
       key: strings('collectible.collectible_source'),
       value: collectible?.imageOriginal,
       onPress: () => openLink(collectible?.imageOriginal),
-      checkLink: true,
+      type: FieldType.Link,
     }),
     renderCollectibleInfoRow({
       key: strings('collectible.collectible_link'),
       value: collectible?.externalLink,
       onPress: () => openLink(collectible?.externalLink),
-      checkLink: true,
+      type: FieldType.Link,
     }),
     renderCollectibleInfoRow({
       key: strings('collectible.collectible_asset_contract'),
@@ -251,7 +258,7 @@ const CollectibleOverview = ({
             etherscanLink.createTokenTrackerLink(collectible?.address, chainId),
           );
       },
-      checkLink: false,
+      type: FieldType.Text,
     }),
   ];
 
