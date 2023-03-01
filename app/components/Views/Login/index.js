@@ -60,6 +60,7 @@ import {
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
+import { containsErrorMessage } from '../../../util/errorHandling';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -203,7 +204,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
-const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
 
 /**
@@ -307,7 +308,7 @@ class Login extends PureComponent {
     this.setState({ loading: true });
     try {
       const backupResult = await getVaultFromBackup();
-      if (backupResult.vault && this.state.password) {
+      if (backupResult.vault && passwordRequirementsMet(this.state.password)) {
         const vaultSeed = await parseVaultValue(
           this.state.password,
           backupResult.vault,
@@ -319,7 +320,7 @@ class Login extends PureComponent {
             this.state.rememberMe,
           );
           try {
-            await Authentication.storePassword(
+            await Authentication.thr(
               this.state.password,
               authData.currentAuthType,
             );
@@ -406,7 +407,7 @@ class Login extends PureComponent {
           strings('login.security_alert_desc'),
         );
         this.setState({ loading: false });
-      } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
+      } else if (containsErrorMessage(error, VAULT_ERROR)) {
         const vaultCorruptionError = new Error('Vault Corruption Error');
         Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
         await this.handleVaultCorruption();
