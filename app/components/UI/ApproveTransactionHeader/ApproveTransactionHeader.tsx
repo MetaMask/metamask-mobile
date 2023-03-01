@@ -67,7 +67,8 @@ const ApproveTransactionHeader = ({
   );
 
   const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.providerConfig,
   );
 
   useEffect(() => {
