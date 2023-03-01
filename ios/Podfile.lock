@@ -292,8 +292,8 @@ PODS:
   - React-jsinspector (0.67.5)
   - React-logger (0.67.5):
     - glog
-  - react-native-aes (1.3.9):
-    - React
+  - react-native-aes (2.0.0):
+    - React-Core
   - react-native-background-timer (2.1.1):
     - React
   - react-native-blur (0.8.0):
@@ -815,7 +815,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e9895ccae253323ca70f693945fecbba091f0abd
   React-jsinspector: ec4fe4f65ccf9d67c8429dda955d3412db8a25ef
   React-logger: 85f4ef06b9723714b2dfa5b0e5502b673b271b58
-  react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
+  react-native-aes: c75c46aa744bef7c2415fdf7f5b2dcb75ca4364d
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e

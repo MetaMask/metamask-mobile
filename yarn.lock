@@ -20284,10 +20284,10 @@ react-native-actionsheet@beefe/react-native-actionsheet#107/head:
   version "1.2.1"
   resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
 
-react-native-aes-crypto@1.3.9:
-  version "1.3.9"
-  resolved "https://registry.yarnpkg.com/react-native-aes-crypto/-/react-native-aes-crypto-1.3.9.tgz#6f068535462c1b7d7d70a4152d519ae9911c3e69"
-  integrity sha512-xMl/VCWC9riSyidFsCjXQbR+BIxCZyQtRfVR4dLZbHsk3AMZnVw8VojKVIXRmQtSm3uEMdTUvcLm9HaB3Xf+Cw==
+react-native-aes-crypto@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-aes-crypto/-/react-native-aes-crypto-2.1.1.tgz#371100ad322195f2792e2b365923620599d8abc2"
+  integrity sha512-huAt7k43myFiY0bPnvoaCP0oBjTMw4VsL2mjkmCPzzDA56Sm3ps5xXIejPo5Z9qfnei9iijHzATV8eRNMEPtbQ==
 
 react-native-animatable@1.3.3, react-native-animatable@^1.3.3:
   version "1.3.3"
