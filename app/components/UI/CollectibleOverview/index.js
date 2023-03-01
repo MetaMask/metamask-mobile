@@ -29,6 +29,7 @@ import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
+import { isLinkSafe } from '../../../util/linkCheck';
 import etherscanLink from '@metamask/etherscan-link';
 import {
   addFavoriteCollectible,
@@ -173,17 +174,8 @@ const CollectibleOverview = ({
   const renderCollectibleInfoRow = useCallback(
     ({ key, value, onPress, type }) => {
       if (!value) return null;
-
       if (type === FieldType.Link) {
-        try {
-          const url = new URL(value);
-          // eslint-disable-next-line no-script-url
-          if (url.protocol === 'javascript:') {
-            return null;
-          }
-        } catch (err) {
-          return null;
-        }
+        if (!isLinkSafe(value)) return null;
       }
       return (
         <View style={styles.collectibleInfoContainer} key={key}>
