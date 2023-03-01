@@ -23,6 +23,10 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 
   const onError = () => setError(true);
 
+  // Video source can be either a number returned by require() for local files
+  // or an object of the form { uri: 'http://...' } for remote files
+  const source = Number.isInteger(uri) ? uri : { uri } ;
+
   return (
     <View style={style}>
       {loading && (
@@ -35,7 +39,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
           onLoad={onLoad}
           onError={onError}
           onClose={onClose}
-          source={{ uri }}
+          source={source}
           textTracks={textTracks}
           selectedTextTrack={selectedTextTrack}
         />
@@ -45,7 +49,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
           onError={onError}
           style={style}
           muted
-          source={{ uri }}
+          source={source}
           controls
           textTracks={textTracks}
           selectedTextTrack={selectedTextTrack}
@@ -59,8 +63,13 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 MediaPlayer.propTypes = {
   /**
    * Media URI
+   * Can be a number returned by require() for local files
+   * or a string for remote files (http://...)
    */
-  uri: PropTypes.string,
+  uri: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number
+  ]),
   /**
    * Custom style object
    */

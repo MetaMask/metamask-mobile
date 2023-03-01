@@ -2,11 +2,12 @@ import { getSubtitleUri } from '.';
 import { getLanguages } from '../../../locales/i18n';
 
 describe('getSubtitleUri', () => {
+  const videoPathBase = 'https://github.com/MetaMask/metamask-mobile/blob/main/app/'
   const languageKeys = Object.keys(getLanguages());
   languageKeys.forEach((key) => {
-    it(`should return ${key} for ${key}`, () => {
+    it(`should return correct path for '${key}' lang`, () => {
       expect(getSubtitleUri(key)).toStrictEqual(
-        `https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-${key}.vtt?raw=true`,
+        `${videoPathBase}videos/subtitles/secretPhrase/subtitles-${key}.vtt?raw=true`,
       );
     });
   });

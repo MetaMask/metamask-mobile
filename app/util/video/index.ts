@@ -1,11 +1,20 @@
-const baseUrl =
-  'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
-const subtitlePath = 'subtitles/secretPhrase/subtitles-';
-const ext = '.vtt?raw=true';
-const path = `${baseUrl}${subtitlePath}`;
+import _ from 'lodash';
 
+// Remote path for subtitles that can't be bundled with the app
+// because only remote subtitles are supported by react-native-video
+const baseRemoteSubtitlesPath = 'https://github.com/MetaMask/metamask-mobile/blob/main/app/';
+const baseSubtitlesPath = 'videos/subtitles/secretPhrase/';
+const subtitleFileFormat = 'subtitles-${language}.vtt';
+const gitHubRawPathParam = '?raw=true';
+const subtitlePathTemplate = `${baseRemoteSubtitlesPath}${baseSubtitlesPath}${subtitleFileFormat}${gitHubRawPathParam}`;
+
+/**
+ * Returns the subtitle URI for a given language
+ * @param language
+ */
 export function getSubtitleUri(language: string): string {
-  return `${path}${language}${ext}`;
+  return _.template(subtitlePathTemplate)({language});
 }
 
-export const video_source_uri = `${baseUrl}recovery-phrase.mp4?raw=true`;
+// Bundled recovery phrase video local path
+export const video_source_uri = require('../../videos/recovery-phrase.mp4');
