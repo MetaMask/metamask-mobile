@@ -9,9 +9,8 @@ import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
+import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -133,6 +132,7 @@ class AccountApproval extends PureComponent {
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         number_of_accounts: accountsLength,
+        number_of_accounts_connected: 1,
         source: 'SDK / WalletConnect',
         ...currentPageInformation?.analytics,
       };
@@ -143,7 +143,7 @@ class AccountApproval extends PureComponent {
 
   componentDidMount = () => {
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_STARTED,
         this.getAnalyticsParams(),
       );
@@ -171,7 +171,7 @@ class AccountApproval extends PureComponent {
    */
   onConfirm = () => {
     this.props.onConfirm();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       this.getAnalyticsParams(),
     );
@@ -182,7 +182,7 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );

@@ -30,7 +30,7 @@ import {
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
@@ -183,7 +183,7 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
                 location: 'token_details',
                 token_standard: 'ERC20',
                 asset_type: 'token',

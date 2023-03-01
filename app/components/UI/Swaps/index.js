@@ -17,6 +17,8 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
@@ -27,8 +29,6 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -39,8 +39,11 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
+import {
+  trackLegacyEvent,
+  trackLegacyAnonymousEvent,
+} from '../../../util/analyticsV2';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
@@ -257,14 +260,10 @@ function SwapsAmountView({
               )?.symbol,
               chain_id: chainId,
             };
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              {},
-            );
-            Analytics.trackEventWithParameters(
+            trackLegacyEvent(MetaMetricsEvents.SWAPS_OPENED, {});
+            trackLegacyAnonymousEvent(
               MetaMetricsEvents.SWAPS_OPENED,
               parameters,
-              true,
             );
           });
         } else {

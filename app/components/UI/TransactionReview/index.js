@@ -16,6 +16,8 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
+import { withNavigation } from '@react-navigation/compat';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
@@ -34,11 +36,10 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
@@ -47,7 +48,6 @@ import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { withNavigation } from '@react-navigation/compat';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import {
   selectChainId,
@@ -308,7 +308,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
+      trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -372,7 +372,7 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange } = this.props;
-    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 

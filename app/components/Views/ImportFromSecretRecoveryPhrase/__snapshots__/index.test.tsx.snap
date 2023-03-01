@@ -1,8 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ImportFromSeed should render correctly 1`] = `
-<ImportFromSeed
-  logIn={[Function]}
+exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
+<ImportFromSecretRecoveryPhrase
   passwordSet={[Function]}
   seedphraseBackedUp={[Function]}
   setLockTime={[Function]}
