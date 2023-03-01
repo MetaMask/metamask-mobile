@@ -81,6 +81,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   const hostname = hostInfo.metadata.origin;
+  const urlWithProtocol = useMemo(
+    () => `${getUrlObj(origin).protocol}//${hostname}`,
+    [origin, hostname],
+  );
 
   const secureIcon = useMemo(
     () =>
@@ -313,8 +317,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
         favicon={favicon}
-        hostname={hostname}
         secureIcon={secureIcon}
+        urlWithProtocol={urlWithProtocol}
       />
     );
   }, [
@@ -325,8 +329,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     setScreen,
     setSelectedAddresses,
     favicon,
-    hostname,
     secureIcon,
+    urlWithProtocol,
     setUserIntent,
   ]);
 
@@ -362,8 +366,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
         favicon={favicon}
-        hostname={hostname}
         secureIcon={secureIcon}
+        urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
       />
     ),
@@ -375,7 +379,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       setUserIntent,
       favicon,
-      hostname,
+      urlWithProtocol,
       secureIcon,
     ],
   );

@@ -11,7 +11,13 @@ class CommonScreen {
   }
 
   async tapOnText(text) {
+    // Taps only specified text
     await Gestures.tapTextByXpath(text);
+  }
+
+  async tapTextContains(text) {
+    // Taps text that contains the string
+    await Gestures.tapByTextContaining(text);
   }
 }
 

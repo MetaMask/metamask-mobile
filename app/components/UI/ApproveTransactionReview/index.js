@@ -41,7 +41,6 @@ import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
-import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
@@ -76,6 +75,7 @@ import ButtonLink from '../../../component-library/components/Buttons/Button/var
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -622,7 +622,6 @@ class ApproveTransactionReview extends PureComponent {
 
   renderDetails = () => {
     const {
-      host,
       spenderAddress,
       originalApproveAmount,
       customSpendAmount,
@@ -634,7 +633,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from },
+      transaction: { origin },
       network,
       over,
       gasEstimateType,
@@ -668,115 +667,6 @@ class ApproveTransactionReview extends PureComponent {
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
-          <TransactionHeader
-            currentPageInformation={{
-              origin,
-              spenderAddress,
-              title: host,
-              url: activeTabUrl,
-            }}
-          />
-          <Text
-            variant={TextVariant.HeadingMD}
-            style={styles.title}
-            testID={'allow-access'}
-          >
-            {strings(
-              `spend_limit_edition.${
-                originIsDeeplink ? 'allow_to_address_access' : 'allow_to_access'
-              }`,
-            )}{' '}
-            {!fetchingUpdateDone && (
-              <Text variant={TextVariant.HeadingMD}>
-                {strings('spend_limit_edition.token')}
-              </Text>
-            )}
-            {tokenStandard === ERC20 && (
-              <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
-            )}
-            {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-              <ButtonLink
-                onPress={showBlockExplorer}
-                label={
-                  <Text
-                    variant={TextVariant.HeadingMD}
-                    style={styles.buttonColor}
-                  >
-                    {tokenName ||
-                      tokenSymbol ||
-                      strings(`spend_limit_edition.nft`)}{' '}
-                    (#{tokenValue})
-                  </Text>
-                }
-              />
-            )}
-          </Text>
-
-          {tokenStandard !== ERC721 &&
-            tokenStandard !== ERC1155 &&
-            originalApproveAmount && (
-              <View style={styles.tokenAccess}>
-                <Text bold style={styles.tokenKey}>
-                  {` ${strings('spend_limit_edition.access_up_to')} `}
-                </Text>
-                <Text numberOfLines={4} style={styles.tokenValue}>
-                  {` ${
-                    customSpendAmount
-                      ? formatNumber(customSpendAmount)
-                      : originalApproveAmount &&
-                        formatNumber(originalApproveAmount)
-                  } ${tokenSymbol}`}
-                </Text>
-              </View>
-            )}
-
-          {fetchingUpdateDone &&
-            tokenStandard !== ERC721 &&
-            tokenStandard !== ERC1155 && (
-              <TouchableOpacity
-                style={styles.actionTouchable}
-                onPress={this.toggleEditPermission}
-              >
-                <Text reset style={styles.editPermissionText}>
-                  {strings('spend_limit_edition.edit_permission')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          <Text reset style={styles.explanation}>
-            {`${strings(
-              `spend_limit_edition.${
-                originIsDeeplink
-                  ? 'you_trust_this_address'
-                  : 'you_trust_this_site'
-              }`,
-            )}`}
-          </Text>
-          <View style={styles.contactWrapper}>
-            <Text>{strings('nickname.contract')}: </Text>
-            <TouchableOpacity
-              style={styles.addressWrapper}
-              onPress={this.copyContractAddress}
-              testID={'contract-address'}
-            >
-              <Identicon address={this.state.transaction.to} diameter={20} />
-              {this.props.nicknameExists ? (
-                <Text numberOfLines={1} style={styles.address}>
-                  {this.props.nickname}
-                </Text>
-              ) : (
-                <EthereumAddress
-                  address={this.state.transaction.to}
-                  style={styles.address}
-                  type={'short'}
-                />
-              )}
-              <Feather name="copy" size={18} style={styles.actionIcon} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.nickname} onPress={this.toggleDisplay}>
-            {this.props.nicknameExists ? 'Edit' : 'Add'}{' '}
-            {strings('nickname.nickname')}
-          </Text>
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -786,66 +676,178 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
-              <View style={styles.paddingHorizontal}>
-                <AccountInfoCard fromAddress={from} />
-                <View style={styles.section}>
-                  <TransactionReview
-                    gasSelected={gasSelected}
-                    primaryCurrency={primaryCurrency}
-                    hideTotal
-                    noMargin
-                    onEdit={this.edit}
-                    chainId={this.props.chainId}
-                    onUpdatingValuesStart={onUpdatingValuesStart}
-                    onUpdatingValuesEnd={onUpdatingValuesEnd}
-                    animateOnChange={animateOnChange}
-                    isAnimating={isAnimating}
-                    gasEstimationReady={gasEstimationReady}
-                    legacy={!showFeeMarket}
-                    gasObject={
-                      !showFeeMarket ? legacyGasObject : eip1559GasObject
-                    }
-                    updateTransactionState={updateTransactionState}
-                    onlyGas
-                    multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                  />
+              <View>
+                <ApproveTransactionHeader
+                  origin={origin}
+                  spenderAddress={spenderAddress}
+                  url={activeTabUrl}
+                />
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  style={styles.title}
+                  testID={'allow-access'}
+                >
+                  {strings(
+                    `spend_limit_edition.${
+                      originIsDeeplink
+                        ? 'allow_to_address_access'
+                        : 'allow_to_access'
+                    }`,
+                  )}{' '}
+                  {!fetchingUpdateDone && (
+                    <Text variant={TextVariant.HeadingMD}>
+                      {strings('spend_limit_edition.token')}
+                    </Text>
+                  )}
+                  {tokenStandard === ERC20 && (
+                    <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
+                  )}
+                  {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
+                    <ButtonLink
+                      onPress={showBlockExplorer}
+                      label={
+                        <Text
+                          variant={TextVariant.HeadingMD}
+                          style={styles.buttonColor}
+                        >
+                          {tokenName ||
+                            tokenSymbol ||
+                            strings(`spend_limit_edition.nft`)}{' '}
+                          (#{tokenValue})
+                        </Text>
+                      }
+                    />
+                  )}
+                </Text>
 
-                  {gasError && (
-                    <View style={styles.errorWrapper}>
-                      {isTestNetwork || allowedToBuy(network) ? (
-                        <TouchableOpacity onPress={errorPress}>
+                {tokenStandard !== ERC721 &&
+                  tokenStandard !== ERC1155 &&
+                  originalApproveAmount && (
+                    <View style={styles.tokenAccess}>
+                      <Text bold style={styles.tokenKey}>
+                        {` ${strings('spend_limit_edition.access_up_to')} `}
+                      </Text>
+                      <Text numberOfLines={4} style={styles.tokenValue}>
+                        {` ${
+                          customSpendAmount
+                            ? formatNumber(customSpendAmount)
+                            : originalApproveAmount &&
+                              formatNumber(originalApproveAmount)
+                        } ${tokenSymbol}`}
+                      </Text>
+                    </View>
+                  )}
+
+                {fetchingUpdateDone &&
+                  tokenStandard !== ERC721 &&
+                  tokenStandard !== ERC1155 && (
+                    <TouchableOpacity
+                      style={styles.actionTouchable}
+                      onPress={this.toggleEditPermission}
+                    >
+                      <Text reset style={styles.editPermissionText}>
+                        {strings('spend_limit_edition.edit_permission')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                <Text reset style={styles.explanation}>
+                  {`${strings(
+                    `spend_limit_edition.${
+                      originIsDeeplink
+                        ? 'you_trust_this_address'
+                        : 'you_trust_this_site'
+                    }`,
+                  )}`}
+                </Text>
+                <View style={styles.contactWrapper}>
+                  <Text>{strings('nickname.contract')}: </Text>
+                  <TouchableOpacity
+                    style={styles.addressWrapper}
+                    onPress={this.copyContractAddress}
+                    testID={'contract-address'}
+                  >
+                    <Identicon
+                      address={this.state.transaction.to}
+                      diameter={20}
+                    />
+                    {this.props.nicknameExists ? (
+                      <Text numberOfLines={1} style={styles.address}>
+                        {this.props.nickname}
+                      </Text>
+                    ) : (
+                      <EthereumAddress
+                        address={this.state.transaction.to}
+                        style={styles.address}
+                        type={'short'}
+                      />
+                    )}
+                    <Feather name="copy" size={18} style={styles.actionIcon} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.nickname} onPress={this.toggleDisplay}>
+                  {this.props.nicknameExists ? 'Edit' : 'Add'}{' '}
+                  {strings('nickname.nickname')}
+                </Text>
+                <View style={styles.paddingHorizontal}>
+                  <View style={styles.section}>
+                    <TransactionReview
+                      gasSelected={gasSelected}
+                      primaryCurrency={primaryCurrency}
+                      hideTotal
+                      noMargin
+                      onEdit={this.edit}
+                      chainId={this.props.chainId}
+                      onUpdatingValuesStart={onUpdatingValuesStart}
+                      onUpdatingValuesEnd={onUpdatingValuesEnd}
+                      animateOnChange={animateOnChange}
+                      isAnimating={isAnimating}
+                      gasEstimationReady={gasEstimationReady}
+                      legacy={!showFeeMarket}
+                      gasObject={
+                        !showFeeMarket ? legacyGasObject : eip1559GasObject
+                      }
+                      updateTransactionState={updateTransactionState}
+                      onlyGas
+                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                    />
+
+                    {gasError && (
+                      <View style={styles.errorWrapper}>
+                        {isTestNetwork || allowedToBuy(network) ? (
+                          <TouchableOpacity onPress={errorPress}>
+                            <Text reset style={styles.error}>
+                              {gasError}
+                            </Text>
+
+                            {over && (
+                              <Text
+                                reset
+                                style={[styles.error, styles.underline]}
+                              >
+                                {errorLinkText}
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        ) : (
                           <Text reset style={styles.error}>
                             {gasError}
                           </Text>
-
-                          {over && (
-                            <Text
-                              reset
-                              style={[styles.error, styles.underline]}
-                            >
-                              {errorLinkText}
-                            </Text>
-                          )}
-                        </TouchableOpacity>
-                      ) : (
-                        <Text reset style={styles.error}>
-                          {gasError}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                  {!gasError && (
-                    <TouchableOpacity
-                      style={styles.actionTouchable}
-                      onPress={this.toggleViewDetails}
-                    >
-                      <View>
-                        <Text reset style={styles.viewDetailsText}>
-                          {strings('spend_limit_edition.view_details')}
-                        </Text>
+                        )}
                       </View>
-                    </TouchableOpacity>
-                  )}
+                    )}
+                    {!gasError && (
+                      <TouchableOpacity
+                        style={styles.actionTouchable}
+                        onPress={this.toggleViewDetails}
+                      >
+                        <View>
+                          <Text reset style={styles.viewDetailsText}>
+                            {strings('spend_limit_edition.view_details')}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </View>
             </ActionView>

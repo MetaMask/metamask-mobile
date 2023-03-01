@@ -83,7 +83,7 @@ import {
   AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
-} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
+} from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   selectProviderType,

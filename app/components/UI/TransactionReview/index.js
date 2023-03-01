@@ -41,7 +41,6 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionHeader from '../TransactionHeader';
-import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
@@ -53,6 +52,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -74,10 +74,10 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 230 : 415,
+      height: Device.isMediumDevice() ? 170 : 290,
     },
     actionViewChildren: {
-      height: 330,
+      height: 220,
     },
     accountTransactionWrapper: {
       flex: 1,
@@ -86,7 +86,6 @@ const createStyles = (colors) =>
       height: 624,
     },
     accountInfoCardWrapper: {
-      paddingHorizontal: 24,
       paddingBottom: 12,
     },
     transactionData: {
@@ -444,7 +443,6 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      transaction: { from },
     } = this.props;
     const {
       actionKey,
@@ -456,6 +454,8 @@ class TransactionReview extends PureComponent {
       multiLayerL1FeeTotal,
     } = this.state;
     const currentPageInformation = { url: this.getUrlFromBrowser() };
+    const { currentEnsName, spenderAddress, origin, url } =
+      currentPageInformation;
     const styles = this.getStyles();
 
     return (
@@ -466,7 +466,12 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          <TransactionHeader currentPageInformation={currentPageInformation} />
+          <ApproveTransactionHeader
+            currentEnsName={currentEnsName}
+            spenderAddress={spenderAddress}
+            origin={origin}
+            url={url}
+          />
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}
@@ -488,37 +493,36 @@ class TransactionReview extends PureComponent {
               }
             >
               <View style={styles.actionViewChildren}>
-                <ScrollView>
+                <ScrollView nestedScrollEnabled>
                   <View
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}
                   >
                     <View style={styles.accountInfoCardWrapper}>
-                      <AccountInfoCard fromAddress={from} />
+                      <TransactionReviewInformation
+                        navigation={navigation}
+                        error={error}
+                        edit={this.edit}
+                        ready={ready}
+                        assetAmount={assetAmount}
+                        fiatValue={fiatValue}
+                        toggleDataView={this.toggleDataView}
+                        over={over}
+                        onCancelPress={this.props.onCancel}
+                        gasEstimateType={gasEstimateType}
+                        EIP1559GasData={EIP1559GasData}
+                        origin={
+                          dappSuggestedGas ? currentPageInformation?.url : null
+                        }
+                        gasSelected={gasSelected}
+                        originWarning={dappSuggestedGasWarning}
+                        onUpdatingValuesStart={onUpdatingValuesStart}
+                        onUpdatingValuesEnd={onUpdatingValuesEnd}
+                        animateOnChange={animateOnChange}
+                        isAnimating={isAnimating}
+                        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                      />
                     </View>
-                    <TransactionReviewInformation
-                      navigation={navigation}
-                      error={error}
-                      edit={this.edit}
-                      ready={ready}
-                      assetAmount={assetAmount}
-                      fiatValue={fiatValue}
-                      toggleDataView={this.toggleDataView}
-                      over={over}
-                      onCancelPress={this.props.onCancel}
-                      gasEstimateType={gasEstimateType}
-                      EIP1559GasData={EIP1559GasData}
-                      origin={
-                        dappSuggestedGas ? currentPageInformation?.url : null
-                      }
-                      gasSelected={gasSelected}
-                      originWarning={dappSuggestedGasWarning}
-                      onUpdatingValuesStart={onUpdatingValuesStart}
-                      onUpdatingValuesEnd={onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                    />
                   </View>
                 </ScrollView>
               </View>

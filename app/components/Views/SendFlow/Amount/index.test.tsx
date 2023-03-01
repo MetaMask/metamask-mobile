@@ -11,7 +11,7 @@ import {
   NEXT_BUTTON,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   TRANSACTION_AMOUNT_INPUT,
-} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
+} from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;

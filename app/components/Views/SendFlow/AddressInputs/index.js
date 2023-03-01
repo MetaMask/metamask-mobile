@@ -327,7 +327,6 @@ export const AddressTo = (props) => {
               onBlur={onInputBlur}
               onSubmitEditing={onSubmit}
               value={toSelectedAddress}
-              testID={'txn-to-address-input'}
               {...generateTestId(Platform, SEND_ADDRESS_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
