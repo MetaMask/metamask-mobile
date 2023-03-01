@@ -305,10 +305,16 @@ class Login extends PureComponent {
   handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
     const { navigation } = this.props;
-    this.setState({ loading: true });
+    if (!passwordRequirementsMet(this.state.password)) {
+      this.setState({
+        error: strings('login.invalid_password'),
+      });
+      return;
+    }
     try {
+      this.setState({ loading: true });
       const backupResult = await getVaultFromBackup();
-      if (backupResult.vault && passwordRequirementsMet(this.state.password)) {
+      if (backupResult.vault) {
         const vaultSeed = await parseVaultValue(
           this.state.password,
           backupResult.vault,
@@ -320,7 +326,7 @@ class Login extends PureComponent {
             this.state.rememberMe,
           );
           try {
-            await Authentication.thr(
+            await Authentication.storePassword(
               this.state.password,
               authData.currentAuthType,
             );
@@ -331,6 +337,7 @@ class Login extends PureComponent {
             );
             this.setState({
               loading: false,
+              password: '',
               error: null,
             });
             return;
