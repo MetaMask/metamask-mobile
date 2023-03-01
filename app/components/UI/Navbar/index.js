@@ -11,7 +11,6 @@ import {
   Platform,
 } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { scale } from 'react-native-size-matters';
@@ -44,6 +43,13 @@ import {
   PAYMENT_REQUEST_CLOSE_BUTTON,
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import ButtonIcon, {
+  ButtonIconVariants,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { trackLegacyEvent } from '../../../util/analyticsV2';
 
@@ -92,7 +98,6 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
-    paddingLeft: Device.isAndroid() ? 22 : 18,
     paddingRight: Device.isAndroid() ? 22 : 18,
     marginTop: 5,
   },
@@ -990,13 +995,14 @@ export function getWalletNavbarOptions(
       </TouchableOpacity>
     ),
     headerRight: () => (
-      <TouchableOpacity
-        style={styles.infoButton}
-        // eslint-disable-next-line
+      <ButtonIcon
+        variant={ButtonIconVariants.Primary}
         onPress={openQRScanner}
-      >
-        <AntIcon name="scan1" size={28} style={innerStyles.headerIcon} />
-      </TouchableOpacity>
+        iconName={IconName.Scan}
+        style={styles.infoButton}
+        size={IconSize.Xl}
+        testID="scan-header-icon"
+      />
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
