@@ -62,12 +62,13 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
 
@@ -215,7 +216,7 @@ const HomeTabs = () => {
   );
 
   const chainId = useSelector((state) => {
-    const provider = state.engine.backgroundState.NetworkController.provider;
+    const provider = selectProviderConfig(state);
     return NetworksChainId[provider.type];
   });
 
@@ -244,7 +245,7 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Wallet,
       tabBarLabel: strings('drawer.wallet'),
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
         });
@@ -255,7 +256,7 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Browser,
       tabBarLabel: strings('drawer.browser'),
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
           source: 'Navigation Tab',

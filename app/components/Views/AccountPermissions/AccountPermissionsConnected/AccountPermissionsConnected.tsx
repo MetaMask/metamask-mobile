@@ -22,7 +22,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent } from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // Internal dependencies.
@@ -47,13 +47,13 @@ const AccountPermissionsConnected = ({
     (state: any) => state.engine.backgroundState.NetworkController,
   );
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkController.provider),
-    [networkController.provider],
+    () => getNetworkNameFromProvider(networkController.providerConfig),
+    [networkController.providerConfig],
   );
   const networkImageSource = useMemo(() => {
-    const { type, chainId } = networkController.provider;
+    const { type, chainId } = networkController.providerConfig;
     return getNetworkImageSource({ networkType: type, chainId });
-  }, [networkController.provider]);
+  }, [networkController.providerConfig]);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
@@ -103,7 +103,7 @@ const AccountPermissionsConnected = ({
 
   const switchNetwork = useCallback(() => {
     dispatch(toggleNetworkModal(false));
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
+    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
       from_chain_id: networkController.network,
     });
   }, [networkController.network, dispatch]);

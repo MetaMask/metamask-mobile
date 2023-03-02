@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   fontStyles,
   colors as staticColors,
@@ -33,8 +34,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { trackEvent } from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
@@ -74,6 +74,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -241,9 +242,9 @@ class NetworkSettings extends PureComponent {
      */
     isCustomMainnet: PropTypes.bool,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
   };
 
   state = {
@@ -561,10 +562,7 @@ class NetworkSettings extends PureComponent {
         source: 'Custom network form',
         symbol: ticker,
       };
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       this.props.showNetworkOnboardingAction({
         networkUrl,
         networkType,
@@ -769,11 +767,11 @@ class NetworkSettings extends PureComponent {
   };
 
   removeRpcUrl = () => {
-    const { navigation, provider } = this.props;
+    const { navigation, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
-      compareSanitizedUrl(rpcUrl, provider.rpcTarget) &&
-      provider.type === RPC
+      compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
+      providerConfig.type === RPC
     ) {
       this.switchToMainnet();
     }
@@ -1119,7 +1117,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,

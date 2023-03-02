@@ -1,21 +1,24 @@
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import Engine from '../../../core/Engine';
 
 const useDeleteWallet = () => {
-  const { KeyringController } = Engine.context as any;
   const resetWalletState = useCallback(async () => {
     try {
       await Engine.resetState();
-      await KeyringController.createNewVaultAndKeychain(`${Date.now()}`);
-      await KeyringController.setLocked();
+      await Authentication.newWalletAndKeychain(`${Date.now()}`, {
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+      });
+      await Authentication.lockApp();
     } catch (error: any) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);
     }
-  }, [KeyringController]);
+  }, []);
 
   const deleteUser = useCallback(async () => {
     try {

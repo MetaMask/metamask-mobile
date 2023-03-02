@@ -10,21 +10,20 @@ import {
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 
@@ -165,7 +164,7 @@ const EditGasFeeLegacy = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
@@ -174,10 +173,7 @@ const EditGasFeeLegacy = ({
   }, [getAnalyticsParams, showAdvancedOptions]);
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     onSave(selectedOption);
   }, [getAnalyticsParams, onSave, selectedOption]);

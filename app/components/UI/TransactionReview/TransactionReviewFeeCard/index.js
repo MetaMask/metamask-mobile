@@ -16,6 +16,7 @@ import { connect } from 'react-redux';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FadeAnimationView from '../../FadeAnimationView';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -389,7 +390,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 TransactionReviewFeeCard.contextType = ThemeContext;

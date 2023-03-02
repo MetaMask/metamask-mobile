@@ -11,8 +11,7 @@ import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-
+import { trackEvent } from '../../../../util/analyticsV2';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import StyledButton from '../../StyledButton';
@@ -131,7 +130,7 @@ const AddNickname = (props: AddNicknameProps) => {
     showModalAlert,
     networkState: {
       network,
-      provider: { type },
+      providerConfig: { type },
     },
   } = props;
 
@@ -150,14 +149,11 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
   };
 
   const saveTokenNickname = () => {
-    const { AddressBookController } = Engine.context;
+    const { AddressBookController } = Engine.context as any;
     if (!newNickname || !contractAddress) return;
     AddressBookController.set(
       toChecksumAddress(contractAddress),
@@ -165,7 +161,7 @@ const AddNickname = (props: AddNicknameProps) => {
       network,
     );
     onUpdateContractNickname();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );

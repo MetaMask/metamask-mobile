@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
@@ -15,9 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Logger from '../../../util/Logger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import Analytics from '../../../core/Analytics/Analytics';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import {
@@ -26,7 +25,6 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
   TRUE,
 } from '../../../constants/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -169,8 +167,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const track = useCallback(
     (...eventArgs) => {
       InteractionManager.runAfterInteractions(async () => {
-        if (Analytics.checkEnabled()) {
-          AnalyticsV2.trackEvent(eventArgs[0], eventArgs[1]);
+        if (MetaMetrics.checkEnabled()) {
+          trackEvent(eventArgs[0], eventArgs[1]);
           return;
         }
         const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
@@ -184,6 +182,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
   const finishSync = useCallback(
     async (opts) => {
+      //TODO refactor to use Authentication instead of SecureKeychain when the sync feature is enabled
+
       if (opts.biometrics) {
         try {
           await SecureKeychain.setGenericPassword(
@@ -198,7 +198,6 @@ const ExtensionSync = ({ navigation, route }: any) => {
       }
 
       try {
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
         await Engine.resetState();
         await Engine.sync({
           ...dataToSyncRef.current,
@@ -353,7 +352,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
       initWebsockets();
       await pubnubWrapperRef.current?.startSync?.();
       return true;
-    } catch (e) {
+    } catch (e: any) {
       unsetLoading();
       if (e.message === 'Sync::timeout') {
         Alert.alert(

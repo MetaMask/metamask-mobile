@@ -381,6 +381,15 @@ export const migrations = {
 
     return newState;
   },
+  14: (state) => {
+    if (state.engine.backgroundState.NetworkController.provider) {
+      state.engine.backgroundState.NetworkController.providerConfig =
+        state.engine.backgroundState.NetworkController.provider;
+      delete state.engine.backgroundState.NetworkController.provider;
+    }
+
+    return state;
+  },
 };
 
-export const version = 13;
+export const version = 14;
