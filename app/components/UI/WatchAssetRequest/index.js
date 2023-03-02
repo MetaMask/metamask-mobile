@@ -112,7 +112,7 @@ const WatchAssetRequest = ({
   const getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
 
       return {

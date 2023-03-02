@@ -29,7 +29,7 @@ const initialState = {
         addressBook: {},
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: ROPSTEN,
         },
       },

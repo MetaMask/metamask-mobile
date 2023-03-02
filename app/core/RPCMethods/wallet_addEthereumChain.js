@@ -119,7 +119,7 @@ const wallet_addEthereumChain = async ({
   );
 
   if (existingNetwork) {
-    const currentChainId = NetworkController.state.provider.chainId;
+    const currentChainId = NetworkController.state.providerConfig.chainId;
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;

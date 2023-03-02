@@ -63,6 +63,10 @@ import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -911,13 +915,13 @@ RootRPCMethodsUI.propTypes = {
 const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   approveModalVisible: state.modals.approveModalVisible,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
   ).length,

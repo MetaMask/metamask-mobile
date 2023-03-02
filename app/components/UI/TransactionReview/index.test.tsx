@@ -30,7 +30,7 @@ const initialState = {
         },
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
         },
       },

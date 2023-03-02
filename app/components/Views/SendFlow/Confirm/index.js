@@ -94,6 +94,12 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 
@@ -1458,13 +1464,13 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   selectedAsset: state.transaction.selectedAsset,
   transactionState: state.transaction,

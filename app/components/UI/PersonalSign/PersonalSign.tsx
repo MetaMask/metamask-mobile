@@ -47,7 +47,7 @@ const PersonalSign = ({
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
 
       return {

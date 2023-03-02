@@ -19,6 +19,7 @@ import {
 } from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { selectTicker } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -233,7 +234,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;

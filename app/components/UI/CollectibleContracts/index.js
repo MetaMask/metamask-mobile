@@ -31,6 +31,10 @@ import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { MAINNET } from '../../../constants/network';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
+import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -327,8 +331,8 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   useNftDetection:

@@ -8,7 +8,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
       "engine": Object {
         "backgroundState": Object {
           "NetworkController": Object {
-            "provider": Object {
+            "providerConfig": Object {
               "chainId": "1",
             },
           },

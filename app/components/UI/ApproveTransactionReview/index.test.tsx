@@ -15,7 +15,7 @@ const initialState = {
         conversionRate: 5,
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
           type: 'ETH',
         },

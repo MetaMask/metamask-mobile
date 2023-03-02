@@ -24,7 +24,9 @@ function render(Component: React.ComponentType) {
         engine: {
           backgroundState: {
             PreferencesController: {},
-            NetworkController: { provider: { type: 'mainnet', chainId: 1 } },
+            NetworkController: {
+              providerConfig: { type: 'mainnet', chainId: 1 },
+            },
           },
         },
       },
