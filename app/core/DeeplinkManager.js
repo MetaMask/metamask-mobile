@@ -231,6 +231,8 @@ class DeeplinkManager {
                 SDKConnect.getInstance().revalidateChannel({
                   channelId,
                 });
+                // Also try to reconnect if not already connected
+                SDKConnect.getInstance().reconnect({ channelId });
               } else {
                 // Establish a new connection
                 SDKConnect.getInstance().connectToChannel({
