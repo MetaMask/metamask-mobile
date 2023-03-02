@@ -39,6 +39,7 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     action: {
       marginLeft: 20,
       marginRight: 20,
+      marginBottom: 20,
     },
   });
 
