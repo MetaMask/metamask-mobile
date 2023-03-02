@@ -273,7 +273,7 @@ const Wallet = ({ navigation }: any) => {
       balance = renderFromWei(accounts[selectedAddress].balance);
       assets = [
         {
-          name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
+          name: 'Ethereum',
           symbol: getTicker(ticker),
           isETH: true,
           balance,

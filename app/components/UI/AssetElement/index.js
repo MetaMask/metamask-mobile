@@ -1,8 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -11,8 +13,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       paddingHorizontal: 15,
       paddingVertical: 10,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border.muted,
+      alignItems: 'flex-start',
     },
     arrow: {
       flex: 1,
@@ -44,6 +45,10 @@ export default class AssetElement extends PureComponent {
      * Callback triggered on long press
      */
     onLongPress: PropTypes.func,
+    /**
+     * balance
+     */
+    balance: PropTypes.string,
   };
 
   handleOnPress = () => {
@@ -57,7 +62,7 @@ export default class AssetElement extends PureComponent {
   };
 
   render = () => {
-    const { children } = this.props;
+    const { children, balance, asset } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -68,14 +73,18 @@ export default class AssetElement extends PureComponent {
         style={styles.itemWrapper}
       >
         {children}
-        <View styles={styles.arrow}>
-          <Icon
-            name="ios-arrow-forward"
-            size={24}
-            color={colors.icon.alternative}
-            style={styles.arrowIcon}
-          />
-        </View>
+
+        {balance && (
+          <Text
+            variant={
+              !asset?.balanceError
+                ? TextVariant.BodyLGMedium
+                : TextVariant.BodySM
+            }
+          >
+            {balance}
+          </Text>
+        )}
       </TouchableOpacity>
     );
   };

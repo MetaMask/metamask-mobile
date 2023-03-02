@@ -9,13 +9,13 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
-import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
+  addCurrencySymbol,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -26,16 +26,31 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Text from '../../Base/Text';
+
 import NotificationManager from '../../../core/NotificationManager';
-import { getDecimalChainId, isTestNet } from '../../../util/networks';
+import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderType,
+  selectTicker,
+} from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+import images from 'images/image-icons';
+import {
+  AvatarSize,
+  AvatarVariants,
+} from '../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,20 +100,9 @@ const createStyles = (colors) =>
     balances: {
       flex: 1,
       justifyContent: 'center',
-    },
-    balance: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    testNetBalance: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.normal,
+      marginLeft: 20,
     },
     balanceFiat: {
-      fontSize: 12,
       color: colors.text.alternative,
       ...fontStyles.normal,
       textTransform: 'uppercase',
@@ -107,11 +111,10 @@ const createStyles = (colors) =>
       textTransform: 'capitalize',
     },
     ethLogo: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
       overflow: 'hidden',
-      marginRight: 20,
     },
     emptyText: {
       color: colors.text.alternative,
@@ -178,6 +181,14 @@ class Tokens extends PureComponent {
      * Boolean that indicates if token detection is enabled
      */
     isTokenDetectionEnabled: PropTypes.bool,
+    /**
+     * Current provider ticker
+     */
+    ticker: PropTypes.string,
+    /**
+     * Current provider type
+     */
+    providerType: PropTypes.string,
   };
 
   actionSheet = null;
@@ -231,20 +242,15 @@ class Tokens extends PureComponent {
     );
   };
 
-  renderItem = (asset) => {
-    const {
-      conversionRate,
-      currentCurrency,
-      tokenBalances,
-      tokenExchangeRates,
-      primaryCurrency,
-      tokenList,
-      chainId,
-    } = this.props;
-    const styles = this.getStyles();
-
+  handleBalance = ({
+    asset,
+    tokenExchangeRates,
+    conversionRate,
+    currentCurrency,
+    tokenBalances,
+  }) => {
     const itemAddress = safeToChecksumAddress(asset.address);
-    const logo = tokenList?.[itemAddress?.toLowerCase?.()]?.iconUrl;
+
     const exchangeRate =
       itemAddress in tokenExchangeRates
         ? tokenExchangeRates[itemAddress]
@@ -254,19 +260,54 @@ class Tokens extends PureComponent {
       (itemAddress in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : 0);
-    const balanceFiat =
+
+    const balanceValueFormatted = !balance ? ' ' : `${balance} ${asset.symbol}`;
+
+    const balanceFiatCalculation =
       asset.balanceFiat ||
       balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-    const balanceValue = `${balance} ${asset.symbol}`;
+
+    const zeroBalance = addCurrencySymbol('0', currentCurrency);
+
+    const balanceFiat = !balanceFiatCalculation?.includes(zeroBalance)
+      ? balanceFiatCalculation
+      : ' ';
+
+    return { balanceFiat, balanceValueFormatted, balance };
+  };
+
+  renderItem = (asset) => {
+    const {
+      conversionRate,
+      currentCurrency,
+      tokenBalances,
+      tokenExchangeRates,
+      primaryCurrency,
+      tokenList,
+      chainId,
+      ticker,
+      providerType,
+    } = this.props;
+    const styles = this.getStyles();
+    const itemAddress = safeToChecksumAddress(asset.address);
+    const logo = tokenList?.[itemAddress?.toLowerCase?.()]?.iconUrl;
+
+    const { balanceFiat, balanceValueFormatted, balance } = this.handleBalance({
+      asset,
+      tokenExchangeRates,
+      conversionRate,
+      currentCurrency,
+      tokenBalances,
+    });
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
     if (primaryCurrency === 'ETH') {
-      mainBalance = balanceValue;
+      mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
     } else {
-      mainBalance = !balanceFiat ? balanceValue : balanceFiat;
-      secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
+      mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
+      secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
     }
 
     if (asset?.balanceError) {
@@ -275,6 +316,10 @@ class Tokens extends PureComponent {
     }
 
     asset = { logo, ...asset, balance, balanceFiat };
+
+    const NetworkBadgeSource =
+      images[isMainnetByChainId(chainId) ? 'ETHEREUM' : ticker];
+
     return (
       <AssetElement
         key={itemAddress || '0x'}
@@ -282,33 +327,33 @@ class Tokens extends PureComponent {
         onPress={this.onItemPress}
         onLongPress={asset.isETH ? null : this.showRemoveMenu}
         asset={asset}
+        balance={secondaryBalance}
       >
-        {asset.isETH ? (
-          <NetworkMainAssetLogo
-            big
-            style={styles.ethLogo}
-            testID={'eth-logo'}
-          />
-        ) : (
-          <TokenImage asset={asset} containerStyle={styles.ethLogo} />
-        )}
+        <BadgeWrapper
+          badgeProps={{
+            variant: BadgeVariants.Network,
+            name: isMainnetByChainId(chainId) ? providerType : ticker,
+            imageSource: NetworkBadgeSource,
+          }}
+        >
+          {asset.isETH ? (
+            <NetworkMainAssetLogo style={styles.ethLogo} testID={'eth-logo'} />
+          ) : (
+            <AvatarToken
+              variant={AvatarVariants.Token}
+              name={asset.symbol}
+              imageSource={{ uri: asset.logo }}
+              size={AvatarSize.Sm}
+            />
+          )}
+        </BadgeWrapper>
 
         <View style={styles.balances} testID={'balance'}>
-          <Text
-            style={isTestNet(chainId) ? styles.testNetBalance : styles.balance}
-          >
+          <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
+
+          <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
             {mainBalance}
           </Text>
-          {secondaryBalance ? (
-            <Text
-              style={[
-                styles.balanceFiat,
-                asset?.balanceError && styles.balanceFiatTokenError,
-              ]}
-            >
-              {secondaryBalance}
-            </Text>
-          ) : null}
         </View>
       </AssetElement>
     );
@@ -467,7 +512,9 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  providerType: selectProviderType(state),
   chainId: selectChainId(state),
+  ticker: selectTicker(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:

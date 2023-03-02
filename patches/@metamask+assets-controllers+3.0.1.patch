@@ -1,0 +1,76 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
+index 4ed4990..2ec56b9 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
+@@ -161,7 +161,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+                         }
+                         const caseInsensitiveTokenKey = Object.keys(tokenList).find((i) => i.toLowerCase() === tokenAddress.toLowerCase()) || '';
+                         if (ignored === undefined) {
+-                            const { decimals, symbol, aggregators, iconUrl } = tokenList[caseInsensitiveTokenKey];
++                            const { decimals, symbol, aggregators, iconUrl,name } = tokenList[caseInsensitiveTokenKey];
+                             tokensToAdd.push({
+                                 address: tokenAddress,
+                                 decimals,
+@@ -169,9 +169,12 @@ class TokenDetectionController extends base_controller_1.BaseController {
+                                 aggregators,
+                                 image: iconUrl,
+                                 isERC721: false,
++                                name
+                             });
+                         }
+                     }
+                     if (tokensToAdd.length) {
+                         yield this.addDetectedTokens(tokensToAdd, {
+                             selectedAddress,
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
+index 8c02fe6..cfc64ae 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
+@@ -65,6 +65,7 @@ class TokensController extends base_controller_1.BaseController {
+             const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
+             const { chainId } = this.config;
+             this.configure({ selectedAddress });
+             this.update({
+                 tokens: ((_a = allTokens[chainId]) === null || _a === void 0 ? void 0 : _a[selectedAddress]) || [],
+                 ignoredTokens: ((_b = allIgnoredTokens[chainId]) === null || _b === void 0 ? void 0 : _b[selectedAddress]) || [],
+@@ -199,7 +200,7 @@ class TokensController extends base_controller_1.BaseController {
+             }, {});
+             try {
+                 tokensToImport.forEach((tokenToAdd) => {
+-                    const { address, symbol, decimals, image, aggregators } = tokenToAdd;
++                    const { address, symbol, decimals, image, aggregators,name } = tokenToAdd;
+                     const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
+                     const formattedToken = {
+                         address: checksumAddress,
+@@ -207,6 +208,7 @@ class TokensController extends base_controller_1.BaseController {
+                         decimals,
+                         image,
+                         aggregators,
++                        name,
+                     };
+                     newTokensMap[address] = formattedToken;
+                     importedTokensMap[address.toLowerCase()] = true;
+@@ -282,7 +284,7 @@ class TokensController extends base_controller_1.BaseController {
+             let newDetectedTokens = [...detectedTokens];
+             try {
+                 incomingDetectedTokens.forEach((tokenToAdd) => {
+-                    const { address, symbol, decimals, image, aggregators, isERC721 } = tokenToAdd;
++                    const { address, symbol, decimals, image, aggregators, isERC721, name } = tokenToAdd;
+                     const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
+                     const newEntry = {
+                         address: checksumAddress,
+@@ -291,6 +293,7 @@ class TokensController extends base_controller_1.BaseController {
+                         image,
+                         isERC721,
+                         aggregators,
++                        name,
+                     };
+                     const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
+                     if (previousImportedEntry) {
+@@ -326,6 +329,7 @@ class TokensController extends base_controller_1.BaseController {
+                 // if the detectedTokens were detected on the current chainId/address then this won't change anything.
+                 newDetectedTokens =
+                     ((_a = newAllDetectedTokens === null || newAllDetectedTokens === void 0 ? void 0 : newAllDetectedTokens[chainId]) === null || _a === void 0 ? void 0 : _a[selectedAddress]) || [];
+                 this.update({
+                     tokens: newTokens,
+                     allTokens: newAllTokens,
