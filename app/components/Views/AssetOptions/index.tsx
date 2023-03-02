@@ -77,6 +77,7 @@ const AssetOptions = (props: Props) => {
   };
 
   const openOnBlockExplorer = () => {
+    if (!explorer.baseUrl) return;
     let url = '';
     const title = new URL(explorer.baseUrl).hostname;
     if (isNativeCurrency) {

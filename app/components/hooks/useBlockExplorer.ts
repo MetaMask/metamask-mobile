@@ -8,6 +8,7 @@ import {
 } from '../../util/networks';
 import { strings } from '../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../util/etherscan';
+import { selectProviderConfig } from '../../selectors/networkController';
 
 interface ValidExplorer {
   isValid: true;
@@ -28,9 +29,7 @@ interface InvalidExplorer {
 type Explorer = ValidExplorer | InvalidExplorer;
 
 function useBlockExplorer() {
-  const providerConfig = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const providerConfig = useSelector(selectProviderConfig);
   const frequentRpcList = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
@@ -48,7 +47,7 @@ function useBlockExplorer() {
     if (providerConfig.type === RPC) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
-          providerConfig.rpcTarget,
+          providerConfig.rpcTarget as string,
           frequentRpcList,
         );
         if (!blockExplorer) {
