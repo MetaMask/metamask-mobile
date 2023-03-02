@@ -1306,6 +1306,7 @@
     "action": "Connect to this site?",
     "action_reconnect": "Do you want to reconnect to this DAPP?",
     "connect": "Connect",
+    "confirm": "Confirm",
     "cancel": "Cancel",
     "permission": "View your",
     "address": "public address",

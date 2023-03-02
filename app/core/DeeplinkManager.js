@@ -185,7 +185,6 @@ class DeeplinkManager {
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
-    console.debug(`parse: ${url}`);
     const urlObj = new URL(
       url
         .replace(
@@ -248,7 +247,9 @@ class DeeplinkManager {
             return;
           } else if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
-              Minimizer.goBack();
+              setTimeout(() => {
+                Minimizer.goBack();
+              }, 500);
             } else if (params.channelId) {
               SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
@@ -342,7 +343,6 @@ class DeeplinkManager {
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OTP}`)) {
           if (params?.otp) {
-            console.debug(`CCCCCCCCCCCCCCCCCCC DEEEEEPLINKK ${params.otp}`);
             const channelExists =
               SDKConnect.getInstance().getApprovedHosts()[params.otp];
 
@@ -363,7 +363,9 @@ class DeeplinkManager {
           }
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
-            Minimizer.goBack();
+            setTimeout(() => {
+              Minimizer.goBack();
+            }, 500);
           } else {
             SDKConnect.connectToChannel({
               id: params.channelId,

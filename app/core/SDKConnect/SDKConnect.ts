@@ -41,6 +41,7 @@ import {
 } from 'react-native-webrtc';
 import { toggleSDKLoadingModal } from '../../../app/actions/modals';
 import { store } from '../../../app/store';
+import generateOTP from './generateOTP.util';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -134,7 +135,7 @@ const waitForKeychainUnlocked = async () => {
     Engine.context as { KeyringController: KeyringController }
   ).KeyringController;
   while (!keyringController.isUnlocked()) {
-    await new Promise<void>((res) => setTimeout(() => res(), 1000));
+    await new Promise<void>((res) => setTimeout(() => res(), 600));
     if (i++ > 60) break;
   }
 };
@@ -154,6 +155,11 @@ export class Connection extends EventEmitter2 {
    */
   isResumed = false;
   initialConnection: boolean;
+
+  /**
+   * Array of random number to use during reconnection and otp verification.
+   */
+  otps?: number[];
 
   /**
    * Should only be accesses via getter / setter.
@@ -257,18 +263,26 @@ export class Connection extends EventEmitter2 {
       EventType.CLIENTS_READY,
       async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
         console.debug(
-          `Connection::on::clients_Ready QWERTYYYY `,
+          `Connection::on::clients_Ready origin=${this.origin} `,
           clientsReadyMsg,
         );
 
-        // if (!this.isResumed) {
-        //   this.disapprove(this.channelId);
-        // }
+        this.otps = generateOTP();
+        if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
+          this.sendMessage({
+            type: MessageType.OTP,
+            otpAnswer: this.otps?.[0],
+          });
+        }
 
         if (this.isReady) {
+          this.setLoading(false);
           console.debug(
             `Connection::on::clients_Ready received 'clients_ready' when isReady=true --- disable channel approval`,
+            this.otps,
           );
+
+          // Re-send otp message in case client didnd't receive disconnection.
           return;
         }
 
@@ -448,7 +462,7 @@ export class Connection extends EventEmitter2 {
         console.debug(
           `Connection::on 'clients_waiting' -- disconnect hanging socket`,
         );
-        this.removeConnection();
+        this.removeConnection({ terminate: false });
       });
     }
   }
@@ -526,7 +540,16 @@ export class Connection extends EventEmitter2 {
     });
   }
 
-  private async checkPermissions(message: CommunicationLayerMessage) {
+  /**
+   * Check if current channel has been allowed.
+   *
+   * @param message
+   * @returns {boolean} true when host is approved or user approved the request.
+   * @throws error if the user reject approval request.
+   */
+  private async checkPermissions(
+    message: CommunicationLayerMessage,
+  ): Promise<boolean> {
     // only ask approval if needed
     const approved = this.isApproved({
       channelId: this.channelId,
@@ -543,7 +566,7 @@ export class Connection extends EventEmitter2 {
       message,
     );
     if (approved && selectedAddress) {
-      return;
+      return true;
     }
 
     const approvalController = (
@@ -560,10 +583,13 @@ export class Connection extends EventEmitter2 {
     // }
     let approvalResult;
 
+    // Generate an OTP and send the value to the user in case the host wasn't approved.
+
     if (this.approvalPromise) {
       console.debug(
-        `Connection::checkPermissions approval already pending -- waiting for result`,
+        `Connection::checkPermissions approval already pending -- waiting for result origin=${this.origin}`,
       );
+
       // Wait for result and clean the promise afterwards.
       approvalResult = await this.approvalPromise;
       console.debug(`Connection::checkPermissions result=${approvalResult}`);
@@ -572,8 +598,10 @@ export class Connection extends EventEmitter2 {
     }
 
     console.debug(
-      `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress}`,
+      `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress} origin=${this.origin} otps=${this.otps}`,
+      this.otps,
     );
+
     this.approvalPromise = approvalController.add({
       origin: this.host,
       type: ApprovalTypes.CONNECT_ACCOUNTS,
@@ -582,9 +610,11 @@ export class Connection extends EventEmitter2 {
         pageMeta: {
           channelId: this.channelId,
           reconnect: !this.initialConnection,
+          origin: this.origin,
           url: this.originatorInfo?.url ?? '',
           title: this.originatorInfo?.title ?? '',
-          icon: '',
+          icon: this.originatorInfo?.icon ?? '',
+          otps: this.otps ?? [],
           analytics: {
             request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
             request_platform: parseSource(
@@ -600,6 +630,7 @@ export class Connection extends EventEmitter2 {
     // Clear previous permissions if already approved.
     this.revalidate({ channelId: this.channelId });
     this.approvalPromise = undefined;
+    return true;
   }
 
   pause() {
@@ -642,10 +673,13 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    setImmediate(() => {
+    console.debug(
+      `Connection::sendMessage message sent - waiting for minimizer`,
+    );
+    setTimeout(() => {
       console.debug(`Connection::sendMessage calling minimizer`);
       Minimizer.goBack();
-    });
+    }, 1000);
   }
 }
 
@@ -725,7 +759,7 @@ export class SDKConnect extends EventEmitter2 {
         channelId: string;
         sendTerminate?: boolean;
       }) => {
-        this.removeChannel(channelId);
+        this.removeChannel(channelId, sendTerminate);
       },
     });
     // Make sure to watch event before you connect
@@ -901,7 +935,9 @@ export class SDKConnect extends EventEmitter2 {
 
   public removeChannel(channelId: string, sendTerminate?: boolean) {
     if (this.connected[channelId]) {
-      this.connected[channelId].removeConnection({ terminate: sendTerminate });
+      this.connected[channelId].removeConnection({
+        terminate: sendTerminate ?? false,
+      });
       delete this.connected[channelId];
       delete this.connections[channelId];
       delete this.connecting[channelId];
