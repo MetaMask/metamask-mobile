@@ -249,6 +249,7 @@ export class Connection extends EventEmitter2 {
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
       if (!this.remote.isPaused()) {
         disapprove(this.channelId);
+        this.initialConnection = false;
       }
     });
 
@@ -625,7 +626,7 @@ export class Connection extends EventEmitter2 {
   sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
     console.debug(
-      `Connection::sendMessage requestsToRedirect redirect=${needsRedirect}`,
+      `Connection::sendMessage requestsToRedirect redirect=${needsRedirect} msg?.data?.id=${msg?.data?.id}`,
       this.requestsToRedirect,
     );
     this.remote.sendMessage(msg);
@@ -636,9 +637,10 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    setTimeout(() => {
-      if (!Object.keys(this.requestsToRedirect).length) Minimizer.goBack();
-    }, 500);
+    setImmediate(() => {
+      console.debug(`Connection::sendMessage calling minimizer`);
+      Minimizer.goBack();
+    });
   }
 }
 
@@ -695,8 +697,12 @@ export class SDKConnect extends EventEmitter2 {
       `SDKConnect::connectToChannel() id=${id}, origin=${origin}`,
       otherPublicKey,
     );
+    const initialConnection = this.approvedHosts[id] === undefined;
 
-    const initialConnection = this.approvedHosts[id] !== undefined;
+    console.debug(
+      `SDKConnect::connectToChannel() approvedHosts initialConnection=${initialConnection}`,
+      this.approvedHosts,
+    );
 
     this.connected[id] = new Connection({
       ...this.connections[id],
