@@ -151,7 +151,7 @@
     "@metamask/design-tokens": "^1.11.1",
     "@metamask/eth-sig-util": "^4.0.1",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/keyring-controller": "3.0.0-preview.52c3561",
+    "@metamask/keyring-controller": "3.0.0-preview.0a64d42",
     "@metamask/gas-fee-controller": "^2.0.1",
     "@metamask/message-manager": "^1.0.1",
     "@metamask/network-controller": "^2.0.0",
