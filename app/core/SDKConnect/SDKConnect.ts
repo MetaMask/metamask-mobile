@@ -321,6 +321,9 @@ export class Connection extends EventEmitter2 {
           this.requestsToRedirect[message?.id] = true;
         }
 
+        console.debug(
+          `debug needsRedirect=${needsRedirect} isResumed=${this.isResumed}`,
+        );
         if (needsRedirect) {
           // Stop loading display after we have responded to wallet initialization message such as metamask_getProviderState
           this.setLoading(false);
@@ -357,6 +360,7 @@ export class Connection extends EventEmitter2 {
             },
             name: 'metamask-provider',
           });
+          this.approvalPromise = undefined;
           return;
         }
 
@@ -576,6 +580,7 @@ export class Connection extends EventEmitter2 {
       requestData: {
         hostname: this.originatorInfo?.title ?? '',
         pageMeta: {
+          channelId: this.channelId,
           reconnect: !this.initialConnection,
           url: this.originatorInfo?.url ?? '',
           title: this.originatorInfo?.title ?? '',
@@ -616,9 +621,9 @@ export class Connection extends EventEmitter2 {
     this.remote.disconnect();
   }
 
-  removeConnection() {
+  removeConnection({ terminate }: { terminate: boolean }) {
     this.isReady = false;
-    this.disconnect({ terminate: true });
+    this.disconnect({ terminate });
     this.backgroundBridge?.onDisconnect();
     this.setLoading(false);
   }
@@ -713,7 +718,13 @@ export class SDKConnect extends EventEmitter2 {
       getApprovedHosts: this.getApprovedHosts.bind(this),
       revalidate: this.revalidateChannel.bind(this),
       isApproved: this.isApproved.bind(this),
-      onTerminate: ({ channelId }) => {
+      onTerminate: ({
+        channelId,
+        sendTerminate,
+      }: {
+        channelId: string;
+        sendTerminate?: boolean;
+      }) => {
         this.removeChannel(channelId);
       },
     });
@@ -888,9 +899,9 @@ export class SDKConnect extends EventEmitter2 {
     DefaultPreference.set('paused', 'paused');
   }
 
-  public removeChannel(channelId: string) {
+  public removeChannel(channelId: string, sendTerminate?: boolean) {
     if (this.connected[channelId]) {
-      this.connected[channelId].removeConnection();
+      this.connected[channelId].removeConnection({ terminate: sendTerminate });
       delete this.connected[channelId];
       delete this.connections[channelId];
       delete this.connecting[channelId];
@@ -1097,9 +1108,6 @@ export class SDKConnect extends EventEmitter2 {
     );
 
     if (!this.paused) {
-      console.debug(
-        `SKIP RECONNECT BECAUSE IT WAS PAUSED - should be resumed.`,
-      );
       this.reconnectAll();
     }
 
