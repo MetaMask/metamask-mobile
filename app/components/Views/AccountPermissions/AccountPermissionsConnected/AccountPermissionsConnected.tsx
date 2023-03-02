@@ -41,6 +41,7 @@ const AccountPermissionsConnected = ({
   favicon,
   secureIcon,
   accountAvatarType,
+  urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
   const dispatch = useDispatch();
   const networkController = useSelector(
@@ -131,7 +132,7 @@ const AccountPermissionsConnected = ({
       <View style={styles.body}>
         <TagUrl
           imageSource={favicon}
-          label={hostname}
+          label={urlWithProtocol}
           cta={{
             label: strings('accounts.permissions'),
             onPress: openRevokePermissions,

@@ -84,6 +84,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         : IconName.LockSlash,
     [origin],
   );
+
+  const urlWithProtocol = useMemo(
+    () => `${getUrlObj(origin).protocol}//${hostname}`,
+    [origin, hostname],
+  );
+
   /**
    * Get image url from favicon api.
    */
@@ -320,6 +326,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         selectedAddresses={[activeAddress]}
         favicon={favicon}
         hostname={hostname}
+        urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
       />
@@ -334,6 +341,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hideSheet,
       favicon,
       hostname,
+      urlWithProtocol,
       secureIcon,
       accountAvatarType,
     ],
@@ -349,7 +357,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         favicon={favicon}
-        hostname={hostname}
+        urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
       />
@@ -361,7 +369,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountsFilteredByPermissions,
       setUserIntent,
       favicon,
-      hostname,
+      urlWithProtocol,
       secureIcon,
     ],
   );
@@ -375,6 +383,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
         favicon={favicon}
+        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
@@ -388,6 +397,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setPermissionsScreen,
       favicon,
       hostname,
+      urlWithProtocol,
       secureIcon,
       accountAvatarType,
     ],
