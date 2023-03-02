@@ -416,7 +416,8 @@ class AccountApproval extends PureComponent {
             </View>
           </View>
         )}
-        {hasRememberMe && (
+        {/* TODO fully decide if keep / remove DO NOT REMEMBER checkbox */}
+        {/* {hasRememberMe && (
           <View style={styles.rememberme}>
             <CheckBox
               style={styles.rememberCheckbox}
@@ -435,7 +436,7 @@ class AccountApproval extends PureComponent {
               {strings('accountApproval.donot_rememberme')}
             </Text>
           </View>
-        )}
+        )} */}
         <View style={styles.actionContainer}>
           <StyledButton
             type={'cancel'}
