@@ -3,22 +3,22 @@ import {
   SnapIdPrefixes,
   SnapManifest,
   VirtualFile,
+  LocalSnapIdStruct,
 } from '@metamask/snaps-utils';
-
 import { HttpLocation, HttpOptions } from './http';
 import { SnapLocation } from './location';
+import { assert, assertStruct } from '@metamask/utils';
 
 export class LocalLocation implements SnapLocation {
   readonly #http: HttpLocation;
 
   constructor(url: URL, opts: HttpOptions = {}) {
-    // TODO get the asserts working from @metamask/utils
-    // assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
-    // // TODO(ritave): Write deepMerge() which merges fetchOptions.
-    // assert(
-    //   opts.fetchOptions === undefined,
-    //   'Currently adding fetch options to local: is unsupported.',
-    // );
+    assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
+    // TODO(ritave): Write deepMerge() which merges fetchOptions.
+    assert(
+      opts.fetchOptions === undefined,
+      'Currently adding fetch options to local: is unsupported.',
+    );
 
     this.#http = new HttpLocation(
       new URL(url.toString().slice(SnapIdPrefixes.local.length)),
@@ -50,8 +50,7 @@ export class LocalLocation implements SnapLocation {
 function convertCanonical<Result>(
   vfile: VirtualFile<Result>,
 ): VirtualFile<Result> {
-  //TODO get the asserts working from @metamask/utils
-  //   assert(vfile.data.canonicalPath !== undefined);
+  assert(vfile.data.canonicalPath !== undefined);
   vfile.data.canonicalPath = `local:${vfile.data.canonicalPath}`;
   return vfile;
 }

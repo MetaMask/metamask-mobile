@@ -46,6 +46,7 @@ def common_target_logic
 
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
+  pod 'GzipSwift'
 
   # you should disable the next line.
   use_flipper!({"Flipper" => "0.93.0", "Flipper-DoubleConversion" => "1.1.7"})

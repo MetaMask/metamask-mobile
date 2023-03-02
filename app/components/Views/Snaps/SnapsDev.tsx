@@ -20,15 +20,15 @@ import { createStyles } from './styles';
  *
  * local:http://localhost:3000/snap/
  * local:http://localhost:3000/helloworldsnap/
+ * npm:@consensys/starknet-snap
+ * npm:@chainsafe/filsnap
  */
 
 const SnapsDev = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const [snapInput, setSnapInput] = useState<string>(
-    'local:http://localhost:3000/helloworldsnap/',
-  );
+  const [snapInput, setSnapInput] = useState<string>('npm:@chainsafe/filsnap');
   const snaps = useSelector(
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );
