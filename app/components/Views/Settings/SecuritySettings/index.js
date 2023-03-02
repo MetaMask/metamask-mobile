@@ -701,10 +701,7 @@ class Settings extends PureComponent {
     const { styles } = this.getStyles();
 
     return (
-      <View
-        style={[styles.setting, styles.firstSetting]}
-        testID={'clear-privacy-section'}
-      >
+      <View style={[styles.setting]} testID={'clear-privacy-section'}>
         <Text style={styles.title}>
           {strings('app_settings.clear_privacy_title')}
         </Text>
@@ -865,7 +862,10 @@ class Settings extends PureComponent {
 
     return (
       <>
-        <View style={styles.setting} testID={'sdk-section'}>
+        <View
+          style={[styles.setting, styles.firstSetting]}
+          testID={'sdk-section'}
+        >
           <View>
             <Text style={styles.title}>
               {strings('app_settings.manage_sdk_connections_title')}
@@ -986,6 +986,7 @@ class Settings extends PureComponent {
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderSDKSettings()}
+          {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
           {this.renderMetaMetricsSection()}
