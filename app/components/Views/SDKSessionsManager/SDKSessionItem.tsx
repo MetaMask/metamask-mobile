@@ -1,15 +1,15 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { ServiceStatus } from '@metamask/sdk-communication-layer';
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
-import SDKConnect, { Connection } from '../../../core/SDKConnect/SDKConnect';
+import { ConnectionProps } from '../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import StyledButton from '../../UI/StyledButton';
 
 interface SDKSessionViewProps {
-  connection: Connection;
+  connection: ConnectionProps;
+  onDisconnect: (channelId: string) => void;
 }
 
 const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
@@ -26,10 +26,10 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
       width: 24,
       borderRadius: 12,
       borderWidth: 1,
-      textAlign: 'center',
     },
     iconText: {
       lineHeight: 24,
+      textAlign: 'center',
     },
     dappName: {
       flexGrow: 1,
@@ -46,25 +46,25 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     disconnectFont: { color: colors.error.default, lineHeight: 24 },
   });
 
-export const SDKSessionItem = ({ connection }: SDKSessionViewProps) => {
+export const SDKSessionItem = ({
+  connection,
+  onDisconnect,
+}: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const sdk = SDKConnect.getInstance();
   const styles = createStyles(colors, safeAreaInsets);
-  const [serviceStatus] = useState<ServiceStatus>(
-    connection.remote.getServiceStatus(),
-  );
   const [sessionName, setSessionName] = useState('');
   const [icon, setIcon] = useState<string>();
 
   useEffect(() => {
     const _sessionName =
-      serviceStatus.originatorInfo?.url ||
-      serviceStatus.originatorInfo?.title ||
+      connection.originatorInfo?.url ||
+      connection.originatorInfo?.title ||
       strings('sdk.unkown_dapp');
-    setIcon(serviceStatus.originatorInfo?.icon);
+    setIcon(connection.originatorInfo?.icon);
     setSessionName(_sessionName);
-  }, [serviceStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -72,16 +72,14 @@ export const SDKSessionItem = ({ connection }: SDKSessionViewProps) => {
         <Image style={styles.icon} source={{ uri: icon }} />
       ) : (
         <Text style={[styles.icon, styles.iconText]}>
-          {sessionName.charAt(0)}
+          {sessionName.charAt(0).toUpperCase()}
         </Text>
       )}
 
       <Text style={styles.dappName}>{sessionName}</Text>
       <StyledButton
         type="normal"
-        onPress={() => {
-          sdk.removeChannel(connection.channelId);
-        }}
+        onPress={() => onDisconnect(connection.id)}
         containerStyle={styles.disconnectContainer}
         style={[styles.disconnectContainer, styles.disconnectFont]}
         fontStyle={styles.disconnectFont}

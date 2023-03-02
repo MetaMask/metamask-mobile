@@ -8,7 +8,11 @@ import { fontStyles } from '../../../styles/common';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import { SDKConnect, Connection } from '../../../core/SDKConnect/SDKConnect';
+import {
+  SDKConnect,
+  Connection,
+  ConnectionProps,
+} from '../../../core/SDKConnect/SDKConnect';
 import StyledButton from '../../UI/StyledButton';
 import SDKSessionItem from './SDKSessionItem';
 import ActionModal from '../../../components/UI/ActionModal';
@@ -68,12 +72,12 @@ const SDKSessionsManager = (props: Props) => {
   const sdk = SDKConnect.getInstance();
   const { colors } = useTheme();
   const styles = createStyles(colors, safeAreaInsets);
-  const [connected, setConnected] = useState<Connection[]>([]);
+  const [connections, setConnections] = useState<ConnectionProps[]>([]);
 
   const refreshSDKState = () => {
-    const _connected = sdk.getConnected();
-    const connectedList = Object.values(_connected);
-    setConnected(connectedList);
+    const _connections = sdk.getConnections();
+    const connectionsList = Object.values(_connections);
+    setConnections(connectionsList);
   };
 
   const toggleClearMMSDKConnectionModal = () => {
@@ -81,8 +85,9 @@ const SDKSessionsManager = (props: Props) => {
   };
 
   const clearMMSDKConnections = async () => {
-    sdk.removeAll();
     toggleClearMMSDKConnectionModal();
+    sdk.removeAll();
+    setConnections([]);
   };
 
   const updateNavBar = () => {
@@ -101,16 +106,27 @@ const SDKSessionsManager = (props: Props) => {
   useEffect(() => {
     refreshSDKState();
     updateNavBar();
-    const _handle = () => {
-      refreshSDKState();
-    };
-    sdk.on('refresh', _handle);
+    // const _handle = () => {
+    //   refreshSDKState();
+    // };
+    // sdk.on('refresh', _handle);
 
-    return () => {
-      sdk.removeListener('refresh', _handle);
-    };
+    // return () => {
+    //   sdk.removeListener('refresh', _handle);
+    // };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onDisconnect = (channelId: string) => {
+    // TODO why do we need to timeout otherwise
+    setConnections([]);
+    sdk.removeChannel(channelId, true);
+
+    setTimeout(() => {
+      // setConnections(newList);
+      refreshSDKState();
+    }, 100);
+  };
 
   const renderMMSDKConnectionsModal = () => (
     <ActionModal
@@ -136,8 +152,14 @@ const SDKSessionsManager = (props: Props) => {
     <>
       <ScrollView style={styles.scrollView}>
         <View>
-          {connected.map((sdkSession, _index) => (
-            <SDKSessionItem key={`s${_index}`} connection={sdkSession} />
+          {connections.map((sdkSession, _index) => (
+            <SDKSessionItem
+              key={`s${_index}`}
+              connection={sdkSession}
+              onDisconnect={(channelId: string) => {
+                onDisconnect(channelId, _index);
+              }}
+            />
           ))}
         </View>
       </ScrollView>
@@ -163,7 +185,7 @@ const SDKSessionsManager = (props: Props) => {
 
   return (
     <View style={styles.wrapper} testID={'sdk-session-manager'}>
-      {connected.length > 0 ? renderSDKSessions() : renderEmptyResult()}
+      {connections.length > 0 ? renderSDKSessions() : renderEmptyResult()}
       {renderMMSDKConnectionsModal()}
     </View>
   );
