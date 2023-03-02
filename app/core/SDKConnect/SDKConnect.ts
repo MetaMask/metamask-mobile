@@ -8,8 +8,8 @@ import {
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
 import BackgroundTimer from 'react-native-background-timer';
-import AppConstants from '../AppConstants';
 import DefaultPreference from 'react-native-default-preference';
+import AppConstants from '../AppConstants';
 
 import {
   TransactionController,
@@ -18,14 +18,15 @@ import {
 import { AppState } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import Device from '../../util/device';
-import Logger from '../../util/Logger';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
 
+import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import { EventEmitter2 } from 'eventemitter2';
 import {
   mediaDevices,
@@ -37,11 +38,8 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
-import { store } from '../../../app/store';
 import { toggleSDKLoadingModal } from '../../../app/actions/modals';
-import { ApprovalController } from '@metamask/approval-controller';
-import { v1 as random } from 'uuid';
-import { PreferencesController } from '@metamask/preferences-controller';
+import { store } from '../../../app/store';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -198,7 +196,7 @@ export class Connection extends EventEmitter2 {
     this.origin = origin;
     this.channelId = id;
     this.reconnect = reconnect || false;
-    this.initialConnection = initialConnection;
+    this.initialConnection = initialConnection === true;
     this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;

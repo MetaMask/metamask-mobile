@@ -5,3 +5,4 @@ declare module '*.svg' {
 }
 
 declare module 'react-native-minimizer';
+declare module 'eth-json-rpc-errors';
