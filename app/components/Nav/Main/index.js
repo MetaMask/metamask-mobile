@@ -71,6 +71,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 
 const Stack = createStackNavigator();
 
@@ -352,6 +353,9 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
+        <View>
+          <SnapsExecutionWebView />
+        </View>
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />

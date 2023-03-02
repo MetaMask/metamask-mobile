@@ -10,7 +10,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../util/theme';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
-import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 import Engine from '../../../core/Engine';
 
 import { createStyles } from './styles';
@@ -74,9 +73,6 @@ const SnapsDev = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.webviewContainer}>
-        <SnapsExecutionWebView />
-      </View>
       <TextInput
         style={styles.input}
         onChangeText={setSnapInput}

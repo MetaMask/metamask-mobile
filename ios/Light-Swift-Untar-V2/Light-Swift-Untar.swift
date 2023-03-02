@@ -102,7 +102,6 @@ public extension FileManager {
 
   private func writeFileData(object: Any, location _loc: UInt64, length _len: UInt64,
                              path: String) {
-
     let pathURL = URL(fileURLWithPath: path)
     let directoryPathURL = pathURL.deletingLastPathComponent()
     if let data = object as? Data {
