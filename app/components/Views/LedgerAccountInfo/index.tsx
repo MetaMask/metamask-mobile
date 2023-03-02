@@ -84,7 +84,8 @@ const LedgerAccountInfo = () => {
   );
   const { KeyringController, AccountTrackerController } = Engine.context as any;
   const provider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.providerConfig,
   );
   const frequentRpcList = useSelector(
     (state: any) =>
