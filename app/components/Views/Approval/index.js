@@ -36,6 +36,7 @@ import {
   TX_SUBMITTED,
   TX_REJECTED,
 } from '../../../constants/transaction';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -343,7 +344,7 @@ class Approval extends PureComponent {
       }
 
       this.showWalletConnectNotification(true);
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
         this.getAnalyticsParams({ gasEstimateType, gasSelected }),
       );

@@ -158,7 +158,7 @@ class TypedSign extends PureComponent {
 
       const finalizeConfirmation = async (confirmed, rawSignature) => {
         if (!confirmed) {
-          AnalyticsV2.trackEvent(
+          trackEvent(
             MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
             this.getAnalyticsParams(),
           );
@@ -168,7 +168,7 @@ class TypedSign extends PureComponent {
         TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
         this.showWalletConnectNotification(messageParams, true);
 
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
           this.getAnalyticsParams(),
         );

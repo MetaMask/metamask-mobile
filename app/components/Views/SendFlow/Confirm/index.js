@@ -799,9 +799,7 @@ class Confirm extends PureComponent {
 
         if (transactionMeta.error) {
           if (transactionMeta?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-            );
+            trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
           } else {
             Alert.alert(
               strings('transactions.transaction_error'),
@@ -822,7 +820,7 @@ class Confirm extends PureComponent {
             assetType,
           });
           this.checkRemoveCollectible();
-          AnalyticsV2.trackEvent(
+          trackEvent(
             MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
             this.getAnalyticsParams(),
           );
