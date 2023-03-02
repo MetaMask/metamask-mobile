@@ -269,7 +269,6 @@ class Send extends PureComponent {
    */
   handleNewTxMetaRecipient = async (recipient) => {
     const to = await getAddress(recipient, this.props.network);
-
     if (!to) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
