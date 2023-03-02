@@ -33,7 +33,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { getUrlObj } from '../../../util/browser';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -85,11 +85,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [origin],
   );
 
-  const urlWithProtocol = useMemo(
-    () => `${getUrlObj(origin).protocol}//${hostname}`,
-    [origin, hostname],
-  );
-
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
   /**
    * Get image url from favicon api.
    */
