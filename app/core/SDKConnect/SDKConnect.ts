@@ -580,17 +580,7 @@ export class Connection extends EventEmitter2 {
       Engine.context as { ApprovalController: ApprovalController }
     ).ApprovalController;
 
-    // // Request new otp
-    // // TODO check if an approval is already in progress or add it.
-    // if (approvalController.has({ id: this.host })) {
-    //   // Request already pending, nothing todo.
-    //   console.warn(`Approval request already ongoing`);
-    //   await approvalController.get(this.host);
-    //   return;
-    // }
     let approvalResult;
-
-    // Generate an OTP and send the value to the user in case the host wasn't approved.
 
     if (this.approvalPromise) {
       console.debug(
