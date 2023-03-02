@@ -1,7 +1,7 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ServiceStatus } from '@metamask/sdk-communication-layer';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import SDKConnect, { Connection } from '../../../core/SDKConnect/SDKConnect';
@@ -26,8 +26,10 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
       width: 24,
       borderRadius: 12,
       borderWidth: 1,
-      lineHeight: 24,
       textAlign: 'center',
+    },
+    iconText: {
+      lineHeight: 24,
     },
     dappName: {
       flexGrow: 1,
@@ -53,18 +55,27 @@ export const SDKSessionItem = ({ connection }: SDKSessionViewProps) => {
     connection.remote.getServiceStatus(),
   );
   const [sessionName, setSessionName] = useState('');
+  const [icon, setIcon] = useState<string>();
 
   useEffect(() => {
     const _sessionName =
-      serviceStatus.originatorInfo?.title ||
       serviceStatus.originatorInfo?.url ||
+      serviceStatus.originatorInfo?.title ||
       strings('sdk.unkown_dapp');
+    setIcon(serviceStatus.originatorInfo?.icon);
     setSessionName(_sessionName);
   }, [serviceStatus]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{sessionName.charAt(0)}</Text>
+      {icon ? (
+        <Image style={styles.icon} source={{ uri: icon }} />
+      ) : (
+        <Text style={[styles.icon, styles.iconText]}>
+          {sessionName.charAt(0)}
+        </Text>
+      )}
+
       <Text style={styles.dappName}>{sessionName}</Text>
       <StyledButton
         type="normal"
