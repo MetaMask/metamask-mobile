@@ -1,19 +1,17 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import LottieView from 'lottie-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
 import { useTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
-// import LottieView from 'lottie-react-native';
-import AnimatedSpinner from '../AnimatedSpinner';
-// import logo from './light.json';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface SDKLoadingModalrops {
   onCancel: () => void;
   onConfirm: () => void;
 }
+
+const animationSize = Device.getDeviceWidth() / 2;
 
 const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
   StyleSheet.create({
@@ -37,29 +35,35 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     action: {
       marginLeft: 10,
     },
+    animation: {
+      width: animationSize,
+      alignSelf: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
 
 export const SDKLoadingModal = (_props?: SDKLoadingModalrops) => {
   const safeAreaInsets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, safeAreaInsets);
+  const animatedLogo =
+    themeAppearance === 'light'
+      ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('./logo-light.json')
+      : // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('./logo-dark.json');
 
   return (
     <View style={styles.root}>
       <View style={styles.actionContainer}>
-        <AnimatedSpinner size={36} />
-        {/* TODO enable lottie view instead */}
-        {/* <LottieView
-          // eslint-disable-next-line react/jsx-no-bind
-          // ref={(animation) => {
-          //   this.firstAnimation = animation;
-          // }}
-          style={{ height: 150, width: 150, borderWidth:1 }}
+        <LottieView
+          style={styles.animation}
+          autoPlay
           loop
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          source={require('./light.json')}
-        /> */}
-        <Text style={styles.action}>{strings('sdk.loading')}</Text>
+          source={animatedLogo}
+        />
+        {/* TODO remove text from animation and use <Text> instead. */}
       </View>
     </View>
   );
