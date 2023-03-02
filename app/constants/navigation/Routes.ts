@@ -24,6 +24,7 @@ const Routes = {
     ROOT_MODAL_FLOW: 'RootModalFlow',
     MODAL_CONFIRMATION: 'ModalConfirmation',
     WHATS_NEW: 'WhatsNewModal',
+    SDK_LOADING: 'SDKLoadingModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',

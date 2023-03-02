@@ -3,6 +3,7 @@ const initialState = {
   shouldNetworkSwitchPopToWallet: true,
   collectibleContractModalVisible: false,
   receiveModalVisible: false,
+  sdkLoadingModalVisible: false,
   receiveAsset: undefined,
   dappTransactionModalVisible: false,
   approveModalVisible: false,
@@ -23,6 +24,28 @@ const modalsReducer = (state = initialState, action) => {
         receiveAsset: action.asset,
       };
     }
+    case 'TOGGLE_SDKLOADING_MODAL':
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          sdkLoadingModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        sdkLoadingModalVisible: !state.sdkLoadingModalVisible,
+      };
+    case 'TOGGLE_ACCOUNT_APPROVAL_MODAL':
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          accountApprovalModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        accountApprovalModalVisible: action.visible,
+      };
     case 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL':
       return {
         ...state,

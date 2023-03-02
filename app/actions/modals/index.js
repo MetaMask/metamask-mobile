@@ -6,6 +6,20 @@ export function toggleNetworkModal(shouldNetworkSwitchPopToWallet = true) {
   };
 }
 
+export function toggleSDKLoadingModal(visible) {
+  return {
+    type: 'TOGGLE_SDKLOADING_MODAL',
+    visible,
+  };
+}
+
+export function toggleAccountApprovalModal(visible) {
+  return {
+    type: 'TOGGLE_ACCOUNT_APPROVAL_MODAL',
+    visible,
+  };
+}
+
 export function toggleCollectibleContractModal() {
   return {
     type: 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL',
