@@ -144,6 +144,16 @@ const waitForKeychainUnlocked = async () => {
   }
 };
 
+const rpcQueue: string[] = [];
+const waitForEmptyRPCQueue = async () => {
+  let i = 0;
+  console.debug(`waitForRPcQueue length=${rpcQueue.length}`, rpcQueue);
+  while (rpcQueue.length > 0) {
+    await new Promise<void>((res) => setTimeout(() => res(), 1000));
+    if (i++ > 30) break;
+  }
+};
+
 export class Connection extends EventEmitter2 {
   channelId;
   remote: RemoteCommunication;
@@ -260,6 +270,7 @@ export class Connection extends EventEmitter2 {
       if (!this.remote.isPaused()) {
         disapprove(this.channelId);
         this.initialConnection = false;
+        this.otps = undefined;
       }
     });
 
@@ -281,7 +292,9 @@ export class Connection extends EventEmitter2 {
 
           approvalController.clear(ethErrors.provider.userRejectedRequest());
 
-          this.otps = generateOTP();
+          if (!this.otps) {
+            this.otps = generateOTP();
+          }
           this.sendMessage({
             type: MessageType.OTP,
             otpAnswer: this.otps?.[0],
@@ -350,7 +363,6 @@ export class Connection extends EventEmitter2 {
         console.debug(
           `debug needsRedirect=${needsRedirect} isResumed=${this.isResumed}`,
         );
-        store.dispatch(toggleSDKLoadingModal(false));
 
         await waitForKeychainUnlocked();
 
@@ -361,8 +373,9 @@ export class Connection extends EventEmitter2 {
         );
         // Check if channel is permitted
         try {
-          if (METHODS_TO_REDIRECT[message?.method]) {
+          if (needsRedirect) {
             this.setLoading(false);
+            rpcQueue.push(message.id);
             await this.checkPermissions(message);
           } else {
             console.debug(`Allowed method`, message);
@@ -665,7 +678,7 @@ export class Connection extends EventEmitter2 {
   sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
     console.debug(
-      `Connection::sendMessage requestsToRedirect redirect=${needsRedirect} msg?.data?.id=${msg?.data?.id}`,
+      `Connection::sendMessage requestsToRedirect redirect=${needsRedirect} rpcQueue=${rpcQueue.length} msg?.data?.id=${msg?.data?.id}`,
       this.requestsToRedirect,
     );
     this.remote.sendMessage(msg);
@@ -673,6 +686,7 @@ export class Connection extends EventEmitter2 {
 
     if (!needsRedirect) return;
 
+    rpcQueue.pop();
     delete this.requestsToRedirect[msg?.data?.id];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
@@ -680,10 +694,12 @@ export class Connection extends EventEmitter2 {
     console.debug(
       `Connection::sendMessage message sent - waiting for minimizer`,
     );
-    setTimeout(() => {
+
+    setTimeout(async () => {
       console.debug(`Connection::sendMessage calling minimizer`);
+      await waitForEmptyRPCQueue();
       Minimizer.goBack();
-    }, 1000);
+    }, 500);
   }
 }
 
@@ -962,9 +978,18 @@ export class SDKConnect extends EventEmitter2 {
 
   public removeChannel(channelId: string, sendTerminate?: boolean) {
     if (this.connected[channelId]) {
-      this.connected[channelId].removeConnection({
-        terminate: sendTerminate ?? false,
-      });
+      try {
+        this.connected[channelId].removeConnection({
+          terminate: sendTerminate ?? false,
+        });
+      } catch (err) {
+        // Ignore error
+      }
+
+      console.debug(
+        `removing channel ${channelId}`,
+        Object.keys(this.connected),
+      );
       delete this.connected[channelId];
       delete this.connections[channelId];
       delete this.connecting[channelId];
