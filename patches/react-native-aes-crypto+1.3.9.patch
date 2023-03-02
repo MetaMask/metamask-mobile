@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-aes-crypto/android/build.gradle b/node_modules/react-native-aes-crypto/android/build.gradle
+index a68c5b7..2cb6ef1 100644
+--- a/node_modules/react-native-aes-crypto/android/build.gradle
++++ b/node_modules/react-native-aes-crypto/android/build.gradle
+@@ -20,7 +20,7 @@ buildscript {
+ }
+ 
+ apply plugin: 'com.android.library'
+-apply plugin: 'maven'
++apply plugin: 'maven-publish'
+ 
+ // Matches values in recent template from React Native 0.59 / 0.60
+ // https://github.com/facebook/react-native/blob/0.59-stable/template/android/build.gradle#L5-L9
