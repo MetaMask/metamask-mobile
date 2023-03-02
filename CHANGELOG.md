@@ -1,6 +1,30 @@
 # Changelog
 
 ## Current Main Branch
+- [#5062](https://github.com/MetaMask/metamask-mobile/pull/5062): [PS] Implement Permission System
+- [#5659](https://github.com/MetaMask/metamask-mobile/pull/5659): fix tapReminder step
+- [#5549](https://github.com/MetaMask/metamask-mobile/pull/5549): 5.14.0
+- [#5641](https://github.com/MetaMask/metamask-mobile/pull/5641): Use Set when filtering blocklist
+- [#5655](https://github.com/MetaMask/metamask-mobile/pull/5655): adjust get started wait
+- [#5650](https://github.com/MetaMask/metamask-mobile/pull/5650): E2e appium request token3
+- [#5647](https://github.com/MetaMask/metamask-mobile/pull/5647): [IMPROVEMENT] Add introductory image to SRP Quiz
+- [#5640](https://github.com/MetaMask/metamask-mobile/pull/5640): [IMPROVEMENT] Middleware - Include the request in the error params
+- [#5632](https://github.com/MetaMask/metamask-mobile/pull/5632): E2e appium folder structure change
+- [#5579](https://github.com/MetaMask/metamask-mobile/pull/5579): [FEAT] Add friction to SRP reveal
+- [#5623](https://github.com/MetaMask/metamask-mobile/pull/5623): Fix currency display
+- [#5551](https://github.com/MetaMask/metamask-mobile/pull/5551): [IMPROVEMENT] Refactor Personal Signature
+- [#5626](https://github.com/MetaMask/metamask-mobile/pull/5626): [FIX] SRP Quiz content and translations
+- [#5612](https://github.com/MetaMask/metamask-mobile/pull/5612): [FIX] Make Prettier work in wdio directory
+- [#5605](https://github.com/MetaMask/metamask-mobile/pull/5605): Handle ENS Address Error
+- [#5613](https://github.com/MetaMask/metamask-mobile/pull/5613): [FIX] Analytics event interface
+- [#5600](https://github.com/MetaMask/metamask-mobile/pull/5600): [IMPROVEMENT] Refactor ProtectYourWallet section in the security section
+- [#5586](https://github.com/MetaMask/metamask-mobile/pull/5586): Stablize Addressbook and Networks flow tests
+- [#5594](https://github.com/MetaMask/metamask-mobile/pull/5594): bumped ua-parser-js to 0.7.33
+- [#5580](https://github.com/MetaMask/metamask-mobile/pull/5580): Bump cookiejar from 2.1.2 to 2.1.4
+- [#5471](https://github.com/MetaMask/metamask-mobile/pull/5471): Bump luxon from 3.1.1 to 3.2.1
+- [#5450](https://github.com/MetaMask/metamask-mobile/pull/5450): Bump json5 from 1.0.1 to 1.0.2
+- [#5575](https://github.com/MetaMask/metamask-mobile/pull/5575): [CONTENT] Add translations to SRP Reveal feature
+- [#5559](https://github.com/MetaMask/metamask-mobile/pull/5559): [ANALYTICS] Add analytics events for SRP reveal
 
 ## 6.0.1 - Feb 27, 2023
 - [#5851](https://github.com/MetaMask/metamask-mobile/pull/5851): [FIX] Fix search network crasher
