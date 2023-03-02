@@ -148,6 +148,10 @@ export class Connection extends EventEmitter2 {
   isReady = false;
   backgroundBridge?: BackgroundBridge;
   reconnect: boolean;
+  /**
+   * isResumed is used to manage the loading state.
+   */
+  isResumed = false;
   initialConnection: boolean;
 
   /**
@@ -196,6 +200,7 @@ export class Connection extends EventEmitter2 {
     this.origin = origin;
     this.channelId = id;
     this.reconnect = reconnect || false;
+    this.isResumed = false;
     this.initialConnection = initialConnection === true;
     this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
     this.approveHost = approveHost;
@@ -230,11 +235,19 @@ export class Connection extends EventEmitter2 {
 
     this.sendMessage = this.sendMessage.bind(this);
 
+    this.remote.on(EventType.CLIENTS_CONNECTED, () => {
+      this.setLoading(true);
+    });
+
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
       this.setLoading(false);
-      console.debug(`Connection::on::clients_disconnected `);
+      console.debug(
+        `Connection::on::clients_disconnected paused=${this.remote.isPaused()} `,
+      );
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
-      disapprove(this.channelId);
+      if (!this.remote.isPaused()) {
+        disapprove(this.channelId);
+      }
     });
 
     this.remote.on(
@@ -245,8 +258,9 @@ export class Connection extends EventEmitter2 {
           clientsReadyMsg,
         );
 
-        this.setLoading(false);
-        this.disapprove(this.channelId);
+        if (!this.isResumed) {
+          this.disapprove(this.channelId);
+        }
 
         if (this.isReady) {
           console.debug(
@@ -280,7 +294,7 @@ export class Connection extends EventEmitter2 {
         console.debug(
           `Connection::on 'message' --> this.ready=${this.isReady} method=${message.method}`,
         );
-        this.setLoading(false);
+
         if (!this.isReady) {
           console.debug(`Connection::on 'message' connection not ready`);
           return;
@@ -292,17 +306,25 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        const needsRedirect = METHODS_TO_REDIRECT[message?.method];
+        if (needsRedirect) {
+          this.requestsToRedirect[message?.id] = true;
+        }
+
+        if (needsRedirect) {
+          // Stop loading display after we have responded to wallet initialization message such as metamask_getProviderState
+          this.setLoading(false);
+        } else if (this.isResumed) {
+          this.setLoading(false);
+        }
+
+        await waitForKeychainUnlocked();
+
         // handle termination message
         if (message.type === MessageType.TERMINATE) {
           // Delete connection from storage
           this.onTerminate({ channelId: this.channelId });
           return;
-        }
-
-        await waitForKeychainUnlocked();
-
-        if (METHODS_TO_REDIRECT[message?.method]) {
-          this.requestsToRedirect[message?.id] = true;
         }
 
         // Check if channel is permitted
@@ -544,6 +566,8 @@ export class Connection extends EventEmitter2 {
 
   resume() {
     this.remote.resume();
+    this.isResumed = true;
+    this.setLoading(false);
   }
 
   disconnect({ terminate }: { terminate: boolean }) {
@@ -633,7 +657,7 @@ export class SDKConnect extends EventEmitter2 {
       initialConnection: true,
       updateOriginatorInfos: this.updateOriginatorInfos.bind(this),
       approveHost: this._approveHost.bind(this),
-      disapprove: this.disapprove.bind(this),
+      disapprove: this.disapproveChannel.bind(this),
       getApprovedHosts: this.getApprovedHosts.bind(this),
       revalidate: this.revalidateChannel.bind(this),
       isApproved: this.isApproved.bind(this),
@@ -760,7 +784,7 @@ export class SDKConnect extends EventEmitter2 {
       reconnect: true,
       initialConnection: false,
       approveHost: this._approveHost.bind(this),
-      disapprove: this.disapprove.bind(this),
+      disapprove: this.disapproveChannel.bind(this),
       getApprovedHosts: this.getApprovedHosts.bind(this),
       revalidate: this.revalidateChannel.bind(this),
       isApproved: this.isApproved.bind(this),
@@ -855,7 +879,7 @@ export class SDKConnect extends EventEmitter2 {
     return this.approvedHosts || {};
   }
 
-  public disapprove(channelId: string) {
+  public disapproveChannel(channelId: string) {
     const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
     console.debug(
       `SDKConnect::disapprove hostname=${hostname}`,
@@ -870,7 +894,6 @@ export class SDKConnect extends EventEmitter2 {
     const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
     // if (this.disabledHosts[hostname]) {
     this._approveHost({ host: hostname, hostname });
-    this.emit('refresh');
   }
 
   public isApproved({
@@ -903,6 +926,7 @@ export class SDKConnect extends EventEmitter2 {
       console.debug(`APPROVING now`);
       approvalController.accept(host);
     }
+    this.emit('refresh');
   }
 
   private _handleAppState(appState: string) {
@@ -924,7 +948,6 @@ export class SDKConnect extends EventEmitter2 {
       }
       this.paused = false;
     } else if (appState === 'background') {
-      this.wasActiveOrRecoveredFromBackgroundState = true;
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.

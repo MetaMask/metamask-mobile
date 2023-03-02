@@ -201,7 +201,7 @@ export const SDKSessionView = ({
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            sdk.disapprove(connection.channelId);
+            sdk.disapproveChannel(connection.channelId);
             setApproved(false);
           }}
         >
