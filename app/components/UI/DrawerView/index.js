@@ -34,6 +34,7 @@ import {
   toggleSDKLoadingModal,
   toggleChannelDisconnectModal,
   toggleAccountApprovalModal,
+  toggleSDKFeedbackModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -87,6 +88,7 @@ import {
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import AccountApproval from '../AccountApproval';
 import SDKLoadingModal from '../SDKLoadingModal';
+import SDKFeedbackModal from '../SDKFeedbackModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -393,6 +395,10 @@ class DrawerView extends PureComponent {
      */
     sdkLoadingModalVisible: PropTypes.bool,
     /**
+     * Boolean that determines the status of the SDK feedback modal
+     */
+    sdkFeedbackModalVisible: PropTypes.bool,
+    /**
      * Action that toggles the disconnect all confirmation modal
      */
     toggleChannelDisconnectModal: PropTypes.func,
@@ -400,6 +406,10 @@ class DrawerView extends PureComponent {
      * Action that toggles the SDK loading modal
      */
     toggleSDKLoadingModal: PropTypes.func,
+    /**
+     * Action that toggles the SDK feedback modal
+     */
+    toggleSDKFeedbackModal: PropTypes.func,
     /**
      * Action that toggles the Account approval modal
      */
@@ -849,6 +859,10 @@ class DrawerView extends PureComponent {
 
   toggleSDKLoadingModal = () => {
     this.props.toggleSDKLoadingModal(false);
+  };
+
+  toggleSDKFeedbackModal = () => {
+    this.props.toggleSDKFeedbackModal(false);
   };
 
   toggleChannelDisconnectModal = () => {
@@ -1423,7 +1437,7 @@ class DrawerView extends PureComponent {
             onClose={this.closeInvalidCustomNetworkAlert}
           />
         </Modal>
-        <Modal
+        {/* <Modal
           isVisible={this.props.accountApprovalModalVisible}
           style={styles.bottomModal}
           onBackdropPress={this.toggleAccountApprovalModal}
@@ -1439,7 +1453,7 @@ class DrawerView extends PureComponent {
             onConfirm={this.toggleAccountApprovalModal}
             currentPageInformation={{ reconnect: true }}
           />
-        </Modal>
+        </Modal> */}
         <Modal
           isVisible={this.props.sdkLoadingModalVisible}
           style={styles.bottomModal}
@@ -1452,6 +1466,19 @@ class DrawerView extends PureComponent {
           backdropOpacity={1}
         >
           <SDKLoadingModal />
+        </Modal>
+        <Modal
+          isVisible={this.props.sdkFeedbackModalVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleSDKFeedbackModal}
+          onBackButtonPress={this.toggleSDKFeedbackModal}
+          onSwipeComplete={this.toggleSDKFeedbackModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <SDKFeedbackModal />
         </Modal>
         {this.renderOnboardingWizard()}
         <Modal
@@ -1491,6 +1518,7 @@ const mapStateToProps = (state) => ({
   networkModalVisible: state.modals.networkModalVisible,
   accountsModalVisible: state.modals.accountsModalVisible,
   sdkLoadingModalVisible: state.modals.sdkLoadingModalVisible,
+  sdkFeedbackModalVisible: state.modals.sdkFeedbackModalVisible,
   channelDisconnectModalVisible: state.modals.channelDisconnectModalVisible,
   accountApprovalModalVisible: state.modals.accountApprovalModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
@@ -1513,6 +1541,7 @@ const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   toggleSDKLoadingModal: () => dispatch(toggleSDKLoadingModal()),
+  toggleSDKFeedbackModal: () => dispatch(toggleSDKFeedbackModal()),
   toggleAccountApprovalModal: (visible) =>
     dispatch(toggleAccountApprovalModal(visible)),
   toggleChannelDisconnectModal: () => dispatch(toggleChannelDisconnectModal()),

@@ -13,7 +13,15 @@ export function toggleSDKLoadingModal(visible) {
   };
 }
 
+export function toggleSDKFeedbackModal(visible) {
+  return {
+    type: 'TOGGLE_SDKFEEDBACK_MODAL',
+    visible,
+  };
+}
+
 export function toggleAccountApprovalModal(visible) {
+  console.debug(`toggleAccountApprovalModal visible=${visible}`);
   return {
     type: 'TOGGLE_ACCOUNT_APPROVAL_MODAL',
     visible,

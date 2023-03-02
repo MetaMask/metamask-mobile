@@ -63,7 +63,6 @@ export const SDKLoadingModal = (_props?: SDKLoadingModalrops) => {
           loop
           source={animatedLogo}
         />
-        {/* TODO remove text from animation and use <Text> instead. */}
       </View>
     </View>
   );

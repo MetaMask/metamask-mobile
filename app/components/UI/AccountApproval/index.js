@@ -1,18 +1,27 @@
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable prettier/prettier */
 /* eslint-disable array-callback-return */
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
-import { StyleSheet, Text, View, InteractionManager } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  InteractionManager,
+  TouchableOpacity,
+} from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import CheckBox from '@react-native-community/checkbox';
 
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
@@ -21,9 +30,9 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   CANCEL_BUTTON_ID,
 } from '../../../constants/test-ids';
-import SelectItem from '../../../../app/component-library/components/Select/Select/SelectItem';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
+import { toggleSDKFeedbackModal } from '../../../../app/actions/modals';
 
 const createStyles = (colors, themeAppearance = 'light') =>
   StyleSheet.create({
@@ -66,9 +75,7 @@ const createStyles = (colors, themeAppearance = 'light') =>
       width: '100%',
       textAlign: 'center',
     },
-    otpContainer: {
-      borderWidth: 1,
-    },
+    otpContainer: {},
     otpText: {
       color: colors.primary.default,
     },
@@ -111,6 +118,55 @@ const createStyles = (colors, themeAppearance = 'light') =>
     confirm: {
       marginLeft: 8,
     },
+    otpRoot: {
+      flexDirection: 'row',
+      marginTop: 10,
+      justifyContent: 'space-around',
+    },
+    circle: {
+      width: 12,
+      height: 12,
+      borderRadius: 12 / 2,
+      backgroundColor: colors.background.default,
+      opacity: 1,
+      margin: 2,
+      borderWidth: 2,
+      borderColor: colors.border.default,
+      marginRight: 6,
+    },
+    rememberme: {
+      marginTop: 10,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      marginLeft: 20,
+      alignItems: 'center',
+    },
+    option: {
+      flex: 1,
+    },
+    touchableOption: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    optionText: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+    },
+    selectedCircle: {
+      width: 12,
+      height: 12,
+      borderRadius: 12 / 2,
+      backgroundColor: colors.primary.default,
+      opacity: 1,
+      margin: 2,
+      marginRight: 6,
+    },
+    rememberCheckbox: {
+      height: 20,
+      width: 20,
+    },
+    rememberText: { paddingLeft: 10 },
   });
 
 /**
@@ -139,6 +195,10 @@ class AccountApproval extends PureComponent {
      */
     tokensLength: PropTypes.number,
     /**
+     * Action that shows the SDK feedback modal
+     */
+    showSDKFeedbackModal: PropTypes.func,
+    /**
      * Number of accounts
      */
     accountsLength: PropTypes.number,
@@ -159,8 +219,11 @@ class AccountApproval extends PureComponent {
   state = {
     start: Date.now(),
     confirmDisabled: true,
+    noPersist: false,
     otpChoice: undefined,
+    // otps: [122, 144, 544],
     otps: shuffle(this.props.currentPageInformation.otps || []),
+    // otp: true,
     otp:
       this.props.currentPageInformation.origin ===
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
@@ -223,9 +286,19 @@ class AccountApproval extends PureComponent {
       this.state.otp &&
       this.state.otpChoice !== this.props.currentPageInformation.otps[0]
     ) {
-      console.warn(`INVALID OTP --- CONNECTION RESET`);
-      this.onCancel();
+      SDKConnect.getInstance().removeChannel(
+        this.props.currentPageInformation.channelId,
+        true,
+      );
+      this.props.showSDKFeedbackModal();
+      this.props.onCancel();
       return;
+    }
+
+    if (this.state.noPersist) {
+      SDKConnect.getInstance().invalidateChannel(
+        this.props.currentPageInformation.channelId,
+      );
     }
 
     this.props.onConfirm();
@@ -291,6 +364,10 @@ class AccountApproval extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance;
     const styles = createStyles(colors, themeAppearance);
+    const hasRememberMe =
+      !currentPageInformation.reconnect &&
+      this.props.currentPageInformation.origin ===
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
@@ -298,7 +375,9 @@ class AccountApproval extends PureComponent {
         {currentPageInformation.reconnect ? (
           <>
             <Text style={styles.intro_reconnect}>
-              {strings('accountApproval.action_reconnect')}
+              {this.state.otp
+                ? strings('accountApproval.action_reconnect')
+                : strings('accountApproval.action_reconnect_deeplink')}
             </Text>
           </>
         ) : (
@@ -315,22 +394,46 @@ class AccountApproval extends PureComponent {
           <AccountInfoCard fromAddress={selectedAddress} />
         </View>
         {this.state.otp && (
-          <View styles={styles.otpContainer}>
-            <Text style={styles.otpNotice}>
-              {'Please select the number you see on the DAPP to confirm'}
-            </Text>
-            {this.state.otps.map((otpValue, index) => (
-              <SelectItem
-                // style={styles.selectOtp}
-                key={`otp${index}`}
-                isSelected={this.state.otpChoice === otpValue}
-                onPress={() => this.onOTP(otpValue)}
-              >
-                <View style={styles.otpView}>
-                  <Text style={styles.otpText}>{otpValue}</Text>
+          <View style={styles.otpContainer}>
+            <View style={styles.otpRoot}>
+              {this.state.otps.map((otpValue, index) => (
+                <View style={styles.option} key={`otp${index}`}>
+                  <TouchableOpacity
+                    style={styles.touchableOption}
+                    onPress={() => this.onOTP(otpValue)}
+                  >
+                    <View
+                      style={
+                        this.state.otpChoice === otpValue
+                          ? styles.selectedCircle
+                          : styles.circle
+                      }
+                    />
+                    <Text style={styles.optionText}>{otpValue}</Text>
+                  </TouchableOpacity>
                 </View>
-              </SelectItem>
-            ))}
+              ))}
+            </View>
+          </View>
+        )}
+        {hasRememberMe && (
+          <View style={styles.rememberme}>
+            <CheckBox
+              style={styles.rememberCheckbox}
+              value={this.state.noPersist}
+              onValueChange={(checked) => {
+                this.setState({ ...this.state, noPersist: checked });
+              }}
+              boxType={'square'}
+              tintColors={{
+                true: colors.primary.default,
+                false: colors.border.default,
+              }}
+              testID={'skip-backup-check'}
+            />
+            <Text style={styles.rememberText}>
+              {strings('accountApproval.donot_rememberme')}
+            </Text>
           </View>
         )}
         <View style={styles.actionContainer}>
@@ -340,7 +443,9 @@ class AccountApproval extends PureComponent {
             containerStyle={[styles.button, styles.cancel]}
             testID={CANCEL_BUTTON_ID}
           >
-            {strings('accountApproval.cancel')}
+            {currentPageInformation.reconnect
+              ? strings('accountApproval.disconnect')
+              : strings('accountApproval.cancel')}
           </StyledButton>
           <StyledButton
             disabled={this.state.otp && this.state.confirmDisabled}
@@ -350,7 +455,7 @@ class AccountApproval extends PureComponent {
             testID={'connect-approve-button'}
           >
             {currentPageInformation.reconnect
-              ? strings('accountApproval.confirm')
+              ? strings('accountApproval.resume')
               : strings('accountApproval.connect')}
           </StyledButton>
         </View>
@@ -358,6 +463,10 @@ class AccountApproval extends PureComponent {
     );
   };
 }
+
+const mapDispatchToProps = (dispatch) => ({
+  showSDKFeedbackModal: () => dispatch(toggleSDKFeedbackModal(true)),
+});
 
 const mapStateToProps = (state) => ({
   accountsLength: Object.keys(
@@ -372,4 +481,4 @@ const mapStateToProps = (state) => ({
 
 AccountApproval.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(AccountApproval);
+export default connect(mapStateToProps, mapDispatchToProps)(AccountApproval);

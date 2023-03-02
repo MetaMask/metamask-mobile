@@ -5,6 +5,7 @@ const initialState = {
   receiveModalVisible: false,
   sdkLoadingModalVisible: false,
   receiveAsset: undefined,
+  sdkFeedbackModalVisible: false,
   dappTransactionModalVisible: false,
   approveModalVisible: false,
 };
@@ -34,6 +35,17 @@ const modalsReducer = (state = initialState, action) => {
       return {
         ...state,
         sdkLoadingModalVisible: !state.sdkLoadingModalVisible,
+      };
+    case 'TOGGLE_SDKFEEDBACK_MODAL':
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          sdkFeedbackModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        sdkFeedbackModalVisible: !state.sdkFeedbackModalVisible,
       };
     case 'TOGGLE_ACCOUNT_APPROVAL_MODAL':
       if (typeof action.visible !== undefined) {
@@ -66,6 +78,7 @@ const modalsReducer = (state = initialState, action) => {
             : action.show,
       };
     case 'TOGGLE_APPROVE_MODAL':
+      console.debug(`toggle_approve_modal`, action);
       if (action.show === false) {
         return {
           ...state,
