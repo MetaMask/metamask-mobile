@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 
-import { getHost } from '../../../util/browser';
+import { getHost, getUrlObj } from '../../../util/browser';
 import { useSelector } from 'react-redux';
 import networkList, { isMainnetByChainId } from '../../../util/networks';
 
-import { renderShortAddress, renderAccountName } from '../../../util/address';
+import {
+  renderShortAddress,
+  renderAccountName,
+  safeToChecksumAddress,
+} from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
@@ -31,6 +35,20 @@ import {
 } from './ApproveTransactionHeader.types';
 import images from 'images/image-icons';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
+
+/* const isFromWalletConnectorSDK = (
+  origins: OriginsI,
+  fromAddress: string,
+  permittedAccountsByHostname: any,
+) => {
+  const { isOriginMMSDKRemoteConn, isOriginWalletConnect } = origins;
+  console.log('ENET is wallet conect origin', isOriginWalletConnect);
+
+  if (isOriginMMSDKRemoteConn || isOriginWalletConnect) {
+    return safeToChecksumAddress(fromAddress);
+  }
+  return permittedAccountsByHostname[0];
+}; */
 
 const ApproveTransactionHeader = ({
   spenderAddress,
@@ -71,7 +89,9 @@ const ApproveTransactionHeader = ({
     origin,
   );
 
-  const activeAddress: string = permittedAccountsByHostname[0];
+  //Refactor function is wallet connect or SDK, isFromWalletConnectorSDK
+  const activeAddress: string =
+    permittedAccountsByHostname[0] ?? safeToChecksumAddress(spenderAddress);
 
   const network = useSelector(
     (state: any) =>
@@ -127,10 +147,10 @@ const ApproveTransactionHeader = ({
     let title = '';
     if (isOriginDeepLink) title = renderShortAddress(spenderAddress);
     else if (isOriginWalletConnect)
-      title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
+      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).href;
     else if (isOriginMMSDKRemoteConn) {
-      title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
-    } else title = getHost(currentEnsName || url || origin);
+      title = getUrlObj(origin.split(MM_SDK_REMOTE_ORIGIN)[1]).href;
+    } else title = getUrlObj(currentEnsName || url || origin).href;
 
     return title;
   }, [currentEnsName, origin, origins, spenderAddress, url]);
