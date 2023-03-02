@@ -340,7 +340,15 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.rpc.methodNotSupported();
       },
       eth_sign: async () => {
-        const { MessageManager } = Engine.context;
+        const { MessageManager, PreferencesController } = Engine.context;
+        const { disabledRpcMethodPreferences } = PreferencesController.state;
+        const { eth_sign } = disabledRpcMethodPreferences;
+
+        if (!eth_sign) {
+          throw ethErrors.rpc.methodNotFound(
+            'eth_sign has been disabled. You must enable it in the advanced settings',
+          );
+        }
         const pageMeta = {
           meta: {
             url: url.current,
