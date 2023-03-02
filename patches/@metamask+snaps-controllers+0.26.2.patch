@@ -1,84 +1,5 @@
-diff --git a/node_modules/@metamask/snaps-controllers/dist/multichain/MultiChainController.js b/node_modules/@metamask/snaps-controllers/dist/multichain/MultiChainController.js
-index 88a4313..b6e946b 100644
---- a/node_modules/@metamask/snaps-controllers/dist/multichain/MultiChainController.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/multichain/MultiChainController.js
-@@ -20,6 +20,7 @@ const nanoid_1 = require("nanoid");
- const snaps_1 = require("../snaps");
- const keyring_1 = require("../snaps/endowments/keyring");
- const matching_1 = require("./matching");
-+import { v4 as uuidv4 } from 'uuid';
- const controllerName = 'MultiChainController';
- const defaultState = {
-     sessions: {},
-@@ -316,7 +317,7 @@ class MultiChainController extends base_controller_1.BaseControllerV2 {
-      */
-     async resolveConflicts(origin, possibleAccounts) {
-         // Get user approval for connection.
--        const id = (0, nanoid_1.nanoid)();
-+        const id = uuidv4();
-         const resolvedAccounts = (await this.messagingSystem.call('ApprovalController:addRequest', {
-             origin,
-             id,
-diff --git a/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js b/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
-index 689d2b8..dd62971 100644
---- a/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
-@@ -24,6 +24,8 @@ const json_rpc_middleware_stream_1 = require("json-rpc-middleware-stream");
- const nanoid_1 = require("nanoid");
- const pump_1 = __importDefault(require("pump"));
- const utils_2 = require("../utils");
-+import { v4 as uuidv4 } from 'uuid';
-+
- const controllerName = 'ExecutionService';
- class AbstractExecutionService {
-     constructor({ setupSnapProvider, messenger, terminationTimeout = utils_1.Duration.Second, }) {
-@@ -70,7 +72,7 @@ class AbstractExecutionService {
-             jsonrpc: '2.0',
-             method: 'terminate',
-             params: [],
--            id: (0, nanoid_1.nanoid)(),
-+            id: uuidv4(),
-         }), __classPrivateFieldGet(this, _AbstractExecutionService_terminationTimeout, "f"));
-         if (result === utils_2.hasTimedOut || result !== 'OK') {
-             // We tried to shutdown gracefully but failed. This probably means the Snap is in infite loop and
-@@ -102,7 +104,7 @@ class AbstractExecutionService {
-      * @returns Information regarding the created job.
-      */
-     async initJob() {
--        const jobId = (0, nanoid_1.nanoid)();
-+        const jobId = uuidv4();
-         const { streams, worker } = await this.initStreams(jobId);
-         const rpcEngine = new json_rpc_engine_1.JsonRpcEngine();
-         const jsonRpcConnection = (0, json_rpc_middleware_stream_1.createStreamMiddleware)();
-@@ -215,7 +217,7 @@ class AbstractExecutionService {
-         await this.command(job.id, {
-             jsonrpc: '2.0',
-             method: 'ping',
--            id: (0, nanoid_1.nanoid)(),
-+            id: uuidv4(),
-         });
-         const rpcStream = job.streams.rpc;
-         this.setupSnapProvider(snapData.snapId, rpcStream);
-@@ -223,7 +225,7 @@ class AbstractExecutionService {
-             jsonrpc: '2.0',
-             method: 'executeSnap',
-             params: snapData,
--            id: (0, nanoid_1.nanoid)(),
-+            id: uuidv4(),
-         });
-         __classPrivateFieldGet(this, _AbstractExecutionService_instances, "m", _AbstractExecutionService_createSnapHooks).call(this, snapData.snapId, job.id);
-         return result;
-@@ -265,7 +267,7 @@ _AbstractExecutionService_snapRpcHooks = new WeakMap(), _AbstractExecutionServic
- }, _AbstractExecutionService_createSnapHooks = function _AbstractExecutionService_createSnapHooks(snapId, workerId) {
-     const rpcHook = async ({ origin, handler, request }) => {
-         return await this.command(workerId, {
--            id: (0, nanoid_1.nanoid)(),
-+            id: uuidv4(),
-             jsonrpc: '2.0',
-             method: 'snapRpc',
-             params: {
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-index f5d98e7..ad8e09e 100644
+index f5d98e7..9bbd396 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 @@ -40,6 +40,7 @@ const rpc_1 = require("./endowments/rpc");
@@ -98,21 +19,7 @@ index f5d98e7..ad8e09e 100644
              state.snapErrors[id] = Object.assign(Object.assign({}, snapError), { internalID: id });
          });
      }
-@@ -615,11 +616,13 @@ class SnapController extends base_controller_1.BaseControllerV2 {
-      * @returns The resulting snap object, or an error if something went wrong.
-      */
-     async processRequestedSnap(origin, snapId, versionRange) {
-+        console.log('snaps/', 'processRequestedSnap', 'origin', origin, 'snapId', snapId, 'versionRange', versionRange);
-         (0, snaps_utils_1.validateSnapId)(snapId);
-         const location = __classPrivateFieldGet(this, _SnapController_detectSnapLocation, "f").call(this, snapId, {
-             versionRange,
-             fetch: __classPrivateFieldGet(this, _SnapController_fetchFunction, "f"),
-         });
-+        console.log('snaps/', 'processRequestedSnap', 'location', JSON.stringify(location));
-         const existingSnap = this.getTruncated(snapId);
-         // For devX we always re-install local snaps.
-         if (existingSnap && !location.shouldAlwaysReload) {
-@@ -695,7 +698,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -695,7 +696,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          });
          const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, newSnap.manifest.result.initialPermissions);
          const { newPermissions, unusedPermissions, approvedPermissions } = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_calculatePermissionsChange).call(this, snapId, processedPermissions);
@@ -121,7 +28,7 @@ index f5d98e7..ad8e09e 100644
          const _b = (await this.messagingSystem.call('ApprovalController:addRequest', {
              origin,
              id,
-@@ -772,7 +775,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -772,7 +773,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          const { initialPermissions } = snap;
          try {
              const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, initialPermissions);
@@ -130,122 +37,12 @@ index f5d98e7..ad8e09e 100644
              const _a = (await this.messagingSystem.call('ApprovalController:addRequest', {
                  origin,
                  id,
-@@ -1156,14 +1159,21 @@ async function _SnapController_getEndowments(snapId) {
-  */
- async function _SnapController_fetchSnap(snapId, location) {
+@@ -1158,7 +1159,7 @@ async function _SnapController_fetchSnap(snapId, location) {
      try {
-+        console.log('snaps/ SnapController_fetchSnap called with', snapId, JSON.stringify(location));
-+        console.log('snaps/ SnapController_fetchSnap location fetch method', location.fetch);
          const manifest = await location.manifest();
-+        console.log('snaps/ SnapController_fetchSnap manifest', manifest);
-+        console.log('snaps/ SnapController_fetchSnap manifest 2', manifest.result.source.location);
          const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
 -        (0, snaps_utils_1.validateSnapShasum)(manifest.result, sourceCode.toString());
-+        console.log('snaps/ SnapController_fetchSnap sourceCode', sourceCode);
 +        // (0, snaps_utils_1.validateSnapShasum)(manifest.result, sourceCode.toString());
          const { iconPath } = manifest.result.source.location.npm;
-+        console.log('snaps/ SnapController_fetchSnap iconPath', iconPath);
          const files = [sourceCode];
          if (iconPath) {
-             files.push(await location.fetch(iconPath));
-         }
-+        console.log('snaps/ SnapController_fetchSnap sourcefilesode', files);
-         return { manifest, files, location };
-     }
-     catch (error) {
-diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/location/http.js b/node_modules/@metamask/snaps-controllers/dist/snaps/location/http.js
-index 4082486..3dc3ff6 100644
---- a/node_modules/@metamask/snaps-controllers/dist/snaps/location/http.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/snaps/location/http.js
-@@ -24,7 +24,7 @@ class HttpLocation {
-         }
-         // jest-fetch-mock doesn't handle new URL(), we need to convert .toString()
-         const canonicalPath = new URL(snaps_utils_1.NpmSnapFileNames.Manifest, this.url).toString();
--        const contents = await (await this.fetchFn(canonicalPath, this.fetchOptions)).text();
-+        const contents = await (await this.fetchFn('GET', canonicalPath)).text();
-         const manifest = JSON.parse(contents);
-         const vfile = new snaps_utils_1.VirtualFile({
-             value: contents,
-@@ -36,9 +36,11 @@ class HttpLocation {
-         return this.manifest();
-     }
-     async fetch(path) {
-+        console.log('snaps/ location/ http/ fetch called with', path);
-         const relativePath = (0, snaps_utils_1.normalizeRelative)(path);
-         const cached = this.cache.get(relativePath);
-         if (cached !== undefined) {
-+            console.log('snaps/ location/ http/ fetch cached contents type', typeof cached.contents);
-             const { file, contents } = cached;
-             const value = new Uint8Array(await contents.arrayBuffer());
-             const vfile = file.clone();
-@@ -46,12 +48,14 @@ class HttpLocation {
-             return vfile;
-         }
-         const canonicalPath = this.toCanonical(relativePath).toString();
--        const response = await this.fetchFn(canonicalPath, this.fetchOptions);
-+        console.log('snaps/ location/ http/ fetch canonicalPath:', canonicalPath);
-+        const response = await this.fetchFn('GET', canonicalPath);
-         const vfile = new snaps_utils_1.VirtualFile({
-             value: '',
-             path: relativePath,
-             data: { canonicalPath },
-         });
-+        console.log('snaps/ location/ http/ fetch response:', response);
-         const blob = await response.blob();
-         (0, utils_1.assert)(!this.cache.has(relativePath), 'Corrupted cache, multiple files with same path.');
-         this.cache.set(relativePath, { file: vfile, contents: blob });
-diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/location/local.js b/node_modules/@metamask/snaps-controllers/dist/snaps/location/local.js
-index 0b7c06d..6fdccc9 100644
---- a/node_modules/@metamask/snaps-controllers/dist/snaps/location/local.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/snaps/location/local.js
-@@ -29,6 +29,7 @@ class LocalLocation {
-         return convertCanonical(vfile);
-     }
-     async fetch(path) {
-+        console.log('snaps/ location/ local/ fetch called with path: ', path);
-         return convertCanonical(await __classPrivateFieldGet(this, _LocalLocation_http, "f").fetch(path));
-     }
-     get shouldAlwaysReload() {
-@@ -44,8 +45,11 @@ _LocalLocation_http = new WeakMap();
-  * @returns The same object with updated `.data.canonicalPath`.
-  */
- function convertCanonical(vfile) {
-+    console.log('snaps/ location/ local/ convertCanonical called with vfile:', vfile);
-     (0, utils_1.assert)(vfile.data.canonicalPath !== undefined);
-+    console.log('snaps/ location/ local/ convertCanonical asserted 1');
-     vfile.data.canonicalPath = `local:${vfile.data.canonicalPath}`;
-+    console.log('snaps/ location/ local/ convertCanonical returning');
-     return vfile;
- }
- //# sourceMappingURL=local.js.map
-\ No newline at end of file
-diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/location/location.js b/node_modules/@metamask/snaps-controllers/dist/snaps/location/location.js
-index 3334684..a2f9b8b 100644
---- a/node_modules/@metamask/snaps-controllers/dist/snaps/location/location.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/snaps/location/location.js
-@@ -13,6 +13,12 @@ const npm_1 = require("./npm");
-  * @returns SnapLocation based on url.
-  */
- function detectSnapLocation(location, opts) {
-+    console.log('snaps/ location/ detectSnapLocation called with', location, opts);
-+    //  opts.fetch('GET', 'https://pokeapi.co/api/v2/pokemon/pikachu').then((result) => {
-+    //     console.log('snaps/ location/ detectSnapLocation result:', result);
-+    //  }).catch((error) => {
-+    //     console.log('snaps/ location/ detectSnapLocation error:', error);
-+    //  });
-     var _a;
-     const allowHttp = (_a = opts === null || opts === void 0 ? void 0 : opts.allowHttp) !== null && _a !== void 0 ? _a : false;
-     const root = new URL(location);
-diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/location/npm.js b/node_modules/@metamask/snaps-controllers/dist/snaps/location/npm.js
-index 076dbb7..d23b443 100644
---- a/node_modules/@metamask/snaps-controllers/dist/snaps/location/npm.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/snaps/location/npm.js
-@@ -136,7 +136,7 @@ _NpmLocation_instances = new WeakSet(), _NpmLocation_lazyInit = async function _
-  */
- async function fetchNpmTarball(packageName, versionRange, registryUrl, fetchFunction) {
-     var _a, _b, _c, _d;
--    const packageMetadata = await (await fetchFunction(new URL(packageName, registryUrl).toString())).json();
-+    const packageMetadata = await (await fetchFunction('GET', new URL(packageName, registryUrl).toString())).json();
-     if (!(0, utils_1.isObject)(packageMetadata)) {
-         throw new Error(`Failed to fetch package "${packageName}" metadata from npm.`);
-     }
