@@ -18,7 +18,7 @@ const PASSWORD = '12345678';
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
 
-export const importWalletWithRecoveryPhrase = async () => {
+export const importWalletWithRecoveryPhrase = async (recoveryPhrase = null) => {
   // tap on import seed phrase button'
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
@@ -26,7 +26,9 @@ export const importWalletWithRecoveryPhrase = async () => {
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    recoveryPhrase !== null ? recoveryPhrase : SECRET_RECOVERY_PHRASE,
+  );
   await ImportWalletView.enterPassword(PASSWORD);
   await ImportWalletView.reEnterPassword(PASSWORD);
 
