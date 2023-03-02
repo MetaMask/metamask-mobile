@@ -289,7 +289,6 @@ export class Connection extends EventEmitter2 {
         }
 
         if (this.isReady) {
-          this.setLoading(false);
           console.debug(
             `Connection::on::clients_Ready received 'clients_ready' when isReady=true --- disable channel approval`,
             this.otps,
@@ -363,6 +362,7 @@ export class Connection extends EventEmitter2 {
         // Check if channel is permitted
         try {
           if (METHODS_TO_REDIRECT[message?.method]) {
+            this.setLoading(false);
             await this.checkPermissions(message);
           } else {
             console.debug(`Allowed method`, message);
@@ -458,7 +458,7 @@ export class Connection extends EventEmitter2 {
       `SDKConnect::Connection::connect() channel=${this.channelId}`,
     );
     this.remote.connectToChannel(this.channelId, withKeyExchange);
-    this.emit(CONNECTION_LOADING_EVENT, { loading: true });
+    this.setLoading(true);
     if (withKeyExchange) {
       this.remote.on(EventType.CLIENTS_WAITING, () => {
         // Always disconnect - this should not happen, DAPP should always init the connection.
@@ -724,12 +724,6 @@ export class SDKConnect extends EventEmitter2 {
     otherPublicKey,
     origin,
   }: ConnectionProps) {
-    // if (this.connecting[id]) {
-    //   console.debug(`connection already in progress...`);
-    //   // Try to ping to make sure to wake up the connection
-    //   this.connected[id].remote.ping();
-    //   return;
-    // }
     if (this.paused) {
       console.debug(
         `SDKConnect::connectToChannel -- connection was paused - wait for resume...`,
@@ -898,7 +892,6 @@ export class SDKConnect extends EventEmitter2 {
       if (connected) {
         // When does this happen?
         console.debug(`this::reconnect() interrupted - already connected.`);
-        existingConnection?.remote.ping();
         return;
       }
     }
