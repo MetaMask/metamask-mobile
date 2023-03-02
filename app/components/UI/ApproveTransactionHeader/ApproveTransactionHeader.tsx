@@ -17,6 +17,7 @@ import { getTicker } from '../../../util/transactions';
 import getImage from '../../../util/getImage';
 import { TEST_REMOTE_IMAGE_SOURCE } from '../../../component-library/components-temp/Accounts/AccountBalance/AccountBalance.constants';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
 import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import { strings } from '../../../../locales/i18n';
@@ -34,21 +35,6 @@ import {
   OriginsI,
 } from './ApproveTransactionHeader.types';
 import images from 'images/image-icons';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
-
-/* const isFromWalletConnectorSDK = (
-  origins: OriginsI,
-  fromAddress: string,
-  permittedAccountsByHostname: any,
-) => {
-  const { isOriginMMSDKRemoteConn, isOriginWalletConnect } = origins;
-  console.log('ENET is wallet conect origin', isOriginWalletConnect);
-
-  if (isOriginMMSDKRemoteConn || isOriginWalletConnect) {
-    return safeToChecksumAddress(fromAddress);
-  }
-  return permittedAccountsByHostname[0];
-}; */
 
 const ApproveTransactionHeader = ({
   spenderAddress,
@@ -89,14 +75,17 @@ const ApproveTransactionHeader = ({
     origin,
   );
 
-  //Refactor function is wallet connect or SDK, isFromWalletConnectorSDK
-  const activeAddress: string =
-    permittedAccountsByHostname[0] ?? safeToChecksumAddress(spenderAddress);
-
   const network = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
   );
+
+  const activeAddress: string = useMemo(() => {
+    const { isOriginMMSDKRemoteConn, isOriginWalletConnect } = origins;
+    return isOriginMMSDKRemoteConn || isOriginWalletConnect
+      ? safeToChecksumAddress(spenderAddress)
+      : permittedAccountsByHostname[0];
+  }, [origins, permittedAccountsByHostname, spenderAddress]);
 
   useEffect(() => {
     const { ticker, type } = network;
@@ -157,7 +146,7 @@ const ApproveTransactionHeader = ({
 
   const favIconUrl = useMemo(() => {
     const { isOriginWalletConnect, isOriginMMSDKRemoteConn } = origins;
-    let newUrl = url;
+    let newUrl = url || FAV_ICON_URL('metamask.io');
     if (isOriginWalletConnect) {
       newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
@@ -173,19 +162,21 @@ const ApproveTransactionHeader = ({
         label={domainTitle}
         style={styles.tagUrl}
       />
-      <AccountBalance
-        accountAddress={activeAddress}
-        accountNativeCurrency={accountInfo.currency}
-        accountBalance={accountInfo.balance}
-        accountName={accountInfo.accountName}
-        accountBalanceLabel={strings('transaction.balance')}
-        accountNetwork={network.nickname || accountInfo.networkName}
-        badgeProps={{
-          variant: BadgeVariants.Network,
-          name: accountInfo.networkName,
-          imageSource: networkImage,
-        }}
-      />
+      {activeAddress && (
+        <AccountBalance
+          accountAddress={activeAddress}
+          accountNativeCurrency={accountInfo.currency}
+          accountBalance={accountInfo.balance}
+          accountName={accountInfo.accountName}
+          accountBalanceLabel={strings('transaction.balance')}
+          accountNetwork={network.nickname || accountInfo.networkName}
+          badgeProps={{
+            variant: BadgeVariants.Network,
+            name: accountInfo.networkName,
+            imageSource: networkImage,
+          }}
+        />
+      )}
     </View>
   );
 };
