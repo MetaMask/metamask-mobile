@@ -83,8 +83,9 @@ export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 const CONNECTION_LOADING_EVENT = 'loading';
 
 export const CONNECTION_CONFIG = {
-  serverUrl: 'http://192.168.50.114:4000',
-  // serverUrl: 'https://6831-1-36-226-145.ap.ngrok.io',
+  // Adjust the serverUrl during local dev if need to debug the communication protocol.
+  // serverUrl: 'http://192.168.50.114:4000',
+  serverUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
   platform: 'metamask-mobile',
   context: 'mm-mobile',
   sdkRemoteOrigin: 'MMSDKREMOTE::',
