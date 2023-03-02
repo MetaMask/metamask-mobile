@@ -51,7 +51,7 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
-import { MetaMetricsEvents } from '../core/Analytics';
+import { MetaMetricsEvents } from './Analytics';
 import { trackEvent } from '../util/analyticsV2';
 import {
   getCaveatSpecifications,
@@ -112,7 +112,7 @@ class Engine {
       networkController.providerConfig = {
         static: {
           eth_sendTransaction: async (
-            payload: { params: any[], origin: any },
+            payload: { params: any[]; origin: any },
             next: any,
             end: (arg0: undefined, arg1: undefined) => void,
           ) => {
@@ -476,7 +476,7 @@ class Engine {
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
       this.controllerMessenger.subscribe(
         AppConstants.NETWORK_STATE_CHANGE_EVENT,
-        (state: { network: string, providerConfig: { chainId: any } }) => {
+        (state: { network: string; providerConfig: { chainId: any } }) => {
           if (
             state.network !== 'loading' &&
             state.providerConfig.chainId !== currentChainId
@@ -637,9 +637,9 @@ class Engine {
         TokenRatesController.state;
       tokens.forEach(
         (item: {
-          address: string,
-          balance: string | undefined,
-          decimals: number,
+          address: string;
+          balance: string | undefined;
+          decimals: number;
         }) => {
           const exchangeRate =
             item.address in tokenExchangeRates
@@ -817,14 +817,14 @@ class Engine {
       rawTx,
       txParams,
     }: {
-      id: any,
-      metamaskNetworkId: string,
-      origin: string,
-      status: string,
-      time: any,
-      hash: string,
-      rawTx: string,
-      txParams: Transaction,
+      id: any;
+      metamaskNetworkId: string;
+      origin: string;
+      status: string;
+      time: any;
+      hash: string;
+      rawTx: string;
+      txParams: Transaction;
     }) => ({
       id,
       networkID: metamaskNetworkId,
