@@ -10,12 +10,13 @@ import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
-import { RecoverySeedPhrase } from '../.priv.wallet';
 
 import TestHelpers from './helpers';
 
 const GOERLI = 'Goerli Test Network';
 const PASSWORD = '12345678';
+const SECRET_RECOVERY_PHRASE =
+  'fold media south add since false relax immense pause cloth just raven';
 
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button'
@@ -25,7 +26,7 @@ export const importWalletWithRecoveryPhrase = async () => {
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(RecoverySeedPhrase);
+  await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
   await ImportWalletView.enterPassword(PASSWORD);
   await ImportWalletView.reEnterPassword(PASSWORD);
 
