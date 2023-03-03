@@ -293,7 +293,7 @@ export const SDKSessionView = ({
         <TouchableOpacity
           style={[styles.button, styles.removeButton]}
           onPress={() => {
-            sdk.removeChannel(connection.channelId);
+            sdk.removeChannel(connection.channelId, true);
           }}
         >
           <Text style={styles.buttonText}>Remove</Text>

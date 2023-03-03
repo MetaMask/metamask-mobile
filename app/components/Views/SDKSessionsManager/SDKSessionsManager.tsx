@@ -3,19 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
+import { useTheme } from '../../../util/theme';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import ActionModal from '../../../components/UI/ActionModal';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import {
-  SDKConnect,
-  Connection,
   ConnectionProps,
+  SDKConnect,
 } from '../../../core/SDKConnect/SDKConnect';
 import StyledButton from '../../UI/StyledButton';
 import SDKSessionItem from './SDKSessionItem';
-import ActionModal from '../../../components/UI/ActionModal';
 
 interface Props {
   navigation: StackNavigationProp<{

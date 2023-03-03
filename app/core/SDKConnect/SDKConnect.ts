@@ -121,6 +121,8 @@ const webrtc = {
   registerGlobals,
 };
 
+let wentBack = false;
+
 export enum Sources {
   'web-desktop' = 'web-desktop',
   'web-mobile' = 'web-mobile',
@@ -144,15 +146,48 @@ const waitForKeychainUnlocked = async () => {
   }
 };
 
-const rpcQueue: string[] = [];
+let rpcQueue: { [id: string]: string } = {};
 const waitForEmptyRPCQueue = async () => {
   let i = 0;
-  console.debug(`waitForRPcQueue length=${rpcQueue.length}`, rpcQueue);
-  while (rpcQueue.length > 0) {
+  console.debug(
+    `waitForEmptyRPCQueue stringify(rpcQueue)`,
+    JSON.stringify(rpcQueue, null, 4),
+  );
+  let queue = Object.keys(rpcQueue);
+  console.debug(`waitForEmptyRPCQueue length=${queue.length}`, rpcQueue, queue);
+  while (queue.length > 0) {
     await new Promise<void>((res) => setTimeout(() => res(), 1000));
-    if (i++ > 30) break;
+    console.debug(
+      `waitForEmptyRPCQueue[${i}] length=${queue.length}`,
+      rpcQueue,
+      queue,
+    );
+    queue = Object.keys(rpcQueue);
+    if (i++ > 30) {
+      console.debug(
+        `waitForEmptyRPCQueue timing out 30sec length=${queue.length}`,
+        rpcQueue,
+      );
+      break;
+    }
   }
 };
+
+// const waitForMethod = async (method: string) => {
+//   let i = 0;
+//   const queue = Object.values(rpcQueue).filter((m) => m === method);
+//   console.debug(`waitForMethod length=${queue.length}`, rpcQueue);
+//   while (queue.length > 0) {
+//     await new Promise<void>((res) => setTimeout(() => res(), 1000));
+//     if (i++ > 30) {
+//       console.debug(
+//         `waitForEmptyRPCQueue timing out 30sec length=${queue.length}`,
+//         rpcQueue,
+//       );
+//       break;
+//     }
+//   }
+// };
 
 export class Connection extends EventEmitter2 {
   channelId;
@@ -375,7 +410,12 @@ export class Connection extends EventEmitter2 {
         try {
           if (needsRedirect) {
             this.setLoading(false);
-            rpcQueue.push(message.id);
+            // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
+            console.debug(
+              `Adding to rpcQueue id=${message.id} method=${message.method}`,
+            );
+            rpcQueue[(message.id as string) ?? 'UNK'] = message.method;
+
             await this.checkPermissions(message);
           } else {
             console.debug(`Allowed method`, message);
@@ -601,7 +641,12 @@ export class Connection extends EventEmitter2 {
       );
 
       // TODO force display the modal
-      store.dispatch(toggleAccountApprovalModal(true));
+      // store.dispatch(toggleAccountApprovalModal(true));
+
+      console.debug(
+        `Connection::checkPermissions force dispatch account approval modal has been called`,
+      );
+      // was it called from deeplink?
 
       // Wait for result and clean the promise afterwards.
       approvalResult = await this.approvalPromise;
@@ -686,20 +731,40 @@ export class Connection extends EventEmitter2 {
 
     if (!needsRedirect) return;
 
-    rpcQueue.pop();
+    console.debug(
+      `Connection::sendMessage rpcQuee id=${msg?.data?.id}`,
+      rpcQueue,
+    );
+    delete rpcQueue[msg?.data?.id];
     delete this.requestsToRedirect[msg?.data?.id];
+    console.debug(
+      `Connection::sendMessage after delete id=${msg?.data?.id}`,
+      rpcQueue,
+    );
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
     console.debug(
-      `Connection::sendMessage message sent - waiting for minimizer`,
+      `Connection::sendMessage message sent - waiting for minimizer - id=${msg?.data?.id} data=${msg?.data}`,
+      rpcQueue,
     );
 
-    setTimeout(async () => {
-      console.debug(`Connection::sendMessage calling minimizer`);
-      await waitForEmptyRPCQueue();
+    waitForEmptyRPCQueue().then(() => {
+      if (wentBack) {
+        // Skip
+        console.debug(
+          `Already used Minimizer.goBack() -- nothing to do -- id=${msg?.data?.id}`,
+        );
+        return;
+      }
+
+      wentBack = true;
+      console.debug(
+        `Start going back -- end of queue -- id=${msg?.data?.id}`,
+        rpcQueue,
+      );
       Minimizer.goBack();
-    }, 500);
+    });
   }
 }
 
@@ -1010,7 +1075,7 @@ export class SDKConnect extends EventEmitter2 {
   public async removeAll() {
     console.debug(`SDKConnect::removeAll()`);
     for (const id in this.connections) {
-      this.removeChannel(id);
+      this.removeChannel(id, true);
     }
     // Also remove approved hosts that may have been skipped.
     this.approvedHosts = {};
@@ -1091,6 +1156,8 @@ export class SDKConnect extends EventEmitter2 {
     );
     this.appState = appState;
     if (appState === 'active') {
+      // Reset wentBack state
+      wentBack = false;
       if (Device.isAndroid()) {
         if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
       } else if (this.timeout) clearTimeout(this.timeout);
@@ -1104,6 +1171,8 @@ export class SDKConnect extends EventEmitter2 {
       }
       this.paused = false;
     } else if (appState === 'background') {
+      // Cancel rpc queue anytime app is backgrounded
+      rpcQueue = {};
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.

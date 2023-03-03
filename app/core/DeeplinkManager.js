@@ -201,6 +201,7 @@ class DeeplinkManager {
     let params;
     let wcCleanUrl;
 
+    console.debug(`DeeplinkManager::parse origin=${origin} `, urlObj.href);
     if (urlObj.query.length) {
       try {
         params = qs.parse(urlObj.query.substring(1));
@@ -228,11 +229,11 @@ class DeeplinkManager {
               const channelId = params.channelId;
               const channelExists =
                 SDKConnect.getInstance().getConnections()[channelId];
+              // Automatically re-approve hosts.
+              SDKConnect.getInstance().revalidateChannel({
+                channelId,
+              });
               if (channelExists) {
-                // Automatically re-approve hosts.
-                SDKConnect.getInstance().revalidateChannel({
-                  channelId,
-                });
                 // Also try to reconnect if not already connected
                 SDKConnect.getInstance().reconnect({ channelId });
               } else {
