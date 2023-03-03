@@ -4,7 +4,6 @@ import DrawerView from '../../pages/Drawer/DrawerView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import { RoverySeedPhrase } from '../../../.priv.wallet';
 import {
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
@@ -18,7 +17,7 @@ describe('Custom RPC Tests', () => {
   });
 
   it('should input a valid address', async () => {
-    await importWalletWithRecoveryPhrase(RoverySeedPhrase);
+    await importWalletWithRecoveryPhrase();
     await switchToGoreliNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
