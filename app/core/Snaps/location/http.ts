@@ -39,7 +39,6 @@ export class HttpLocation implements SnapLocation {
 
   private readonly fetchOptions?: RequestInit;
 
-
   constructor(url: URL, opts: HttpOptions = {}) {
     console.log(SNAPS_HTTP_LOG_TAG, 'constructor called with ', url, opts);
     // assertStruct(url.toString(), HttpSnapIdStruct, 'Invalid Snap Id: ');
@@ -49,7 +48,9 @@ export class HttpLocation implements SnapLocation {
   }
 
   async manifest(): Promise<VirtualFile<SnapManifest>> {
+    console.log(SNAPS_HTTP_LOG_TAG, 'manifest called');
     if (this.validatedManifest) {
+      console.log(SNAPS_HTTP_LOG_TAG, 'manifest valid manifest');
       return this.validatedManifest.clone();
     }
 
@@ -58,11 +59,13 @@ export class HttpLocation implements SnapLocation {
       NpmSnapFileNames.Manifest,
       this.url.toString(),
     ).toString();
-
+    console.log(SNAPS_HTTP_LOG_TAG, 'manifest canonicalPath: ', canonicalPath);
     const contents = await (
       await this.fetchFn(canonicalPath, this.fetchOptions)
     ).text();
+    console.log(SNAPS_HTTP_LOG_TAG, 'manifest contents: ', contents);
     const manifest = JSON.parse(contents);
+    console.log(SNAPS_HTTP_LOG_TAG, 'manifest manifest JSON: ', manifest);
     const vfile = new VirtualFile<SnapManifest>({
       value: contents,
       result: createSnapManifest(manifest),
@@ -75,6 +78,7 @@ export class HttpLocation implements SnapLocation {
   }
 
   async fetch(path: string): Promise<VirtualFile> {
+    console.log(SNAPS_HTTP_LOG_TAG, 'fetch callled with: ', path);
     const relativePath = normalizeRelative(path);
     const cached = this.cache.get(relativePath);
     if (cached !== undefined) {
