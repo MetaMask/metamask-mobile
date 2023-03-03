@@ -153,9 +153,9 @@
     "@metamask/network-controller": "^1.0.0",
     "@metamask/permission-controller": "^1.0.2",
     "@metamask/phishing-controller": "^1.1.0",
+    "@metamask/post-message-stream": "6.0.0",
     "@metamask/preferences-controller": "^1.0.1",
     "@metamask/rpc-methods": "0.24.1",
-    "@metamask/post-message-stream": "6.0.0",
     "@metamask/sdk-communication-layer": "^0.1.0",
     "@metamask/snaps-controllers": "0.26.2",
     "@metamask/snaps-utils": "0.26.2",
@@ -186,6 +186,7 @@
     "@types/lodash": "^4.14.184",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",
+    "add": "^2.0.6",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
@@ -324,6 +325,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
+    "yarn": "^1.22.19",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {

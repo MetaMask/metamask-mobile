@@ -10,7 +10,7 @@ import {
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
 } from './permissions';
-import fetchFunction from './location';
+import { fetchFunction, detectSnapLocation } from './location';
 
 export {
   snapsState,
@@ -24,4 +24,5 @@ export {
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
   fetchFunction,
+  detectSnapLocation,
 };

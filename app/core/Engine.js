@@ -63,6 +63,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
   fetchFunction,
+  detectSnapLocation,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import {
@@ -442,6 +443,7 @@ class Engine {
           console.log(
             'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
           ),
+        detectSnapLocation: () => detectSnapLocation(),
       });
 
       const controllers = [

@@ -8,6 +8,7 @@ import {
   validateSnapShasum,
 } from '@metamask/snaps-utils';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import { LocalLocation } from './local';
 
 export interface NpmOptions {
   /**
@@ -137,10 +138,30 @@ const fetchLocalSnap = async (
   return { manifest, sourceCode, svgIcon };
 };
 
-// export async function detectSnapLocation(
-//   location: string | URL,
-//   opts?: DetectSnapLocationOptions,
-// ): SnapLocation {
-//   const location = await fetchLocalSnap(location);
-//   return location;
-// }
+/**
+ * Auto-magically detects which SnapLocation object to create based on the provided {@link location}.
+ *
+ * @param location - A {@link https://github.com/MetaMask/SIPs/blob/main/SIPS/sip-8.md SIP-8} uri.
+ * @param opts - NPM options and feature flags.
+ * @returns SnapLocation based on url.
+ */
+export function detectSnapLocation(
+  location: string | URL,
+  opts?: DetectSnapLocationOptions,
+): SnapLocation {
+  console.log(
+    SNAPS_LOCATION_LOG_TAG,
+    'detectSnapLocation called with ',
+    location,
+    opts,
+  );
+  const root = new URL(location.toString());
+  switch (root.protocol) {
+    case 'local:':
+      return new LocalLocation(root, opts);
+    default:
+      throw new TypeError(
+        `Unrecognized "${root.protocol}" snap location protocol.`,
+      );
+  }
+}
