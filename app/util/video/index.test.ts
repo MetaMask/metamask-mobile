@@ -18,7 +18,7 @@ describe('getVideoUri', () => {
   it('should return asset path', () => {
     // check if the path is well transformed into a testUri meaning the resource was found
     expect(video_source_uri).toEqual({
-      testUri: '../../../app/videos/recovery-phrase.mp4',
+      testUri: '../../../app/videos/recovery-phrase-mobile-optimized.mp4',
     });
   });
 });
