@@ -29,7 +29,8 @@ const VerifyContractDetails = ({
   tokenAddress,
   savedContactListToArray,
   tokenSymbol,
-  networkProvider: { rpcTarget, type },
+  providerType,
+  providerRpcTarget,
   frequentRpcList,
   tokenStandard,
 }: VerifyContractDetailsProps) => {
@@ -51,10 +52,6 @@ const VerifyContractDetails = ({
     [tokens, tokenAddress],
   );
 
-  // console.log(tokenData, 'tokenData');
-
-  // const tokenAltIcon =
-
   const tokenSymbolFirstLetter = tokenSymbol?.charAt(0);
 
   useEffect(() => {
@@ -69,11 +66,11 @@ const VerifyContractDetails = ({
   }, [contractAddress, tokenAddress, savedContactListToArray]);
 
   const showBlockExplorerIcon = useCallback(() => {
-    if (type === RPC) {
-      return findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+    if (providerType === RPC) {
+      return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
     }
     return true;
-  }, [type, rpcTarget, frequentRpcList]);
+  }, [providerType, providerRpcTarget, frequentRpcList]);
 
   const hasBlockExplorer = showBlockExplorerIcon();
 

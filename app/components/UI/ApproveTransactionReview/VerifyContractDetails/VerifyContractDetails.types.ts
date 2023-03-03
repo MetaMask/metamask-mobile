@@ -20,9 +20,7 @@ export interface VerifyContractDetailsProps {
   showNickname: (address: string) => void;
   tokenStandard: string;
   tokenSymbol: string;
-  networkProvider: {
-    type: string;
-    rpcTarget: string;
-  };
+  providerType: string;
+  providerRpcTarget: string;
   frequentRpcList: any[];
 }

@@ -67,6 +67,7 @@ import {
   selectNetwork,
   selectProviderType,
   selectTicker,
+  selectRpcTarget,
 } from '../../../selectors/networkController';
 import Text, {
   TextVariant,
@@ -235,7 +236,7 @@ class ApproveTransactionReview extends PureComponent {
     closeVerifyContractDetails: PropTypes.func,
     shouldVerifyContractDetails: PropTypes.bool,
     frequentRpcList: PropTypes.array,
-    provider: PropTypes.object,
+    providerRpcTarget: PropTypes.string,
   };
 
   state = {
@@ -886,11 +887,11 @@ class ApproveTransactionReview extends PureComponent {
   renderVerifyContractDetails = () => {
     const {
       providerType,
+      providerRpcTarget,
       savedContactListToArray,
       toggleModal,
       closeVerifyContractDetails,
       frequentRpcList,
-      provider,
     } = this.props;
     const {
       transaction: { to },
@@ -922,7 +923,7 @@ class ApproveTransactionReview extends PureComponent {
         copyAddress={this.copyContractAddress}
         providerType={providerType}
         tokenSymbol={tokenSymbol}
-        networkProvider={provider}
+        providerRpcTarget={providerRpcTarget}
         frequentRpcList={frequentRpcList}
         tokenStandard={this.state.token?.tokenStandard}
       />
@@ -934,7 +935,7 @@ class ApproveTransactionReview extends PureComponent {
       providerType,
       showVerifyContractDetails,
       frequentRpcList,
-      provider,
+      providerRpcTarget,
     } = this.props;
     const {
       transaction: { to },
@@ -957,7 +958,7 @@ class ApproveTransactionReview extends PureComponent {
         headerWrapperStyle={styles.headerWrapper}
         headerTextStyle={styles.headerText}
         iconStyle={styles.icon}
-        networkProvider={provider}
+        providerRpcTarget={providerRpcTarget}
         frequentRpcList={frequentRpcList}
       />
     );
@@ -1064,6 +1065,7 @@ const mapStateToProps = (state) => ({
   ).length,
   tokensLength: state.engine.backgroundState.TokensController.tokens.length,
   providerType: selectProviderType(state),
+  providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
   network: selectNetwork(state),

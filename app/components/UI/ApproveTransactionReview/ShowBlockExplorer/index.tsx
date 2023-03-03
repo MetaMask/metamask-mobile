@@ -35,9 +35,7 @@ interface ShowBlockExplorerProps {
   headerWrapperStyle?: any;
   headerTextStyle?: any;
   iconStyle?: any;
-  networkProvider: {
-    rpcTarget: string;
-  };
+  providerRpcTarget: string;
   frequentRpcList: any[];
 }
 
@@ -49,23 +47,23 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     headerWrapperStyle,
     headerTextStyle,
     iconStyle,
-    networkProvider,
+    providerRpcTarget,
     frequentRpcList,
   } = props;
 
-  const { rpcTarget } = networkProvider;
   const [loading, setLoading] = useState<number>(0);
 
   const url =
     type === RPC
       ? `${findBlockExplorerForRpc(
-          rpcTarget,
+          providerRpcTarget,
           frequentRpcList,
         )}/address/${address}`
       : getEtherscanAddressUrl(type, address);
   const title =
     type === RPC
-      ? new URL(findBlockExplorerForRpc(rpcTarget, frequentRpcList)).hostname
+      ? new URL(findBlockExplorerForRpc(providerRpcTarget, frequentRpcList))
+          .hostname
       : getEtherscanBaseUrl(type).replace('https://', '');
 
   const onLoadProgress = ({

@@ -27,6 +27,12 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../constants/error';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectRpcTarget,
+} from '../../../../selectors/networkController';
 
 const getAnalyticsParams = () => ({});
 
@@ -36,10 +42,10 @@ const AddNickname = (props: AddNicknameProps) => {
     address,
     showModalAlert,
     addressNickname,
-    networkState: {
-      network,
-      provider: { type, chainId },
-    },
+    providerType,
+    providerChainId,
+    providerNetwork,
+    providerRpcTarget,
     addressBook,
     identities,
   } = props;
@@ -62,16 +68,16 @@ const AddNickname = (props: AddNicknameProps) => {
   const validateAddressOrENSFromInput = useCallback(async () => {
     const { addressError, errorContinue } = await validateAddressOrENS({
       toAccount: address,
-      network,
+      providerNetwork,
       addressBook,
       identities,
-      chainId,
+      providerChainId,
     });
 
     setAddressErr(addressError);
     setErrContinue(errorContinue);
     setAddressHasError(addressError);
-  }, [address, network, addressBook, identities, chainId]);
+  }, [address, providerNetwork, addressBook, identities, providerChainId]);
 
   useEffect(() => {
     validateAddressOrENSFromInput();
@@ -103,7 +109,11 @@ const AddNickname = (props: AddNicknameProps) => {
   const saveTokenNickname = () => {
     const { AddressBookController } = Engine.context as any;
     if (!newNickname || !address) return;
-    AddressBookController.set(toChecksumAddress(address), newNickname, network);
+    AddressBookController.set(
+      toChecksumAddress(address),
+      newNickname,
+      providerNetwork,
+    );
     closeModal();
     trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
@@ -139,14 +149,12 @@ const AddNickname = (props: AddNicknameProps) => {
       {isBlockExplorerVisible ? (
         <ShowBlockExplorer
           setIsBlockExplorerVisible={setIsBlockExplorerVisible}
-          type={type}
+          type={providerType}
           address={address}
           headerWrapperStyle={styles.headerWrapper}
           headerTextStyle={styles.headerText}
           iconStyle={styles.icon}
-          networkProvider={{
-            rpcTarget: '',
-          }}
+          providerRpcTarget={providerRpcTarget}
           frequentRpcList={[]}
         />
       ) : (
@@ -234,7 +242,10 @@ const AddNickname = (props: AddNicknameProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  networkState: state.engine.backgroundState.NetworkController,
+  providerType: selectProviderType(state),
+  providerRpcTarget: selectRpcTarget(state),
+  providerChainId: selectChainId(state),
+  providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
 });

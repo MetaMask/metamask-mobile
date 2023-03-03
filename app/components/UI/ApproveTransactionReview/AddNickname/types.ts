@@ -4,13 +4,10 @@ export interface AddNicknameProps {
   addressNickname: string;
   nicknameExists: boolean;
   showModalAlert: (config: any) => void;
-  networkState: {
-    provider: {
-      type: string;
-      chainId: string;
-    };
-    network: number;
-  };
+  providerType: string;
+  providerChainId: string;
+  providerNetwork: number;
+  providerRpcTarget: string;
   addressBook: {
     [key: string]: {
       address: string;
