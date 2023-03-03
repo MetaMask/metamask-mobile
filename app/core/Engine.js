@@ -62,7 +62,6 @@ import {
   WebviewExecutionService,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
-  fetchFunction,
   detectSnapLocation,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';

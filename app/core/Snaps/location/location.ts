@@ -8,6 +8,7 @@ import {
   validateSnapShasum,
 } from '@metamask/snaps-utils';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import { HttpOptions } from './http';
 import { LocalLocation } from './local';
 
 export interface NpmOptions {
@@ -80,12 +81,31 @@ const convertFetchBlobResponseToResponse = (
   return new Response(body, { headers, status });
 };
 
-export const fetchFunction = async (inputURL: URL): Promise<Response> => {
-  console.log(SNAPS_LOCATION_LOG_TAG, 'fetchFunction called with ', inputURL);
+// from ts
+// declare function fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+// from react-native
+// declare function fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
+const fetchFunction = async (
+  inputRequest: RequestInfo,
+  init?: RequestInit,
+): Promise<Response> => {
+  console.log(
+    SNAPS_LOCATION_LOG_TAG,
+    'fetchFunction called with ',
+    inputRequest,
+    init,
+  );
   const { config } = RNFetchBlob;
+  const urlToFetch: string =
+    typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
+  console.log(
+    SNAPS_LOCATION_LOG_TAG,
+    'fetchFunction url to fetch ',
+    urlToFetch,
+  );
   const response: FetchBlobResponse = await config({ fileCache: true }).fetch(
     'GET',
-    inputURL.href,
+    urlToFetch,
   );
   console.log(
     SNAPS_LOCATION_LOG_TAG,
@@ -155,10 +175,13 @@ export function detectSnapLocation(
     location,
     opts,
   );
+  const httpOptions: HttpOptions = {
+    fetch: fetchFunction,
+  };
   const root = new URL(location.toString());
   switch (root.protocol) {
     case 'local:':
-      return new LocalLocation(root, opts);
+      return new LocalLocation(root, httpOptions);
     default:
       throw new TypeError(
         `Unrecognized "${root.protocol}" snap location protocol.`,
