@@ -437,13 +437,14 @@ class Engine {
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: initialState.snapController || {},
         messenger: snapControllerMessenger,
-        fetchFunction: () => fetchFunction(),
+        // fetchFunction: () => fetchFunction(),
         // TO DO
         closeAllConnections: () =>
           console.log(
             'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
           ),
-        detectSnapLocation: () => detectSnapLocation(),
+        detectSnapLocation: (location, options) =>
+          detectSnapLocation(location, options),
       });
 
       const controllers = [
