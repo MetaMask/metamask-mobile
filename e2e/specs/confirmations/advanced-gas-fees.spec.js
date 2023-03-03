@@ -16,7 +16,7 @@ describe('Custom RPC Tests', () => {
     jest.setTimeout(170000);
   });
 
-  it('should input a valid address', async () => {
+  it('should import wallet and go to send view', async () => {
     await importWalletWithRecoveryPhrase();
     await switchToGoreliNetwork();
     // Check that we are on the wallet screen
@@ -33,7 +33,7 @@ describe('Custom RPC Tests', () => {
     await AmountView.isVisible();
   });
 
-  it('should send ETH to Account 2', async () => {
+  it('should edit priority gas settings', async () => {
     // Input acceptable value
     await AmountView.typeInTransactionAmount('0.00004');
     await AmountView.tapNextButton();
@@ -65,5 +65,13 @@ describe('Custom RPC Tests', () => {
     await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
 
     await TransactionConfirmationView.isVisible();
+  });
+
+  it('should send eth', async () => {
+    // Tap on the send button
+    await TransactionConfirmationView.tapConfirmButton();
+
+    // Check that we are on the wallet screen
+    await WalletView.isVisible();
   });
 });
