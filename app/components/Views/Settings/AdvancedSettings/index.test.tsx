@@ -16,7 +16,7 @@ const initialState = {
         },
       },
       NetworkController: {
-        provider: { chainId: '1' },
+        providerConfig: { chainId: '1' },
       },
     },
   },

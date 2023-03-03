@@ -30,7 +30,7 @@ import {
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
@@ -130,11 +130,11 @@ const AssetDetails = (props: Props) => {
 
   const getNetworkName = () => {
     let name = '';
-    if (network.provider.nickname) {
-      name = network.provider.nickname;
+    if (network.providerConfig.nickname) {
+      name = network.providerConfig.nickname;
     } else {
       name =
-        (Networks as any)[network.provider.type]?.name ||
+        (Networks as any)[network.providerConfig.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
     return name;
@@ -183,13 +183,13 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
                 location: 'token_details',
                 token_standard: 'ERC20',
                 asset_type: 'token',
                 tokens: [`${symbol} - ${address}`],
                 chain_id: getDecimalChainId(
-                  NetworkController?.state?.provider?.chainId,
+                  NetworkController?.state?.providerConfig?.chainId,
                 ),
               });
             } catch (err) {

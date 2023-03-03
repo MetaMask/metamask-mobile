@@ -11,7 +11,7 @@ const initialState = {
     backgroundState: {
       NetworkController: {
         network: '1',
-        provider: {
+        providerConfig: {
           chainId: '1',
         },
       },

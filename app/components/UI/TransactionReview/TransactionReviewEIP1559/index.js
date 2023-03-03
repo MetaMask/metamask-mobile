@@ -15,6 +15,7 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -523,7 +524,7 @@ TransactionReviewEIP1559.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(TransactionReviewEIP1559);
