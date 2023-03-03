@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 
-import { getHost, getUrlObj } from '../../../util/browser';
+import { getHost } from '../../../util/browser';
 import { useSelector } from 'react-redux';
 import networkList, { isMainnetByChainId } from '../../../util/networks';
 
@@ -136,10 +136,10 @@ const ApproveTransactionHeader = ({
     let title = '';
     if (isOriginDeepLink) title = renderShortAddress(spenderAddress);
     else if (isOriginWalletConnect)
-      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).href;
+      title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     else if (isOriginMMSDKRemoteConn) {
-      title = getUrlObj(origin.split(MM_SDK_REMOTE_ORIGIN)[1]).href;
-    } else title = getUrlObj(currentEnsName || url || origin).href;
+      title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
+    } else title = getHost(currentEnsName || url || origin);
 
     return title;
   }, [currentEnsName, origin, origins, spenderAddress, url]);
