@@ -23,7 +23,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 
   const onError = () => setError(true);
 
-  // Video source can be either a number returned by require() for local files
+  // Video source can be either a number returned by import for bundled files
   // or an object of the form { uri: 'http://...' } for remote files
   const source = Number.isInteger(uri) ? uri : { uri };
 
@@ -63,7 +63,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 MediaPlayer.propTypes = {
   /**
    * Media URI
-   * Can be a number returned by require() for local files
+   * Can be a number returned by import for bundled files
    * or a string for remote files (http://...)
    */
   uri: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
