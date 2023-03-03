@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import videoSourceUri from '../../videos/recovery-phrase-mobile-optimized.mp4';
+import videoSourceUri from '../../videos/recovery-phrase-mobile-2pass-optimized.mp4';
 
 // Remote path for subtitles that can't be bundled with the app
 // because only remote subtitles are supported by react-native-video
