@@ -11,7 +11,7 @@ import {
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe('Custom RPC Tests', () => {
+describe('Advanced Gas Fees and Priority Tests', () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });
