@@ -763,7 +763,10 @@ export class Connection extends EventEmitter2 {
         `Start going back -- end of queue -- id=${msg?.data?.id}`,
         rpcQueue,
       );
-      Minimizer.goBack();
+      setTimeout(() => {
+        wentBack = false;
+        Minimizer.goBack();
+      }, 300);
     });
   }
 }
@@ -1171,6 +1174,8 @@ export class SDKConnect extends EventEmitter2 {
       }
       this.paused = false;
     } else if (appState === 'background') {
+      // Reset wentBack state
+      wentBack = false;
       // Cancel rpc queue anytime app is backgrounded
       rpcQueue = {};
       if (!this.paused) {
