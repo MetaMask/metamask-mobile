@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes, View, StyleSheet } from 'react-native';
+import { StyleSheet, View, ViewPropTypes } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/device';
@@ -25,7 +25,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 
   // Video source can be either a number returned by require() for local files
   // or an object of the form { uri: 'http://...' } for remote files
-  const source = Number.isInteger(uri) ? uri : { uri } ;
+  const source = Number.isInteger(uri) ? uri : { uri };
 
   return (
     <View style={style}>
@@ -66,10 +66,7 @@ MediaPlayer.propTypes = {
    * Can be a number returned by require() for local files
    * or a string for remote files (http://...)
    */
-  uri: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number
-  ]),
+  uri: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   /**
    * Custom style object
    */
