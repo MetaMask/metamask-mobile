@@ -72,13 +72,19 @@ const SNAPS_LOCATION_LOG_TAG = 'snaps/ location';
  * @returns A new Response object with the same data as the input object.
  */
 const convertFetchBlobResponseToResponse = (
-  response: FetchBlobResponse,
+  fetchBlobResponse: FetchBlobResponse,
 ): Response => {
-  const headers = new Headers(response.respInfo.headers);
-  const status = response.respInfo.status;
-  const body = response.data;
+  const headers = new Headers(fetchBlobResponse.respInfo.headers);
+  const status = fetchBlobResponse.respInfo.status;
+  const body = fetchBlobResponse.data;
 
-  return new Response(body, { headers, status });
+  const response = new Response(body, { headers, status });
+  console.log(
+    SNAPS_LOCATION_LOG_TAG,
+    'convertFetchBlobResponseToResponse converted response',
+    JSON.stringify(response, null, 2),
+  );
+  return response;
 };
 
 // from ts
@@ -110,7 +116,7 @@ const fetchFunction = async (
   console.log(
     SNAPS_LOCATION_LOG_TAG,
     'fetchFunction fetched response ',
-    response,
+    JSON.stringify(response, null, 2),
   );
 
   return convertFetchBlobResponseToResponse(response);

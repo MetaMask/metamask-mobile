@@ -10,11 +10,13 @@ import {
 import { HttpLocation, HttpOptions } from './http';
 import { SnapLocation } from './location';
 
+const SNAPS_LOCAL_LOG_TAG = 'snaps/ local';
+
 export class LocalLocation implements SnapLocation {
   readonly #http: HttpLocation;
 
   constructor(url: URL, opts: HttpOptions = {}) {
-    console.log('LocalLocation constructor called with ', url, opts);
+    console.log(SNAPS_LOCAL_LOG_TAG, 'constructor called with ', url, opts);
     // assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
     // // TODO(ritave): Write deepMerge() which merges fetchOptions.
     // assert(
@@ -24,7 +26,7 @@ export class LocalLocation implements SnapLocation {
 
     this.#http = new HttpLocation(
       new URL(url.toString().slice(SnapIdPrefixes.local.length)),
-      { ...opts, fetchOptions: { cache: 'no-cache' } },
+      opts,
     );
   }
 
@@ -52,7 +54,7 @@ export class LocalLocation implements SnapLocation {
 function convertCanonical<Result>(
   vfile: VirtualFile<Result>,
 ): VirtualFile<Result> {
-//   assert(vfile.data.canonicalPath !== undefined);
+  //   assert(vfile.data.canonicalPath !== undefined);
   vfile.data.canonicalPath = `local:${vfile.data.canonicalPath}`;
   return vfile;
 }

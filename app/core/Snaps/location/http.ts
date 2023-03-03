@@ -6,7 +6,7 @@ import {
   createSnapManifest,
   normalizeRelative,
 } from '@metamask/snaps-utils';
-import { assert, assertStruct } from '@metamask/utils';
+// import { assert, assertStruct } from '@metamask/utils';
 
 import { SnapLocation } from './location';
 
@@ -18,6 +18,7 @@ export interface HttpOptions {
   fetchOptions?: RequestInit;
 }
 
+const SNAPS_HTTP_LOG_TAG = 'snaps/ HTTP';
 export class HttpLocation implements SnapLocation {
   // We keep contents separate because then we can use only one Blob in cache,
   // which we convert to Uint8Array when actually returning the file.
@@ -38,8 +39,10 @@ export class HttpLocation implements SnapLocation {
 
   private readonly fetchOptions?: RequestInit;
 
+
   constructor(url: URL, opts: HttpOptions = {}) {
-    assertStruct(url.toString(), HttpSnapIdStruct, 'Invalid Snap Id: ');
+    console.log(SNAPS_HTTP_LOG_TAG, 'constructor called with ', url, opts);
+    // assertStruct(url.toString(), HttpSnapIdStruct, 'Invalid Snap Id: ');
     this.fetchFn = opts.fetch ?? globalThis.fetch.bind(globalThis);
     this.fetchOptions = opts.fetchOptions;
     this.url = url;
@@ -53,7 +56,7 @@ export class HttpLocation implements SnapLocation {
     // jest-fetch-mock doesn't handle new URL(), we need to convert .toString()
     const canonicalPath = new URL(
       NpmSnapFileNames.Manifest,
-      this.url,
+      this.url.toString(),
     ).toString();
 
     const contents = await (
@@ -90,21 +93,21 @@ export class HttpLocation implements SnapLocation {
       data: { canonicalPath },
     });
     const blob = await response.blob();
-    assert(
-      !this.cache.has(relativePath),
-      'Corrupted cache, multiple files with same path.',
-    );
+    // assert(
+    //   !this.cache.has(relativePath),
+    //   'Corrupted cache, multiple files with same path.',
+    // );
     this.cache.set(relativePath, { file: vfile, contents: blob });
 
     return this.fetch(relativePath);
   }
 
   get root(): URL {
-    return new URL(this.url);
+    return new URL(this.url.toString());
   }
 
   private toCanonical(path: string): URL {
-    assert(!path.startsWith('/'), 'Tried to parse absolute path.');
-    return new URL(path, this.url);
+    // assert(!path.startsWith('/'), 'Tried to parse absolute path.');
+    return new URL(path, this.url.toString());
   }
 }
