@@ -1,5 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+// import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import { Buffer } from 'buffer';
 
 // https://github.com/nodeca/pako
@@ -35,7 +36,7 @@ const downloadBlobIntoFile = async (
   url: string,
 ): Promise<FetchBlobResponse> => {
   try {
-    const response = await RNFetchBlob.config({
+    const response = await ReactNativeBlobUtil.config({
       fileCache: true,
     }).fetch('GET', url);
     return response;

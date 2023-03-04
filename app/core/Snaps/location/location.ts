@@ -7,7 +7,8 @@ import {
   assertIsSnapManifest,
   validateSnapShasum,
 } from '@metamask/snaps-utils';
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+// import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import { HttpOptions } from './http';
 import { LocalLocation } from './local';
 
@@ -101,7 +102,7 @@ const fetchFunction = async (
     inputRequest,
     init,
   );
-  const { config } = RNFetchBlob;
+  const { config } = ReactNativeBlobUtil;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
   console.log(
@@ -113,6 +114,7 @@ const fetchFunction = async (
     'GET',
     urlToFetch,
   );
+  
   console.log(
     SNAPS_LOCATION_LOG_TAG,
     'fetchFunction fetched response ',
