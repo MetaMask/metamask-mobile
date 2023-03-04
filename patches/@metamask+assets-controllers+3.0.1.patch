@@ -1,0 +1,59 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
+index 4ed4990..7ba8154 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
+@@ -161,7 +161,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+                         }
+                         const caseInsensitiveTokenKey = Object.keys(tokenList).find((i) => i.toLowerCase() === tokenAddress.toLowerCase()) || '';
+                         if (ignored === undefined) {
+-                            const { decimals, symbol, aggregators, iconUrl } = tokenList[caseInsensitiveTokenKey];
++                            const { decimals, symbol, aggregators, iconUrl, name } = tokenList[caseInsensitiveTokenKey];
+                             tokensToAdd.push({
+                                 address: tokenAddress,
+                                 decimals,
+@@ -169,6 +169,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+                                 aggregators,
+                                 image: iconUrl,
+                                 isERC721: false,
++                                name
+                             });
+                         }
+                     }
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
+index 8c02fe6..6bf425c 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
+@@ -199,7 +199,7 @@ class TokensController extends base_controller_1.BaseController {
+             }, {});
+             try {
+                 tokensToImport.forEach((tokenToAdd) => {
+-                    const { address, symbol, decimals, image, aggregators } = tokenToAdd;
++                    const { address, symbol, decimals, image, aggregators, name } = tokenToAdd;
+                     const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
+                     const formattedToken = {
+                         address: checksumAddress,
+@@ -207,6 +207,7 @@ class TokensController extends base_controller_1.BaseController {
+                         decimals,
+                         image,
+                         aggregators,
++                        name
+                     };
+                     newTokensMap[address] = formattedToken;
+                     importedTokensMap[address.toLowerCase()] = true;
+@@ -282,7 +283,7 @@ class TokensController extends base_controller_1.BaseController {
+             let newDetectedTokens = [...detectedTokens];
+             try {
+                 incomingDetectedTokens.forEach((tokenToAdd) => {
+-                    const { address, symbol, decimals, image, aggregators, isERC721 } = tokenToAdd;
++                    const { address, symbol, decimals, image, aggregators, isERC721, name } = tokenToAdd;
+                     const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
+                     const newEntry = {
+                         address: checksumAddress,
+@@ -291,6 +292,7 @@ class TokensController extends base_controller_1.BaseController {
+                         image,
+                         isERC721,
+                         aggregators,
++                        name
+                     };
+                     const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
+                     if (previousImportedEntry) {
