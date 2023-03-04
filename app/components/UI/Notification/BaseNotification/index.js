@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -9,6 +9,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { NOTIFICATION_TITLE } from '../../../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -174,7 +176,10 @@ const BaseNotification = ({
             {getIcon(status, colors, styles)}
           </View>
           <View style={styles.flashLabel}>
-            <Text style={styles.flashTitle} testID={'notification-title'}>
+            <Text
+              style={styles.flashTitle}
+              {...generateTestId(Platform, NOTIFICATION_TITLE)}
+            >
               {!title ? getTitle(status, data) : title}
             </Text>
             <Text style={styles.flashText}>

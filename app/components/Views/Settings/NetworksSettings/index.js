@@ -28,6 +28,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
   AvatarSize,
   AvatarVariants,
@@ -116,9 +117,9 @@ class NetworksSettings extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -183,10 +184,10 @@ class NetworksSettings extends PureComponent {
 
   removeNetwork = () => {
     // Check if it's the selected network and then switch to mainnet first
-    const { provider } = this.props;
+    const { providerConfig } = this.props;
     if (
-      compareSanitizedUrl(provider.rpcTarget, this.networkToRemove) &&
-      provider.type === RPC
+      compareSanitizedUrl(providerConfig.rpcTarget, this.networkToRemove) &&
+      providerConfig.type === RPC
     ) {
       this.switchToMainnet();
     }
@@ -438,7 +439,7 @@ class NetworksSettings extends PureComponent {
 NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

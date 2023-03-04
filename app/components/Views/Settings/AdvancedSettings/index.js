@@ -41,6 +41,7 @@ import { timeoutFetch } from '../../../../util/general';
 import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -511,7 +512,7 @@ const mapStateToProps = (state) => ({
   fullState: state,
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

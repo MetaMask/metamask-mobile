@@ -13,10 +13,10 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
@@ -48,6 +48,11 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 const createStyles = (colors) =>
@@ -305,7 +310,7 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+      trackLegacyEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
     });
   };
 
@@ -320,7 +325,7 @@ class AccountOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Wallet',
         chain_id_destination: this.props.chainId,
@@ -508,9 +513,9 @@ const mapStateToProps = (state) => ({
   identities: state.engine.backgroundState.PreferencesController.identities,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  network: String(state.engine.backgroundState.NetworkController.network),
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
+  network: String(selectNetwork(state)),
   swapsIsLive: swapsLivenessSelector(state),
 });
 

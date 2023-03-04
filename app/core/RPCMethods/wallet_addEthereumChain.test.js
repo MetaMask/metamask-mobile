@@ -24,7 +24,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       },
       NetworkController: {
         state: {
-          provider: {
+          providerConfig: {
             chainId: '1',
           },
         },

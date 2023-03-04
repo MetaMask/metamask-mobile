@@ -7,10 +7,12 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
+import { connect } from 'react-redux';
+import ActionSheet from 'react-native-actionsheet';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import ActionSheet from 'react-native-actionsheet';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
@@ -18,12 +20,8 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
-import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
@@ -36,6 +34,7 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { selectChainId } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 
 const createStyles = (colors) =>
@@ -318,7 +317,7 @@ class Tokens extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
         chain_id_destination: this.props.chainId,
@@ -331,10 +330,10 @@ class Tokens extends PureComponent {
     const { detectedTokens } = this.props;
     this.props.navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
         tokens: detectedTokens.map(
           (token) => `${token.symbol} - ${token.address}`,
@@ -391,10 +390,10 @@ class Tokens extends PureComponent {
     this.setState({ isAddTokenEnabled: false });
     this.props.navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
       });
       this.setState({ isAddTokenEnabled: true });
@@ -421,13 +420,13 @@ class Tokens extends PureComponent {
         }),
       });
       InteractionManager.runAfterInteractions(() =>
-        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+        trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
           location: 'assets_list',
           token_standard: 'ERC20',
           asset_type: 'token',
           tokens: [`${symbol} - ${tokenAddress}`],
           chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
+            NetworkController?.state?.providerConfig?.chainId,
           ),
         }),
       );
@@ -468,7 +467,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:

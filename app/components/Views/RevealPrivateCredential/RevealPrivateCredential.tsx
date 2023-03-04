@@ -17,8 +17,13 @@ import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -33,11 +38,9 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
+import { Authentication } from '../../../core/';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
@@ -68,8 +71,7 @@ const RevealPrivateCredential = ({
   const [password, setPassword] = useState<string>('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState<string>('');
-  const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] =
-    useState<boolean>(false);
+  const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const selectedAddress = useSelector(
@@ -152,17 +154,18 @@ const RevealPrivateCredential = ({
     updateNavBar();
     // Track SRP Reveal screen rendered
     if (!isPrivateKey()) {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN, {});
+      trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN);
     }
 
     const unlockWithBiometrics = async () => {
-      const biometryType = await SecureKeychain.getSupportedBiometryType();
+      // Try to use biometrics to unlock
+      const { availableBiometryType } = await Authentication.getType();
       if (!passwordSet) {
         tryUnlockWithPassword('');
-      } else if (biometryType) {
+      } else if (availableBiometryType) {
         const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === biometryType) {
-          const credentials = await SecureKeychain.getGenericPassword();
+        if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
+          const credentials = await Authentication.getPassword();
           if (credentials) {
             tryUnlockWithPassword(credentials.password);
           }
@@ -180,7 +183,7 @@ const RevealPrivateCredential = ({
 
   const cancelReveal = () => {
     if (!unlocked)
-      AnalyticsV2.trackEvent(
+      trackEvent(
         isPrivateKey()
           ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
           : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
@@ -188,7 +191,7 @@ const RevealPrivateCredential = ({
       );
 
     if (!isPrivateKey())
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA, {});
+      trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA, {});
     if (cancel) return cancel();
     navigateBack();
   };
@@ -199,7 +202,7 @@ const RevealPrivateCredential = ({
       if (!isPrivateKey()) {
         const currentDate = new Date();
         dispatch(recordSRPRevealTimestamp(currentDate.toString()));
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA, {});
+        trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
       }
       setIsModalVisible(true);
       setWarningIncorrectPassword('');
@@ -214,22 +217,21 @@ const RevealPrivateCredential = ({
   };
 
   const done = () => {
-    if (!isPrivateKey())
-      AnalyticsV2.trackEvent(MetaMetricsEvents.SRP_DONE_CTA, {});
+    if (!isPrivateKey()) trackEvent(MetaMetricsEvents.SRP_DONE_CTA);
     navigateBack();
   };
 
   const copyPrivateCredentialToClipboard = async (
     privCredentialName: string,
   ) => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       privCredentialName === PRIVATE_KEY
         ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
         : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
       { action: 'copied to clipboard' },
     );
 
-    if (!isPrivateKey()) AnalyticsV2.trackEvent(MetaMetricsEvents.COPY_SRP, {});
+    if (!isPrivateKey()) trackEvent(MetaMetricsEvents.COPY_SRP);
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -274,89 +276,89 @@ const RevealPrivateCredential = ({
 
   const onTabBarChange = (event: { i: number }) => {
     if (event.i === 0) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         isPrivateKey()
           ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
           : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
 
-      if (!isPrivateKey())
-        AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP, {});
+      if (!isPrivateKey()) trackEvent(MetaMetricsEvents.VIEW_SRP);
     } else if (event.i === 1) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         isPrivateKey()
           ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
           : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
       );
 
-      if (!isPrivateKey())
-        AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SRP_QR, {});
+      if (!isPrivateKey()) trackEvent(MetaMetricsEvents.VIEW_SRP_QR);
     }
   };
 
-  const renderTabView = (privCredentialName: string) => {
+  useEffect(() => {
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
         if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
-          setIsAndroidSupportedVersion(false);
+          setClipboardEnabled(false);
+          return;
         }
       });
 
-    return (
-      <ScrollableTabView
-        renderTabBar={() => renderTabBar()}
-        onChangeTab={(event: any) => onTabBarChange(event)}
+    setClipboardEnabled(true);
+  }, []);
+
+  const renderTabView = (privCredentialName: string) => (
+    <ScrollableTabView
+      renderTabBar={() => renderTabBar()}
+      onChangeTab={(event: any) => onTabBarChange(event)}
+    >
+      <View
+        tabLabel={strings(`reveal_credential.text`)}
+        style={styles.tabContent}
       >
-        <View
-          tabLabel={strings(`reveal_credential.text`)}
-          style={styles.tabContent}
-        >
-          <Text style={styles.boldText}>
-            {strings(`reveal_credential.${privCredentialName}`)}
-          </Text>
-          <View style={styles.seedPhraseView}>
-            <TextInput
-              value={clipboardPrivateCredential}
-              numberOfLines={3}
-              multiline
-              selectTextOnFocus
-              style={styles.seedPhrase}
-              editable={false}
-              testID={'private-credential-text'}
-              placeholderTextColor={colors.text.muted}
-              keyboardAppearance={themeAppearance}
+        <Text style={styles.boldText}>
+          {strings(`reveal_credential.${privCredentialName}`)}
+        </Text>
+        <View style={styles.seedPhraseView}>
+          <TextInput
+            value={clipboardPrivateCredential}
+            numberOfLines={3}
+            multiline
+            selectTextOnFocus
+            style={styles.seedPhrase}
+            editable={false}
+            testID={'private-credential-text'}
+            placeholderTextColor={colors.text.muted}
+            keyboardAppearance={themeAppearance}
+          />
+          {clipboardEnabled ? (
+            <Button
+              label={strings('reveal_credential.copy_to_clipboard')}
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Sm}
+              onPress={() =>
+                copyPrivateCredentialToClipboard(privCredentialName)
+              }
+              testID={'private-credential-touchable'}
+              style={styles.clipboardButton}
             />
-            {isAndroidSupportedVersion && (
-              <TouchableOpacity
-                style={styles.privateCredentialAction}
-                onPress={() =>
-                  copyPrivateCredentialToClipboard(privCredentialName)
-                }
-                testID={'private-credential-touchable'}
-              >
-                <Text style={styles.blueText}>
-                  {strings('reveal_credential.copy_to_clipboard')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          ) : null}
         </View>
-        <View
-          tabLabel={strings(`reveal_credential.qr_code`)}
-          style={styles.tabContent}
-        >
-          <View style={styles.qrCodeWrapper}>
-            <QRCode
-              value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 176}
-            />
-          </View>
+      </View>
+      <View
+        tabLabel={strings(`reveal_credential.qr_code`)}
+        style={styles.tabContent}
+      >
+        <View style={styles.qrCodeWrapper}>
+          <QRCode
+            value={clipboardPrivateCredential}
+            size={Dimensions.get('window').width - 176}
+          />
         </View>
-      </ScrollableTabView>
-    );
-  };
+      </View>
+    </ScrollableTabView>
+  );
 
   const renderPasswordEntry = () => (
     <>
@@ -380,17 +382,14 @@ const RevealPrivateCredential = ({
   );
 
   const closeModal = () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       isPrivateKey()
         ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
         : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
       { view: 'Hold to reveal' },
     );
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG);
 
     setIsModalVisible(false);
   };

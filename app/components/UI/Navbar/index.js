@@ -1,8 +1,5 @@
 /* eslint-disable react/display-name */
 import React from 'react';
-import NavbarTitle from '../NavbarTitle';
-import ModalNavbarTitle from '../ModalNavbarTitle';
-import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Text,
@@ -13,17 +10,17 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { scale } from 'react-native-size-matters';
-import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import NavbarTitle from '../NavbarTitle';
+import ModalNavbarTitle from '../ModalNavbarTitle';
+import AccountRightButton from '../AccountRightButton';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
@@ -41,21 +38,30 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { CONTACT_EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
   PAYMENT_REQUEST_CLOSE_BUTTON,
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import ButtonIcon, {
+  ButtonIconVariants,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
+    trackLegacyEvent(event);
   });
 };
 
 const trackEventWithParameters = (event, params) => {
   InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
+    trackLegacyEvent(event, params);
   });
 };
 
@@ -92,7 +98,6 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
-    paddingLeft: Device.isAndroid() ? 22 : 18,
     paddingRight: Device.isAndroid() ? 22 : 18,
     marginTop: 5,
   },
@@ -990,13 +995,14 @@ export function getWalletNavbarOptions(
       </TouchableOpacity>
     ),
     headerRight: () => (
-      <TouchableOpacity
-        style={styles.infoButton}
-        // eslint-disable-next-line
+      <ButtonIcon
+        variant={ButtonIconVariants.Primary}
         onPress={openQRScanner}
-      >
-        <AntIcon name="scan1" size={28} style={innerStyles.headerIcon} />
-      </TouchableOpacity>
+        iconName={IconName.Scan}
+        style={styles.infoButton}
+        size={IconSize.Xl}
+        testID="scan-header-icon"
+      />
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -1382,13 +1388,10 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        });
       });
     }
     navigation.pop();
@@ -1400,13 +1403,10 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        });
       });
     }
     navigation.dangerouslyGetParent()?.pop();
