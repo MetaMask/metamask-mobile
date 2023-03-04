@@ -80,7 +80,9 @@ export class HttpLocation implements SnapLocation {
   async fetch(path: string): Promise<VirtualFile> {
     console.log(SNAPS_HTTP_LOG_TAG, 'fetch callled with: ', path);
     const relativePath = normalizeRelative(path);
+    console.log(SNAPS_HTTP_LOG_TAG, 'fetch relativePath: ', relativePath);
     const cached = this.cache.get(relativePath);
+    console.log(SNAPS_HTTP_LOG_TAG, 'fetch cached: ', cached);
     if (cached !== undefined) {
       const { file, contents } = cached;
       const value = new Uint8Array(await contents.arrayBuffer());
