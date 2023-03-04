@@ -74,7 +74,7 @@ const SNAPS_LOCATION_LOG_TAG = 'snaps/ location';
 const readAndParseFile = async (path: string) => {
   try {
     const data = ReactNativeBlobUtil.fs.readFile(path, 'utf8');
-    console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile data', data);
+    // console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile data', data);
     return data;
   } catch (error) {
     console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile error', error);
@@ -88,17 +88,17 @@ const readAndParseFile = async (path: string) => {
  */
 const convertFetchBlobResponseToResponse = async (
   fetchBlobResponse: FetchBlobResponse,
-): Response => {
+): Promise<Response> => {
   const headers = new Headers(fetchBlobResponse.respInfo.headers);
   const status = fetchBlobResponse.respInfo.status;
   const dataPath = fetchBlobResponse.data;
   const data = await readAndParseFile(dataPath);
   const response = new Response(data, { headers, status });
-  console.log(
-    SNAPS_LOCATION_LOG_TAG,
-    'convertFetchBlobResponseToResponse converted response',
-    JSON.stringify(response, null, 2),
-  );
+  // console.log(
+  //   SNAPS_LOCATION_LOG_TAG,
+  //   'convertFetchBlobResponseToResponse converted response',
+  //   JSON.stringify(response, null, 2),
+  // );
   return response;
 };
 
