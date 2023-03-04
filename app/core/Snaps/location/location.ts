@@ -6,6 +6,7 @@ import {
   LOCALHOST_HOSTNAMES,
   assertIsSnapManifest,
   validateSnapShasum,
+  base64,
 } from '@metamask/snaps-utils';
 // import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
@@ -68,18 +69,31 @@ interface FetchSnapResult {
 const SNAPS_LOCATION_LOG_TAG = 'snaps/ location';
 
 /**
+  Reads and parses file from ReactNativeBlobUtil response
+ */
+const readAndParseFile = async (path: string) => {
+  try {
+    const data = ReactNativeBlobUtil.fs.readFile(path, 'utf8');
+    console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile data', data);
+    return data;
+  } catch (error) {
+    console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile error', error);
+  }
+};
+
+/**
  * Converts a FetchBlobResponse object to a React Native Response object.
  * @param response The FetchBlobResponse object to convert.
  * @returns A new Response object with the same data as the input object.
  */
-const convertFetchBlobResponseToResponse = (
+const convertFetchBlobResponseToResponse = async (
   fetchBlobResponse: FetchBlobResponse,
 ): Response => {
   const headers = new Headers(fetchBlobResponse.respInfo.headers);
   const status = fetchBlobResponse.respInfo.status;
-  const body = fetchBlobResponse.data;
-
-  const response = new Response(body, { headers, status });
+  const dataPath = fetchBlobResponse.data;
+  const data = await readAndParseFile(dataPath);
+  const response = new Response(data, { headers, status });
   console.log(
     SNAPS_LOCATION_LOG_TAG,
     'convertFetchBlobResponseToResponse converted response',
@@ -114,14 +128,14 @@ const fetchFunction = async (
     'GET',
     urlToFetch,
   );
-  
+
   console.log(
     SNAPS_LOCATION_LOG_TAG,
     'fetchFunction fetched response ',
     JSON.stringify(response, null, 2),
   );
 
-  return convertFetchBlobResponseToResponse(response);
+  return await convertFetchBlobResponseToResponse(response);
 };
 
 /**
