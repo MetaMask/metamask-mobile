@@ -324,8 +324,6 @@ class Engine {
             });
             tokensController.addDetectedTokens(tokens);
           },
-          updateTokensName: (tokenList) =>
-            tokensController.updateTokensName(tokenList),
           getTokensState: () => tokensController.state,
           getTokenListState: () => tokenListController.state,
           getNetworkState: () => networkController.state,
