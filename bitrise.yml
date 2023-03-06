@@ -62,15 +62,15 @@ workflows:
           title: Get commit or branch name and path variables
 
   # Send a Slack message when build workflow fails
-  _build_failure_notify_on_slack:
+  _build_notify_on_slack:
     before_run:
       - _get_workflow_info
     steps:
       - slack@3:
-          is_always_run: true
-          run_if: .IsBuildFailed
+          is_always_run: true # run for both success and failure
           inputs:
             - text: "${BITRISE_APP_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *${BITRISE_APP_TITLE} build success!*"
             - pretext_on_error: ":red_circle: *${BITRISE_APP_TITLE} build failed!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
@@ -258,6 +258,8 @@ workflows:
   create_qa_builds:
     before_run:
       - code_setup
+    after_run:
+      - _build_notify_on_slack
     steps:
       - build-router-start@0:
           inputs:
@@ -276,7 +278,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_failure_notify_on_slack
+      - _build_notify_on_slack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -334,7 +336,7 @@ workflows:
       - code_setup
     after_run:
       - _upload_apk_to_browserstack
-      - _build_failure_notify_on_slack
+      - _build_notify_on_slack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -473,7 +475,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_failure_notify_on_slack
+      - _build_notify_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -512,7 +514,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_failure_notify_on_slack
+      - _build_notify_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -598,3 +600,7 @@ meta:
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests
+  - tag: "v*.*.*-RC-*"
+    workflow: release_to_stores
+  - tag: "qa-*"
+    workflow: create_qa_builds
