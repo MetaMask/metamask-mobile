@@ -76,6 +76,7 @@ export interface ApprovedHosts {
 export interface approveHostProps {
   host: string;
   hostname: string;
+  context?: string;
 }
 
 export const TIMEOUT_PAUSE_CONNECTIONS = 20000;
@@ -334,6 +335,8 @@ export class Connection extends EventEmitter2 {
             type: MessageType.OTP,
             otpAnswer: this.otps?.[0],
           });
+          // Prevent auto approval if metamask is killed and restarted
+          disapprove(this.channelId);
         }
 
         if (this.isReady) {
@@ -562,12 +565,17 @@ export class Connection extends EventEmitter2 {
           navigation: null, //props.navigation,
           getApprovedHosts: () => this.getApprovedHosts('rpcMethodMiddleWare'),
           setApprovedHosts: (hostname: string) => {
-            this.approveHost({ host: hostname, hostname });
+            this.approveHost({
+              host: hostname,
+              hostname,
+              context: 'setApprovedHosts',
+            });
           },
           approveHost: (approveHostname) =>
             this.approveHost({
               host: this.host,
               hostname: approveHostname,
+              context: 'rpcMethodMiddleWare',
             }),
           // Website info
           url: {
@@ -1118,7 +1126,11 @@ export class SDKConnect extends EventEmitter2 {
   public async revalidateChannel({ channelId }: { channelId: string }) {
     console.debug(`SDKConnect::revalidateChannel() channelId=${channelId}`);
     const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
-    this._approveHost({ host: hostname, hostname });
+    this._approveHost({
+      host: hostname,
+      hostname,
+      context: 'revalidateChannel',
+    });
   }
 
   public isApproved({
@@ -1138,8 +1150,10 @@ export class SDKConnect extends EventEmitter2 {
     return isApproved;
   }
 
-  private _approveHost({ host, hostname }: approveHostProps) {
-    console.debug(`SDKConnect::_approveHost host=${host} hostname=${hostname}`);
+  private _approveHost({ host, hostname, context }: approveHostProps) {
+    console.debug(
+      `SDKConnect::_approveHost host=${host} hostname=${hostname} _context=${context}`,
+    );
     // Host is approved for 24h.
     this.approvedHosts[host] = Date.now() + DAY_IN_MS;
     if (!this.disabledHosts[host]) {
