@@ -1,8 +1,25 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-index 4ed4990..d6b1faf 100644
+index 4ed4990..da18116 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-@@ -128,16 +128,24 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -34,7 +34,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, onNetworkStateChange, onTokenListStateChange, getBalancesInSingleCall, addDetectedTokens, getTokenListState, getTokensState, getNetworkState, getPreferencesState, }, config, state) {
++    constructor({ onPreferencesStateChange, onNetworkStateChange, onTokenListStateChange, getBalancesInSingleCall, addDetectedTokens, updateTokensName, getTokenListState, getTokensState, getNetworkState, getPreferencesState, }, config, state) {
+         const { providerConfig: { chainId: defaultChainId }, } = getNetworkState();
+         const { useTokenDetection: defaultUseTokenDetection } = getPreferencesState();
+         super(config, state);
+@@ -45,6 +45,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+         this.defaultConfig = Object.assign({ interval: DEFAULT_INTERVAL, selectedAddress: '', disabled: true, chainId: defaultChainId, isDetectionEnabledFromPreferences: defaultUseTokenDetection, isDetectionEnabledForNetwork: (0, assetsUtil_1.isTokenDetectionSupportedForNetwork)(defaultChainId) }, config);
+         this.initialize();
+         this.getTokensState = getTokensState;
++        this.updateTokensName = updateTokensName;
+         this.getTokenListState = getTokenListState;
+         this.addDetectedTokens = addDetectedTokens;
+         this.getBalancesInSingleCall = getBalancesInSingleCall;
+@@ -128,16 +129,24 @@ class TokenDetectionController extends base_controller_1.BaseController {
                  return;
              }
              const { tokens } = this.getTokensState();
@@ -27,7 +44,7 @@ index 4ed4990..d6b1faf 100644
              const sliceOfTokensToDetect = [];
              sliceOfTokensToDetect[0] = tokensToDetect.slice(0, 1000);
              sliceOfTokensToDetect[1] = tokensToDetect.slice(1000, tokensToDetect.length - 1);
-@@ -161,7 +169,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -161,7 +170,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
                          }
                          const caseInsensitiveTokenKey = Object.keys(tokenList).find((i) => i.toLowerCase() === tokenAddress.toLowerCase()) || '';
                          if (ignored === undefined) {
@@ -36,7 +53,7 @@ index 4ed4990..d6b1faf 100644
                              tokensToAdd.push({
                                  address: tokenAddress,
                                  decimals,
-@@ -169,6 +177,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -169,6 +178,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
                                  aggregators,
                                  image: iconUrl,
                                  isERC721: false,
