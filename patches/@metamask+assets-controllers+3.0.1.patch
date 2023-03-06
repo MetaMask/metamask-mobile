@@ -1,8 +1,33 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-index 4ed4990..7ba8154 100644
+index 4ed4990..d6b1faf 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-@@ -161,7 +161,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -128,16 +128,24 @@ class TokenDetectionController extends base_controller_1.BaseController {
+                 return;
+             }
+             const { tokens } = this.getTokensState();
++            
+             const { selectedAddress, chainId } = this.config;
+             const tokensAddresses = tokens.map(
+             /* istanbul ignore next*/ (token) => token.address.toLowerCase());
+             const { tokenList } = this.getTokenListState();
++         
++            if (tokens.length && !tokens[0].name) {
++                this.updateTokensName(tokenList);
++            }
++
+             const tokensToDetect = [];
+             for (const address in tokenList) {
+                 if (!tokensAddresses.includes(address)) {
+                     tokensToDetect.push(address);
+                 }
+             }
++
++
+             const sliceOfTokensToDetect = [];
+             sliceOfTokensToDetect[0] = tokensToDetect.slice(0, 1000);
+             sliceOfTokensToDetect[1] = tokensToDetect.slice(1000, tokensToDetect.length - 1);
+@@ -161,7 +169,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
                          }
                          const caseInsensitiveTokenKey = Object.keys(tokenList).find((i) => i.toLowerCase() === tokenAddress.toLowerCase()) || '';
                          if (ignored === undefined) {
@@ -11,7 +36,7 @@ index 4ed4990..7ba8154 100644
                              tokensToAdd.push({
                                  address: tokenAddress,
                                  decimals,
-@@ -169,6 +169,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -169,6 +177,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
                                  aggregators,
                                  image: iconUrl,
                                  isERC721: false,
@@ -20,7 +45,7 @@ index 4ed4990..7ba8154 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..6bf425c 100644
+index 8c02fe6..ab856ca 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -199,7 +199,7 @@ class TokensController extends base_controller_1.BaseController {
@@ -57,3 +82,20 @@ index 8c02fe6..6bf425c 100644
                      };
                      const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
                      if (previousImportedEntry) {
+@@ -357,6 +359,16 @@ class TokensController extends base_controller_1.BaseController {
+             return tokens[tokenIndex];
+         });
+     }
++
++    async updateTokensName(tokenList) {
++        const { tokens } = this.state;
++    
++        const newTokens = tokens.map((token) => {
++          return { ...token, name: tokenList[token.address].name };
++        });
++    
++        this.update({ tokens: newTokens });
++      }
+     /**
+      * Detects whether or not a token is ERC-721 compatible.
+      *
