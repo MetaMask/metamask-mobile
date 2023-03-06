@@ -411,7 +411,11 @@ class ChoosePassword extends PureComponent {
         });
       });
     } catch (error) {
-      await this.recreateVault('');
+      try {
+        await this.recreateVault('');
+      } catch (e) {
+        Logger.error(e);
+      }
       // Set state in app as it was with no password
       await SecureKeychain.resetGenericPassword();
       await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
