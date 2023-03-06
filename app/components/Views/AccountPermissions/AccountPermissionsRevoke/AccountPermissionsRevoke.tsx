@@ -39,6 +39,7 @@ const AccountPermissionsRevoke = ({
   permittedAddresses,
   onSetPermissionsScreen,
   hostname,
+  urlWithProtocol,
   favicon,
   secureIcon,
   accountAvatarType,
@@ -107,7 +108,11 @@ const AccountPermissionsRevoke = ({
         }
       />
       <View style={styles.body}>
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

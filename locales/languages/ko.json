@@ -612,7 +612,6 @@
     "third_party_title": "들어오는 거래 가져오기",
     "third_party_description": "타사 API(이더스캔)는 과거의 들어오는 거래를 보여주는 데 사용됩니다. 해당 서비스에서 데이터를 가져오는 것을 원하지 않으시면 기능을 끄세요.",
     "metametrics_opt_out": "메타매트릭스 수신 거부",
-    "metametrics_restart_required": "변경 내용을 적용하려면 앱을 다시 시작해야 합니다.",
     "create_password": "비밀번호 생성",
     "invalid_password": "잘못된 비밀번호",
     "invalid_password_message": "비밀번호가 틀렸습니다. 다시 시도하세요.",

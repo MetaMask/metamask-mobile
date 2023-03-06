@@ -41,19 +41,20 @@ const AccountPermissionsConnected = ({
   favicon,
   secureIcon,
   accountAvatarType,
+  urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
   const dispatch = useDispatch();
   const networkController = useSelector(
     (state: any) => state.engine.backgroundState.NetworkController,
   );
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkController.provider),
-    [networkController.provider],
+    () => getNetworkNameFromProvider(networkController.providerConfig),
+    [networkController.providerConfig],
   );
   const networkImageSource = useMemo(() => {
-    const { type, chainId } = networkController.provider;
+    const { type, chainId } = networkController.providerConfig;
     return getNetworkImageSource({ networkType: type, chainId });
-  }, [networkController.provider]);
+  }, [networkController.providerConfig]);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
@@ -131,7 +132,7 @@ const AccountPermissionsConnected = ({
       <View style={styles.body}>
         <TagUrl
           imageSource={favicon}
-          label={hostname}
+          label={urlWithProtocol}
           cta={{
             label: strings('accounts.permissions'),
             onPress: openRevokePermissions,

@@ -130,11 +130,11 @@ const AssetDetails = (props: Props) => {
 
   const getNetworkName = () => {
     let name = '';
-    if (network.provider.nickname) {
-      name = network.provider.nickname;
+    if (network.providerConfig.nickname) {
+      name = network.providerConfig.nickname;
     } else {
       name =
-        (Networks as any)[network.provider.type]?.name ||
+        (Networks as any)[network.providerConfig.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
     return name;
@@ -189,7 +189,7 @@ const AssetDetails = (props: Props) => {
                 asset_type: 'token',
                 tokens: [`${symbol} - ${address}`],
                 chain_id: getDecimalChainId(
-                  NetworkController?.state?.provider?.chainId,
+                  NetworkController?.state?.providerConfig?.chainId,
                 ),
               });
             } catch (err) {

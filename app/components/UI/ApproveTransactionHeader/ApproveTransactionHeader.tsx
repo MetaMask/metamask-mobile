@@ -23,6 +23,7 @@ import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import {
   AccountInfoI,
   ApproveTransactionHeaderI,
@@ -61,25 +62,32 @@ const ApproveTransactionHeader = ({
       state.engine.backgroundState.PreferencesController.identities,
   );
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
+  const permittedAccountsList = useSelector(
+    (state: any) => state.engine.backgroundState.PermissionController,
   );
 
+  const permittedAccountsByHostname = getPermittedAccountsByHostname(
+    permittedAccountsList,
+    origin,
+  );
+
+  const activeAddress: string = permittedAccountsByHostname[0];
+
   const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.providerConfig,
   );
 
   useEffect(() => {
     const { ticker, type } = network;
-    const weiBalance = selectedAddress
-      ? hexToBN(accounts[selectedAddress].balance)
+    const weiBalance = activeAddress
+      ? hexToBN(accounts[activeAddress].balance)
       : 0;
 
     const balance = Number(renderFromWei(weiBalance));
     const currency = getTicker(ticker);
-    const accountName = selectedAddress
-      ? renderAccountName(selectedAddress, identities)
+    const accountName = activeAddress
+      ? renderAccountName(activeAddress, identities)
       : '';
 
     const isOriginDeepLink =
@@ -101,7 +109,7 @@ const ApproveTransactionHeader = ({
       isOriginWalletConnect,
       isOriginMMSDKRemoteConn,
     });
-  }, [accounts, identities, origin, selectedAddress, network]);
+  }, [accounts, identities, origin, activeAddress, network]);
 
   const networkImage = useMemo(() => {
     const { chainId } = network;
@@ -146,7 +154,7 @@ const ApproveTransactionHeader = ({
         style={styles.tagUrl}
       />
       <AccountBalance
-        accountAddress={selectedAddress}
+        accountAddress={activeAddress}
         accountNativeCurrency={accountInfo.currency}
         accountBalance={accountInfo.balance}
         accountName={accountInfo.accountName}

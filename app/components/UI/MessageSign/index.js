@@ -78,7 +78,7 @@ class MessageSign extends PureComponent {
         messageParams: { from },
       } = this.props;
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(from),

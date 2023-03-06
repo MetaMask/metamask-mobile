@@ -48,6 +48,10 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -439,6 +443,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
+      transaction: { origin: transactionOrigin },
     } = this.props;
     const {
       actionKey,
@@ -465,7 +470,7 @@ class TransactionReview extends PureComponent {
           <ApproveTransactionHeader
             currentEnsName={currentEnsName}
             spenderAddress={spenderAddress}
-            origin={origin}
+            origin={origin || transactionOrigin}
             url={url}
           />
           <TransactionReviewSummary
@@ -583,8 +588,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   showHexData: state.settings.showHexData,
   transaction: getNormalizedTxState(state),
   browser: state.browser,
