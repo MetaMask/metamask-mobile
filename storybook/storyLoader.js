@@ -31,7 +31,7 @@ function loadStories() {
   require('../app/component-library/components/Form/Label/Label.stories');
   require('../app/component-library/components/Form/TextField/TextField.stories');
   require('../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories');
-  require('../app/component-library/components/Icon/Icon.stories');
+  require('../app/component-library/components/Icons/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
@@ -89,7 +89,7 @@ const stories = [
   '../app/component-library/components/Form/Label/Label.stories',
   '../app/component-library/components/Form/TextField/TextField.stories',
   '../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories',
-  '../app/component-library/components/Icon/Icon.stories',
+  '../app/component-library/components/Icons/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',

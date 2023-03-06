@@ -25,7 +25,7 @@ import { ToastOptions } from '../../../../component-library/components/Toast/Toa
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent } from '../../../../util/analyticsV2';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -39,6 +39,7 @@ const AccountPermissionsRevoke = ({
   permittedAddresses,
   onSetPermissionsScreen,
   hostname,
+  urlWithProtocol,
   favicon,
   secureIcon,
   accountAvatarType,
@@ -67,14 +68,11 @@ const AccountPermissionsRevoke = ({
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
         );
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
-          {
-            number_of_accounts: accountsLength,
-            number_of_accounts_connected: permittedAddresses.length,
-            number_of_networks: nonTestnetNetworks,
-          },
-        );
+        trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
+          number_of_accounts: accountsLength,
+          number_of_accounts_connected: permittedAddresses.length,
+          number_of_networks: nonTestnetNetworks,
+        });
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
       }
@@ -110,7 +108,11 @@ const AccountPermissionsRevoke = ({
         }
       />
       <View style={styles.body}>
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>
@@ -161,14 +163,11 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                   });
                 }
-                AnalyticsV2.trackEvent(
-                  MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
-                  {
-                    number_of_accounts: accountsLength,
-                    number_of_accounts_connected: permittedAddresses.length,
-                    number_of_networks: nonTestnetNetworks,
-                  },
-                );
+                trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
+                  number_of_accounts: accountsLength,
+                  number_of_accounts_connected: permittedAddresses.length,
+                  number_of_networks: nonTestnetNetworks,
+                });
               }
             }}
             label={strings('accounts.revoke')}

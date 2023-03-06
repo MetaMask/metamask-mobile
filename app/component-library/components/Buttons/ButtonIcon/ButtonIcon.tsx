@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Icon from '../../Icon';
+import Icon from '../../Icons/Icon';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.

@@ -37,7 +37,7 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
-import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
+import { selectChainId } from '../../../selectors/networkController';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -62,10 +62,7 @@ const QRScanner = () => {
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
 
-  const currentChainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
+  const currentChainId = useSelector(selectChainId);
 
   const goBack = useCallback(() => {
     navigation.goBack();
@@ -102,7 +99,7 @@ const QRScanner = () => {
             onCancel: () => resolve(false),
             cancelLabel: strings('qr_scanner.cancel'),
             confirmLabel: strings('qr_scanner.continue'),
-            variant: ModalConfirmationVariants.Normal,
+            isDanger: false,
             title: strings('qr_scanner.url_redirection_alert_title'),
             description: `${url}\n${strings(
               'qr_scanner.url_redirection_alert_desc',

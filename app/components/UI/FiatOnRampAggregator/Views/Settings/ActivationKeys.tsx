@@ -108,15 +108,13 @@ function ActivationKeys() {
         </ListItem>
       ))}
       <Row>
-        <Row>
-          <StyledButton
-            type="normal"
-            disabled={isLoadingKeys}
-            onPress={handleAddNewKeyPress}
-          >
-            {strings('app_settings.fiat_on_ramp.add_activation_key')}
-          </StyledButton>
-        </Row>
+        <StyledButton
+          type="normal"
+          disabled={isLoadingKeys}
+          onPress={handleAddNewKeyPress}
+        >
+          {strings('app_settings.fiat_on_ramp.add_activation_key')}
+        </StyledButton>
       </Row>
     </>
   );

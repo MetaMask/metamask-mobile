@@ -39,6 +39,7 @@ const Routes = {
     MANUAL_BACKUP: {
       STEP_3: 'ManualBackupStep3',
     },
+    IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -66,6 +67,7 @@ const Routes = {
   },
   WALLET: {
     HOME: 'WalletTabHome',
+    TAB_STACK_FLOW: 'WalletTabStackFlow',
   },
 };
 

@@ -61,6 +61,15 @@ class CreateNewWalletScren {
     await Gestures.tap(this.newWalletSubmitButton);
   }
 
+  async inputConfirmResetPasswordField(secondPassword) {
+    await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
+    await driver.hideKeyboard();
+  }
+
+  async tapSubmitButton() {
+    await Gestures.tap(this.newWalletSubmitButton);
+  }
+
   async tapRemindMeLater() {
     await Gestures.tap(this.remindMeLaterButton);
   }

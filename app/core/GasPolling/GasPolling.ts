@@ -11,6 +11,7 @@ import {
   GetEIP1559TransactionDataProps,
   LegacyProps,
 } from './types';
+import { selectTicker } from '../../selectors/networkController';
 
 /**
  *
@@ -57,7 +58,7 @@ export const useDataStore = () => {
       state.engine.backgroundState.CurrencyRateController.nativeCurrency,
       state.engine.backgroundState.AccountTrackerController.accounts,
       state.engine.backgroundState.TokenBalancesController.contractBalances,
-      state.engine.backgroundState.NetworkController.provider.ticker,
+      selectTicker(state),
       state.transaction,
       state.transaction.selectedAsset,
       state.settings.showCustomNonce,
@@ -206,8 +207,8 @@ export const useGasTransaction = ({
         suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
         suggestedGasPrice:
           gasFeeEstimates[gasSelected] ||
-          gasFeeEstimates?.gasPrice ||
-          gasObject?.suggestedGasPrice,
+          gasObject?.suggestedGasPrice ||
+          gasFeeEstimates?.gasPrice,
       },
       contractExchangeRates,
       conversionRate,

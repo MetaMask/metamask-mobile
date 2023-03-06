@@ -12,6 +12,7 @@ import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
+import { Authentication } from '../core';
 import Device from '../util/device';
 
 const TIMEOUT = 40000;
@@ -129,6 +130,7 @@ export const store = createStore(pReducer);
  */
 const onPersistComplete = () => {
   EngineService.initalizeEngine(store);
+  Authentication.init(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);

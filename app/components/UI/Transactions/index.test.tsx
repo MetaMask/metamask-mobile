@@ -37,7 +37,7 @@ const initialState = {
         conversionRate: 1,
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           chainId: '1',
         },
       },

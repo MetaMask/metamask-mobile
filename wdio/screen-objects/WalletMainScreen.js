@@ -21,6 +21,8 @@ import {
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+
 class WalletMainScreen {
   get wizardContainer() {
     return Selectors.getElementByPlatform(
@@ -46,6 +48,10 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(IMPORT_NFT_BUTTON_ID);
   }
 
+  get TokenNotificationTitle() {
+    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
+  }
+
   get HamburgerButton() {
     return Selectors.getElementByPlatform(HAMBURGER_MENU_BUTTON);
   }
@@ -54,7 +60,7 @@ class WalletMainScreen {
   }
 
   get WalletScreenContainer() {
-    return Selectors.getElementByPlatform(WALLET_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(WALLET_CONTAINER_ID);
   }
 
   get networkInNavBar() {
@@ -124,13 +130,13 @@ class WalletMainScreen {
   async tapNetworkNavBar() {
     const timeOut = 3000;
     await driver.pause(timeOut);
-    await Gestures.tap(this.networkInNavBar);
+    await Gestures.tap(await this.networkInNavBar);
     await driver.pause(timeOut);
   }
 
   async tapRemindMeLaterOnNotification() {
-    await Gestures.tap(this.remindMeLaterNotification, 'MOVETO');
-    await Gestures.tap(this.remindMeLaterNotification);
+    await Gestures.tap(await this.remindMeLaterNotification, 'MOVETO');
+    await Gestures.tap(await this.remindMeLaterNotification);
   }
 
   async backupAlertModalIsVisible() {
@@ -138,16 +144,17 @@ class WalletMainScreen {
     return element.isDisplayed();
   }
   async isVisible() {
-    await expect(this.WalletScreenContainer).toBeDisplayed();
+    const element = await this.WalletScreenContainer;
+    await element.waitForDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
-    const networkName = Selectors.getXpathElementByText(network);
+    const networkName = Selectors.getXpathElementByTextContains(network);
     await expect(networkName).toBeDisplayed();
   }
 
   async isTokenTextVisible(token) {
-    const tokenText = Selectors.getXpathElementByText(token);
+    const tokenText = Selectors.getXpathElementByTextContains(token);
     await expect(tokenText).toBeDisplayed();
   }
 
@@ -156,7 +163,15 @@ class WalletMainScreen {
   }
 
   async isMainWalletViewVisible() {
-    await expect(this.mainWalletView).toBeDisplayed();
+    const element = await this.mainWalletView;
+    await element.waitForDisplayed();
+  }
+
+  async isToastNotificationDisplayed() {
+    const element = await this.TokenNotificationTitle;
+    await element.waitForDisplayed();
+    expect(await element.getText()).toContain('Transaction');
+    expect(await element.getText()).toContain('Complete!');
   }
 }
 

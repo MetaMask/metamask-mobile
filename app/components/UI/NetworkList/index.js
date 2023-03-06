@@ -11,35 +11,36 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
+  getNetworkImageSource,
   isSafeChainId,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
-import getImage from '../../../util/getImage';
 import {
   NETWORK_LIST_CLOSE_ICON,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
 } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 import ImageIcon from '../ImageIcon';
-import Avatar, {
+import {
   AvatarVariants,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -150,9 +151,9 @@ export class NetworkList extends PureComponent {
      */
     frequentRpcList: PropTypes.array,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -204,7 +205,7 @@ export class NetworkList extends PureComponent {
     } else {
       onClose(false);
     }
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: type,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,
@@ -248,7 +249,7 @@ export class NetworkList extends PureComponent {
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,
@@ -286,17 +287,15 @@ export class NetworkList extends PureComponent {
         >
           {selected}
         </View>
-        {isCustomRpc &&
-          // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
-          (image ? (
-            <Avatar
-              variant={AvatarVariants.Network}
-              name={name}
-              imageSource={image}
-              style={styles.networkIcon}
-              size={AvatarSize.Xs}
-            />
-          ) : null)}
+        {isCustomRpc ? (
+          <AvatarNetwork
+            variant={AvatarVariants.Network}
+            name={name}
+            imageSource={image}
+            style={styles.networkIcon}
+            size={AvatarSize.Xs}
+          />
+        ) : null}
         {!isCustomRpc &&
           (image ? (
             <ImageIcon
@@ -318,14 +317,14 @@ export class NetworkList extends PureComponent {
   };
 
   renderOtherNetworks = () => {
-    const { provider } = this.props;
+    const { providerConfig } = this.props;
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
       const { name, imageSource, color, testId } = Networks[network];
       const isCustomRpc = false;
       const selected =
-        provider.type === network ? (
+        providerConfig.type === network ? (
           <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
@@ -343,18 +342,18 @@ export class NetworkList extends PureComponent {
   };
 
   renderRpcNetworks = () => {
-    const { frequentRpcList, provider } = this.props;
+    const { frequentRpcList, providerConfig } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     return frequentRpcList.map(({ nickname, rpcUrl, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
-      const image = getImage(chainId);
+      const image = getNetworkImageSource({ chainId });
       const isCustomRpc = true;
       const rpcTargetHref =
-        provider.rpcTarget && new URL(provider.rpcTarget)?.href;
+        providerConfig.rpcTarget && new URL(providerConfig.rpcTarget)?.href;
       const rpcURL = new URL(rpcUrl);
       const isSameRPC = rpcTargetHref === rpcURL.href;
       const selectedIcon =
-        isSameRPC && provider.type === RPC ? (
+        isSameRPC && providerConfig.type === RPC ? (
           <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
@@ -370,12 +369,12 @@ export class NetworkList extends PureComponent {
   };
 
   renderMainnet() {
-    const { provider } = this.props;
+    const { providerConfig } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
     // Do not check using chainId. This check needs to specifically use `mainnet`.
     const checkIcon =
-      provider.type === MAINNET ? (
+      providerConfig.type === MAINNET ? (
         <Icon name="check" size={15} color={colors.icon.default} />
       ) : null;
     const { name: mainnetName } = Networks.mainnet;
@@ -458,7 +457,7 @@ export class NetworkList extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   currentBottomNavRoute: state.navigation.currentBottomNavRoute,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,

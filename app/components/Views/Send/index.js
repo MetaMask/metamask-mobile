@@ -7,6 +7,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -28,8 +29,6 @@ import {
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import { showAlert } from '../../../actions/alert';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   decodeTransferData,
@@ -37,17 +36,19 @@ import {
   generateTransferData,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
-import { isENS, isValidHexAddress } from '../../../util/address';
+import { getAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { getTokenList } from '../../../reducers/tokens';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { doENSLookup } from '../../../util/ENSUtils';
+import {
+  selectNetwork,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -269,17 +270,8 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    let ensRecipient, to;
-    if (isENS(recipient)) {
-      ensRecipient = recipient;
-      to = await doENSLookup(ensRecipient, this.props.network);
-    }
-    if (
-      recipient &&
-      isValidHexAddress(recipient, { mixedCaseUseChecksum: true })
-    ) {
-      to = recipient;
-    }
+    const to = await getAddress(recipient, this.props.network);
+
     if (!to) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
@@ -289,7 +281,7 @@ class Send extends PureComponent {
       });
       this.props.navigation.navigate('WalletView');
     }
-    return { ensRecipient, to };
+    return { to };
   };
 
   /**
@@ -600,9 +592,7 @@ class Send extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
       this.setState({ transactionConfirmed: false });
       await this.reset();
@@ -616,7 +606,7 @@ class Send extends PureComponent {
    * Call Analytics to track confirm started event for send screen
    */
   trackConfirmScreen = () => {
-    Analytics.trackEventWithParameters(
+    trackLegacyEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
@@ -628,20 +618,17 @@ class Send extends PureComponent {
   trackEditScreen = async () => {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
-    );
+    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION, {
+      ...this.getTrackingParams(),
+      actionKey,
+    });
   };
 
   /**
    * Call Analytics to track cancel pressed
    */
   trackOnCancel = () => {
-    Analytics.trackEventWithParameters(
+    trackLegacyEvent(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
@@ -651,7 +638,7 @@ class Send extends PureComponent {
    * Call Analytics to track confirm pressed
    */
   trackOnConfirm = () => {
-    Analytics.trackEventWithParameters(
+    trackLegacyEvent(
       MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );
@@ -747,9 +734,9 @@ const mapStateToProps = (state) => ({
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   transaction: state.transaction,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,

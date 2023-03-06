@@ -3,14 +3,18 @@ import {
   BottomTabBarOptions,
   BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
+import {
+  BottomTabDescriptor,
+  BottomTabNavigationOptions,
+} from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
 // External dependencies.
-import { IconName } from '../../Icon';
+import { IconName } from '../../Icons/Icon';
 
 /**
  * Enum for supported tab bar labels.
  */
-export enum TabBarLabel {
+export enum TabBarIconKey {
   Wallet = 'Wallet',
   Browser = 'Browser',
 }
@@ -18,12 +22,22 @@ export enum TabBarLabel {
 /**
  * Mapping of icon name by tab bar label.
  */
-export type IconByTabBarLabel = {
-  [key in TabBarLabel]: IconName;
+export type IconByTabBarIconKey = {
+  [key in TabBarIconKey]: IconName;
 };
 
+interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
+  options: BottomTabNavigationOptions & {
+    tabBarIconKey: TabBarIconKey;
+    callback: () => void;
+    rootScreenName: string;
+  };
+}
+
 type TabBarOptions = BottomTabBarOptions & {
-  descriptors: BottomTabBarProps['descriptors'];
+  descriptors: {
+    [key: string]: ExtendedBottomTabDescriptor;
+  };
 };
 
 /**

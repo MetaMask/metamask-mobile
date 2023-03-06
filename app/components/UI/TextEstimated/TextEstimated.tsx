@@ -7,7 +7,7 @@ import React from 'react';
 import {
   IconName,
   IconProps,
-} from '../../../component-library/components/Icon';
+} from '../../../component-library/components/Icons/Icon';
 import TextWithPrefixIcon from '../../../component-library/components/Texts/TextWithPrefixIcon';
 import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
@@ -24,7 +24,7 @@ const TextEstimated: React.FC<TextEstimatedProps> = ({
   ...props
 }) => {
   const iconProps: IconProps = {
-    name: IconName.TildeOutline,
+    name: IconName.Tilde,
     size: TILDE_ICON_SIZE_BY_TEXT_VARIANT[variant],
   };
   return (

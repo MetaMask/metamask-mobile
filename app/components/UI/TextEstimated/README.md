@@ -1,6 +1,6 @@
 # TextEstimated
 
-TextEstimated is a [Text](../Text/Text.tsx) component with a prefix Tilde [Icon](../../Icon/Icon.tsx).
+TextEstimated is a [Text](../Text/Text.tsx) component with a prefix Tilde [Icon](../../Icons/Icon.tsx).
 
 ## Props
 

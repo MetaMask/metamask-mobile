@@ -21,7 +21,9 @@ import Button, {
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName } from '../../../../component-library/components/Icon';
+import Icon, {
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
@@ -42,8 +44,8 @@ const AccountConnectSingle = ({
   onUserAction,
   isLoading,
   favicon,
-  hostname,
   secureIcon,
+  urlWithProtocol,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
@@ -147,7 +149,7 @@ const AccountConnectSingle = ({
         style={isLoading && styles.disabled}
       >
         <View style={styles.downCaretContainer}>
-          <Icon name={IconName.ArrowDownOutline} />
+          <Icon name={IconName.ArrowDown} />
         </View>
       </Cell>
     );
@@ -164,7 +166,11 @@ const AccountConnectSingle = ({
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
       <View style={styles.body} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

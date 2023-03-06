@@ -5,6 +5,7 @@ import {
   isValidHexAddress,
   isValidAddressInputViaQRCode,
   stripHexPrefix,
+  getAddress,
 } from '.';
 
 describe('isENS', () => {
@@ -136,5 +137,28 @@ describe('stripHexPrefix', () => {
 
   it('returns the same string since there is no hex prefix', () => {
     expect(stripHexPrefix(stripped)).toBe(stripped);
+  });
+});
+
+describe('getAddress', () => {
+  const validAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+  const inValidAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE';
+  const validENSAddress = 'test.eth';
+
+  it('should resolve ENS if ENS is valid', async () => {
+    const network = '1';
+    const doENSLookup = jest.fn();
+    await doENSLookup(validENSAddress, network);
+    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, network);
+  });
+
+  it('should return address if address is valid', async () => {
+    const response = await getAddress(validAddress, '1');
+    expect(response).toBe(validAddress);
+  });
+
+  it('should return null if address is invalid', async () => {
+    const response = await getAddress(inValidAddress, '1');
+    expect(response).toBe(null);
   });
 });
