@@ -62,7 +62,7 @@ index 4ed4990..da18116 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..90269ec 100644
+index 8c02fe6..de2c444 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -199,7 +199,7 @@ class TokensController extends base_controller_1.BaseController {
@@ -99,7 +99,7 @@ index 8c02fe6..90269ec 100644
                      };
                      const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
                      if (previousImportedEntry) {
-@@ -357,6 +359,21 @@ class TokensController extends base_controller_1.BaseController {
+@@ -357,6 +359,22 @@ class TokensController extends base_controller_1.BaseController {
              return tokens[tokenIndex];
          });
      }
@@ -112,7 +112,8 @@ index 8c02fe6..90269ec 100644
 +        const { tokens } = this.state;
 +    
 +        const newTokens = tokens.map((token) => {
-+          return token.name ? {...token} : { ...token, name: tokenList[token.address.toLowerCase()].name };
++            const newToken = tokenList[token.address.toLowerCase()];
++          return (!token.name && newToken.name) ? { ...token, name: newToken.name } : {...token};
 +        });
 +    
 +        this.update({ tokens: newTokens });
