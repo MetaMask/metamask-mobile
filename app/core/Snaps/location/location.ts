@@ -102,6 +102,22 @@ const convertFetchBlobResponseToResponse = async (
   return response;
 };
 
+function readArrayBuffer(resp, info): Promise<any[]> {
+  switch (info.rnfbEncode) {
+    case 'path':
+      return resp.readFile('ascii');
+      break;
+    default:
+      const buffer = [];
+      const str = resp.text();
+      for (const i in str) {
+        buffer[i] = str.charCodeAt(i);
+      }
+      return Promise.resolve(buffer);
+      break;
+  }
+}
+
 // from ts
 // declare function fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 // from react-native
@@ -128,6 +144,15 @@ const fetchFunction = async (
     'GET',
     urlToFetch,
   );
+
+  // const blob = await response.blob('utf8', 1);
+  // console.log(SNAPS_LOCATION_LOG_TAG, 'blob', blob.readBlob('ascii'));
+
+  // console.log(
+  //   SNAPS_LOCATION_LOG_TAG,
+  //   'fetchFunction arrayBuffer ',
+  //   arrayBuffer,
+  // );
 
   console.log(
     SNAPS_LOCATION_LOG_TAG,

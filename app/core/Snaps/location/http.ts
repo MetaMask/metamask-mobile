@@ -6,6 +6,7 @@ import {
   createSnapManifest,
   normalizeRelative,
 } from '@metamask/snaps-utils';
+import { FetchBlobResponse } from 'react-native-blob-util';
 // import { assert, assertStruct } from '@metamask/utils';
 
 import { SnapLocation } from './location';
@@ -47,6 +48,22 @@ export class HttpLocation implements SnapLocation {
     this.url = url;
   }
 
+  private readArrayBuffer(resp: FetchBlobResponse, info: any): Promise<any[]> {
+    switch (info.rnfbEncode) {
+      case 'path':
+        return resp.readFile('ascii');
+        break;
+      default:
+        const buffer = [];
+        const str = resp.text();
+        for (const i in str) {
+          buffer[i] = str.charCodeAt(i);
+        }
+        return Promise.resolve(buffer);
+        break;
+    }
+  }
+
   async manifest(): Promise<VirtualFile<SnapManifest>> {
     console.log(SNAPS_HTTP_LOG_TAG, 'manifest called');
     if (this.validatedManifest) {
@@ -84,6 +101,11 @@ export class HttpLocation implements SnapLocation {
     const cached = this.cache.get(relativePath);
     console.log(SNAPS_HTTP_LOG_TAG, 'fetch cached: ', cached);
     if (cached !== undefined) {
+      console.log(
+        SNAPS_HTTP_LOG_TAG,
+        'fetch contents cached ',
+        cached.contents,
+      );
       const { file, contents } = cached;
       const value = new Uint8Array(await contents.arrayBuffer());
       const vfile = file.clone();
@@ -98,7 +120,19 @@ export class HttpLocation implements SnapLocation {
       path: relativePath,
       data: { canonicalPath },
     });
+
+    console.log(SNAPS_HTTP_LOG_TAG, 'vfile ', vfile);
+    // const arrayBuffer = response.arrayBuffer();
     const blob = await response.blob();
+    // console.log(SNAPS_HTTP_LOG_TAG, 'blob 2 ', blob.readBlob());
+
+    // const arrayBuffer = this.readArrayBuffer(response);
+    console.log(SNAPS_HTTP_LOG_TAG, 'fetch blob: ', blob);
+    // console.log(
+    //   SNAPS_HTTP_LOG_TAG,
+    //   'fetch blob arrayBuffer ',
+    //   blob.arrayBuffer(),
+    // );
     // assert(
     //   !this.cache.has(relativePath),
     //   'Corrupted cache, multiple files with same path.',
