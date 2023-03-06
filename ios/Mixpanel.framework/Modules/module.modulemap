@@ -1,0 +1,12 @@
+framework module Mixpanel {
+    header "Mixpanel.h"
+    header "MixpanelPeople.h"
+    header "MixpanelGroup.h"
+    header "MixpanelType.h"
+    header "MPTweak.h"
+    header "MPTweakInline.h"
+    header "MPTweakInlineInternal.h"
+    header "MPTweakStore.h"
+    header "_MPTweakBindObserver.h"
+    export *
+}
