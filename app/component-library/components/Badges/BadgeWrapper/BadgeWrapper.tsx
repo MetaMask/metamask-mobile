@@ -1,30 +1,40 @@
 /* eslint-disable react/prop-types */
 // Third library dependencies.
-import React from 'react';
-import { View } from 'react-native';
+import React, { useState } from 'react';
+import { View, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import Badge from '../Badge/Badge';
 
 // Internal dependencies
-import { BADGE_WRAPPER_BADGE_TEST_ID } from './BadgeWrapper.constants';
 import { BadgeWrapperProps } from './BadgeWrapper.types';
 import styleSheet from './BadgeWrapper.styles';
 
 const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
-  badgeProps,
+  anchorElementShape,
+  badgePosition,
+  badgePositionObj,
   children,
+  badge,
   style,
 }) => {
+  const [elementHeight, setElementHeight] = useState(0);
+  const updateElementHeight = (e: LayoutChangeEvent) => {
+    setElementHeight(e.nativeEvent.layout.height);
+  };
+
   const { styles } = useStyles(styleSheet, {
     style,
+    anchorElementShape,
+    badgePosition,
+    badgePositionObj,
+    elementHeight,
   });
 
   return (
-    <View style={styles.base}>
+    <View style={styles.base} onLayout={updateElementHeight}>
       <View>{children}</View>
-      <Badge testID={BADGE_WRAPPER_BADGE_TEST_ID} {...badgeProps} />
+      <View style={styles.badge}>{badge}</View>
     </View>
   );
 };

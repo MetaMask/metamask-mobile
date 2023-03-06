@@ -3,6 +3,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { View } from 'react-native';
+import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
@@ -12,30 +13,60 @@ import {
 } from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
 import Text, { TextVariant } from '../../Texts/Text';
+import { storybookPropsGroupID } from '../../../constants/storybook.constants';
+import Badge from '../Badge/Badge';
+import { BadgeStatusState } from '../Badge/variants/BadgeStatus/BadgeStatus.types';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
+import { BadgeAnchorElementShape, BadgePosition } from './BadgeWrapper.types';
 
 storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
+  const anchorElementShapeSelector = select(
+    'anchorElementShape',
+    BadgeAnchorElementShape,
+    BadgeAnchorElementShape.Circular,
+    storybookPropsGroupID,
+  );
+  const badgePositionSelector = select(
+    'badgePosition',
+    BadgePosition,
+    BadgePosition.TopRight,
+    storybookPropsGroupID,
+  );
   const badgeProps: BadgeProps = {
     variant: BadgeVariants.Network,
     name: TEST_NETWORK_NAME,
     imageSource: TEST_REMOTE_IMAGE_SOURCE,
   };
+  const BadgeElement = <Badge {...badgeProps} />;
 
   return (
-    <BadgeWrapper badgeProps={badgeProps}>
-      <View
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{
-          height: 50,
-          backgroundColor: mockTheme.colors.background.default,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+    <View
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{
+        margin: 50,
+      }}
+    >
+      <BadgeWrapper
+        anchorElementShape={anchorElementShapeSelector}
+        badgePosition={badgePositionSelector}
+        badge={BadgeElement}
       >
-        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
-      </View>
-    </BadgeWrapper>
+        <View
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{
+            height: 50,
+            width: 50,
+            borderRadius: 25,
+            backgroundColor: mockTheme.colors.background.default,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text variant={TextVariant.BodySM}>{'C'}</Text>
+        </View>
+      </BadgeWrapper>
+    </View>
   );
 });
