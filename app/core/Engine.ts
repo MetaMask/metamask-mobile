@@ -773,10 +773,9 @@ class Engine {
 
     // Recreate imported accounts
     if (importedAccounts) {
-      // eslint-disable-next-line @typescript-eslint/prefer-for-of
-      for (let i = 0; i < importedAccounts.length; i++) {
+      for (const importedAccount of importedAccounts) {
         await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
+          importedAccount,
         ]);
       }
     }
