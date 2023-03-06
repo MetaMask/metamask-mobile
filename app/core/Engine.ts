@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -113,7 +114,6 @@ class Engine {
         static: {
           eth_sendTransaction: async (
             payload: { params: any[]; origin: any },
-            next: any,
             end: (arg0: undefined, arg1: undefined) => void,
           ) => {
             const { TransactionController } = this.context;
@@ -549,10 +549,7 @@ class Engine {
           JSON.parse(lastIncomingTxBlockInfoStr)) ||
         {};
       let blockNumber = null;
-      if (
-        allLastIncomingTxBlocks[`${selectedAddress}`] &&
-        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
-      ) {
+      if (allLastIncomingTxBlocks[`${selectedAddress}`]?.[`${networkId}`]) {
         blockNumber =
           allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
             .blockNumber;
@@ -776,6 +773,7 @@ class Engine {
 
     // Recreate imported accounts
     if (importedAccounts) {
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < importedAccounts.length; i++) {
         await KeyringController.importAccountWithStrategy('privateKey', [
           importedAccounts[i],
@@ -848,10 +846,10 @@ let instance: Engine;
 
 export default {
   get context() {
-    return instance && instance.context;
+    return instance?.context;
   },
   get controllerMessenger() {
-    return instance && instance.controllerMessenger;
+    return instance?.controllerMessenger;
   },
   get state() {
     const {
@@ -930,7 +928,7 @@ export default {
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
   },
-  init(state: {} | undefined) {
+  init(state: Record<string, never> | undefined) {
     instance = new Engine(state);
     Object.freeze(instance);
     return instance;
