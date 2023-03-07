@@ -328,11 +328,15 @@ buildAndroidRelease(){
 	fi
 }
 
+# RN release-mode
+# prod env vars
+# android/app/src/main
 buildAndroidReleaseE2E(){
 	prebuild_android
 	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
+# here
 buildAndroidQAE2E(){
 	prebuild_android
 	cd android && ./gradlew assembleQaRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
@@ -356,14 +360,25 @@ buildAndroid() {
 	fi
 }
 
+# here
 buildAndroidRunE2E(){
 	prebuild_android
 	if [ -e $ANDROID_ENV_FILE ]
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android
+	# assembleAndroidTest
+	  # (exodus)react-native-payments error
+	# app:assembleAndroidTest
+	  # android/app/build/outputs/apk/androidTest/prod/debug/app-prod-debug-androidTest.apk (2.1 MB)
+		# android/app/build/outputs/apk/androidTest/qa/debug/app-qa-debug-androidTest.apk (2.1 MB)
+		# android/app/build/outputs/apk/qa/debug/app-qa-debug.apk (302 MB)
+	# WITHOUT assembleAndroidTest, --variant=qaDebug
+	  # /Users/leo/Documents/GitHub/metamask-mobile/android/app/build/outputs/apk/qa/debug
+	# build 1 androidTest
+	# build 2 qa
+	cd android && ./gradlew app:assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
+	react-native run-android --variant=qaDebug
 }
 
 buildIos() {

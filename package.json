@@ -54,6 +54,7 @@
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
+    "test:e2e:android:debug": "detox build -c android.emu.debug && detox test -c android.emu.debug",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
@@ -433,15 +434,17 @@
         }
       },
       "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk",
+        "binaryPath": "android/app/build/outputs/apk/qa/debug/app-qa-debug.apk",
+        "testBinaryPath": "android/app/build/outputs/apk/androidTest/qa/debug/app-qa-debug-androidTest.apk",
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "Pixel_3_API_29"
+          "avdName": "Pixel_3_API_31"
         }
       },
       "android.emu.release": {
         "binaryPath": "android/app/build/outputs/apk/prod/release/app-prod-release.apk",
+        "testBinaryPath": "android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk",
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
@@ -450,6 +453,7 @@
       },
       "android.emu.release.qa": {
         "binaryPath": "android/app/build/outputs/apk/qa/release/app-qa-release.apk",
+        "testBinaryPath": "android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk",
         "build": "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
         "type": "android.emulator",
         "device": {
