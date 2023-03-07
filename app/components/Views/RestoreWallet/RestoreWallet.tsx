@@ -15,7 +15,6 @@ import Routes from '../../../constants/navigation/Routes';
 import EngineService from '../../../core/EngineService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { createWalletRestoredNavDetails } from './WalletRestored';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -68,7 +67,7 @@ const RestoreWallet = () => {
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();
     if (restoreResult.success) {
-      replace(...createWalletRestoredNavDetails());
+      replace(...createWalletResetNeededNavDetails());
       setLoading(false);
     } else {
       replace(...createWalletResetNeededNavDetails());
