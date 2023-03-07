@@ -8,8 +8,11 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+
+import { fontStyles } from '../../../../styles/common';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   isBN,
   weiToFiat,
@@ -29,19 +32,21 @@ import {
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
 import { sumHexWEIs } from '../../../../util/conversions';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
+import { trackLegacyEvent } from '../../../../util/analyticsV2';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { allowedToBuy } from '../../FiatOnRampAggregator';
+import {
+  selectNetwork,
+  selectTicker,
+} from '../../../../selectors/networkController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
 
 const createStyles = (colors) =>
@@ -277,7 +282,7 @@ class TransactionReviewInformation extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -705,7 +710,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
@@ -713,7 +718,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   transaction: getNormalizedTxState(state),
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   primaryCurrency: state.settings.primaryCurrency,
   showCustomNonce: state.settings.showCustomNonce,
   nativeCurrency:
