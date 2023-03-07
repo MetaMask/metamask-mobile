@@ -314,6 +314,7 @@ export class Connection extends EventEmitter2 {
       EventType.CLIENTS_READY,
       async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
         console.debug(
+
           `Connection::on::clients_Ready origin=${this.origin} `,
           clientsReadyMsg,
         );
@@ -337,6 +338,13 @@ export class Connection extends EventEmitter2 {
           });
           // Prevent auto approval if metamask is killed and restarted
           disapprove(this.channelId);
+        } else {
+          const hostname = MM_SDK_REMOTE_ORIGIN + this.channelId;
+          approveHost({
+            host: hostname,
+            hostname,
+            context: 'clients_ready',
+          });
         }
 
         if (this.isReady) {
