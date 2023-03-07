@@ -10,14 +10,13 @@ import {
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -27,6 +26,7 @@ import {
   NFT_ADDRESS_WARNING_MESSAGE_ID,
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -84,10 +84,7 @@ const AddCustomCollectible = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
-  const chainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
+  const chainId = useSelector(selectChainId);
 
   useEffect(() => {
     setMounted(true);
@@ -185,10 +182,7 @@ const AddCustomCollectible = ({
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.COLLECTIBLE_ADDED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
 
     navigation.goBack();
   };

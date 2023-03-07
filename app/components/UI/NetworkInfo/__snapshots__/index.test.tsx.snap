@@ -4,12 +4,6 @@ exports[`NetworkInfo should render correctly 1`] = `
 <NetworkInfo
   dispatch={[Function]}
   isTokenDetectionEnabled={true}
-  networkProvider={
-    Object {
-      "rpcTarget": "",
-      "type": "mainnet",
-    }
-  }
   onClose={[Function]}
   ticker=""
   type=""

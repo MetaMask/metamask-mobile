@@ -7,10 +7,12 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
+import { connect } from 'react-redux';
+import ActionSheet from 'react-native-actionsheet';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import ActionSheet from 'react-native-actionsheet';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
@@ -18,17 +20,21 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
-import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -36,7 +42,10 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { selectChainId } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
+import { allowedToBuy } from '../FiatOnRampAggregator';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,7 +90,7 @@ const createStyles = (colors) =>
       flex: 1,
       paddingBottom: 30,
       alignItems: 'center',
-      marginTop: 24,
+      marginTop: 9,
     },
     balances: {
       flex: 1,
@@ -118,6 +127,17 @@ const createStyles = (colors) =>
       color: colors.text.alternative,
       marginBottom: 8,
       fontSize: 14,
+    },
+    buy: {
+      alignItems: 'center',
+      marginVertical: 5,
+      marginHorizontal: 15,
+    },
+    buyTitle: {
+      marginVertical: 5,
+    },
+    buyButton: {
+      marginVertical: 5,
     },
   });
 
@@ -217,16 +237,18 @@ class Tokens extends PureComponent {
 
     return (
       <View style={styles.footer} key={'tokens-footer'}>
-        <Text style={styles.emptyText}>
-          {strings('wallet.no_available_tokens')}
-        </Text>
         <TouchableOpacity
           style={styles.add}
           onPress={this.goToAddToken}
           disabled={!this.state.isAddTokenEnabled}
           {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
         >
-          <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+          <Text>
+            <Text style={styles.emptyText}>
+              {strings('wallet.no_available_tokens')}
+            </Text>{' '}
+            <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -316,9 +338,9 @@ class Tokens extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate('FiatOnRampAggregator');
+    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
         chain_id_destination: this.props.chainId,
@@ -331,10 +353,10 @@ class Tokens extends PureComponent {
     const { detectedTokens } = this.props;
     this.props.navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
         tokens: detectedTokens.map(
           (token) => `${token.symbol} - ${token.address}`,
@@ -367,13 +389,40 @@ class Tokens extends PureComponent {
     );
   };
 
+  renderBuyButton = () => {
+    const { tokens, chainId } = this.props;
+    const mainToken = tokens.find(({ isETH }) => isETH);
+
+    if (!mainToken || !isZero(mainToken.balance) || !allowedToBuy(chainId)) {
+      return null;
+    }
+
+    const styles = this.getStyles();
+
+    return (
+      <View style={styles.buy}>
+        <TextComponent variant={TextVariant.HeadingSM} style={styles.buyTitle}>
+          {strings('wallet.add_to_get_started')}
+        </TextComponent>
+
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
+          onPress={this.goToBuy}
+          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+        />
+      </View>
+    );
+  };
+
   renderList() {
     const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
           const { address, isETH } = token;
           return !isZero(tokenBalances[address]) || isETH;
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
         })
       : tokens;
 
@@ -381,6 +430,7 @@ class Tokens extends PureComponent {
       <View>
         {tokensToDisplay.map((item) => this.renderItem(item))}
         {this.renderTokensDetectedSection()}
+        {this.renderBuyButton()}
         {this.renderFooter()}
       </View>
     );
@@ -391,10 +441,10 @@ class Tokens extends PureComponent {
     this.setState({ isAddTokenEnabled: false });
     this.props.navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
       });
       this.setState({ isAddTokenEnabled: true });
@@ -421,13 +471,13 @@ class Tokens extends PureComponent {
         }),
       });
       InteractionManager.runAfterInteractions(() =>
-        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+        trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
           location: 'assets_list',
           token_standard: 'ERC20',
           asset_type: 'token',
           tokens: [`${symbol} - ${tokenAddress}`],
           chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
+            NetworkController?.state?.providerConfig?.chainId,
           ),
         }),
       );
@@ -468,7 +518,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:

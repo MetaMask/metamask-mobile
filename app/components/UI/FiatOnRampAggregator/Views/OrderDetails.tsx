@@ -22,6 +22,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -34,9 +35,7 @@ export const createOrderDetailsNavDetails =
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
-  const provider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const providerConfig = useSelector(selectProviderConfig);
   const frequentRpcList = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
@@ -123,7 +122,7 @@ const OrderDetails = () => {
           <ScreenLayout.Content>
             <OrderDetail
               order={order}
-              provider={provider}
+              providerConfig={providerConfig}
               frequentRpcList={frequentRpcList}
             />
           </ScreenLayout.Content>

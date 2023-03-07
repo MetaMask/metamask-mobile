@@ -90,13 +90,19 @@ Then(/^"([^"]*)?" is visible/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^"([^"]*)?" is displayed on (.*) (.*) view/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextElementNotDisplayed(text);
 });
 
-Then(/^I am on the main wallet view/, async () => {
+Then(/^Sending token takes me to main wallet view/, async () => {
   const timeout = 1000;
   await driver.pause(timeout);
   await WalletMainScreen.isMainWalletViewVisible();
@@ -143,5 +149,41 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
   await LoginScreen.typePassword(password);
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();
+  await WalletMainScreen.isMainWalletViewVisible();
+});
+
+Then(
+  /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
+  async (elementType, button, screen, type) => {
+    await CommonScreen.tapOnText(button);
+  },
+);
+
+Then(/^I tap (.*) containing text "([^"]*)?"/, async (elementType, button) => {
+  await CommonScreen.tapTextContains(button);
+});
+
+Then(
+  /^I tap button "([^"]*)?" to navigate to (.*) view/,
+  async (button, screen) => {
+    await CommonScreen.tapOnText(button);
+  },
+);
+
+Then(
+  /^(.*) "([^"]*)?" is displayed on (.*) (.*) view/,
+  async (elementType, text, type, screen) => {
+    await CommonScreen.isTextDisplayed(text);
+  },
+);
+
+Then(
+  /^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/,
+  async (elementType, textElement, type, screen) => {
+    await CommonScreen.isTextElementNotDisplayed(textElement);
+  },
+);
+
+Then(/^I am on the main wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
 });

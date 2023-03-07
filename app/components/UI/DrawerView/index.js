@@ -12,9 +12,15 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
+import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ScrollView } from 'react-native-gesture-handler';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import URL from 'url-parse';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import {
   hasBlockExplorer,
@@ -26,7 +32,6 @@ import StyledButton from '../StyledButton';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import Modal from 'react-native-modal';
 import {
   toggleNetworkModal,
   toggleReceiveModal,
@@ -36,15 +41,11 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../util/etherscan';
-import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -54,7 +55,7 @@ import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -62,9 +63,7 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
-import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
@@ -80,6 +79,7 @@ import {
   DRAWER_VIEW_LOCK_TEXT_ID,
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import { selectTicker } from '../../../selectors/networkController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
@@ -555,13 +555,10 @@ class DrawerView extends PureComponent {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: true });
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-            {
-              wallet_protection_required: false,
-              source: 'Backup Alert',
-            },
-          );
+          trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED, {
+            wallet_protection_required: false,
+            source: 'Backup Alert',
+          });
         });
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
@@ -597,7 +594,7 @@ class DrawerView extends PureComponent {
     ) {
       const ens = await doENSReverseLookup(
         selectedAddress,
-        network.provider.chainId,
+        network.providerConfig.chainId,
       );
       this.setState((state) => ({
         account: {
@@ -686,15 +683,15 @@ class DrawerView extends PureComponent {
 
   trackEvent = (event) => {
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(event);
+      trackLegacyEvent(event);
     });
   };
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      source: 'In-app Navigation',
+    trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+      referral_source: 'In-app Navigation',
       chain_id: network,
     });
   };
@@ -775,24 +772,23 @@ class DrawerView extends PureComponent {
       selectedAddress,
       network,
       network: {
-        provider: { rpcTarget },
+        providerConfig: { rpcTarget },
       },
       frequentRpcList,
     } = this.props;
-    if (network.provider.type === RPC) {
+    if (network.providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
       const url = `${blockExplorer}/address/${selectedAddress}`;
       const title = new URL(blockExplorer).hostname;
       this.goToBrowserUrl(url, title);
     } else {
       const url = getEtherscanAddressUrl(
-        network.provider.type,
+        network.providerConfig.type,
         selectedAddress,
       );
-      const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace(
-        'https://',
-        '',
-      );
+      const etherscan_url = getEtherscanBaseUrl(
+        network.providerConfig.type,
+      ).replace('https://', '');
       this.goToBrowserUrl(url, etherscan_url);
     }
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
@@ -834,7 +830,7 @@ class DrawerView extends PureComponent {
     if (providerType === RPC) {
       const {
         network: {
-          provider: { rpcTarget },
+          providerConfig: { rpcTarget },
         },
       } = this.props;
       const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
@@ -933,7 +929,7 @@ class DrawerView extends PureComponent {
   getSections = () => {
     const {
       network: {
-        provider: { type, rpcTarget },
+        providerConfig: { type, rpcTarget },
       },
       frequentRpcList,
     } = this.props;
@@ -1058,13 +1054,10 @@ class DrawerView extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: true,
-          source: 'Modal',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+        wallet_protection_required: true,
+        source: 'Modal',
+      });
     });
   };
 
@@ -1276,7 +1269,7 @@ class DrawerView extends PureComponent {
                           name &&
                           name.toLowerCase().indexOf('etherscan') !== -1
                         ) {
-                          const type = network.provider?.type;
+                          const type = network.providerConfig?.type;
                           return (
                             (type && this.hasBlockExplorer(type)) || undefined
                           );
@@ -1413,7 +1406,7 @@ const mapStateToProps = (state) => ({
   receiveModalVisible: state.modals.receiveModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   tokenBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
@@ -1422,7 +1415,6 @@ const mapStateToProps = (state) => ({
   currentRoute: getCurrentRoute(state),
   networkOnboarding: state.networkOnboarded.networkState,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
-  networkProvider: state.engine.backgroundState.NetworkController.provider,
   switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 
