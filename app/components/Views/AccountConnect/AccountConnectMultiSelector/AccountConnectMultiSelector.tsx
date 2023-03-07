@@ -28,10 +28,10 @@ const AccountConnectMultiSelector = ({
   onSelectAddress,
   isLoading,
   onUserAction,
-  hostname,
   favicon,
   secureIcon,
   isAutoScrollEnabled = true,
+  urlWithProtocol,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -159,7 +159,11 @@ const AccountConnectMultiSelector = ({
     <>
       <SheetHeader title={strings('accounts.connect_accounts_title')} />
       <View style={styles.body}>
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

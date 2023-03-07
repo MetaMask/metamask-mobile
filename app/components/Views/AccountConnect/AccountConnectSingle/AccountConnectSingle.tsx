@@ -45,8 +45,8 @@ const AccountConnectSingle = ({
   onUserAction,
   isLoading,
   favicon,
-  hostname,
   secureIcon,
+  urlWithProtocol,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
@@ -166,11 +166,14 @@ const AccountConnectSingle = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
-      <View
-        style={styles.body}
-        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
-      >
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+      <View style={styles.body}         
+    {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+       >
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

@@ -1,10 +1,10 @@
 import { createSelector } from 'reselect';
+import { selectChainId } from '../../selectors/networkController';
 import { compareTokenIds } from '../../util/tokens';
 
 const addressSelector = (state) =>
   state.engine.backgroundState.PreferencesController.selectedAddress;
-const chainIdSelector = (state) =>
-  state.engine.backgroundState.NetworkController.provider.chainId;
+const chainIdSelector = (state) => selectChainId(state);
 const favoritesSelector = (state) => state.collectibles.favorites;
 
 const allNftContractsSelector = (state) =>

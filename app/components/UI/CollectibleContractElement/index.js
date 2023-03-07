@@ -14,6 +14,7 @@ import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -294,7 +295,7 @@ CollectibleContractElement.propTypes = {
 
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
 });
