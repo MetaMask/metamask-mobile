@@ -54,7 +54,7 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await ConnectModal.tapConnectMultipleAccountsButton();
   });
 
-  it('should import account and connect to dapp', async () => {
+  it('should import account', async () => {
     // Wait for page to load
     await ConnectModal.tapImportAccountButton();
     await ImportAccountView.isVisible();
