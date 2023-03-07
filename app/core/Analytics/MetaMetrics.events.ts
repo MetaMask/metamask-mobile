@@ -180,6 +180,23 @@ enum EVENT_NAME {
   QR_HARDWARE_TRANSACTION_CANCELED = 'User canceled QR hardware transaction',
   HARDWARE_WALLET_ERROR = 'Hardware wallet error',
 
+  // Ledger Hardware Wallet
+  LEDGER_DEVICE_CONNECTED = 'Ledger Device Connected',
+  CLICKED_LEDGER_HARDWARE_WALLET = 'Clicked the Ledger button on Hardware Wallet Screen',
+  LEDGER_DEVICE_FORGOTTEN = 'Clicked Forget Ledger Device',
+  ADD_LEDGER_ACCOUNT_HARDWARE_TYPE = 'Added Ledger Account Hardware Type',
+  LEDGER_BLUETOOTH_PARIING_ERROR = 'Views Bluetooth Pairing Error Page',
+  LOOKING_FOR_LEDGER = 'Looking For Ledger',
+  LEDGER_FOUND = 'Ledger Device Has Been Found',
+  LEDGER_PAIRING_ERROR = 'Error Pairing With Ledger',
+  PROMPTED_TO_OPEN_LEDGER_ETH_APP = 'Prompted To Open Ledger Eth App',
+  LEDGER_BLUETOOTH_TRANSACTION_ERROR = 'Views Bluetooth Error Modal During Transaction',
+  LOOKING_FOR_LEDGER_FOR_TRANSACTION = 'Looking For Ledger Device To Complete Transaction',
+  CONFIRM_LEDGER_TRANSACTION = 'Confirmed Transction on Ledger',
+  OPEN_LEDGER_ETH_APP_FOR_TRANSACTION = 'Prompted To Open Ledger Eth App for Transaction',
+  ERROR_WITH_LEDGER_TRANSACTION = 'Views Error During Ledger Transaction',
+  ERROR_WITH_LEDGER_PAIRING = 'Views Error During Ledger Pairing',
+
   // Tokens
   TOKEN_DETECTED = 'Token Detected',
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
