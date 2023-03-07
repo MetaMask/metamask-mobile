@@ -19,7 +19,7 @@ import { createWalletRestoredNavDetails } from './WalletRestored';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { StackNavigationProp } from '@react-navigation/stack';
 
@@ -54,7 +54,7 @@ const RestoreWallet = () => {
   const { previousScreen } = useParams<RestoreWalletParams>();
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
       { ...deviceMetaData, previousScreen },
     );
@@ -62,7 +62,7 @@ const RestoreWallet = () => {
 
   const handleOnNext = useCallback(async (): Promise<void> => {
     setLoading(true);
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED,
       deviceMetaData,
     );

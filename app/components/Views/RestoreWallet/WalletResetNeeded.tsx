@@ -18,7 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(
@@ -34,14 +34,14 @@ const WalletResetNeeded = () => {
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
       deviceMetaData,
     );
   }, [deviceMetaData]);
 
   const handleCreateNewWallet = useCallback(async () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
       deviceMetaData,
     );
@@ -51,7 +51,7 @@ const WalletResetNeeded = () => {
   }, [deviceMetaData, navigation]);
 
   const handleTryAgain = useCallback(async () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
       deviceMetaData,
     );
