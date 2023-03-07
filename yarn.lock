@@ -3997,6 +3997,11 @@
   dependencies:
     "@metamask/base-controller" "^1.1.1"
 
+"@metamask/contract-metadata@2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.1.0.tgz#78f9e32afea61548922e57ef57ee6eb99abf35be"
+  integrity sha512-jPeoNmEonnmtzSIsBGAshy9SCFMkLfURB7d7pkEY1lmRtrhPYv3DTkMpffJciikaCPjyJ62eLWX/6Kme4CPvNg==
+
 "@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^2.1.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
