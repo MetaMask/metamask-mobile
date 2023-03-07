@@ -74,7 +74,7 @@ const SNAPS_LOCATION_LOG_TAG = 'snaps/ location';
 const readAndParseFile = async (path: string) => {
   try {
     const data = await ReactNativeBlobUtil.fs.readFile(path, 'utf8');
-    console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile data', data);
+    // console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile data', data);
     return data;
   } catch (error) {
     console.log(SNAPS_LOCATION_LOG_TAG, 'readAndParseFile error', error);

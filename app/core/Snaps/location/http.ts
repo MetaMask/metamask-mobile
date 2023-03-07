@@ -29,7 +29,7 @@ export class HttpLocation implements SnapLocation {
   // in most often case we'll only have one file contents in common case.
   private readonly cache = new Map<
     string,
-    { file: VirtualFile; contents: Blob }
+    { file: VirtualFile; contents: Blob | string }
   >();
 
   private validatedManifest?: VirtualFile<SnapManifest>;
@@ -110,6 +110,7 @@ export class HttpLocation implements SnapLocation {
       const value = contents.toString();
       const vfile = file.clone();
       vfile.value = value;
+      console.log(SNAPS_HTTP_LOG_TAG, 'fetch vfile ', vfile.value);
       return vfile;
     }
 
@@ -123,8 +124,8 @@ export class HttpLocation implements SnapLocation {
 
     console.log(SNAPS_HTTP_LOG_TAG, 'vfile ', vfile);
     // const arrayBuffer = response.arrayBuffer();
-    const blob = await response.blob();
-    // console.log(SNAPS_HTTP_LOG_TAG, 'blob 2 ', blob.readBlob());
+    const blob = await response.text();
+    console.log(SNAPS_HTTP_LOG_TAG, 'blob 2 ', blob);
 
     // const arrayBuffer = this.readArrayBuffer(response);
     console.log(SNAPS_HTTP_LOG_TAG, 'fetch blob: ', blob);
