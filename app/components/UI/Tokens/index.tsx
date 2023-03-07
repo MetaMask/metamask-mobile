@@ -12,8 +12,8 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   renderFromTokenMinimalUnit,
-  balanceToFiat,
   addCurrencySymbol,
+  balanceToFiatNumber,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -39,6 +39,7 @@ import {
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+
 import images from 'images/image-icons';
 import {
   AvatarSize,
@@ -52,27 +53,8 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-
-interface TokensI {
-  /**
-   * Array of assets (in this case ERC20 tokens)
-   */
-  tokens: any[];
-}
-
-interface TokenI {
-  address: string;
-  aggregators: string[];
-  balanceError: string | null;
-  decimals: number;
-  image: string;
-  name: string;
-  symbol: string;
-  balance: string;
-  balanceFiat: string;
-  logo: string | undefined;
-  isETH: boolean | undefined;
-}
+import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
+import { TokenI, TokensI } from './types';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -188,28 +170,31 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             )
           : '');
 
-      const balanceValueFormatted = !balance
-        ? ' '
-        : `${balance} ${asset.symbol}`;
+      if ((!balance || balance === '0') && !asset.isETH) {
+        return {
+          balanceFiat: 'loading',
+          balanceValueFormatted: 'loading',
+        };
+      }
+
+      const balanceValueFormatted = `${balance} ${asset.symbol}`;
 
       if (!conversionRate || !exchangeRate)
         return {
-          balance,
-          balanceFiat: asset.balanceFiat,
+          balanceFiat: asset.isETH ? asset.balanceFiat : 'loading',
           balanceValueFormatted,
         };
 
       const balanceFiatCalculation =
         asset.balanceFiat ||
-        balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+        balanceToFiatNumber(balance, conversionRate, exchangeRate);
 
-      const zeroBalance = addCurrencySymbol('0', currentCurrency);
+      const balanceFiat =
+        balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
+          ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
+          : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 
-      const balanceFiat = !balanceFiatCalculation?.includes(zeroBalance)
-        ? balanceFiatCalculation
-        : ' ';
-
-      return { balanceFiat, balanceValueFormatted, balance };
+      return { balanceFiat, balanceValueFormatted };
     },
     [currentCurrency, tokenBalances, tokenExchangeRates, conversionRate],
   );
@@ -219,8 +204,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const logo =
       itemAddress && tokenList?.[itemAddress.toLowerCase?.()]?.iconUrl;
 
-    const { balanceFiat, balanceValueFormatted, balance } =
-      handleBalance(asset);
+    const { balanceFiat, balanceValueFormatted } = handleBalance(asset);
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
@@ -237,7 +221,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       secondaryBalance = strings('wallet.unable_to_load');
     }
 
-    asset = { ...asset, logo, balance, balanceFiat };
+    asset = { ...asset, logo, balanceFiat };
 
     const isMainnet = isMainnetByChainId(chainId);
 
@@ -277,7 +261,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance}
+            {mainBalance === 'loading' ? (
+              <SkeletonText thin style={styles.skeleton} />
+            ) : (
+              mainBalance
+            )}
           </Text>
         </View>
       </AssetElement>

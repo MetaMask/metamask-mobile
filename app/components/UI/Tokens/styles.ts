@@ -71,6 +71,7 @@ const createStyles = (colors: Colors) =>
       marginBottom: 8,
       fontSize: 14,
     },
+    skeleton: { width: 50 },
   });
 
 export default createStyles;

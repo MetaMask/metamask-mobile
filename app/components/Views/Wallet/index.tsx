@@ -19,6 +19,7 @@ import { Theme } from '@metamask/design-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import { capitalize } from 'lodash';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
@@ -271,9 +272,10 @@ const Wallet = ({ navigation }: any) => {
     let assets = tokens;
     if (accounts[selectedAddress]) {
       balance = renderFromWei(accounts[selectedAddress].balance);
+
       assets = [
         {
-          name: 'Ethereum',
+          name: ticker === 'ETH' ? 'Ethereum' : capitalize(ticker),
           symbol: getTicker(ticker),
           isETH: true,
           balance,
