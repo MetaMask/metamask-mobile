@@ -166,9 +166,10 @@ const AccountConnectSingle = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
-      <View style={styles.body}         
-    {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
-       >
+      <View
+        style={styles.body}
+        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+      >
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}
