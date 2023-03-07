@@ -15,61 +15,64 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 ### Environment Setup
 
-The code is built using React-Native and running code locally requires a Mac or Linux OS.
+The code is built using React-Native and running code locally requires a Mac (Android and iOS) or Linux OS (officially Android only).
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 14 (latest stable) and yarn@1 (latest)**
+-   Install [yarn](https://github.com/yarnpkg/yarn) v1 (classic): `brew install yarn`
 
-    -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
+    -   If `yarn -v` is v3, run `yarn set version classic`
 
--   Install yarn
--   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
+-   Install the shared [React Native dependencies](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo Go`)
 
--   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
+    -   But [Node](https://nodejs.org) v14 where mentioned _make sure it is Node 12 or newer_
 
-```bash
-sudo gem install cocoapods
-```
+        -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm install` then `nvm use` will use the right node version from [.nvmrc](https://github.com/MetaMask/metamask-mobile/blob/f7e44adc7b61b71fdf6794b0fcad2531561c2f95/.nvmrc#L1)
+
+            -   NB: RN 0.69+ introduces [ios/.xcode.env](https://github.com/facebook/react-native/blob/0.69-stable/template/ios/_xcode.env) to source the environment used when running script phases inside Xcode
+
+            -   NB: RN 0.70+ introduces [.node-version](https://github.com/facebook/react-native/blob/0.70-stable/template/_node-version) for node version managers
 
 
 ### Device Environment Setup
 
 #### Android
 
--   Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
-```
-  java -version
-```
--   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
-    -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
--   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
+-   Install [JDK](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies): `brew install --cask adoptopenjdk/openjdk/adoptopenjdk8`
+    - To check if Java is already installed, run: `java -version`
+    > If you have already installed JDK on your system, make sure it is JDK 8 or newer
+-   [Download Android Studio](https://developer.android.com/studio) or run: `brew install --cask android-studio`
+    -   Open it then in the installation wizard, make sure the boxes next to all of the following items are checked: Android SDK, Android SDK Platform and Android Virtual Device
+    -   _MetaMask Only:_ To create production builds, you need to install [Google Play Licensing Library](https://user-images.githubusercontent.com/1881059/219441716-485fa58d-f3ec-4315-80ab-c2fb6042d819.png)
+-   Install [NDK v`21.4.7075529`](https://user-images.githubusercontent.com/1881059/219376674-5dca5e2a-d4ab-4df0-b0e3-6e870180db93.png) via Android Studio's SDK Manager
     - Go to Preferences > Appearance & Behavior > System Settings > Android SDK
         - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
     - Select `SDK Tools` tab
     - Locate `NDK (Side-by-side)` option in the tools list
     - Check `Show Package Details` option below the tools list to show available versions
-    - Check NDK version `21.4.7075529` 
+    - Check NDK version `21.4.7075529`
     - Click "Apply" or "OK" to download
 -   Linux only:
     -   Ensure that you have the `secret-tool` binary on your machine.
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
 -   Install the correct emulator
     -   Follow the instructions at:
-        -   [React Native Getting Started - Android](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   [React Native Getting Started - Android](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
+        -   The minimum SDK version we currently support is [23](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L7)
     -   You should use the following:
-        -   **Android OS Version:** Latest, unless told otherwise
-        -   **Device:** Google Pixel 3
+        -   **Android SDK Platform:** <s>30</s> 31 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L8-L9) compile and target API versions)
+        -   **Android SDK Build-Tools:** <s>30.0.2</s> 30.0.3 (our [android/build.gradle](https://github.com/leotm/metamask-mobile/blob/06f9e4923916a30a366fd25b62cb9e6677b8b2d0/android/build.gradle#L6) build tools version)
+        -   **Device:** Google Pixel 3 (<s>R API Level 30 image</s> S API Level 31 image)
 -   Finally, start the emulator from Android Studio:
     -   Open "Virtual Device Manager"
-    -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+    -   Launch the emulator
 
 
 #### iOS
 
 -   Install the iOS dependencies
-    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
+    -   [React Native Getting Started - iOS](https://reactnative.dev/docs/0.66/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
         -   You do **not** need CocoaPods
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
@@ -85,7 +88,7 @@ git clone ...
 cd metamask-mobile
 ```
 
--   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
+-   _MetaMask Only:_ Rename the `.*.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 -   _Non-MetaMask Only:_ In the project root folder run
 ```
   cp .ios.env.example .ios.env && \
