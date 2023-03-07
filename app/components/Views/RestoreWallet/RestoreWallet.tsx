@@ -21,6 +21,7 @@ import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -47,7 +48,7 @@ const RestoreWallet = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { navigate } = useNavigation();
+  const { replace } = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
   const { previousScreen } = useParams<RestoreWalletParams>();
@@ -67,13 +68,13 @@ const RestoreWallet = () => {
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();
     if (restoreResult.success) {
-      navigate(...createWalletRestoredNavDetails());
+      replace(...createWalletRestoredNavDetails());
       setLoading(false);
     } else {
-      navigate(...createWalletResetNeededNavDetails());
+      replace(...createWalletResetNeededNavDetails());
       setLoading(false);
     }
-  }, [deviceMetaData, navigate]);
+  }, [deviceMetaData, replace]);
 
   return (
     <SafeAreaView style={styles.screen}>

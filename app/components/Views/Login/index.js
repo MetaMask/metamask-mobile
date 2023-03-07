@@ -334,7 +334,7 @@ class Login extends PureComponent {
               this.state.password,
               authData.currentAuthType,
             );
-            navigation.navigate(
+            navigation.replace(
               ...createRestoreWalletNavDetailsNested({
                 previousScreen: Routes.ONBOARDING.LOGIN,
               }),
