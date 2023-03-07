@@ -3,6 +3,12 @@ import { ButtonLinkProps } from './variants/ButtonLink/ButtonLink.types';
 import { ButtonPrimaryProps } from './variants/ButtonPrimary/ButtonPrimary.types';
 import { ButtonSecondaryProps } from './variants/ButtonSecondary/ButtonSecondary.types';
 
+const sizes = {
+  sm: '32',
+  md: '40',
+  lg: '48',
+  auto: 'auto',
+};
 /**
  * Size variants of Button.
  */
