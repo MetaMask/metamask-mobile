@@ -11,7 +11,7 @@ interface AssetElementProps {
   children?: React.ReactNode;
   asset: TokenI;
   onPress?: (asset: TokenI) => void;
-  onLongPress?: (asset: TokenI) => void;
+  onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
 }
 
@@ -61,6 +61,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}
+      testID={'asset-element'}
     >
       {children}
 

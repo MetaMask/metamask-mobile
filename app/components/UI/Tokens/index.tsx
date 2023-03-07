@@ -21,7 +21,6 @@ import AssetElement from '../AssetElement';
 import { safeToChecksumAddress } from '../../../util/address';
 import { trackEvent } from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
@@ -60,12 +59,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const [tokenToRemove, setTokenToRemove] = useState<{
-    symbol: string;
-    ticker: string;
-    chainId: string;
-    address: string;
-  }>();
+  const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   const actionSheet = useRef<ActionSheet>();
@@ -95,7 +89,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const hideZeroBalanceTokens = useSelector(
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
-  const tokenList = useSelector(getTokenList);
   const detectedTokens = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.TokensController.detectedTokens,
@@ -145,7 +138,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     </View>
   );
 
-  const showRemoveMenu = (token: any) => {
+  const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
       setTokenToRemove(token);
       actionSheet.current.show();
@@ -154,7 +147,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const handleBalance = useCallback(
     (asset: TokenI) => {
-      const itemAddress: any = safeToChecksumAddress(asset.address);
+      const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
       const exchangeRate =
         itemAddress in tokenExchangeRates
@@ -201,8 +194,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderItem = (asset: TokenI) => {
     const itemAddress = safeToChecksumAddress(asset.address);
-    const logo =
-      itemAddress && tokenList?.[itemAddress.toLowerCase?.()]?.iconUrl;
 
     const { balanceFiat, balanceValueFormatted } = handleBalance(asset);
 
@@ -221,7 +212,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       secondaryBalance = strings('wallet.unable_to_load');
     }
 
-    asset = { ...asset, logo, balanceFiat };
+    asset = { ...asset, balanceFiat };
 
     const isMainnet = isMainnetByChainId(chainId);
 
@@ -232,7 +223,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     return (
       <AssetElement
         key={itemAddress || '0x'}
-        testID={'asset'}
         onPress={onItemPress}
         onLongPress={asset.isETH ? null : showRemoveMenu}
         asset={asset}
@@ -246,12 +236,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           }}
         >
           {asset.isETH ? (
-            <NetworkMainAssetLogo style={styles.ethLogo} testID={'eth-logo'} />
+            <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (
             <AvatarToken
               variant={AvatarVariants.Token}
               name={asset.symbol}
-              imageSource={{ uri: asset.logo }}
+              imageSource={{ uri: asset.image }}
               size={AvatarSize.Sm}
             />
           )}
