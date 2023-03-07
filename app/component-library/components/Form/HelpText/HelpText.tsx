@@ -10,6 +10,7 @@ import Text, { TextVariant } from '../../Texts/Text';
 import { HelpTextProps } from './HelpText.types';
 import {
   DEFAULT_HELPTEXT_SEVERITY,
+  HELPTEXT_TEST_ID,
   TEXT_COLOR_BY_HELPTEXT_SEVERITY,
 } from './HelpText.constants';
 
@@ -20,6 +21,7 @@ const HelpText: React.FC<HelpTextProps> = ({
   <Text
     variant={TextVariant.BodySM}
     color={TEXT_COLOR_BY_HELPTEXT_SEVERITY[severity]}
+    testID={HELPTEXT_TEST_ID}
     {...props}
   />
 );

@@ -1,14 +1,13 @@
-// /* eslint-disable import/prefer-default-export */
+/* eslint-disable import/prefer-default-export */
 
-// // Internal dependencies.
-// import { ListItemProps } from './ListItem.types';
+// Internal dependencies.
+import { TextVariant } from '../../Texts/Text';
 
-// // Defaults
-// export const DEFAULT_LIST_ITEM_VERTICAL_ALIGNMENT =
-//   VerticalAlignmentOptions.Top;
+// Defaults
+export const DEFAULT_LABEL_TEXT_VARIANT = TextVariant.BodyMDBold;
 
-// // Sample consts
+// Test IDs
+export const LABEL_TEST_ID = 'label';
 
-// export const SAMPLE_LIST_ITEM_PROPS: ListItemProps = {
-//   verticalAlignment: VerticalAlignmentOptions.Top,
-// };
+// Sample consts
+export const SAMPLE_LABEL_TEXT = 'Sample Label Text';

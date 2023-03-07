@@ -11,9 +11,10 @@ import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 // Internal dependencies.
 import Label from './Label';
 import { LabelProps } from './Label.types';
+import { SAMPLE_LABEL_TEXT } from './Label.constants';
 
 export const getLabelStoryProps = (): LabelProps => {
-  const labelText = text('label', 'Sample Label', storybookPropsGroupID);
+  const labelText = text('label', SAMPLE_LABEL_TEXT, storybookPropsGroupID);
   return {
     children: labelText,
   };

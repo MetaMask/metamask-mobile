@@ -5,7 +5,7 @@ import React, { useCallback, useState } from 'react';
 
 // External dependencies.
 import ButtonIcon, { ButtonIconSizes } from '../../Buttons/ButtonIcon';
-import Icon, { IconName, IconSize } from '../../Icon';
+import Icon, { IconName, IconSize } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { TextFieldSearchProps } from './TextFieldSearch.types';
@@ -19,7 +19,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
 }) => {
   const [currentValue, setCurrentValue] = useState(value);
 
-  const searchIcon = <Icon name={IconName.SearchFilled} size={IconSize.Sm} />;
+  const searchIcon = <Icon name={IconName.Search} size={IconSize.Sm} />;
 
   const clearButtonHandler = useCallback(() => {
     setCurrentValue('');
@@ -29,7 +29,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   const clearButton = (
     <ButtonIcon
       size={ButtonIconSizes.Sm}
-      iconName={IconName.CloseOutline}
+      iconName={IconName.Close}
       onPress={clearButtonHandler}
       {...clearButtonProps}
     />

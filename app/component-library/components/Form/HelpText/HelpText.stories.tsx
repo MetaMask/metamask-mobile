@@ -11,12 +11,15 @@ import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 // Internal dependencies.
 import HelpText from './HelpText';
 import { HelpTextProps, HelpTextSeverity } from './HelpText.types';
-import { DEFAULT_HELPTEXT_SEVERITY } from './HelpText.constants';
+import {
+  DEFAULT_HELPTEXT_SEVERITY,
+  SAMPLE_HELPTEXT_TEXT,
+} from './HelpText.constants';
 
 export const getHelpTextStoryProps = (): HelpTextProps => {
   const helpTextText = text(
     'HelpText',
-    'Sample HelpText',
+    SAMPLE_HELPTEXT_TEXT,
     storybookPropsGroupID,
   );
 
