@@ -188,10 +188,9 @@ class DeeplinkManager {
   }
 
   _handleBuyCrypto() {
+    // Do nothing for now if use is not in a supported network
     if (allowedToBuy(this.network)) {
       this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-    } else {
-      // Do nothing for now
     }
   }
 
