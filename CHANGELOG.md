@@ -5,7 +5,7 @@
 ## 6.1.1 - Mar 01, 2023
 - [#5848](https://github.com/MetaMask/metamask-mobile/pull/5848): [FIX] Remove default eth sign
 
-## 6.0.1 - Feb 27, 2023
+## 6.1.0 - Feb 27, 2023
 - [#5851](https://github.com/MetaMask/metamask-mobile/pull/5851): [FIX] Fix search network crasher
 - [#5809](https://github.com/MetaMask/metamask-mobile/pull/5809): [FIX] Resolve tab bar merge conflicts
 - [#5461](https://github.com/MetaMask/metamask-mobile/pull/5461): [IMPROVEMENT] On-ramp: Refactor Payment Methods view to componentization
