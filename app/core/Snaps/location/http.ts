@@ -107,7 +107,7 @@ export class HttpLocation implements SnapLocation {
         cached.contents,
       );
       const { file, contents } = cached;
-      const value = new Uint8Array(await contents.arrayBuffer());
+      const value = contents.toString();
       const vfile = file.clone();
       vfile.value = value;
       return vfile;
