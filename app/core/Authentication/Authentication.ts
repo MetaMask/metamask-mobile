@@ -407,23 +407,6 @@ class AuthenticationService {
     password = this.wipeSensitiveData();
   };
 
-  // This is purely to test the vault corruption flow and will need to be removed before merging
-  NEVER_MERGE_BROKEN_userEntryAuth = async (): Promise<void> => {
-    try {
-      // await this.loginVaultCreation(password, selectedAddress);
-      // await this.storePassword(password, authData.currentAuthType);
-      // this.dispatchLogin();
-      // this.authData = authData;
-      throw new Error('Error: Cannot unlock without a previous vault.');
-    } catch (e: any) {
-      this.lockApp(false);
-      throw new AuthenticationError(
-        (e as Error).message,
-        AUTHENTICATION_FAILED_TO_LOGIN,
-        this.authData,
-      );
-    }
-  };
   /**
    * Attempts to use biometric/pin code/remember me to login
    * @param selectedAddress - current address pulled from persisted state

@@ -438,84 +438,6 @@ class Login extends PureComponent {
     }
   };
 
-  /* This method is identical to the one above, except for the call to userEntryAuth
-  This is a temporary test function to mimic the vault being corrupted
-  we will keep almost all the logic the same as onLogin except we call the purposely broken NEVER_MERGE_BROKEN_userEntryAuth method
-  this will throw the VAULT_ERROR and we can test the vault corruption flow
-  since the userEntryAuth is the one that will throw the VAULT_ERROR, this is the most realistic way to test the vault corruption flow
-*/
-  NEVER_MERGE_tempBreakTheVault = async () => {
-    const { password } = this.state;
-    const { current: field } = this.fieldRef;
-    const locked = !passwordRequirementsMet(password);
-    if (locked) this.setState({ error: strings('login.invalid_password') });
-    if (this.state.loading || locked) return;
-
-    this.setState({ loading: true, error: null });
-    // const authType = await Authentication.componentAuthenticationType(
-    //   this.state.biometryChoice,
-    //   this.state.rememberMe,
-    // );
-
-    try {
-      await Authentication.NEVER_MERGE_BROKEN_userEntryAuth();
-
-      // Get onboarding wizard state
-      const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-      if (onboardingWizard) {
-        this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      } else {
-        this.props.setOnboardingWizardStep(1);
-        this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      }
-      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-      this.setState({
-        loading: false,
-        password: '',
-        hasBiometricCredentials: false,
-      });
-      field.setValue('');
-    } catch (e) {
-      const error = e.toString();
-      if (
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
-      ) {
-        this.setState({
-          loading: false,
-          error: strings('login.invalid_password'),
-        });
-
-        trackErrorAsAnalytics('Login: Invalid Password', error);
-
-        return;
-      } else if (error === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('login.security_alert_title'),
-          strings('login.security_alert_desc'),
-        );
-        this.setState({ loading: false });
-      } else if (containsErrorMessage(error, VAULT_ERROR)) {
-        try {
-          await this.handleVaultCorruption();
-        } catch (e) {
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(e, 'Failed to handle vault corruption');
-          this.setState({
-            loading: false,
-            error: strings('login.clean_vault_error'),
-          });
-        }
-      } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
-        this.setState({ loading: false });
-        this.updateBiometryChoice(false);
-      } else {
-        this.setState({ loading: false, error });
-      }
-      Logger.error(error, 'Failed to unlock');
-    }
-  };
-
   tryBiometric = async (e) => {
     if (e) e.preventDefault();
     const { current: field } = this.fieldRef;
@@ -676,12 +598,6 @@ class Login extends PureComponent {
                   {...generateTestId(Platform, RESET_WALLET_ID)}
                 >
                   {strings('login.reset_wallet')}
-                </Button>
-                <Button
-                  style={styles.goBack}
-                  onPress={this.NEVER_MERGE_tempBreakTheVault}
-                >
-                  [Never merge] Break the vault
                 </Button>
               </View>
             </View>
