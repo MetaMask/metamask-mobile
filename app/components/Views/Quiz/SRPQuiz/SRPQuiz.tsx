@@ -7,10 +7,10 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icon';
+} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent } from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';
@@ -47,7 +47,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.DangerFilled}
+        name={IconName.Danger}
         color={colors.error.default}
       />
     ),
@@ -58,7 +58,7 @@ const SRPQuiz = () => {
     (): Element => (
       <Icon
         size={IconSize.Xl}
-        name={IconName.CheckCircleOnFilled}
+        name={IconName.Confirmation}
         color={colors.success.default}
       />
     ),
@@ -66,15 +66,16 @@ const SRPQuiz = () => {
   );
 
   const goToRevealPrivateCredential = useCallback((): void => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
+    trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
+    trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      privateCredentialName: 'seed_phrase',
+      credentialName: 'seed_phrase',
+      hasNavigation: true,
     });
   }, [navigation]);
 
   const introduction = useCallback(() => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN, {});
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN);
     return (
       <QuizContent
         header={strings('srp_security_quiz.title')}
@@ -86,10 +87,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.get_started'),
             onPress: () => {
-              AnalyticsV2.trackEvent(
-                MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED,
-                {},
-              );
+              trackEvent(MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED);
               setStage(QuizStage.questionOne);
             },
             variant: ButtonVariants.Primary,
@@ -106,10 +104,7 @@ const SRPQuiz = () => {
   }, []);
 
   const questionOne = useCallback((): Element => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN);
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
@@ -139,10 +134,7 @@ const SRPQuiz = () => {
   }, []);
 
   const rightAnswerQuestionOne = useCallback((): Element => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER);
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
@@ -172,10 +164,7 @@ const SRPQuiz = () => {
   }, [rightAnswerIcon, styles.rightText]);
 
   const wrongAnswerQuestionOne = useCallback((): Element => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER);
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
@@ -205,10 +194,7 @@ const SRPQuiz = () => {
   }, [styles.wrongText, wrongAnswerIcon]);
 
   const questionTwo = useCallback((): Element => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN);
     return (
       <QuizContent
         header={`2 ${strings('srp_security_quiz.of')} 2`}
@@ -238,10 +224,7 @@ const SRPQuiz = () => {
   }, []);
 
   const rightAnswerQuestionTwo = useCallback((): Element => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER);
     return (
       <QuizContent
         header={`2 ${strings('srp_security_quiz.of')} 2`}
@@ -271,10 +254,7 @@ const SRPQuiz = () => {
   }, [goToRevealPrivateCredential, rightAnswerIcon, styles.rightText]);
 
   const wrongAnswerQuestionTwo = useCallback((): Element => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
-      {},
-    );
+    trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER);
     return (
       <QuizContent
         header={`2 ${strings('srp_security_quiz.of')} 2`}
@@ -290,7 +270,7 @@ const SRPQuiz = () => {
           {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Primary,
           },
           {
             label: strings('srp_security_quiz.learn_more'),

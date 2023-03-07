@@ -1,6 +1,5 @@
 import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
-import scaling from '../../../util/scaling';
 import Device from '../../../util/device';
 
 const createStyles = (colors: any) =>
@@ -10,9 +9,11 @@ const createStyles = (colors: any) =>
       width: '100%',
       paddingVertical: 10,
     },
+    actionViewWrapper: {
+      height: Device.isMediumDevice() ? '100%' : 630,
+    },
     title: {
       ...fontStyles.bold,
-      fontSize: scaling.scale(24),
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 34,
@@ -102,12 +103,6 @@ const createStyles = (colors: any) =>
       textDecorationLine: 'underline',
       ...fontStyles.bold,
     },
-    actionViewWrapper: {
-      height: Device.isMediumDevice() ? 200 : 280,
-    },
-    actionViewChildren: {
-      height: 300,
-    },
     actionViewQRObject: {
       height: 648,
     },
@@ -127,6 +122,9 @@ const createStyles = (colors: any) =>
       marginBottom: 10,
     },
     actionIcon: {
+      color: colors.primary.default,
+    },
+    buttonColor: {
       color: colors.primary.default,
     },
   });

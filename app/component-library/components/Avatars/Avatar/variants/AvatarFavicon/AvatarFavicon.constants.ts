@@ -4,7 +4,7 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { IconSize } from '../../../../Icon';
+import { IconSize } from '../../../../Icons/Icon';
 import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.

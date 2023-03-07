@@ -2,7 +2,6 @@ const mm = 'MetaMask';
 const prefix = `@${mm}:`;
 
 export const EXISTING_USER = `${prefix}existingUser`;
-export const NEXT_MAKER_REMINDER = `${prefix}nextMakerReminder`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 
@@ -17,6 +16,7 @@ export const METAMETRICS_SEGMENT_REGULATION_ID = `${prefix}MetaMetricsSegmentReg
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
+export const DATA_SET_CONNECTED_FLAG = `${prefix}DataSetConnectedFlag`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;

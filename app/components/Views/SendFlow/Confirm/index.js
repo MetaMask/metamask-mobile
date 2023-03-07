@@ -7,12 +7,14 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
-import { getSendFlowTitle } from '../../../UI/Navbar';
-import { AddressFrom, AddressTo } from '../AddressInputs';
+
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 import Eth from 'ethjs-query';
 import {
   renderFromWei,
@@ -50,8 +52,6 @@ import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
@@ -61,7 +61,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/confusables';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
@@ -71,6 +71,8 @@ import TransactionReview from '../../../UI/TransactionReview/TransactionReviewEI
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import CustomNonce from '../../../UI/CustomNonce';
+import { getSendFlowTitle } from '../../../UI/Navbar';
+import { AddressFrom, AddressTo } from '../AddressInputs';
 import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
@@ -89,6 +91,14 @@ import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../core/GasPolling/GasPolling';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -306,8 +316,26 @@ class Confirm extends PureComponent {
   };
 
   componentWillUnmount = async () => {
+    const {
+      contractBalances,
+      transactionState: { selectedAsset },
+    } = this.props;
+    const { TokensController } = Engine.context;
     await stopGasPolling(this.state.pollToken);
     clearInterval(intervalIdForEstimatedL1Fee);
+
+    /**
+     * Remove token that was added to the account temporarily
+     * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
+     */
+    if (selectedAsset.isETH || selectedAsset.tokenId) {
+      return;
+    }
+
+    const weiBalance = contractBalances[selectedAsset.address];
+    if (weiBalance?.isZero()) {
+      await TokensController.ignoreTokens([selectedAsset.address]);
+    }
   };
 
   fetchEstimatedL1Fee = async () => {
@@ -342,7 +370,7 @@ class Confirm extends PureComponent {
       pollToken,
     });
     // For analytics
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -464,9 +492,7 @@ class Confirm extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
+        trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
       });
     }
   };
@@ -480,7 +506,7 @@ class Confirm extends PureComponent {
     prepareTransaction({ ...transaction, ...estimation });
   };
 
-  parseTransactionDataHeader = () => {
+  parseTransactionDataHeader = async () => {
     const {
       accounts,
       contractBalances,
@@ -494,6 +520,7 @@ class Confirm extends PureComponent {
       },
       ticker,
     } = this.props;
+
     const { fromSelectedAddress } = this.state;
     let fromAccountBalance,
       transactionValue,
@@ -540,7 +567,13 @@ class Confirm extends PureComponent {
       );
     } else {
       let rawAmount;
-      const { address, symbol = 'ERC20', decimals } = selectedAsset;
+      const { address, symbol = 'ERC20', decimals, image } = selectedAsset;
+      const { TokensController } = Engine.context;
+
+      if (!contractBalances[address]) {
+        await TokensController.addToken(address, symbol, decimals, image);
+      }
+
       fromAccountBalance = `${renderFromTokenMinimalUnit(
         contractBalances[address] ? contractBalances[address] : '0',
         decimals,
@@ -757,7 +790,7 @@ class Confirm extends PureComponent {
           assetType,
         });
         this.checkRemoveCollectible();
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
@@ -774,9 +807,7 @@ class Confirm extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
     }
     this.setState({ transactionConfirmed: false });
@@ -1070,7 +1101,7 @@ class Confirm extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -1221,7 +1252,10 @@ class Confirm extends PureComponent {
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
-              <Text style={styles.textAmount} testID={'confirm-txn-amount'}>
+              <Text
+                style={styles.textAmount}
+                {...generateTestId(Platform, COMFIRM_TXN_AMOUNT)}
+              >
                 {transactionValue}
               </Text>
               {isMainnetByChainId(chainId) && (
@@ -1363,13 +1397,13 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   selectedAsset: state.transaction.selectedAsset,
   transactionState: state.transaction,

@@ -1,16 +1,17 @@
-@androidApp 
-@ChainScenarios 
+@androidApp
+@ChainScenarios
 @regression
 
 Feature: Adding addresses to contacts via address book modal and the contacts screen
   A user should see the correct warning when trying to send funds to a contract address
   A user can saved an ENS name to your address book
-  
+
 
   The contacts you saved on network A does not carry over to network B
 
   Scenario: Import account and navigate to Send
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And On the Main Wallet view I tap "Send"
@@ -54,8 +55,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
   Scenario Outline: A user has a saved address then deletes it
     When I tap on contact name "<ContactName>"
     And I tap on Edit button to edit Saved contact details
-    And I tap on button with text "Delete"
-    And I tap on button with text "Delete"
+    And I tap button "Delete" to navigate to Contacts view
     Then the deleted contact "<ContactName>" should not appear
 
     Examples:

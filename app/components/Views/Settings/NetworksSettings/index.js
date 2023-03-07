@@ -15,20 +15,25 @@ import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Networks, { getAllNetworks, isMainNet } from '../../../../util/networks';
+import Networks, {
+  getAllNetworks,
+  getNetworkImageSource,
+  isDefaultMainnet,
+} from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import getImage from '../../../../util/getImage';
 import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
-import Avatar, {
+import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
   AvatarSize,
   AvatarVariants,
 } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -112,9 +117,9 @@ class NetworksSettings extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -179,10 +184,10 @@ class NetworksSettings extends PureComponent {
 
   removeNetwork = () => {
     // Check if it's the selected network and then switch to mainnet first
-    const { provider } = this.props;
+    const { providerConfig } = this.props;
     if (
-      compareSanitizedUrl(provider.rpcTarget, this.networkToRemove) &&
-      provider.type === RPC
+      compareSanitizedUrl(providerConfig.rpcTarget, this.networkToRemove) &&
+      providerConfig.type === RPC
     ) {
       this.switchToMainnet();
     }
@@ -204,7 +209,7 @@ class NetworksSettings extends PureComponent {
       <View key={`network-${network}`}>
         {
           // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
-          isMainNet(network) ? (
+          isDefaultMainnet(network) ? (
             this.renderMainnet()
           ) : (
             <TouchableOpacity
@@ -214,18 +219,15 @@ class NetworksSettings extends PureComponent {
               testID={'select-network'}
             >
               <View style={styles.network}>
-                {isCustomRPC &&
-                  // TODO - Refactor to use only AvatarNetwork with getNetworkImageSource
-                  (image ? (
-                    <ImageIcons image={image} style={styles.networkIcon} />
-                  ) : (
-                    <Avatar
-                      variant={AvatarVariants.Network}
-                      name={name}
-                      style={styles.networkIcon}
-                      size={AvatarSize.Xs}
-                    />
-                  ))}
+                {isCustomRPC ? (
+                  <AvatarNetwork
+                    variant={AvatarVariants.Network}
+                    name={name}
+                    imageSource={image}
+                    style={styles.networkIcon}
+                    size={AvatarSize.Xs}
+                  />
+                ) : null}
                 {!isCustomRPC &&
                   (image ? (
                     <ImageIcons
@@ -267,7 +269,7 @@ class NetworksSettings extends PureComponent {
     const { frequentRpcList } = this.props;
     return frequentRpcList.map(({ rpcUrl, nickname, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl };
-      const image = getImage(chainId);
+      const image = getNetworkImageSource({ chainId });
       return this.networkElement(name, image, i, rpcUrl, true);
     });
   };
@@ -321,8 +323,8 @@ class NetworksSettings extends PureComponent {
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
     const defaultNetwork = getAllNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
-      return { name, color, network, isCustomRPC: false };
+      const { color, name, chainId } = Networks[network];
+      return { name, color, network, isCustomRPC: false, chainId };
     });
     const customRPC = this.props.frequentRpcList.map((network, i) => {
       const { color, name, url, chainId } = {
@@ -350,7 +352,7 @@ class NetworksSettings extends PureComponent {
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
         const { network, chainId, name, color, isCustomRPC } = data;
-        const image = getImage(chainId);
+        const image = getNetworkImageSource({ chainId });
         return this.networkElement(
           name,
           image || color,
@@ -437,7 +439,7 @@ class NetworksSettings extends PureComponent {
 NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

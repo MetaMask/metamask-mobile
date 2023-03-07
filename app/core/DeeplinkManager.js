@@ -12,6 +12,7 @@ import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
 import { WalletDevice } from '@metamask/transaction-controller';
+import NotificationManager from '../core/NotificationManager';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -22,12 +23,15 @@ import { showAlert } from '../actions/alert';
 import SDKConnect from '../core/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
+import { getAddress } from '../util/address';
+
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
+    this.network = network;
   }
 
   setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -60,7 +64,7 @@ class DeeplinkManager {
     );
   };
 
-  _approveTransaction = (ethUrl, origin) => {
+  _approveTransaction = async (ethUrl, origin) => {
     const {
       parameters: { address, uint256 },
       target_address,
@@ -83,11 +87,22 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
+    const spenderAddress = await getAddress(address, this.network);
+    if (!spenderAddress) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: strings('transaction.invalid_recipient_description'),
+      });
+      this.navigation.navigate('WalletView');
+    }
+
     const txParams = {
       to: target_address.toString(),
       from: PreferencesController.state.selectedAddress.toString(),
       value: '0x0',
-      data: generateApproveData({ spender: address, value }),
+      data: generateApproveData({ spender: spenderAddress, value }),
     };
 
     TransactionController.addTransaction(
@@ -340,8 +355,13 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch }) => {
-    instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
+  init: ({ navigation, frequentRpcList, dispatch, network }) => {
+    instance = new DeeplinkManager({
+      navigation,
+      frequentRpcList,
+      dispatch,
+      network,
+    });
   },
   parse: (url, args) => instance.parse(url, args),
   setDeeplink: (url) => instance.setDeeplink(url),
