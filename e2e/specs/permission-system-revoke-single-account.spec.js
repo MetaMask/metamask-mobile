@@ -119,6 +119,8 @@ describe('Revoke Single Account after connecting to a dapp', () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.tapPermissionsButton();
     await ConnectedAccountsModal.tapRevokeButton();
+    await Browser.isAccountToastVisible('Account 1');
+
     await TestHelpers.delay(3500);
   });
 

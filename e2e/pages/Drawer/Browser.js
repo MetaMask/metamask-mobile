@@ -15,11 +15,14 @@ import {
   ADD_BOOKMARKS_SCREEN_ID,
   ADD_BOOKMARKS_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
+import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
 const RETURN_HOME_TEXT = strings('webview_error.return_home');
 const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
+const REVOKE_ALL_ACCOUNTS_TEXT = strings('toast.revoked_all');
+const CONNECTED_ACCOUNTS_TEXT = strings('toast.connected_and_active');
 
 export default class Browser {
   static async tapUrlInputBox() {
@@ -116,5 +119,19 @@ export default class Browser {
 
   static async isBackToSafetyButtonVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible('Back to safety');
+  }
+  static async isAccountToastVisible(accountName) {
+    const connectedAccountMessage = `${accountName} ${CONNECTED_ACCOUNTS_TEXT}`;
+    await TestHelpers.checkIfElementHasString(
+      NOTIFICATION_TITLE,
+      connectedAccountMessage,
+    );
+  }
+
+  static async isRevokeAllAccountToastVisible() {
+    await TestHelpers.checkIfElementHasString(
+      NOTIFICATION_TITLE,
+      REVOKE_ALL_ACCOUNTS_TEXT,
+    );
   }
 }
