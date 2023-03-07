@@ -290,7 +290,11 @@ class AccountApproval extends PureComponent {
         this.props.currentPageInformation.channelId,
         true,
       );
-      this.props.showSDKFeedbackModal();
+      setTimeout(() => {
+        // Adds delay otherwise, the modal sometime doesn't display correctly on ios.
+        this.props.showSDKFeedbackModal();
+      }, 500);
+
       this.props.onCancel();
       return;
     }
@@ -364,10 +368,10 @@ class AccountApproval extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance;
     const styles = createStyles(colors, themeAppearance);
-    const hasRememberMe =
-      !currentPageInformation.reconnect &&
-      this.props.currentPageInformation.origin ===
-        AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
+    // const hasRememberMe =
+    //   !currentPageInformation.reconnect &&
+    //   this.props.currentPageInformation.origin ===
+    //     AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
