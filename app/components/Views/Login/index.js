@@ -39,7 +39,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { trackErrorAsAnalytics, trackEvent } from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
@@ -61,6 +61,7 @@ import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWal
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -254,6 +255,7 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
+    trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     const authData = await Authentication.getType();
