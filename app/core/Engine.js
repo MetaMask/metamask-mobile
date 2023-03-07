@@ -63,6 +63,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
   detectSnapLocation,
+  fetchFunction,
 } from './Snaps';
 import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import {
@@ -436,14 +437,13 @@ class Engine {
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: initialState.snapController || {},
         messenger: snapControllerMessenger,
-        // fetchFunction: () => fetchFunction(),
         // TO DO
         closeAllConnections: () =>
           console.log(
             'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
           ),
         detectSnapLocation: (location, options) =>
-          detectSnapLocation(location, options),
+          detectSnapLocation(location, { ...options, fetch: fetchFunction }),
       });
 
       const controllers = [

@@ -1,22 +1,18 @@
 /* eslint-disable import/prefer-default-export */
 import {
-  LocalSnapIdStruct,
   SnapIdPrefixes,
   SnapManifest,
   VirtualFile,
 } from '@metamask/snaps-utils';
-// import { assert, assertStruct } from '@metamask/utils';
 
 import { HttpLocation, HttpOptions } from './http';
 import { SnapLocation } from './location';
-
-const SNAPS_LOCAL_LOG_TAG = 'snaps/ local';
 
 export class LocalLocation implements SnapLocation {
   readonly #http: HttpLocation;
 
   constructor(url: URL, opts: HttpOptions = {}) {
-    console.log(SNAPS_LOCAL_LOG_TAG, 'constructor called with ', url, opts);
+    // TODO get the asserts working from @metamask/utils
     // assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
     // // TODO(ritave): Write deepMerge() which merges fetchOptions.
     // assert(
@@ -54,6 +50,7 @@ export class LocalLocation implements SnapLocation {
 function convertCanonical<Result>(
   vfile: VirtualFile<Result>,
 ): VirtualFile<Result> {
+  //TODO get the asserts working from @metamask/utils
   //   assert(vfile.data.canonicalPath !== undefined);
   vfile.data.canonicalPath = `local:${vfile.data.canonicalPath}`;
   return vfile;
