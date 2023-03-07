@@ -3,7 +3,7 @@
 ## Current Main Branch
 
 ## 6.1.2 - Mar 03, 2023
-- [FIX] Add try-catch to recreateVault
+- [#5906](https://github.com/MetaMask/metamask-mobile/pull/5906): [FIX] Add try-catch to recreateVault
 
 ## 6.1.1 - Mar 01, 2023
 - [#5848](https://github.com/MetaMask/metamask-mobile/pull/5848): [FIX] Remove default eth sign
