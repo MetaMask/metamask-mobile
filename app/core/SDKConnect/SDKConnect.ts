@@ -314,7 +314,6 @@ export class Connection extends EventEmitter2 {
       EventType.CLIENTS_READY,
       async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
         console.debug(
-
           `Connection::on::clients_Ready origin=${this.origin} `,
           clientsReadyMsg,
         );
@@ -338,7 +337,11 @@ export class Connection extends EventEmitter2 {
           });
           // Prevent auto approval if metamask is killed and restarted
           disapprove(this.channelId);
-        } else {
+        } else if (
+          !this.initialConnection &&
+          this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+        ) {
+          // Deeplink channels are automatically approved on re-connection.
           const hostname = MM_SDK_REMOTE_ORIGIN + this.channelId;
           approveHost({
             host: hostname,
@@ -964,7 +967,7 @@ export class SDKConnect extends EventEmitter2 {
 
     if (!this.connections[channelId]) {
       console.debug(
-        `JJJJJJJJJJJJJJJJJJJJJJJJJJ invalid sdk state ${channelId} not found.`,
+        `invalid sdk state ${channelId} not found.`,
       );
       return;
     }
@@ -982,6 +985,7 @@ export class SDKConnect extends EventEmitter2 {
       if (connected) {
         // When does this happen?
         console.debug(`this::reconnect() interrupted - already connected.`);
+        existingConnection.remote.ping();
         return;
       }
     }
