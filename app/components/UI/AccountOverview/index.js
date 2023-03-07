@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -50,6 +51,10 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     scrollView: {
@@ -471,7 +476,25 @@ class AccountOverview extends PureComponent {
                 </View>
               )}
             </View>
-            <Text style={styles.amountFiat}>{fiatBalance}</Text>
+            <View
+              style={{
+                justifyItems: 'center',
+                alignItems: 'center',
+                flexDirection: 'row',
+              }}
+            >
+              <Text style={styles.amountFiat}>{fiatBalance}</Text>
+              <TouchableOpacity
+                onPress={this.onOpenPortfolio}
+                style={{ marginLeft: 5 }}
+              >
+                <Icon
+                  style={{ color: colors.primary.default }}
+                  name={IconName.Diagram}
+                  size={20}
+                />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={styles.addressWrapper}
               onPress={this.copyAccountToClipboard}
@@ -482,7 +505,6 @@ class AccountOverview extends PureComponent {
                 type={'short'}
               />
             </TouchableOpacity>
-
             <View style={styles.actions}>
               <AssetActionButton
                 icon="receive"
@@ -510,11 +532,6 @@ class AccountOverview extends PureComponent {
                   isAssetAllowed
                 />
               )}
-              <AssetActionButton
-                icon="portfolio"
-                onPress={this.onOpenPortfolio}
-                label={strings('asset_overview.portfolio_button')}
-              />
             </View>
           </View>
         </ScrollView>

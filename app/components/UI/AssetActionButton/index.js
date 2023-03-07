@@ -6,9 +6,6 @@ import Ionicon from 'react-native-vector-icons/Ionicons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -112,11 +109,6 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
             size={20}
             style={[styles.buttonIcon, styles.buyIcon]}
           />
-        );
-      }
-      case 'portfolio': {
-        return (
-          <Icon name={IconName.Diagram} size={20} style={styles.buttonIcon} />
         );
       }
       default: {
