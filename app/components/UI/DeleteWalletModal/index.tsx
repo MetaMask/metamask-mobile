@@ -96,7 +96,7 @@ const DeleteWalletModal = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
+    trackEvent(MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED);
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });
