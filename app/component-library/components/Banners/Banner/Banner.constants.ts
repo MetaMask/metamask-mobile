@@ -1,14 +1,7 @@
-// /* eslint-disable import/prefer-default-export */
+/* eslint-disable import/prefer-default-export */
 
-// // Internal dependencies.
-// import { ListItemProps } from './ListItem.types';
+// Internal dependencies.
+import { BannerVariant } from './Banner.types';
 
-// // Defaults
-// export const DEFAULT_LIST_ITEM_VERTICAL_ALIGNMENT =
-//   VerticalAlignmentOptions.Top;
-
-// // Sample consts
-
-// export const SAMPLE_LIST_ITEM_PROPS: ListItemProps = {
-//   verticalAlignment: VerticalAlignmentOptions.Top,
-// };
+// Defaults
+export const DEFAULT_BANNER_VARIANT = BannerVariant.Alert;

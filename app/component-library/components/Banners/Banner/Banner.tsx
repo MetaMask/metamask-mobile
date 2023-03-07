@@ -1,34 +1,21 @@
-/* eslint-disable react/prop-types */
-
-// Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import BannerAlert from './variants/BannerAlert';
+import BannerTip from './variants/BannerTip';
 
 // Internal dependencies.
-import styleSheet from './BannerBase.styles';
-import { BannerBaseProps } from './BannerBase.types';
+import { BannerProps, BannerVariant } from './Banner.types';
 
-const BannerBase: React.FC<BannerBaseProps> = ({
-  style,
-  startAccessory,
-  title,
-  titleProps,
-  description,
-  actionButtonLabel,
-  actionButtonOnPress,
-  actionButtonProps,
-  onClose,
-  closeButtonProps,
-}) => {
-  const { styles } = useStyles(styleSheet, { style });
-  return (
-    <View style={styles.base}>
-      <View style={styles.startAccessory}>{startAccessory}</View>
-    </View>
-  );
+const Banner = (bannerProps: BannerProps) => {
+  switch (bannerProps.variant) {
+    case BannerVariant.Alert:
+      return <BannerAlert {...bannerProps} />;
+    case BannerVariant.Tip:
+      return <BannerTip {...bannerProps} />;
+    default:
+      throw new Error('Invalid Banner Variant');
+  }
 };
 
-export default BannerBase;
+export default Banner;

@@ -1,14 +1,10 @@
-// /* eslint-disable import/prefer-default-export */
+/* eslint-disable import/prefer-default-export */
 
-// // Internal dependencies.
-// import { ListItemProps } from './ListItem.types';
+// External dependencies.
+import { TextVariant } from '../../../../Texts/Text';
+import { ButtonIconSizes } from '../../../../Buttons/ButtonIcon';
 
-// // Defaults
-// export const DEFAULT_LIST_ITEM_VERTICAL_ALIGNMENT =
-//   VerticalAlignmentOptions.Top;
-
-// // Sample consts
-
-// export const SAMPLE_LIST_ITEM_PROPS: ListItemProps = {
-//   verticalAlignment: VerticalAlignmentOptions.Top,
-// };
+// Tokens
+export const TOKEN_BANNERBASE_TITLE_TEXTVARIANT = TextVariant.BodyLGMedium;
+export const TOKEN_BANNERBASE_DESCRIPTION_TEXTVARIANT = TextVariant.BodyMD;
+export const TOKEN_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE = ButtonIconSizes.Sm;

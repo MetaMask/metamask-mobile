@@ -1,2 +1,2 @@
 export { default } from './ButtonIcon';
-export { ButtonIconVariants } from './ButtonIcon.types';
+export { ButtonIconVariants, ButtonIconSizes } from './ButtonIcon.types';

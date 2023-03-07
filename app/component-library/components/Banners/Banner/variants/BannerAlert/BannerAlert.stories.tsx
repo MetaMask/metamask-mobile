@@ -2,7 +2,6 @@
 
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
@@ -11,29 +10,30 @@ import { storybookPropsGroupID } from '../../../../../constants/storybook.consta
 // Internal dependencies.
 import BannerAlert from './BannerAlert';
 import { BannerAlertProps, BannerAlertSeverity } from './BannerAlert.types';
-import { DEFAULT_BANNER_ALERT_SEVERITY } from './BannerAlert.constants';
+import {
+  DEFAULT_BANNERALERT_SEVERITY,
+  SAMPLE_BANNERALERT_TITLE,
+  SAMPLE_BANNERALERT_DESCRIPTION,
+  SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
+} from './BannerAlert.constants';
 
 export const getBannerAlertStoryProps = (): BannerAlertProps => {
   const severitySelector = select(
     'severity',
     BannerAlertSeverity,
-    DEFAULT_BANNER_ALERT_SEVERITY,
+    DEFAULT_BANNERALERT_SEVERITY,
     storybookPropsGroupID,
   );
 
-  const title = text(
-    'title',
-    'Sample Banner Alert Title',
-    storybookPropsGroupID,
-  );
+  const title = text('title', SAMPLE_BANNERALERT_TITLE, storybookPropsGroupID);
   const description = text(
     'description',
-    'Sample Banner Alert Description',
+    SAMPLE_BANNERALERT_DESCRIPTION,
     storybookPropsGroupID,
   );
   const actionButtonLabel = text(
     'actionButtonLabel',
-    'Sample Action Button Label',
+    SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
     storybookPropsGroupID,
   );
 
@@ -48,10 +48,5 @@ export const getBannerAlertStoryProps = (): BannerAlertProps => {
 };
 
 const BannerAlertStory = () => <BannerAlert {...getBannerAlertStoryProps()} />;
-
-storiesOf('Component Library / Banners', module).add(
-  'BannerAlert',
-  BannerAlertStory,
-);
 
 export default BannerAlertStory;

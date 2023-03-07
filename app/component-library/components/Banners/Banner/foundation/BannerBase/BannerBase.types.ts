@@ -5,11 +5,16 @@ import { ViewProps } from 'react-native';
 import { TextProps } from '../../../../Texts/Text/Text.types';
 import { ButtonProps } from '../../../../Buttons/Button/Button.types';
 import { ButtonIconProps } from '../../../../Buttons/ButtonIcon/ButtonIcon.types';
+import { BannerVariant } from '../../Banner.types';
 
 /**
  * BannerBase component props.
  */
 export interface BannerBaseProps extends ViewProps {
+  /**
+   * Variant of Banner
+   */
+  variant?: BannerVariant;
   /**
    * Content to be displayed before the info section.
    */
