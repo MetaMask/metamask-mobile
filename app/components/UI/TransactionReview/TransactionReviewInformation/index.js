@@ -47,7 +47,7 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
-import NetworkNonce from '../../../../util/networks/networkNonce';
+import setNetworkNonce from '../../../../util/networks/networkNonce';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -224,11 +224,15 @@ class TransactionReviewInformation extends PureComponent {
     nonceModalVisible: false,
   };
 
-  componentDidMount = async () => {
-    const { showCustomNonce, setNonce, setProposedNonce, transaction } =
-      this.props;
+  componentDidMount = () => {
+    const {
+      showCustomNonce,
+      setNonce,
+      setProposedNonce,
+      transaction: { from },
+    } = this.props;
     if (showCustomNonce) {
-      NetworkNonce({ setNonce, setProposedNonce, transaction });
+      setNetworkNonce({ setNonce, setProposedNonce, from });
     }
   };
 

@@ -3,17 +3,17 @@ import { getNetworkNonce } from '.';
 interface NetworkNonceProps {
   setNonce: (nonce: number) => void;
   setProposedNonce: (nonce: number) => void;
-  transaction: any;
+  from: string;
 }
 
-const NetworkNonce = async ({
+const setNetworkNonce = async ({
   setNonce,
   setProposedNonce,
-  transaction,
+  from,
 }: NetworkNonceProps) => {
-  const proposedNonce = await getNetworkNonce(transaction);
+  const proposedNonce = await getNetworkNonce({ from });
   setNonce(proposedNonce);
   setProposedNonce(proposedNonce);
 };
 
-export default NetworkNonce;
+export default setNetworkNonce;

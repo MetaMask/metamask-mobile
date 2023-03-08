@@ -49,7 +49,7 @@ import {
 } from '../../../../selectors/networkController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
-import NetworkNonce from '../../../../util/networks/networkNonce';
+import setNetworkNonce from '../../../../util/networks/networkNonce';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -231,9 +231,13 @@ class Approve extends PureComponent {
     this.setState({ pollToken });
   };
 
-  componentDidMount = async () => {
-    const { setNonce, setProposedNonce, transaction, showCustomNonce } =
-      this.props;
+  componentDidMount = () => {
+    const {
+      setNonce,
+      setProposedNonce,
+      transaction: { from },
+      showCustomNonce,
+    } = this.props;
     if (!this.props?.transaction?.id) {
       this.props.toggleApproveModal(false);
       return null;
@@ -242,7 +246,7 @@ class Approve extends PureComponent {
 
     this.startPolling();
     if (showCustomNonce) {
-      NetworkNonce({ setNonce, setProposedNonce, transaction });
+      setNetworkNonce({ setNonce, setProposedNonce, from });
     }
     AppState.addEventListener('change', this.handleAppStateChange);
   };
