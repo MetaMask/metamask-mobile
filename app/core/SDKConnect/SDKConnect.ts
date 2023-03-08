@@ -39,10 +39,7 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
-import {
-  toggleAccountApprovalModal,
-  toggleSDKLoadingModal,
-} from '../../../app/actions/modals';
+import { toggleSDKLoadingModal } from '../../../app/actions/modals';
 import { store } from '../../../app/store';
 import generateOTP from './generateOTP.util';
 import { ethErrors } from 'eth-rpc-errors';
@@ -695,6 +692,7 @@ export class Connection extends EventEmitter2 {
           title: this.originatorInfo?.title ?? '',
           icon: this.originatorInfo?.icon ?? '',
           otps: this.otps ?? [],
+          apiVersion: this.originatorInfo?.apiVersion,
           analytics: {
             request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
             request_platform: parseSource(
@@ -966,9 +964,7 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     if (!this.connections[channelId]) {
-      console.debug(
-        `invalid sdk state ${channelId} not found.`,
-      );
+      console.debug(`invalid sdk state ${channelId} not found.`);
       return;
     }
 
@@ -982,12 +978,26 @@ export class SDKConnect extends EventEmitter2 {
       console.debug(
         `SDKConnect::reconnect() existing channel=${channelId} connected=${connected} ready=${ready} keysExchanged=${keysExchanged}`,
       );
+
+      if (ready) {
+        console.debug(
+          `SDKConnect::reconnect() already ready - interrup reconnect`,
+        );
+        return;
+      }
+
       if (connected) {
         // When does this happen?
-        console.debug(`this::reconnect() interrupted - already connected.`);
+        console.warn(
+          `SDKConnect::reconnect() interrupted - already connected.`,
+        );
         existingConnection.remote.ping();
         return;
       }
+
+      console.debug(
+        `SDKConnect::reconnect() JJJJJJJJJJJJJJJJ invalid connection state`,
+      );
     }
 
     console.debug(

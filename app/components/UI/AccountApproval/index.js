@@ -221,13 +221,12 @@ class AccountApproval extends PureComponent {
     confirmDisabled: true,
     noPersist: false,
     otpChoice: undefined,
-    // otps: [122, 144, 544],
     otps: shuffle(this.props.currentPageInformation.otps || []),
-    // otp: true,
     otp:
       this.props.currentPageInformation.origin ===
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
-      this.props.currentPageInformation.reconnect,
+      this.props.currentPageInformation.reconnect &&
+      this.props.currentPageInformation.apiVersion,
   };
 
   getAnalyticsParams = () => {
