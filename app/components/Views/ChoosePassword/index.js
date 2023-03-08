@@ -69,6 +69,7 @@ import {
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { scale } from 'react-native-size-matters';
+import SecureKeychain from 'app/core/SecureKeychain';
 
 const createStyles = (colors) =>
   StyleSheet.create({
