@@ -308,7 +308,7 @@ export function isPrefixedFormattedHexString(value) {
   return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
 }
 
-export const getNetworkNonce = async ({ from }) => {
+export const getNetworkNonce = async (from) => {
   const { TransactionController } = Engine.context;
   const networkNonce = await query(
     TransactionController.ethQuery,

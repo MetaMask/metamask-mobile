@@ -11,7 +11,7 @@ const setNetworkNonce = async ({
   setProposedNonce,
   from,
 }: NetworkNonceProps) => {
-  const proposedNonce = await getNetworkNonce({ from });
+  const proposedNonce = await getNetworkNonce(from);
   setNonce(proposedNonce);
   setProposedNonce(proposedNonce);
 };
