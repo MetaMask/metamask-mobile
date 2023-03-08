@@ -230,8 +230,6 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const IOS_DENY_BIOMETRIC_ERROR =
-  'The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -384,7 +382,6 @@ class ChoosePassword extends PureComponent {
           );
         } catch (error) {
           if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
-          throw error;
         }
       } else if (this.state.rememberMe) {
         await SecureKeychain.setGenericPassword(
@@ -448,15 +445,8 @@ class ChoosePassword extends PureComponent {
    * @param {*} error - error provide from try catch wrapping the biometric set password attempt
    */
   handleRejectedOsBiometricPrompt = async (error) => {
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !biometryType) {
-      this.setState({
-        biometryType,
-        biometryChoice: true,
-      });
-      this.updateBiometryChoice();
-      throw Error(strings('choose_password.disable_biometric_error'));
-    }
+    this.updateBiometryChoice(false);
+    await SecureKeychain.resetGenericPassword();
   };
 
   /**
