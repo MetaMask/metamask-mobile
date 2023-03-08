@@ -4,10 +4,12 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 let startTimer;
 let stopTimer;
 
-Then(/^the app should launch within x seconds$/, async () => {
+Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
   stopTimer = new Date().getTime();
-  const result = stopTimer - startTimer;
-  cucumberJson.attach(`Milliseconds: ${result}`);
+  const launchTime = stopTimer - startTimer;
+
+  await expect(launchTime).toBeLessThan(time * 1000);
+  cucumberJson.attach(`Milliseconds: ${launchTime}`);
 });
 
 Given(/^the app is launched$/, async () => {
