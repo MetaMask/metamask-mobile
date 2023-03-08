@@ -1,15 +1,9 @@
 'use strict';
 import TestHelpers from '../helpers';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
 import ImportAccountView from '../pages/ImportAccountView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
 import SendView from '../pages/SendView';
@@ -18,15 +12,11 @@ import TransactionConfirmationView from '../pages/TransactionConfirmView';
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
 
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
 
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
-const PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
 const GOERLI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
@@ -43,55 +33,8 @@ describe('Wallet Tests', () => {
     jest.setTimeout(200000);
   });
 
-  it('should tap on import seed phrase button', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await OnboardingView.isVisible();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-
-    await ImportWalletView.isVisible();
-  });
-
-  it('should import wallet with secret recovery phrase', async () => {
-    await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
-    await WalletView.isVisible();
-  });
-
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should tap on the close button to dismiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
-    await WalletView.isAccountBalanceCorrect();
+  it('should import wallet and go to the wallet view', async () => {
+    await importWalletWithRecoveryPhrase();
   });
 
   it('should be able to add new accounts', async () => {
