@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-sensors/android/build.gradle b/node_modules/react-native-sensors/android/build.gradle
+index 363c681..5436703 100644
+--- a/node_modules/react-native-sensors/android/build.gradle
++++ b/node_modules/react-native-sensors/android/build.gradle
+@@ -9,7 +9,7 @@ android {
+     compileSdkVersion safeExtGet('compileSdkVersion', 23)
+ 
+     defaultConfig {
+-        minSdkVersion 16
++        minSdkVersion 21
+         targetSdkVersion 22
+         versionCode 1
+         versionName "1.0"
