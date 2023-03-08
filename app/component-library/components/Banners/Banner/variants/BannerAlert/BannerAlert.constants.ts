@@ -21,7 +21,7 @@ export const TOKEN_BANNERALERT_ICONSIZE = IconSize.Lg;
 // Mappings
 export const ICONNAME_BY_BANNERALERTSEVERITY: IconNameByBannerAlertSeverity = {
   [BannerAlertSeverity.Info]: IconName.Info,
-  [BannerAlertSeverity.Success]: IconName.CheckBoxOn,
+  [BannerAlertSeverity.Success]: IconName.Confirmation,
   [BannerAlertSeverity.Error]: IconName.Danger,
   [BannerAlertSeverity.Warning]: IconName.Danger,
 };
