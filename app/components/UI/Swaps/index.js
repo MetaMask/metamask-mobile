@@ -17,6 +17,8 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
@@ -27,8 +29,6 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -39,8 +39,11 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
+import {
+  trackLegacyEvent,
+  trackLegacyAnonymousEvent,
+} from '../../../util/analyticsV2';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
@@ -69,6 +72,10 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -164,7 +171,7 @@ function SwapsAmountView({
   accounts,
   selectedAddress,
   chainId,
-  provider,
+  providerConfig,
   frequentRpcList,
   balances,
   tokensWithBalance,
@@ -181,7 +188,7 @@ function SwapsAmountView({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const explorer = useBlockExplorer(provider, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -253,14 +260,10 @@ function SwapsAmountView({
               )?.symbol,
               chain_id: chainId,
             };
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              {},
-            );
-            Analytics.trackEventWithParameters(
+            trackLegacyEvent(MetaMetricsEvents.SWAPS_OPENED, {});
+            trackLegacyAnonymousEvent(
               MetaMetricsEvents.SWAPS_OPENED,
               parameters,
-              true,
             );
           });
         } else {
@@ -941,9 +944,9 @@ SwapsAmountView.propTypes = {
    */
   setHasOnboarded: PropTypes.func,
   /**
-   * Current Network provider
+   * Current network provider configuration
    */
-  provider: PropTypes.object,
+  providerConfig: PropTypes.object,
   /**
    * Chain Id
    */
@@ -972,10 +975,10 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
   userHasOnboarded: swapsHasOnboardedSelector(state),

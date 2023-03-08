@@ -12,12 +12,14 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
+import zxcvbn from 'zxcvbn';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
+import AnimatedFox from 'react-native-animated-fox';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  logIn,
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
@@ -26,22 +28,24 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   EXISTING_USER,
-  NEXT_MAKER_REMINDER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
+  PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -50,11 +54,10 @@ import {
 } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
 
 import {
   CREATE_PASSWORD_CONTAINER_ID,
@@ -267,7 +270,6 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    logIn: PropTypes.func,
   };
 
   state = {
@@ -296,14 +298,27 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
-    this.updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (biometryType) {
+    const authData = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
-        biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: true,
+        biometryType: passcodeType(authData.currentAuthType),
+        biometryChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
+      });
+    } else if (authData.availableBiometryType) {
+      this.setState({
+        biometryType: authData.availableBiometryType,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
       });
     }
+    this.updateNavBar();
     setTimeout(() => {
       this.setState({
         inputWidth: { width: '100%' },
@@ -333,13 +348,6 @@ class ChoosePassword extends PureComponent {
     this.setState(() => ({ isSelected: !isSelected }));
   };
 
-  createNewVaultAndKeychain = async (password) => {
-    const { KeyringController } = Engine.context;
-    await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
-    this.keyringControllerPasswordSet = true;
-  };
-
   onPressCreate = async () => {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
@@ -355,54 +363,39 @@ class ChoosePassword extends PureComponent {
       return;
     }
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
+      trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
     });
 
     try {
       this.setState({ loading: true });
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
-      if (previous_screen === ONBOARDING) {
-        await this.createNewVaultAndKeychain(password);
-        this.props.seedphraseNotBackedUp();
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-        await AsyncStorage.setItem(EXISTING_USER, TRUE);
-        await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-      } else {
-        await this.recreateVault(password);
-      }
+      const authType = await Authentication.componentAuthenticationType(
+        this.state.biometryChoice,
+        this.state.rememberMe,
+      );
 
-      // Set state in app as it was with password
-      await SecureKeychain.resetGenericPassword();
-      if (this.state.biometryType && this.state.biometryChoice) {
+      if (previous_screen === ONBOARDING) {
         try {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
+          await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
           if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
         }
-      } else if (this.state.rememberMe) {
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.REMEMBER_ME,
-        );
+        this.keyringControllerPasswordSet = true;
+        this.props.seedphraseNotBackedUp();
       } else {
-        await SecureKeychain.resetGenericPassword();
+        await this.recreateVault(password, authType);
       }
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+
       this.props.passwordSet();
-      this.props.logIn();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATED, {
+        trackEvent(MetaMetricsEvents.WALLET_CREATED, {
           biometrics_enabled: Boolean(this.state.biometryType),
         });
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'new',
           new_wallet: true,
         });
@@ -414,8 +407,6 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await SecureKeychain.resetGenericPassword();
-      await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
@@ -431,7 +422,7 @@ class ChoosePassword extends PureComponent {
         this.setState({ loading: false, error: error.toString() });
       }
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'new',
           error_type: error.toString(),
         });
@@ -441,8 +432,7 @@ class ChoosePassword extends PureComponent {
 
   /**
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-   * It resets the state and and prompts the user to both set the "Remember Me" state and to try again.
-   * @param {*} error - error provide from try catch wrapping the biometric set password attempt
+   * If this occurs we will create the wallet automatically with password as the login method
    */
   handleRejectedOsBiometricPrompt = async (error) => {
     this.updateBiometryChoice(false);
@@ -454,10 +444,9 @@ class ChoosePassword extends PureComponent {
    *
    * @param password - Password to recreate and set the vault with
    */
-  recreateVault = async (password) => {
+  recreateVault = async (password, authType) => {
     const { KeyringController, PreferencesController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
-
     let importedAccounts = [];
     try {
       const keychainPassword = this.keyringControllerPasswordSet
@@ -484,7 +473,12 @@ class ChoosePassword extends PureComponent {
     }
 
     // Recreate keyring with password given to this method
-    await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+    await Authentication.newWalletAndRestore(
+      password,
+      authType,
+      seedPhrase,
+      true,
+    );
     // Keyring is set with empty password or not
     this.keyringControllerPasswordSet = password !== '';
 
@@ -547,11 +541,7 @@ class ChoosePassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    if (!biometryChoice) {
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    } else {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-    }
+    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 
@@ -779,7 +769,7 @@ ChoosePassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+    state.engine.backgroundState.PreferencesController?.selectedAddress,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -787,7 +777,6 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  logIn: () => dispatch(logIn()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
