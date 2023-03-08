@@ -2,7 +2,6 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
-import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
 
 describe('AssetElement', () => {
   const onPressMock = jest.fn();

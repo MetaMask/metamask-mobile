@@ -1,10 +1,11 @@
 import React from 'react';
+// eslint-disable-next-line @typescript-eslint/no-shadow
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
-import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
