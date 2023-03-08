@@ -61,6 +61,81 @@ index 4ed4990..da18116 100644
                              });
                          }
                      }
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
+index e3f81e9..cfa0e05 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
++++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
+@@ -77,6 +77,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+             chainId: '',
+             tokens: [],
+             threshold: 6 * 60 * 60 * 1000,
++            exchangeRateNativeCurrency: '',
+         };
+         this.defaultState = {
+             contractExchangeRates: {},
+@@ -93,7 +94,6 @@ class TokenRatesController extends base_controller_1.BaseController {
+         });
+         onNetworkStateChange(({ providerConfig }) => {
+             const { chainId } = providerConfig;
+-            this.update({ contractExchangeRates: {} });
+             this.configure({ chainId });
+         });
+         this.poll();
+@@ -107,7 +107,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+         return __awaiter(this, void 0, void 0, function* () {
+             interval && this.configure({ interval }, false, false);
+             this.handle && clearTimeout(this.handle);
+-            yield (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates());
++            yield (0, controller_utils_1.safelyExecute)(() => this.updateExchangeRates(true));
+             this.handle = setTimeout(() => {
+                 this.poll(this.config.interval);
+             }, this.config.interval);
+@@ -202,7 +202,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+     /**
+      * Updates exchange rates for all tokens.
+      */
+-    updateExchangeRates() {
++    updateExchangeRates(forceFetch = false) {
+         return __awaiter(this, void 0, void 0, function* () {
+             if (this.tokenList.length === 0 || this.disabled) {
+                 return;
+@@ -217,7 +217,19 @@ class TokenRatesController extends base_controller_1.BaseController {
+             }
+             else {
+                 const { nativeCurrency } = this.config;
+-                newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
++
++                if (
++                    this.config.exchangeRateNativeCurrency !== nativeCurrency ||
++                    forceFetch
++                  ) {
++                    newContractExchangeRates = yield this.fetchAndMapExchangeRates(
++                      nativeCurrency,
++                      slug,
++                    );
++                  } else {
++                    newContractExchangeRates = this.state.contractExchangeRates;
++                  }
++
+             }
+             this.update({ contractExchangeRates: newContractExchangeRates });
+         });
+@@ -236,6 +248,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+      */
+     fetchAndMapExchangeRates(nativeCurrency, slug) {
+         return __awaiter(this, void 0, void 0, function* () {
++            this.configure({ exchangeRateNativeCurrency: nativeCurrency });
+             const contractExchangeRates = {};
+             // check if native currency is supported as a vs_currency by the API
+             const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(nativeCurrency);
+@@ -264,6 +277,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+                     ]);
+                 }
+                 catch (error) {
++                    this.update({ contractExchangeRates: {} });
+                     if (error instanceof Error &&
+                         error.message.includes('market does not exist for this coin pair')) {
+                         return {};
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 index 8c02fe6..f52739b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
