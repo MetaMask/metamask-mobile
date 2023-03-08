@@ -9,12 +9,12 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
@@ -23,13 +23,17 @@ import {
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
-import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { MAINNET } from '../../../constants/network';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
@@ -155,7 +159,7 @@ const CollectibleContracts = ({
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
+      trackLegacyEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
   };
@@ -327,8 +331,8 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   useNftDetection:

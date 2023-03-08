@@ -17,6 +17,7 @@ export interface AccountPermissionsConnectedProps extends UseAccounts {
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;
   onDismissSheet: () => void;
   hostname: string;
+  urlWithProtocol: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
   accountAvatarType: AvatarAccountType;

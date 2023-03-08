@@ -38,6 +38,7 @@ const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
 /* eslint-enable */
 import PopularList from './customNetworks';
+import { strings } from '../../../locales/i18n';
 
 /**
  * List of the supported networks
@@ -125,7 +126,7 @@ export const getAllNetworks = () =>
 export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 
 export const isMainNet = (network) =>
-  isDefaultMainnet(network?.provider?.type) || network === String(1);
+  isDefaultMainnet(network?.providerConfig?.type) || network === String(1);
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
@@ -337,7 +338,7 @@ export function blockTagParamIndex(payload) {
  * @returns {string} Name of the network.
  */
 export const getNetworkNameFromProvider = (provider) => {
-  let name = '';
+  let name = strings('network_information.unknown_network');
   if (provider.nickname) {
     name = provider.nickname;
   } else {

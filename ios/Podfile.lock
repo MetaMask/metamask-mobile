@@ -440,7 +440,7 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNReanimated (2.11.0):
+  - RNReanimated (2.14.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -777,7 +777,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
-  Branch: 74cc856025984f691833c8fa332834ac38a0cf4e
+  Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
@@ -858,7 +858,7 @@ SPEC CHECKSUMS:
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNReanimated: 0a4de6844119f4f1c3a46e6e7958ee7425ab4d0f
+  RNReanimated: 00e967b22c79cba0c243c0d176a970a9f1fa8070
   RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
   RNSentry: e86fb2e2fec0365644f4b582938bf66be515acce

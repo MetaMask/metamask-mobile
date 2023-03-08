@@ -54,7 +54,7 @@ function Settings() {
       <ScreenLayout scrollable>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <Row>
+            <Row first>
               <Text style={style.title}>
                 {strings('app_settings.fiat_on_ramp.current_region')}
               </Text>

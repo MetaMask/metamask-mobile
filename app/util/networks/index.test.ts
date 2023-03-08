@@ -27,7 +27,7 @@ jest.mock('./../../core/Engine', () => ({
       setRpcTarget: () => jest.fn(),
       setProviderType: () => jest.fn(),
       state: {
-        provider: {
+        providerConfig: {
           chainId: '3',
         },
       },
@@ -52,7 +52,7 @@ describe('NetworkUtils::isMainNet', () => {
     expect(isMainNet('1')).toEqual(true);
     expect(
       isMainNet({
-        provider: {
+        providerConfig: {
           type: MAINNET,
         },
       }),
@@ -63,7 +63,7 @@ describe('NetworkUtils::isMainNet', () => {
     expect(
       isMainNet({
         network: {
-          provider: {
+          providerConfig: {
             type: ROPSTEN,
           },
         },
