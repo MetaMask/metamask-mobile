@@ -1,14 +1,25 @@
-// /* eslint-disable import/prefer-default-export */
+/* eslint-disable no-console */
+/* eslint-disable import/prefer-default-export */
+// External dependencies.
+import { IconName, IconSize } from '../../Icons/Icon';
+import { ButtonIconSizes } from '../../Buttons/ButtonIcon';
 
-// // Internal dependencies.
-// import { ListItemProps } from './ListItem.types';
+// Internal dependencies.
+import { TextFieldSearchProps } from './TextFieldSearch.types';
 
-// // Defaults
-// export const DEFAULT_LIST_ITEM_VERTICAL_ALIGNMENT =
-//   VerticalAlignmentOptions.Top;
+// Tokens
+export const TOKEN_TEXTFIELDSEARCH_SEARCHICON_NAME = IconName.Search;
+export const TOKEN_TEXTFIELDSEARCH_SEARCHICON_SIZE = IconSize.Sm;
+export const TOKEN_TEXTFIELDSEARCH_CLOSEICON_NAME = IconName.Close;
+export const TOKEN_TEXTFIELDSEARCH_CLOSEICON_SIZE = ButtonIconSizes.Sm;
 
-// // Sample consts
+// Test IDs
+export const TEXTFIELDSEARCH_TEST_ID = 'textfieldsearch';
 
-// export const SAMPLE_LIST_ITEM_PROPS: ListItemProps = {
-//   verticalAlignment: VerticalAlignmentOptions.Top,
-// };
+// Sample consts
+export const SAMPLE_TEXTFIELDSEARCH_PROPS: TextFieldSearchProps = {
+  showClearButton: false,
+  clearButtonOnPress: () => {
+    console.log('clicked');
+  },
+};

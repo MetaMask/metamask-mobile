@@ -7,12 +7,17 @@ import { View } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import Input from './foundation/Input';
-import { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import styleSheet from './TextField.styles';
 import { TextFieldProps } from './TextField.types';
-import { DEFAULT_TEXTFIELD_SIZE } from './TextField.constants';
+import {
+  DEFAULT_TEXTFIELD_SIZE,
+  TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT,
+  TEXTFIELD_TEST_ID,
+  TEXTFIELD_STARTACCESSORY_TEST_ID,
+  TEXTFIELD_ENDACCESSORY_TEST_ID,
+} from './TextField.constants';
 
 const TextField: React.FC<TextFieldProps> = ({
   style,
@@ -58,9 +63,14 @@ const TextField: React.FC<TextFieldProps> = ({
   );
 
   return (
-    <View style={styles.base}>
+    <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
       {startAccessory && (
-        <View style={styles.startAccessory}>{startAccessory}</View>
+        <View
+          style={styles.startAccessory}
+          testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
+        >
+          {startAccessory}
+        </View>
       )}
       <View style={styles.input}>
         {inputComponent ? (
@@ -68,7 +78,7 @@ const TextField: React.FC<TextFieldProps> = ({
         ) : (
           <Input
             disableStateStyles
-            textVariant={TextVariant.BodyMD}
+            textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
             disabled={disabled}
             autoFocus={autoFocus}
             onBlur={onBlurHandler}
@@ -77,7 +87,14 @@ const TextField: React.FC<TextFieldProps> = ({
           />
         )}
       </View>
-      {endAccessory && <View style={styles.endAccessory}>{endAccessory}</View>}
+      {endAccessory && (
+        <View
+          style={styles.endAccessory}
+          testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
+        >
+          {endAccessory}
+        </View>
+      )}
     </View>
   );
 };

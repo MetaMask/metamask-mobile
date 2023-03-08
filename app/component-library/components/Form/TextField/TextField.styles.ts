@@ -34,6 +34,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
         borderColor,
         opacity: disabled ? 0.5 : 1,
         paddingHorizontal: 16,
+        backgroundColor: theme.colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
