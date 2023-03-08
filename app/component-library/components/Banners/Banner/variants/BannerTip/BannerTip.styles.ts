@@ -4,9 +4,6 @@ import { StyleSheet, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 
-// Internal dependencies.
-import { BannerTipSeverity } from './BannerTip.types';
-
 /**
  * Style sheet function for BannerTip component.
  *
