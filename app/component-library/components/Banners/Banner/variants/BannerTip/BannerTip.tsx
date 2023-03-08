@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
@@ -25,11 +25,13 @@ const BannerTip: React.FC<BannerTipProps> = ({
   const { styles } = useStyles(styleSheet, { style });
 
   const foxLogo = (
-    <Image
-      source={IMAGESOURCE_BY_BANNERTIPLOGOTYPE[logoType]}
-      style={styles.logo}
-      resizeMode={'contain'}
-    />
+    <View style={styles.logoContainer}>
+      <Image
+        source={IMAGESOURCE_BY_BANNERTIPLOGOTYPE[logoType]}
+        style={styles.logo}
+        resizeMode={'contain'}
+      />
+    </View>
   );
 
   return (

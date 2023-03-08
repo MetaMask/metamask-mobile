@@ -28,8 +28,13 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    logoContainer: {
+      alignSelf: 'stretch',
+      alignContent: 'center',
+    },
     logo: {
       width: 60,
+      height: 55,
     },
   });
 };
