@@ -70,8 +70,8 @@ export class BackgroundBridge extends EventEmitter {
    * Background bridge constructor.
    *
    * @param {object} options - Background bridge options.
-   * @param {Function} getRpcMethodMiddleware - Returns the set of middleware to use for this background connection.
-   * @param {ConnectionOptions} - Options for this background connection.
+   * @param {Function} options.getRpcMethodMiddleware - Returns the set of middleware to use for this background connection.
+   * @param {ConnectionOptions} options.connectionOptions - Options for this background connection.
    */
   constructor({ getRpcMethodMiddleware, connectionOptions }) {
     super();
