@@ -448,7 +448,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "emulator"
+          "avdName": "Pixel_3_API_31"
         }
       },
       "android.emu.release.qa": {
@@ -457,7 +457,7 @@
         "build": "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
         "type": "android.emulator",
         "device": {
-          "avdName": "emulator"
+          "avdName": "Pixel_3_API_31"
         }
       }
     },
