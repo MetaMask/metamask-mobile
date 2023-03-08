@@ -27,12 +27,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      - cache-push@2:
-          # Manual cache path needed here because the `yarn` step only caches for the `install` command
-          inputs:
-            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
-            # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
       - yarn@0:
           title: Lint
           inputs:
@@ -41,6 +35,12 @@ workflows:
           inputs:
             - command: audit:ci
           title: Audit Dependencies
+      - cache-push@2:
+          # Manual cache path needed here because the `yarn` step only caches for the `install` command
+          inputs:
+            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+            # postinstall script modifications and could affect hoisting on subsequent installs.
+            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
   code_setup_dev:
     before_run:
       - setup
