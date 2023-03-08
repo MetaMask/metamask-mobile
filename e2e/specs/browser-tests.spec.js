@@ -8,7 +8,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import { BROWSER_SCREEN_ID, Browser } from '../pages/Drawer/Browser';
+import { Browser, BROWSER_SCREEN_ID } from '../pages/Drawer/Browser';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import ConnectModal from '../pages/modals/ConnectModal';
@@ -16,6 +16,7 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import TermsOfUseModal from '../pages/Onboarding/TermsOfUseModal';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
@@ -30,6 +31,12 @@ describe('Browser Tests', () => {
   });
 
   it('should create new wallet', async () => {
+    await TermsOfUseModal.isDisplayed();
+    await TermsOfUseModal.tapScrollEndButton();
+    await TermsOfUseModal.tapAgreeCheckBox();
+    await TermsOfUseModal.tapAcceptButton();
+    await TermsOfUseModal.isNotDisplayed();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 

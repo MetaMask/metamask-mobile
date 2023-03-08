@@ -24,6 +24,7 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import WalletView from '../pages/WalletView';
+import { acceptTermOfUse } from '../viewHelper';
 
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
@@ -54,6 +55,8 @@ describe('Deep linking Tests', () => {
   });
 
   it('should import via seed phrase and validate in settings', async () => {
+    await acceptTermOfUse();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 

@@ -3,6 +3,9 @@ Feature: This feature file covers invalid url functionality in the browser.
 
   Scenario: Searching an invalid url and prompts the user with an error message
     Given the app displayed the splash animation
+    And the splash animation disappears
+    And I agree to terms
+    And Terms of Use is not displayed
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial

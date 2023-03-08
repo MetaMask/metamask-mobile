@@ -8,6 +8,9 @@ Feature: Adding Networks via the popular and custom networks flow
 
   Scenario Outline: Adding a network via the new popular network flow
     Given the app displayed the splash animation
+    And the splash animation disappears
+    And I agree to terms
+    And Terms of Use is not displayed
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial

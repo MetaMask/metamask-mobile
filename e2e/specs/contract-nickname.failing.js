@@ -24,6 +24,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../helpers';
+import { acceptTermOfUse } from '../viewHelper';
 
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
@@ -41,6 +42,8 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should import via seed phrase and validate in settings', async () => {
+    await acceptTermOfUse();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 

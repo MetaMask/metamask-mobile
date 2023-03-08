@@ -23,6 +23,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import TestHelpers from '../helpers';
+import TermsOfUseModal from '../pages/Onboarding/TermsOfUseModal';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -36,6 +37,12 @@ describe('Addressbook Tests', () => {
   });
 
   it('should create new wallet', async () => {
+    await TermsOfUseModal.isDisplayed();
+    await TermsOfUseModal.tapScrollEndButton();
+    await TermsOfUseModal.tapAgreeCheckBox();
+    await TermsOfUseModal.tapAcceptButton();
+    await TermsOfUseModal.isNotDisplayed();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 

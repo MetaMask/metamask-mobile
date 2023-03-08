@@ -1,11 +1,12 @@
 // Third party dependencies
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  TouchableOpacity,
-  ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 
@@ -28,6 +29,8 @@ import {
 } from './ModalMandatory.constants';
 import { MandatoryModalProps } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -53,6 +56,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     onRender,
     isScrollToEndNeeded,
     scrollEndBottomMargin,
+    containerTestId,
+    buttonTestId,
   } = route.params;
 
   const scrollToEndJS = `window.scrollTo(0, document.body.scrollHeight - ${
@@ -119,7 +124,12 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         },
       ]}
     >
-      <ButtonIcon onPress={scrollToEnd} iconName={IconName.ArrowDown} />
+      <ButtonIcon
+        {...generateTestId(Platform, TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID)}
+        testID={TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID}
+        onPress={scrollToEnd}
+        iconName={IconName.ArrowDown}
+      />
     </View>
   );
 
@@ -188,7 +198,11 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen} isDismissable={false}>
-      <View style={styles.modal}>
+      <View
+        style={styles.modal}
+        testID={containerTestId}
+        {...generateTestId(Platform, containerTestId)}
+      >
         {renderHeader()}
         <View style={styles.bodyContainer}>
           {body.source === 'WebView' ? renderWebView(body.uri) : renderBody()}
@@ -213,6 +227,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
             ...buttonBackgroundColor(),
           }}
           onPress={onPress}
+          testID={buttonTestId}
+          {...generateTestId(Platform, buttonTestId)}
         />
         {isScrollToEndNeeded && renderScrollEndButton()}
         {footerHelpText ? (

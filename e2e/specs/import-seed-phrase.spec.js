@@ -8,7 +8,6 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 //import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 //import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
@@ -16,9 +15,9 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 
 //import DrawerView from '../pages/Drawer/DrawerView';
 //import SettingsView from '../pages/Drawer/Settings/SettingsView';
-
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 const INCORRECT_SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just falcon';
@@ -34,6 +33,8 @@ describe('Import seedphrase flow', () => {
   });
 
   it('should go to import wallet view', async () => {
+    await acceptTermOfUse();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
