@@ -19,17 +19,18 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 14 (latest stable) and yarn@1 (latest)**
+-   Install [Node.js](https://nodejs.org) **version 14**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
--   Install yarn
+-   Install [Yarn v1](https://yarnpkg.com/en/docs/install)
+
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
 ```bash
-sudo gem install cocoapods
+sudo gem install cocoapods -v 1.11.3
 ```
 
 
@@ -70,7 +71,6 @@ sudo gem install cocoapods
 
 -   Install the iOS dependencies
     -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
-        -   You do **not** need CocoaPods
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
     -   **Device:** iPhone 11 Pro
@@ -98,7 +98,6 @@ cd metamask-mobile
 -   Install the app:
 ```
 yarn setup # not the usual install command, this will run a lengthy postinstall flow
-cd ios && pod install && cd .. # install pods for iOS
 ```
 
 -   Then, in one terminal, run:
