@@ -1,7 +1,6 @@
 @androidApp
 @ChainScenarios
 @smoke
-
 Feature: Importing account in wallet
 
   Scenario: Import account

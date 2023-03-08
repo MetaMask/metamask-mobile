@@ -1,4 +1,5 @@
-@androidApp @ChainScenarios
+@androidApp
+@ChainScenarios
 Feature: App launch times
   As a user,
   I want to measure the time it takes to launch the app,
@@ -6,6 +7,7 @@ Feature: App launch times
 
   Scenario: Measure app launch time on fresh install
     Given the app is launched
+
     When the app displayed the splash animation
     Then the app should launch within x seconds
 
@@ -14,6 +16,7 @@ Feature: App launch times
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I am on the wallet view
+
     When I kill the app
     And I relaunch the app
     And the timer starts running

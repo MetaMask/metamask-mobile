@@ -1,4 +1,5 @@
-@androidApp @regression
+@androidApp
+@regression
 Feature: This feature file cover the switch account on the browser flow.
 
   Scenario: Switching accounts while connected to a dapp.
@@ -28,5 +29,6 @@ Feature: This feature file cover the switch account on the browser flow.
     When I tap on Create a new account
     Then the created account is selected
     And "Account 2" is the active wallet account
+
 
 #And active wallet is connected to Uniswap

@@ -1,7 +1,6 @@
 @iosApp
-@androidApp 
+@androidApp
 @smoke
-
 Feature: Import Wallet
   Users  can use the app to import an existing wallet or create a new one.
 

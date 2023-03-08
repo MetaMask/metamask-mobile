@@ -1,7 +1,6 @@
 @androidApp
 @ChainScenarios
 @smoke
-
 Feature: Adding a custom token to your wallet
 
   Scenario: Import account

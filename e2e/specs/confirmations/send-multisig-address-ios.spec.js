@@ -45,7 +45,6 @@ describe('Send to multisig address on iOS', () => {
     await TransactionConfirmationView.isTransactionTotalCorrect(
       '0.00004 GoerliETH',
     );
-
   });
 
   it('should send eth', async () => {

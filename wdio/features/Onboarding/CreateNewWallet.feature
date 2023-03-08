@@ -1,7 +1,6 @@
-@androidApp 
-@ChainScenarios 
+@androidApp
+@ChainScenarios
 @smoke
-
 Feature: New wallet flow
 
   Scenario: Onboarding New walllet
