@@ -1,9 +1,28 @@
 /* eslint-disable no-script-url */
 import isLinkSafe from './linkCheck';
 
+jest.mock('../core/Engine', () => ({
+  context: {
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: jest.fn((url: string) => {
+        if (url === 'phishing.com') return { result: true };
+        return { result: false };
+      }),
+    },
+  },
+}));
+
 describe('linkCheck', () => {
   it('should correctly check links for safety', () => {
     expect(isLinkSafe('https://www.example.com/')).toEqual(true);
+    expect(isLinkSafe('http://phishing.com')).toEqual(false);
+    expect(
+      isLinkSafe(
+        'https://metamask.app.link/send/pay-Contract-Address@chain-id/transfer?address=Receiver-Address&uint256=1e21',
+      ),
+    ).toEqual(false);
+
     expect(isLinkSafe('javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('j&Tab;avascript:alert(1);')).toEqual(false);
     expect(isLinkSafe('&Tab;javascript:alert(1);&tab;')).toEqual(false);
