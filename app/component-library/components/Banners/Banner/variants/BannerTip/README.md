@@ -1,18 +1,18 @@
-# BannerAlert
+# BannerTip
 
-BannerAlert is an inline notification that notifies users of important information & sometimes time-sensitive changes.
+BannerTip is an inline notification that offers users educational tips, knowledge, and helpful links
 
-## BannerAlert Props
+## BannerTip Props
 
 This component extends [BannerBaseProps](../../foundation/BannerBase/BannerBase.types.ts) from [BannerBase](../../foundation/BannerBase/BannerBase.tsx) component.
 
-### `severity`
+### `logoType`
 
-Optional enum to determine the severity color of the BannerAlert.
+Optional enum to determine the logo type of the BannerTip.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [BannerAlertSeverity](./BannerAlert.types.ts)    | No                                                     | BannerAlertSeverity.Info                                |
+| [BannerTipLogoType](./BannerTip.types.ts)    | No                                                     | BannerTipLogoType.Greeting                                |
 
 ### `variant`
 
@@ -107,8 +107,8 @@ Optional prop to control the close button's props.
 ## Usage
 
 ```javascript
-<BannerAlert
-  severity={BannerAlertSeverity.Error}
+<BannerTip
+  logoType={BannerTipLogoType.Greeting}
   title={SAMPLE_BANNERALERT_TITLE}
   description={SAMPLE_BANNERALERT_DESCRIPTION}
   actionButtonLabel={SAMPLE_BANNERALERT_ACTIONBUTTONLABEL}

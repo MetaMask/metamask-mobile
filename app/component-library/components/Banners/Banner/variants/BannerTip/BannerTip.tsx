@@ -14,6 +14,7 @@ import { BannerTipProps } from './BannerTip.types';
 import {
   DEFAULT_BANNERTIP_LOGOTYPE,
   IMAGESOURCE_BY_BANNERTIPLOGOTYPE,
+  BANNERTIP_TEST_ID,
 } from './BannerTip.constants';
 
 const BannerTip: React.FC<BannerTipProps> = ({
@@ -31,7 +32,14 @@ const BannerTip: React.FC<BannerTipProps> = ({
     />
   );
 
-  return <BannerBase style={styles.base} startAccessory={foxLogo} {...props} />;
+  return (
+    <BannerBase
+      style={styles.base}
+      startAccessory={foxLogo}
+      testID={BANNERTIP_TEST_ID}
+      {...props}
+    />
+  );
 };
 
 export default BannerTip;

@@ -1,10 +1,18 @@
-# BannerAlert
+# Banner
 
-BannerAlert is an inline notification that notifies users of important information & sometimes time-sensitive changes.
+This component is a union Banner component, which consists of [BannerAlert](../BannerAlert/BannerAlert.tsx) and [BannerTip](../BannerTip/BannerTip.tsx).
+
+## Banner Props
+
+### `variant`
+
+Variant of Banner.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [BannerVariant](../../Banner.types.ts)               | Yes                                                     |
 
 ## BannerAlert Props
-
-This component extends [BannerBaseProps](../../foundation/BannerBase/BannerBase.types.ts) from [BannerBase](../../foundation/BannerBase/BannerBase.tsx) component.
 
 ### `severity`
 
@@ -14,13 +22,15 @@ Optional enum to determine the severity color of the BannerAlert.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [BannerAlertSeverity](./BannerAlert.types.ts)    | No                                                     | BannerAlertSeverity.Info                                |
 
-### `variant`
+## BannerTip Props
 
-Variant of Banner.
+### `logoType`
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [BannerVariant](../../Banner.types.ts)               | No                                                     |
+Optional enum to determine the logo type of the Banner.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [BannerLogoType](./Banner.types.ts)    | No                                                     | BannerLogoType.Greeting                                |
 
 ## Common Props
 
@@ -107,8 +117,22 @@ Optional prop to control the close button's props.
 ## Usage
 
 ```javascript
-<BannerAlert
+
+// Banner Alert
+<Banner
+  variant={BannerVariant.Alert}
   severity={BannerAlertSeverity.Error}
+  title={SAMPLE_BANNERALERT_TITLE}
+  description={SAMPLE_BANNERALERT_DESCRIPTION}
+  actionButtonLabel={SAMPLE_BANNERALERT_ACTIONBUTTONLABEL}
+  actionButtonOnPress={() => {}}
+  onClose={() => {}}
+/>;
+
+// Banner Tip
+<Banner
+  variant={BannerVariant.Tip}
+  logoType={BannerLogoType.Greeting}
   title={SAMPLE_BANNERALERT_TITLE}
   description={SAMPLE_BANNERALERT_DESCRIPTION}
   actionButtonLabel={SAMPLE_BANNERALERT_ACTIONBUTTONLABEL}

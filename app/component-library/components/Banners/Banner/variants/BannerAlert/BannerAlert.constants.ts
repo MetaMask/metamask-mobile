@@ -26,6 +26,9 @@ export const ICONNAME_BY_BANNERALERTSEVERITY: IconNameByBannerAlertSeverity = {
   [BannerAlertSeverity.Warning]: IconName.Danger,
 };
 
+// Test IDs
+export const BANNERALERT_TEST_ID = 'banneralert';
+
 // Sample consts
 export const SAMPLE_BANNERALERT_TITLE = 'Sample Banner Alert Title';
 export const SAMPLE_BANNERALERT_DESCRIPTION = 'Sample Banner Alert Description';

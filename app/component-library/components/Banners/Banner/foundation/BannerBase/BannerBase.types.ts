@@ -32,6 +32,10 @@ export interface BannerBaseProps extends ViewProps {
    */
   description?: string;
   /**
+   * Optional prop to control the description's props.
+   */
+  descriptionProps?: TextProps;
+  /**
    * For custom description with links, pass in node element.
    */
   descriptionEl?: React.ReactNode;

@@ -19,7 +19,8 @@ import {
 // Defaults
 export const DEFAULT_BANNERTIP_LOGOTYPE = BannerTipLogoType.Greeting;
 
-// Tokens
+// Test IDs
+export const BANNERTIP_TEST_ID = 'bannertip';
 
 // Mappings
 const logoFoxChat: ImageSourcePropType = require('./assets/fox-chat.png');

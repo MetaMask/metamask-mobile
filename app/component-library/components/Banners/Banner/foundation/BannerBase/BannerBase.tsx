@@ -27,16 +27,18 @@ const BannerBase: React.FC<BannerBaseProps> = ({
   title,
   titleProps,
   description,
+  descriptionProps,
   descriptionEl,
   actionButtonLabel,
   actionButtonOnPress,
   actionButtonProps,
   onClose,
   closeButtonProps,
+  ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
-    <View style={styles.base}>
+    <View style={styles.base} {...props}>
       <View style={styles.startAccessory}>{startAccessory}</View>
       <View style={styles.info}>
         {(title || titleProps) && (
@@ -45,7 +47,10 @@ const BannerBase: React.FC<BannerBaseProps> = ({
           </Text>
         )}
         {description && (
-          <Text variant={TOKEN_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
+          <Text
+            variant={TOKEN_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+            {...descriptionProps}
+          >
             {description}
           </Text>
         )}

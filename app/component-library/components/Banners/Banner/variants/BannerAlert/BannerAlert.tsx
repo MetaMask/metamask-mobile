@@ -15,6 +15,7 @@ import {
   DEFAULT_BANNERALERT_SEVERITY,
   TOKEN_BANNERALERT_ICONSIZE,
   ICONNAME_BY_BANNERALERTSEVERITY,
+  BANNERALERT_TEST_ID,
 } from './BannerAlert.constants';
 
 const BannerAlert: React.FC<BannerAlertProps> = ({
@@ -33,7 +34,12 @@ const BannerAlert: React.FC<BannerAlertProps> = ({
   );
 
   return (
-    <BannerBase style={styles.base} startAccessory={severityIcon} {...props} />
+    <BannerBase
+      style={styles.base}
+      startAccessory={severityIcon}
+      testID={BANNERALERT_TEST_ID}
+      {...props}
+    />
   );
 };
 
