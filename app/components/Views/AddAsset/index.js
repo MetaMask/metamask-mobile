@@ -14,6 +14,10 @@ import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -183,8 +187,8 @@ class AddAsset extends PureComponent {
 AddAsset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
   useNftDetection:
     state.engine.backgroundState.PreferencesController.useNftDetection,
 });

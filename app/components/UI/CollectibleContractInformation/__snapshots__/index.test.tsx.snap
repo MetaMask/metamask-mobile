@@ -14,7 +14,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
   dispatch={[Function]}
   network={
     Object {
-      "provider": Object {
+      "providerConfig": Object {
         "type": "mainnet",
       },
     }

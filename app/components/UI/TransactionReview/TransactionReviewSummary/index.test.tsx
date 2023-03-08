@@ -19,7 +19,7 @@ const initialState = {
         tokens: [],
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
         },
       },

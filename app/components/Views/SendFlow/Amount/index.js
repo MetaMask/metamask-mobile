@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import { fontStyles } from '../../../../styles/common';
 import {
   StyleSheet,
   Text,
@@ -13,6 +12,14 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { BN } from 'ethereumjs-util';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Modal from 'react-native-modal';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { fontStyles } from '../../../../styles/common';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   setSelectedAsset,
   prepareTransaction,
@@ -20,10 +27,7 @@ import {
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
-import PropTypes from 'prop-types';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Modal from 'react-native-modal';
+
 import TokenImage from '../../../UI/TokenImage';
 import {
   renderFromTokenMinimalUnit,
@@ -49,18 +53,15 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN, BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
+import { trackLegacyEvent } from '../../../../util/analyticsV2';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-import { BN } from 'ethereumjs-util';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { renderShortText } from '../../../../util/general';
@@ -82,8 +83,12 @@ import {
   AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
-} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
+} from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -609,10 +614,9 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
-        { network: providerType },
-      );
+      trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
+        network: providerType,
+      });
     });
 
     setSelectedAsset(selectedAsset);
@@ -1367,11 +1371,11 @@ const mapStateToProps = (state, ownProps) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,

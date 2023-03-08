@@ -7,22 +7,21 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import NotificationManager from '../../../core/NotificationManager';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
-import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
+import { fontStyles } from '../../../styles/common';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   CUSTOM_TOKEN_CONTAINER_ID,
@@ -96,7 +95,7 @@ export default class AddCustomToken extends PureComponent {
   getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const { address, symbol } = this.state;
       return {
         token_address: address,
@@ -115,10 +114,7 @@ export default class AddCustomToken extends PureComponent {
     const { address, symbol, decimals } = this.state;
     await TokensController.addToken(address, symbol, decimals);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.TOKEN_ADDED,
-      this.getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, this.getAnalyticsParams());
 
     // Clear state before closing
     this.setState(
@@ -182,7 +178,7 @@ export default class AddCustomToken extends PureComponent {
     const address = this.state.address;
     const isValidTokenAddress = isValidAddress(address);
     const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.provider || {};
+    const { chainId } = NetworkController?.state?.providerConfig || {};
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
     const addressWithoutSpaces = address.replace(/\s/g, '');

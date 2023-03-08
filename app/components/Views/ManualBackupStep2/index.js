@@ -8,6 +8,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -16,9 +17,8 @@ import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { trackEvent } from '../../../util/analyticsV2';
 import { shuffle, compareSRPs } from '../../../util/SRP';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import {
@@ -128,13 +128,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(() => {
         const words = route.params?.words;
-        navigation.navigate('ManualBackupStep3', {
-          steps: route.params?.steps,
-          words,
-        });
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
-        );
+        navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
+        trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED);
       });
     } else {
       Alert.alert(

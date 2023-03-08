@@ -1,8 +1,8 @@
+/* eslint-disable no-undef */
 import { When, Then } from '@wdio/cucumber-framework';
 import ChangePasswordScreens from '../screen-objects/ChangePasswordScreens';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen';
 import SecurityAndPrivacyScreen from '../screen-objects/SecurityAndPrivacyScreen';
-import WalletMainScreen from '../screen-objects/WalletMainScreen';
 
 When(
   /^on Change password screen I input "([^"]*)?" in confirm field/,

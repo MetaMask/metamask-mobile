@@ -56,12 +56,12 @@ const createStyles = (colors: any) =>
 
 const MetaMaskAnimation = ({
   opacity,
-  animation,
+  animationRef,
   animationName,
   onAnimationFinish,
 }: {
   opacity: number;
-  animation: any;
+  animationRef: any;
   animationName: any;
   onAnimationFinish: () => void;
 }): JSX.Element => {
@@ -78,7 +78,8 @@ const MetaMaskAnimation = ({
             {...generateTestId(Platform, SPLASH_SCREEN_METAMASK_ANIMATION_ID)}
           >
             <LottieView
-              ref={animation}
+              autoPlay={false}
+              ref={animationRef}
               style={styles.animation}
               loop={false}
               // eslint-disable-next-line
@@ -86,6 +87,7 @@ const MetaMaskAnimation = ({
               onAnimationFinish={onAnimationFinish}
             />
             <LottieView
+              autoPlay={false}
               ref={animationName}
               style={styles.metamaskName}
               loop={false}

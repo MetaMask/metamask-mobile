@@ -17,7 +17,7 @@ exports[`NetworkList should render correctly 1`] = `
       },
     ]
   }
-  provider={
+  providerConfig={
     Object {
       "rpcTarget": "http://10.0.2.2:8545",
       "type": "mainnet",

@@ -612,7 +612,6 @@
     "third_party_title": "Gelen işlemleri al",
     "third_party_description": "Geçmişteki gelen işlemlerini göstermek için Üçüncü taraf API'ler (Etherscan) kullanılır. Bu hizmetlerden veri çekmemizi istemiyorsanız bunu kapatın.",
     "metametrics_opt_out": "MetaMetrics'ten Ayrıl",
-    "metametrics_restart_required": "Değişikliklerin geçerli olması için uygulamayı yeniden başlatmanız gerekir.",
     "create_password": "Şifre oluştur",
     "invalid_password": "Şifre geçersiz",
     "invalid_password_message": "Şifre yanlıştı. Lütfen tekrar deneyin.",

@@ -15,10 +15,10 @@ import QRCode from 'react-native-qrcode-svg';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { strings } from '../../../../locales/i18n';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { getTicker } from '../../../util/transactions';
@@ -38,6 +38,11 @@ import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -168,7 +173,7 @@ class ReceiveRequest extends PureComponent {
         Logger.log('Error while trying to share address', err);
       });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
     });
   };
 
@@ -186,14 +191,11 @@ class ReceiveRequest extends PureComponent {
       toggleReceiveModal();
       navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
-          {
-            text: 'Buy Native Token',
-            location: 'Receive Modal',
-            chain_id_destination: this.props.chainId,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+          text: 'Buy Native Token',
+          location: 'Receive Modal',
+          chain_id_destination: this.props.chainId,
+        });
       });
     }
   };
@@ -227,7 +229,7 @@ class ReceiveRequest extends PureComponent {
   openQrModal = () => {
     this.setState({ qrModalVisible: true });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
     });
   };
 
@@ -238,7 +240,7 @@ class ReceiveRequest extends PureComponent {
       params: { receiveAsset: this.props.receiveAsset },
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -264,7 +266,7 @@ class ReceiveRequest extends PureComponent {
                   onPress={() => {
                     toggleModal();
                     InteractionManager.runAfterInteractions(() => {
-                      Analytics.trackEvent(
+                      trackLegacyEvent(
                         MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
                       );
                     });
@@ -350,9 +352,9 @@ class ReceiveRequest extends PureComponent {
 ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  network: state.engine.backgroundState.NetworkController.network,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  network: selectNetwork(state),
+  ticker: selectTicker(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   receiveAsset: state.modals.receiveAsset,
