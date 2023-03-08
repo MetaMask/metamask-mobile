@@ -45,7 +45,7 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       paddingBottom: 30,
       alignItems: 'center',
-      marginTop: 24,
+      marginTop: 9,
     },
     balances: {
       flex: 1,
@@ -72,6 +72,17 @@ const createStyles = (colors: Colors) =>
       fontSize: 14,
     },
     skeleton: { width: 50 },
+    buy: {
+      alignItems: 'center',
+      marginVertical: 5,
+      marginHorizontal: 15,
+    },
+    buyTitle: {
+      marginVertical: 5,
+    },
+    buyButton: {
+      marginVertical: 5,
+    },
   });
 
 export default createStyles;

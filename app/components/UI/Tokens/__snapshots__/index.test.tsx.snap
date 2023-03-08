@@ -637,26 +637,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             Object {
                               "alignItems": "center",
                               "flex": 1,
-                              "marginTop": 24,
+                              "marginTop": 9,
                               "paddingBottom": 30,
                             }
                           }
                         >
-                          <Text
-                            style={
-                              Object {
-                                "color": "#535A61",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 14,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                                "marginBottom": 8,
-                              }
-                            }
-                          >
-                            Don't see your token?
-                          </Text>
                           <TouchableOpacity
                             disabled={false}
                             onPress={[Function]}
@@ -672,8 +657,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             <Text
                               style={
                                 Object {
-                                  "color": "#0376C9",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -681,7 +666,36 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 }
                               }
                             >
-                              Import tokens
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#535A61",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginBottom": 8,
+                                  }
+                                }
+                              >
+                                Don't see your token?
+                              </Text>
+                               
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#0376C9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Import tokens
+                              </Text>
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -1336,26 +1350,11 @@ exports[`Tokens should render correctly 1`] = `
                             Object {
                               "alignItems": "center",
                               "flex": 1,
-                              "marginTop": 24,
+                              "marginTop": 9,
                               "paddingBottom": 30,
                             }
                           }
                         >
-                          <Text
-                            style={
-                              Object {
-                                "color": "#535A61",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 14,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                                "marginBottom": 8,
-                              }
-                            }
-                          >
-                            Don't see your token?
-                          </Text>
                           <TouchableOpacity
                             disabled={false}
                             onPress={[Function]}
@@ -1371,8 +1370,8 @@ exports[`Tokens should render correctly 1`] = `
                             <Text
                               style={
                                 Object {
-                                  "color": "#0376C9",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -1380,7 +1379,36 @@ exports[`Tokens should render correctly 1`] = `
                                 }
                               }
                             >
-                              Import tokens
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#535A61",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginBottom": 8,
+                                  }
+                                }
+                              >
+                                Don't see your token?
+                              </Text>
+                               
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#0376C9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Import tokens
+                              </Text>
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -2239,26 +2267,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             Object {
                               "alignItems": "center",
                               "flex": 1,
-                              "marginTop": 24,
+                              "marginTop": 9,
                               "paddingBottom": 30,
                             }
                           }
                         >
-                          <Text
-                            style={
-                              Object {
-                                "color": "#535A61",
-                                "fontFamily": "Euclid Circular B",
-                                "fontSize": 14,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                                "marginBottom": 8,
-                              }
-                            }
-                          >
-                            Don't see your token?
-                          </Text>
                           <TouchableOpacity
                             disabled={false}
                             onPress={[Function]}
@@ -2274,8 +2287,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             <Text
                               style={
                                 Object {
-                                  "color": "#0376C9",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -2283,7 +2296,36 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 }
                               }
                             >
-                              Import tokens
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#535A61",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "marginBottom": 8,
+                                  }
+                                }
+                              >
+                                Don't see your token?
+                              </Text>
+                               
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#0376C9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Import tokens
+                              </Text>
                             </Text>
                           </TouchableOpacity>
                         </View>

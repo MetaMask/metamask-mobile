@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -19,7 +19,7 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { safeToChecksumAddress } from '../../../util/address';
-import { trackEvent } from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
@@ -48,11 +48,18 @@ import AvatarToken from '../../../component-library/components/Avatars/Avatar/va
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
+import { allowedToBuy } from '../FiatOnRampAggregator';
+import Routes from '../../../constants/navigation/Routes';
 import { TokenI, TokensI } from './types';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
@@ -124,16 +131,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderFooter = () => (
     <View style={styles.footer} key={'tokens-footer'}>
-      <Text style={styles.emptyText}>
-        {strings('wallet.no_available_tokens')}
-      </Text>
       <TouchableOpacity
         style={styles.add}
         onPress={goToAddToken}
         disabled={!isAddTokenEnabled}
         {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
       >
-        <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+        <Text>
+          <Text style={styles.emptyText}>
+            {strings('wallet.no_available_tokens')}
+          </Text>{' '}
+          <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -256,6 +265,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
+  const goToBuy = () => {
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    InteractionManager.runAfterInteractions(() => {
+      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy Native Token',
+        location: 'Home Screen',
+        chain_id_destination: chainId,
+      });
+    });
+  };
+
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
@@ -291,6 +311,30 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
+  const renderBuyButton = () => {
+    const mainToken = tokens.find(({ isETH }) => isETH);
+    if (!mainToken || !isZero(mainToken.balance) || !allowedToBuy(chainId)) {
+      return null;
+    }
+
+    return (
+      <View style={styles.buy}>
+        <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
+          {strings('wallet.add_to_get_started')}
+        </Text>
+
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
+          onPress={goToBuy}
+          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+        />
+      </View>
+    );
+  };
+
   const renderList = () => {
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
@@ -303,6 +347,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       <View>
         {tokensToDisplay.map((item) => renderItem(item))}
         {renderTokensDetectedSection()}
+        {renderBuyButton()}
         {renderFooter()}
       </View>
     );
