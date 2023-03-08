@@ -145,52 +145,46 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
-  const handleBalance = useCallback(
-    (asset: TokenI) => {
-      const itemAddress: string = safeToChecksumAddress(asset.address) || '';
+  const handleBalance = (asset: TokenI) => {
+    const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
-      const exchangeRate =
-        itemAddress in tokenExchangeRates
-          ? tokenExchangeRates[itemAddress]
-          : undefined;
+    const exchangeRate =
+      itemAddress in tokenExchangeRates
+        ? tokenExchangeRates[itemAddress]
+        : undefined;
 
-      const balance =
-        asset.balance ||
-        (itemAddress in tokenBalances
-          ? renderFromTokenMinimalUnit(
-              tokenBalances[itemAddress],
-              asset.decimals,
-            )
-          : '');
+    const balance =
+      asset.balance ||
+      (itemAddress in tokenBalances
+        ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
+        : '');
 
-      if ((!balance || balance === '0') && !asset.isETH) {
-        return {
-          balanceFiat: 'loading',
-          balanceValueFormatted: 'loading',
-        };
-      }
+    if ((!balance || balance === '0') && !asset.isETH) {
+      return {
+        balanceFiat: 'loading',
+        balanceValueFormatted: 'loading',
+      };
+    }
 
-      const balanceValueFormatted = `${balance} ${asset.symbol}`;
+    const balanceValueFormatted = `${balance} ${asset.symbol}`;
 
-      if (!conversionRate || !exchangeRate)
-        return {
-          balanceFiat: asset.isETH ? asset.balanceFiat : 'loading',
-          balanceValueFormatted,
-        };
+    if (!conversionRate || !exchangeRate)
+      return {
+        balanceFiat: asset.isETH ? asset.balanceFiat : 'loading',
+        balanceValueFormatted,
+      };
 
-      const balanceFiatCalculation =
-        asset.balanceFiat ||
-        balanceToFiatNumber(balance, conversionRate, exchangeRate);
+    const balanceFiatCalculation =
+      asset.balanceFiat ||
+      balanceToFiatNumber(balance, conversionRate, exchangeRate);
 
-      const balanceFiat =
-        balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
-          ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
-          : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+    const balanceFiat =
+      balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
+        ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
+        : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 
-      return { balanceFiat, balanceValueFormatted };
-    },
-    [currentCurrency, tokenBalances, tokenExchangeRates, conversionRate],
-  );
+    return { balanceFiat, balanceValueFormatted };
+  };
 
   const renderItem = (asset: TokenI) => {
     const itemAddress = safeToChecksumAddress(asset.address);
