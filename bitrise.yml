@@ -578,10 +578,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.1.1
+      VERSION_NAME: 6.1.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1079
+      VERSION_NUMBER: 1082
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
