@@ -75,6 +75,7 @@ export class BackgroundBridge extends EventEmitter {
    */
   constructor({ getRpcMethodMiddleware, connectionOptions }) {
     super();
+    this.url = connectionOptions.url;
     this.connectionOptions = connectionOptions;
     this.hostname = new URL(connectionOptions.url).hostname;
     this.disconnected = false;
@@ -106,6 +107,11 @@ export class BackgroundBridge extends EventEmitter {
     } else {
       throw new Error(`Invalid connection type: '${connectionOptions.type}'`);
     }
+
+    this.isMainFrame =
+      connectionOptions.type === CONNECTION_TYPE.BROWSER
+        ? connectionOptions.isMainFrame
+        : false;
 
     this.engine = null;
 
