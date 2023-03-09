@@ -23,15 +23,20 @@ import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (colors, layout = 'horizontal') => {
+  const isVerticalLayout = layout === 'vertical';
+  return StyleSheet.create({
     wrapper: {
-      flexDirection: 'row',
+      flexDirection: isVerticalLayout ? 'column' : 'row',
       marginHorizontal: 8,
+      minHeight: isVerticalLayout ? 82 : 52,
+    },
+    marginedWrapper: {
+      marginTop: 8,
     },
     selectWrapper: {
       flex: 1,
-      marginLeft: 8,
+      marginLeft: isVerticalLayout ? 0 : 8,
       paddingHorizontal: 10,
       minHeight: 52,
       flexDirection: 'row',
@@ -41,7 +46,7 @@ const createStyles = (colors) =>
     },
     inputWrapper: {
       flex: 1,
-      marginLeft: 8,
+      marginLeft: isVerticalLayout ? 0 : 8,
       padding: 10,
       minHeight: 52,
       flexDirection: 'row',
@@ -172,6 +177,7 @@ const createStyles = (colors) =>
     },
     checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
   });
+};
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
   const { colors } = useTheme();
@@ -230,15 +236,21 @@ export const AddressTo = (props) => {
     displayExclamation,
     isConfirmScreen = false,
     isFromAddressBook = false,
+    layout = 'horizontal',
   } = props;
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, layout);
 
   const isInputFilled = toSelectedAddress?.length;
 
   if (isConfirmScreen) {
     return (
-      <View style={styles.wrapper}>
+      <View
+        style={[
+          styles.wrapper,
+          layout === 'vertical' ? styles.marginedWrapper : undefined,
+        ]}
+      >
         <View style={styles.label}>
           <Text style={styles.labelText}>To:</Text>
         </View>
@@ -534,6 +546,7 @@ AddressTo.propTypes = {
    * Returns if it selected from address book
    */
   isFromAddressBook: PropTypes.bool,
+  layout: PropTypes.string,
 };
 
 export const AddressFrom = (props) => {
@@ -543,10 +556,11 @@ export const AddressFrom = (props) => {
     fromAccountName,
     fromAccountBalance,
     fromAccountAddress,
+    layout = 'horizontal',
   } = props;
   const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, layout);
 
   return (
     <View style={styles.wrapper}>
@@ -616,4 +630,5 @@ AddressFrom.propTypes = {
    * Account balance of selected address as string
    */
   fromAccountBalance: PropTypes.string,
+  layout: PropTypes.string,
 };

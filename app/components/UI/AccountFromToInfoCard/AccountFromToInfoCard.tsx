@@ -32,6 +32,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     onPressFromAddressIcon,
     ticker,
     transactionState,
+    layout = 'horizontal',
   } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
@@ -165,6 +166,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       confusableCollection={(!isExistingContact && confusableCollection) || []}
       displayExclamation={!isExistingContact && !!confusableCollection.length}
       isConfirmScreen
+      layout={layout}
       toAddressName={toAccountName}
       toSelectedAddress={toAddress}
     />
@@ -177,6 +179,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
           fromAccountAddress={fromAddress}
           fromAccountName={fromAccountName}
           fromAccountBalance={fromAccountBalance}
+          layout={layout}
           onPressIcon={onPressFromAddressIcon}
         />
         {!isExistingContact && confusableCollection.length ? (

@@ -41,6 +41,7 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionHeader from '../TransactionHeader';
+import AccountFromToInfoCard from '../AccountFromToInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
@@ -96,6 +97,10 @@ const createStyles = (colors) =>
     hidden: {
       opacity: 0,
       height: 0,
+    },
+    accountWrapper: {
+      marginTop: -24,
+      marginBottom: 24,
     },
   });
 
@@ -443,8 +448,9 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      transaction: { origin: transactionOrigin },
+      transaction,
     } = this.props;
+    const { to, origin: transactionOrigin } = transaction;
     const {
       actionKey,
       error,
@@ -482,6 +488,14 @@ class TransactionReview extends PureComponent {
             primaryCurrency={primaryCurrency}
             chainId={chainId}
           />
+          {to && (
+            <View style={styles.accountWrapper}>
+              <AccountFromToInfoCard
+                transactionState={transaction}
+                layout="vertical"
+              />
+            </View>
+          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"

@@ -1117,6 +1117,7 @@ class Confirm extends PureComponent {
           onPressFromAddressIcon={
             !paymentRequest ? null : this.openAccountSelector
           }
+          layout="vertical"
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {!selectedAsset.tokenId ? (
