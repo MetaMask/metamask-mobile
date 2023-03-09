@@ -168,7 +168,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
         : '');
 
-    if ((!balance || balance === '0') && !asset.isETH) {
+    if (!balance && !asset.isETH) {
       return {
         balanceFiat: 'loading',
         balanceValueFormatted: 'loading',
@@ -251,7 +251,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         </BadgeWrapper>
 
         <View style={styles.balances} testID={'balance'}>
-          <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
+          {/*
+           * The name of the token must callback to the symbol
+           * The reason for this is that the wallet_watchAsset doesn't return the name
+           * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+           */}
+          <Text variant={TextVariant.BodyLGMedium}>
+            {asset.name || asset.symbol}
+          </Text>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
             {mainBalance === 'loading' ? (
