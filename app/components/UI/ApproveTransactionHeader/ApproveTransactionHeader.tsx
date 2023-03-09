@@ -8,14 +8,11 @@ import {
   getNetworkImageSource,
 } from '../../../util/networks';
 
-import {
-  renderShortAddress,
-  renderAccountName,
-  safeToChecksumAddress,
-} from '../../../util/address';
+import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../util/transactions';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
@@ -71,7 +68,7 @@ const ApproveTransactionHeader = ({
       state.engine.backgroundState.NetworkController.providerConfig,
   );
 
-  const activeAddress = safeToChecksumAddress(from) || '';
+  const activeAddress = toChecksumAddress(from);
 
   const networkProvider = useSelector(selectProviderConfig);
   const networkName = getNetworkNameFromProvider(networkProvider);
@@ -127,7 +124,7 @@ const ApproveTransactionHeader = ({
 
   const favIconUrl = useMemo(() => {
     const { isOriginWalletConnect, isOriginMMSDKRemoteConn } = origins;
-    let newUrl = url || FAV_ICON_URL('metamask.io');
+    let newUrl = url;
     if (isOriginWalletConnect) {
       newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {

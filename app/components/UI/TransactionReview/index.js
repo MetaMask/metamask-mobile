@@ -470,6 +470,7 @@ class TransactionReview extends PureComponent {
             spenderAddress={from}
             origin={origin}
             url={url}
+            from={from}
           />
           <TransactionReviewSummary
             actionKey={actionKey}
