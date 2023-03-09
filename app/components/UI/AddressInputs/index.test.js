@@ -14,7 +14,6 @@ describe('AddressInputs', () => {
           fromAccountAddress="0x10e08af911f2e48948"
           fromAccountBalance="0x5"
           fromAccountName="DUMMY_ACCOUNT"
-          layout="vertical"
         />,
         {},
       );
