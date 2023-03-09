@@ -785,6 +785,7 @@ export class Connection extends EventEmitter2 {
       );
       setTimeout(() => {
         wentBack = false;
+        console.debug(`SDKConnect::sendMessage goBack now()`);
         Minimizer.goBack();
       }, 300);
     });
