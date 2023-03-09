@@ -34,7 +34,6 @@ import {
 import { selectProviderConfig } from '../../../selectors/networkController';
 
 const ApproveTransactionHeader = ({
-  spenderAddress,
   from,
   origin,
   url,
@@ -112,7 +111,7 @@ const ApproveTransactionHeader = ({
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
       origins;
     let title = '';
-    if (isOriginDeepLink) title = renderShortAddress(spenderAddress);
+    if (isOriginDeepLink) title = renderShortAddress(from);
     else if (isOriginWalletConnect)
       title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     else if (isOriginMMSDKRemoteConn) {
@@ -120,7 +119,7 @@ const ApproveTransactionHeader = ({
     } else title = getHost(currentEnsName || url || origin);
 
     return title;
-  }, [currentEnsName, origin, origins, spenderAddress, url]);
+  }, [currentEnsName, origin, origins, from, url]);
 
   const favIconUrl = useMemo(() => {
     const { isOriginWalletConnect, isOriginMMSDKRemoteConn } = origins;

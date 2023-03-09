@@ -467,7 +467,6 @@ class TransactionReview extends PureComponent {
         >
           <ApproveTransactionHeader
             currentEnsName={ensRecipient}
-            spenderAddress={from}
             origin={origin}
             url={url}
             from={from}

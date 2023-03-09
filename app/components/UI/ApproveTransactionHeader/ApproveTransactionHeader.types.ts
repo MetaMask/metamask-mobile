@@ -1,5 +1,4 @@
 export interface ApproveTransactionHeaderI {
-  spenderAddress: string;
   origin: string;
   url: string;
   currentEnsName?: string;
