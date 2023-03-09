@@ -2188,35 +2188,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 }
                               }
                             >
-                              <View
-                                style={
-                                  Array [
-                                    Object {
-                                      "backgroundColor": "#F2F4F6",
-                                      "borderRadius": 30,
-                                      "padding": 14,
-                                    },
-                                    Object {
-                                      "padding": 8,
-                                    },
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    Object {
-                                      "width": 50,
-                                    },
-                                  ]
-                                }
-                              />
+                              &lt; $0.01
                             </Text>
                           </View>
                           <Text
@@ -2231,35 +2203,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               }
                             }
                           >
-                            <View
-                              style={
-                                Array [
-                                  Object {
-                                    "backgroundColor": "#F2F4F6",
-                                    "borderRadius": 30,
-                                    "padding": 14,
-                                  },
-                                  Object {
-                                    "padding": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "width": 50,
-                                  },
-                                ]
-                              }
-                            />
+                            0 LINK
                           </Text>
                         </TouchableOpacity>
                         <View
