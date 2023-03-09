@@ -3,7 +3,10 @@ import { View } from 'react-native';
 
 import { getHost } from '../../../util/browser';
 import { useSelector } from 'react-redux';
-import networkList, { isMainnetByChainId } from '../../../util/networks';
+import {
+  getNetworkNameFromProvider,
+  getNetworkImageSource,
+} from '../../../util/networks';
 
 import {
   renderShortAddress,
@@ -14,8 +17,6 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-import getImage from '../../../util/getImage';
-import { TEST_REMOTE_IMAGE_SOURCE } from '../../../component-library/components-temp/Accounts/AccountBalance/AccountBalance.constants';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
@@ -28,16 +29,16 @@ import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import {
   AccountInfoI,
   ApproveTransactionHeaderI,
   OriginsI,
 } from './ApproveTransactionHeader.types';
-import images from 'images/image-icons';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const ApproveTransactionHeader = ({
   spenderAddress,
+  from,
   origin,
   url,
   currentEnsName,
@@ -46,7 +47,6 @@ const ApproveTransactionHeader = ({
     balance: 0,
     currency: '',
     accountName: '',
-    networkName: '',
   });
   const [origins, setOrigins] = useState<OriginsI>({
     isOriginDeepLink: false,
@@ -66,29 +66,18 @@ const ApproveTransactionHeader = ({
       state.engine.backgroundState.PreferencesController.identities,
   );
 
-  const permittedAccountsList = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
-
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
-    permittedAccountsList,
-    origin,
-  );
-
   const network = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
   );
 
-  const activeAddress: string = useMemo(() => {
-    const { isOriginMMSDKRemoteConn, isOriginWalletConnect } = origins;
-    return isOriginMMSDKRemoteConn || isOriginWalletConnect
-      ? safeToChecksumAddress(spenderAddress)
-      : permittedAccountsByHostname[0];
-  }, [origins, permittedAccountsByHostname, spenderAddress]);
+  const activeAddress = safeToChecksumAddress(from) || '';
+
+  const networkProvider = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProvider(networkProvider);
 
   useEffect(() => {
-    const { ticker, type } = network;
+    const { ticker } = network;
     const weiBalance = activeAddress
       ? hexToBN(accounts[activeAddress].balance)
       : 0;
@@ -105,13 +94,10 @@ const ApproveTransactionHeader = ({
 
     const isOriginMMSDKRemoteConn = origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
-    const networkName = networkList[type as keyof typeof networkList].name;
-
     setAccountInfo({
       balance,
       currency,
       accountName,
-      networkName,
     });
     setOrigins({
       isOriginDeepLink,
@@ -120,15 +106,10 @@ const ApproveTransactionHeader = ({
     });
   }, [accounts, identities, origin, activeAddress, network]);
 
-  const networkImage = useMemo(() => {
-    const { chainId } = network;
-    if (isMainnetByChainId(chainId)) return TEST_REMOTE_IMAGE_SOURCE;
-    const networkImageName = getImage(chainId);
-    if (networkImageName)
-      return images[networkImageName as keyof typeof images];
-
-    return null;
-  }, [network]);
+  const networkImage = getNetworkImageSource({
+    networkType: networkProvider.type,
+    chainId: networkProvider.chainId,
+  });
 
   const domainTitle = useMemo(() => {
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
@@ -162,21 +143,19 @@ const ApproveTransactionHeader = ({
         label={domainTitle}
         style={styles.tagUrl}
       />
-      {activeAddress && (
-        <AccountBalance
-          accountAddress={activeAddress}
-          accountNativeCurrency={accountInfo.currency}
-          accountBalance={accountInfo.balance}
-          accountName={accountInfo.accountName}
-          accountBalanceLabel={strings('transaction.balance')}
-          accountNetwork={network.nickname || accountInfo.networkName}
-          badgeProps={{
-            variant: BadgeVariants.Network,
-            name: accountInfo.networkName,
-            imageSource: networkImage,
-          }}
-        />
-      )}
+      <AccountBalance
+        accountAddress={activeAddress}
+        accountNativeCurrency={accountInfo.currency}
+        accountBalance={accountInfo.balance}
+        accountName={accountInfo.accountName}
+        accountBalanceLabel={strings('transaction.balance')}
+        accountNetwork={networkName}
+        badgeProps={{
+          variant: BadgeVariants.Network,
+          name: networkName,
+          imageSource: networkImage,
+        }}
+      />
     </View>
   );
 };

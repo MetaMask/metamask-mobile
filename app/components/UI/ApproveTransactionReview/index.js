@@ -633,7 +633,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin },
+      transaction: { origin, from },
       network,
       over,
       gasEstimateType,
@@ -681,6 +681,7 @@ class ApproveTransactionReview extends PureComponent {
                   origin={origin}
                   spenderAddress={spenderAddress}
                   url={activeTabUrl}
+                  from={from}
                 />
                 <Text
                   variant={TextVariant.HeadingMD}
