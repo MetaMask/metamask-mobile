@@ -61,17 +61,19 @@ workflows:
                 envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
           title: Get commit or branch name and path variables
 
-  # Send a Slack message when build workflow fails
-  _build_notify_on_slack:
+  # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
+  # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
+  # but will only notify success if both success and create_qa_builds succeeds.
+
+  # Send a Slack message when workflow succeeds
+  _notify_success_on_slack:
     before_run:
       - _get_workflow_info
     steps:
       - slack@3:
-          is_always_run: true # run for both success and failure
           inputs:
-            - text: "${BITRISE_APP_TITLE} workflow notification"
-            - pretext: ":large_green_circle: *${BITRISE_APP_TITLE} build success!*"
-            - pretext_on_error: ":red_circle: *${BITRISE_APP_TITLE} build failed!*"
+            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} succeeded!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
@@ -84,20 +86,20 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Notification sent by Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow"
+            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
-  # Send a Slack message when e2e workflow fails or succeeds
-  _e2e_notify_on_slack:
+  # Send a Slack message when workflow fails
+  _notify_failure_on_slack:
     before_run:
       - _get_workflow_info
     steps:
       - slack@3:
           is_always_run: true
+          run_if: .IsBuildFailed
           inputs:
-            - text: "${BITRISE_APP_TITLE} workflow notification"
-            - pretext: ":large_green_circle: *E2E tests succeeded!*"
-            - pretext_on_error: ":red_circle: *E2E tests failed!*"
+            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - pretext_on_error: ":red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
@@ -144,7 +146,7 @@ workflows:
       - code_setup
       - e2e_setup
     after_run:
-      - _e2e_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - install-missing-android-tools@2:
           inputs:
@@ -171,7 +173,7 @@ workflows:
       - code_setup
       - e2e_setup
     after_run:
-      - _e2e_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -259,7 +261,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_notify_on_slack
+      - _notify_success_on_slack
     steps:
       - build-router-start@0:
           inputs:
@@ -278,7 +280,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -336,7 +338,7 @@ workflows:
       - code_setup
     after_run:
       - _upload_apk_to_browserstack
-      - _build_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -429,7 +431,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _e2e_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
@@ -475,7 +477,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -514,7 +516,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _build_notify_on_slack
+      - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
