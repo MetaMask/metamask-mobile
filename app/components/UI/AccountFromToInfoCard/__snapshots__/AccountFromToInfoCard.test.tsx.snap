@@ -14,6 +14,7 @@ Array [
         Object {
           "flexDirection": "row",
           "marginHorizontal": 8,
+          "minHeight": 52,
         }
       }
     >
@@ -276,10 +277,13 @@ Array [
     </View>
     <View
       style={
-        Object {
-          "flexDirection": "row",
-          "marginHorizontal": 8,
-        }
+        Array [
+          Object {
+            "flexDirection": "row",
+            "marginHorizontal": 8,
+            "minHeight": 52,
+          },
+        ]
       }
     >
       <View

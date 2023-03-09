@@ -244,13 +244,12 @@ export const AddressTo = (props) => {
   const isInputFilled = toSelectedAddress?.length;
 
   if (isConfirmScreen) {
+    const wrapperStyles = [styles.wrapper];
+    if (layout === 'vertical') {
+      wrapperStyles.push(styles.marginedWrapper);
+    }
     return (
-      <View
-        style={[
-          styles.wrapper,
-          layout === 'vertical' ? styles.marginedWrapper : undefined,
-        ]}
-      >
+      <View style={wrapperStyles}>
         <View style={styles.label}>
           <Text style={styles.labelText}>To:</Text>
         </View>
