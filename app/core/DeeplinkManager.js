@@ -252,9 +252,10 @@ class DeeplinkManager {
             return;
           } else if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
-              setTimeout(() => {
-                Minimizer.goBack();
-              }, 500);
+              console.debug(
+                `DeepLinkManager redirect -- start Minimizer.goBack()`,
+              );
+              Minimizer.goBack();
             } else if (params.channelId) {
               SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
@@ -368,9 +369,10 @@ class DeeplinkManager {
           }
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
-            setTimeout(() => {
-              Minimizer.goBack();
-            }, 500);
+            console.debug(
+              `DeepLinkManager redirect -- start Minimizer.goBack()`,
+            );
+            Minimizer.goBack();
           } else {
             SDKConnect.connectToChannel({
               id: params.channelId,
