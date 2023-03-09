@@ -504,15 +504,18 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        console.debug(
-          `Connection::on message recalling backgroundbrigde`,
-          message,
-        );
-        this.backgroundBridge?.onMessage({
-          name: 'metamask-provider',
-          data: message,
-          origin: 'sdk',
-        });
+        // Add some delay, otherwise in some rare cases, the ui may not have had time ot initialize and modal doesn't show.
+        setTimeout(() => {
+          console.debug(
+            `Connection::on message recalling backgroundbrigde`,
+            message,
+          );
+          this.backgroundBridge?.onMessage({
+            name: 'metamask-provider',
+            data: message,
+            origin: 'sdk',
+          });
+        }, 100);
       },
     );
   }
