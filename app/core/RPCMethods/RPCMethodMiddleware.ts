@@ -490,6 +490,7 @@ export const getRpcMethodMiddleware = ({
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
 
+        console.debug(`DEBUG eth_signTypedData_v4 AAAA`);
         const pageMeta = {
           meta: {
             url: url.current,
@@ -510,6 +511,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
+        console.debug(`DEBUG eth_signTypedData_v4 BBBB`);
         const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
           {
             data: req.params[1],
