@@ -18,6 +18,7 @@ exports[`BannerAlert should render default settings correctly 1`] = `
       "backgroundColor": "#0376C919",
       "borderColor": "#0376C9",
       "borderLeftWidth": 4,
+      "paddingLeft": 8,
     }
   }
   testID="banneralert"

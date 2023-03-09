@@ -45,6 +45,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
         borderLeftWidth: 4,
         borderColor: colorObj.default,
         backgroundColor: colorObj.muted,
+        paddingLeft: 8,
       } as ViewStyle,
       style,
     ) as ViewStyle,
