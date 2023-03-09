@@ -67,6 +67,10 @@ import {
 } from '../../../component-library/components/Toast';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
+import {
+  selectProviderConfig,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const Stack = createStackNavigator();
 
@@ -217,9 +221,7 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const networkProvider = useSelector(selectProviderConfig);
   const prevNetworkProvider = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 
@@ -325,7 +327,7 @@ const Main = (props) => {
 
   const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
     const { wizardStep } = props;
-    const { type } = network.provider;
+    const { type } = network.providerConfig;
     if (
       (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
       showDeprecatedAlert &&
@@ -442,7 +444,7 @@ Main.propTypes = {
 const mapStateToProps = (state) => ({
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   network: state.engine.backgroundState.NetworkController,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
   wizardStep: state.wizard.step,

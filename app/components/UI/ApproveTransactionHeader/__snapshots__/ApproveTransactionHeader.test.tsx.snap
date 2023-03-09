@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApproveTransactionHeader should render correctly 1`] = `
+<ApproveTransactionHeader
+  origin="0x"
+  spenderAddress="0x"
+  url=""
+/>
+`;

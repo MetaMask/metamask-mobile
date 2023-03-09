@@ -18,7 +18,7 @@ const initialState = {
     backgroundState: {
       CurrencyRateController: { currentCurrency: 'USD' },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
         },
       },

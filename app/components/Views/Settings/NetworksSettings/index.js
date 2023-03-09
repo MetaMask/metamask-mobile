@@ -18,7 +18,7 @@ import { strings } from '../../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
-  isMainNet,
+  isDefaultMainnet,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -28,6 +28,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
   AvatarSize,
   AvatarVariants,
@@ -116,9 +117,9 @@ class NetworksSettings extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -183,10 +184,10 @@ class NetworksSettings extends PureComponent {
 
   removeNetwork = () => {
     // Check if it's the selected network and then switch to mainnet first
-    const { provider } = this.props;
+    const { providerConfig } = this.props;
     if (
-      compareSanitizedUrl(provider.rpcTarget, this.networkToRemove) &&
-      provider.type === RPC
+      compareSanitizedUrl(providerConfig.rpcTarget, this.networkToRemove) &&
+      providerConfig.type === RPC
     ) {
       this.switchToMainnet();
     }
@@ -208,7 +209,7 @@ class NetworksSettings extends PureComponent {
       <View key={`network-${network}`}>
         {
           // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
-          isMainNet(network) ? (
+          isDefaultMainnet(network) ? (
             this.renderMainnet()
           ) : (
             <TouchableOpacity
@@ -322,8 +323,8 @@ class NetworksSettings extends PureComponent {
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
     const defaultNetwork = getAllNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
-      return { name, color, network, isCustomRPC: false };
+      const { color, name, chainId } = Networks[network];
+      return { name, color, network, isCustomRPC: false, chainId };
     });
     const customRPC = this.props.frequentRpcList.map((network, i) => {
       const { color, name, url, chainId } = {
@@ -351,7 +352,7 @@ class NetworksSettings extends PureComponent {
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
         const { network, chainId, name, color, isCustomRPC } = data;
-        const image = getNetworkImageSource(chainId);
+        const image = getNetworkImageSource({ chainId });
         return this.networkElement(
           name,
           image || color,
@@ -438,7 +439,7 @@ class NetworksSettings extends PureComponent {
 NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,

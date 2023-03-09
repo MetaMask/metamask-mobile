@@ -41,6 +41,7 @@ import { timeoutFetch } from '../../../../util/general';
 import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -133,6 +134,10 @@ class AdvancedSettings extends PureComponent {
      * Indicates whether hex data should be shown in transaction editor
      */
     showHexData: PropTypes.bool,
+    /**
+     * Allow dapp api requests to eth_sign
+     */
+    enableEthSign: PropTypes.bool,
     /**
      * Called to toggle show hex data
      */
@@ -292,6 +297,11 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setIpfsGateway(ipfsGateway);
   };
 
+  setEnableEthSign = (enabled) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setDisabledRpcMethodPreference('eth_sign', enabled);
+  };
+
   toggleTokenDetection = (detectionStatus) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setUseTokenDetection(detectionStatus);
@@ -336,6 +346,7 @@ class AdvancedSettings extends PureComponent {
       setShowHexData,
       setShowCustomNonce,
       ipfsGateway,
+      enableEthSign,
     } = this.props;
     const { resetModalVisible, onlineIpfsGateways } = this.state;
     const { styles, colors } = this.getStyles();
@@ -426,6 +437,27 @@ class AdvancedSettings extends PureComponent {
             </View>
             <View style={styles.setting}>
               <Text style={styles.title}>
+                {strings('app_settings.enable_eth_sign')}
+              </Text>
+              <Text style={styles.desc}>
+                {strings('app_settings.enable_eth_sign_desc')}
+              </Text>
+              <View style={styles.marginTop}>
+                <Switch
+                  value={enableEthSign}
+                  onValueChange={this.setEnableEthSign}
+                  trackColor={{
+                    true: colors.primary.default,
+                    false: colors.border.muted,
+                  }}
+                  thumbColor={importedColors.white}
+                  style={styles.switch}
+                  ios_backgroundColor={colors.border.muted}
+                />
+              </View>
+            </View>
+            <View style={styles.setting}>
+              <Text style={styles.title}>
                 {strings('app_settings.show_custom_nonce')}
               </Text>
               <Text style={styles.desc}>
@@ -474,10 +506,13 @@ const mapStateToProps = (state) => ({
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
+  enableEthSign:
+    state.engine.backgroundState.PreferencesController
+      .disabledRpcMethodPreferences.eth_sign,
   fullState: state,
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
