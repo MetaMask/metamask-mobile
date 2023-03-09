@@ -9,6 +9,10 @@ export const KEEP_SRP_SAFE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
 export const LEARN_MORE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
+// Remote path for subtitles that can't be bundled with the app
+// because only remote subtitles are supported by react-native-video
+export const SRP_SUBTITLES_URL_TEMPLATE =
+  'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-${language}.vtt?raw=true';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
