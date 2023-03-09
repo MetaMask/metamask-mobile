@@ -547,7 +547,6 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
         "marginHorizontal": 8,
         "minHeight": 52,
       },
-      undefined,
     ]
   }
 >
