@@ -1,14 +1,11 @@
-import _ from 'lodash';
-import videoSourceUri from '../../videos/recovery-phrase-mobile-2pass-optimized.mp4';
-import { SRP_SUBTITLES_URL_TEMPLATE } from '../../constants/urls';
+const baseUrl =
+  'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
+const subtitlePath = 'subtitles/secretPhrase/subtitles-';
+const ext = '.vtt?raw=true';
+const path = `${baseUrl}${subtitlePath}`;
 
-/**
- * Returns the subtitle URI for a given language
- * @param language
- */
 export function getSubtitleUri(language: string): string {
-  return _.template(SRP_SUBTITLES_URL_TEMPLATE)({ language });
+  return `${path}${language}${ext}`;
 }
 
-// Bundled recovery phrase video resource
-export const video_source_uri = videoSourceUri;
+export const video_source_uri = `${baseUrl}recovery-phrase.mp4?raw=true`;
