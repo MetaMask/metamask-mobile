@@ -28,6 +28,18 @@ workflows:
           inputs:
             - command: audit:ci
           title: Audit Dependencies
+  code_setup_dev:
+    before_run:
+      - setup
+    steps:
+      - script@1:
+          title: Generate `.npmrc` file for preview builds
+          inputs:
+            - content: |
+                #!/bin/bash
+                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
+    after_run:
+      - code_setup
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -143,7 +155,7 @@ workflows:
           title: Detox - Install CLI
   android_e2e_test:
     before_run:
-      - code_setup
+      - code_setup_dev
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
@@ -170,7 +182,7 @@ workflows:
           is_always_run: false
   ios_e2e_test:
     before_run:
-      - code_setup
+      - code_setup_dev
       - e2e_setup
     after_run:
       - _notify_failure_on_slack
@@ -259,7 +271,7 @@ workflows:
           is_always_run: false
   create_qa_builds:
     before_run:
-      - code_setup
+      - code_setup_dev
     after_run:
       - _notify_success_on_slack
     steps:
@@ -335,7 +347,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
   build_android_qa:
     before_run:
-      - code_setup
+      - code_setup_dev
     after_run:
       - _upload_apk_to_browserstack
       - _notify_failure_on_slack
@@ -514,7 +526,7 @@ workflows:
           title: Deploy Source Map
   build_ios_qa:
     before_run:
-      - code_setup
+      - code_setup_dev
     after_run:
       - _notify_failure_on_slack
     steps:
