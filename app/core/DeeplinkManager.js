@@ -237,7 +237,7 @@ class DeeplinkManager {
                 // Also try to reconnect if not already connected
                 SDKConnect.getInstance().reconnect({ channelId });
               } else {
-                // Establish a new connection
+                // Establish a new connection, this may happen if connection was previously removed on wallet.
                 SDKConnect.getInstance().connectToChannel({
                   id: channelId,
                   commLayer: params.comm,
@@ -252,9 +252,6 @@ class DeeplinkManager {
             return;
           } else if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
-              console.debug(
-                `DeepLinkManager redirect -- start Minimizer.goBack()`,
-              );
               Minimizer.goBack();
             } else if (params.channelId) {
               SDKConnect.getInstance().connectToChannel({
