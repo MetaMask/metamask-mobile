@@ -213,6 +213,10 @@ class AccountOverview extends PureComponent {
      * Current provider ticker
      */
     ticker: PropTypes.string,
+    /**
+     * Current opens tabs in browser
+     */
+    browserTabs: PropTypes.array,
   };
 
   state = {
@@ -351,12 +355,25 @@ class AccountOverview extends PureComponent {
   };
 
   onOpenPortfolio = () => {
-    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-      screen: Routes.BROWSER_VIEW,
-      params: {
-        newTabUrl: `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`,
-        timestamp: Date.now(),
-      },
+    const { navigation, browserTabs } = this.props;
+    const existingPortfolioTab = browserTabs.find((tab) =>
+      tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+    );
+    let existingTabId;
+    let newTabUrl;
+    if (existingPortfolioTab) {
+      existingTabId = existingPortfolioTab.id;
+    } else {
+      newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId }),
+      timestamp: Date.now(),
+    };
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
     });
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
@@ -373,9 +390,12 @@ class AccountOverview extends PureComponent {
       onboardingWizard,
       chainId,
       swapsIsLive,
+      browserTabs,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
+    // eslint-disable-next-line no-console
+    console.log('browserTabs', browserTabs);
     const styles = createStyles(colors);
 
     const fiatBalance = `${renderFiat(
@@ -550,6 +570,7 @@ const mapStateToProps = (state) => ({
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   network: String(state.engine.backgroundState.NetworkController.network),
   swapsIsLive: swapsLivenessSelector(state),
+  browserTabs: state.browser.tabs,
 });
 
 const mapDispatchToProps = (dispatch) => ({

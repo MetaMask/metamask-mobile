@@ -174,9 +174,12 @@ const Browser = (props) => {
   useEffect(
     () => {
       const currentUrl = route.params?.newTabUrl;
+      const existingTabId = route.params?.existingTabId;
       if (!currentUrl) {
         // Nothing from deeplink, carry on.
-        const activeTab = tabs.find((tab) => tab.id === activeTabId);
+        const activeTab = tabs.find(
+          (tab) => tab.id === existingTabId || activeTabId,
+        );
         if (activeTab) {
           // Resume where last left off.
           switchToTab(activeTab);
