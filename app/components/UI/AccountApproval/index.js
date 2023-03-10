@@ -365,10 +365,6 @@ class AccountApproval extends PureComponent {
     const { currentPageInformation, selectedAddress } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    // const hasRememberMe =
-    //   !currentPageInformation.reconnect &&
-    //   this.props.currentPageInformation.origin ===
-    //     AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
@@ -417,27 +413,6 @@ class AccountApproval extends PureComponent {
             </View>
           </View>
         )}
-        {/* TODO fully decide if keep / remove DO NOT REMEMBER checkbox */}
-        {/* {hasRememberMe && (
-          <View style={styles.rememberme}>
-            <CheckBox
-              style={styles.rememberCheckbox}
-              value={this.state.noPersist}
-              onValueChange={(checked) => {
-                this.setState({ ...this.state, noPersist: checked });
-              }}
-              boxType={'square'}
-              tintColors={{
-                true: colors.primary.default,
-                false: colors.border.default,
-              }}
-              testID={'skip-backup-check'}
-            />
-            <Text style={styles.rememberText}>
-              {strings('accountApproval.donot_rememberme')}
-            </Text>
-          </View>
-        )} */}
         <View style={styles.actionContainer}>
           <StyledButton
             type={'cancel'}
