@@ -19,6 +19,7 @@ const AccountBase = ({
   accountTypeLabel,
   accountBalanceLabel,
   accountAddress,
+  avatarIconType,
   badgeProps,
 }: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
@@ -28,6 +29,7 @@ const AccountBase = ({
           variant={AvatarVariants.Account}
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
           accountAddress={accountAddress}
+          type={avatarIconType}
         />
       </BadgeWrapper>
       <View>

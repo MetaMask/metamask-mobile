@@ -35,6 +35,7 @@ import {
 } from './ApproveTransactionHeader.types';
 import images from 'images/image-icons';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 const ApproveTransactionHeader = ({
   spenderAddress,
@@ -80,6 +81,12 @@ const ApproveTransactionHeader = ({
   const network = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
+  );
+
+  const accountAvatarType = useSelector((state: any) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
   );
 
   useEffect(() => {
@@ -167,6 +174,7 @@ const ApproveTransactionHeader = ({
         accountTypeLabel={importedOrHardwareLabel}
         accountBalanceLabel={strings('transaction.balance')}
         accountNetwork={network.nickname || accountInfo.networkName}
+        avatarIconType={accountAvatarType}
         badgeProps={{
           variant: BadgeVariants.Network,
           name: accountInfo.networkName,

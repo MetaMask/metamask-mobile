@@ -1,3 +1,4 @@
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
@@ -34,4 +35,8 @@ export interface AccountBaseProps {
    * i18n string of account type label
    */
   accountTypeLabel: string;
+  /**
+   * Avatar Account Type Enum, either Jazzicon or Blockies
+   */
+  avatarIconType: AvatarAccountType;
 }
