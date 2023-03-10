@@ -24,10 +24,9 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
-
   let validAccount;
 
-  beforeAll( () => {
+  beforeAll(() => {
     validAccount = Accounts.getValidAccount();
   });
 
@@ -100,7 +99,9 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
     await SecurityAndPrivacyView.tapChangePasswordButton();
 
     await ChangePasswordView.isVisible();
-    await ChangePasswordView.typeInConfirmPasswordInputBox(validAccount.password);
+    await ChangePasswordView.typeInConfirmPasswordInputBox(
+      validAccount.password,
+    );
     //await ChangePasswordView.tapConfirmButton();
   });
 

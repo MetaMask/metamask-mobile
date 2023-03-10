@@ -24,10 +24,9 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../helpers';
-import Accounts from "../../wdio/helpers/Accounts";
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Adding Contract Nickname', () => {
-
   const APPROVAL_DEEPLINK_URL =
     'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
   const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
@@ -37,7 +36,7 @@ describe('Adding Contract Nickname', () => {
 
   let validAccount;
 
-  beforeAll( () => {
+  beforeAll(() => {
     validAccount = Accounts.getValidAccount();
   });
 

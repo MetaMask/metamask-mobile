@@ -26,23 +26,23 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 import Accounts from '../../wdio/helpers/Accounts';
 
-
 describe('Wallet Tests', () => {
-
   const GOERLI = 'Goerli Test Network';
   const ETHEREUM = 'Ethereum Main Network';
 
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
-  const TEST_PRIVATE_KEY = 'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-  const COLLECTIBLE_CONTRACT_ADDRESS = '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
+  const TEST_PRIVATE_KEY =
+    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+  const COLLECTIBLE_CONTRACT_ADDRESS =
+    '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
   const COLLECTIBLE_IDENTIFIER = '179';
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
   const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
   let validAccount;
 
-  beforeAll( () => {
+  beforeAll(() => {
     validAccount = Accounts.getValidAccount();
   });
 
@@ -172,7 +172,8 @@ describe('Wallet Tests', () => {
     await NetworkEducationModal.isNotVisible();
   });
 
-  it('should add a collectible', async () => {//FIXME: this is failing on iOS simulator
+  it('should add a collectible', async () => {
+    //FIXME: this is failing on iOS simulator
     await WalletView.isVisible();
     // Tap on COLLECTIBLES tab
     await WalletView.tapNftTab();

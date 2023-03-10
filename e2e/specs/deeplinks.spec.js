@@ -12,7 +12,7 @@ import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-import {Browser} from '../pages/Drawer/Browser';
+import { Browser } from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
@@ -25,7 +25,6 @@ import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/Secu
 import WalletView from '../pages/WalletView';
 
 import Accounts from '../../wdio/helpers/Accounts';
-
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
@@ -47,10 +46,9 @@ const networkErrorBodyMessage =
   'Network with chain id 56 not found in your wallet. Please add the network first.';
 
 describe('Deep linking Tests', () => {
-
   let validAccount;
 
-  beforeAll( () => {
+  beforeAll(() => {
     validAccount = Accounts.getValidAccount();
   });
 

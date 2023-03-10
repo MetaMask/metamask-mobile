@@ -13,15 +13,14 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
-import Accounts from "../../wdio/helpers/Accounts";
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Import seedphrase flow', () => {
-
   let validAccount;
-  let invalidAccount
+  let invalidAccount;
   let shortPasswordAccount;
 
-  beforeAll( () => {
+  beforeAll(() => {
     validAccount = Accounts.getValidAccount();
     invalidAccount = Accounts.getInvalidAccount();
     shortPasswordAccount = Accounts.getShortPasswordAccount();
@@ -45,9 +44,7 @@ describe('Import seedphrase flow', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    await ImportWalletView.enterSecretRecoveryPhrase(
-      invalidAccount.seedPhrase,
-    );
+    await ImportWalletView.enterSecretRecoveryPhrase(invalidAccount.seedPhrase);
     await ImportWalletView.enterPassword(invalidAccount.password);
     await ImportWalletView.reEnterPassword(invalidAccount.password);
     await ImportWalletView.secretRecoveryPhraseErrorIsVisible();
