@@ -30,4 +30,8 @@ export interface AccountBaseProps {
    * Avatar wrapper props
    */
   badgeProps: BadgeProps;
+  /**
+   * i18n string of account type label
+   */
+  accountTypeLabel: string;
 }

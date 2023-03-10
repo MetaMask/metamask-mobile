@@ -209,6 +209,34 @@ export function isImportedAccount(address) {
 }
 
 /**
+ * gets i18n account label tag text based on address
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's i18n label text
+ */
+export function getLabelTextByAddress(address) {
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  const targetKeyring = keyrings.find((keyring) =>
+    keyring.accounts
+      .map((account) => account.toLowerCase())
+      .includes(address.toLowerCase()),
+  );
+  if (targetKeyring) {
+    switch (targetKeyring.type) {
+      case KeyringTypes.qr:
+        return 'transaction.hardware';
+      case KeyringTypes.simple:
+        return 'accounts.imported';
+      case KeyringTypes.ledger:
+        return 'accounts.ledger';
+      default:
+        return '';
+    }
+  }
+  throw new Error(`The address: ${address} is not imported`);
+}
+/**
  * judge address's account type for tracking
  *
  * @param {String} address - String corresponding to an address
@@ -228,6 +256,8 @@ export function getAddressAccountType(address) {
         return 'QR';
       case KeyringTypes.simple:
         return 'Imported';
+      case KeyringTypes.ledger:
+        return 'Ledger';
       default:
         return 'MetaMask';
     }

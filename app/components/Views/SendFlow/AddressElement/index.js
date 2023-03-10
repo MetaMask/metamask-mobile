@@ -1,5 +1,8 @@
 import React, { PureComponent } from 'react';
-import { renderShortAddress } from '../../../../util/address';
+import {
+  getLabelTextByAddress,
+  renderShortAddress,
+} from '../../../../util/address';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Identicon from '../../../UI/Identicon';
 import { fontStyles } from '../../../../styles/common';
@@ -8,9 +11,25 @@ import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectNetwork } from '../../../../selectors/networkController';
+import { strings } from '../../../../../locales/i18n';
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    accountNameLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    accountNameLabelText: {
+      marginLeft: 4,
+      paddingHorizontal: 8,
+      ...fontStyles.bold,
+      color: colors.text.alternative,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.default,
+      fontSize: 10,
+    },
     addressElementWrapper: {
       padding: 16,
       flexDirection: 'row',
@@ -27,7 +46,6 @@ const createStyles = (colors) =>
     },
     addressTextNickname: {
       ...fontStyles.normal,
-      flex: 1,
       color: colors.text.default,
       fontSize: 14,
     },
@@ -79,6 +97,7 @@ class AddressElement extends PureComponent {
   render = () => {
     const { onAccountPress, onAccountLongPress } = this.props;
     const { name, address } = this.state;
+    const importedOrHardwareLabel = getLabelTextByAddress(address);
     const primaryLabel =
       name && name[0] !== ' ' ? name : renderShortAddress(address);
     const secondaryLabel =
@@ -97,9 +116,16 @@ class AddressElement extends PureComponent {
           <Identicon address={address} diameter={28} />
         </View>
         <View style={styles.addressElementInformation}>
-          <Text style={styles.addressTextNickname} numberOfLines={1}>
-            {primaryLabel}
-          </Text>
+          <View style={styles.accountNameLabel}>
+            <Text style={styles.addressTextNickname} numberOfLines={1}>
+              {primaryLabel}
+            </Text>
+            {importedOrHardwareLabel && (
+              <Text style={styles.accountNameLabelText}>
+                {strings(importedOrHardwareLabel)}
+              </Text>
+            )}
+          </View>
           {!!secondaryLabel && (
             <Text style={styles.addressTextAddress} numberOfLines={1}>
               {secondaryLabel}

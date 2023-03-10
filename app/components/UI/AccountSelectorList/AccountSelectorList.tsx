@@ -60,6 +60,8 @@ const AccountSelectorList = ({
       case KeyringTypes.simple:
         label = strings('accounts.imported');
         break;
+      case KeyringTypes.ledger:
+        label = strings('accounts.ledger');
     }
     return label;
   };

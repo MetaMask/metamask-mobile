@@ -10,6 +10,7 @@ const AccountBalance = ({
   accountNativeCurrency,
   accountNetwork,
   accountName,
+  accountTypeLabel,
   accountBalanceLabel,
   accountAddress,
   badgeProps,
@@ -20,6 +21,7 @@ const AccountBalance = ({
       accountNativeCurrency={accountNativeCurrency}
       accountNetwork={accountNetwork}
       accountName={accountName}
+      accountTypeLabel={accountTypeLabel}
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={accountAddress}
       badgeProps={badgeProps}

@@ -5,7 +5,11 @@ import { getHost } from '../../../util/browser';
 import { useSelector } from 'react-redux';
 import networkList, { isMainnetByChainId } from '../../../util/networks';
 
-import { renderShortAddress, renderAccountName } from '../../../util/address';
+import {
+  renderShortAddress,
+  renderAccountName,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
@@ -146,6 +150,8 @@ const ApproveTransactionHeader = ({
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, origins, url]);
 
+  const importedOrHardwareLabel = getLabelTextByAddress(activeAddress);
+
   return (
     <View style={styles.transactionHeader}>
       <TagUrl
@@ -158,6 +164,7 @@ const ApproveTransactionHeader = ({
         accountNativeCurrency={accountInfo.currency}
         accountBalance={accountInfo.balance}
         accountName={accountInfo.accountName}
+        accountTypeLabel={importedOrHardwareLabel}
         accountBalanceLabel={strings('transaction.balance')}
         accountNetwork={network.nickname || accountInfo.networkName}
         badgeProps={{

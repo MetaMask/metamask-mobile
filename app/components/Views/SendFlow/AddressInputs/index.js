@@ -12,10 +12,11 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
 import {
-  isQRHardwareAccount,
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
+  getAddressAccountType,
+  getLabelTextByAddress,
 } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
@@ -173,7 +174,11 @@ const createStyles = (colors) =>
     checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
   });
 
-const AddressName = ({ toAddressName, confusableCollection = [] }) => {
+const AddressName = ({
+  toAddressName,
+  confusableCollection = [],
+  accountLabel,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   if (confusableCollection.length) {
@@ -201,15 +206,21 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
     );
   }
   return (
-    <Text style={styles.textAddress} numberOfLines={1}>
-      {toAddressName}
-    </Text>
+    <View style={styles.accountNameLabel}>
+      <Text style={styles.textAddress} numberOfLines={1}>
+        {toAddressName}
+      </Text>
+      {accountLabel && (
+        <Text style={styles.accountNameLabelText}>{strings(accountLabel)}</Text>
+      )}
+    </View>
   );
 };
 
 AddressName.propTypes = {
   toAddressName: PropTypes.string,
   confusableCollection: PropTypes.array,
+  accountLabel: PropTypes.string,
 };
 
 export const AddressTo = (props) => {
@@ -231,6 +242,12 @@ export const AddressTo = (props) => {
     isConfirmScreen = false,
     isFromAddressBook = false,
   } = props;
+  const isImportedOrHardwareAccount = toSelectedAddress
+    ? getAddressAccountType(toSelectedAddress)
+    : false;
+  const accountLabel = isImportedOrHardwareAccount
+    ? getLabelTextByAddress(toSelectedAddress)
+    : '';
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
@@ -265,6 +282,7 @@ export const AddressTo = (props) => {
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
+                    accountLabel={accountLabel}
                   />
                 )}
                 <View style={styles.addressWrapper}>
@@ -385,6 +403,7 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
+                      accountLabel={accountLabel}
                     />
 
                     <View style={styles.addressWrapper}>
@@ -544,7 +563,10 @@ export const AddressFrom = (props) => {
     fromAccountBalance,
     fromAccountAddress,
   } = props;
-  const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
+  const isImportedOrHardwareAccount = getAddressAccountType(fromAccountAddress);
+  const accountLabel = isImportedOrHardwareAccount
+    ? getLabelTextByAddress(fromAccountAddress)
+    : '';
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -565,9 +587,9 @@ export const AddressFrom = (props) => {
         <View style={[baseStyles.flexGrow, styles.address]}>
           <View style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
-            {isHardwareAccount && (
+            {isImportedOrHardwareAccount && (
               <Text style={styles.accountNameLabelText}>
-                {strings('transaction.hardware')}
+                {strings(accountLabel)}
               </Text>
             )}
           </View>
