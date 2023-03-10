@@ -5453,13 +5453,6 @@
   resolved "https://registry.yarnpkg.com/@types/diff/-/diff-5.0.2.tgz#dd565e0086ccf8bc6522c6ebafd8a3125c91c12b"
   integrity sha512-uw8eYMIReOwstQ0QKF0sICefSy8cNO/v7gOTiIy9SbwuHyEecJUm7qlgueOO5S1udZ5I/irVydHVwMchgzbKTg==
 
-"@types/easy-table@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@types/easy-table/-/easy-table-1.2.0.tgz#d7153551a2c3f6571dddff974b05aa2fb1a4a948"
-  integrity sha512-gVQkR2G/q6UK3wQT+waY9tCrbFauzMoBfJpMxHSuemHLQ8HpHdUIQ9YyRwYMfNX4CfoAoj/eJATyECGkFr65Pg==
-  dependencies:
-    easy-table "*"
-
 "@types/ejs@^3.0.5":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@types/ejs/-/ejs-3.1.1.tgz#29c539826376a65e7f7d672d51301f37ed718f6d"
@@ -6426,6 +6419,16 @@
     loglevel-plugin-prefix "^0.8.4"
     strip-ansi "^6.0.0"
 
+"@wdio/logger@8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@wdio/logger/-/logger-8.1.0.tgz#aaefce7da066a477249191aec8e9caa8581aeb33"
+  integrity sha512-QRC5b7FF4JIYUCqggnVA0sZ80TwIUFN9JyBSbuGuMxaSLSLujSo7WfuSrnQXVvsRbnJ16wWwJWYigfLkxOW86Q==
+  dependencies:
+    chalk "^5.1.2"
+    loglevel "^1.6.0"
+    loglevel-plugin-prefix "^0.8.4"
+    strip-ansi "^6.0.0"
+
 "@wdio/protocols@5.22.1":
   version "5.22.1"
   resolved "https://registry.yarnpkg.com/@wdio/protocols/-/protocols-5.22.1.tgz#51fde0acb57d4ddf07d078fef0ad9c91d227229d"
@@ -6486,22 +6489,6 @@
   dependencies:
     "@wdio/utils" "7.26.0"
 
-"@wdio/reporter@7.25.1":
-  version "7.25.1"
-  resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-7.25.1.tgz#a241745b20136393568958e29840d49caa873f02"
-  integrity sha512-MLEiuoQGFn1ZD5FvzWFdsInuJT7TF/E1sg81mwlMjm5iFpuTvbPCUQq3uJ24xnXfMbw/HLZUnhPqC47+KTKTkw==
-  dependencies:
-    "@types/diff" "^5.0.0"
-    "@types/node" "^18.0.0"
-    "@types/object-inspect" "^1.8.0"
-    "@types/supports-color" "^8.1.0"
-    "@types/tmp" "^0.2.0"
-    "@wdio/types" "7.25.1"
-    diff "^5.0.0"
-    fs-extra "^10.0.0"
-    object-inspect "^1.10.3"
-    supports-color "8.1.1"
-
 "@wdio/reporter@7.28.0":
   version "7.28.0"
   resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-7.28.0.tgz#a2fd5e08209784efe92236796aedf1a2c6734638"
@@ -6517,6 +6504,18 @@
     fs-extra "^11.1.0"
     object-inspect "^1.10.3"
     supports-color "8.1.1"
+
+"@wdio/reporter@8.4.0":
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-8.4.0.tgz#93828298988ea9294b19a83ed6861f2ec733fa24"
+  integrity sha512-CQMCUpb2nF3ja2s6sWd03007n7Ab2cvFH6a4Uv4Si8jJtf0M4uFLntiXKljg680/rlPLt/yXqkDSqQoAEjcTcA==
+  dependencies:
+    "@types/node" "^18.0.0"
+    "@wdio/logger" "8.1.0"
+    "@wdio/types" "8.4.0"
+    diff "^5.0.0"
+    object-inspect "^1.12.0"
+    supports-color "9.3.1"
 
 "@wdio/reporter@~7.16.13":
   version "7.16.14"
@@ -6548,16 +6547,15 @@
     webdriver "7.25.1"
     webdriverio "7.25.2"
 
-"@wdio/spec-reporter@^7.19.1":
-  version "7.25.1"
-  resolved "https://registry.yarnpkg.com/@wdio/spec-reporter/-/spec-reporter-7.25.1.tgz#01315a3ff718bcc017bd59696b856b09e15b6293"
-  integrity sha512-CazLMJGWh0b+eWtiSmWGfFCl+nB1LHwST30gWsBJ44Xtd/rwl7rXi76Uq/qE2a2kwUs0Od6NLK7ZCa+ISejqwQ==
+"@wdio/spec-reporter@^8.4.0":
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/@wdio/spec-reporter/-/spec-reporter-8.4.0.tgz#78c541e78f5bc6b899cdee1b2466078634dffc3d"
+  integrity sha512-/ji0zdU9AvMo5d4U2P/ITjBTGS4IR3oJWk7tkVPvOQBhDlx66JcXAEB53QYccLFtwH1Qat27RYoWb3PU7fsO+Q==
   dependencies:
-    "@types/easy-table" "^1.2.0"
-    "@wdio/reporter" "7.25.1"
-    "@wdio/types" "7.25.1"
-    chalk "^4.0.0"
-    easy-table "^1.1.1"
+    "@wdio/reporter" "8.4.0"
+    "@wdio/types" "8.4.0"
+    chalk "^5.1.2"
+    easy-table "^1.2.0"
     pretty-ms "^7.0.0"
 
 "@wdio/types@7.16.14":
@@ -6583,6 +6581,13 @@
   dependencies:
     "@types/node" "^18.0.0"
     got "^11.8.1"
+
+"@wdio/types@8.4.0":
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/@wdio/types/-/types-8.4.0.tgz#36b7e058b5f7c51225434ad4eb0852a7dd773764"
+  integrity sha512-1eA0D0jS8Ttg67zB2gsZJFUcHcRz4VRjLTjxdLKh70+ZfB1+YZr9tScLgQjc+qsjsK1wKSzOz03uZiidwNnN9g==
+  dependencies:
+    "@types/node" "^18.0.0"
 
 "@wdio/utils@5.23.0":
   version "5.23.0"
@@ -9101,6 +9106,11 @@ chalk@^4.0.0, chalk@^4.0.2, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
+chalk@^5.1.2:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.2.0.tgz#249623b7d66869c673699fb66d65723e54dfcfb3"
+  integrity sha512-ree3Gqw/nazQAPuJJEy+avdl7QfZMcUvmHIKgEZkGL+xOBzRvup5Hxo6LHuMceSxOabuJLJm5Yp/92R9eMmMvA==
+
 chalk@~0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-0.5.1.tgz#663b3a648b68b55d04690d49167aa837858f2174"
@@ -10926,7 +10936,7 @@ easy-stack@^1.0.1:
   resolved "https://registry.yarnpkg.com/easy-stack/-/easy-stack-1.0.1.tgz#8afe4264626988cabb11f3c704ccd0c835411066"
   integrity sha512-wK2sCs4feiiJeFXn3zvY0p41mdU5VUgbgs1rNsc/y5ngFUijdWd+iIN8eoyuZHKB8xN6BL4PdWmzqFmxNg6V2w==
 
-easy-table@*, easy-table@^1.1.1:
+easy-table@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/easy-table/-/easy-table-1.2.0.tgz#ba9225d7138fee307bfd4f0b5bc3c04bdc7c54eb"
   integrity sha512-OFzVOv03YpvtcWGe5AayU5G2hgybsg3iqA6drU8UaoZyB9jLGMTrz9+asnLp/E+6qPh88yEI1gvyZFZ41dmgww==
@@ -18662,6 +18672,11 @@ object-inspect@^1.10.3:
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.10.3.tgz#c2aa7d2d09f50c99375704f7a0adf24c5782d369"
   integrity sha512-e5mCJlSH7poANfC8z8S9s9S2IN5/4Zb3aZ33f5s8YqoazCFzNLloLU8r5VCG+G7WoqLvAAZoVMcy3tp/3X0Plw==
 
+object-inspect@^1.12.0:
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.3.tgz#ba62dffd67ee256c8c086dfae69e016cd1f198b9"
+  integrity sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==
+
 object-inspect@^1.12.2, object-inspect@^1.9.0:
   version "1.12.2"
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.2.tgz#c0641f26394532f28ab8d796ab954e43c009a8ea"
@@ -23123,6 +23138,11 @@ supports-color@8.1.1, supports-color@^8.0.0, supports-color@^8.1.1:
   integrity sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==
   dependencies:
     has-flag "^4.0.0"
+
+supports-color@9.3.1:
+  version "9.3.1"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-9.3.1.tgz#34e4ad3c71c9a39dae3254ecc46c9b74e89e15a6"
+  integrity sha512-knBY82pjmnIzK3NifMo3RxEIRD9E0kIzV4BKcyTZ9+9kWgLMxd4PrsTSMoFQUabgRBbF8KOLRDCyKgNV+iK44Q==
 
 supports-color@^0.2.0:
   version "0.2.0"
