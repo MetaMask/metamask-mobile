@@ -7,6 +7,7 @@ let stopTimer;
 Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
   stopTimer = new Date().getTime();
   const launchTime = stopTimer - startTimer;
+  console.log(`The Launch time is: ${launchTime}`);
 
   await expect(launchTime).toBeLessThan(time * 1000);
   cucumberJson.attach(`Milliseconds: ${launchTime}`);
