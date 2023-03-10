@@ -35,6 +35,9 @@ import { strings } from '../../../../locales/i18n';
 import {
   toggleNetworkModal,
   toggleReceiveModal,
+  toggleSDKLoadingModal,
+  toggleChannelDisconnectModal,
+  toggleSDKFeedbackModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -80,6 +83,8 @@ import {
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import { selectTicker } from '../../../selectors/networkController';
+import SDKLoadingModal from '../SDKLoadingModal';
+import SDKFeedbackModal from '../SDKFeedbackModal';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
@@ -363,6 +368,30 @@ class DrawerView extends PureComponent {
      * Action that toggles the receive modal
      */
     toggleReceiveModal: PropTypes.func,
+    /**
+     * Boolean that determines the status of the channel disconnect modal
+     */
+    channelDisconnectModalVisible: PropTypes.bool,
+    /**
+     * Boolean that determines the status of the SDK loading modal
+     */
+    sdkLoadingModalVisible: PropTypes.bool,
+    /**
+     * Boolean that determines the status of the SDK feedback modal
+     */
+    sdkFeedbackModalVisible: PropTypes.bool,
+    /**
+     * Action that toggles the disconnect all confirmation modal
+     */
+    toggleChannelDisconnectModal: PropTypes.func,
+    /**
+     * Action that toggles the SDK loading modal
+     */
+    toggleSDKLoadingModal: PropTypes.func,
+    /**
+     * Action that toggles the SDK feedback modal
+     */
+    toggleSDKFeedbackModal: PropTypes.func,
     /**
      * Action that shows the global alert
      */
@@ -800,6 +829,18 @@ class DrawerView extends PureComponent {
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
     );
+  };
+
+  toggleSDKLoadingModal = () => {
+    this.props.toggleSDKLoadingModal(false);
+  };
+
+  toggleSDKFeedbackModal = () => {
+    this.props.toggleSDKFeedbackModal(false);
+  };
+
+  toggleChannelDisconnectModal = () => {
+    this.props.toggleChannelDisconnectModal();
   };
 
   showHelp = () => {
@@ -1367,6 +1408,32 @@ class DrawerView extends PureComponent {
             onClose={this.closeInvalidCustomNetworkAlert}
           />
         </Modal>
+        <Modal
+          isVisible={this.props.sdkLoadingModalVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleSDKLoadingModal}
+          onBackButtonPress={this.toggleSDKLoadingModal}
+          onSwipeComplete={this.toggleSDKLoadingModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <SDKLoadingModal />
+        </Modal>
+        <Modal
+          isVisible={this.props.sdkFeedbackModalVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleSDKFeedbackModal}
+          onBackButtonPress={this.toggleSDKFeedbackModal}
+          onSwipeComplete={this.toggleSDKFeedbackModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <SDKFeedbackModal />
+        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1399,6 +1466,9 @@ const mapStateToProps = (state) => ({
   identities: state.engine.backgroundState.PreferencesController.identities,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  sdkLoadingModalVisible: state.modals.sdkLoadingModalVisible,
+  sdkFeedbackModalVisible: state.modals.sdkFeedbackModalVisible,
+  channelDisconnectModalVisible: state.modals.channelDisconnectModalVisible,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
@@ -1421,6 +1491,9 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+  toggleSDKLoadingModal: () => dispatch(toggleSDKLoadingModal()),
+  toggleSDKFeedbackModal: () => dispatch(toggleSDKFeedbackModal()),
+  toggleChannelDisconnectModal: () => dispatch(toggleChannelDisconnectModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

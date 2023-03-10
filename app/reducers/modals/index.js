@@ -23,6 +23,28 @@ const modalsReducer = (state = initialState, action) => {
         receiveAsset: action.asset,
       };
     }
+    case 'TOGGLE_SDKLOADING_MODAL':
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          sdkLoadingModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        sdkLoadingModalVisible: !state.sdkLoadingModalVisible,
+      };
+    case 'TOGGLE_SDKFEEDBACK_MODAL':
+      if (typeof action.visible !== undefined) {
+        return {
+          ...state,
+          sdkFeedbackModalVisible: action.visible,
+        };
+      }
+      return {
+        ...state,
+        sdkFeedbackModalVisible: !state.sdkFeedbackModalVisible,
+      };
     case 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL':
       return {
         ...state,
