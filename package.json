@@ -179,7 +179,7 @@
     "@testing-library/react": "^13.3.0",
     "@testing-library/react-native": "^11.5.0",
     "@tradle/react-native-http": "2.0.1",
-    "@types/lodash": "^4.14.184",
+    "@types/lodash": "^4.14.191",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",
     "asyncstorage-down": "4.2.0",
