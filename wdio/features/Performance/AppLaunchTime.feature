@@ -7,7 +7,7 @@ Feature: App Cold Start launch times.
   Scenario: Measure cold start launch time on fresh install
     Given the app is launched
     When the app displayed the splash animation
-    Then the app should launch within "5" seconds
+    Then the app should launch within "4" seconds
 
   Scenario: Measure cold start launch time after importing a wallet
     Given I have imported my wallet
@@ -19,4 +19,4 @@ Feature: App Cold Start launch times.
     And the timer starts running
     And I fill my password in the Login screen
     And I log into my wallet
-    Then the app should launch within "15" seconds
+    Then the app should launch within "14" seconds
