@@ -17,7 +17,7 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
@@ -373,19 +373,16 @@ class AccountOverview extends PureComponent {
     }
     const params = {
       ...(newTabUrl && { newTabUrl }),
-      ...(existingTabId && { existingTabId }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
       timestamp: Date.now(),
     };
     navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
-      {
-        portfolioUrl: AppConstants.PORTFOLIO_URL,
-      },
-    );
+    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      portfolioUrl: AppConstants.PORTFOLIO_URL,
+    });
   };
 
   render() {
@@ -395,12 +392,9 @@ class AccountOverview extends PureComponent {
       onboardingWizard,
       chainId,
       swapsIsLive,
-      browserTabs,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
-    // eslint-disable-next-line no-console
-    console.log('browserTabs', browserTabs);
     const styles = createStyles(colors);
 
     const fiatBalance = `${renderFiat(
