@@ -10,7 +10,7 @@ import {
 
 import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../util/transactions';
