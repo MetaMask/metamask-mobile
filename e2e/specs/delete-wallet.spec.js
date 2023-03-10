@@ -23,13 +23,14 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 import Accounts from '../../wdio/helpers/Accounts';
 
-const validAccount = Accounts.getValidAccount();
-
-const SECRET_RECOVERY_PHRASE =
-  'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
-const PASSWORD = `12345678`;
-
 describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
+
+  let validAccount;
+
+  beforeAll( () => {
+    validAccount = Accounts.getValidAccount();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -50,8 +51,8 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   it('should import wallet with valid secret recovery phrase and password', async () => {
     await ImportWalletView.clearSecretRecoveryPhraseInputBox();
     await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
+    await ImportWalletView.enterPassword(validAccount.password);
+    await ImportWalletView.reEnterPassword(validAccount.password);
   });
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
@@ -99,7 +100,7 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
     await SecurityAndPrivacyView.tapChangePasswordButton();
 
     await ChangePasswordView.isVisible();
-    await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
+    await ChangePasswordView.typeInConfirmPasswordInputBox(validAccount.password);
     //await ChangePasswordView.tapConfirmButton();
   });
 
