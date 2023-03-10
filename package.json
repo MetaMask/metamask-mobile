@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.0.1",
+  "version": "6.1.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -130,7 +130,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.8.1",
+    "@consensys/on-ramp-sdk": "1.9.0",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -152,8 +152,8 @@
     "@metamask/message-manager": "^1.0.1",
     "@metamask/network-controller": "^2.0.0",
     "@metamask/permission-controller": "^1.0.2",
+    "@metamask/preferences-controller": "^2.1.0",
     "@metamask/phishing-controller": "^2.0.0",
-    "@metamask/preferences-controller": "^1.0.1",
     "@metamask/sdk-communication-layer": "^0.1.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^2.0.0",

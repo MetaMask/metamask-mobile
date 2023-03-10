@@ -443,7 +443,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      transaction: { origin: transactionOrigin },
+      transaction: { origin, from, ensRecipient },
     } = this.props;
     const {
       actionKey,
@@ -454,9 +454,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
       multiLayerL1FeeTotal,
     } = this.state;
-    const currentPageInformation = { url: this.getUrlFromBrowser() };
-    const { currentEnsName, spenderAddress, origin, url } =
-      currentPageInformation;
+    const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
 
     return (
@@ -468,10 +466,10 @@ class TransactionReview extends PureComponent {
           ])}
         >
           <ApproveTransactionHeader
-            currentEnsName={currentEnsName}
-            spenderAddress={spenderAddress}
-            origin={origin || transactionOrigin}
+            currentEnsName={ensRecipient}
+            origin={origin}
             url={url}
+            from={from}
           />
           <TransactionReviewSummary
             actionKey={actionKey}
@@ -512,9 +510,7 @@ class TransactionReview extends PureComponent {
                         onCancelPress={this.props.onCancel}
                         gasEstimateType={gasEstimateType}
                         EIP1559GasData={EIP1559GasData}
-                        origin={
-                          dappSuggestedGas ? currentPageInformation?.url : null
-                        }
+                        origin={dappSuggestedGas ? url : null}
                         gasSelected={gasSelected}
                         originWarning={dappSuggestedGasWarning}
                         onUpdatingValuesStart={onUpdatingValuesStart}

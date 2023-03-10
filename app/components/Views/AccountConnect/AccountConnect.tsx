@@ -31,7 +31,7 @@ import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
-import { getUrlObj } from '../../../util/browser';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
@@ -81,10 +81,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   const hostname = hostInfo.metadata.origin;
-  const urlWithProtocol = useMemo(
-    () => `${getUrlObj(origin).protocol}//${hostname}`,
-    [origin, hostname],
-  );
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const secureIcon = useMemo(
     () =>
