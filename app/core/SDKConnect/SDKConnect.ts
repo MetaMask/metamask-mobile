@@ -86,8 +86,8 @@ const CONNECTION_LOADING_EVENT = 'loading';
 
 export const CONNECTION_CONFIG = {
   // Adjust the serverUrl during local dev if need to debug the communication protocol.
-  serverUrl: 'http://192.168.50.114:4000',
-  // serverUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
+  // serverUrl: 'http://192.168.50.114:4000',
+  serverUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
   platform: 'metamask-mobile',
   context: 'mm-mobile',
   sdkRemoteOrigin: 'MMSDKREMOTE::',
