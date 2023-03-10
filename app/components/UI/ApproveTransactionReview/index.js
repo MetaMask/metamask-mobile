@@ -488,8 +488,7 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   copyContractAddress = async (address) => {
-    const { transaction } = this.props;
-    await ClipboardManager.setString(address || transaction.to);
+    await ClipboardManager.setString(address);
     this.props.showAlert({
       isVisible: true,
       autodismiss: 1500,
@@ -937,11 +936,7 @@ class ApproveTransactionReview extends PureComponent {
       frequentRpcList,
       providerRpcTarget,
     } = this.props;
-    const {
-      transaction: { to },
-      showBlockExplorerModal,
-      address,
-    } = this.state;
+    const { showBlockExplorerModal, address } = this.state;
 
     const styles = this.getStyles();
     const closeModal = () => {
@@ -950,11 +945,12 @@ class ApproveTransactionReview extends PureComponent {
         showBlockExplorerModal: !showBlockExplorerModal,
       });
     };
+
     return (
       <ShowBlockExplorer
         setIsBlockExplorerVisible={closeModal}
         type={providerType}
-        address={address || to}
+        address={address}
         headerWrapperStyle={styles.headerWrapper}
         headerTextStyle={styles.headerText}
         iconStyle={styles.icon}
