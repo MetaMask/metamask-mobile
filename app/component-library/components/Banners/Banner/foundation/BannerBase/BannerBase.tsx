@@ -55,7 +55,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
           </Text>
         )}
         {descriptionEl && { descriptionEl }}
-        {(actionButtonLabel || actionButtonProps) && (
+        {((actionButtonLabel && actionButtonOnPress) || actionButtonProps) && (
           <Button
             variant={ButtonVariants.Link}
             size={ButtonSize.Auto}
