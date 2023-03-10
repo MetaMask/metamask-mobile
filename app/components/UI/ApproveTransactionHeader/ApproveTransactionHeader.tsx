@@ -3,7 +3,10 @@ import { View } from 'react-native';
 
 import { getHost } from '../../../util/browser';
 import { useSelector } from 'react-redux';
-import networkList, { isMainnetByChainId } from '../../../util/networks';
+import {
+  getNetworkNameFromProvider,
+  getNetworkImageSource,
+} from '../../../util/networks';
 
 import {
   renderShortAddress,
@@ -13,10 +16,10 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../util/transactions';
-import getImage from '../../../util/getImage';
-import { TEST_REMOTE_IMAGE_SOURCE } from '../../../component-library/components-temp/Accounts/AccountBalance/AccountBalance.constants';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
 import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import { strings } from '../../../../locales/i18n';
@@ -27,18 +30,16 @@ import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import {
   AccountInfoI,
   ApproveTransactionHeaderI,
   OriginsI,
 } from './ApproveTransactionHeader.types';
-import images from 'images/image-icons';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const ApproveTransactionHeader = ({
-  spenderAddress,
+  from,
   origin,
   url,
   currentEnsName,
@@ -47,7 +48,6 @@ const ApproveTransactionHeader = ({
     balance: 0,
     currency: '',
     accountName: '',
-    networkName: '',
   });
   const [origins, setOrigins] = useState<OriginsI>({
     isOriginDeepLink: false,
@@ -67,17 +67,6 @@ const ApproveTransactionHeader = ({
       state.engine.backgroundState.PreferencesController.identities,
   );
 
-  const permittedAccountsList = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
-
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
-    permittedAccountsList,
-    origin,
-  );
-
-  const activeAddress: string = permittedAccountsByHostname[0];
-
   const network = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
@@ -88,9 +77,13 @@ const ApproveTransactionHeader = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+  const activeAddress = toChecksumAddress(from);
+
+  const networkProvider = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProvider(networkProvider);
 
   useEffect(() => {
-    const { ticker, type } = network;
+    const { ticker } = network;
     const weiBalance = activeAddress
       ? hexToBN(accounts[activeAddress].balance)
       : 0;
@@ -107,13 +100,10 @@ const ApproveTransactionHeader = ({
 
     const isOriginMMSDKRemoteConn = origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
-    const networkName = networkList[type as keyof typeof networkList].name;
-
     setAccountInfo({
       balance,
       currency,
       accountName,
-      networkName,
     });
     setOrigins({
       isOriginDeepLink,
@@ -122,21 +112,16 @@ const ApproveTransactionHeader = ({
     });
   }, [accounts, identities, origin, activeAddress, network]);
 
-  const networkImage = useMemo(() => {
-    const { chainId } = network;
-    if (isMainnetByChainId(chainId)) return TEST_REMOTE_IMAGE_SOURCE;
-    const networkImageName = getImage(chainId);
-    if (networkImageName)
-      return images[networkImageName as keyof typeof images];
-
-    return null;
-  }, [network]);
+  const networkImage = getNetworkImageSource({
+    networkType: networkProvider.type,
+    chainId: networkProvider.chainId,
+  });
 
   const domainTitle = useMemo(() => {
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
       origins;
     let title = '';
-    if (isOriginDeepLink) title = renderShortAddress(spenderAddress);
+    if (isOriginDeepLink) title = renderShortAddress(from);
     else if (isOriginWalletConnect)
       title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     else if (isOriginMMSDKRemoteConn) {
@@ -144,7 +129,7 @@ const ApproveTransactionHeader = ({
     } else title = getHost(currentEnsName || url || origin);
 
     return title;
-  }, [currentEnsName, origin, origins, spenderAddress, url]);
+  }, [currentEnsName, origin, origins, from, url]);
 
   const favIconUrl = useMemo(() => {
     const { isOriginWalletConnect, isOriginMMSDKRemoteConn } = origins;
@@ -173,11 +158,11 @@ const ApproveTransactionHeader = ({
         accountName={accountInfo.accountName}
         accountTypeLabel={importedOrHardwareLabel}
         accountBalanceLabel={strings('transaction.balance')}
-        accountNetwork={network.nickname || accountInfo.networkName}
         avatarIconType={accountAvatarType}
+        accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariants.Network,
-          name: accountInfo.networkName,
+          name: networkName,
           imageSource: networkImage,
         }}
       />

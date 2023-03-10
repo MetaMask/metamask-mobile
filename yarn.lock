@@ -1537,10 +1537,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@1.8.1":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.8.1.tgz#05c2115c16526f4fb5913e7f3b8fad71c38c3b1e"
-  integrity sha512-F2POd3UquAByg1cIlAg38XMKP2yjNBxR7UBrfkCA32iNEivFeDu68RMMwYhgnDL4w+eI5U5umw/yumvUZn/b5w==
+"@consensys/on-ramp-sdk@1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.9.0.tgz#4ab9b8251308769287ebbe3ed8a53a9eb2d4537f"
+  integrity sha512-rFmHxOMsOdP/hHMG2R3FBXUbZggJGrPCbrOAhctdJhmFfHIjkvAF4bKTaj529tAvs+oKnyI0k2i56KtFopZ3vQ==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -4166,12 +4166,12 @@
     "@metamask/controller-utils" "^2.0.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^1.1.2-preview.0a64d42", "@metamask/base-controller@^1.1.2-preview.9ab6024":
-  version "1.1.2-preview.9ab6024"
-  resolved "https://npm.pkg.github.com/download/@metamask/base-controller/1.1.2-preview.9ab6024/b23cf93428c2844e4ce3a3a42bd81457e26ae008#b23cf93428c2844e4ce3a3a42bd81457e26ae008"
-  integrity sha512-RkwS1iYpf4+Xxu+vTz8tspAj3y6aNcWfo/L5a6ivJBkww5oU8RphaCFTabOjHpZKsuwSOwR34guZqZNIXDM/Bg==
+"@metamask/base-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-2.0.0.tgz#8f9130df3edaa270ade00378cf57917545d44617"
+  integrity sha512-DppA4/HCabsphVucNRpWA3/mp6m2KhZr/8gidSlpUNLMFqljOKA81GW9nemN3HDqH1RoZdXusI82/4SPEbdbaA==
   dependencies:
-    "@metamask/controller-utils" "^2.0.0-preview.9ab6024"
+    "@metamask/controller-utils" "^3.0.0"
     immer "^9.0.6"
 
 "@metamask/bip39@^4.0.0":
@@ -4220,10 +4220,10 @@
     fast-deep-equal "^3.1.3"
     isomorphic-fetch "^3.0.0"
 
-"@metamask/controller-utils@^2.0.0-preview.0a64d42", "@metamask/controller-utils@^2.0.0-preview.9ab6024":
-  version "2.0.0-preview.9ab6024"
-  resolved "https://npm.pkg.github.com/download/@metamask/controller-utils/2.0.0-preview.9ab6024/4d1270a56dabf081d421ba116a8f18318b900cb7#4d1270a56dabf081d421ba116a8f18318b900cb7"
-  integrity sha512-0ma33BgFH2EiqeqHVVma2549i82Ag+JMe0uFb78g8TzEufF7QQrA4WzJ/HJ0iSBR5g90BYpyXhC7dGyvtpFC3w==
+"@metamask/controller-utils@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.0.0.tgz#e0984cdab14280409297671b5858891527c5e4ee"
+  integrity sha512-JjFWBZnnh5DSX2tRsw5xtXxaqVkTzaW7mkSZ+lL3LoCAw47Cf8zGP1kGR6VKxcceKi+MpEFvZr7gf1OFnOoEjw==
   dependencies:
     eth-ens-namehash "^2.0.8"
     eth-rpc-errors "^4.0.0"
@@ -4442,13 +4442,13 @@
     "@metamask/base-controller" "^1.1.1"
     "@metamask/controller-utils" "^1.0.0"
 
-"@metamask/preferences-controller@^1.0.2-preview.0a64d42":
-  version "1.0.2-preview.9ab6024"
-  resolved "https://npm.pkg.github.com/download/@metamask/preferences-controller/1.0.2-preview.9ab6024/9bac7414c050f7c3f49c69e56121c3c721c1aaf3#9bac7414c050f7c3f49c69e56121c3c721c1aaf3"
-  integrity sha512-EMx37OoKB3s+FCItlYYMBM9e/qmpaucMWcAmVdd+9JRjiEZFSsSdxTaMJkMCySNr3cHEeQhc36ycJlNDfWpivw==
+"@metamask/preferences-controller@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-2.1.0.tgz#c3ed464259f3f969ff492167c368752d23db3924"
+  integrity sha512-/GvYSaCCT0DVDZLlt8eiJDcw7WNFeIMpssP0X0+MK+Ye5eGEMp0Wo0n5uoMOKDR+x3HnWo5YuVGHBlSCnusEeg==
   dependencies:
-    "@metamask/base-controller" "^1.1.2-preview.9ab6024"
-    "@metamask/controller-utils" "^2.0.0-preview.9ab6024"
+    "@metamask/base-controller" "^2.0.0"
+    "@metamask/controller-utils" "^3.0.0"
 
 "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"

@@ -12,47 +12,34 @@ workflows:
       - nvm@1.3.0:
           inputs:
             - node_version: '14'
-  code_setup_cache:
-    before_run:
-      - setup
-    steps:
-      - cache-pull@2: {}
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: setup
-          title: Yarn Setup
-      - yarn@0:
-          title: Lint
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: lint
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: audit:ci
-          title: Audit Dependencies
-      - cache-push@2: {}
   code_setup:
     before_run:
       - setup
     steps:
       - yarn@0:
           inputs:
-            - cache_local_deps: 'yes'
             - command: setup
           title: Yarn Setup
       - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: audit:ci
-          title: Audit Dependencies
-      - yarn@0:
           title: Lint
           inputs:
-            - cache_local_deps: 'yes'
             - command: lint
-          is_always_run: true
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
+  code_setup_dev:
+    before_run:
+      - setup
+    steps:
+      - script@1:
+          title: Generate `.npmrc` file for preview builds
+          inputs:
+            - content: |
+                #!/bin/bash
+                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
+    after_run:
+      - code_setup
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -141,7 +128,7 @@ workflows:
   # CI Steps
   ci_test:
     before_run:
-      - code_setup_cache
+      - code_setup
     steps:
       - yarn@0:
           inputs:
@@ -166,7 +153,7 @@ workflows:
           title: Detox - Install CLI
   android_e2e_test:
     before_run:
-      - code_setup
+      - code_setup_dev
       - e2e_setup
     after_run:
       - _e2e_notify_on_slack
@@ -193,7 +180,7 @@ workflows:
           is_always_run: false
   ios_e2e_test:
     before_run:
-      - code_setup
+      - code_setup_dev
       - e2e_setup
     after_run:
       - _e2e_notify_on_slack
@@ -237,7 +224,7 @@ workflows:
   # Parallel Build & Deploy Steps
   create_release_builds:
     before_run:
-      - code_setup_cache
+      - code_setup
     steps:
       - build-router-start@0:
           inputs:
@@ -254,7 +241,7 @@ workflows:
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   release_to_stores:
     before_run:
-      - code_setup_cache
+      - code_setup
     steps:
       - build-router-start@0:
           inputs:
@@ -282,7 +269,7 @@ workflows:
           is_always_run: false
   create_qa_builds:
     before_run:
-      - code_setup_cache
+      - code_setup_dev
     steps:
       - build-router-start@0:
           inputs:
@@ -356,7 +343,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
   build_android_qa:
     before_run:
-      - code_setup_cache
+      - code_setup_dev
     after_run:
       - _upload_apk_to_browserstack
       - _build_failure_notify_on_slack
@@ -450,7 +437,7 @@ workflows:
                 BROWSERSTACK_TAG_EXPRESSION
   wdio_android_e2e_test:
     before_run:
-      - code_setup_cache
+      - code_setup
     after_run:
       - _e2e_notify_on_slack
     steps:
@@ -496,7 +483,7 @@ workflows:
             - ipa_path: ios/build/output/MetaMask.ipa
   build_ios_release:
     before_run:
-      - code_setup_cache
+      - code_setup
     after_run:
       - _build_failure_notify_on_slack
     steps:
@@ -535,7 +522,7 @@ workflows:
           title: Deploy Source Map
   build_ios_qa:
     before_run:
-      - code_setup_cache
+      - code_setup_dev
     after_run:
       - _build_failure_notify_on_slack
     steps:
@@ -603,10 +590,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.0.1
+      VERSION_NAME: 6.1.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1072
+      VERSION_NUMBER: 1082
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

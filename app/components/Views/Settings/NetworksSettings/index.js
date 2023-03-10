@@ -18,7 +18,7 @@ import { strings } from '../../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
-  isMainNet,
+  isDefaultMainnet,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -209,7 +209,7 @@ class NetworksSettings extends PureComponent {
       <View key={`network-${network}`}>
         {
           // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
-          isMainNet(network) ? (
+          isDefaultMainnet(network) ? (
             this.renderMainnet()
           ) : (
             <TouchableOpacity
@@ -323,8 +323,8 @@ class NetworksSettings extends PureComponent {
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
     const defaultNetwork = getAllNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
-      return { name, color, network, isCustomRPC: false };
+      const { color, name, chainId } = Networks[network];
+      return { name, color, network, isCustomRPC: false, chainId };
     });
     const customRPC = this.props.frequentRpcList.map((network, i) => {
       const { color, name, url, chainId } = {
@@ -352,7 +352,7 @@ class NetworksSettings extends PureComponent {
     if (this.state.filteredNetworks.length > 0) {
       return this.state.filteredNetworks.map((data, i) => {
         const { network, chainId, name, color, isCustomRPC } = data;
-        const image = getNetworkImageSource(chainId);
+        const image = getNetworkImageSource({ chainId });
         return this.networkElement(
           name,
           image || color,
