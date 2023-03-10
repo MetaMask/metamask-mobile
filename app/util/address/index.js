@@ -231,7 +231,7 @@ export function getLabelTextByAddress(address) {
       case KeyringTypes.ledger:
         return 'accounts.ledger';
       default:
-        return '';
+        return null;
     }
   }
   throw new Error(`The address: ${address} is not imported`);
