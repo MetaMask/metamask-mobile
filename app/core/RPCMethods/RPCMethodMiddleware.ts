@@ -278,17 +278,19 @@ export const getRpcMethodMiddleware = ({
           res.result = [selectedAddress];
         } else if (isMMSDK) {
           try {
-            let { selectedAddress } =
-              Engine.context.PreferencesController.state;
-            selectedAddress = selectedAddress?.toLowerCase();
-            // Prompts user approval UI in RootRPCMethodsUI.js.
-            await requestUserApproval({
-              type: ApprovalTypes.CONNECT_ACCOUNTS,
-              requestData: { hostname },
-            });
+            const approved = getApprovedHosts()[hostname];
+
+            if (!approved) {
+              // Prompts user approval UI in RootRPCMethodsUI.js.
+              await requestUserApproval({
+                type: ApprovalTypes.CONNECT_ACCOUNTS,
+                requestData: { hostname },
+              });
+            }
             // Stores approvals in SDKConnect.ts.
             approveHost?.(hostname);
-            res.result = selectedAddress ? [selectedAddress] : [];
+            const accounts = getAccounts();
+            res.result = accounts;
           } catch (e) {
             throw ethErrors.provider.userRejectedRequest(
               'User denied account authorization.',

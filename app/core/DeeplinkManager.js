@@ -20,7 +20,7 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
@@ -224,11 +224,37 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === ACTIONS.CONNECT) {
+          if (action === ACTIONS.OTP) {
+            if (params?.channelId) {
+              const channelId = params.channelId;
+              const channelExists =
+                SDKConnect.getInstance().getConnections()[channelId];
+              // Automatically re-approve hosts.
+              SDKConnect.getInstance().revalidateChannel({
+                channelId,
+              });
+              if (channelExists) {
+                // Also try to reconnect if not already connected
+                SDKConnect.getInstance().reconnect({ channelId });
+              } else {
+                // Establish a new connection, this may happen if connection was previously removed on wallet.
+                SDKConnect.getInstance().connectToChannel({
+                  id: channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
+            } else {
+              console.warn(`DeepLinkManager invalid OTP params`);
+            }
+
+            return;
+          } else if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
+            } else if (params.channelId) {
+              SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,
@@ -318,7 +344,27 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OTP}`)) {
+          if (params?.otp) {
+            const channelExists =
+              SDKConnect.getInstance().getApprovedHosts()[params.otp];
+
+            if (channelExists) {
+              // Automatically re-approve hosts.
+              SDKConnect.getInstance().revalidateChannel({
+                channelId: params.otp,
+              });
+            } else {
+              // Establish a new connection
+              SDKConnect.getInstance().connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
+          }
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
           } else {
