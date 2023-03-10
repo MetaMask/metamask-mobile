@@ -3,8 +3,7 @@
 ## Current Main Branch
 
 ## 6.1.2 - Mar 03, 2023
-- [#5925](https://github.com/MetaMask/metamask-mobile/pull/5925): handle all ios biometric errors and create wallet
-- udpate change log
+- [#5925](https://github.com/MetaMask/metamask-mobile/pull/5925): [FIX] handle all ios biometric errors and create wallet
 - [#5906](https://github.com/MetaMask/metamask-mobile/pull/5906): [FIX] Add try-catch to recreateVault
 
 ## 6.1.1 - Mar 01, 2023
