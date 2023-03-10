@@ -89,6 +89,7 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -704,7 +705,7 @@ class Amount extends PureComponent {
     }
 
     if (selectedAsset.isETH) {
-      transactionObject.data = '0x';
+      transactionObject.data = PREFIX_HEX_STRING;
       transactionObject.to = transactionTo;
     }
 
