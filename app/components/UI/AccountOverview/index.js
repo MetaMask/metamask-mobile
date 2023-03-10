@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -149,6 +148,13 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       flexDirection: 'row',
     },
+    netWorthContainer: {
+      justifyItems: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    portfolioLink: { marginLeft: 5 },
+    portfolioIcon: { color: colors.primary.default },
   });
 
 /**
@@ -495,20 +501,14 @@ class AccountOverview extends PureComponent {
                 </View>
               )}
             </View>
-            <View
-              style={{
-                justifyItems: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-              }}
-            >
+            <View style={styles.netWorthContainer}>
               <Text style={styles.amountFiat}>{fiatBalance}</Text>
               <TouchableOpacity
                 onPress={this.onOpenPortfolio}
-                style={{ marginLeft: 5 }}
+                style={styles.portfolioLink}
               >
                 <Icon
-                  style={{ color: colors.primary.default }}
+                  style={styles.portfolioIcon}
                   name={IconName.Diagram}
                   size={20}
                 />
