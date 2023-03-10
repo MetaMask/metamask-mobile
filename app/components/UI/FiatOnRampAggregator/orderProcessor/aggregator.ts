@@ -38,21 +38,6 @@ interface InitialAggregatorOrder {
   network: string;
 }
 
-export const aggregatorInitialFiatOrder = (
-  initialOrder: InitialAggregatorOrder,
-) => ({
-  ...initialOrder,
-  state: FIAT_ORDER_STATES.PENDING,
-  provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-  createdAt: Date.now(),
-  amount: null,
-  fee: null,
-  currency: '',
-  cryptoAmount: null,
-  cryptocurrency: '',
-  data: null,
-});
-
 export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   id: aggregatorOrder.id,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,

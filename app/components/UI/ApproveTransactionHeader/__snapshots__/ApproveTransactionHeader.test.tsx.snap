@@ -2,8 +2,8 @@
 
 exports[`ApproveTransactionHeader should render correctly 1`] = `
 <ApproveTransactionHeader
+  from="0x"
   origin="0x"
-  spenderAddress="0x"
   url=""
 />
 `;
