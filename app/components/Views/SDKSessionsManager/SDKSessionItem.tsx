@@ -15,7 +15,6 @@ interface SDKSessionViewProps {
 const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
   StyleSheet.create({
     container: {
-      // borderWidth: 2,
       flexDirection: 'row',
       flexGrow: 1,
       alignItems: 'center',

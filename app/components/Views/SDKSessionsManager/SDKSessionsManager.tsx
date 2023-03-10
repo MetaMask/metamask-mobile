@@ -56,9 +56,6 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
       borderColor: colors.error.default,
     },
     disconnectAllFont: { color: colors.error.default },
-    scrollView: {
-      // keep in case necessary
-    },
     title: {
       fontSize: 30,
     },
@@ -114,7 +111,6 @@ const SDKSessionsManager = (props: Props) => {
     sdk.removeChannel(channelId, true);
 
     setTimeout(() => {
-      // setConnections(newList);
       refreshSDKState();
     }, 100);
   };
@@ -141,7 +137,7 @@ const SDKSessionsManager = (props: Props) => {
 
   const renderSDKSessions = () => (
     <>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView>
         <View>
           {connections.map((sdkSession, _index) => (
             <SDKSessionItem
@@ -168,11 +164,7 @@ const SDKSessionsManager = (props: Props) => {
     </>
   );
 
-  const renderEmptyResult = () => (
-    <>
-      <Text>{strings('sdk.no_connections')}</Text>
-    </>
-  );
+  const renderEmptyResult = () => <Text>{strings('sdk.no_connections')}</Text>;
 
   return (
     <View style={styles.wrapper} testID={'sdk-session-manager'}>

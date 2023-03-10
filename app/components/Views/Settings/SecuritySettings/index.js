@@ -40,7 +40,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import AnalyticsV2, {
+import {
   trackEvent,
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
