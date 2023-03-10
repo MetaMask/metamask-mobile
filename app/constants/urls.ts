@@ -12,7 +12,7 @@ export const LEARN_MORE_URL =
 // Remote path for subtitles that can't be bundled with the app
 // because only remote subtitles are supported by react-native-video
 export const SRP_SUBTITLES_URL_TEMPLATE =
-  'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-${language}.vtt?raw=true';
+  'https://metamask.github.io/metamask-mobile/Subtitles/v1/secretPhrase/subtitles-${language}.vtt';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import videoSourceUri from '../../videos/recovery-phrase-mobile-2pass-optimized.mp4';
+import videoSourceUri from '../../videos/recovery-phrase.mp4';
 import { SRP_SUBTITLES_URL_TEMPLATE } from '../../constants/urls';
 
 /**
