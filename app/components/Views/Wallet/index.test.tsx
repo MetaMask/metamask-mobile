@@ -144,6 +144,12 @@ describe('Wallet', () => {
   it('should render Account Overview', () => {
     const { getByTestId } = renderComponent(initialState);
 
+    // eslint-disable-next-line no-console
+    console.log(
+      "getByTestId('account-overview')",
+      getByTestId('account-overview'),
+    );
+
     expect(getByTestId('account-overview')).toBeDefined();
   });
   it('should render scan qr icon', () => {
