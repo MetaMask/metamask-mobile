@@ -71,6 +71,7 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
+import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -344,6 +345,11 @@ const SettingsFlow = () => (
       name="AdvancedSettings"
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="SDKSessionsManager"
+      component={SDKSessionsManager}
+      options={SDKSessionsManager.navigationOptions}
     />
     <Stack.Screen
       name="SecuritySettings"
