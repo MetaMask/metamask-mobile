@@ -8,6 +8,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import { useDispatch } from 'react-redux';
 import { toggleSDKFeedbackModal } from '../../../../app/actions/modals';
+import { strings } from '../../../../locales/i18n';
 
 // eslint-disable-next-line
 interface SDKFeedbackModalrops {}
@@ -57,12 +58,8 @@ export const SDKFeedbackModal = (_props?: SDKFeedbackModalrops) => {
         size={32}
         color={colors.text.default}
       />
-      <Text style={styles.title}>{'Something went wrong'}</Text>
-      <Text style={styles.info}>
-        {
-          'Your account is disconnected. Please scan the QR code on the dApp to reconnect to MetaMask'
-        }
-      </Text>
+      <Text style={styles.title}>{strings('sdk_feedback_modal.title')}</Text>
+      <Text style={styles.info}>{strings('sdk_feedback_modal.info')}</Text>
       <View style={styles.action}>
         <StyledButton
           type={'confirm'}
@@ -70,7 +67,7 @@ export const SDKFeedbackModal = (_props?: SDKFeedbackModalrops) => {
             dispatch(toggleSDKFeedbackModal(false));
           }}
         >
-          {'OK'}
+          {strings('sdk_feedback_modal.ok')}
         </StyledButton>
       </View>
     </View>

@@ -699,6 +699,12 @@
     "unkown_dapp": "DAPP name not available",
     "no_connections": "No connections found"
   },
+  "sdk_feedback_modal": {
+    "ok": "OK",
+    "title": "Something went wrong",
+    "info": "Your account is disconnected. Please scan the QR code on the dApp to reconnect to MetaMask",
+
+  },
   "app_information": {
     "title": "Information",
     "links": "Links",
