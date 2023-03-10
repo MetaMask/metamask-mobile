@@ -14,7 +14,7 @@ import URL from 'url-parse';
 import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 
 const createStyles = (colors) =>
   StyleSheet.create({

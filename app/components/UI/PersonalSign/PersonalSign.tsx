@@ -12,7 +12,7 @@ import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';

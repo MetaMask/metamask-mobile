@@ -47,7 +47,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import {
   selectChainId,
   selectTicker,

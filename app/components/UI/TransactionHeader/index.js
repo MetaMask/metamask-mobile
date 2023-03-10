@@ -11,7 +11,7 @@ import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { useTheme } from '../../../util/theme';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import {
   selectNickname,
   selectProviderType,
@@ -184,6 +184,9 @@ const TransactionHeader = (props) => {
     else if (originIsMMSDKRemoteConn) {
       title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
     } else title = getHost(currentEnsName || url || origin);
+
+    if (title === undefined || title.length === 0)
+      title = getHost(currentEnsName || url || origin);
 
     return <Text style={styles.domainUrl}>{title}</Text>;
   };
