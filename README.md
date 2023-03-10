@@ -1,4 +1,11 @@
-# metamask-mobile App Config
+# Metamask Mobile remotely fetchable files
+
+This Github Pages contains mobile app files that must be fetched remotely:
+
+- [App Config](#app-config)
+- [SRP video subtitles](#srp-video-subtitles)
+
+## App Config
 A hosted JSON object that can be fetched to get information that needs to come from a remote source.
 
 | Version | Status | Link |
@@ -6,7 +13,7 @@ A hosted JSON object that can be fetched to get information that needs to come f
 | 1 | stable | https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json |
 | test | test | https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json |
 
-## Getting Started
+### Getting Started
 
 ```console
 $ curl https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json
@@ -23,30 +30,30 @@ $ curl https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json
 
 ```
 
-## Contributing
+### Contributing
 
-### Opening an issue/pull request
+#### Opening an issue/pull request
 - **Always add the label** [minimum-versions](https://github.com/MetaMask/metamask-mobile/issues?q=label%3Aminimum-versions+) when modifying the minimum secure versions.
 
-### Changing the minimum version
+#### Changing the minimum version
 - All severity 0 bugs should result in a minimum version bump. The value should reflect the version of the app that resolved said issue.
 - Changing the minimum version should only happen after the bug fix has been released to 100% + 24 hours to be safe.
 - All version changes should be documented in notion [here](https://www.notion.so/Minimum-versions-history-750c91610b614f3e88601650099e77b8).
 - Once the above steps have been completed, this becomes a relatively simple change. All that is needed is to change the values in the [AppConfig.json](https://github.com/MetaMask/metamask-mobile/blob/gh-pages/AppConfig/v1/AppConfig.json) file to your desired values. There is no need for a new version of the API or any code changes in the mobile repo.
 
-### Changing the schema 
+#### Changing the schema 
 If you want to add/modify fields to the API then you must create a new version of the API by creating a subdirectory in the [AppConfig folder](https://github.com/MetaMask/metamask-mobile/tree/gh-pages/AppConfig/) with your desired version number. You must also modify the test endpoint located at `AppConfig/test/MockAppConfig.json` to match the new schema. 
 
 **NOTE** If you are modifying the schema **AND** changing existing values you must also modify the existing values in the older versions of the API.
 
 Change the [README](https://github.com/MetaMask/metamask-mobile/blob/gh-pages/README.md) to document the new API and mark the latest version as stable.
 
-#### Changes required in the mobile codebase
+##### Changes required in the mobile codebase
 1. Since the [useAppConfig](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/hooks/AppConfig/useAppConfig.tsx) hook will no longer work you must modify the [AppConfig.ts](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/hooks/AppConfig/AppConfig.ts) interface to **exactly** your new JSON object.
 2. Then you will need to modify [this logic](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/hooks/AppConfig/useAppConfig.tsx#L22-L30) within the fetch to correctly parse the response to match the new schema.
 3. Change the [MM_APP_CONFIG_URL](https://github.com/MetaMask/metamask-mobile/blob/main/app/constants/urls.ts#L34) to the newest endpoint.
 
-## Using In The Mobile App
+### Using In The Mobile App
 There is a handy [useAppConfig](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/hooks/AppConfig/useAppConfig.tsx) hook in the mobile repo that will fetch and parse the AppConfig into a useable typescript object. This hook will return an object with the state of `Loading` or `Error` or `Success` and the values inside the `data` property. You must then check to see if `data` exists in the state before you can interact with the AppConfig.
 
 ```typescript
@@ -57,9 +64,9 @@ if (appConfig.data) {
 }
 ```
 
-## App Config API
+### App Config API
 
-#### `security.minimumVersions`
+##### `security.minimumVersions`
 - The current minimum supported app and operating system versions.
 ```json
 {
@@ -73,7 +80,7 @@ if (appConfig.data) {
 }
 ```
 
-## Testing
+### Testing
 A mock endpoint can be found at `AppConfig/test/MockAppConfig.json`. This endpoint can be used to populate test values for QA without changing the stable values. To test minimum values logic, open a PR with values higher than the current stable release values. Once merged, you can query the test endpoint at [https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json](https://metamask.github.io/metamask-mobile/AppConfig/test/MockAppConfig.json) and verify that the mobile app performs accordingly.
 
 ```json
@@ -87,3 +94,23 @@ A mock endpoint can be found at `AppConfig/test/MockAppConfig.json`. This endpoi
   }
 }
 ```
+
+## SRP video subtitles
+
+Video subtitles are fetched from a remote source by the mobile app using React-native-video.
+
+Folder for subtitles is `Subtitles` located at the root of the gh-pages branch.
+
+Following the same principle as the [App Config](#app-config), the subtitles are versioned and any change to the subtitles should be done in a new version folder.
+
+| Version | Status | Link                                                                                           |
+|---------|--------|------------------------------------------------------------------------------------------------|
+| 1       | stable | https://metamask.github.io/metamask-mobile/Subtitles/v1/secretPhrase/subtitles-${language}.vtt |
+
+#### Changing the subtitles
+If you want to add/modify subtitles you must create a new version of the subtitles by creating a subdirectory in the
+[Subtitles folder](https://github.com/MetaMask/metamask-mobile/tree/gh-pages/Subtitles/) with your desired version number.
+
+##### Changes required in the mobile codebase
+1. Modify [`/app/util/video/index.test.ts`](https://github.com/MetaMask/metamask-mobile/blob/main/app/util/video/index.test.ts) to test the new file path pattern (only version should change).
+2. Change the [`SRP_SUBTITLES_URL_TEMPLATE`](https://github.com/MetaMask/metamask-mobile/blob/main/app/constants/urls.ts) constant to the newest endpoint (only version should change).
