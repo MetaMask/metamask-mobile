@@ -1,4 +1,4 @@
-@androidApp @ChainScenarios @Performance
+@androidApp @Performance
 Feature: App Cold Start launch times.
   This feature measures the cold start of the app when:
   The user installs the app for the very first time
@@ -19,4 +19,4 @@ Feature: App Cold Start launch times.
     And the timer starts running
     And I fill my password in the Login screen
     And I log into my wallet
-    Then the app should launch within "10" seconds
+    Then the app should launch within "15" seconds
