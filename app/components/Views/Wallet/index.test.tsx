@@ -28,6 +28,12 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+// TODO: Convert STRINGs into a mock SVG component
+jest.mock(
+  '../../../component-library/components/Icons/Icon/assets/diagram.svg',
+  () => 'STRINGs',
+);
+
 const initialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
@@ -143,12 +149,6 @@ describe('Wallet', () => {
   });
   it('should render Account Overview', () => {
     const { getByTestId } = renderComponent(initialState);
-
-    // eslint-disable-next-line no-console
-    console.log(
-      "getByTestId('account-overview')",
-      getByTestId('account-overview'),
-    );
 
     expect(getByTestId('account-overview')).toBeDefined();
   });
