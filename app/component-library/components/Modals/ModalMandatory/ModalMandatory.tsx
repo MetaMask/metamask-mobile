@@ -30,7 +30,10 @@ import {
 import { MandatoryModalProps } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
+import {
+  TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
+  TERMS_OF_USE_WEBVIEW_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -204,7 +207,10 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         {...generateTestId(Platform, containerTestId)}
       >
         {renderHeader()}
-        <View style={styles.bodyContainer}>
+        <View
+          style={styles.bodyContainer}
+          {...generateTestId(Platform, TERMS_OF_USE_WEBVIEW_ID)}
+        >
           {body.source === 'WebView' ? renderWebView(body.uri) : renderBody()}
         </View>
         <TouchableOpacity

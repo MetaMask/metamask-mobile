@@ -5,9 +5,7 @@ Feature: This feature file cover the switch account on the browser flow.
   Use the search bar on the homepage to return a popular defi
   apps as a suggested search, connect to the dapp and then switch accounts
 
-    Given the app displayed the splash animation
-    And the splash animation disappears
-    And I agree to terms
+    Given I agree to terms
     And Terms of Use is not displayed
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen

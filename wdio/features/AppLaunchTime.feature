@@ -6,11 +6,10 @@ Feature: App launch times
 
   Scenario: Measure app launch time on fresh install
     Given the app is launched
-    When the app displayed the splash animation
+    When Terms of Use is displayed
     Then the app should launch within x seconds
 
   Scenario: Measure app launch time after importing a wallet
-    Given the splash animation disappears
     And I agree to terms
     And Terms of Use is not displayed
     And I have imported my wallet
@@ -20,8 +19,6 @@ Feature: App launch times
     When I kill the app
     And I relaunch the app
     And the timer starts running
-    And the app displayed the splash animation
-    And the splash animation disappears
     And I fill my password in the Login screen
     And I log into my wallet
     Then the app should launch within x seconds

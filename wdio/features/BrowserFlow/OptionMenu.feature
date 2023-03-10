@@ -5,9 +5,7 @@
 Feature: This feature file covers the option menu in the browser.
 
   Background: The user navigates to the Browser screen
-    Given the app displayed the splash animation
-    And the splash animation disappears
-    And I agree to terms
+    Given I agree to terms
     And Terms of Use is not displayed
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen

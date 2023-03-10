@@ -1,5 +1,5 @@
 /* global driver */
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import {Given, Then, When} from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -29,8 +29,8 @@ Then(/^Terms of Use is displayed$/, async () => {
 });
 
 When(/^I agree to terms$/, async () => {
-  await TermOfUseScreen.tapScrollEndButton();
   await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
   await driver.pause();
   await TermOfUseScreen.tapAcceptButton();
 });
@@ -55,8 +55,6 @@ Given(/^I have imported my wallet$/, async () => {
 
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -163,8 +161,7 @@ When(/^I fill my password in the Login screen$/, async () => {
   await LoginScreen.tapTitle();
 });
 When(/^I unlock wallet with (.*)$/, async (password) => {
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword(password);
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();
