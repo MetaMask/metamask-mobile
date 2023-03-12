@@ -705,7 +705,9 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         res.result = {
           ...getProviderState(),
-          accounts: await getPermittedAccounts(hostname),
+          accounts: isMMSDK
+            ? getAccounts()
+            : await getPermittedAccounts(hostname),
         };
       },
 
