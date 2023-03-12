@@ -227,24 +227,19 @@ class DeeplinkManager {
           if (action === ACTIONS.OTP) {
             if (params?.channelId) {
               const channelId = params.channelId;
-              const channelExists =
-                SDKConnect.getInstance().getConnections()[channelId];
+
               // Automatically re-approve hosts.
               SDKConnect.getInstance().revalidateChannel({
                 channelId,
               });
-              if (channelExists) {
-                // Also try to reconnect if not already connected
-                SDKConnect.getInstance().reconnect({ channelId });
-              } else {
-                // Establish a new connection, this may happen if connection was previously removed on wallet.
-                SDKConnect.getInstance().connectToChannel({
-                  id: channelId,
-                  commLayer: params.comm,
-                  origin,
-                  otherPublicKey: params.pubkey,
-                });
-              }
+
+              // Establish a new connection, this may happen if connection was previously removed on wallet.
+              SDKConnect.getInstance().connectToChannel({
+                id: channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
             } else {
               console.warn(`DeepLinkManager invalid OTP params`);
             }
