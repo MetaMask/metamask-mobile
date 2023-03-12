@@ -298,6 +298,7 @@ export class Connection extends EventEmitter2 {
       this.setLoading(false);
       console.debug(
         `Connection::on::clients_disconnected paused=${this.remote.isPaused()} `,
+        this.channelId,
       );
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
       if (!this.remote.isPaused()) {
@@ -311,18 +312,25 @@ export class Connection extends EventEmitter2 {
       EventType.CLIENTS_READY,
       async (clientsReadyMsg: { originatorInfo: OriginatorInfo }) => {
         console.debug(
-          `Connection::on::clients_Ready origin=${this.origin} `,
+          `Connection::on::clients_Ready origin=${this.origin} apiVersion=${clientsReadyMsg?.originatorInfo?.apiVersion}`,
           clientsReadyMsg,
         );
+
+        const approvalController = (
+          Engine.context as { ApprovalController: ApprovalController }
+        ).ApprovalController;
+
+        // backward compatibility with older sdk -- always first request approval
+        if (!clientsReadyMsg?.originatorInfo?.apiVersion) {
+          // Cleanup previous pending permissions
+          approvalController.clear(ethErrors.provider.userRejectedRequest());
+          // await this.checkPermissions();
+        }
 
         if (
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
-          const approvalController = (
-            Engine.context as { ApprovalController: ApprovalController }
-          ).ApprovalController;
-
           approvalController.clear(ethErrors.provider.userRejectedRequest());
 
           if (!this.otps) {
@@ -417,8 +425,11 @@ export class Connection extends EventEmitter2 {
             this.requestsToRedirect[message?.id]
           }`,
         );
+
         // Check if channel is permitted
         try {
+          await this.checkPermissions(message);
+
           if (needsRedirect) {
             this.setLoading(false);
             // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
@@ -426,8 +437,6 @@ export class Connection extends EventEmitter2 {
               `Adding to rpcQueue id=${message.id} method=${message.method}`,
             );
             rpcQueue[(message.id as string) ?? 'UNK'] = message.method;
-
-            await this.checkPermissions(message);
           } else {
             console.debug(`Allowed method`, message);
           }
@@ -627,7 +636,7 @@ export class Connection extends EventEmitter2 {
    * @throws error if the user reject approval request.
    */
   private async checkPermissions(
-    message: CommunicationLayerMessage,
+    message?: CommunicationLayerMessage,
   ): Promise<boolean> {
     // only ask approval if needed
     const approved = this.isApproved({
@@ -883,7 +892,6 @@ export class SDKConnect extends EventEmitter2 {
     this.connected[id].connect({
       withKeyExchange: true,
     });
-    this.emit('refresh');
     this.connecting[id] = false;
   }
 
@@ -949,7 +957,9 @@ export class SDKConnect extends EventEmitter2 {
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
     }
-    console.debug(`SDKConnected::resume channelId=${channelId} has resumed`);
+    console.debug(
+      `SDKConnected::resume channelId=${channelId} has resumed -- connected=${session?.isConnected()}`,
+    );
   }
 
   async reconnect({ channelId }: { channelId: string }) {
@@ -999,9 +1009,10 @@ export class SDKConnect extends EventEmitter2 {
         return;
       }
 
-      console.debug(
-        `SDKConnect::reconnect() JJJJJJJJJJJJJJJJ invalid connection state`,
-      );
+      // console.debug(
+      //   `SDKConnect::reconnect() JJJJJJJJJJJJJJJJ invalid connection state`,
+      // );
+      // Re-connect to previously disconnected session
     }
 
     console.debug(
@@ -1028,7 +1039,6 @@ export class SDKConnect extends EventEmitter2 {
       withKeyExchange: true,
     });
     this.watchConnection(this.connected[channelId]);
-    this.emit('refresh');
     this.connecting[channelId] = false;
   }
 
@@ -1105,7 +1115,6 @@ export class SDKConnect extends EventEmitter2 {
         AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
         JSON.stringify(this.approvedHosts),
       );
-      this.emit('refresh');
     }
   }
 
@@ -1119,6 +1128,7 @@ export class SDKConnect extends EventEmitter2 {
     this.connections = {};
     this.connected = {};
     this.connecting = {};
+    this.paused = false;
     DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
     DefaultPreference.clear(AppConstants.MM_SDK.SDK_APPROVEDHOSTS);
   }
@@ -1146,7 +1156,6 @@ export class SDKConnect extends EventEmitter2 {
       this.approvedHosts,
     );
     delete this.approvedHosts[hostname];
-    this.emit('refresh');
   }
 
   public async revalidateChannel({ channelId }: { channelId: string }) {
@@ -1190,7 +1199,6 @@ export class SDKConnect extends EventEmitter2 {
         JSON.stringify(this.approvedHosts),
       );
     }
-    this.emit('refresh');
   }
 
   private _handleAppState(appState: string) {
@@ -1313,7 +1321,10 @@ export class SDKConnect extends EventEmitter2 {
     );
 
     if (!this.paused) {
-      this.reconnectAll();
+      await waitForKeychainUnlocked();
+      setTimeout(() => {
+        this.reconnectAll();
+      }, 2000);
     }
 
     this._initialized = true;
