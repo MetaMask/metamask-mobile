@@ -103,21 +103,19 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <View style={styles.setting}>
-        <View>
-          <Text style={styles.title}>
-            {strings('experimental_settings.wallet_connect_dapps')}
-          </Text>
-          <Text style={styles.desc}>
-            {strings('experimental_settings.wallet_connect_dapps_desc')}
-          </Text>
-          <StyledButton
-            type="normal"
-            onPress={goToWalletConnectSessions}
-            containerStyle={styles.clearHistoryConfirm}
-          >
-            {strings('experimental_settings.wallet_connect_dapps_cta')}
-          </StyledButton>
-        </View>
+        <Text style={styles.title}>
+          {strings('experimental_settings.wallet_connect_dapps')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('experimental_settings.wallet_connect_dapps_desc')}
+        </Text>
+        <StyledButton
+          type="normal"
+          onPress={goToWalletConnectSessions}
+          containerStyle={styles.clearHistoryConfirm}
+        >
+          {strings('experimental_settings.wallet_connect_dapps_cta')}
+        </StyledButton>
       </View>
     </ScrollView>
   );

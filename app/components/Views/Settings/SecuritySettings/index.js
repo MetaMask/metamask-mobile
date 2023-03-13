@@ -784,21 +784,19 @@ class Settings extends PureComponent {
         style={[styles.setting, styles.firstSetting]}
         testID={'sdk-section'}
       >
-        <>
-          <Text style={styles.title}>
-            {strings('app_settings.manage_sdk_connections_title')}
-          </Text>
-          <Text style={styles.desc}>
-            {strings('app_settings.manage_sdk_connections_text')}
-          </Text>
-          <StyledButton
-            type="normal"
-            containerStyle={styles.confirm}
-            onPress={this.goToSDKSessionManager}
-          >
-            {strings('app_settings.manage_sdk_connections_title')}
-          </StyledButton>
-        </>
+        <Text style={styles.title}>
+          {strings('app_settings.manage_sdk_connections_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.manage_sdk_connections_text')}
+        </Text>
+        <StyledButton
+          type="normal"
+          containerStyle={styles.confirm}
+          onPress={this.goToSDKSessionManager}
+        >
+          {strings('app_settings.manage_sdk_connections_title')}
+        </StyledButton>
       </View>
     );
   };
