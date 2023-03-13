@@ -380,6 +380,8 @@ class Engine {
                 AppConstants.NETWORK_STATE_CHANGE_EVENT,
                 listener,
               ),
+            onPreferencesStateChange: (listener) =>
+              preferencesController.subscribe(listener),
           },
           {
             chainId: networkController.state.providerConfig.chainId,

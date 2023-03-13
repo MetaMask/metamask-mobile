@@ -119,26 +119,42 @@ index 4ed4990..da18116 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..cfa0e05 100644
+index e3f81e9..b027367 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-@@ -77,6 +77,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -55,7 +55,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, }, config, state) {
++    constructor({ onTokensStateChange, onCurrencyRateStateChange, onNetworkStateChange, onPreferencesStateChange }, config, state) {
+         super(config, state);
+         this.tokenList = [];
+         this.supportedChains = {
+@@ -77,6 +77,9 @@ class TokenRatesController extends base_controller_1.BaseController {
              chainId: '',
              tokens: [],
              threshold: 6 * 60 * 60 * 1000,
 +            exchangeRateNativeCurrency: '',
++            selectedAddress: '',
++            lastSelectedAddress: '',
          };
          this.defaultState = {
              contractExchangeRates: {},
-@@ -93,7 +94,6 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -93,9 +96,11 @@ class TokenRatesController extends base_controller_1.BaseController {
          });
          onNetworkStateChange(({ providerConfig }) => {
              const { chainId } = providerConfig;
 -            this.update({ contractExchangeRates: {} });
              this.configure({ chainId });
          });
++        onPreferencesStateChange(({selectedAddress}) => {
++            this.configure({ selectedAddress });
++        })
          this.poll();
-@@ -107,7 +107,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+     }
+     /**
+@@ -107,7 +112,7 @@ class TokenRatesController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              interval && this.configure({ interval }, false, false);
              this.handle && clearTimeout(this.handle);
@@ -147,7 +163,7 @@ index e3f81e9..cfa0e05 100644
              this.handle = setTimeout(() => {
                  this.poll(this.config.interval);
              }, this.config.interval);
-@@ -202,7 +202,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -202,7 +207,7 @@ class TokenRatesController extends base_controller_1.BaseController {
      /**
       * Updates exchange rates for all tokens.
       */
@@ -156,13 +172,14 @@ index e3f81e9..cfa0e05 100644
          return __awaiter(this, void 0, void 0, function* () {
              if (this.tokenList.length === 0 || this.disabled) {
                  return;
-@@ -217,7 +217,19 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -217,8 +222,23 @@ class TokenRatesController extends base_controller_1.BaseController {
              }
              else {
                  const { nativeCurrency } = this.config;
 -                newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
 +
 +                if (
++                    this.config.selectedAddress !== this.config.lastSelectedAddress ||
 +                    this.config.exchangeRateNativeCurrency !== nativeCurrency ||
 +                    forceFetch
 +                  ) {
@@ -175,17 +192,20 @@ index e3f81e9..cfa0e05 100644
 +                  }
 +
              }
++      
++
              this.update({ contractExchangeRates: newContractExchangeRates });
          });
-@@ -236,6 +248,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+     }
+@@ -236,6 +256,7 @@ class TokenRatesController extends base_controller_1.BaseController {
       */
      fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
-+            this.configure({ exchangeRateNativeCurrency: nativeCurrency });
++            this.configure({ exchangeRateNativeCurrency: nativeCurrency,lastSelectedAddress: this.config.selectedAddress });
              const contractExchangeRates = {};
              // check if native currency is supported as a vs_currency by the API
              const nativeCurrencySupported = yield this.checkIsSupportedVsCurrency(nativeCurrency);
-@@ -264,6 +277,7 @@ class TokenRatesController extends base_controller_1.BaseController {
+@@ -264,6 +285,7 @@ class TokenRatesController extends base_controller_1.BaseController {
                      ]);
                  }
                  catch (error) {
