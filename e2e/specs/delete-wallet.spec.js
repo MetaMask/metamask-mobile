@@ -21,6 +21,7 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+import { acceptTermOfUse } from '../viewHelper';
 
 const SECRET_RECOVERY_PHRASE =
   'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
@@ -32,6 +33,8 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   });
 
   it('should go to import wallet view', async () => {
+    await acceptTermOfUse();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 

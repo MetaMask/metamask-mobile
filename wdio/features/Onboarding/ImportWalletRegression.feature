@@ -10,7 +10,8 @@ Feature: Import Wallet Regression
     Given I just installed MetaMask on my device
 
     When I launch MetaMask mobile app
-    Then "METAMASK" is displayed
+    And I agree to terms
+    Then the Welcome Screen is displayed
 
     When I tap "Get started"
     Then "Wallet setup" is displayed
@@ -51,7 +52,7 @@ Feature: Import Wallet Regression
       | fold media south not valid secret recovery phrase pause cloth just raven | Invalid Secret Recovery Phrase                              |
       | fold media south add since false relax immense pause cloth just          | Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words |
 
-  Scenario: Import Wallet
+  Scenario Outline: Import Wallet
     When I type <SRP> in SRP field
     And I type <password> in confirm password field
     And I tap "Import"

@@ -7,7 +7,8 @@ Feature: Adding Networks via the popular and custom networks flow
   A user should also have the ability to a add custom network via the custom network flow.
 
   Scenario Outline: Adding a network via the new popular network flow
-    Given the app displayed the splash animation
+    Given I agree to terms
+    And Terms of Use is not displayed
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial

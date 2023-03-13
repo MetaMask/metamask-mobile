@@ -23,6 +23,7 @@ import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
@@ -44,9 +45,10 @@ describe('Wallet Tests', () => {
   });
 
   it('should tap on import seed phrase button', async () => {
+    await acceptTermOfUse();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
-
     await OnboardingView.isVisible();
     await OnboardingView.tapImportWalletFromSeedPhrase();
 

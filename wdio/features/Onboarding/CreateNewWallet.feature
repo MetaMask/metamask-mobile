@@ -1,16 +1,17 @@
-@androidApp 
-@ChainScenarios 
+@androidApp
+@ChainScenarios
 @smoke
 
 Feature: New wallet flow
 
   Scenario: Onboarding New walllet
-    A user opens the app for first time and creates a new wallet.
+  A user opens the app for first time and creates a new wallet.
 
     Given I just installed MetaMask on my device
 
     When I launch MetaMask mobile app
-    Then "METAMASK" is displayed
+    And I agree to terms
+    Then the Welcome Screen is displayed
 
     When I tap "Get started"
     Then "Wallet setup" is displayed

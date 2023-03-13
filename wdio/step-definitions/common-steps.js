@@ -1,5 +1,5 @@
 /* global driver */
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import {Given, Then, When} from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -13,15 +13,34 @@ import CommonScreen from '../screen-objects/CommonScreen';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
+import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.waitForSplashAnimationToDisplay();
 });
 
+Given(/^the splash animation disappears$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
+});
+
+Then(/^Terms of Use is displayed$/, async () => {
+  await WelcomeScreen.waitForScreenToDisplay();
+  await TermOfUseScreen.isDisplayed();
+});
+
+When(/^I agree to terms$/, async () => {
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
+  await driver.pause();
+  await TermOfUseScreen.tapAcceptButton();
+});
+
+Then(/^Terms of Use is not displayed$/, async () => {
+  await TermOfUseScreen.isNotDisplayed();
+});
+
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForScreenToDisplay();
-  await driver.pause(1000);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -36,8 +55,6 @@ Given(/^I have imported my wallet$/, async () => {
 
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -144,8 +161,7 @@ When(/^I fill my password in the Login screen$/, async () => {
   await LoginScreen.tapTitle();
 });
 When(/^I unlock wallet with (.*)$/, async (password) => {
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword(password);
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();

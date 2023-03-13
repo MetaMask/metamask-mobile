@@ -21,6 +21,8 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+import { acceptTermOfUse } from '../viewHelper';
+
 const GORELI = 'Goerli Test Network';
 const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
@@ -32,6 +34,8 @@ describe('Custom RPC Tests', () => {
   });
 
   it('should create new wallet', async () => {
+    await acceptTermOfUse();
+
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
