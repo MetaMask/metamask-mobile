@@ -1,5 +1,5 @@
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
@@ -70,11 +70,11 @@ const SDKSessionsManager = (props: Props) => {
   const styles = createStyles(colors, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
 
-  const refreshSDKState = () => {
+  const refreshSDKState = useCallback(() => {
     const _connections = sdk.getConnections();
     const connectionsList = Object.values(_connections);
     setConnections(connectionsList);
-  };
+  }, [sdk]);
 
   const toggleClearMMSDKConnectionModal = () => {
     setshowClearMMSDKConnectionsModal((show) => !show);
@@ -86,7 +86,8 @@ const SDKSessionsManager = (props: Props) => {
     setConnections([]);
   };
 
-  const updateNavBar = () => {
+  useEffect(() => {
+    refreshSDKState();
     const { navigation } = props;
     navigation.setOptions(
       getNavigationOptionsTitle(
@@ -97,13 +98,7 @@ const SDKSessionsManager = (props: Props) => {
         null,
       ),
     );
-  };
-
-  useEffect(() => {
-    refreshSDKState();
-    updateNavBar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshSDKState, colors, props]);
 
   const onDisconnect = (channelId: string) => {
     // TODO why do we need to timeout otherwise

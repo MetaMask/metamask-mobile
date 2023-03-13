@@ -62,8 +62,7 @@ export const SDKSessionItem = ({
       strings('sdk.unkown_dapp');
     setIcon(connection.originatorInfo?.icon);
     setSessionName(_sessionName);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connection]);
 
   return (
     <View style={styles.container}>
