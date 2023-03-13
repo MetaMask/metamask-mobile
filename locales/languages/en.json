@@ -1320,7 +1320,7 @@
     "walletconnect_title": "WALLETCONNECT REQUEST",
     "action": "Connect to this site?",
     "action_reconnect": "To resume connection, choose the number you see on the dApp",
-    "action_reconnect_deeplink": "Do you want to reconnect to thris dApp?",
+    "action_reconnect_deeplink": "Do you want to reconnect to this dApp?",
     "connect": "Connect",
     "resume": "Resume",
     "cancel": "Cancel",
