@@ -650,7 +650,7 @@ export class Connection extends EventEmitter2 {
     const selectedAddress = preferencesController.state.selectedAddress;
 
     console.debug(
-      `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress}`,
+      `Connection::checkPermissions origin=${this.origin} approved=${approved} ** selectedAddress=${selectedAddress}`,
       message,
     );
     if (approved && selectedAddress) {
@@ -690,6 +690,13 @@ export class Connection extends EventEmitter2 {
       `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress} origin=${this.origin} otps=${this.otps}`,
       this.otps,
     );
+
+    if (!this.initialConnection && AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+      console.debug(
+        `Auto validate when origin deeplink after initial connection`,
+      );
+      this.revalidate({ channelId: this.channelId });
+    }
 
     this.approvalPromise = approvalController.add({
       origin: this.origin,
@@ -993,26 +1000,19 @@ export class SDKConnect extends EventEmitter2 {
         `SDKConnect::reconnect() existing channel=${channelId} connected=${connected} ready=${ready} keysExchanged=${keysExchanged}`,
       );
 
-      if (ready) {
-        console.debug(
-          `SDKConnect::reconnect() already ready - interrup reconnect`,
-        );
+      if (ready && connected) {
+        // Ignore reconnection -- already ready to process messages.
         return;
       }
 
-      if (connected) {
-        // When does this happen?
-        console.warn(
-          `SDKConnect::reconnect() interrupted - already connected.`,
+      if (ready || connected) {
+        console.debug(
+          `SDKConnect::reconnect() already ready/connected - interrup reconnect`,
         );
+        // Try to recover the connection while pinging.
         existingConnection.remote.ping();
         return;
       }
-
-      // console.debug(
-      //   `SDKConnect::reconnect() JJJJJJJJJJJJJJJJ invalid connection state`,
-      // );
-      // Re-connect to previously disconnected session
     }
 
     console.debug(
@@ -1186,13 +1186,16 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   private _approveHost({ host, hostname, context }: approveHostProps) {
-    console.debug(
-      `SDKConnect::_approveHost host=${host} hostname=${hostname} _context=${context}`,
-    );
-    // Host is approved for 24h.
-    this.approvedHosts[host] = Date.now() + DAY_IN_MS;
-    if (!this.disabledHosts[host]) {
-      console.debug(`SDKConnect::_approveHost prevent disabled hosts`);
+    if (this.disabledHosts[host]) {
+      console.debug(
+        `SDKConnect::_approveHost host=${host} _context=${context} -- PREVENT APPROVAL -- host disabled`,
+      );
+    } else {
+      console.debug(
+        `SDKConnect::_approveHost host=${host} hostname=${hostname} _context=${context} -- approved for 24hours`,
+      );
+      // Host is approved for 24h.
+      this.approvedHosts[host] = Date.now() + DAY_IN_MS;
       // Prevent disabled hosts from being persisted.
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
@@ -1255,7 +1258,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public async unmount() {
     console.debug(`SDKConnect::unmount()`);
-    AppState.removeEventListener('change', this._handleAppState.bind(this));
+    AppState.removeEventListener('change', this._handleAppState);
     for (const id in this.connected) {
       this.connected[id].disconnect({ terminate: false });
     }
@@ -1275,7 +1278,7 @@ export class SDKConnect extends EventEmitter2 {
 
     this.connecting = {};
 
-    AppState.removeEventListener('change', this._handleAppState.bind(this));
+    AppState.removeEventListener('change', this._handleAppState);
     AppState.addEventListener('change', this._handleAppState.bind(this));
 
     const [connectionsStorage, hostsStorage] = await Promise.all([
