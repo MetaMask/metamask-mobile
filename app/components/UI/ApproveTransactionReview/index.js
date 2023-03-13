@@ -76,6 +76,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import {getAccountBalance} from '../../../util/dappTransactions';
 
+import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -249,7 +250,6 @@ class ApproveTransactionReview extends PureComponent {
     editPermissionVisible: false,
     host: undefined,
     originalApproveAmount: undefined,
-    customSpendAmount: null,
     spendLimitUnlimitedSelected: true,
     spendLimitCustomValue: undefined,
     ticker: getTicker(this.props.ticker),
@@ -376,6 +376,7 @@ class ApproveTransactionReview extends PureComponent {
           tokenName,
           tokenValue: encodedValue,
           tokenStandard,
+          tokenBalance,
         },
         spenderAddress,
         encodedAmount,
@@ -606,6 +607,8 @@ class ApproveTransactionReview extends PureComponent {
     const {
       originalApproveAmount,
       customSpendAmount,
+      host,
+      multiLayerL1FeeTotal,
       token: {
         tokenStandard,
         tokenSymbol,
@@ -614,9 +617,7 @@ class ApproveTransactionReview extends PureComponent {
         tokenDecimals,
         tokenBalance,
       },
-      host,
       spenderAddress,
-      multiLayerL1FeeTotal,
       customSpendValue,
       fetchingUpdateDone,
       spendLimitCreated,
@@ -682,10 +683,16 @@ class ApproveTransactionReview extends PureComponent {
             <ActionView
               confirmButtonMode="confirm"
               cancelText={strings('transaction.reject')}
-              confirmText={strings('transactions.approve')}
+              confirmText={
+                tokenStandard === ERC20 && !spendLimitCreated
+                  ? strings('transaction.next')
+                  : strings('transactions.approve')
+              }
               onCancelPress={this.onCancelPress}
               onConfirmPress={this.onConfirmPress}
-              confirmDisabled={Boolean(gasError) || transactionConfirmed}
+              confirmDisabled={
+                !customSpendValue || Boolean(gasError) || transactionConfirmed
+              }
             >
               <View>
                 {from && (
@@ -710,7 +717,9 @@ class ApproveTransactionReview extends PureComponent {
                     `spend_limit_edition.${
                       originIsDeeplink
                         ? 'allow_to_address_access'
-                        : 'allow_to_access'
+                        : spendLimitCreated
+                        ? 'review_spend_cap'
+                        : 'set_spend_cap'
                     }`,
                   )}{' '}
                   {!fetchingUpdateDone && (
@@ -721,7 +730,7 @@ class ApproveTransactionReview extends PureComponent {
                   {tokenStandard === ERC20 && (
                     <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
                   )}
-                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                      {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
                     hasBlockExplorer ? (
                       <ButtonLink
                         onPress={showBlockExplorer}
@@ -738,7 +747,7 @@ class ApproveTransactionReview extends PureComponent {
                       <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
                     )
                   ) : null}
-                </Text>
+                   </Text>
 
                 {tokenStandard !== ERC721 &&
                   tokenStandard !== ERC1155 &&
@@ -779,6 +788,17 @@ class ApproveTransactionReview extends PureComponent {
                     }`,
                   )}`}
                 </Text>
+                {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
+                  <Text reset style={styles.explanation}>
+                    {`${strings(
+                      `spend_limit_edition.${
+                        originIsDeeplink
+                          ? 'you_trust_this_address'
+                          : 'you_trust_this_site'
+                      }`,
+                    )}`}
+                  </Text>
+                )}
                 <ButtonLink
                   variant={TextVariant.BodyMD}
                   onPress={showVerifyContractDetails}
@@ -787,66 +807,45 @@ class ApproveTransactionReview extends PureComponent {
                     'contract_allowance.token_allowance.verify_third_party_details',
                   )}
                 />
-              <View style={styles.paddingHorizontal}>
-                <View style={styles.section}>
-                  {tokenStandard === ERC20 && (
-                    <CustomSpendCap
-                      ticker={tokenSymbol}
-                      dappProposedValue={originalApproveAmount}
-                      accountBalance={tokenBalance}
-                      domain={host}
-                      noEdit={spendLimitCreated}
-                      customValue={customSpendValue}
-                      goBackPress={this.goBackToSpendLimit}
-                      onInputChanged={(value) =>
-                        this.setState({ customSpendValue: value })
-                      }
-                    />
-                  )}
-                  {(spendLimitCreated || tokenStandard !== ERC20) && (
-                    <TransactionReview
-                      gasSelected={gasSelected}
-                      primaryCurrency={primaryCurrency}
-                      hideTotal
-                      noMargin
-                      onEdit={this.edit}
-                      chainId={this.props.chainId}
-                      onUpdatingValuesStart={onUpdatingValuesStart}
-                      onUpdatingValuesEnd={onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      gasEstimationReady={gasEstimationReady}
-                      legacy={!showFeeMarket}
-                      gasObject={
-                        !showFeeMarket ? legacyGasObject : eip1559GasObject
-                      }
-                      updateTransactionState={updateTransactionState}
-                      onlyGas
-                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                    />
-                  )}
-
-                    <TransactionReview
-                      gasSelected={gasSelected}
-                      primaryCurrency={primaryCurrency}
-                      hideTotal
-                      noMargin
-                      onEdit={this.edit}
-                      chainId={this.props.chainId}
-                      onUpdatingValuesStart={onUpdatingValuesStart}
-                      onUpdatingValuesEnd={onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      gasEstimationReady={gasEstimationReady}
-                      legacy={!showFeeMarket}
-                      gasObject={
-                        !showFeeMarket ? legacyGasObject : eip1559GasObject
-                      }
-                      updateTransactionState={updateTransactionState}
-                      onlyGas
-                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                    />
-
+                <View style={styles.paddingHorizontal}>
+                  <View style={styles.section}>
+                    {tokenStandard === undefined ? (
+                      <SkeletonText large thick />
+                    ) : tokenStandard === ERC20 ? (
+                      <CustomSpendCap
+                        ticker={tokenSymbol}
+                        dappProposedValue={originalApproveAmount}
+                        accountBalance={tokenBalance}
+                        domain={host}
+                        noEdit={spendLimitCreated}
+                        customValue={customSpendValue}
+                        goBackPress={this.goBackToSpendLimit}
+                        onInputChanged={(value) =>
+                          this.setState({ customSpendValue: value })
+                        }
+                      />
+                    ) : (
+                      <TransactionReview
+                        gasSelected={gasSelected}
+                        primaryCurrency={primaryCurrency}
+                        hideTotal
+                        noMargin
+                        onEdit={this.edit}
+                        chainId={this.props.chainId}
+                        onUpdatingValuesStart={onUpdatingValuesStart}
+                        onUpdatingValuesEnd={onUpdatingValuesEnd}
+                        animateOnChange={animateOnChange}
+                        isAnimating={isAnimating}
+                        gasEstimationReady={gasEstimationReady}
+                        legacy={!showFeeMarket}
+                        gasObject={
+                          !showFeeMarket ? legacyGasObject : eip1559GasObject
+                        }
+                        updateTransactionState={updateTransactionState}
+                        onlyGas
+                        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                      />
+                    )}
                     {gasError && (
                       <View style={styles.errorWrapper}>
                         {isTestNetwork || isNativeTokenBuySupported ? (
@@ -876,10 +875,17 @@ class ApproveTransactionReview extends PureComponent {
                         style={styles.actionTouchable}
                         onPress={this.toggleViewDetails}
                       >
-                        <View>
+                        <View style={styles.iconContainer}>
                           <Text reset style={styles.viewDetailsText}>
-                            {strings('spend_limit_edition.view_details')}
+                            {strings(
+                              'spend_limit_edition.view_transaction_details',
+                            )}
                           </Text>
+                          <IonicIcon
+                            name="ios-arrow-down"
+                            size={16}
+                            style={styles.iconDropdown}
+                          />
                         </View>
                       </TouchableOpacity>
                     )}
