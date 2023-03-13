@@ -9,7 +9,10 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { trackEvent } from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
@@ -17,6 +20,8 @@ import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 
 /**
  * Component that supports personal_sign
@@ -83,24 +88,68 @@ const PersonalSign = ({
     });
   };
 
+  const rejectMessage = () => {
+    const { PersonalMessageManager }: any = Engine.context;
+    const messageId = messageParams.metamaskId;
+    PersonalMessageManager.rejectMessage(messageId);
+    showWalletConnectNotification(false);
+  };
+
   const signMessage = async () => {
     const { KeyringController, PersonalMessageManager }: any = Engine.context;
     const messageId = messageParams.metamaskId;
     const cleanMessageParams = await PersonalMessageManager.approveMessage(
       messageParams,
     );
-    const rawSig = await KeyringController.signPersonalMessage(
-      cleanMessageParams,
-    );
-    PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
-    showWalletConnectNotification(true);
-  };
+    const { from } = messageParams;
 
-  const rejectMessage = () => {
-    const { PersonalMessageManager }: any = Engine.context;
-    const messageId = messageParams.metamaskId;
-    PersonalMessageManager.rejectMessage(messageId);
-    showWalletConnectNotification(false);
+    const finalizeConfirmation = async (
+      confirmed: boolean,
+      rawSignature: any,
+    ) => {
+      if (!confirmed) {
+        trackEvent(
+          MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+          getAnalyticsParams(),
+        );
+        return rejectMessage();
+      }
+
+      PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
+      showWalletConnectNotification(true);
+
+      trackEvent(
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+        getAnalyticsParams(),
+      );
+    };
+
+    const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
+
+    if (isLedgerAccount) {
+      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+      // Hand over process to Ledger Confirmation Modal
+      navigation.navigate(
+        ...createLedgerMessageSignModalNavDetails({
+          messageParams: cleanMessageParams,
+          deviceId: ledgerKeyring.deviceId,
+          onConfirmationComplete: finalizeConfirmation,
+          type: 'signPersonalMessage',
+          version: 'v1',
+        }),
+      );
+
+      onConfirm();
+    } else {
+      const rawSig = await KeyringController.signPersonalMessage(
+        cleanMessageParams,
+      );
+
+      PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+
+      showWalletConnectNotification(true);
+    }
   };
 
   const cancelSignature = () => {
