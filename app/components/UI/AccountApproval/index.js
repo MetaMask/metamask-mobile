@@ -123,11 +123,6 @@ const createStyles = (colors) =>
     confirm: {
       marginLeft: 8,
     },
-    // otpRoot: {
-    //   flexDirection: 'row',
-    //   marginTop: 10,
-    //   justifyContent: 'space-around',
-    // },
     circle: {
       width: 16,
       height: 16,
