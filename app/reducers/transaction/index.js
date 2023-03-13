@@ -107,7 +107,6 @@ const transactionReducer = (state = initialState, action) => {
         transaction: {
           ...state.transaction,
           ...getTxData(action.transaction),
-          gas: action.transaction.gas,
         },
         ...txMeta,
       };

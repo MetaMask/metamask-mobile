@@ -702,7 +702,6 @@ class Amount extends PureComponent {
     }
 
     if (selectedAsset.erc20) {
-      transactionObject.gas = undefined;
       transactionObject.readableValue = value;
     }
 
