@@ -53,6 +53,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
+  getNetworkNonce,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
@@ -93,7 +94,6 @@ import {
 } from '../../../../selectors/networkController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import setNetworkNonce from '../../../../util/networks/networkNonce';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -316,6 +316,13 @@ class Confirm extends PureComponent {
     }
   };
 
+  setNetworkNonce = async () => {
+    const { setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction);
+    setNonce(proposedNonce);
+    setProposedNonce(proposedNonce);
+  };
+
   componentDidMount = async () => {
     const { chainId } = this.props;
     this.updateNavBar();
@@ -331,18 +338,9 @@ class Confirm extends PureComponent {
       this.getAnalyticsParams(),
     );
 
-    const {
-      showCustomNonce,
-      navigation,
-      providerType,
-      isPaymentRequest,
-      setNonce,
-      setProposedNonce,
-      transaction: { from },
-    } = this.props;
-    if (showCustomNonce) {
-      setNetworkNonce({ setNonce, setProposedNonce, from });
-    }
+    const { showCustomNonce, navigation, providerType, isPaymentRequest } =
+      this.props;
+    showCustomNonce && (await this.setNetworkNonce());
     navigation.setParams({ providerType, isPaymentRequest });
     this.parseTransactionDataHeader();
     if (isMultiLayerFeeNetwork(chainId)) {

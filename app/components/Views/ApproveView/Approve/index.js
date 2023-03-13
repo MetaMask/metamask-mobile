@@ -17,6 +17,7 @@ import { setTransactionObject, setNonce,
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
+import { getNetworkNonce } from '../../../../util/networks';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -49,7 +50,7 @@ import {
 } from '../../../../selectors/networkController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
-import setNetworkNonce from '../../../../util/networks/networkNonce';
+// import setNetworkNonce from '../../../../util/networks/networkNonce';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -231,13 +232,15 @@ class Approve extends PureComponent {
     this.setState({ pollToken });
   };
 
-  componentDidMount = () => {
-    const {
-      setNonce,
-      setProposedNonce,
-      transaction: { from },
-      showCustomNonce,
-    } = this.props;
+  setNetworkNonce = async () => {
+    const { setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction);
+    setNonce(proposedNonce);
+    setProposedNonce(proposedNonce);
+  };
+
+  componentDidMount = async () => {
+    const { showCustomNonce } = this.props;
     if (!this.props?.transaction?.id) {
       this.props.toggleApproveModal(false);
       return null;
@@ -245,9 +248,7 @@ class Approve extends PureComponent {
     if (!this.props?.transaction?.gas) this.handleGetGasLimit();
 
     this.startPolling();
-    if (showCustomNonce) {
-      setNetworkNonce({ setNonce, setProposedNonce, from });
-    }
+    showCustomNonce && (await this.setNetworkNonce());
     AppState.addEventListener('change', this.handleAppStateChange);
   };
 
