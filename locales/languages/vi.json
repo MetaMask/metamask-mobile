@@ -2236,5 +2236,26 @@
       "wrong_answer_title": "Không! Tuyệt đối không bao giờ chia sẻ Cụm từ khôi phục bí mật của bạn với bất kỳ ai",
       "wrong_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Cần khôi phục",
+    "restore_needed_description": "Đã xảy ra sự cố nhưng đừng lo lắng! Hãy thử khôi phục ví của bạn.",
+    "restore_needed_action": "Khôi phục ví"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Ví của bạn đã sẵn sàng!",
+    "wallet_restored_action": "Tiếp tục đến ví",
+    "wallet_restored_description_part_one": "Bạn có thể cần phải thêm lại một số tài sản, mạng và cài đặt của mình theo cách thủ công.",
+    "wallet_restored_description_part_two": "Hãy dành một chút thời gian để",
+    "wallet_restored_description_link": "sao lưu Cụm từ khôi phục bí mật của bạn",
+    "wallet_restored_description_part_three": "trong trường hợp bạn cần khôi phục lại ví của mình trong tương lai."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Cần có ví mới",
+    "new_wallet_needed_create_new_wallet_action": "Tạo ví mới",
+    "new_wallet_needed_create_try_again_action": "Thử khôi phục ví",
+    "new_wallet_needed_description_part_one": "Đã xảy ra lỗi với ví của bạn và bạn cần tạo một ví mới. Vì tài khoản của bạn nằm trên chuỗi khối nên chúng vẫn an toàn. Chỉ có các tùy chọn, mạng đã lưu, tên tài khoản và dữ liệu liên quan được lưu trên thiết bị của bạn mới biến mất.",
+    "new_wallet_needed_description_part_two": "Để nhập tài khoản của bạn vào ví mới, bạn sẽ cần sử dụng Cụm từ khôi phục bí mật. Nếu không có Cụm từ khôi phục bí mật, bạn sẽ không thể nhập tài khoản của mình.",
+    "new_wallet_needed_description_part_three": "Để tránh trường hợp này xảy ra lại, hãy nhớ luôn cập nhật ứng dụng MetaMask và hệ điều hành của bạn lên phiên bản mới nhất."
   }
 }
