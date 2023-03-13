@@ -114,18 +114,24 @@ const createStyles = (colors) =>
     cancel: {
       marginRight: 8,
     },
+    disconnect: {
+      borderColor: colors.error.default,
+    },
+    disconnectFont: {
+      color: colors.error.default,
+    },
     confirm: {
       marginLeft: 8,
     },
-    otpRoot: {
-      flexDirection: 'row',
-      marginTop: 10,
-      justifyContent: 'space-around',
-    },
+    // otpRoot: {
+    //   flexDirection: 'row',
+    //   marginTop: 10,
+    //   justifyContent: 'space-around',
+    // },
     circle: {
-      width: 12,
-      height: 12,
-      borderRadius: 12 / 2,
+      width: 16,
+      height: 16,
+      borderRadius: 16 / 2,
       backgroundColor: colors.background.default,
       opacity: 1,
       margin: 2,
@@ -133,23 +139,27 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       marginRight: 6,
     },
-    rememberme: {
-      marginTop: 10,
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      marginLeft: 20,
-      alignItems: 'center',
-    },
     option: {
       flex: 1,
     },
     touchableOption: {
       flexDirection: 'row',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 8,
+      padding: 16,
+      marginLeft: 20,
+      marginRight: 20,
+      marginTop: 16,
+    },
+    selectedOption: {
+      borderColor: colors.primary.default,
     },
     optionText: {
       ...fontStyles.normal,
+      fontSize: 16,
       color: colors.text.default,
     },
     selectedCircle: {
@@ -369,15 +379,7 @@ class AccountApproval extends PureComponent {
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
         <TransactionHeader currentPageInformation={currentPageInformation} />
-        {currentPageInformation.reconnect ? (
-          <>
-            <Text style={styles.intro_reconnect}>
-              {this.state.otp
-                ? strings('accountApproval.action_reconnect')
-                : strings('accountApproval.action_reconnect_deeplink')}
-            </Text>
-          </>
-        ) : (
+        {!currentPageInformation.reconnect && (
           <>
             <Text style={styles.intro}>
               {strings('accountApproval.action')}
@@ -390,34 +392,47 @@ class AccountApproval extends PureComponent {
         <View style={styles.accountCardWrapper}>
           <AccountInfoCard fromAddress={selectedAddress} />
         </View>
+        {currentPageInformation.reconnect && (
+          <Text style={styles.intro_reconnect}>
+            {this.state.otp
+              ? strings('accountApproval.action_reconnect')
+              : strings('accountApproval.action_reconnect_deeplink')}
+          </Text>
+        )}
         {this.state.otp && (
           <View style={styles.otpContainer}>
-            <View style={styles.otpRoot}>
-              {this.state.otps.map((otpValue, index) => (
-                <View style={styles.option} key={`otp${index}`}>
-                  <TouchableOpacity
-                    style={styles.touchableOption}
-                    onPress={() => this.onOTP(otpValue)}
-                  >
-                    <View
-                      style={
-                        this.state.otpChoice === otpValue
-                          ? styles.selectedCircle
-                          : styles.circle
-                      }
-                    />
-                    <Text style={styles.optionText}>{otpValue}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
+            {this.state.otps.map((otpValue, index) => (
+              <TouchableOpacity
+                key={`otp${index}`}
+                style={[
+                  styles.touchableOption,
+                  this.state.otpChoice === otpValue && styles.selectedOption,
+                ]}
+                onPress={() => this.onOTP(otpValue)}
+              >
+                <View
+                  style={
+                    this.state.otpChoice === otpValue
+                      ? styles.selectedCircle
+                      : styles.circle
+                  }
+                />
+                <Text style={styles.optionText}>{otpValue}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
         <View style={styles.actionContainer}>
           <StyledButton
             type={'cancel'}
             onPress={this.onCancel}
-            containerStyle={[styles.button, styles.cancel]}
+            containerStyle={[
+              styles.button,
+              currentPageInformation.reconnect
+                ? styles.disconnect
+                : styles.cancel,
+            ]}
+            style={currentPageInformation.reconnect && styles.disconnectFont}
             testID={CANCEL_BUTTON_ID}
           >
             {currentPageInformation.reconnect
