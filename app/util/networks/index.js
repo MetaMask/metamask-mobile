@@ -12,6 +12,7 @@ import {
   NETWORKS_CHAIN_ID,
   RINKEBY,
   ROPSTEN,
+  PLACEHOLDER_NET,
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
@@ -26,6 +27,7 @@ import {
   KOVAN_NETWORK_OPTION,
   RINKEBY_NETWORK_OPTION,
   ROPSTEN_NETWORK_OPTION,
+  PLACEHOLDER_NET_NETWORK_OPTION,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
@@ -102,6 +104,17 @@ const NetworkList = {
     imageSource: goerliLogo,
     testId: GOERLI_TEST_NETWORK_OPTION,
   },
+  [PLACEHOLDER_NET]: {
+    name: 'ConsenSys zkEVM Test Network',
+    shortName: 'ConsenSys zkEVM',
+    networkId: 59140,
+    chainId: 59140,
+    hexChainId: '0xe704',
+    color: '#3099f2',
+    networkType: 'placeholdernet',
+    imageSource: goerliLogo,
+    testId: PLACEHOLDER_NET_NETWORK_OPTION,
+  },
   [RPC]: {
     name: 'Private Network',
     shortName: 'Private',
@@ -168,7 +181,8 @@ export const isTestNet = (networkId) => {
     networkName === ROPSTEN ||
     networkName === GOERLI ||
     networkName === KOVAN ||
-    networkName === RINKEBY
+    networkName === RINKEBY ||
+    networkName === PLACEHOLDER_NET
   );
 };
 

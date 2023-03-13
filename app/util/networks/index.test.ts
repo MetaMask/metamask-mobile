@@ -13,6 +13,7 @@ import {
   GOERLI,
   RPC,
   KOVAN,
+  PLACEHOLDER_NET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -41,6 +42,7 @@ describe('NetworkUtils::getAllNetworks', () => {
     expect(allNetworks.includes(MAINNET)).toEqual(true);
     expect(allNetworks.includes(ROPSTEN)).toEqual(true);
     expect(allNetworks.includes(GOERLI)).toEqual(true);
+    expect(allNetworks.includes(PLACEHOLDER_NET)).toEqual(true);
   });
   it('should exclude rpc', () => {
     expect(allNetworks.includes(RPC)).toEqual(false);
@@ -86,6 +88,11 @@ describe('NetworkUtils::getNetworkName', () => {
   it(`should get network name for ${KOVAN} id`, () => {
     const main = getNetworkName(String(42));
     expect(main).toEqual(KOVAN);
+  });
+
+  it(`should get network name for ${PLACEHOLDER_NET} id`, () => {
+    const main = getNetworkName(String(59140));
+    expect(main).toEqual(PLACEHOLDER_NET);
   });
 
   it(`should return undefined for unknown network id`, () => {

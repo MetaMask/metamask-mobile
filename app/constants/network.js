@@ -4,6 +4,7 @@ export const ROPSTEN = 'ropsten';
 export const KOVAN = 'kovan';
 export const RINKEBY = 'rinkeby';
 export const GOERLI = 'goerli';
+export const PLACEHOLDER_NET = 'placeholdernet';
 export const RPC = 'rpc';
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
@@ -23,4 +24,5 @@ export const NETWORKS_CHAIN_ID = {
   AVAXCCHAIN: '43114',
   CELO: '42220',
   HARMONY: '1666600000',
+  PLACEHOLDER_NET: '59140',
 };

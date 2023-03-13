@@ -11,3 +11,6 @@ export const RINKEBY_NETWORK_OPTION = 'roukeby-network-option';
 export const KOVAN_NETWORK_OPTION = 'kovan-network-option';
 
 export const ROPSTEN_NETWORK_OPTION = 'ropsten-network-option';
+
+export const PLACEHOLDER_NET_NETWORK_OPTION = 'placeholdernet-network-option';
+
