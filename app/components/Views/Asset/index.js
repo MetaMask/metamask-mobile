@@ -15,7 +15,7 @@ import {
   TX_PENDING,
   TX_CONFIRMED,
 } from '../../../constants/transaction';
-import AssetOverview from '../../UI/AssetOverview';
+import AssetOverview from '../../UI/AssetOverview-V2';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
@@ -392,12 +392,10 @@ class Asset extends PureComponent {
         ) : (
           <Transactions
             header={
-              <View style={styles.assetOverviewWrapper}>
-                <AssetOverview
-                  navigation={navigation}
-                  asset={navigation && params}
-                />
-              </View>
+              <AssetOverview
+                navigation={navigation}
+                asset={navigation && params}
+              />
             }
             assetSymbol={navigation && params.symbol}
             navigation={navigation}

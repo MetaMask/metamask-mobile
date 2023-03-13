@@ -9,7 +9,6 @@ import {
   Text,
   View,
   FlatList,
-  Dimensions,
   InteractionManager,
   TouchableOpacity,
 } from 'react-native';
@@ -63,8 +62,6 @@ const createStyles = (colors) =>
     emptyContainer: {
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: colors.background.default,
-      minHeight: Dimensions.get('window').height / 2,
     },
     keyboardAwareWrapper: {
       flex: 1,
@@ -316,7 +313,6 @@ class Transactions extends PureComponent {
   renderEmpty = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
     return (
       <ScrollView
         contentContainerStyle={styles.emptyContainer}

@@ -421,8 +421,9 @@ export function renderToGwei(value, unit = 'ether') {
 
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
- *
- * @param {number} wei - BN corresponding to an amount of wei
+ * TODO: wei should be a BN instance, but we're not sure if it's always the case
+//
+ * @param {number | BN} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
