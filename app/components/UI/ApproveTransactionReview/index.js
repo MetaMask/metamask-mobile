@@ -79,8 +79,6 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
-import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
-import {getAccountBalance} from '../../../util/dappTransactions';
 
 import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
 
@@ -245,7 +243,7 @@ class ApproveTransactionReview extends PureComponent {
     shouldVerifyContractDetails: PropTypes.bool,
     frequentRpcList: PropTypes.array,
     providerRpcTarget: PropTypes.string,
-    selectedAddress: PropTypes.string,
+    onUpdateContractNickname: PropTypes.func,
   };
 
   state = {
@@ -704,11 +702,6 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
-      const userEnteredCustomSpend = false
-      const selectedBalance = accounts[selectedAddress].balance
-      const confirmBalance = getAccountBalance(selectedBalance)
-
- 
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
