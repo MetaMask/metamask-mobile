@@ -133,17 +133,15 @@ const SDKSessionsManager = (props: Props) => {
   const renderSDKSessions = () => (
     <>
       <ScrollView>
-        <View>
-          {connections.map((sdkSession, _index) => (
-            <SDKSessionItem
-              key={`s${_index}`}
-              connection={sdkSession}
-              onDisconnect={(channelId: string) => {
-                onDisconnect(channelId);
-              }}
-            />
-          ))}
-        </View>
+        {connections.map((sdkSession, _index) => (
+          <SDKSessionItem
+            key={`s${_index}`}
+            connection={sdkSession}
+            onDisconnect={(channelId: string) => {
+              onDisconnect(channelId);
+            }}
+          />
+        ))}
       </ScrollView>
       <StyledButton
         type="normal"
