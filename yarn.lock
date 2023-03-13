@@ -3659,13 +3659,13 @@
     "@metamask/base-controller" "^1.1.1"
     "@metamask/controller-utils" "^1.0.0"
 
-"@metamask/approval-controller@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-1.0.1.tgz#903e44e762b209c95d0fc7aed8cb3870d0baead0"
-  integrity sha512-QpIE5z+3wRZyt2cHJ8kbG7xxI+VBLBbo5qUi56/XPTtKn8lo6dpP3oznMVSjdEe926tShLPSR0mHLVaE0saX5w==
+"@metamask/approval-controller@^1.0.1", "@metamask/approval-controller@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-1.1.0.tgz#1f0c89ffa3a60600f69886ffb9a8bd06ef823b32"
+  integrity sha512-6RFPMUayRDxe1ZrkDPIqPNSQ10pMUB1uGr8c52X7gm+EEaS3OnZV4qLMASvwpu7gNQe5dFiCZPypRHlM5qiq+A==
   dependencies:
-    "@metamask/base-controller" "^1.1.1"
-    "@metamask/controller-utils" "^1.0.0"
+    "@metamask/base-controller" "^1.1.2"
+    "@metamask/controller-utils" "^2.0.0"
     eth-rpc-errors "^4.0.0"
     immer "^9.0.6"
     nanoid "^3.1.31"
@@ -3697,15 +3697,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-1.1.1.tgz#34c2db471328b92a3a46f9c2547bbb9d37803258"
-  integrity sha512-erDfd+OcHnixSZObPNHuDn2G3rRT2B9J/JaOmjjQN64o9RqDYid87Zb0z03wK8cbJ/pEHhhDIBn6t2gMWcdwrQ==
-  dependencies:
-    "@metamask/controller-utils" "^1.0.0"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^1.1.2":
+"@metamask/base-controller@^1.1.1", "@metamask/base-controller@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-1.1.2.tgz#92643d16a322664adae924cf45806c96c6704e30"
   integrity sha512-lOV3dyaTw+dTZOYkpjFwKN4DfOlvRpALknUlOzoFg+ChLeva8T7E4/pyo52FOEtxhajsq9/77soGm729oaNGMA==
