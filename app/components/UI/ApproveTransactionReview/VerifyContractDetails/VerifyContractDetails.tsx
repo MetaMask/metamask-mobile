@@ -52,6 +52,12 @@ const VerifyContractDetails = ({
   );
 
   useEffect(() => {
+    if (tokenSymbol) {
+      setTokenNickname(tokenSymbol);
+    }
+  }, [tokenSymbol]);
+
+  useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {
       if (contact.address === safeToChecksumAddress(contractAddress)) {
         setContractNickname(contact.name);
