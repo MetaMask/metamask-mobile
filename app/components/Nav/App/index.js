@@ -187,7 +187,7 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const App = ({ selectedAddress, userLoggedIn }) => {
+const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -216,6 +216,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
+      const { PreferencesController } = Engine.context;
+      const selectedAddress = PreferencesController.state.selectedAddress;
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
@@ -246,7 +248,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       }
     };
     appTriggeredAuth();
-  }, [navigator, selectedAddress]);
+  }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -552,8 +554,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  selectedAddress:
-    state.engine.backgroundState?.PreferencesController?.selectedAddress,
 });
 
 export default connect(mapStateToProps)(App);
