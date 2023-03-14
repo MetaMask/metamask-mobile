@@ -712,7 +712,6 @@ class Approve extends PureComponent {
                   savedContactListToArray={savedContactListToArray}
                   transactionConfirmed={transactionConfirmed}
                   showBlockExplorer={this.setIsBlockExplorerVisible}
-                  onUpdateContractNickname={this.onUpdateContractNickname}
                   toggleModal={this.toggleModal}
                   showVerifyContractDetails={this.showVerifyContractDetails}
                   shouldVerifyContractDetails={

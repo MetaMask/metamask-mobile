@@ -110,9 +110,6 @@ const createStyles = (colors: any) =>
       textDecorationLine: 'underline',
       ...fontStyles.bold,
     },
-    actionViewChildren: {
-      height: 300,
-    },
     actionViewQRObject: {
       height: 648,
     },
@@ -160,7 +157,6 @@ const createStyles = (colors: any) =>
     skeletalView: {
       height: 50,
     },
-    tokenImage: { height: 36, width: 36, marginRight: 8 },
     transactionWrapper: {
       marginVertical: 10,
     },
