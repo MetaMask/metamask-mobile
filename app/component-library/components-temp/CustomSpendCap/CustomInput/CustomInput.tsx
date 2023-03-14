@@ -46,14 +46,13 @@ const CustomInput = ({
         styles.container,
         noEdit && {
           ...styles.container,
+          ...styles.noEdit,
           backgroundColor: colors.background.alternative,
-          // padding: 0,
         },
       ]}
       testID={CUSTOM_INPUT_TEST_ID}
     >
       <View style={styles.body}>
-        {noEdit && <Text>{`${formatNumber(value)} ${ticker}`}</Text>}
         {!noEdit && inputDisabled ? (
           <TextInput
             multiline
@@ -68,7 +67,9 @@ const CustomInput = ({
             variant={TextVariant.BodyMD}
             style={styles.warningValue}
           >{`${formatNumber(value)} ${ticker}`}</Text>
-        ) : null}
+        ) : (
+          <Text>{`${formatNumber(value)} ${ticker}`}</Text>
+        )}
       </View>
       {!noEdit && inputDisabled && (
         <Text

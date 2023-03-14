@@ -38,6 +38,8 @@ const ApproveTransactionHeader = ({
   origin,
   url,
   currentEnsName,
+  tokenBalance,
+  tokenSymbol,
 }: ApproveTransactionHeaderI) => {
   const [accountInfo, setAccountInfo] = useState<AccountInfoI>({
     balance: 0,
@@ -78,8 +80,19 @@ const ApproveTransactionHeader = ({
       ? hexToBN(accounts[activeAddress].balance)
       : 0;
 
-    const balance = Number(renderFromWei(weiBalance));
-    const currency = getTicker(ticker);
+    let balance;
+    if (tokenBalance) {
+      balance = tokenBalance;
+    } else {
+      balance = Number(renderFromWei(weiBalance));
+    }
+
+    let currency;
+    if (tokenSymbol) {
+      currency = tokenSymbol;
+    } else {
+      currency = getTicker(ticker);
+    }
     const accountName = activeAddress
       ? renderAccountName(activeAddress, identities)
       : '';
@@ -100,7 +113,15 @@ const ApproveTransactionHeader = ({
       isOriginWalletConnect,
       isOriginMMSDKRemoteConn,
     });
-  }, [accounts, identities, origin, activeAddress, network]);
+  }, [
+    accounts,
+    identities,
+    origin,
+    activeAddress,
+    network,
+    tokenSymbol,
+    tokenBalance,
+  ]);
 
   const networkImage = getNetworkImageSource({
     networkType: networkProvider.type,

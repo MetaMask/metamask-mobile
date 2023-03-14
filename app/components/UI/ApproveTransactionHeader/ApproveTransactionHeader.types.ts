@@ -3,6 +3,8 @@ export interface ApproveTransactionHeaderI {
   url: string;
   currentEnsName?: string;
   from: string;
+  tokenSymbol?: string;
+  tokenBalance?: number;
 }
 
 export interface AccountInfoI {

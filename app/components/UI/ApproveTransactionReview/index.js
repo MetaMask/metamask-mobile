@@ -725,6 +725,8 @@ class ApproveTransactionReview extends PureComponent {
                   origin={origin}
                   url={activeTabUrl}
                   from={from}
+                  tokenBalance={tokenBalance}
+                  tokenSymbol={tokenSymbol}
                 />
                 <Text
                   variant={TextVariant.HeadingMD}
@@ -739,7 +741,8 @@ class ApproveTransactionReview extends PureComponent {
                         ? 'review_spend_cap'
                         : 'set_spend_cap'
                     }`,
-                  )}{' '}
+                  )}
+                  {'\n'}
                   {!fetchingUpdateDone && (
                     <Text variant={TextVariant.HeadingMD}>
                       {strings('spend_limit_edition.token')}
@@ -787,20 +790,48 @@ class ApproveTransactionReview extends PureComponent {
                 <View style={styles.paddingHorizontal}>
                   <View style={styles.section}>
                     {tokenStandard === undefined ? (
-                      <SkeletonText large thick />
+                      <SkeletonText style={styles.skeletalView} />
                     ) : tokenStandard === ERC20 ? (
-                      <CustomSpendCap
-                        ticker={tokenSymbol}
-                        dappProposedValue={originalApproveAmount}
-                        accountBalance={tokenBalance}
-                        domain={host}
-                        noEdit={spendLimitCreated}
-                        customValue={customSpendValue}
-                        goBackPress={this.goBackToSpendLimit}
-                        onInputChanged={(value) =>
-                          this.setState({ customSpendValue: value })
-                        }
-                      />
+                      <>
+                        <CustomSpendCap
+                          ticker={tokenSymbol}
+                          dappProposedValue={originalApproveAmount}
+                          accountBalance={tokenBalance}
+                          domain={host}
+                          noEdit={spendLimitCreated}
+                          customValue={customSpendValue}
+                          goBackPress={this.goBackToSpendLimit}
+                          onInputChanged={(value) =>
+                            this.setState({ customSpendValue: value })
+                          }
+                        />
+                        {spendLimitCreated && (
+                          <View style={styles.transactionWrapper}>
+                            <TransactionReview
+                              gasSelected={gasSelected}
+                              primaryCurrency={primaryCurrency}
+                              hideTotal
+                              noMargin
+                              onEdit={this.edit}
+                              chainId={this.props.chainId}
+                              onUpdatingValuesStart={onUpdatingValuesStart}
+                              onUpdatingValuesEnd={onUpdatingValuesEnd}
+                              animateOnChange={animateOnChange}
+                              isAnimating={isAnimating}
+                              gasEstimationReady={gasEstimationReady}
+                              legacy={!showFeeMarket}
+                              gasObject={
+                                !showFeeMarket
+                                  ? legacyGasObject
+                                  : eip1559GasObject
+                              }
+                              updateTransactionState={updateTransactionState}
+                              onlyGas
+                              multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                            />
+                          </View>
+                        )}
+                      </>
                     ) : (
                       <TransactionReview
                         gasSelected={gasSelected}
@@ -939,6 +970,7 @@ class ApproveTransactionReview extends PureComponent {
       });
     };
 
+    // console.log('spenderAddress', to)
     const showNickname = (address) => {
       toggleModal(address);
     };
@@ -1106,6 +1138,8 @@ const mapStateToProps = (state) => ({
   ).length,
   tokensLength: state.engine.backgroundState.TokensController.tokens.length,
   providerType: selectProviderType(state),
+  tokenBalances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),

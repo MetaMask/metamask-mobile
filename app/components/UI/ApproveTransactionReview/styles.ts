@@ -157,6 +157,13 @@ const createStyles = (colors: any) =>
       textAlign: 'center',
       fontSize: 15,
     },
+    skeletalView: {
+      height: 50,
+    },
+    tokenImage: { height: 36, width: 36, marginRight: 8 },
+    transactionWrapper: {
+      marginVertical: 10,
+    },
   });
 
 export default createStyles;
