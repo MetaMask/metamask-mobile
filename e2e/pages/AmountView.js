@@ -1,5 +1,9 @@
 import TestHelpers from '../helpers';
-import { CURRENCY_SWITCH, TRANSACTION_AMOUNT_CONVERSION_VALUE, TRANSACTION_AMOUNT_INPUT } from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
+import {
+  CURRENCY_SWITCH,
+  TRANSACTION_AMOUNT_CONVERSION_VALUE,
+  TRANSACTION_AMOUNT_INPUT,
+} from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
 
 const TRANSACTION_INPUT_ID = 'txn-amount-input';
 const TRANSACTION_NEXT_BUTTON_ID = 'txn-amount-next-button';

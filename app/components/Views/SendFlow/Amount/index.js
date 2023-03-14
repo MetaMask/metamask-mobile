@@ -860,7 +860,6 @@ class Amount extends PureComponent {
     selectedAsset = selectedAsset || this.props.selectedAsset;
     if (selectedAsset.isETH) {
       hasExchangeRate = !!conversionRate;
-      console.log('Internal primary currency is crypto from state after args: ', internalPrimaryCurrencyIsCrypto);
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${weiToFiatNumber(
           toWei(processedInputValue),
@@ -1124,11 +1123,14 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    this.setState({
-      internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
-    }, () => {
-      this.onInputChange(inputValueConversion);
-    });    
+    this.setState(
+      {
+        internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
+      },
+      () => {
+        this.onInputChange(inputValueConversion);
+      },
+    );
   };
 
   renderTokenInput = () => {
