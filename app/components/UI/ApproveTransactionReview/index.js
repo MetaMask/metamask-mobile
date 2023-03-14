@@ -35,6 +35,7 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
+  generateApproveData
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { showAlert } from '../../../actions/alert';
@@ -371,18 +372,15 @@ class ApproveTransactionReview extends PureComponent {
     const { name: method } = await getMethodData(data);
     const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
-    const newApprovalTransaction = generateTxWithNewTokenAllowance(
-      '0',
-      tokenDecimals,
-      spenderAddress,
-      transaction,
-    );
+    const approvalData = generateApproveData({
+      spender: spenderAddress,
+      value: '0',
+    });
 
     setTransactionObject({
-      ...newApprovalTransaction,
       transaction: {
-        ...newApprovalTransaction.transaction,
-        data: newApprovalTransaction.data,
+        ...transaction,
+        data: approvalData,
       },
     });
 
