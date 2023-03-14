@@ -13,7 +13,7 @@ import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-import { Browser } from '../pages/Drawer/Browser';
+import Browser from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';

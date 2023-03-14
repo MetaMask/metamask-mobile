@@ -46,7 +46,7 @@ export default class Browser {
     await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
-    await TestHelpers.tap(NETWORK_AVATAR_IMAGE_ID);
+    await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
   }
 
   static async tapAddToFavoritesButton() {
