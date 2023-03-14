@@ -8,6 +8,7 @@ import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
   ACCOUNT_BASE_TEST_ID,
 } from './AccountBase.constants';
+import SkeletonText from '../../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
 import styles from './AccountBase.styles';
 
 const AccountBase = ({
@@ -18,6 +19,7 @@ const AccountBase = ({
   accountBalanceLabel,
   accountAddress,
   badgeProps,
+  fetchingTokenBalance,
 }: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
@@ -37,9 +39,13 @@ const AccountBase = ({
       <Text variant={TextVariant.BodySM} style={styles.label}>
         {accountBalanceLabel}
       </Text>
-      <Text variant={TextVariant.BodyMDBold}>
-        {accountBalance} {accountNativeCurrency}
-      </Text>
+      {fetchingTokenBalance ? (
+        <Text variant={TextVariant.BodyMDBold}>
+          {accountBalance} {accountNativeCurrency}
+        </Text>
+      ) : (
+        <SkeletonText thin />
+      )}
     </View>
   </View>
 );

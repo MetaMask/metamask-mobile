@@ -30,4 +30,8 @@ export interface AccountBaseProps {
    * Avatar wrapper props
    */
   badgeProps: BadgeProps;
+  /**
+   * fetching account balance
+   */
+  fetchingTokenBalance?: boolean;
 }

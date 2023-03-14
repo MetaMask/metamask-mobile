@@ -5,6 +5,7 @@ export interface ApproveTransactionHeaderI {
   from: string;
   tokenSymbol?: string;
   tokenBalance?: number;
+  fetchingTokenBalance?: boolean;
 }
 
 export interface AccountInfoI {

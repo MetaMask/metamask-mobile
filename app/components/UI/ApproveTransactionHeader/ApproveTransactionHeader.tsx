@@ -40,6 +40,7 @@ const ApproveTransactionHeader = ({
   currentEnsName,
   tokenBalance,
   tokenSymbol,
+  fetchingTokenBalance,
 }: ApproveTransactionHeaderI) => {
   const [accountInfo, setAccountInfo] = useState<AccountInfoI>({
     balance: 0,
@@ -172,6 +173,7 @@ const ApproveTransactionHeader = ({
           name: networkName,
           imageSource: networkImage,
         }}
+        fetchingTokenBalance={fetchingTokenBalance}
       />
     </View>
   );
