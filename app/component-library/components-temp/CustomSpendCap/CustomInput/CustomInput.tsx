@@ -20,7 +20,7 @@ const CustomInput = ({
   setMaxSelected,
   defaultValueSelected,
   setValue,
-  noEdit,
+  disableEdit,
 }: CustomInputProps) => {
   const handleUpdate = (text: string) => {
     setValue(text);
@@ -44,16 +44,16 @@ const CustomInput = ({
     <View
       style={[
         styles.container,
-        noEdit && {
+        disableEdit && {
           ...styles.container,
-          ...styles.noEdit,
+          ...styles.fixedPadding,
           backgroundColor: colors.background.alternative,
         },
       ]}
       testID={CUSTOM_INPUT_TEST_ID}
     >
       <View style={styles.body}>
-        {!noEdit && inputDisabled ? (
+        {!disableEdit && inputDisabled ? (
           <TextInput
             multiline
             onChangeText={onChangeValueText}
@@ -71,7 +71,7 @@ const CustomInput = ({
           <Text>{`${formatNumber(value)} ${ticker}`}</Text>
         )}
       </View>
-      {!noEdit && inputDisabled && (
+      {!disableEdit && inputDisabled && (
         <Text
           variant={TextVariant.BodySM}
           style={styles.maxValueText}
