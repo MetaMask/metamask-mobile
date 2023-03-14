@@ -35,7 +35,7 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
-  generateApproveData
+  generateApproveData,
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { showAlert } from '../../../actions/alert';
