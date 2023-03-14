@@ -315,7 +315,6 @@
 				278065D027394AD9B2906E38 /* libBVLinearGradient.a */,
 				F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */,
 				8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */,
-				1F06D56A2D2F41FB9345D16F /* Lottie.framework */,
 				D0CBAE789660472DB719C765 /* libLottie.a */,
 				178440FE3F1C4F4180D14622 /* libTcpSockets.a */,
 			);
@@ -944,9 +943,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				LLVM_LTO = YES;
 				MARKETING_VERSION = 6.0.1;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1010,9 +1007,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				LLVM_LTO = YES;
 				MARKETING_VERSION = 6.0.1;
 				ONLY_ACTIVE_ARCH = NO;
