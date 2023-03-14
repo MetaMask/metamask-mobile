@@ -3,3 +3,5 @@ export enum CommunicationLayerPreference {
   SOCKET = 'socket',
   WALLETCONNECT = 'wc',
 }
+
+export default CommunicationLayerPreference;

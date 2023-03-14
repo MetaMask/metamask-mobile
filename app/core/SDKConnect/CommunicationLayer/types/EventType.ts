@@ -15,3 +15,5 @@ export enum EventType {
   MESSAGE = 'message',
   TERMINATE = 'terminate',
 }
+
+export default EventType;

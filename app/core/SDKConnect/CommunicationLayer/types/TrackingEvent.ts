@@ -3,3 +3,5 @@ export enum TrackingEvents {
   CONNECTED = 'sdk_connection_established',
   DISCONNECTED = 'sdk_disconnected',
 }
+
+export default TrackingEvents;

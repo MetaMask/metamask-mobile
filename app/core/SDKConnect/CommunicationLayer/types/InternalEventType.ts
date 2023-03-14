@@ -4,3 +4,5 @@ export enum InternalEventType {
    */
   KEY_EXCHANGE = 'key_exchange',
 }
+
+export default InternalEventType;

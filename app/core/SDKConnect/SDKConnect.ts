@@ -636,7 +636,7 @@ export class Connection extends EventEmitter2 {
    * @throws error if the user reject approval request.
    */
   private async checkPermissions(
-    message?: CommunicationLayerMessage,
+    _message?: CommunicationLayerMessage,
   ): Promise<boolean> {
     // only ask approval if needed
     const approved = this.isApproved({

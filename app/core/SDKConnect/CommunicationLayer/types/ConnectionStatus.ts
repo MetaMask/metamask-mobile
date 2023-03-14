@@ -13,3 +13,5 @@ export enum ConnectionStatus {
   // TERMINATED: if a user manually disconnect the session.
   TERMINATED = 'terminated',
 }
+
+export default ConnectionStatus;

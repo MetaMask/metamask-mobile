@@ -6,3 +6,5 @@ export enum KeyExchangeMessageType {
   KEY_HANDSHAKE_ACK = 'key_handshake_ACK',
   KEY_HANDSHAKE_NONE = 'none',
 }
+
+export default KeyExchangeMessageType;
