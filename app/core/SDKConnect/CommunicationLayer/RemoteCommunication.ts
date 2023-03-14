@@ -3,9 +3,9 @@ import { EventEmitter2 } from 'eventemitter2';
 import { validate, v4 as uuidv4 } from 'uuid';
 import { SendAnalytics } from './Analytics';
 import {
-  CHANNEL_MAX_WAITING_TIME,
+  CHANNEL_MAX_WAITING_TIME_IN_MS,
   DEFAULT_SERVER_URL,
-  DEFAULT_SESSION_TIMEOUT_MS,
+  DEFAULT_SESSION_TIMEOUT_IN_MS,
   VERSION,
 } from './config';
 import { ECIESProps } from './ECIES';
@@ -26,7 +26,7 @@ import { WalletInfo } from './types/WalletInfo';
 import { WebRTCLib } from './types/WebRTCLib';
 import { WebRTCService } from './WebRTCService';
 import { ServiceStatus } from './types/ServiceStatus';
-import { CommunicationLayerLoggingOptions } from './types/LogggingOptions';
+import { CommunicationLayerLoggingOptions } from './types/LoggingOptions';
 import { EventType } from './types/EventType';
 
 export interface RemoteCommunicationProps {
@@ -89,7 +89,7 @@ export class RemoteCommunication extends EventEmitter2 {
   // Keep track if the other side is connected to the socket
   private clientsConnected = false;
 
-  private sessionDuration: number = DEFAULT_SESSION_TIMEOUT_MS;
+  private sessionDuration: number = DEFAULT_SESSION_TIMEOUT_IN_MS;
 
   // this flag is switched on when the connection is automatically initialized after finding existing channel configuration.
   private autoStarted = false;
@@ -119,7 +119,7 @@ export class RemoteCommunication extends EventEmitter2 {
     communicationServerUrl = DEFAULT_SERVER_URL,
     logging,
     autoConnect = {
-      timeout: CHANNEL_MAX_WAITING_TIME,
+      timeout: CHANNEL_MAX_WAITING_TIME_IN_MS,
     },
   }: RemoteCommunicationProps) {
     super();
@@ -134,7 +134,7 @@ export class RemoteCommunication extends EventEmitter2 {
     this.context = context;
     this.setConnectionStatus(ConnectionStatus.DISCONNECTED);
     if (storage?.duration) {
-      this.sessionDuration = DEFAULT_SESSION_TIMEOUT_MS;
+      this.sessionDuration = DEFAULT_SESSION_TIMEOUT_IN_MS;
     }
     this.storageOptions = storage;
     this.autoConnectOptions = autoConnect;

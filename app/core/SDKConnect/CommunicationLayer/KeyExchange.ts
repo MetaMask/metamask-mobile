@@ -6,7 +6,7 @@ import { EventType } from './types/EventType';
 import { InternalEventType } from './types/InternalEventType';
 import { KeyExchangeMessageType } from './types/KeyExchangeMessageType';
 import { KeyInfo } from './types/KeyInfo';
-import { CommunicationLayerLoggingOptions } from './types/LogggingOptions';
+import { CommunicationLayerLoggingOptions } from './types/LoggingOptions';
 
 export interface KeyExchangeProps {
   communicationLayer: CommunicationLayer;

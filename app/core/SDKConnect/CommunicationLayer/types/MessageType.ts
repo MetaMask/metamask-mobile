@@ -10,9 +10,11 @@ export enum MessageType {
   PAUSE = 'pause',
   OTP = 'otp',
   /**
-   * Used for debugging purpose and check channel validity.
+   * Used for debugging purposes and checking channel validity.
    */
   PING = 'ping',
   // READY is sent when the connection is linked
   READY = 'ready',
 }
+
+export default MessageType;

@@ -19,7 +19,7 @@ import { StorageManagerProps, StorageManager } from './types/StorageManager';
 import { AutoConnectType } from './types/AutoConnectType';
 import { AutoConnectOptions } from './types/AutoConnectOptions';
 import { ServiceStatus } from './types/ServiceStatus';
-import { CommunicationLayerLoggingOptions } from './types/LogggingOptions';
+import { CommunicationLayerLoggingOptions } from './types/LoggingOptions';
 import { EventType } from './types/EventType';
 
 export type {

@@ -15,7 +15,7 @@ import { EventType } from './types/EventType';
 import { InternalEventType } from './types/InternalEventType';
 import { KeyExchangeMessageType } from './types/KeyExchangeMessageType';
 import { KeyInfo } from './types/KeyInfo';
-import { CommunicationLayerLoggingOptions } from './types/LogggingOptions';
+import { CommunicationLayerLoggingOptions } from './types/LoggingOptions';
 import { MessageType } from './types/MessageType';
 import { ServiceStatus } from './types/ServiceStatus';
 import { wait } from './utils/wait';
