@@ -1,5 +1,4 @@
-@androidApp
-@regression
+@androidApp @regression
 Feature: This feature file covers ENS website in browser.
 
   Scenario: ENS website loads correctly

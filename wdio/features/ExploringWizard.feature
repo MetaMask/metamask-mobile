@@ -1,5 +1,6 @@
 @androidApp
 @regression
+
 Feature: Exploring wizard
 
   Scenario: A user should be able to go through the start exploring tutorial

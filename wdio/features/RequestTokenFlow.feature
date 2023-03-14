@@ -1,9 +1,12 @@
 @androidApp
 @ChainScenarios
+
 Feature: Request Token
+
   This feature goes through the request token flow
 
   Scenario: Create wallet and then add a network
+
     Given I create a new wallet
     And I select remind me later on secure wallet screen
     And Select "Skip" on remind secure modal
@@ -14,7 +17,6 @@ Feature: Request Token
 
     When I tap on the navbar network title button
     And I tap on the Add a Network button
-
     When I tap on network "BNB Smart Chain" to add it
     Then the network approval modal should appear
 
@@ -26,6 +28,7 @@ Feature: Request Token
     Then I am on the main wallet view
 
   Scenario Outline: Request native token
+
     When I tap on the navbar network title button
     And I tap on <Network> on Networks list to switch
     And I tap on Got it in the network education modal
@@ -51,7 +54,9 @@ Feature: Request Token
       | BNB Smart Chain       | BNB       |
       | Ethereum Main Network | ETH       |
 
+
   Scenario Outline: User requests ERC-20 token
+
     When I tap on the navbar network title button
     And I tap on <Network> on Networks list to switch
     And I tap on button with text "Receive"
@@ -73,8 +78,10 @@ Feature: Request Token
     And I type "5" into the Request Amount field
     And I tap on button with text "Next"
     Then "Your request link is ready to send!" is visible
+
     And I tap on button with text "QR Code"
     Then "Payment Request QR Code" is visible
+
     And I close the request screen
     And I tap on button with text "Remind me later"
 
