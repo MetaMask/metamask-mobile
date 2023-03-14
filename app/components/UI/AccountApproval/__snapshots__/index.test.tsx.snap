@@ -10,9 +10,9 @@ exports[`AccountApproval should render correctly 1`] = `
       "url": "",
     }
   }
-  dispatch={[Function]}
   networkType="ropsten"
   selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+  showSDKFeedbackModal={[Function]}
   tokensLength={0}
 />
 `;
