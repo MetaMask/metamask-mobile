@@ -503,13 +503,30 @@ class Transactions extends PureComponent {
 
   speedUpTransaction = async (transactionObject) => {
     try {
-      await Engine.context.TransactionController.speedUpTransaction(
-        this.speedUpTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        KeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.speedUpTxId,
+          replacementParams: {
+            type: 'speedUp',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.speedUpTransaction(
+          this.speedUpTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -527,18 +544,24 @@ class Transactions extends PureComponent {
 
     const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
-    return new Promise((resolve, reject) => {
-      this.props.navigation.navigate(
-        ...createLedgerTransactionModalNavDetails({
-          transactionId: transaction.id,
-          deviceId: ledgerKeyring.deviceId,
-          onConfirmationComplete: (confirmed) => {
-            confirmed ? resolve() : reject();
-          },
-          type: 'signTransaction',
-        }),
-      );
-    });
+    const onConfirmation = (isComplete) => {
+      if (isComplete) {
+        transaction.speedUpParams &&
+        transaction.speedUpParams?.type === 'SpeedUp'
+          ? this.onSpeedUpCompleted()
+          : this.onCancelCompleted();
+      }
+    };
+
+    this.props.navigation.navigate(
+      ...createLedgerTransactionModalNavDetails({
+        transactionId: transaction.id,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: onConfirmation,
+        type: 'signTransaction',
+        replacementParams: transaction?.replacementParams,
+      }),
+    );
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
@@ -547,13 +570,30 @@ class Transactions extends PureComponent {
 
   cancelTransaction = async (transactionObject) => {
     try {
-      await Engine.context.TransactionController.stopTransaction(
-        this.cancelTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        KeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.cancelTxId,
+          replacementParams: {
+            type: 'cancel',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.stopTransaction(
+          this.cancelTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);

@@ -16,10 +16,24 @@ export const createLedgerTransactionModalNavDetails =
     Routes.LEDGER_TRANSACTION_MODAL,
   );
 
+export enum LedgerReplacementTxTypes {
+  SPEED_UP = 'speedUp',
+  CANCEL = 'cancel',
+}
+
+export interface ReplacementTxParams {
+  type: LedgerReplacementTxTypes;
+  eip1559GasFee?: {
+    maxFeePerGas?: string;
+    maxPriorityFeePerGas?: string;
+  };
+}
+
 export interface LedgerTransactionModalParams {
   onConfirmationComplete: (confirmed: boolean) => void;
   transactionId: string;
   deviceId: string;
+  replacementParams?: ReplacementTxParams;
 }
 
 const LedgerTransactionModal = () => {
@@ -28,14 +42,26 @@ const LedgerTransactionModal = () => {
   const styles = createStyles(colors);
   const { TransactionController } = Engine.context as any;
 
-  const { transactionId, onConfirmationComplete, deviceId } =
+  const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
     useParams<LedgerTransactionModalParams>();
 
   const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
 
   const executeOnLedger = useCallback(async () => {
-    // This requires the user to confirm on the ledger device
-    await TransactionController.approveTransaction(transactionId);
+    if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
+      await TransactionController.speedUpTransaction(
+        transactionId,
+        replacementParams.eip1559GasFee,
+      );
+    } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
+      await TransactionController.stopTransaction(
+        transactionId,
+        replacementParams.eip1559GasFee,
+      );
+    } else {
+      // This requires the user to confirm on the ledger device
+      await TransactionController.approveTransaction(transactionId);
+    }
 
     onConfirmationComplete(true);
     dismissModal();
