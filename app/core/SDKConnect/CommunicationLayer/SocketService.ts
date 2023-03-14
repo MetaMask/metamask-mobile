@@ -648,7 +648,6 @@ export class SocketService extends EventEmitter2 implements CommunicationLayer {
       id: this.channelId,
       context: this.context,
       message: encryptedMessage,
-      plaintext: JSON.stringify(message),
     };
     if (this.debug) {
       console.debug(
