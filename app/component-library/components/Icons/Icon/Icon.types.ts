@@ -28,6 +28,8 @@ export enum IconSize {
   Md = '20',
   Lg = '24',
   Xl = '32',
+  // TODO finalize Icon size in Design system
+  XXL = '72',
 }
 
 /**
