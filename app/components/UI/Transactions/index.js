@@ -32,7 +32,12 @@ import NotificationManager from '../../../core/NotificationManager';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
-import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
+import {
+  RPC,
+  NO_RPC_BLOCK_EXPLORER,
+  LINEA_TESTNET,
+  LINEA_TESTNET_BLOCK_EXPLORER,
+} from '../../../constants/network';
 import TransactionActionModal from '../TransactionActionModal';
 import Logger from '../../../util/Logger';
 import { validateTransactionActionBalance } from '../../../util/transactions';
@@ -354,6 +359,9 @@ class Transactions extends PureComponent {
       if (type === RPC) {
         url = `${rpcBlockExplorer}/address/${selectedAddress}`;
         title = new URL(rpcBlockExplorer).hostname;
+      } else if (type === LINEA_TESTNET) {
+        url = `${LINEA_TESTNET_BLOCK_EXPLORER}/address/${selectedAddress}`;
+        title = new URL(LINEA_TESTNET_BLOCK_EXPLORER).hostname;
       } else {
         const networkResult = getNetworkTypeById(network);
         url = getEtherscanAddressUrl(networkResult, selectedAddress);

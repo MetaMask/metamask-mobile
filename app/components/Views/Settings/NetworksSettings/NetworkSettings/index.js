@@ -42,6 +42,9 @@ import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
+  LINEA_TESTNET,
+  LINEA_TESTNET_BLOCK_EXPLORER,
+  LINEA_TESTNET_RPC_URL,
   MAINNET,
   PRIVATENETWORK,
   RPC,
@@ -313,12 +316,18 @@ class NetworkSettings extends PureComponent {
     // If no navigation param, user clicked on add network
     if (network) {
       if (allNetworks.find((net) => network === net)) {
-        blockExplorerUrl = getEtherscanBaseUrl(network);
+        if (network === LINEA_TESTNET) {
+          blockExplorerUrl = LINEA_TESTNET_BLOCK_EXPLORER;
+          rpcUrl = LINEA_TESTNET_RPC_URL;
+        } else {
+          blockExplorerUrl = getEtherscanBaseUrl(network);
+          rpcUrl = allNetworksblockExplorerUrl + network;
+        }
+
         const networkInformation = Networks[network];
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl + network;
         ticker = strings('unit.eth');
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {

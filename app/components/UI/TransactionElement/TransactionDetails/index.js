@@ -26,7 +26,12 @@ import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
 import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
-import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
+import {
+  RPC,
+  NO_RPC_BLOCK_EXPLORER,
+  LINEA_TESTNET,
+  LINEA_TESTNET_BLOCK_EXPLORER,
+} from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
@@ -226,6 +231,13 @@ class TransactionDetails extends PureComponent {
       if (type === RPC) {
         const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
         const title = new URL(rpcBlockExplorer).hostname;
+        navigation.push('Webview', {
+          screen: 'SimpleWebview',
+          params: { url, title },
+        });
+      } else if (type === LINEA_TESTNET) {
+        const url = `${LINEA_TESTNET_BLOCK_EXPLORER}/tx/${transactionHash}`;
+        const title = new URL(LINEA_TESTNET_BLOCK_EXPLORER).hostname;
         navigation.push('Webview', {
           screen: 'SimpleWebview',
           params: { url, title },

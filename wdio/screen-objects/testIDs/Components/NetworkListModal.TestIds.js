@@ -12,5 +12,5 @@ export const KOVAN_NETWORK_OPTION = 'kovan-network-option';
 
 export const ROPSTEN_NETWORK_OPTION = 'ropsten-network-option';
 
-export const PLACEHOLDER_NET_NETWORK_OPTION = 'placeholdernet-network-option';
+export const LINEA_TESTNET_NETWORK_OPTION = 'lineatestnet-network-option';
 

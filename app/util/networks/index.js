@@ -12,7 +12,7 @@ import {
   NETWORKS_CHAIN_ID,
   RINKEBY,
   ROPSTEN,
-  PLACEHOLDER_NET,
+  LINEA_TESTNET,
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
@@ -27,7 +27,7 @@ import {
   KOVAN_NETWORK_OPTION,
   RINKEBY_NETWORK_OPTION,
   ROPSTEN_NETWORK_OPTION,
-  PLACEHOLDER_NET_NETWORK_OPTION,
+  LINEA_TESTNET_NETWORK_OPTION,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
@@ -38,6 +38,8 @@ const ropstenLogo = require('../../images/ropsten-logo-dark.png');
 const kovanLogo = require('../../images/kovan-logo-dark.png');
 const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
+const lineaLogo = require('../../images/linea-logo-dark.png');
+
 /* eslint-enable */
 import PopularList from './customNetworks';
 import { strings } from '../../../locales/i18n';
@@ -104,16 +106,16 @@ const NetworkList = {
     imageSource: goerliLogo,
     testId: GOERLI_TEST_NETWORK_OPTION,
   },
-  [PLACEHOLDER_NET]: {
-    name: 'ConsenSys zkEVM Test Network',
-    shortName: 'ConsenSys zkEVM',
+  [LINEA_TESTNET]: {
+    name: 'Linea Goerli Test Network',
+    shortName: 'Linea Goerli',
     networkId: 59140,
     chainId: 59140,
     hexChainId: '0xe704',
-    color: '#3099f2',
-    networkType: 'placeholdernet',
-    imageSource: goerliLogo,
-    testId: PLACEHOLDER_NET_NETWORK_OPTION,
+    color: '#000000',
+    networkType: 'lineatestnet',
+    imageSource: lineaLogo,
+    testId: LINEA_TESTNET_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',
@@ -182,7 +184,7 @@ export const isTestNet = (networkId) => {
     networkName === GOERLI ||
     networkName === KOVAN ||
     networkName === RINKEBY ||
-    networkName === PLACEHOLDER_NET
+    networkName === LINEA_TESTNET
   );
 };
 

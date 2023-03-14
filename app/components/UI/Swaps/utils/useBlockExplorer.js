@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import etherscanLink from '@metamask/etherscan-link';
-import { RPC } from '../../../../constants/network';
+import {
+  LINEA_TESTNET,
+  LINEA_TESTNET_BLOCK_EXPLORER,
+  RPC,
+} from '../../../../constants/network';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerName,
@@ -51,6 +55,14 @@ function useBlockExplorer(providerConfig, frequentRpcList) {
           baseUrl: '',
         });
       }
+    } else if (providerConfig.type === LINEA_TESTNET) {
+      setExplorer({
+        name: '',
+        value: providerConfig.chainId,
+        isValid: true,
+        isRPC: false,
+        baseUrl: LINEA_TESTNET_BLOCK_EXPLORER,
+      });
     } else {
       setExplorer({
         name: 'Etherscan',
