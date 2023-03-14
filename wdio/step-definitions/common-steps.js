@@ -49,7 +49,9 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
+  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
+  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
   await ImportFromSeedScreen.clickImportButton();
 });
 

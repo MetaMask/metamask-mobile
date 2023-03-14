@@ -70,6 +70,11 @@ const Routes = {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
   },
+  VAULT_RECOVERY: {
+    RESTORE_WALLET: 'RestoreWallet',
+    WALLET_RESTORED: 'WalletRestored',
+    WALLET_RESET_NEEDED: 'WalletResetNeeded',
+  },
 };
 
 export default Routes;
