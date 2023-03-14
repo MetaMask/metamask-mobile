@@ -58,6 +58,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from './Permissions/specifications.js';
+import { backupVault } from './BackupVault';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -83,7 +84,7 @@ class Engine {
   /**
    * Creates a CoreController instance
    */
-  constructor(initialState = {}) {
+  constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(
@@ -200,12 +201,12 @@ class Engine {
           ),
         config: {
           provider: networkController.provider,
-          chainId: networkController.state.provider.chainId,
+          chainId: networkController.state.providerConfig.chainId,
         },
       });
 
       const tokenListController = new TokenListController({
-        chainId: networkController.state.provider.chainId,
+        chainId: networkController.state.providerConfig.chainId,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -229,9 +230,9 @@ class Engine {
           ),
         getCurrentNetworkEIP1559Compatibility: async () =>
           await networkController.getEIP1559Compatibility(),
-        getChainId: () => networkController.state.provider.chainId,
+        getChainId: () => networkController.state.providerConfig.chainId,
         getCurrentNetworkLegacyGasAPICompatibility: () => {
-          const chainId = networkController.state.provider.chainId;
+          const chainId = networkController.state.providerConfig.chainId;
           return (
             isMainnetByChainId(chainId) ||
             chainId === swapsUtils.BSC_CHAIN_ID ||
@@ -266,6 +267,9 @@ class Engine {
         return newIdentities;
       };
 
+      const keyringState =
+        initialKeyringState || initialState.KeyringController;
+
       const keyringController = new KeyringController(
         {
           removeIdentity: preferencesController.removeIdentity.bind(
@@ -285,7 +289,7 @@ class Engine {
           ),
         },
         { encryptor, keyringTypes: additionalKeyrings },
-        initialState.KeyringController,
+        keyringState,
       );
 
       const controllers = [
@@ -319,7 +323,7 @@ class Engine {
               token_standard: 'ERC20',
               asset_type: 'token',
               chain_id: getDecimalChainId(
-                networkController.state.provider.chainId,
+                networkController.state.providerConfig.chainId,
               ),
             });
             tokensController.addDetectedTokens(tokens);
@@ -380,7 +384,7 @@ class Engine {
               ),
           },
           {
-            chainId: networkController.state.provider.chainId,
+            chainId: networkController.state.providerConfig.chainId,
           },
         ),
         new TransactionController({
@@ -441,6 +445,7 @@ class Engine {
           unrestrictedMethods,
         }),
       ];
+
       // set initial state
       // TODO: Pass initial state into each controller constructor instead
       // This is being set post-construction for now to ensure it's functionally equivalent with
@@ -456,6 +461,7 @@ class Engine {
           controller.update(initialState[controller.name]);
         }
       }
+
       this.datamodel = new ComposableController(
         controllers,
         this.controllerMessenger,
@@ -476,24 +482,43 @@ class Engine {
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
       this.controllerMessenger.subscribe(
         AppConstants.NETWORK_STATE_CHANGE_EVENT,
-        (state: { network: string, provider: { chainId: any } }) => {
+        (state: { network: string, providerConfig: { chainId: any } }) => {
           if (
             state.network !== 'loading' &&
-            state.provider.chainId !== currentChainId
+            state.providerConfig.chainId !== currentChainId
           ) {
             // We should add a state or event emitter saying the provider changed
             setTimeout(() => {
               this.configureControllersOnNetworkChange();
-              currentChainId = state.provider.chainId;
+              currentChainId = state.providerConfig.chainId;
             }, 500);
           }
         },
       );
       this.configureControllersOnNetworkChange();
       this.startPolling();
+      this.handleVaultBackup();
       Engine.instance = this;
     }
+
     return Engine.instance;
+  }
+
+  handleVaultBackup() {
+    const { KeyringController } = this.context;
+    KeyringController.subscribe((state) =>
+      backupVault(state)
+        .then((result) => {
+          if (result.success) {
+            Logger.log('Engine', 'Vault back up successful');
+          } else {
+            Logger.log('Engine', 'Vault backup failed', result.error);
+          }
+        })
+        .catch((error) => {
+          Logger.error(error, 'Engine Vault backup failed');
+        }),
+    );
   }
 
   startPolling() {
@@ -524,7 +549,7 @@ class Engine {
 
     SwapsController.configure({
       provider,
-      chainId: NetworkControllerState?.provider?.chainId,
+      chainId: NetworkControllerState?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     TransactionController.configure({ provider });
@@ -538,7 +563,7 @@ class Engine {
     const { TransactionController, PreferencesController, NetworkController } =
       this.context;
     const { selectedAddress } = PreferencesController.state;
-    const { type: networkType } = NetworkController.state.provider;
+    const { type: networkType } = NetworkController.state.providerConfig;
     const { networkId } = Networks[networkType];
     try {
       const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem(
@@ -766,7 +791,7 @@ class Engine {
     } = this.context;
 
     // Select same network ?
-    await NetworkController.setProviderType(network.provider.type);
+    await NetworkController.setProviderType(network.providerConfig.type);
 
     // Recreate accounts
     await KeyringController.createNewVaultAndRestore(pass, seed);
@@ -842,6 +867,16 @@ class Engine {
 
     return true;
   };
+
+  removeAllListeners() {
+    this.controllerMessenger.clearSubscriptions();
+  }
+
+  async destroyEngineInstance() {
+    this.removeAllListeners();
+    await this.resetState();
+    Engine.instance = null;
+  }
 }
 
 let instance: Engine;
@@ -924,14 +959,20 @@ export default {
   resetState() {
     return instance.resetState();
   },
+
+  destroyEngine() {
+    instance && instance.destroyEngineInstance();
+    instance = null;
+  },
+
   sync(data: any) {
     return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
   },
-  init(state: {} | undefined) {
-    instance = new Engine(state);
+  init(state: {} | undefined, keyringState = null) {
+    instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },

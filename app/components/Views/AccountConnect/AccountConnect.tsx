@@ -31,7 +31,7 @@ import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
-import { getUrlObj } from '../../../util/browser';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
@@ -81,6 +81,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   const hostname = hostInfo.metadata.origin;
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const secureIcon = useMemo(
     () =>
@@ -313,8 +314,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
         favicon={favicon}
-        hostname={hostname}
         secureIcon={secureIcon}
+        urlWithProtocol={urlWithProtocol}
       />
     );
   }, [
@@ -325,8 +326,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     setScreen,
     setSelectedAddresses,
     favicon,
-    hostname,
     secureIcon,
+    urlWithProtocol,
     setUserIntent,
   ]);
 
@@ -362,8 +363,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
         favicon={favicon}
-        hostname={hostname}
         secureIcon={secureIcon}
+        urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
       />
     ),
@@ -375,7 +376,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       setUserIntent,
       favicon,
-      hostname,
+      urlWithProtocol,
       secureIcon,
     ],
   );

@@ -612,7 +612,6 @@
     "third_party_title": "受信トランザクションを取得",
     "third_party_description": "履歴への受信トランザクションの表示には、サードパーティー API (Etherscan) が使用されます。これらのサービスからデータを取得しないようにするには、オフにしてください。",
     "metametrics_opt_out": "MetaMetricsオプトアウト",
-    "metametrics_restart_required": "変更を反映させるにはアプリの再起動が必要です。",
     "create_password": "パスワードを作成",
     "invalid_password": "無効なパスワード",
     "invalid_password_message": "パスワードが正しくありませんでした。もう一度お試しください。",
@@ -2237,5 +2236,26 @@
       "wrong_answer_title": "不正解！秘密のリカバリーフレーズは決して誰にも教えないでください",
       "wrong_answer_description": "秘密のリカバリーフレーズが必要だと言われたら、それは嘘です。教えてしまったら資産を盗まれます。"
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "復元が必要です",
+    "restore_needed_description": "問題が発生しましたが、ご心配なく！ウォレットを復元してみましょう。",
+    "restore_needed_action": "ウォレットを復元"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "ウォレットの準備ができました！",
+    "wallet_restored_action": "ウォレットに進む",
+    "wallet_restored_description_part_one": "資産、ネットワーク、設定の一部を手動で追加しなおす必要があるかもしれません。",
+    "wallet_restored_description_part_two": "今後再びウォレットの復元が必要になった場合に備え、",
+    "wallet_restored_description_link": "秘密のリカバリーフレーズを",
+    "wallet_restored_description_part_three": "バックアップしてください。"
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "新しいウォレットが必要です",
+    "new_wallet_needed_create_new_wallet_action": "新規ウォレットを作成",
+    "new_wallet_needed_create_try_again_action": "ウォレットの復元を試す",
+    "new_wallet_needed_description_part_one": "ウォレットに問題があるため、新しいウォレットの作成が必要です。ただし、アカウントはブロックチェーン上にあるため安全です。デバイスに保存された設定、保存されたネットワーク、アカウント名、関連データのみが失われました。",
+    "new_wallet_needed_description_part_two": "新しいウォレットにアカウントをインポートするには秘密のリカバリーフレーズが必要です。秘密のリカバリーフレーズがわからない場合は、アカウントをインポートできません。",
+    "new_wallet_needed_description_part_three": "再びこのような事態が起こらないように、常に MetaMask アプリと OS を最新バージョンにアップデートしてください。"
   }
 }

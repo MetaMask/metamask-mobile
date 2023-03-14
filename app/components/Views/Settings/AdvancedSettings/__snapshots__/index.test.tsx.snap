@@ -3,16 +3,20 @@
 exports[`AdvancedSettings should render correctly 1`] = `
 <AdvancedSettings
   chainId="1"
+  enableEthSign={false}
   fullState={
     Object {
       "engine": Object {
         "backgroundState": Object {
           "NetworkController": Object {
-            "provider": Object {
+            "providerConfig": Object {
               "chainId": "1",
             },
           },
           "PreferencesController": Object {
+            "disabledRpcMethodPreferences": Object {
+              "eth_sign": false,
+            },
             "ipfsGateway": "https://ipfs.io/ipfs/",
           },
         },

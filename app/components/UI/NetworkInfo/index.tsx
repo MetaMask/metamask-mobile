@@ -14,6 +14,7 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
@@ -108,25 +109,13 @@ interface NetworkInfoProps {
   onClose: () => void;
   type: string;
   ticker: string;
-  networkProvider: {
-    nickname: string;
-    type: string;
-    ticker: {
-      networkTicker: string;
-    };
-    rpcTarget: string;
-    chainId: string;
-  };
   isTokenDetectionEnabled: boolean;
 }
 
 const NetworkInfo = (props: NetworkInfoProps) => {
-  const {
-    onClose,
-    ticker,
-    isTokenDetectionEnabled,
-    networkProvider: { type, ticker: networkTicker, rpcTarget, chainId },
-  } = props;
+  const { onClose, ticker, isTokenDetectionEnabled } = props;
+  const networkProvider = useSelector(selectProviderConfig);
+  const { type, ticker: networkTicker, rpcTarget, chainId } = networkProvider;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
@@ -138,10 +127,6 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     }
     return false;
   }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
-
-  const networkProvider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
 
   const networkImageSource = useMemo(
     () =>
@@ -243,7 +228,6 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
-  networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 
 export default connect(mapStateToProps)(NetworkInfo);

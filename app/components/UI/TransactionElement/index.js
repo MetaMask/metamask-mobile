@@ -28,6 +28,10 @@ import { WalletDevice } from '@metamask/transaction-controller';
 // TODO: Update after this function has been exported from the package
 import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -528,8 +532,8 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:

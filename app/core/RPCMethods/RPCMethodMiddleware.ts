@@ -91,9 +91,8 @@ export const checkActiveAccountAndChainId = async ({
   }
 
   if (chainId) {
-    const { provider } = Engine.context.NetworkController.state;
-    const networkProvider = provider;
-    const networkType = provider.type as NetworkType;
+    const { providerConfig } = Engine.context.NetworkController.state;
+    const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
@@ -101,7 +100,7 @@ export const checkActiveAccountAndChainId = async ({
     if (isInitialNetwork) {
       activeChainId = NetworksChainId[networkType];
     } else if (networkType === RPC) {
-      activeChainId = networkProvider.chainId;
+      activeChainId = providerConfig.chainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {
@@ -232,9 +231,8 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_chainId: async () => {
-        const { provider } = Engine.context.NetworkController.state;
-        const networkProvider = provider;
-        const networkType = provider.type as NetworkType;
+        const { providerConfig } = Engine.context.NetworkController.state;
+        const networkType = providerConfig.type as NetworkType;
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
         let chainId;
@@ -242,7 +240,7 @@ export const getRpcMethodMiddleware = ({
         if (isInitialNetwork) {
           chainId = NetworksChainId[networkType];
         } else if (networkType === RPC) {
-          chainId = networkProvider.chainId;
+          chainId = providerConfig.chainId;
         }
 
         if (chainId && !chainId.startsWith('0x')) {
@@ -261,7 +259,7 @@ export const getRpcMethodMiddleware = ({
       },
       net_version: async () => {
         const {
-          provider: { type: networkType },
+          providerConfig: { type: networkType },
         } = Engine.context.NetworkController.state;
 
         const isInitialNetwork =
@@ -340,7 +338,15 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.rpc.methodNotSupported();
       },
       eth_sign: async () => {
-        const { MessageManager } = Engine.context;
+        const { MessageManager, PreferencesController } = Engine.context;
+        const { disabledRpcMethodPreferences } = PreferencesController.state;
+        const { eth_sign } = disabledRpcMethodPreferences;
+
+        if (!eth_sign) {
+          throw ethErrors.rpc.methodNotFound(
+            'eth_sign has been disabled. You must enable it in the advanced settings',
+          );
+        }
         const pageMeta = {
           meta: {
             url: url.current,

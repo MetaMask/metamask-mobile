@@ -28,6 +28,10 @@ import {
   findBlockExplorerForRpc,
   isMainnetByChainId,
 } from '../../../util/networks';
+import {
+  selectChainId,
+  selectRpcTarget,
+} from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
@@ -425,11 +429,11 @@ const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   transactions: state.engine.backgroundState.TransactionController.transactions,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  rpcTarget: state.engine.backgroundState.NetworkController.provider.rpcTarget,
+  rpcTarget: selectRpcTarget(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
 });

@@ -68,6 +68,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
 
@@ -215,7 +216,7 @@ const HomeTabs = () => {
   );
 
   const chainId = useSelector((state) => {
-    const provider = state.engine.backgroundState.NetworkController.provider;
+    const provider = selectProviderConfig(state);
     return NetworksChainId[provider.type];
   });
 

@@ -25,10 +25,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { hexToBN } from '../../../../util/number';
 import { protectWalletModalVisible } from '../../../../actions/user';
-import {
-  processAggregatorOrder,
-  aggregatorInitialFiatOrder,
-} from '../orderProcessor/aggregator';
+import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
@@ -185,12 +182,12 @@ const CheckoutWebView = () => {
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
       !isRedirectionHandled &&
-      navState?.url.startsWith(callbackBaseUrl) &&
+      navState.url.startsWith(callbackBaseUrl) &&
       navState.loading === false
     ) {
       setIsRedirectionHandled(true);
       try {
-        const parsedUrl = parseUrl(navState?.url);
+        const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
           // There was no query params in the URL to parse
           // Most likely the user clicked the X in Wyre widget
@@ -199,14 +196,15 @@ const CheckoutWebView = () => {
           return;
         }
         const orders = await SDK.orders();
-        const orderId = await orders.getOrderIdFromCallback(
+        const order = await orders.getOrderFromCallback(
           provider.id,
           navState?.url,
+          selectedAddress,
         );
 
-        if (!orderId) {
+        if (!order) {
           throw new Error(
-            `Order ID could not be retrieved. Callback was ${navState?.url}`,
+            `Order could not be retrieved. Callback was ${navState?.url}`,
           );
         }
 
@@ -215,14 +213,7 @@ const CheckoutWebView = () => {
         }
 
         const transformedOrder = {
-          ...(await processAggregatorOrder(
-            aggregatorInitialFiatOrder({
-              id: orderId,
-              account: selectedAddress,
-              network: selectedChainId,
-            }),
-          )),
-          id: orderId,
+          ...aggregatorOrderToFiatOrder(order),
           account: selectedAddress,
           network: selectedChainId,
         };
