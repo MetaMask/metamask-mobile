@@ -29,6 +29,7 @@ const ApproveTransactionHeader = ({
   asset,
   tokenBalance,
   tokenSymbol,
+  fetchingTokenBalance,
 }: ApproveTransactionHeaderI) => {
   const [accountName, setAccountName] = useState('');
 
@@ -143,6 +144,7 @@ const ApproveTransactionHeader = ({
           imageSource: networkImage,
         }}
         useBlockieIcon={useBlockieIcon}
+        fetchingTokenBalance={fetchingTokenBalance}
       />
     </View>
   );
