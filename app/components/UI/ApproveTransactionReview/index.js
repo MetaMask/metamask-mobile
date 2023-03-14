@@ -820,8 +820,7 @@ class ApproveTransactionReview extends PureComponent {
                           accountBalance={tokenBalance}
                           domain={host}
                           disableEdit={spendLimitCreated}
-                          customValue={customSpendValue}
-                          goBackPress={this.goBackToSpendLimit}
+                          editValue={this.goBackToSpendLimit}
                           onInputChanged={(value) =>
                             this.setState({ customSpendValue: value })
                           }

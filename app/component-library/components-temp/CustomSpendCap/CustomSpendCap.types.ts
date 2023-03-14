@@ -11,5 +11,9 @@ export interface CustomSpendCapProps {
    * disableEdit - Boolean to diable edit
    * @default false
    */
-  disableEdit?: boolean;
+  disableEdit: boolean;
+  /**
+   * function to return to input field
+   */
+  editValue: () => void;
 }
