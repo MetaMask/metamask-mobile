@@ -69,6 +69,7 @@ import {
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { scale } from 'react-native-size-matters';
+import SecureKeychain from '../../../core/SecureKeychain';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -233,8 +234,6 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const IOS_REJECTED_BIOMETRICS_ERROR =
-  'Error: The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -381,12 +380,7 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          // retry faceID if the user cancels the
-          if (
-            Device.isIos &&
-            error.toString() === IOS_REJECTED_BIOMETRICS_ERROR
-          )
-            await this.handleRejectedOsBiometricPrompt();
+          if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
@@ -408,7 +402,11 @@ class ChoosePassword extends PureComponent {
         });
       });
     } catch (error) {
-      await this.recreateVault('');
+      try {
+        await this.recreateVault('');
+      } catch (e) {
+        Logger.error(e);
+      }
       // Set state in app as it was with no password
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -437,23 +435,9 @@ class ChoosePassword extends PureComponent {
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
    * If this occurs we will create the wallet automatically with password as the login method
    */
-  handleRejectedOsBiometricPrompt = async () => {
-    const newAuthData = await Authentication.componentAuthenticationType(
-      false,
-      false,
-    );
-    try {
-      await Authentication.newWalletAndKeychain(
-        this.state.password,
-        newAuthData,
-      );
-    } catch (err) {
-      throw Error(strings('choose_password.disable_biometric_error'));
-    }
-    this.setState({
-      biometryType: newAuthData.availableBiometryType,
-      biometryChoice: false,
-    });
+  handleRejectedOsBiometricPrompt = async (error) => {
+    this.updateBiometryChoice(false);
+    await SecureKeychain.resetGenericPassword();
   };
 
   /**
