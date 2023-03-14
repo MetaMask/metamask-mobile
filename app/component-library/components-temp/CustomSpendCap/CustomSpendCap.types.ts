@@ -7,4 +7,9 @@ export interface CustomSpendCapProps {
    * @param value - The value of the input field
    */
   onInputChanged: (value: string) => void;
+  /**
+   * disableEdit - Boolean to diable edit
+   * @default false
+   */
+  disableEdit?: boolean;
 }

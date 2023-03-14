@@ -25,7 +25,7 @@ const CustomSpendCap = ({
   accountBalance,
   domain,
   onInputChanged,
-  noEdit,
+  disableEdit,
   customValue,
   goBackPress,
 }: CustomSpendCapProps) => {
@@ -56,7 +56,7 @@ const CustomSpendCap = ({
   }, [value, onInputChanged]);
 
   const handlePress = () => {
-    if (noEdit) return goBackPress();
+    if (disableEdit) return goBackPress();
     setMaxSelected(false);
     setValue(dappProposedValue);
     setDefaultValueSelected(!defaultValueSelected);
@@ -186,7 +186,7 @@ const CustomSpendCap = ({
           onPress={handlePress}
           textVariant={TextVariant.BodyMD}
           label={
-            noEdit
+            disableEdit
               ? strings('contract_allowance.custom_spend_cap.edit')
               : defaultValueSelected
               ? strings('contract_allowance.custom_spend_cap.edit')
@@ -202,7 +202,7 @@ const CustomSpendCap = ({
           setMaxSelected={setMaxSelected}
           inputDisabled={inputDisabled}
           value={value || customValue}
-          noEdit={noEdit}
+          disableEdit={disableEdit}
         />
       </View>
       {value.length > 0 && inputHasError && (
@@ -210,7 +210,7 @@ const CustomSpendCap = ({
           {strings('contract_allowance.custom_spend_cap.error_enter_number')}
         </Text>
       )}
-      {!noEdit && (
+      {!disableEdit && (
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
             {defaultValueSelected

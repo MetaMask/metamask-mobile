@@ -798,7 +798,7 @@ class ApproveTransactionReview extends PureComponent {
                           dappProposedValue={originalApproveAmount}
                           accountBalance={tokenBalance}
                           domain={host}
-                          noEdit={spendLimitCreated}
+                          disableEdit={spendLimitCreated}
                           customValue={customSpendValue}
                           goBackPress={this.goBackToSpendLimit}
                           onInputChanged={(value) =>

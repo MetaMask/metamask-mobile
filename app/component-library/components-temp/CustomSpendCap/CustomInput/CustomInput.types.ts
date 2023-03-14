@@ -26,4 +26,8 @@ export interface CustomInputProps {
    * Function to update max state
    */
   setMaxSelected: (value: boolean) => void;
+  /**
+   * Boolean to diable edit
+   */
+  disableEdit: boolean;
 }
