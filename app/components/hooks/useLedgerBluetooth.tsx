@@ -222,6 +222,8 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         e.message.includes('Only version 4 of typed data signing is supported')
       ) {
         setLedgerError(LedgerCommunicationErrors.NotSupported);
+      } else if (e.message.includes('Ledger device: Locked device')) {
+        setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }
