@@ -26,8 +26,7 @@ const CustomSpendCap = ({
   domain,
   onInputChanged,
   disableEdit,
-  customValue,
-  goBackPress,
+  editValue,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -56,7 +55,7 @@ const CustomSpendCap = ({
   }, [value, onInputChanged]);
 
   const handlePress = () => {
-    if (disableEdit) return goBackPress();
+    if (disableEdit) return editValue();
     setMaxSelected(false);
     setValue(dappProposedValue);
     setDefaultValueSelected(!defaultValueSelected);
@@ -201,7 +200,7 @@ const CustomSpendCap = ({
           defaultValueSelected={defaultValueSelected}
           setMaxSelected={setMaxSelected}
           inputDisabled={inputDisabled}
-          value={value || customValue}
+          value={value}
           disableEdit={disableEdit}
         />
       </View>
