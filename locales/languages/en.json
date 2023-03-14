@@ -703,7 +703,6 @@
     "ok": "OK",
     "title": "Something went wrong",
     "info": "Your account is disconnected. Please scan the QR code on the dApp to reconnect to MetaMask"
-
   },
   "app_information": {
     "title": "Information",
