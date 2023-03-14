@@ -9,6 +9,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import Browser from '../pages/Drawer/Browser';
+import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 import TabBarComponent from '../pages/TabBarComponent';
@@ -21,7 +22,7 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-const SUSHI_SWAP = 'https://app.sushi.com/swap';
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
 describe('Revoke Single Account after connecting to a dapp', () => {
@@ -103,16 +104,16 @@ describe('Revoke Single Account after connecting to a dapp', () => {
     await Browser.isVisible();
   });
 
-  it('should go to sushi swap', async () => {
+  it('should connect to the test dapp', async () => {
     await TestHelpers.delay(3000);
     // Tap on search in bottom navbar
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(SUSHI_SWAP);
-
-    // Wait for page to load
-    await Browser.waitForBrowserPageToLoad();
-    await TestHelpers.delay(5000);
+    await Browser.navigateToURL(TEST_DAPP);
+    await TestHelpers.delay(3000);
+    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 150, y: 270 });
+    await ConnectModal.isVisible();
     await ConnectModal.tapConnectButton();
+    await Browser.isAccountToastVisible('Account 1');
   });
 
   it('should revoke accounts', async () => {
@@ -125,7 +126,6 @@ describe('Revoke Single Account after connecting to a dapp', () => {
   });
 
   it('should no longer be connected to the  dapp', async () => {
-    await Browser.tapNetworkAvatarButtonOnBrowser();
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.isNotVisible();
     await NetworkListModal.isVisible();
