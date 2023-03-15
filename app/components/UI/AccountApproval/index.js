@@ -277,7 +277,6 @@ class AccountApproval extends PureComponent {
 
       // Navigate to feedback modal
       const { navigation } = this.props;
-      console.debug(`navigation`, navigation);
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SDK_FEEDBACK,
       });
