@@ -4,7 +4,9 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
-import { useTheme } from '../../../util/theme';
+import { useTheme, useAssetFromTheme } from '../../../util/theme';
+import loadingLight from './logo-light.json';
+import loadingDark from './logo-dark.json';
 
 const animationSize = Device.getDeviceWidth() / 2;
 
@@ -40,14 +42,9 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
 
 export const SDKLoading = () => {
   const safeAreaInsets = useSafeAreaInsets();
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors, safeAreaInsets);
-  const animatedLogo =
-    themeAppearance === 'light'
-      ? // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('./logo-light.json')
-      : // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('./logo-dark.json');
+  const animatedLogo = useAssetFromTheme(loadingLight, loadingDark);
 
   return (
     <View style={styles.root}>
