@@ -563,10 +563,6 @@ export class SocketService extends EventEmitter2 implements CommunicationLayer {
     this.socket.connect();
     this.withKeyExchange = withKeyExchange;
     this.isOriginator = isOriginator;
-
-    // With session persistence we should always re-send the pubkey that changes on each reload.
-    // The following is to enable session persistence, public key needs to be resent
-    this.keyExchange.setSendPublicKey(true);
     this.channelId = channelId;
     this.setupChannelListeners(channelId);
     this.socket.emit(
