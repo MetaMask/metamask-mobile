@@ -48,7 +48,7 @@ const createStyles = (
       paddingRight: 10,
     },
     disconnectFont: {
-      ...typography.sHeadingSM,
+      ...typography.sHeadingSMRegular,
       color: colors.error.default,
     } as TextStyle,
   });
