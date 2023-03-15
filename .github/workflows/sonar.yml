@@ -15,7 +15,6 @@ jobs:
         with:
           args: >
             -Dsonar.javascript.lcov.reportPaths=tests/coverage/lcov.info
-            -Dsonar.tests=tests/
             -Dsonar.exclusions=android/,ios/
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
