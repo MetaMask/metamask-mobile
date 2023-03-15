@@ -346,11 +346,7 @@ const SettingsFlow = () => (
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
     />
-    <Stack.Screen
-      name="SDKSessionsManager"
-      component={SDKSessionsManager}
-      options={SDKSessionsManager.navigationOptions}
-    />
+    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
       name="SecuritySettings"
       component={SecuritySettings}

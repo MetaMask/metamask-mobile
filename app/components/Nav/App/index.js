@@ -90,6 +90,14 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import { RestoreWallet } from '../../Views/RestoreWallet';
+import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
+import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
+import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 
 const Stack = createStackNavigator();
 /**
@@ -343,11 +351,13 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
-    SDKConnect.getInstance().init();
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
     return () => {
       SDKConnect.getInstance().unmount();
     };
-  }, []);
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {
@@ -455,6 +465,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_LOADING}
+        component={SDKLoadingModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_FEEDBACK}
+        component={SDKFeedbackModal}
       />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}

@@ -1,19 +1,20 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Device from '../../../../app/util/device';
-import { useTheme } from '../../../util/theme';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import StyledButton from '../StyledButton';
-import { useDispatch } from 'react-redux';
-import { toggleSDKFeedbackModal } from '../../../../app/actions/modals';
+import Device from '../../../../app/util/device';
 import { strings } from '../../../../locales/i18n';
+import { useTheme } from '../../../util/theme';
+import StyledButton from '../StyledButton';
 
-// eslint-disable-next-line
-interface SDKFeedbackModalrops {}
-
-const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
+const createStyles = (
+  colors: ThemeColors,
+  typography: ThemeTypography,
+  _safeAreaInsets: EdgeInsets,
+) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -25,18 +26,17 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     },
     icon: {
       alignSelf: 'center',
-      color: colors.error.default,
+      color: colors.warning.default,
       lineHeight: 56,
     },
     title: {
-      lineHeight: 24,
-      fontSize: 18,
-      fontWeight: 'bold',
+      ...typography.lHeadingMD,
       textAlign: 'center',
-    },
+    } as TextStyle,
     info: {
       padding: 20,
-    },
+      ...typography.sBodyMD,
+    } as TextStyle,
     action: {
       marginLeft: 20,
       marginRight: 20,
@@ -44,11 +44,12 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     },
   });
 
-export const SDKFeedbackModal = (_props?: SDKFeedbackModalrops) => {
+export const SDKFeedback = () => {
   const safeAreaInsets = useSafeAreaInsets();
-  const dispatch = useDispatch();
-  const { colors } = useTheme();
-  const styles = createStyles(colors, safeAreaInsets);
+  const navigation = useNavigation();
+
+  const { colors, typography } = useTheme();
+  const styles = createStyles(colors, typography, safeAreaInsets);
 
   return (
     <View style={styles.root}>
@@ -64,7 +65,7 @@ export const SDKFeedbackModal = (_props?: SDKFeedbackModalrops) => {
         <StyledButton
           type={'confirm'}
           onPress={() => {
-            dispatch(toggleSDKFeedbackModal(false));
+            navigation.goBack();
           }}
         >
           {strings('sdk_feedback_modal.ok')}
@@ -74,4 +75,4 @@ export const SDKFeedbackModal = (_props?: SDKFeedbackModalrops) => {
   );
 };
 
-export default SDKFeedbackModal;
+export default SDKFeedback;

@@ -6,11 +6,6 @@ import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
 import { useTheme } from '../../../util/theme';
 
-interface SDKLoadingModalrops {
-  onCancel: () => void;
-  onConfirm: () => void;
-}
-
 const animationSize = Device.getDeviceWidth() / 2;
 
 const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
@@ -43,7 +38,7 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     },
   });
 
-export const SDKLoadingModal = (_props?: SDKLoadingModalrops) => {
+export const SDKLoading = () => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, safeAreaInsets);
@@ -68,4 +63,4 @@ export const SDKLoadingModal = (_props?: SDKLoadingModalrops) => {
   );
 };
 
-export default SDKLoadingModal;
+export default SDKLoading;

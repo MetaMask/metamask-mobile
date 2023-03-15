@@ -30,8 +30,8 @@ import {
 } from '../../../selectors/networkController';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
-import { toggleSDKFeedbackModal } from '../../../../app/actions/modals';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -64,34 +64,12 @@ const createStyles = (colors) =>
       marginLeft: 16,
       marginRight: 16,
     },
-    otpNotice: {
-      ...fontStyles.thin,
-      color: colors.text.default,
-      paddingHorizontal: 24,
-      marginBottom: 16,
-      marginTop: 5,
-      fontSize: 14,
-      width: '100%',
-      textAlign: 'center',
-    },
     otpContainer: {},
-    otpText: {
-      color: colors.primary.default,
-    },
     selectOtp: {
       marginTop: 0,
       padding: 2,
       marginLeft: 20,
       marginRight: 20,
-    },
-    otpView: {
-      height: 30,
-      backgroundColor: mockTheme.colors.background.alternative,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    firstChoice: {
-      marginTop: 10,
     },
     warning: {
       ...fontStyles.thin,
@@ -166,11 +144,6 @@ const createStyles = (colors) =>
       margin: 2,
       marginRight: 6,
     },
-    rememberCheckbox: {
-      height: 20,
-      width: 20,
-    },
-    rememberText: { paddingLeft: 10 },
   });
 
 /**
@@ -199,9 +172,10 @@ class AccountApproval extends PureComponent {
      */
     tokensLength: PropTypes.number,
     /**
-     * Action that shows the SDK feedback modal
-     */
-    showSDKFeedbackModal: PropTypes.func,
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
+    navigation: PropTypes.object,
     /**
      * Number of accounts
      */
@@ -223,7 +197,6 @@ class AccountApproval extends PureComponent {
   state = {
     start: Date.now(),
     confirmDisabled: true,
-    noPersist: false,
     otpChoice: undefined,
     otps: shuffle(this.props.currentPageInformation.otps || []),
     otp:
@@ -294,19 +267,22 @@ class AccountApproval extends PureComponent {
         this.props.currentPageInformation.channelId,
         true,
       );
-      setTimeout(() => {
-        // Adds delay otherwise, the modal sometime doesn't display correctly on ios.
-        this.props.showSDKFeedbackModal();
-      }, 500);
-
+      // onConfirm will close current window by rejecting current approvalRequest.
       this.props.onCancel();
-      return;
-    }
 
-    if (this.state.noPersist) {
-      SDKConnect.getInstance().invalidateChannel(
-        this.props.currentPageInformation.channelId,
+      trackEvent(
+        MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
+        this.getAnalyticsParams(),
       );
+
+      // Navigate to feedback modal
+      const { navigation } = this.props;
+      console.debug(`navigation`, navigation);
+      navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SDK_FEEDBACK,
+      });
+
+      return;
     }
 
     this.props.onConfirm();
@@ -360,7 +336,6 @@ class AccountApproval extends PureComponent {
 
   onOTP = (value) => {
     this.setState({
-      ...this.state,
       otpChoice: value,
       confirmDisabled: false,
     });
@@ -451,10 +426,6 @@ class AccountApproval extends PureComponent {
   };
 }
 
-const mapDispatchToProps = (dispatch) => ({
-  showSDKFeedbackModal: () => dispatch(toggleSDKFeedbackModal(true)),
-});
-
 const mapStateToProps = (state) => ({
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
@@ -468,4 +439,4 @@ const mapStateToProps = (state) => ({
 
 AccountApproval.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(AccountApproval);
+export default connect(mapStateToProps)(AccountApproval);

@@ -35,9 +35,6 @@ import { strings } from '../../../../locales/i18n';
 import {
   toggleNetworkModal,
   toggleReceiveModal,
-  toggleSDKLoadingModal,
-  toggleChannelDisconnectModal,
-  toggleSDKFeedbackModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -83,8 +80,8 @@ import {
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import { selectTicker } from '../../../selectors/networkController';
-import SDKLoadingModal from '../SDKLoadingModal';
-import SDKFeedbackModal from '../SDKFeedbackModal';
+import SDKLoadingModal from '../SDKLoading';
+import SDKFeedbackModal from '../SDKFeedback';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
@@ -369,10 +366,6 @@ class DrawerView extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-     * Boolean that determines the status of the channel disconnect modal
-     */
-    channelDisconnectModalVisible: PropTypes.bool,
-    /**
      * Boolean that determines the status of the SDK loading modal
      */
     sdkLoadingModalVisible: PropTypes.bool,
@@ -380,10 +373,6 @@ class DrawerView extends PureComponent {
      * Boolean that determines the status of the SDK feedback modal
      */
     sdkFeedbackModalVisible: PropTypes.bool,
-    /**
-     * Action that toggles the disconnect all confirmation modal
-     */
-    toggleChannelDisconnectModal: PropTypes.func,
     /**
      * Action that toggles the SDK loading modal
      */
@@ -837,10 +826,6 @@ class DrawerView extends PureComponent {
 
   toggleSDKFeedbackModal = () => {
     this.props.toggleSDKFeedbackModal(false);
-  };
-
-  toggleChannelDisconnectModal = () => {
-    this.props.toggleChannelDisconnectModal();
   };
 
   showHelp = () => {
@@ -1468,7 +1453,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   sdkLoadingModalVisible: state.modals.sdkLoadingModalVisible,
   sdkFeedbackModalVisible: state.modals.sdkFeedbackModalVisible,
-  channelDisconnectModalVisible: state.modals.channelDisconnectModalVisible,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
@@ -1493,7 +1477,6 @@ const mapDispatchToProps = (dispatch) => ({
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   toggleSDKLoadingModal: () => dispatch(toggleSDKLoadingModal()),
   toggleSDKFeedbackModal: () => dispatch(toggleSDKFeedbackModal()),
-  toggleChannelDisconnectModal: () => dispatch(toggleChannelDisconnectModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
