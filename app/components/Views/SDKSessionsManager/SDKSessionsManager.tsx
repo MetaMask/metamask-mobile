@@ -64,7 +64,7 @@ const createStyles = (
   });
 
 const SDKSessionsManager = (props: Props) => {
-  const [showClearMMSDKConnectionsModal, setshowClearMMSDKConnectionsModal] =
+  const [showClearMMSDKConnectionsModal, setShowClearMMSDKConnectionsModal] =
     useState(false);
   const safeAreaInsets = useSafeAreaInsets();
   const sdk = SDKConnect.getInstance();
@@ -79,7 +79,7 @@ const SDKSessionsManager = (props: Props) => {
   }, [sdk]);
 
   const toggleClearMMSDKConnectionModal = () => {
-    setshowClearMMSDKConnectionsModal((show) => !show);
+    setShowClearMMSDKConnectionsModal((show) => !show);
   };
 
   const clearMMSDKConnections = async () => {
