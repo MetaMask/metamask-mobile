@@ -324,6 +324,7 @@
     "@metamask/eslint-config": "^7.0.0",
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
+    "@metamask/utils": "^5.0.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@rpii/wdio-html-reporter": "^7.7.1",
     "@storybook/addon-actions": "^5.3",
