@@ -28,8 +28,6 @@ export class KeyExchange extends EventEmitter2 {
 
   private myPublicKey: string;
 
-  private sendPublicKey: boolean;
-
   private step = KeyExchangeMessageType.KEY_HANDSHAKE_NONE;
 
   private context: string;
@@ -39,7 +37,6 @@ export class KeyExchange extends EventEmitter2 {
   constructor({
     communicationLayer,
     otherPublicKey,
-    sendPublicKey,
     context,
     ecies,
     logging,
@@ -55,7 +52,6 @@ export class KeyExchange extends EventEmitter2 {
     if (otherPublicKey) {
       this.setOtherPublicKey(otherPublicKey);
     }
-    this.sendPublicKey = sendPublicKey;
 
     this.communicationLayer.on(
       InternalEventType.KEY_EXCHANGE,
@@ -133,10 +129,6 @@ export class KeyExchange extends EventEmitter2 {
       this.step = KeyExchangeMessageType.KEY_HANDSHAKE_NONE;
       this.emit(EventType.KEYS_EXCHANGED);
     }
-  }
-
-  setSendPublicKey(sendPublicKey: boolean) {
-    this.sendPublicKey = sendPublicKey;
   }
 
   resetKeys(ecies?: ECIESProps) {
@@ -258,6 +250,6 @@ export class KeyExchange extends EventEmitter2 {
       keysExchanged: this.keysExchanged,
       step: this.step,
     };
-    return buf;
+    return JSON.stringify(buf);
   }
 }
