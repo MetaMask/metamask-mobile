@@ -32,6 +32,7 @@ import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
+import CheckBox from '@react-native-community/checkbox';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -112,6 +113,18 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       marginRight: 6,
     },
+    rememberme: {
+      marginTop: 10,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      marginLeft: 30,
+      alignItems: 'center',
+    },
+    rememberCheckbox: {
+      height: 20,
+      width: 20,
+    },
+    rememberText: { paddingLeft: 10 },
     option: {
       flex: 1,
     },
@@ -198,6 +211,7 @@ class AccountApproval extends PureComponent {
     start: Date.now(),
     confirmDisabled: true,
     otpChoice: undefined,
+    noPersist: false,
     otps: shuffle(this.props.currentPageInformation.otps || []),
     otp:
       this.props.currentPageInformation.origin ===
@@ -284,6 +298,12 @@ class AccountApproval extends PureComponent {
       return;
     }
 
+    if (this.state.noPersist) {
+      SDKConnect.getInstance().invalidateChannel({
+        channelId: this.props.currentPageInformation.channelId,
+      });
+    }
+
     this.props.onConfirm();
     trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
@@ -344,6 +364,10 @@ class AccountApproval extends PureComponent {
     const { currentPageInformation, selectedAddress } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const hasRememberMe =
+      !currentPageInformation.reconnect &&
+      this.props.currentPageInformation.origin ===
+        AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
       <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
@@ -389,6 +413,25 @@ class AccountApproval extends PureComponent {
                 <Text style={styles.optionText}>{otpValue}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+        {hasRememberMe && (
+          <View style={styles.rememberme}>
+            <CheckBox
+              style={styles.rememberCheckbox}
+              value={this.state.noPersist}
+              onValueChange={(checked) => {
+                this.setState({ noPersist: checked });
+              }}
+              boxType={'square'}
+              tintColors={{
+                true: colors.primary.default,
+                false: colors.border.default,
+              }}
+            />
+            <Text style={styles.rememberText}>
+              {strings('accountApproval.donot_rememberme')}
+            </Text>
           </View>
         )}
         <View style={styles.actionContainer}>

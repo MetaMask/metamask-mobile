@@ -1323,6 +1323,7 @@
     "connect": "Connect",
     "resume": "Resume",
     "cancel": "Cancel",
+    "donot_rememberme": "Do not remember this dApp connection",
     "disconnect": "Disconnect",
     "permission": "View your",
     "address": "public address",

@@ -886,9 +886,21 @@ export class SDKConnect extends EventEmitter2 {
    *
    * @param channelId
    */
-  public invalidateChannel(channelId: string) {
+  public invalidateChannel({ channelId }: { channelId: string }) {
     const host = MM_SDK_REMOTE_ORIGIN + channelId;
     this.disabledHosts[host] = 0;
+    delete this.approvedHosts[host];
+    delete this.connected[channelId];
+    delete this.connecting[channelId];
+    delete this.connections[channelId];
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+      JSON.stringify(this.approvedHosts),
+    );
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_CONNECTIONS,
+      JSON.stringify(this.connections),
+    );
   }
 
   public removeChannel(channelId: string, sendTerminate?: boolean) {
@@ -924,6 +936,7 @@ export class SDKConnect extends EventEmitter2 {
     }
     // Also remove approved hosts that may have been skipped.
     this.approvedHosts = {};
+    this.disabledHosts = {};
     this.connections = {};
     this.connected = {};
     this.connecting = {};
