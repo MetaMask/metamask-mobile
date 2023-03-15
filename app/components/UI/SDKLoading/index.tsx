@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import LottieView from 'lottie-react-native';
 import React from 'react';
@@ -5,10 +6,11 @@ import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
-import loadingLight from './logo-light.json';
-import loadingDark from './logo-dark.json';
 
 const animationSize = Device.getDeviceWidth() / 2;
+
+const loadingLight = require('./logo-light.json');
+const loadingDark = require('./logo-dark.json');
 
 const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
   StyleSheet.create({
