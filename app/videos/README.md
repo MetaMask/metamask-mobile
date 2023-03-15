@@ -12,15 +12,4 @@ Do not rename or remove the `app/videos/Subtitles` folder until you are totally 
 
 ## Video encoding
 
-`recovery-phrase.mp4` is encoded from source `recovery-phrase-source.mp4` video using the following `ffmpeg` options:
-
-```shell
-#!/usr/bin/env sh
-
-VIDEO_BITRATE="75k"
-AUDIO_BITRATE="80k"
-
-# Run a two passes encoding
-ffmpeg -y -i recovery-phrase-source.mp4 -pass 1 -c:v libx264 -b:v $VIDEO_BITRATE -b:a $AUDIO_BITRATE -an -f null /dev/null && \
-ffmpeg -i recovery-phrase-source.mp4 -pass 2 -c:v libx264 -b:v $VIDEO_BITRATE -b:a $AUDIO_BITRATE recovery-phrase.mp4
-```
+`recovery-phrase.mp4` is encoded from source `recovery-phrase-source.mp4` video using the script `scripts/compress_and_add_sub_in_video.sh`.

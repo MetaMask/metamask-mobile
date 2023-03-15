@@ -76,11 +76,11 @@ MediaPlayer.propTypes = {
    */
   onClose: PropTypes.func,
   /**
-   * Array of possible text tracks to display
+   * Array of external possible text tracks to display
    */
   textTracks: PropTypes.arrayOf(PropTypes.object),
   /**
-   * The selected text track to dispaly by id, language, title, index
+   * The selected text track to display by id, language, title, index
    */
   selectedTextTrack: PropTypes.object,
 };
