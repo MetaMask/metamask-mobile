@@ -24,18 +24,22 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../helpers';
-
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
-const PASSWORD = `12345678`;
-const APPROVAL_DEEPLINK_URL =
-  'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
-const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
-const GOERLI = 'Goerli Test Network';
-
-/* BROKEN. We need to revisit. Deep linking to a contract address does not work on a sim. */
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Adding Contract Nickname', () => {
+  const APPROVAL_DEEPLINK_URL =
+    'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
+  const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
+  const GOERLI = 'Goerli Test Network';
+
+  //FIXME Deep linking to a contract address does not work on a sim.
+
+  let validAccount;
+
+  beforeAll(() => {
+    validAccount = Accounts.getValidAccount();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -54,9 +58,9 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
+    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+    await ImportWalletView.enterPassword(validAccount.password);
+    await ImportWalletView.reEnterPassword(validAccount.password);
     await WalletView.isVisible();
   });
 
@@ -128,7 +132,7 @@ describe('Adding Contract Nickname', () => {
     await LoginView.isVisible();
     await LoginView.toggleRememberMe();
 
-    await LoginView.enterPassword(PASSWORD);
+    await LoginView.enterPassword(validAccount.password);
     await WalletView.isVisible();
   });
   it('should deep link to the approval modal', async () => {
