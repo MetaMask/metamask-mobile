@@ -200,7 +200,20 @@ You should see the console for the website that is running inside the WebView
 yarn test:unit
 ```
 
-#### E2E Tests (iOS)
+#### E2E Tests
+
+##### Platforms
+
+E2E test are currently using a combination of Detox for iOS (e2e folder) and Appium for Android (wdio folder).
+Work is in progress to have both platforms using Detox.
+
+##### Test wallet
+
+E2E tests use a wallet able to access testnet and mainnet.
+On Bitrise CI, the wallet is created using the secret recovery phrase from secret env var.
+For local testing, the wallet is created using the secret recovery phrase from the `.js.env` file.
+
+##### iOS
 
 First, [follow the instructions here](https://github.com/wix/AppleSimulatorUtils) to install `applesimutils`. Then:
 
@@ -208,7 +221,7 @@ First, [follow the instructions here](https://github.com/wix/AppleSimulatorUtils
 yarn test:e2e:ios
 ```
 
-#### E2E Tests (Android)
+##### Android
 
 ```bash
 yarn test:e2e:android
