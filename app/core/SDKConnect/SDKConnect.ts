@@ -980,7 +980,7 @@ export class SDKConnect extends EventEmitter2 {
 
   private _approveHost({ host }: approveHostProps) {
     if (this.disabledHosts[host]) {
-      // Might be useful later.
+      // Might be useful for future feature.
     } else {
       // Host is approved for 24h.
       this.approvedHosts[host] = Date.now() + DAY_IN_MS;
