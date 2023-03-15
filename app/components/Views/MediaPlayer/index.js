@@ -76,7 +76,7 @@ MediaPlayer.propTypes = {
    */
   onClose: PropTypes.func,
   /**
-   * Array of external possible text tracks to display
+   * Array of remote possible text tracks to display
    */
   textTracks: PropTypes.arrayOf(PropTypes.object),
   /**
