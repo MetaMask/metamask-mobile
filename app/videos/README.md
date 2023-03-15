@@ -12,3 +12,7 @@ Do not rename or remove the `app/videos/Subtitles` folder until you are totally 
 ## Video encoding
 
 `recovery-phrase.mp4` is encoded from source `recovery-phrase-source.mp4` video using the script `scripts/compress_and_add_sub_in_video.sh`.
+
+## Subtitles languages
+
+Encoding the subtitles in the video uses a static map of languages codes. If you add a new language subtitle file you also have to add the mapping in the `language_code_map` variable in  `scripts/compress_and_add_sub_in_video.sh`

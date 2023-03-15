@@ -55,7 +55,7 @@ then
     exit 1
 fi
 
-#chech source video exists
+# check source video exists
 if [ ! -f "$INPUT_VIDEO" ]; then
   echo "Source video file ${$INPUT_VIDEO} does not exist."
   echo "Please add the source video file to the ${VIDEO_PATH} folder."
