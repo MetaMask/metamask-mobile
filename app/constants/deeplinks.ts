@@ -20,7 +20,6 @@ export enum ACTIONS {
   FOCUS = 'focus',
   WC = 'wc',
   CONNECT = 'connect',
-  OTP = 'otp',
   EMPTY = '',
 }
 

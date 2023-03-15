@@ -224,37 +224,31 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === ACTIONS.OTP) {
-            if (params?.channelId) {
-              const channelId = params.channelId;
-
-              // Automatically re-approve hosts.
-              SDKConnect.getInstance().revalidateChannel({
-                channelId,
-              });
-
-              // Establish a new connection, this may happen if connection was previously removed on wallet.
-              SDKConnect.getInstance().connectToChannel({
-                id: channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
-            } else {
-              console.warn(`DeepLinkManager invalid OTP params`);
-            }
-
-            return;
-          } else if (action === ACTIONS.CONNECT) {
+          if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              SDKConnect.getInstance().connectToChannel({
-                id: params.channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
+              const channelExists =
+                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+              if (channelExists) {
+                if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                  // Automatically re-approve hosts.
+                  SDKConnect.getInstance().revalidateChannel({
+                    channelId: params.channelId,
+                  });
+                }
+                SDKConnect.getInstance().reconnect({
+                  channelId: params.channelId,
+                });
+              } else {
+                SDKConnect.getInstance().connectToChannel({
+                  id: params.channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
             }
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
@@ -339,36 +333,31 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OTP}`)) {
-          if (params?.otp) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+          if (params.redirect) {
+            Minimizer.goBack();
+          } else if (params.channelId) {
             const channelExists =
-              SDKConnect.getInstance().getApprovedHosts()[params.otp];
+              SDKConnect.getInstance().getApprovedHosts()[params.channelId];
 
             if (channelExists) {
-              // Automatically re-approve hosts.
-              SDKConnect.getInstance().revalidateChannel({
-                channelId: params.otp,
+              if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                // Automatically re-approve hosts.
+                SDKConnect.getInstance().revalidateChannel({
+                  channelId: params.channelId,
+                });
+              }
+              SDKConnect.getInstance().reconnect({
+                channelId: params.channelId,
               });
             } else {
-              // Establish a new connection
-              SDKConnect.getInstance().connectToChannel({
+              SDKConnect.connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,
                 otherPublicKey: params.pubkey,
               });
             }
-          }
-        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-          if (params.redirect) {
-            Minimizer.goBack();
-          } else {
-            SDKConnect.connectToChannel({
-              id: params.channelId,
-              commLayer: params.comm,
-              origin,
-              otherPublicKey: params.pubkey,
-            });
           }
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
