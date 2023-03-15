@@ -1,6 +1,7 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import { ConnectionProps } from '../../../core/SDKConnect/SDKConnect';
@@ -12,7 +13,11 @@ interface SDKSessionViewProps {
   onDisconnect: (channelId: string) => void;
 }
 
-const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
+const createStyles = (
+  colors: ThemeColors,
+  typography: ThemeTypography,
+  _safeAreaInsets: EdgeInsets,
+) =>
   StyleSheet.create({
     container: {
       flexDirection: 'row',
@@ -27,9 +32,9 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
       borderWidth: 1,
     },
     iconText: {
-      lineHeight: 24,
+      ...typography.sHeadingSMRegular,
       textAlign: 'center',
-    },
+    } as TextStyle,
     dappName: {
       flexGrow: 1,
       marginLeft: 5,
@@ -42,7 +47,10 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
       paddingLeft: 10,
       paddingRight: 10,
     },
-    disconnectFont: { color: colors.error.default, lineHeight: 24 },
+    disconnectFont: {
+      ...typography.sHeadingSM,
+      color: colors.error.default,
+    } as TextStyle,
   });
 
 export const SDKSessionItem = ({
@@ -50,8 +58,8 @@ export const SDKSessionItem = ({
   onDisconnect,
 }: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
-  const { colors } = useTheme();
-  const styles = createStyles(colors, safeAreaInsets);
+  const { colors, typography } = useTheme();
+  const styles = createStyles(colors, typography, safeAreaInsets);
   const [sessionName, setSessionName] = useState('');
   const [icon, setIcon] = useState<string>();
 

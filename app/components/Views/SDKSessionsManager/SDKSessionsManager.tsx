@@ -1,9 +1,8 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
@@ -15,15 +14,19 @@ import {
 } from '../../../core/SDKConnect/SDKConnect';
 import StyledButton from '../../UI/StyledButton';
 import SDKSessionItem from './SDKSessionItem';
+import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 
 interface Props {
   navigation: StackNavigationProp<{
-    SDKSessions: undefined;
-    Home: undefined;
+    [route: string]: { screen: string };
   }>;
 }
 
-const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
+const createStyles = (
+  colors: ThemeColors,
+  typography: ThemeTypography,
+  _safeAreaInsets: EdgeInsets,
+) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
@@ -40,18 +43,17 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
       padding: 20,
     },
     modalText: {
-      ...fontStyles.normal,
-      fontSize: 18,
+      ...typography.sHeadingSMRegular,
       textAlign: 'center',
-      color: colors.text.default,
-    },
+    } as TextStyle,
+    emptyNotice: {
+      ...typography.sBodyMD,
+    } as TextStyle,
     modalTitle: {
-      ...fontStyles.bold,
-      fontSize: 22,
+      ...typography.lBodyMDBold,
       textAlign: 'center',
       marginBottom: 20,
-      color: colors.text.default,
-    },
+    } as TextStyle,
     disconnectAllContainer: {
       borderColor: colors.error.default,
     },
@@ -66,8 +68,8 @@ const SDKSessionsManager = (props: Props) => {
     useState(false);
   const safeAreaInsets = useSafeAreaInsets();
   const sdk = SDKConnect.getInstance();
-  const { colors } = useTheme();
-  const styles = createStyles(colors, safeAreaInsets);
+  const { colors, typography } = useTheme();
+  const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
 
   const refreshSDKState = useCallback(() => {
@@ -98,16 +100,12 @@ const SDKSessionsManager = (props: Props) => {
         null,
       ),
     );
-  }, [refreshSDKState, colors, props]);
+    sdk.addListener('refresh', refreshSDKState);
+  }, [refreshSDKState, sdk, colors, props]);
 
   const onDisconnect = (channelId: string) => {
-    // TODO why do we need to timeout otherwise
     setConnections([]);
     sdk.removeChannel(channelId, true);
-
-    setTimeout(() => {
-      refreshSDKState();
-    }, 100);
   };
 
   const renderMMSDKConnectionsModal = () => (
@@ -157,7 +155,9 @@ const SDKSessionsManager = (props: Props) => {
     </>
   );
 
-  const renderEmptyResult = () => <Text>{strings('sdk.no_connections')}</Text>;
+  const renderEmptyResult = () => (
+    <Text style={styles.emptyNotice}>{strings('sdk.no_connections')}</Text>
+  );
 
   return (
     <View style={styles.wrapper} testID={'sdk-session-manager'}>
