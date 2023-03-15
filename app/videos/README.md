@@ -6,7 +6,7 @@ This folder contains video and subtitles that are currently served as raw conten
 there's still chances that the raw video served from GitHub is used.
 Do not rename or remove the `app/videos/recovery-phrase.mp4` file until you are totally sure of what you do.
 
-:warning: Subtitles are moved in the bundled video branch but until 100% of apps in production are using the new bundled video, they are till served raw from GitHub repos main.
+:warning: Subtitles are moved in the bundled video branch but until 100% of apps in production are using the new bundled video, they are still served raw from GitHub repos main.
 Do not rename or remove the `app/videos/Subtitles` folder until you are totally sure of what you do.
 
 ## Video encoding
