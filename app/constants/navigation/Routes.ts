@@ -72,6 +72,11 @@ const Routes = {
   SNAPS: {
     HOME: 'SnapsHome',
   },
+  VAULT_RECOVERY: {
+    RESTORE_WALLET: 'RestoreWallet',
+    WALLET_RESTORED: 'WalletRestored',
+    WALLET_RESET_NEEDED: 'WalletResetNeeded',
+  },
 };
 
 export default Routes;
