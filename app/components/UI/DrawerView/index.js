@@ -80,8 +80,6 @@ import {
   DRAWER_VIEW_SETTINGS_TEXT_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import { selectTicker } from '../../../selectors/networkController';
-import SDKLoadingModal from '../SDKLoading';
-import SDKFeedbackModal from '../SDKFeedback';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
@@ -1393,32 +1391,6 @@ class DrawerView extends PureComponent {
             onClose={this.closeInvalidCustomNetworkAlert}
           />
         </Modal>
-        <Modal
-          isVisible={this.props.sdkLoadingModalVisible}
-          style={styles.bottomModal}
-          onBackdropPress={this.toggleSDKLoadingModal}
-          onBackButtonPress={this.toggleSDKLoadingModal}
-          onSwipeComplete={this.toggleSDKLoadingModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <SDKLoadingModal />
-        </Modal>
-        <Modal
-          isVisible={this.props.sdkFeedbackModalVisible}
-          style={styles.bottomModal}
-          onBackdropPress={this.toggleSDKFeedbackModal}
-          onBackButtonPress={this.toggleSDKFeedbackModal}
-          onSwipeComplete={this.toggleSDKFeedbackModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <SDKFeedbackModal />
-        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1451,8 +1423,6 @@ const mapStateToProps = (state) => ({
   identities: state.engine.backgroundState.PreferencesController.identities,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  sdkLoadingModalVisible: state.modals.sdkLoadingModalVisible,
-  sdkFeedbackModalVisible: state.modals.sdkFeedbackModalVisible,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
@@ -1475,8 +1445,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-  toggleSDKLoadingModal: () => dispatch(toggleSDKLoadingModal()),
-  toggleSDKFeedbackModal: () => dispatch(toggleSDKFeedbackModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
