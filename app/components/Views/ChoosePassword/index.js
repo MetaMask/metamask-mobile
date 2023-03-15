@@ -380,7 +380,7 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
+          if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
@@ -435,9 +435,23 @@ class ChoosePassword extends PureComponent {
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
    * If this occurs we will create the wallet automatically with password as the login method
    */
-  handleRejectedOsBiometricPrompt = async (error) => {
-    this.updateBiometryChoice(false);
-    await SecureKeychain.resetGenericPassword();
+  handleRejectedOsBiometricPrompt = async () => {
+    const newAuthData = await Authentication.componentAuthenticationType(
+      false,
+      false,
+    );
+    try {
+      await Authentication.newWalletAndKeychain(
+        this.state.password,
+        newAuthData,
+      );
+    } catch (err) {
+      throw Error(strings('choose_password.disable_biometric_error'));
+    }
+    this.setState({
+      biometryType: newAuthData.availableBiometryType,
+      biometryChoice: false,
+    });
   };
 
   /**
