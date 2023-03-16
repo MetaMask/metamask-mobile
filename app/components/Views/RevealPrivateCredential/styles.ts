@@ -1,12 +1,17 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
+import { EdgeInsets } from 'react-native-safe-area-context';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 
-export const createStyles = (colors: any) =>
-  StyleSheet.create({
+export const createStyles = (colors: any, safeArea: EdgeInsets) => {
+  const { bottom, top } = safeArea;
+
+  return StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      paddingTop: top,
+      paddingBottom: bottom,
     },
     normalText: {
       color: colors.text.default,
@@ -122,3 +127,4 @@ export const createStyles = (colors: any) =>
       borderColor: colors.border.muted,
     },
   });
+};

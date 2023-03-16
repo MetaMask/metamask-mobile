@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Dimensions,
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -46,6 +45,7 @@ import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -73,6 +73,7 @@ const RevealPrivateCredential = ({
     useState<string>('');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const safeArea = useSafeAreaInsets();
 
   const selectedAddress = useSelector(
     (state: any) =>
@@ -83,7 +84,7 @@ const RevealPrivateCredential = ({
   const dispatch = useDispatch();
 
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, safeArea);
 
   const privateCredentialName = credentialName || route.params.credentialName;
 
@@ -499,10 +500,7 @@ const RevealPrivateCredential = ({
   );
 
   return (
-    <SafeAreaView
-      style={styles.wrapper}
-      testID={'reveal-private-credential-screen'}
-    >
+    <View style={[styles.wrapper]} testID={'reveal-private-credential-screen'}>
       <ActionView
         cancelText={
           unlocked
@@ -542,7 +540,7 @@ const RevealPrivateCredential = ({
         isSRP={privateCredentialName !== PRIVATE_KEY}
         hasNavigation={hasNavigation}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
