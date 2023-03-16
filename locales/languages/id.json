@@ -301,6 +301,8 @@
       "cancel_cta": "Batalkan",
       "confirm_cta": "Konfirmasikan"
     },
+    "add_to_get_started": "Tambahkan kripto untuk memulai",
+    "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
     "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
