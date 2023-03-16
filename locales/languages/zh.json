@@ -2237,5 +2237,26 @@
       "wrong_answer_title": "不！永远不要与任何人分享您的助记词",
       "wrong_answer_description": "任何声称需要您的助记词的人都是在骗您。如果您与他们分享助记词，他们就会偷窃您的资产。"
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "需要恢复",
+    "restore_needed_description": "出了问题，但别担心！让我们尝试恢复您的钱包。",
+    "restore_needed_action": "恢复钱包"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "您的钱包已经准备就绪！",
+    "wallet_restored_action": "继续前往钱包",
+    "wallet_restored_description_part_one": "您可能需要再次手动添加一些资产、网络和设置。",
+    "wallet_restored_description_part_two": "请花点时间",
+    "wallet_restored_description_link": "将您的助记词备份",
+    "wallet_restored_description_part_three": "以防将来需要再次恢复钱包。"
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "需要新钱包",
+    "new_wallet_needed_create_new_wallet_action": "创建新钱包",
+    "new_wallet_needed_create_try_again_action": "尝试恢复钱包",
+    "new_wallet_needed_description_part_one": "您的钱包出了问题，您需要创建一个新的钱包。因为您的账户在区块链上，所以它们仍然安全。只有保存于设备上的首选项、网络、账户名和相关数据丢失了。",
+    "new_wallet_needed_description_part_two": "要将您的账户导入新钱包，您需要使用助记词。如果您没有助记词，就无法导入账户。",
+    "new_wallet_needed_description_part_three": "为了避免再次发生这种情况，请确保将 MetaMask 应用程序和操作系统始终更新至最新版本。"
   }
 }
