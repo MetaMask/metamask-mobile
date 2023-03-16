@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -59,6 +58,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from './Permissions/specifications.js';
+import { backupVault } from './BackupVault';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -84,7 +84,7 @@ class Engine {
   /**
    * Creates a CoreController instance
    */
-  constructor(initialState = {}) {
+  constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(
@@ -114,6 +114,7 @@ class Engine {
         static: {
           eth_sendTransaction: async (
             payload: { params: any[]; origin: any },
+            next: any,
             end: (arg0: undefined, arg1: undefined) => void,
           ) => {
             const { TransactionController } = this.context;
@@ -266,6 +267,9 @@ class Engine {
         return newIdentities;
       };
 
+      const keyringState =
+        initialKeyringState || initialState.KeyringController;
+
       const keyringController = new KeyringController(
         {
           removeIdentity: preferencesController.removeIdentity.bind(
@@ -285,7 +289,7 @@ class Engine {
           ),
         },
         { encryptor, keyringTypes: additionalKeyrings },
-        initialState.KeyringController,
+        keyringState,
       );
 
       const controllers = [
@@ -441,6 +445,7 @@ class Engine {
           unrestrictedMethods,
         }),
       ];
+
       // set initial state
       // TODO: Pass initial state into each controller constructor instead
       // This is being set post-construction for now to ensure it's functionally equivalent with
@@ -456,6 +461,7 @@ class Engine {
           controller.update(initialState[controller.name]);
         }
       }
+
       this.datamodel = new ComposableController(
         controllers,
         this.controllerMessenger,
@@ -491,9 +497,28 @@ class Engine {
       );
       this.configureControllersOnNetworkChange();
       this.startPolling();
+      this.handleVaultBackup();
       Engine.instance = this;
     }
+
     return Engine.instance;
+  }
+
+  handleVaultBackup() {
+    const { KeyringController } = this.context;
+    KeyringController.subscribe((state) =>
+      backupVault(state)
+        .then((result) => {
+          if (result.success) {
+            Logger.log('Engine', 'Vault back up successful');
+          } else {
+            Logger.log('Engine', 'Vault backup failed', result.error);
+          }
+        })
+        .catch((error) => {
+          Logger.error(error, 'Engine Vault backup failed');
+        }),
+    );
   }
 
   startPolling() {
@@ -549,7 +574,10 @@ class Engine {
           JSON.parse(lastIncomingTxBlockInfoStr)) ||
         {};
       let blockNumber = null;
-      if (allLastIncomingTxBlocks[`${selectedAddress}`]?.[`${networkId}`]) {
+      if (
+        allLastIncomingTxBlocks[`${selectedAddress}`] &&
+        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
+      ) {
         blockNumber =
           allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
             .blockNumber;
@@ -773,9 +801,9 @@ class Engine {
 
     // Recreate imported accounts
     if (importedAccounts) {
-      for (const importedAccount of importedAccounts) {
+      for (let i = 0; i < importedAccounts.length; i++) {
         await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccount,
+          importedAccounts[i],
         ]);
       }
     }
@@ -839,16 +867,26 @@ class Engine {
 
     return true;
   };
+
+  removeAllListeners() {
+    this.controllerMessenger.clearSubscriptions();
+  }
+
+  async destroyEngineInstance() {
+    this.removeAllListeners();
+    await this.resetState();
+    Engine.instance = null;
+  }
 }
 
 let instance: Engine;
 
 export default {
   get context() {
-    return instance?.context;
+    return instance && instance.context;
   },
   get controllerMessenger() {
-    return instance?.controllerMessenger;
+    return instance && instance.controllerMessenger;
   },
   get state() {
     const {
@@ -921,14 +959,20 @@ export default {
   resetState() {
     return instance.resetState();
   },
+
+  destroyEngine() {
+    instance && instance.destroyEngineInstance();
+    instance = null;
+  },
+
   sync(data: any) {
     return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
   },
-  init(state: Record<string, never> | undefined) {
-    instance = new Engine(state);
+  init(state: {} | undefined, keyringState = null) {
+    instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },
