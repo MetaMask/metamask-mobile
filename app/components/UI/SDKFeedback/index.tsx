@@ -1,6 +1,5 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { StyleSheet, Text, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +8,10 @@ import Device from '../../../../app/util/device';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import StyledButton from '../StyledButton';
+
+interface SDKFeedbackProps {
+  onConfirm: () => void;
+}
 
 const createStyles = (
   colors: ThemeColors,
@@ -44,9 +47,8 @@ const createStyles = (
     },
   });
 
-export const SDKFeedback = () => {
+export const SDKFeedback = ({ onConfirm }: SDKFeedbackProps) => {
   const safeAreaInsets = useSafeAreaInsets();
-  const navigation = useNavigation();
 
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
@@ -62,12 +64,7 @@ export const SDKFeedback = () => {
       <Text style={styles.title}>{strings('sdk_feedback_modal.title')}</Text>
       <Text style={styles.info}>{strings('sdk_feedback_modal.info')}</Text>
       <View style={styles.action}>
-        <StyledButton
-          type={'confirm'}
-          onPress={() => {
-            navigation.goBack();
-          }}
-        >
+        <StyledButton type={'confirm'} onPress={onConfirm}>
           {strings('sdk_feedback_modal.ok')}
         </StyledButton>
       </View>

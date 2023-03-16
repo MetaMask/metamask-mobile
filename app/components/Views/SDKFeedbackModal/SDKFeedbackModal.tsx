@@ -1,6 +1,6 @@
-// Third party dependencies.
 import SDKFeedback from '../../../../app/components/UI/SDKFeedback';
 import React, { useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 import SheetBottom, {
   SheetBottomRef,
@@ -8,10 +8,15 @@ import SheetBottom, {
 
 const SDKLoadingModal = () => {
   const sheetRef = useRef<SheetBottomRef>(null);
+  const navigation = useNavigation();
 
   return (
     <SheetBottom ref={sheetRef}>
-      <SDKFeedback />
+      <SDKFeedback
+        onConfirm={() => {
+          navigation.goBack();
+        }}
+      />
     </SheetBottom>
   );
 };
