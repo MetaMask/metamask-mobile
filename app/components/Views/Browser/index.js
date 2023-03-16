@@ -220,13 +220,23 @@ const Browser = (props) => {
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
+      const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from deeplink.
         newTab(newTabUrl);
+      } else if (existingTabId) {
+        const existingTab = tabs.find((tab) => tab.id === existingTabId);
+        if (existingTab) {
+          switchToTab(existingTab);
+        }
       }
     },
     /* eslint-disable-next-line */
-    [route.params?.timestamp, route.params?.newTabUrl],
+    [
+      route.params?.timestamp,
+      route.params?.newTabUrl,
+      route.params?.existingTabId,
+    ],
   );
 
   const takeScreenshot = (url, tabID) =>
