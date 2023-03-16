@@ -34,12 +34,12 @@ describe('VerifyContractDetails', () => {
   it('should show the token symbol', () => {
     const { getByText } = renderWithProvider(
       <VerifyContractDetails
-        tokenSymbol="dummy"
+        tokenSymbol="dummy_token_symbol"
         closeVerifyContractView={() => {}}
         savedContactListToArray={[]}
       />,
       {},
     );
-    expect(getByText('dummy')).toBeDefined();
+    expect(getByText('dummy_token_symbol')).toBeDefined();
   });
 });
