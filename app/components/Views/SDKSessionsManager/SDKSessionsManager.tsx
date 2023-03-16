@@ -75,6 +75,8 @@ const SDKSessionsManager = (props: Props) => {
   const refreshSDKState = useCallback(() => {
     const _connections = sdk.getConnections();
     const connectionsList = Object.values(_connections);
+    // Sort connection by validity
+    connectionsList.sort((a, b) => b.validUntil - a.validUntil);
     setConnections(connectionsList);
   }, [sdk]);
 
