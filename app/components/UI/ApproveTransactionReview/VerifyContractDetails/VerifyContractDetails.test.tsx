@@ -1,5 +1,4 @@
 import React from 'react';
-
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import VerifyContractDetails from './VerifyContractDetails';
 
@@ -34,10 +33,19 @@ describe('VerifyContractDetails', () => {
   it('should show the token symbol', () => {
     const { getByText } = renderWithProvider(
       <VerifyContractDetails
-        tokenSymbol="dummy_token_symbol"
-        closeVerifyContractView={() => {}}
-        savedContactListToArray={[]}
-      />,
+            tokenSymbol={'dummy_token_symbol'}
+            closeVerifyContractView={() => { } }
+            savedContactListToArray={[]} 
+            contractAddress={''} 
+            tokenAddress={''} 
+            copyAddress={() => {}} 
+            toggleBlockExplorer={() => {}} 
+            showNickname={() => {}} 
+            tokenStandard={''} 
+            providerType={''} 
+            providerRpcTarget={''} 
+            frequentRpcList={[]}
+            />,
       {},
     );
     expect(getByText('dummy_token_symbol')).toBeDefined();
