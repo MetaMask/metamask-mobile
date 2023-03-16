@@ -86,6 +86,9 @@ const clearStackNavigatorOptions = {
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import { RestoreWallet } from '../../Views/RestoreWallet';
+import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
+import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 
 const Stack = createStackNavigator();
 /**
@@ -187,7 +190,27 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const App = ({ selectedAddress, userLoggedIn }) => {
+const VaultRecoveryFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+    screenOptions={{ headerShown: false }}
+  >
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+      component={RestoreWallet}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
+      component={WalletRestored}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
+      component={WalletResetNeeded}
+    />
+  </Stack.Navigator>
+);
+
+const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -216,6 +239,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
+      const { PreferencesController } = Engine.context;
+      const selectedAddress = PreferencesController.state.selectedAddress;
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
@@ -246,7 +271,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       }
     };
     appTriggeredAuth();
-  }, [navigator, selectedAddress]);
+  }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -527,6 +552,10 @@ const App = ({ selectedAddress, userLoggedIn }) => {
               />
             )}
             <Stack.Screen
+              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+              component={VaultRecoveryFlow}
+            />
+            <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
             />
@@ -552,8 +581,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  selectedAddress:
-    state.engine.backgroundState?.PreferencesController?.selectedAddress,
 });
 
 export default connect(mapStateToProps)(App);

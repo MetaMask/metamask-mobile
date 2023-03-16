@@ -557,6 +557,8 @@
     "nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
+    "enable_eth_sign": "Toggle eth_sign requests",
+    "enable_eth_sign_desc": "Turn this on to let dapps request your signature using eth_sign requests. eth_sign is an open-ended signing method that lets you sign an arbitrary hash, making it a dangerous phishing risk. Only sign eth_sign requests if you can read what you are signing and trust the origin of the request.",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account Identicon",
@@ -779,7 +781,11 @@
     "balance": "balance. See the support article",
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
-    "troubleshoot": "Troubleshoot"
+    "troubleshoot": "Troubleshoot",
+    "buy_description": "Buy crypto with cash",
+    "swap_description": "Exchange between tokens",
+    "send_description": "Send crypto to any account",
+    "receive_description": "Receive crypto"
   },
   "account_details": {
     "title": "Account Details",
@@ -986,7 +992,7 @@
     "allow_to_address_access": "Give this address access your",
     "token": "token",
     "nft": "NFT",
-    "you_trust_this_site": "By granting permission, you're allowing the following contract to access your funds.",
+    "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
     "you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
     "edit_permission": "Edit permission",
     "edit": "Edit",
@@ -1231,7 +1237,8 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
-    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon."
+    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon.",
+    "select_network": "Select a network"
   },
   "select": {
     "cancel": "Cancel",
@@ -2198,8 +2205,8 @@
     "add_nickname": "Add nickname",
     "edit_nickname": "Edit nickname",
     "save_nickname": "Confirm",
-    "address": "Contract Address",
-    "name": "Contract Name",
+    "address": "Address",
+    "name": "Nickname",
     "name_placeholder": "Add a nickname to this address",
     "contract": "Contract",
     "nickname": "nickname"
@@ -2278,6 +2285,18 @@
       "set_spend_cap": "Set a spending cap",
       "be_careful": "Be careful",
       "error_enter_number": "Error: Enter only numbers"
+    },
+    "token_allowance": {
+      "verify_third_party_details": "Verify third party details",
+      "protect_from_scams": "To protect yourself against scammers, take a moment to verify third party details.",
+      "learn_to_verify": "Learn how to verify third party details",
+      "spending_cap": "spending cap",
+      "access": "access",
+      "nft_contract": "NFT contract",
+      "token_contract": "Token contract",
+      "third_party_requesting_text": "Third party requesting {{action}}",
+      "third party": "third party",
+      "address": "Address"
     }
   },
   "restore_wallet": {
@@ -2389,5 +2408,12 @@
     "error_during_connection": "An unknown error occured",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App"
+  },
+  "account_actions":{
+    "edit_name": "Edit account name",
+    "add_account_or_hardware_wallet": "Add account or hardware wallet",
+    "add_account": "Add account",
+    "add_new_account": "Add new account",
+    "add_hardware_wallet": "Add hardware wallet"
   }
 }
