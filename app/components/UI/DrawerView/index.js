@@ -364,22 +364,6 @@ class DrawerView extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-     * Boolean that determines the status of the SDK loading modal
-     */
-    sdkLoadingModalVisible: PropTypes.bool,
-    /**
-     * Boolean that determines the status of the SDK feedback modal
-     */
-    sdkFeedbackModalVisible: PropTypes.bool,
-    /**
-     * Action that toggles the SDK loading modal
-     */
-    toggleSDKLoadingModal: PropTypes.func,
-    /**
-     * Action that toggles the SDK feedback modal
-     */
-    toggleSDKFeedbackModal: PropTypes.func,
-    /**
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
@@ -816,14 +800,6 @@ class DrawerView extends PureComponent {
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
     );
-  };
-
-  toggleSDKLoadingModal = () => {
-    this.props.toggleSDKLoadingModal(false);
-  };
-
-  toggleSDKFeedbackModal = () => {
-    this.props.toggleSDKFeedbackModal(false);
   };
 
   showHelp = () => {
