@@ -250,6 +250,7 @@ class DeeplinkManager {
                 });
               }
             }
+            return true;
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
@@ -359,6 +360,7 @@ class DeeplinkManager {
               });
             }
           }
+          return true;
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
