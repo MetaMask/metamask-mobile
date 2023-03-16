@@ -8,10 +8,12 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 //import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 //import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+
 
 //import DrawerView from '../pages/Drawer/DrawerView';
 //import SettingsView from '../pages/Drawer/Settings/SettingsView';
@@ -26,8 +28,20 @@ const CORRECT_SECRET_RECOVERY_PHRASE =
 const CORRECT_PASSWORD = `12345678`;
 const SHORT_PASSWORD = `1234567`;
 const INCORRECT_PASSWORD = `12345679`;
+import Accounts from '../../wdio/helpers/Accounts';
+
 
 describe('Import seedphrase flow', () => {
+  let validAccount;
+  let invalidAccount;
+  let shortPasswordAccount;
+
+  beforeAll(() => {
+    validAccount = Accounts.getValidAccount();
+    invalidAccount = Accounts.getInvalidAccount();
+    shortPasswordAccount = Accounts.getShortPasswordAccount();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -47,9 +61,7 @@ describe('Import seedphrase flow', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    await ImportWalletView.enterSecretRecoveryPhrase(
-      INCORRECT_SECRET_RECOVERY_PHRASE,
-    );
+    await ImportWalletView.enterSecretRecoveryPhrase(INCORRECT_SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(INCORRECT_PASSWORD);
     await ImportWalletView.reEnterPassword(INCORRECT_PASSWORD);
     await ImportWalletView.secretRecoveryPhraseErrorIsVisible();
@@ -61,7 +73,7 @@ describe('Import seedphrase flow', () => {
   it('should import wallet with valid secret recovery phrase but short password', async () => {
     await ImportWalletView.clearSecretRecoveryPhraseInputBox();
     await ImportWalletView.enterSecretRecoveryPhrase(
-      CORRECT_SECRET_RECOVERY_PHRASE,
+      shortPasswordAccount.seedPhrase,
     );
     await ImportWalletView.enterPassword(SHORT_PASSWORD);
     await ImportWalletView.reEnterPassword(SHORT_PASSWORD);

@@ -25,21 +25,28 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../viewHelper';
 
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
-const PASSWORD = `12345678`;
-const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
-const GOERLI = 'Goerli Test Network';
-const ETHEREUM = 'Ethereum Main Network';
-const COLLECTIBLE_CONTRACT_ADDRESS =
-  '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
-const COLLECTIBLE_IDENTIFIER = '179';
-const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
-const TEST_PRIVATE_KEY =
-  'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Wallet Tests', () => {
+  const GOERLI = 'Goerli Test Network';
+  const ETHEREUM = 'Ethereum Main Network';
+
+  // This key is for testing private key import only
+  // I should NEVER hold any eth or token
+  const TEST_PRIVATE_KEY =
+    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+  const COLLECTIBLE_CONTRACT_ADDRESS =
+    '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
+  const COLLECTIBLE_IDENTIFIER = '179';
+  const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
+  const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
+
+  let validAccount;
+
+  beforeAll(() => {
+    validAccount = Accounts.getValidAccount();
+  });
+
   beforeEach(() => {
     jest.setTimeout(200000);
   });
@@ -60,9 +67,9 @@ describe('Wallet Tests', () => {
 
   it('should import wallet with secret recovery phrase', async () => {
     await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
+    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+    await ImportWalletView.enterPassword(validAccount.password);
+    await ImportWalletView.reEnterPassword(validAccount.password);
     await WalletView.isVisible();
   });
 
@@ -143,7 +150,7 @@ describe('Wallet Tests', () => {
     await DrawerView.tapOnAddFundsButton();
 
     await RequestPaymentModal.isVisible();
-    await RequestPaymentModal.isPublicAddressCorrect(TEST_PUBLIC_ADDRESS);
+    await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
 
     // Close Receive screen and go back to wallet screen
     await RequestPaymentModal.closeRequestModal();
@@ -168,6 +175,7 @@ describe('Wallet Tests', () => {
   });
 
   it('should add a collectible', async () => {
+    //FIXME: this is failing on iOS simulator
     await WalletView.isVisible();
     // Tap on COLLECTIBLES tab
     await WalletView.tapNftTab();
