@@ -93,12 +93,6 @@ const createStyles = (colors) =>
     cancel: {
       marginRight: 8,
     },
-    disconnect: {
-      borderColor: colors.error.default,
-    },
-    disconnectFont: {
-      color: colors.error.default,
-    },
     confirm: {
       marginLeft: 8,
     },
@@ -438,13 +432,7 @@ class AccountApproval extends PureComponent {
           <StyledButton
             type={'cancel'}
             onPress={this.onCancel}
-            containerStyle={[
-              styles.button,
-              currentPageInformation.reconnect
-                ? styles.disconnect
-                : styles.cancel,
-            ]}
-            style={currentPageInformation.reconnect && styles.disconnectFont}
+            containerStyle={[styles.button, styles.cancel]}
             testID={CANCEL_BUTTON_ID}
           >
             {currentPageInformation.reconnect
