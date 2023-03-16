@@ -301,6 +301,8 @@
       "cancel_cta": "Kanselahin",
       "confirm_cta": "Kumpirmahin"
     },
+    "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
+    "buy_asset": "Bumili ng {{asset}}",
     "no_tokens": "Wala kang anumang token!",
     "no_nfts_yet": "Wala pang mga NFT",
     "nfts_autodetection_title": "Pagtuklas ng NFT",
