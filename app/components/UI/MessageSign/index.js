@@ -14,7 +14,7 @@ import URL from 'url-parse';
 import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -107,7 +107,7 @@ class MessageSign extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,

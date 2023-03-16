@@ -71,19 +71,7 @@ export const TIMEOUT_PAUSE_CONNECTIONS = 20000;
 
 export type SDKEventListener = (event: string) => void;
 
-export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
-
 const CONNECTION_LOADING_EVENT = 'loading';
-
-export const CONNECTION_CONFIG = {
-  // Adjust the serverUrl during local dev if need to debug the communication protocol.
-  // serverUrl: 'http://192.168.50.114:4000',
-  serverUrl: 'https://metamask-sdk-socket.metafi.codefi.network/',
-  platform: 'metamask-mobile',
-  context: 'mm-mobile',
-  sdkRemoteOrigin: 'MMSDKREMOTE::',
-  unknownParam: 'UNKNOWN',
-};
 
 export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   eth_requestAccounts: true,
@@ -210,7 +198,7 @@ export class Connection extends EventEmitter2 {
     this.reconnect = reconnect || false;
     this.isResumed = false;
     this.initialConnection = initialConnection === true;
-    this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
+    this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;
     this.disapprove = disapprove;
@@ -221,8 +209,8 @@ export class Connection extends EventEmitter2 {
     this.setLoading(true);
 
     this.remote = new RemoteCommunication({
-      platform: CONNECTION_CONFIG.platform,
-      communicationServerUrl: CONNECTION_CONFIG.serverUrl,
+      platform: AppConstants.MM_SDK.PLATFORM,
+      communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
       webRTCLib: webrtc,
@@ -231,7 +219,7 @@ export class Connection extends EventEmitter2 {
         type: 'MetaMask Mobile',
         version,
       },
-      context: CONNECTION_CONFIG.context,
+      context: AppConstants.MM_SDK.PLATFORM,
       analytics: true,
       logging: {
         eciesLayer: true,
@@ -297,7 +285,8 @@ export class Connection extends EventEmitter2 {
           this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
         ) {
           // Deeplink channels are automatically approved on re-connection.
-          const hostname = MM_SDK_REMOTE_ORIGIN + this.channelId;
+          const hostname =
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + this.channelId;
           approveHost({
             host: hostname,
             hostname,
@@ -394,7 +383,8 @@ export class Connection extends EventEmitter2 {
               await transactionController.addTransaction(
                 message.params[0],
                 this.originatorInfo?.url
-                  ? MM_SDK_REMOTE_ORIGIN + this.originatorInfo?.url
+                  ? AppConstants.MM_SDK.SDK_REMOTE_ORIGIN +
+                      this.originatorInfo?.url
                   : undefined,
                 WalletDevice.MM_MOBILE,
               )
@@ -494,10 +484,10 @@ export class Connection extends EventEmitter2 {
             }),
           // Website info
           url: {
-            current: originatorInfo?.url ?? CONNECTION_CONFIG.unknownParam,
+            current: originatorInfo?.url ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
           title: {
-            current: originatorInfo?.title ?? CONNECTION_CONFIG.unknownParam,
+            current: originatorInfo?.title ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
           icon: { current: undefined },
           // Bookmarks
@@ -511,7 +501,7 @@ export class Connection extends EventEmitter2 {
           analytics: {
             isRemoteConn: true,
             platform: parseSource(
-              originatorInfo?.platform ?? CONNECTION_CONFIG.unknownParam,
+              originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
             ),
           },
           toggleUrlModal: () => null,
@@ -585,7 +575,8 @@ export class Connection extends EventEmitter2 {
           analytics: {
             request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
             request_platform: parseSource(
-              this.originatorInfo?.platform ?? CONNECTION_CONFIG.unknownParam,
+              this.originatorInfo?.platform ??
+                AppConstants.MM_SDK.UNKNOWN_PARAM,
             ),
           },
         },
@@ -890,7 +881,7 @@ export class SDKConnect extends EventEmitter2 {
    * @param channelId
    */
   public invalidateChannel({ channelId }: { channelId: string }) {
-    const host = MM_SDK_REMOTE_ORIGIN + channelId;
+    const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
     this.disabledHosts[host] = 0;
     delete this.approvedHosts[host];
     delete this.connecting[channelId];
@@ -918,8 +909,12 @@ export class SDKConnect extends EventEmitter2 {
       delete this.connected[channelId];
       delete this.connections[channelId];
       delete this.connecting[channelId];
-      delete this.approvedHosts[MM_SDK_REMOTE_ORIGIN + channelId];
-      delete this.disabledHosts[MM_SDK_REMOTE_ORIGIN + channelId];
+      delete this.approvedHosts[
+        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
+      ];
+      delete this.disabledHosts[
+        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
+      ];
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_CONNECTIONS,
         JSON.stringify(this.connections),
@@ -960,12 +955,12 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public disapproveChannel(channelId: string) {
-    const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
+    const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
     delete this.approvedHosts[hostname];
   }
 
   public async revalidateChannel({ channelId }: { channelId: string }) {
-    const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
+    const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
     this._approveHost({
       host: hostname,
       hostname,
@@ -974,7 +969,7 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public isApproved({ channelId }: { channelId: string; context?: string }) {
-    const hostname = MM_SDK_REMOTE_ORIGIN + channelId;
+    const hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId;
     const isApproved = this.approvedHosts[hostname] !== undefined;
     // possible future feature to add multiple approval parameters per channel.
     return isApproved;

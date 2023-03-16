@@ -12,11 +12,11 @@ import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
+import AppConstants from '../../../core/AppConstants';
 
 /**
  * Component that supports personal_sign
@@ -71,7 +71,9 @@ const PersonalSign = ({
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          )) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,

@@ -60,7 +60,6 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOnRampAggregator';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect/SDKConnect';
 import createStyles from './styles';
 import {
   selectChainId,
@@ -266,7 +265,7 @@ class ApproveTransactionReview extends PureComponent {
   );
 
   originIsMMSDKRemoteConn =
-    this.props.transaction.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
+    this.props.transaction.origin?.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN);
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
@@ -303,7 +302,7 @@ class ApproveTransactionReview extends PureComponent {
     if (this.originIsWalletConnect) {
       host = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     } else if (this.originIsMMSDKRemoteConn) {
-      host = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      host = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     } else {
       host = getHost(origin);
     }
