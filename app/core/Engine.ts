@@ -313,6 +313,15 @@ class Engine {
         unrestrictedMethods,
       });
 
+      // const subjectMetadataController = new SubjectMetadataController({
+      //   messenger: this.controllerMessenger.getRestricted({
+      //     name: 'SubjectMetadataController',
+      //     allowedActions: [`${this.permissionController.name}:hasPermissions`],
+      //   }),
+      //   state: initState.SubjectMetadataController,
+      //   subjectCacheLimit: 100,
+      // });
+
       this.setupSnapProvider = (snapId, connectionStream) => {
         console.log(
           '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
@@ -373,6 +382,7 @@ class Engine {
           `${permissionController.name}:revokePermissions`,
           `${permissionController.name}:revokePermissionForAllSubjects`,
           `${permissionController.name}:grantPermissions`,
+          'SubjectMetadataController:getSubjectMetadata',
           'ExecutionService:executeSnap',
           'ExecutionService:getRpcRequestHandler',
           'ExecutionService:terminateSnap',

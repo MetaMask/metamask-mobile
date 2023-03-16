@@ -68,6 +68,10 @@ class EngineService {
         key: `${engine.context.ApprovalController.name}:stateChange`,
       },
       {
+        name: 'SnapController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
+      {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
       },
