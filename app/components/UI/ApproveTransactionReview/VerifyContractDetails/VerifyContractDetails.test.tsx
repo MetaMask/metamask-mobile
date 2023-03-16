@@ -1,29 +1,13 @@
 import React from 'react';
-import { Provider } from 'react-redux';
+
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import configureMockStore from 'redux-mock-store';
 import VerifyContractDetails from './VerifyContractDetails';
 
 const initialState = {
   engine: {
     backgroundState: {
-      NetworkController: {
-        network: '1',
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '1',
-        },
-      },
       TokensController: {
         tokens: [],
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {},
-      TokenBalancesController: {
-        contractBalance: {},
       },
     },
   },
@@ -32,15 +16,29 @@ const initialState = {
   },
 };
 
-const mockStore = configureMockStore();
-const store = mockStore(initialState);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
+
+const DUMMY_COMPONENT = () => 'DUMMY';
+
+jest.mock(
+  '../../../../component-library/components/Icons/Icon/Icon',
+  () => DUMMY_COMPONENT,
+);
+
 describe('VerifyContractDetails', () => {
   it('should show the token symbol', () => {
     const { getByText } = renderWithProvider(
-      <Provider store={store}>
-        <VerifyContractDetails tokenSymbol="dummy" />
-      </Provider>,
-      { state: store },
+      <VerifyContractDetails
+        tokenSymbol="dummy"
+        closeVerifyContractView={() => {}}
+        savedContactListToArray={[]}
+      />,
+      {},
     );
     expect(getByText('dummy')).toBeDefined();
   });
