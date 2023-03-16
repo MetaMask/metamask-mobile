@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { Text, View, TouchableNativeFeedback } from 'react-native';
 import {
-  Text,
-  View,
   ViewPropTypes,
-  TouchableNativeFeedback,
-} from 'react-native';
+  TextPropTypes,
+} from 'deprecated-react-native-prop-types';
 import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -30,11 +29,11 @@ export default class StyledButton extends PureComponent {
     /**
      * Styles to be applied to the Button Text
      */
-    style: Text.propTypes.style,
+    style: TextPropTypes.style,
     /**
      * Styles to be applied to the Button disabled state text
      */
-    styleDisabled: Text.propTypes.style,
+    styleDisabled: TextPropTypes.style,
     /**
      * Styles to be applied to the Button disabled container
      */

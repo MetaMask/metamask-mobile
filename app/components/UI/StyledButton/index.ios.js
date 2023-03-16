@@ -1,6 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes, Text } from 'react-native';
+import {
+  ViewPropTypes,
+  TextPropTypes,
+} from 'deprecated-react-native-prop-types';
 import Button from 'react-native-button';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -25,11 +28,11 @@ export default class StyledButton extends PureComponent {
     /**
      * Styles to be applied to the Button Text
      */
-    style: Text.propTypes.style,
+    style: TextPropTypes.style,
     /**
      * Styles to be applied to the Button disabled state text
      */
-    styleDisabled: Text.propTypes.style,
+    styleDisabled: TextPropTypes.style,
     /**
      * Styles to be applied to the Button disabled container
      */
