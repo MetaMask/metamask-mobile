@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -84,6 +85,7 @@ class Engine {
   /**
    * Creates a CoreController instance
    */
+  // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
@@ -114,7 +116,7 @@ class Engine {
         static: {
           eth_sendTransaction: async (
             payload: { params: any[]; origin: any },
-            next: any,
+            _next: any,
             end: (arg0: undefined, arg1: undefined) => void,
           ) => {
             const { TransactionController } = this.context;
@@ -574,10 +576,7 @@ class Engine {
           JSON.parse(lastIncomingTxBlockInfoStr)) ||
         {};
       let blockNumber = null;
-      if (
-        allLastIncomingTxBlocks[`${selectedAddress}`] &&
-        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
-      ) {
+      if (allLastIncomingTxBlocks[`${selectedAddress}`]?.[`${networkId}`]) {
         blockNumber =
           allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
             .blockNumber;
@@ -801,9 +800,9 @@ class Engine {
 
     // Recreate imported accounts
     if (importedAccounts) {
-      for (let i = 0; i < importedAccounts.length; i++) {
+      for (const importedAccount of importedAccounts) {
         await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
+          importedAccount,
         ]);
       }
     }
@@ -883,10 +882,10 @@ let instance: Engine;
 
 export default {
   get context() {
-    return instance && instance.context;
+    return instance?.context;
   },
   get controllerMessenger() {
-    return instance && instance.controllerMessenger;
+    return instance?.controllerMessenger;
   },
   get state() {
     const {
@@ -961,7 +960,7 @@ export default {
   },
 
   destroyEngine() {
-    instance && instance.destroyEngineInstance();
+    instance?.destroyEngineInstance();
     instance = null;
   },
 
@@ -971,7 +970,7 @@ export default {
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
   },
-  init(state: {} | undefined, keyringState = null) {
+  init(state: Record<string, never> | undefined, keyringState = null) {
     instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
