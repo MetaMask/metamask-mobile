@@ -4,6 +4,17 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 platform :ios, "12.4"
 install! 'cocoapods', :deterministic_uuids => false
 
+# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
+# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
+#
+# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
+# ```js
+# module.exports = {
+#   dependencies: {
+#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
+# ```
+#flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+
 def react_native_post_install(installer)
 	installer.pods_project.targets.each do |target|
   		target.build_configurations.each do |config|
@@ -39,10 +50,25 @@ def common_target_logic
   # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
 
+  # Flags change depending on the env values.
+  flags = get_default_flags()
+
   use_react_native!(
     :path => config[:reactNativePath],
-    # to enable hermes on iOS, change `false` to `true` and then install pods
-    :hermes_enabled => false
+    # Hermes is now enabled by default. Disable by setting this flag to false.
+    # Upcoming versions of React Native may rely on get_default_flags(), but
+    # we make it explicit here to aid in the React Native upgrade process.
+    # :hermes_enabled => flags[:hermes_enabled],
+    # :fabric_enabled => flags[:fabric_enabled],
+    :hermes_enabled => false,
+    :fabric_enabled => false,
+    # Enables Flipper.
+    #
+    # Note that if you have use_frameworks! enabled, Flipper will not work and
+    # you should disable the next line.
+    #:flipper_configuration => flipper_config,
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
   # Pods for MetaMask
@@ -52,8 +78,6 @@ def common_target_logic
   use_flipper!({"Flipper" => "0.93.0", "Flipper-DoubleConversion" => "1.1.7"})
 end
 
-# Flags change depending on the env values.
-flags = get_default_flags()
 
 target 'MetaMask' do
   common_target_logic
@@ -62,20 +86,6 @@ end
 target 'MetaMask-QA' do
   common_target_logic
 end
-
-# Hermes is now enabled by default. Disable by setting this flag to false.
-# Upcoming versions of React Native may rely on get_default_flags(), but
-# we make it explicit here to aid in the React Native upgrade process.
-:hermes_enabled => false,
-:fabric_enabled => false,
-# Enables Flipper.
-#
-# Note that if you have use_frameworks! enabled, Flipper will not work and
-# you should disable the next line.
-# :flipper_configuration => FlipperConfiguration.enabled,
-# An absolute path to your application root.
-:app_path => "#{Pod::Config.instance.installation_root}/.."
-)
 
 post_install do |installer|
 	flipper_post_install(installer)

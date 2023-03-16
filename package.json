@@ -190,6 +190,7 @@
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
+    "deprecated-react-native-prop-types": "^4.0.0",
     "dnode": "1.2.2",
     "eciesjs": "^0.3.15",
     "eth-ens-namehash": "2.0.8",
