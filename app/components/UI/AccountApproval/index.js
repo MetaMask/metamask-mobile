@@ -12,7 +12,6 @@ import {
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { trackEvent } from '../../../util/analyticsV2';
@@ -34,7 +33,7 @@ import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
 
-const createStyles = (colors) =>
+const createStyles = (colors, typography) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -48,7 +47,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 24,
     },
     intro: {
-      ...fontStyles.bold,
+      ...typography.sHeadingMD,
       textAlign: 'center',
       color: colors.text.default,
       fontSize: Device.isSmallDevice() ? 16 : 20,
@@ -56,7 +55,7 @@ const createStyles = (colors) =>
       marginTop: 16,
     },
     intro_reconnect: {
-      ...fontStyles.bold,
+      ...typography.sHeadingMD,
       textAlign: 'center',
       color: colors.text.default,
       fontSize: Device.isSmallDevice() ? 16 : 20,
@@ -73,7 +72,7 @@ const createStyles = (colors) =>
       marginRight: 20,
     },
     warning: {
-      ...fontStyles.thin,
+      ...typography.sHeadingSMRegular,
       color: colors.text.default,
       paddingHorizontal: 24,
       marginBottom: 16,
@@ -138,7 +137,7 @@ const createStyles = (colors) =>
       borderColor: colors.primary.default,
     },
     optionText: {
-      ...fontStyles.normal,
+      ...typography.lBodyMD,
       fontSize: 16,
       color: colors.text.default,
     },
@@ -356,8 +355,8 @@ class AccountApproval extends PureComponent {
 
   render = () => {
     const { currentPageInformation, selectedAddress } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     const hasRememberMe =
       !currentPageInformation.reconnect &&
       this.props.currentPageInformation.origin ===
