@@ -301,8 +301,7 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        // clients_ready is sent multple time.
-        // The first time it sent without originatorInfo
+        // clients_ready may be sent multple time (from sdk <0.2.0).
         const originatorInfo = clientsReadyMsg?.originatorInfo;
 
         // Make sure we only initialize the bridge when originatorInfo is received.
@@ -675,13 +674,9 @@ export class SDKConnect extends EventEmitter2 {
     otherPublicKey,
     origin,
   }: ConnectionProps) {
-    if (this.paused) {
-      return;
-    }
-
     const existingConnection = this.connected[id] !== undefined;
-    if (existingConnection) {
-      // Was previously started
+    if (existingConnection && !this.paused) {
+      // if paused --- wait for resume --- otherwise reconnect.
       this.reconnect({ channelId: id });
       return;
     }
@@ -813,7 +808,6 @@ export class SDKConnect extends EventEmitter2 {
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
       const ready = existingConnection?.remote.isReady();
-
       if (ready && connected) {
         // Ignore reconnection -- already ready to process messages.
         return;
@@ -890,7 +884,6 @@ export class SDKConnect extends EventEmitter2 {
     const host = MM_SDK_REMOTE_ORIGIN + channelId;
     this.disabledHosts[host] = 0;
     delete this.approvedHosts[host];
-    delete this.connected[channelId];
     delete this.connecting[channelId];
     delete this.connections[channelId];
     DefaultPreference.set(
