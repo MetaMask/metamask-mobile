@@ -6,7 +6,6 @@ import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import WalletView from '../../pages/WalletView';
 import {
-  acceptTermOfUse,
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
 } from '../../viewHelper';
@@ -19,7 +18,6 @@ describe('Send ETH Tests', () => {
   });
 
   it('should go to send view', async () => {
-    await acceptTermOfUse();
     await importWalletWithRecoveryPhrase();
     await switchToGoreliNetwork();
     // Open Drawer

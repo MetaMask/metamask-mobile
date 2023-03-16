@@ -15,6 +15,10 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 
+Then(/^the Welcome Screen is displayed$/, async () => {
+  await WelcomeScreen.waitForScreenToDisplay();
+});
+
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.waitForSplashAnimationToDisplay();
 });
@@ -24,14 +28,13 @@ Given(/^the splash animation disappears$/, async () => {
 });
 
 Then(/^Terms of Use is displayed$/, async () => {
-  await WelcomeScreen.waitForScreenToDisplay();
   await TermOfUseScreen.isDisplayed();
 });
 
 When(/^I agree to terms$/, async () => {
-  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapScrollEndButton();
-  await driver.pause();
+  await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapAcceptButton();
 });
 
@@ -41,11 +44,19 @@ Then(/^Terms of Use is not displayed$/, async () => {
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
+
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
+  await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
+  await driver.pause();
+  await TermOfUseScreen.tapAcceptButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
@@ -57,11 +68,19 @@ Given(/^I have imported my wallet$/, async () => {
 
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
+
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapNoThanksButton();
+  await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
+  await driver.pause();
+  await TermOfUseScreen.tapAcceptButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
@@ -84,11 +103,6 @@ Given(
 );
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 20000;
-  await driver.pause(setTimeout);
-  await WelcomeScreen.clickGetStartedButton();
-  await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.tapIAgreeButton();
   const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);

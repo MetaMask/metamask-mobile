@@ -42,8 +42,6 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should import via seed phrase and validate in settings', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -53,6 +51,7 @@ describe('Adding Contract Nickname', () => {
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
 
+    await acceptTermOfUse();
     await ImportWalletView.isVisible();
   });
 

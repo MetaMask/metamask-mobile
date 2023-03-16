@@ -2,9 +2,7 @@
 Feature: This feature file covers phishing detection functionality the browser.
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning
-    Given I agree to terms
-    And Terms of Use is not displayed
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser

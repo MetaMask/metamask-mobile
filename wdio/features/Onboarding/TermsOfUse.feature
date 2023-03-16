@@ -2,15 +2,21 @@
 Feature: Terms of Use
 
   Scenario: Install and launch app
-    Given I just installed MetaMask on my device
-    When I launch MetaMask mobile app
+    Given the Welcome Screen is displayed
+    When I tap "Get started"
+    Then "Wallet setup" is displayed
+    When I tap "Import using Secret Recovery Phrase"
+    Then "Help us improve MetaMask" is displayed
+    When I tap "I agree"
     Then Terms of Use is displayed
 
   Scenario: Attempt to bypass ToU without accepting terms
-    When I attempt to dismiss Terms of Use without agreeing to terms
-    Then Terms of Use is displayed
     When I kill the app
     And I relaunch the app
+    Then the Welcome Screen is displayed
+    When I tap "Get started"
+    Then "Wallet setup" is displayed
+    When I tap "Import using Secret Recovery Phrase"
     Then Terms of Use is displayed
 
   Scenario: Agree to terms
@@ -20,5 +26,4 @@ Feature: Terms of Use
   Scenario: Restart app after accepting terms
     When I kill the app
     And I relaunch the app
-    Then the Welcome Screen is displayed
-    And Terms of Use is not displayed
+    Then Terms of Use is not displayed

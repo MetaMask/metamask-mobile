@@ -45,8 +45,6 @@ describe('Wallet Tests', () => {
   });
 
   it('should tap on import seed phrase button', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
     await OnboardingView.isVisible();
@@ -54,6 +52,8 @@ describe('Wallet Tests', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });

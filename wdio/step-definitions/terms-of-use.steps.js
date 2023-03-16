@@ -1,4 +1,4 @@
-import { Then, When } from '@wdio/cucumber-framework';
+import {When} from '@wdio/cucumber-framework';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 
 When(
@@ -7,7 +7,3 @@ When(
     await WelcomeScreen.clickGetStartedButton();
   },
 );
-
-Then(/^the Welcome Screen is displayed$/, async () => {
-  await WelcomeScreen.waitForScreenToDisplay();
-});

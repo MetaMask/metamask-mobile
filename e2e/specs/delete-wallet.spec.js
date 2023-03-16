@@ -33,8 +33,6 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   });
 
   it('should go to import wallet view', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -43,6 +41,7 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });

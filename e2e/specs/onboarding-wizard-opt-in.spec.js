@@ -27,8 +27,6 @@ const PASSWORD = '12345678';
 
 describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
   it('should be able to opt-in of the onboarding-wizard', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -37,6 +35,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
   });

@@ -9,11 +9,9 @@ Feature: Onboarding
   This is the onboarding process after a new user installs the mobile app
   and launches the app for the first time.
 
-    Given I just installed MetaMask on my device
-
-    When I launch MetaMask mobile app
-    And I agree to terms
-    Then the Welcome Screen is displayed
+    Given the app displayed the splash animation
+    And the splash animation disappears
+    And the Welcome Screen is displayed
 
     When I swipe left on the carousel
     Then "Manage your digital assets" carousel item is displayed
@@ -27,4 +25,3 @@ Feature: Onboarding
     And "Import an existing wallet or create a new one" is displayed
     And "Import using Secret Recovery Phrase" is displayed
     And "Create a new wallet" is displayed
-    And "By proceeding, you agree to these Terms and Conditions." is displayed

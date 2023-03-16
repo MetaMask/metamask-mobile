@@ -30,8 +30,6 @@ describe('Request Token Flow', () => {
   });
 
   it('should create new wallet', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -40,6 +38,7 @@ describe('Request Token Flow', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
     await CreatePasswordView.enterPassword(PASSWORD);

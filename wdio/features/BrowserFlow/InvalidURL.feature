@@ -2,9 +2,7 @@
 Feature: This feature file covers invalid url functionality in the browser.
 
   Scenario: Searching an invalid url and prompts the user with an error message
-    Given I agree to terms
-    And Terms of Use is not displayed
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser

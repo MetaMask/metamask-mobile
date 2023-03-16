@@ -55,8 +55,6 @@ describe('Deep linking Tests', () => {
   });
 
   it('should import via seed phrase and validate in settings', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -65,6 +63,8 @@ describe('Deep linking Tests', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });

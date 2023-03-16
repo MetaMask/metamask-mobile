@@ -7,8 +7,7 @@ Feature: Request Token
 
   Scenario: Create wallet and then add a network
 
-    Given I agree to terms
-    And I create a new wallet
+    Given I create a new wallet
     And I select remind me later on secure wallet screen
     And Select "Skip" on remind secure modal
     And I tap No Thanks on the Enable security check screen

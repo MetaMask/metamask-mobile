@@ -34,8 +34,6 @@ describe('Custom RPC Tests', () => {
   });
 
   it('should create new wallet', async () => {
-    await acceptTermOfUse();
-
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
 
@@ -44,6 +42,8 @@ describe('Custom RPC Tests', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapNoThanksButton();
+
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
     await CreatePasswordView.enterPassword(PASSWORD);
