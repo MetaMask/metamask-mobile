@@ -35,6 +35,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await MetaMetricsOptIn.tapAgreeButton();
 
+  await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
