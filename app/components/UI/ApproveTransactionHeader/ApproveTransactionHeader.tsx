@@ -88,7 +88,9 @@ const ApproveTransactionHeader = ({
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
     const isOriginWalletConnect = origin?.startsWith(WALLET_CONNECT_ORIGIN);
 
-    const isOriginMMSDKRemoteConn = origin?.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN);
+    const isOriginMMSDKRemoteConn = origin?.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+    );
 
     setAccountInfo({
       balance,
