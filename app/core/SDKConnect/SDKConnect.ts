@@ -29,8 +29,9 @@ import {
   MessageType,
   OriginatorInfo,
   RemoteCommunication,
-} from './CommunicationLayer';
+} from '@metamask/sdk-communication-layer';
 import generateOTP from './generateOTP.util';
+import { wait } from './wait.util';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ethErrors } from 'eth-rpc-errors';
 
@@ -99,6 +100,9 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
 };
 
 let wentBack = false;
+
+// eslint-disable-next-line
+const { version } = require('../../../package.json');
 
 export enum Sources {
   'web-desktop' = 'web-desktop',
@@ -215,6 +219,7 @@ export class Connection extends EventEmitter2 {
     this.onTerminate = onTerminate;
 
     this.setLoading(true);
+
     this.remote = new RemoteCommunication({
       platform: CONNECTION_CONFIG.platform,
       communicationServerUrl: CONNECTION_CONFIG.serverUrl,
@@ -222,6 +227,10 @@ export class Connection extends EventEmitter2 {
       otherPublicKey,
       webRTCLib: webrtc,
       reconnect,
+      walletInfo: {
+        type: 'MetaMask Mobile',
+        version,
+      },
       context: CONNECTION_CONFIG.context,
       analytics: true,
       logging: {
