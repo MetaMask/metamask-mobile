@@ -23,7 +23,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
@@ -45,7 +44,7 @@ import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -54,7 +53,6 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: any;
-  hasNavigation: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -62,8 +60,10 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
-  hasNavigation,
 }: IRevealPrivateCredentialProps) => {
+  const hasNavigation = !!navigation;
+  // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
+  const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
   const [unlocked, setUnlocked] = useState<boolean>(false);
@@ -73,7 +73,6 @@ const RevealPrivateCredential = ({
     useState<string>('');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const safeArea = useSafeAreaInsets();
 
   const selectedAddress = useSelector(
     (state: any) =>
@@ -84,19 +83,17 @@ const RevealPrivateCredential = ({
   const dispatch = useDispatch();
 
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors, safeArea);
+  const styles = createStyles(colors);
 
-  const privateCredentialName = credentialName || route.params.credentialName;
+  const credentialSlug = credentialName || route?.params.credentialName;
 
   const updateNavBar = () => {
-    if (!hasNavigation && !route.params?.hasNavigation) {
+    if (!hasNavigation || !shouldUpdateNav) {
       return;
     }
     navigation.setOptions(
       getNavigationOptionsTitle(
-        strings(
-          `reveal_credential.${route.params?.credentialName ?? ''}_title`,
-        ),
+        strings(`reveal_credential.${credentialSlug ?? ''}_title`),
         navigation,
         false,
         colors,
@@ -106,8 +103,7 @@ const RevealPrivateCredential = ({
   };
 
   const isPrivateKey = () => {
-    const credential = credentialName || route.params.credentialName;
-    return credential === PRIVATE_KEY;
+    return credentialSlug === PRIVATE_KEY;
   };
 
   const tryUnlockWithPassword = async (
@@ -179,7 +175,11 @@ const RevealPrivateCredential = ({
   }, []);
 
   const navigateBack = () => {
-    if (hasNavigation || route.params?.hasNavigation) navigation.pop();
+    if (hasNavigation && shouldUpdateNav) {
+      navigation.pop();
+    } else {
+      cancel?.();
+    }
   };
 
   const cancelReveal = () => {
