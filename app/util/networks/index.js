@@ -125,7 +125,13 @@ const NetworkList = {
   },
 };
 
-const NetworkListKeys = Object.keys(NetworkList);
+let NetworkListKeys = Object.keys(NetworkList);
+
+export const shouldShowZKEVM = new Date().getTime() > Date.UTC(2023, 2, 28);
+
+if (!shouldShowZKEVM) {
+  NetworkListKeys = NetworkListKeys.filter((name) => name !== LINEA_TESTNET);
+}
 
 export default NetworkList;
 

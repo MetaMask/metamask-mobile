@@ -6,6 +6,7 @@ import {
   findBlockExplorerForRpc,
   compareRpcUrls,
   handleNetworkSwitch,
+  shouldShowZKEVM,
 } from '.';
 import {
   MAINNET,
@@ -42,7 +43,9 @@ describe('NetworkUtils::getAllNetworks', () => {
     expect(allNetworks.includes(MAINNET)).toEqual(true);
     expect(allNetworks.includes(ROPSTEN)).toEqual(true);
     expect(allNetworks.includes(GOERLI)).toEqual(true);
-    expect(allNetworks.includes(LINEA_TESTNET)).toEqual(true);
+    if (shouldShowZKEVM) {
+      expect(allNetworks.includes(LINEA_TESTNET)).toEqual(true);
+    }
   });
   it('should exclude rpc', () => {
     expect(allNetworks.includes(RPC)).toEqual(false);
@@ -89,12 +92,12 @@ describe('NetworkUtils::getNetworkName', () => {
     const main = getNetworkName(String(42));
     expect(main).toEqual(KOVAN);
   });
-
-  it(`should get network name for ${LINEA_TESTNET} id`, () => {
-    const main = getNetworkName(String(59140));
-    expect(main).toEqual(LINEA_TESTNET);
-  });
-
+  if (shouldShowZKEVM) {
+    it(`should get network name for ${LINEA_TESTNET} id`, () => {
+      const main = getNetworkName(String(59140));
+      expect(main).toEqual(LINEA_TESTNET);
+    });
+  }
   it(`should return undefined for unknown network id`, () => {
     const main = getNetworkName(String(99));
     expect(main).toEqual(undefined);
