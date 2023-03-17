@@ -33,19 +33,19 @@ describe('VerifyContractDetails', () => {
   it('should show the token symbol', () => {
     const { getByText } = renderWithProvider(
       <VerifyContractDetails
-            tokenSymbol={'dummy_token_symbol'}
-            closeVerifyContractView={() => { } }
-            savedContactListToArray={[]} 
-            contractAddress={''} 
-            tokenAddress={''} 
-            copyAddress={() => {}} 
-            toggleBlockExplorer={() => {}} 
-            showNickname={() => {}} 
-            tokenStandard={''} 
-            providerType={''} 
-            providerRpcTarget={''} 
-            frequentRpcList={[]}
-            />,
+        tokenSymbol={'dummy_token_symbol'}
+        closeVerifyContractView={() => undefined}
+        savedContactListToArray={[]}
+        contractAddress={''}
+        tokenAddress={''}
+        copyAddress={() => undefined}
+        toggleBlockExplorer={() => undefined}
+        showNickname={() => undefined}
+        tokenStandard={''}
+        providerType={''}
+        providerRpcTarget={''}
+        frequentRpcList={[]}
+      />,
       {},
     );
     expect(getByText('dummy_token_symbol')).toBeDefined();
