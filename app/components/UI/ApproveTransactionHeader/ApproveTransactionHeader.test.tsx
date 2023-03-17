@@ -1,12 +1,10 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import ApproveTransactionHeader from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 
 Engine.init();
-const mockStore = configureMockStore();
+
 const initialState = {
   settings: {},
   engine: {
@@ -79,7 +77,6 @@ const initialState = {
     },
   },
 };
-const store = mockStore(initialState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
