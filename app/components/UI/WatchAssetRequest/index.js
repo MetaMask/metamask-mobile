@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import URL from 'url-parse';
 import ActionView from '../ActionView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -90,15 +89,17 @@ const createStyles = (colors) =>
 const WatchAssetRequest = ({
   suggestedAssetMeta,
   currentPageInformation,
-  selectedAddress,
   onCancel,
   onConfirm,
 }) => {
   const { asset, interactingAddress } = suggestedAssetMeta;
-  let [balance] = useTokenBalance(asset.address, selectedAddress);
-  balance = renderFromTokenMinimalUnit(balance, asset.decimals);
+  // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
+  const balanceWithSymbol = error
+    ? strings('transaction.failed')
+    : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
   useEffect(
     () => async () => {
@@ -197,9 +198,7 @@ const WatchAssetRequest = ({
               </View>
 
               <View style={styles.infoBalance}>
-                <Text style={styles.text}>
-                  {balance} {asset.symbol}
-                </Text>
+                <Text style={styles.text}>{balanceWithSymbol}</Text>
               </View>
             </View>
           </View>
@@ -223,18 +222,9 @@ WatchAssetRequest.propTypes = {
    */
   suggestedAssetMeta: PropTypes.object,
   /**
-   * Current public address
-   */
-  selectedAddress: PropTypes.string,
-  /**
    * Object containing current page title, url, and icon href
    */
   currentPageInformation: PropTypes.object,
 };
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(WatchAssetRequest);
+export default WatchAssetRequest;
