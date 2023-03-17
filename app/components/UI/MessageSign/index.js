@@ -70,7 +70,6 @@ class MessageSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
-    fromAddress: PropTypes.string,
   };
 
   state = {
