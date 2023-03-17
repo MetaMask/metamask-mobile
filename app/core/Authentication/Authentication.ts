@@ -425,6 +425,7 @@ class AuthenticationService {
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
     } catch (e: any) {
+      console.log('Auth/ appTriggeredAuth error: ', e);
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,

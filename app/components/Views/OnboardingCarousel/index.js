@@ -182,6 +182,7 @@ class OnboardingCarousel extends PureComponent {
   };
 
   componentDidMount = () => {
+    console.log('Auth/ OnboardingCarousel.js componentDidMount');
     this.updateNavBar();
     this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
   };

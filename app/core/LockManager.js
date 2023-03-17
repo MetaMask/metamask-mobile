@@ -50,7 +50,7 @@ export default class LockManager {
   };
 
   gotoLockScreen = () => {
-    this.navigation?.navigate('LockScreen', { backgroundMode: true });
+    this.navigation?.navigate('LockScreen');
   };
 
   lockApp = async () => {

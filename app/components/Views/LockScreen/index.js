@@ -7,6 +7,7 @@ import {
   View,
   AppState,
   Appearance,
+  Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -96,6 +97,7 @@ class LockScreen extends PureComponent {
   unlockAttempts = 0;
 
   componentDidMount() {
+    console.log('Autg/ Lockscreen::componentDidMount');
     // Check if is the app is launching or it went to background mode
     this.appState = 'background';
     AppState.addEventListener('change', this.handleAppStateChange);
@@ -109,10 +111,17 @@ class LockScreen extends PureComponent {
       this.appState !== 'active' &&
       nextAppState === 'active'
     ) {
+      console.log(
+        'Auth/ Lockscreen::handleAppStateChange - appState, nextAppState, locked',
+        this.appState,
+        nextAppState,
+        this.locked,
+      );
       this.firstAnimation?.play();
       this.appState = nextAppState;
+      // this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
       // Avoid trying to unlock with the app in background
-      this.unlockKeychain();
+      await this.unlockKeychain();
     }
   };
 
@@ -122,6 +131,7 @@ class LockScreen extends PureComponent {
   }
 
   lock = async () => {
+    console.log('Auth/ Lockscreen::lock');
     await Authentication.lockApp(false);
     this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
   };
@@ -131,20 +141,27 @@ class LockScreen extends PureComponent {
     try {
       // Retreive the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
+      console.log('Auth/ Lockscreen: calling appTriggeredAuth');
       await Authentication.appTriggeredAuth(this.props.selectedAddress);
+      console.log('Auth/ Lockscreen: setting state to ready');
       this.locked = false;
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
+      console.log(
+        'Auth/ Lockscreen: calling appTriggeredAuth - success, playing animation',
+      );
       this.secondAnimation?.play();
       this.animationName?.play();
       Logger.log('Lockscreen::unlockKeychain - playing animations');
 
       if (!this.props.passwordSet) {
+        console.log('Auth/ Lockscreen::unlockKeychain - password not set');
         this.props.navigation.navigate('OnboardingRootNav', {
           screen: Routes.ONBOARDING.NAV,
           params: { screen: 'Onboarding' },
         });
       }
+      console.log('Auth/ Lockscreen::unlockKeychain - password set');
       this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV);
     } catch (error) {
       if (this.unlockAttempts <= 3) {
@@ -161,6 +178,7 @@ class LockScreen extends PureComponent {
   }
 
   onAnimationFinished = () => {
+    console.log('Auth/ Lockscreen::onAnimationFinished');
     setTimeout(() => {
       Animated.timing(this.opacity, {
         toValue: 0,
@@ -179,6 +197,7 @@ class LockScreen extends PureComponent {
   };
 
   renderAnimations() {
+    console.log('Auth/ Lockscreen::renderAnimations');
     const { appTheme } = this.props;
     const osColorScheme = Appearance.getColorScheme();
     const wordmark = getAssetFromTheme(
@@ -190,6 +209,7 @@ class LockScreen extends PureComponent {
     const styles = this.getStyles();
 
     if (!this.state.ready) {
+      console.log('Auth/ Lockscreen::renderAnimations - !ready');
       return (
         <LottieView
           // eslint-disable-next-line react/jsx-no-bind
@@ -215,6 +235,7 @@ class LockScreen extends PureComponent {
           onAnimationFinish={this.onAnimationFinished}
         />
         <LottieView
+          autoPlay={false}
           // eslint-disable-next-line react/jsx-no-bind
           ref={(animation) => {
             this.animationName = animation;
