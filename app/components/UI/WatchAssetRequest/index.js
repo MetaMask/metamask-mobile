@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import URL from 'url-parse';
 import ActionView from '../ActionView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -97,10 +96,7 @@ const WatchAssetRequest = ({
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [balance, _, error] = useTokenBalance(
-    asset.address,
-    interactingAddress,
-  );
+  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
