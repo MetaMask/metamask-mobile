@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {
-  SafeAreaView,
   Text,
   TouchableOpacity,
   View,
@@ -17,8 +16,10 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { useTheme } from '../../../util/theme';
+import { ThemeContext, useTheme } from '../../../util/theme';
 import { ROOT } from './constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -107,67 +108,63 @@ const Fallback = (props) => {
   const styles = createStyles(colors);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <Image source={metamaskErrorImage} style={styles.errorImage} />
-          <Text style={styles.title}>{strings('error_screen.title')}</Text>
-          <Text style={styles.subtitle}>
-            {strings('error_screen.subtitle')}
+    <ScrollView style={styles.content}>
+      <View style={styles.header}>
+        <Image source={metamaskErrorImage} style={styles.errorImage} />
+        <Text style={styles.title}>{strings('error_screen.title')}</Text>
+        <Text style={styles.subtitle}>{strings('error_screen.subtitle')}</Text>
+      </View>
+      <View style={styles.errorContainer}>
+        <Text style={styles.error}>{props.errorMessage}</Text>
+      </View>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.button} onPress={props.resetError}>
+          <Text style={styles.buttonText}>
+            <Icon name="refresh" size={15} />
+            {'  '}
+            {strings('error_screen.try_again_button')}
           </Text>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.error}>{props.errorMessage}</Text>
-        </View>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.button} onPress={props.resetError}>
-            <Text style={styles.buttonText}>
-              <Icon name="refresh" size={15} />
-              {'  '}
-              {strings('error_screen.try_again_button')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.textContainer}>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.text}>
+          <Text>{strings('error_screen.submit_ticket_1')}</Text>
+        </Text>
+        <View style={styles.reportTextContainer}>
           <Text style={styles.text}>
-            <Text>{strings('error_screen.submit_ticket_1')}</Text>
+            <Icon name="mobile-phone" size={20} />
+            {'  '}
+            {strings('error_screen.submit_ticket_2')}
           </Text>
-          <View style={styles.reportTextContainer}>
-            <Text style={styles.text}>
-              <Icon name="mobile-phone" size={20} />
-              {'  '}
-              {strings('error_screen.submit_ticket_2')}
-            </Text>
 
-            <Text style={[styles.reportStep, styles.text]}>
-              <Icon name="copy" size={14} />
-              {'  '}
-              <Text onPress={props.copyErrorToClipboard} style={styles.link}>
-                {strings('error_screen.submit_ticket_3')}
-              </Text>{' '}
-              {strings('error_screen.submit_ticket_4')}
-            </Text>
-
-            <Text style={[styles.reportStep, styles.text]}>
-              <Icon name="send-o" size={14} />
-              {'  '}
-              {strings('error_screen.submit_ticket_5')}{' '}
-              <Text onPress={props.openTicket} style={styles.link}>
-                {strings('error_screen.submit_ticket_6')}
-              </Text>{' '}
-              {strings('error_screen.submit_ticket_7')}
-            </Text>
-          </View>
-          <Text style={styles.text}>
-            {strings('error_screen.save_seedphrase_1')}{' '}
-            <Text onPress={props.showExportSeedphrase} style={styles.link}>
-              {strings('error_screen.save_seedphrase_2')}
+          <Text style={[styles.reportStep, styles.text]}>
+            <Icon name="copy" size={14} />
+            {'  '}
+            <Text onPress={props.copyErrorToClipboard} style={styles.link}>
+              {strings('error_screen.submit_ticket_3')}
             </Text>{' '}
-            {strings('error_screen.save_seedphrase_3')}
+            {strings('error_screen.submit_ticket_4')}
+          </Text>
+
+          <Text style={[styles.reportStep, styles.text]}>
+            <Icon name="send-o" size={14} />
+            {'  '}
+            {strings('error_screen.submit_ticket_5')}{' '}
+            <Text onPress={props.openTicket} style={styles.link}>
+              {strings('error_screen.submit_ticket_6')}
+            </Text>{' '}
+            {strings('error_screen.submit_ticket_7')}
           </Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        <Text style={styles.text}>
+          {strings('error_screen.save_seedphrase_1')}{' '}
+          <Text onPress={props.showExportSeedphrase} style={styles.link}>
+            {strings('error_screen.save_seedphrase_2')}
+          </Text>{' '}
+          {strings('error_screen.save_seedphrase_3')}
+        </Text>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -230,25 +227,36 @@ class ErrorBoundary extends Component {
     Linking.openURL(url);
   };
 
+  renderWithSafeArea = (children) => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return <SafeAreaView style={styles.container}>{children}</SafeAreaView>;
+  };
+
   render() {
-    return this.state.backupSeedphrase ? (
-      <RevealPrivateCredential
-        credentialName={'seed_phrase'}
-        cancel={this.cancelExportSeedphrase}
-        hasNavigation={this.props.view !== ROOT}
-      />
-    ) : this.state.error ? (
-      <Fallback
-        errorMessage={this.getErrorMessage()}
-        resetError={this.resetError}
-        showExportSeedphrase={this.showExportSeedphrase}
-        copyErrorToClipboard={this.copyErrorToClipboard}
-        openTicket={this.openTicket}
-      />
-    ) : (
-      this.props.children
-    );
+    return this.state.backupSeedphrase
+      ? this.renderWithSafeArea(
+          <RevealPrivateCredential
+            credentialName={'seed_phrase'}
+            cancel={this.cancelExportSeedphrase}
+            navigation={this.props.navigation}
+          />,
+        )
+      : this.state.error
+      ? this.renderWithSafeArea(
+          <Fallback
+            errorMessage={this.getErrorMessage()}
+            resetError={this.resetError}
+            showExportSeedphrase={this.showExportSeedphrase}
+            copyErrorToClipboard={this.copyErrorToClipboard}
+            openTicket={this.openTicket}
+          />,
+        )
+      : this.props.children;
   }
 }
+
+ErrorBoundary.contextType = ThemeContext;
 
 export default ErrorBoundary;
