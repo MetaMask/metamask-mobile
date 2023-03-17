@@ -30,11 +30,11 @@ const initialState = {
       TokenBalancesController: {},
       PermissionController: {
         subjects: {
-          'metamask.github.io': {
-            origin: 'metamask.github.io',
+          'http://metamask.github.io': {
+            origin: 'http://metamask.github.io',
             permissions: {
               eth_accounts: {
-                invoker: 'metamask.github.io',
+                invoker: 'http://metamask.github.io',
                 caveats: [
                   {
                     type: 'restrictReturnedAccounts',
@@ -46,7 +46,6 @@ const initialState = {
           },
         },
       },
-
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {
@@ -70,7 +69,6 @@ const initialState = {
           type: 'ropsten',
           nickname: 'Ropsten',
         },
-
         provider: {
           ticker: 'eth',
         },
@@ -89,29 +87,29 @@ jest.mock('react-redux', () => ({
     .fn()
     .mockImplementation((callback) => callback(initialState)),
 }));
+
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
-      <Provider store={store}>
-        <ApproveTransactionHeader
-          origin="metamask.github.io"
-          from="0x0"
-          url="metamask.github.io"
-        />
-      </Provider>,
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="http://metamask.github.io"
+        url="http://metamask.github.io"
+      />,
+      { state: initialState },
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render with domain title', async () => {
-    const { findByText } = renderWithProvider(
+  it('should render with domain title', () => {
+    const { getByText } = renderWithProvider(
       <ApproveTransactionHeader
         from="0x0"
-        origin="metamask.github.io"
-        url="metamask.github.io"
+        origin="http://metamask.github.io"
+        url="http://metamask.github.io"
       />,
       { state: initialState },
     );
-    expect(await findByText('metamask.github.io')).toBeDefined();
+    expect(getByText('http://metamask.github.io')).toBeDefined();
   });
 });

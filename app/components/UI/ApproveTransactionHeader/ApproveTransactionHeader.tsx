@@ -113,12 +113,15 @@ const ApproveTransactionHeader = ({
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
       origins;
     let title = '';
-    if (isOriginDeepLink) title = renderShortAddress(from);
-    else if (isOriginWalletConnect)
+    if (isOriginDeepLink) {
+      title = renderShortAddress(from);
+    } else if (isOriginWalletConnect) {
       title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
-    else if (isOriginMMSDKRemoteConn) {
+    } else if (isOriginMMSDKRemoteConn) {
       title = getUrlObj(origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]).origin;
-    } else title = getUrlObj(currentEnsName || url || origin).origin;
+    } else {
+      title = getUrlObj(currentEnsName || url || origin).origin;
+    }
 
     return title;
   }, [currentEnsName, origin, origins, from, url]);
@@ -134,6 +137,7 @@ const ApproveTransactionHeader = ({
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, origins, url]);
 
+  console.log('---------------', domainTitle);
   return (
     <View style={styles.transactionHeader}>
       <TagUrl
