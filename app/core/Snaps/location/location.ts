@@ -36,7 +36,6 @@ export interface SnapLocation {
  * @param opts - NPM options and feature flags.
  * @returns SnapLocation based on url.
  */
-
 export function detectSnapLocation(
   location: string | URL,
   opts?: DetectSnapLocationOptions,

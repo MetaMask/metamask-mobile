@@ -9,7 +9,11 @@ import {
   buildSnapRestrictedMethodSpecifications,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
+<<<<<<< HEAD
 } from './permissions/permissions';
+=======
+} from './permissions';
+>>>>>>> 639b9bd4a ([FEATURE] Create detectSnapLocation method to install a Local Snap (#5923))
 import { detectSnapLocation, fetchFunction } from './location';
 
 export {
