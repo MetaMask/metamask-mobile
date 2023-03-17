@@ -360,7 +360,7 @@ const Wallet = ({ navigation }: any) => {
   );
 
   return (
-    <ErrorBoundary view="Wallet">
+    <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
         <ScrollView
           style={styles.wrapper}
