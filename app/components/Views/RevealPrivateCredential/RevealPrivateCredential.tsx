@@ -86,6 +86,7 @@ const RevealPrivateCredential = ({
   const styles = createStyles(colors);
 
   const credentialSlug = credentialName || route?.params.credentialName;
+  const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {
     if (!hasNavigation || !shouldUpdateNav) {
@@ -100,10 +101,6 @@ const RevealPrivateCredential = ({
         MetaMetricsEvents.GO_BACK_SRP_SCREEN,
       ),
     );
-  };
-
-  const isPrivateKey = () => {
-    return credentialSlug === PRIVATE_KEY;
   };
 
   const tryUnlockWithPassword = async (
@@ -150,7 +147,7 @@ const RevealPrivateCredential = ({
   useEffect(() => {
     updateNavBar();
     // Track SRP Reveal screen rendered
-    if (!isPrivateKey()) {
+    if (!isPrivateKey) {
       trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN);
     }
 
@@ -185,14 +182,13 @@ const RevealPrivateCredential = ({
   const cancelReveal = () => {
     if (!unlocked)
       trackEvent(
-        isPrivateKey()
+        isPrivateKey
           ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
           : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
         { view: 'Enter password' },
       );
 
-    if (!isPrivateKey())
-      trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA, {});
+    if (!isPrivateKey) trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA, {});
     if (cancel) return cancel();
     navigateBack();
   };
@@ -200,7 +196,7 @@ const RevealPrivateCredential = ({
   const tryUnlock = () => {
     const { KeyringController } = Engine.context as any;
     if (KeyringController.validatePassword(password)) {
-      if (!isPrivateKey()) {
+      if (!isPrivateKey) {
         const currentDate = new Date();
         dispatch(recordSRPRevealTimestamp(currentDate.toString()));
         trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
@@ -218,7 +214,7 @@ const RevealPrivateCredential = ({
   };
 
   const done = () => {
-    if (!isPrivateKey()) trackEvent(MetaMetricsEvents.SRP_DONE_CTA);
+    if (!isPrivateKey) trackEvent(MetaMetricsEvents.SRP_DONE_CTA);
     navigateBack();
   };
 
@@ -232,7 +228,7 @@ const RevealPrivateCredential = ({
       { action: 'copied to clipboard' },
     );
 
-    if (!isPrivateKey()) trackEvent(MetaMetricsEvents.COPY_SRP);
+    if (!isPrivateKey) trackEvent(MetaMetricsEvents.COPY_SRP);
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -278,22 +274,22 @@ const RevealPrivateCredential = ({
   const onTabBarChange = (event: { i: number }) => {
     if (event.i === 0) {
       trackEvent(
-        isPrivateKey()
+        isPrivateKey
           ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
           : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
 
-      if (!isPrivateKey()) trackEvent(MetaMetricsEvents.VIEW_SRP);
+      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP);
     } else if (event.i === 1) {
       trackEvent(
-        isPrivateKey()
+        isPrivateKey
           ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
           : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
       );
 
-      if (!isPrivateKey()) trackEvent(MetaMetricsEvents.VIEW_SRP_QR);
+      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP_QR);
     }
   };
 
@@ -384,7 +380,7 @@ const RevealPrivateCredential = ({
 
   const closeModal = () => {
     trackEvent(
-      isPrivateKey()
+      isPrivateKey
         ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
         : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
       { view: 'Hold to reveal' },
@@ -516,7 +512,7 @@ const RevealPrivateCredential = ({
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey() ? (
+            {isPrivateKey ? (
               <Text style={styles.normalText}>
                 {strings(`reveal_credential.private_key_explanation`)}
               </Text>
@@ -524,20 +520,18 @@ const RevealPrivateCredential = ({
               renderSRPExplanation()
             )}
           </View>
-          {renderWarning(privateCredentialName)}
+          {renderWarning(credentialSlug)}
 
           <View style={styles.rowWrapper}>
-            {unlocked
-              ? renderTabView(privateCredentialName)
-              : renderPasswordEntry()}
+            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
           </View>
         </>
       </ActionView>
-      {renderModal(isPrivateKey(), privateCredentialName)}
+      {renderModal(isPrivateKey, credentialSlug)}
 
       <ScreenshotDeterrent
         enabled={unlocked}
-        isSRP={privateCredentialName !== PRIVATE_KEY}
+        isSRP={credentialSlug !== PRIVATE_KEY}
         hasNavigation={hasNavigation}
       />
     </View>

@@ -16,10 +16,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, useTheme } from '../../../util/theme';
-import { ROOT } from './constants';
+import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -185,6 +183,7 @@ class ErrorBoundary extends Component {
       PropTypes.node,
     ]),
     view: PropTypes.string.isRequired,
+    navigation: PropTypes.object,
   };
 
   static getDerivedStateFromError(error) {

@@ -2,8 +2,8 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 
-export const createStyles = (colors: any) => {
-  return StyleSheet.create({
+export const createStyles = (colors: any) =>
+  StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -122,4 +122,3 @@ export const createStyles = (colors: any) => {
       borderColor: colors.border.muted,
     },
   });
-};
