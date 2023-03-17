@@ -1,16 +1,17 @@
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-index f5d98e7..9bbd396 100644
+index f5d98e7..98918a7 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-@@ -40,6 +40,7 @@ const rpc_1 = require("./endowments/rpc");
+@@ -40,6 +40,8 @@ const rpc_1 = require("./endowments/rpc");
  const location_1 = require("./location");
  const RequestQueue_1 = require("./RequestQueue");
  const Timer_1 = require("./Timer");
-+import { v4 as uuidv4 } from 'uuid';
++const { v4: uuidv4 } = require('uuid');
++
  exports.controllerName = 'SnapController';
  // TODO: Figure out how to name these
  exports.SNAP_APPROVAL_INSTALL = 'wallet_installSnap';
-@@ -406,7 +407,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -406,7 +408,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
       */
      addSnapError(snapError) {
          this.update((state) => {
@@ -19,7 +20,7 @@ index f5d98e7..9bbd396 100644
              state.snapErrors[id] = Object.assign(Object.assign({}, snapError), { internalID: id });
          });
      }
-@@ -695,7 +696,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -695,7 +697,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          });
          const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, newSnap.manifest.result.initialPermissions);
          const { newPermissions, unusedPermissions, approvedPermissions } = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_calculatePermissionsChange).call(this, snapId, processedPermissions);
@@ -28,7 +29,7 @@ index f5d98e7..9bbd396 100644
          const _b = (await this.messagingSystem.call('ApprovalController:addRequest', {
              origin,
              id,
-@@ -772,7 +773,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -772,7 +774,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          const { initialPermissions } = snap;
          try {
              const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, initialPermissions);
@@ -37,7 +38,7 @@ index f5d98e7..9bbd396 100644
              const _a = (await this.messagingSystem.call('ApprovalController:addRequest', {
                  origin,
                  id,
-@@ -1158,7 +1159,7 @@ async function _SnapController_fetchSnap(snapId, location) {
+@@ -1158,7 +1160,7 @@ async function _SnapController_fetchSnap(snapId, location) {
      try {
          const manifest = await location.manifest();
          const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
