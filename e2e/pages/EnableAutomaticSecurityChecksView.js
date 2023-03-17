@@ -7,7 +7,9 @@ import {
 
 export default class EnableAutomaticSecurityChecksView {
   static async tapNoThanks() {
-    await TestHelpers.tap(ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON);
+    await TestHelpers.waitAndTap(
+      ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
+    );
   }
 
   static async isVisible() {

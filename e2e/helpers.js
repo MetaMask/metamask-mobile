@@ -23,7 +23,11 @@ export default class TestHelpers {
   }
 
   static tapAtPoint(elementId, point) {
-    return element(by.id(elementId)).tapAtPoint(point);
+    return element(by.id(elementId)).tap(point);
+  }
+
+  static async tapAtCoordinates(point) {
+    await device.tap(point);
   }
 
   static tapItemAtIndex(elementID, index) {

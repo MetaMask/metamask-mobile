@@ -1,8 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -44,6 +45,7 @@ export default class AssetElement extends PureComponent {
      * Callback triggered on long press
      */
     onLongPress: PropTypes.func,
+    testID: PropTypes.string,
   };
 
   handleOnPress = () => {
@@ -66,6 +68,7 @@ export default class AssetElement extends PureComponent {
         onPress={this.handleOnPress}
         onLongPress={this.handleOnLongPress}
         style={styles.itemWrapper}
+        {...generateTestId(Platform, this.testID)}
       >
         {children}
         <View styles={styles.arrow}>

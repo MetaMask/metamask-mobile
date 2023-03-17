@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -57,7 +58,7 @@ const createStyles = (colors) =>
     },
   });
 
-function AssetActionButton({ onPress, icon, label, disabled }) {
+function AssetActionButton({ onPress, icon, label, disabled, testID }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -118,6 +119,7 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
 
   return (
     <TouchableOpacity
+      {...generateTestId(Platform, testID)}
       onPress={onPress}
       style={[styles.button, disabled && styles.disabledButton]}
       disabled={disabled}

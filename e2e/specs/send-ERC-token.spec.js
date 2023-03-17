@@ -9,11 +9,22 @@ import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-// import DrawerView from '../pages/Drawer/DrawerView';/
+import DrawerView from '../pages/Drawer/DrawerView';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+import NetworkView from '../pages/Drawer/Settings/NetworksView';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+import AddCustomTokenView from '../pages/AddCustomTokenView';
+import SendView from '../pages/SendView';
+import AmountView from '../pages/AmountView';
+import ConfirmView from '../pages/ConfirmView.js';
+import LoginView from '../pages/LoginView';
 
 const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
+  'fold media south add since false relax immense pause cloth just raven'; //TODO: put in vault later
 const PASSWORD = `12345678`;
+const AVAX_URL = 'https://api.avax-test.network/ext/C/rpc';
+const TOKEN_ADDRESS = '0x5425890298aed601595a70AB815c96711a31Bc65';
+const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 /* BROKEN. We need to revisit. Deep linking to a contract address does not work on a sim. */
 
@@ -43,17 +54,64 @@ describe('Send ERC Token', () => {
     await EnableAutomaticSecurityChecksView.isVisible();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
     await WalletView.isVisible();
-    await TestHelpers.delay(3500);
+    await TestHelpers.delay(500);
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
   });
 
-  it('Add custom network', async () => {
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
-    await WalletView.tapSendButton();
+  it('should add AVAX testnet to my networks list', async () => {
+    await WalletView.tapDrawerButton(); // tapping burger menu
+    await DrawerView.isVisible();
+    await DrawerView.tapSettings();
+
+    await SettingsView.tapNetworks();
+
+    await NetworkView.isNetworkViewVisible();
+
+    await TestHelpers.delay(3000);
+    await NetworkView.tapAddNetworkButton();
+    await NetworkView.switchToCustomNetworks();
+
+    await NetworkView.typeInNetworkName('AVAX Fuji');
+    await NetworkView.clearRpcInputBox();
+    await NetworkView.typeInRpcUrl(AVAX_URL);
+    await NetworkView.typeInChainId('43113');
+    await NetworkView.typeInNetworkSymbol('AVAX\n');
+
+    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+    await NetworkView.tapRpcNetworkAddButton();
+
+    await WalletView.isVisible();
+    await WalletView.isNetworkNameVisible('AVAX Fuji');
+    await NetworkEducationModal.tapGotItButton();
+  });
+
+  it('should Import custom AVAX token ', async () => {
+    await WalletView.isVisible();
+    await WalletView.tapImportTokensButton();
+    await AddCustomTokenView.pasteTokenAddress(TOKEN_ADDRESS);
+    await AddCustomTokenView.scrollDownOnImportCustomTokens();
+    await TestHelpers.delay(2000);
+    await AddCustomTokenView.tapTokenSymbolText();
+    await AddCustomTokenView.tapImportButton();
+  });
+
+  it('should send token to address via the Send view', async () => {
+    await WalletView.tapSendIcon(); // tapping burger menu
+    await SendView.inputAddress(SEND_ADDRESS);
+    await TestHelpers.delay(1000);
+    await SendView.tapNextButton();
+    await AmountView.typeInTransactionAmount('0.000001');
+    await AmountView.tapNextButton();
+    await ConfirmView.isAmountVisible('< 0.00001 AVAX');
+    await ConfirmView.tapSendButton();
+  });
+
+  it('should send token to address via Token Overview screen', async () => {
+    // Navigate back to main wallet view and tap on Token
+    // await LoginView.enterPassword('12345678');
+    // await LoginView.tapUnlock();
+    // await SettingsView.tapSendIcon();
   });
 });

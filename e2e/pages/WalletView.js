@@ -8,12 +8,14 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
   NFT_TAB_CONTAINER_ID,
+  SEND_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
+
 export default class WalletView {
   static async tapOKAlertButton() {
     await TestHelpers.tapAlertWithButton('OK');
@@ -30,6 +32,10 @@ export default class WalletView {
   static async tapBrowser() {
     await TestHelpers.tapByText('Browser');
     await TestHelpers.delay(1000);
+  }
+
+  static async tapSendIcon() {
+    await TestHelpers.waitAndTap(SEND_BUTTON_ID);
   }
 
   static async tapNetworksButtonOnNavBar() {
