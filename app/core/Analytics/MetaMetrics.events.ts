@@ -255,6 +255,8 @@ enum EVENT_NAME {
   SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
   SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
 
+  //Terms of Use
+  USER_TERMS = 'Terms of Use',
   // Reveal SRP Quiz
   SRP_REVEAL_QUIZ_PROMPT_SEEN = 'SRP reveal quiz prompt seen',
   SRP_REVEAL_START_CTA_SELECTED = 'SRP reveal get started CTA selected',
@@ -570,6 +572,7 @@ const events = {
   SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
   SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
   SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
+  USER_TERMS: generateOpt(EVENT_NAME.USER_TERMS),
   SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
     EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
   ),

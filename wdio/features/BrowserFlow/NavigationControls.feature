@@ -2,11 +2,10 @@
 Feature: This feature file covers all the navigation control options in browser.
 
   Scenario: Navigation with browser controls
-    Use the browser controls at the bottom of the view to go back,
-    forward, search, multi-browser tab view and home button.
+  Use the browser controls at the bottom of the view to go back,
+  forward, search, multi-browser tab view and home button.
 
-    Given the app displayed the splash animation
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser
