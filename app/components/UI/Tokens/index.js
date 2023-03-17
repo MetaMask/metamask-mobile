@@ -135,6 +135,7 @@ const createStyles = (colors) =>
     },
     buyTitle: {
       marginVertical: 5,
+      textAlign: 'center',
     },
     buyButton: {
       marginVertical: 5,
@@ -243,7 +244,7 @@ class Tokens extends PureComponent {
           disabled={!this.state.isAddTokenEnabled}
           {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
         >
-          <Text>
+          <Text centered>
             <Text style={styles.emptyText}>
               {strings('wallet.no_available_tokens')}
             </Text>{' '}

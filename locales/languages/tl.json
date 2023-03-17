@@ -283,7 +283,7 @@
     "transactions": "MGA TRANSAKSYON",
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
-    "add_tokens": "MAGDAGDAG NG MGA TOKEN",
+    "add_tokens": "Magdagdag ng mga Token",
     "tokens_detected_in_account": "{{tokenCount}} (na) bagong {{tokensLabel}} ang natagpuan sa account na ito",
     "token_toast": {
       "tokens_imported_title": "Mga Na-import na Token",
