@@ -1363,7 +1363,7 @@ export const BrowserTab = (props) => {
    * Main render
    */
   return (
-    <ErrorBoundary view="BrowserTab">
+    <ErrorBoundary navigation={props.navigation} view="BrowserTab">
       <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}

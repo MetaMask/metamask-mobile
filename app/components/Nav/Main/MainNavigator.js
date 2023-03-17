@@ -161,7 +161,6 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -387,7 +386,6 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
     />
     <Stack.Screen
       name="WalletConnectSessionsView"

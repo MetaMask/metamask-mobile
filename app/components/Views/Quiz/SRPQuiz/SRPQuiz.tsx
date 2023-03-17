@@ -70,7 +70,7 @@ const SRPQuiz = () => {
     trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
-      hasNavigation: true,
+      shouldUpdateNav: true,
     });
   }, [navigation]);
 

@@ -490,7 +490,7 @@ class Settings extends PureComponent {
     trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
-      hasNavigation: true,
+      shouldUpdateNav: true,
     });
   };
 

@@ -64,7 +64,7 @@ const ActivityView = () => {
   const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
 
   return (
-    <ErrorBoundary view="ActivityView">
+    <ErrorBoundary navigation={navigation} view="ActivityView">
       <View style={styles.wrapper}>
         <ScrollableTabView
           renderTabBar={renderTabBar}

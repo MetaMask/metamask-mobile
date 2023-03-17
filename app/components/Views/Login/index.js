@@ -444,7 +444,7 @@ class Login extends PureComponent {
     );
 
     return (
-      <ErrorBoundary view="Login">
+      <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}
