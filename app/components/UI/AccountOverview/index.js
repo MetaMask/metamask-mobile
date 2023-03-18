@@ -14,10 +14,8 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import { trackLegacyEvent } from '../../../util/analyticsV2';
-
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -31,14 +29,9 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { isSwapsAllowed } from '../Swaps/utils';
-
 import Identicon from '../Identicon';
-import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
 import { fontStyles, baseStyles } from '../../../styles/common';
-import { allowedToBuy } from '../FiatOnRampAggregator';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -53,7 +46,6 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
-
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -355,8 +347,6 @@ class AccountOverview extends PureComponent {
       account: { address, name },
       currentCurrency,
       onboardingWizard,
-      chainId,
-      swapsIsLive,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
