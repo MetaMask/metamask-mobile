@@ -612,6 +612,7 @@
     "third_party_title": "Receba transações de entrada",
     "third_party_description": "APIs de terceiros (Etherscan) são usadas para exibir suas transações de entrada no histórico. Desative essa opção caso não queira que extraiamos dados desses serviços.",
     "metametrics_opt_out": "Sair da MetaMetrics",
+    "metametrics_restart_required": "Você precisa reiniciar o app para que as alterações entrem em vigor.",
     "create_password": "Criar senha",
     "invalid_password": "Senha inválida",
     "invalid_password_message": "A senha está incorreta. Tente novamente.",
