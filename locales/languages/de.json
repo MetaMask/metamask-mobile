@@ -614,6 +614,7 @@
     "third_party_title": "Erhalten Sie eingehende Transaktionen",
     "third_party_description": "APIs von Drittanbietern (Etherscan) werden verwendet, um Ihnen eingehende Transaktionen im Verlauf anzuzeigen. Schalten Sie dies ab, wenn Sie keine Daten von diesen Diensten abrufen möchten.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
+    "metametrics_restart_required": "Sie müssen die App neu starten, damit die Änderungen angewandt werden.",
     "create_password": "Passwort erstellen",
     "invalid_password": "Ungültiges Passwort",
     "invalid_password_message": "Das Passwort war nicht korrekt. Bitte versuchen Sie es erneut.",
