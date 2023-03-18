@@ -54,16 +54,17 @@ const BrowserUrlModal = () => {
   InteractionManager.runAfterInteractions(() => {
     // Needed to focus the input after modal renders on Android
     inputRef.current?.focus?.();
+  });
+
+  const handleFocusInput = useCallback(() => {
     // Needed to manually selectTextOnFocus on iOS
     // https://github.com/facebook/react-native/issues/30585
     if (Device.isIos()) {
-      if (inputRef.current && autocompleteValue) {
-        inputRef.current.setNativeProps({
-          selection: { start: 0, end: autocompleteValue.length },
-        });
-      }
+      inputRef.current?.setNativeProps({
+        selection: { start: 0, end: autocompleteValue?.length },
+      });
     }
-  });
+  }, [autocompleteValue]);
 
   const triggerClose = useCallback(() => dismissModal(), [dismissModal]);
   const triggerOnSubmit = useCallback(
@@ -83,6 +84,7 @@ const BrowserUrlModal = () => {
             testID={'url-input'}
             onChangeText={setAutocompleteValue}
             onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
+            onFocus={handleFocusInput}
             placeholder={strings('autocomplete.placeholder')}
             placeholderTextColor={colors.text.muted}
             returnKeyType="go"
