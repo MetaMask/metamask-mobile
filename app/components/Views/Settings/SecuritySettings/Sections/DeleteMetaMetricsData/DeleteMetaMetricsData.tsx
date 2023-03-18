@@ -102,7 +102,7 @@ const DeleteMetaMetricsData = () => {
         sectionTitle={strings('app_settings.delete_metrics_title')}
         sectionButtonText={strings('app_settings.delete_metrics_button')}
         descriptionText={
-          hasCollectedData || !deletionTaskDate ? (
+          hasCollectedData ? (
             <>
               <Text>
                 {strings('app_settings.delete_metrics_description_part_one')}
