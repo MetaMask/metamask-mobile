@@ -22,7 +22,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // Internal dependencies.
@@ -104,7 +104,7 @@ const AccountPermissionsConnected = ({
 
   const switchNetwork = useCallback(() => {
     dispatch(toggleNetworkModal(false));
-    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
       from_chain_id: networkController.network,
     });
   }, [networkController.network, dispatch]);

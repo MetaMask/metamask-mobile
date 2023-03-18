@@ -2,13 +2,14 @@ import React, { PureComponent } from 'react';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
+import TabCountIcon from '../Tabs/TabCountIcon';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import TabCountIcon from '../Tabs/TabCountIcon';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -94,14 +95,14 @@ export default class BrowserBottomBar extends PureComponent {
   };
 
   trackSearchEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
       option_chosen: 'Browser Bottom Bar Menu',
       number_of_tabs: undefined,
     });
   };
 
   trackNavigationEvent = (navigationOption) => {
-    trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
       option_chosen: navigationOption,
       os: Platform.OS,
     });
