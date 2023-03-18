@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Text, { TextVariant } from '../../Texts/Text';
@@ -18,6 +18,9 @@ const TabBarItem = ({
   label,
   icon,
   isSelected,
+  iconSize = IconSize.Lg,
+  iconColor,
+  iconContainerStyle,
   ...props
 }: TabBarItemProps) => {
   const { styles, theme } = useStyles(styleSheet, { style, isSelected });
@@ -29,10 +32,14 @@ const TabBarItem = ({
 
   return (
     <TouchableOpacity {...props} style={styles.base}>
-      <Icon size={IconSize.Lg} name={icon} color={tabColor} />
-      <Text variant={TextVariant.BodySM} style={styles.label}>
-        {label}
-      </Text>
+      <View style={iconContainerStyle}>
+        <Icon size={iconSize} name={icon} color={iconColor || tabColor} />
+      </View>
+      {label && (
+        <Text variant={TextVariant.BodySM} style={styles.label}>
+          {label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

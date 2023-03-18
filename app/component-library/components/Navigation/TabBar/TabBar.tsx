@@ -8,15 +8,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // External dependencies.
 import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import Routes from '../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../util/theme';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import Routes from '../../../../constants/navigation/Routes';
 
-const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
+const TabBar = ({
+  state,
+  descriptors,
+  navigation,
+  setActionSheetVisible,
+}: TabBarProps) => {
+  const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
 
@@ -28,7 +35,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;
-      const key = `tab-bar-item-${label}`;
+      const key = `tab-bar-item-${tabBarIconKey}`;
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const onPress = () => {
@@ -41,6 +48,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
                 screen: Routes.WALLET_VIEW,
               },
             });
+            break;
+          case Routes.WALLET.ACTIONS:
+            setActionSheetVisible(true);
             break;
           case Routes.BROWSER_VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
@@ -56,11 +66,28 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           label={label}
           icon={icon}
           onPress={onPress}
+          iconContainerStyle={
+            rootScreenName === Routes.WALLET.ACTIONS
+              ? styles.iconContainer
+              : undefined
+          }
+          iconColor={
+            rootScreenName === Routes.WALLET.ACTIONS
+              ? colors.background.default
+              : undefined
+          }
           {...generateTestId(Platform, key)}
         />
       );
     },
-    [state, descriptors, navigation],
+    [
+      state,
+      descriptors,
+      navigation,
+      setActionSheetVisible,
+      styles.iconContainer,
+      colors.background.default,
+    ],
   );
 
   const renderTabBarItems = useCallback(

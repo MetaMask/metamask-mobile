@@ -68,6 +68,7 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
+    ACTIONS: 'WalletActions',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',

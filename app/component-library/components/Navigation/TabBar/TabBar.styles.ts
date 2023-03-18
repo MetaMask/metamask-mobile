@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
+import Device from '../../../../util/device';
 
 // Internal dependencies.
 import { TabBarStyleSheetVars } from './TabBar.types';
@@ -24,11 +25,21 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
     base: {
       flexDirection: 'row',
       alignItems: 'center',
-      height: 82,
+      height: Device.isAndroid() ? 62 : 48,
       paddingHorizontal: 16,
       marginBottom: bottomInset,
       borderTopWidth: 0.5,
       borderColor: colors.border.muted,
+      paddingTop: Device.isAndroid() ? 0 : 20,
+    },
+    iconContainer: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
+      marginBottom: 8,
+      backgroundColor: colors.primary.default,
     },
   });
 };

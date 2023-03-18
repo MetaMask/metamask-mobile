@@ -20,6 +20,10 @@ export interface SheetBottomProps {
    * @default 250
    */
   reservedMinOverlayHeight?: number;
+  /**
+   * Optional boolean for determine if we need to go navigate back when bottom sheed is hidden
+   */
+  navigateBack?: boolean;
 }
 
 export type SheetBottomPostCallback = () => void;

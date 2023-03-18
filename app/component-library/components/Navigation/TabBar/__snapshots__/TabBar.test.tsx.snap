@@ -1,0 +1,106 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabBar renders correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "borderColor": "#D6D9DC",
+      "borderTopWidth": 0.5,
+      "flexDirection": "row",
+      "height": 48,
+      "marginBottom": 0,
+      "paddingHorizontal": 16,
+      "paddingTop": 20,
+    }
+  }
+>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+      }
+    }
+    testID="tab-bar-item-Wallet"
+  >
+    <View>
+      <SvgMock
+        color="#0376C9"
+        height={24}
+        name="Wallet"
+        style={
+          Object {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+      }
+    }
+    testID="tab-bar-item-Actions"
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#0376C9",
+          "borderRadius": 16,
+          "height": 32,
+          "justifyContent": "center",
+          "marginBottom": 8,
+          "width": 32,
+        }
+      }
+    >
+      <SvgMock
+        color="#FFFFFF"
+        height={24}
+        name="SwapVertival"
+        style={
+          Object {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+      }
+    }
+    testID="tab-bar-item-Browser"
+  >
+    <View>
+      <SvgMock
+        color="#6A737D"
+        height={24}
+        name="Explore"
+        style={
+          Object {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+  </TouchableOpacity>
+</View>
+`;

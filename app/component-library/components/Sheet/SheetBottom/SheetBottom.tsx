@@ -59,6 +59,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       onDismissed,
       isInteractable = true,
       reservedMinOverlayHeight = DEFAULT_MIN_OVERLAY_HEIGHT,
+      navigateBack = true,
       ...props
     },
     ref,
@@ -87,10 +88,10 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
 
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
-      navigation.goBack();
+      navigateBack && navigation.goBack();
       onDismissed?.();
       postCallback.current?.();
-    }, [navigation, onDismissed]);
+    }, [navigation, onDismissed, navigateBack]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,

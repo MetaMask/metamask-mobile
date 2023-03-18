@@ -1,8 +1,8 @@
 // Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
+import { TouchableOpacityProps, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../Icons/Icon';
+import { IconProps, IconSize } from '../../Icons/Icon';
 
 /**
  * TabBarItem component props.
@@ -24,6 +24,18 @@ export interface TabBarItemProps extends TouchableOpacityProps {
    * Function to call when pressed.
    */
   onPress: () => void;
+  /**
+   * Optional icon size property
+   */
+  iconSize?: IconSize;
+  /**
+   * Optional icon size property
+   */
+  iconColor?: string;
+  /**
+   * Optional styles for the Touchable Opacity
+   */
+  iconContainerStyle?: ViewStyle;
 }
 
 /**

@@ -69,8 +69,8 @@ import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
+import WalletActions from '../../../components/Views/WalletActions';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -207,6 +207,7 @@ export const DrawerContext = React.createContext({ drawerRef: null });
 const HomeTabs = () => {
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+  const [isActionSheetVisible, setActionSheetVisible] = useState(false);
 
   const accountsLength = useSelector(
     (state) =>
@@ -243,7 +244,6 @@ const HomeTabs = () => {
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
-      tabBarLabel: strings('drawer.wallet'),
       callback: () => {
         trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
@@ -252,9 +252,12 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
+    actions: {
+      tabBarIconKey: TabBarIconKey.Actions,
+      rootScreenName: Routes.WALLET.ACTIONS,
+    },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
-      tabBarLabel: strings('drawer.browser'),
       callback: () => {
         trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
@@ -297,6 +300,7 @@ const HomeTabs = () => {
                 state={state}
                 descriptors={descriptors}
                 navigation={navigation}
+                setActionSheetVisible={setActionSheetVisible}
               />
             ) : null
           }
@@ -306,12 +310,22 @@ const HomeTabs = () => {
             options={options.home}
             component={WalletTabModalFlow}
           />
+
+          <Tab.Screen
+            name={Routes.WALLET.ACTIONS}
+            options={options.actions}
+            component={WalletTabModalFlow}
+          />
+
           <Tab.Screen
             name={Routes.BROWSER.HOME}
             options={options.browser}
             component={BrowserFlow}
           />
         </Tab.Navigator>
+        {isActionSheetVisible && (
+          <WalletActions setActionSheetVisible={setActionSheetVisible} />
+        )}
       </Drawer>
     </DrawerContext.Provider>
   );
