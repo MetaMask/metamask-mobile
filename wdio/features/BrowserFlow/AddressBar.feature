@@ -4,10 +4,9 @@
 Feature: This feature file covers address view functionality in the browser.
 
   Scenario: Address bar
-    Navigate to websites using browser address bar.
+  Navigate to websites using browser address bar.
 
-    Given the app displayed the splash animation
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser
