@@ -75,6 +75,10 @@ class EngineService {
         name: 'PermissionController',
         key: `${engine.context.PermissionController.name}:stateChange`,
       },
+      {
+        name: 'subjectMetadataController',
+        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
     ];
 
     engine?.datamodel?.subscribe?.(() => {

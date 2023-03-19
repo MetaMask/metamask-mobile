@@ -4575,7 +4575,7 @@
     ses "^0.17.0"
     superstruct "^0.16.7"
 
-"@metamask/subject-metadata-controller@^1.0.1":
+"@metamask/subject-metadata-controller@^1.0.0", "@metamask/subject-metadata-controller@^1.0.1":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/subject-metadata-controller/-/subject-metadata-controller-1.0.2.tgz#35f571231cf99889bd413d683f8b7459adc655fb"
   integrity sha512-zOtgtS+NHnfhrzyaxlMi9iR6Wo4qm04TWp7c/bMFjCI8XY/Rs1VoJegxR/481ELwbzBNzGwnEc/TwSW2qBi39A==
