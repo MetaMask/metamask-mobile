@@ -77,6 +77,8 @@ import ModalMandatory from '../../../component-library/components/Modals/ModalMa
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
+import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -90,14 +92,6 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
-import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
-import { RestoreWallet } from '../../Views/RestoreWallet';
-import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
-import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
-import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
-import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 
 const Stack = createStackNavigator();
 /**
