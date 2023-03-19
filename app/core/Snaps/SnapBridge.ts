@@ -50,7 +50,7 @@ export default class SnapBridge {
   }: ISnapBridgeProps) {
     // eslint-disable-next-line no-console
     console.log(
-      '[SNAP BRODGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
+      '[SNAP BRIDGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
       snapId,
     );
     this.snapId = snapId;
@@ -101,7 +101,7 @@ export default class SnapBridge {
 
   setupProviderConnection = () => {
     // eslint-disable-next-line no-console
-    console.log('[SNAP BRODGE LOG] Engine+setupProviderConnection');
+    console.log('[SNAP BRIDGE LOG] Engine+setupProviderConnection');
     const outStream = this.#mux.createStream('metamask-provider');
     const engine = this.setupProviderEngine();
     const providerStream = createEngineStream({ engine });
@@ -157,8 +157,8 @@ export default class SnapBridge {
 
   getNetworkState = ({ network }: { network: string }) => {
     const { NetworkController } = Engine.context as any;
-    const networkType = NetworkController.state.provider.type;
-    const networkProvider = NetworkController.state.provider;
+    const networkType = NetworkController.state.providerConfig.type;
+    const networkProvider = NetworkController.state.providerConfig;
 
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -201,8 +201,8 @@ export default class SnapBridge {
 
   getProviderNetworkState({ network }: { network: string }) {
     const { NetworkController } = Engine.context as any;
-    const networkType = NetworkController.state.provider.type;
-    const networkProvider = NetworkController.state.provider;
+    const networkType = NetworkController.state.providerConfig.type;
+    const networkProvider = NetworkController.state.providerConfig;
 
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
