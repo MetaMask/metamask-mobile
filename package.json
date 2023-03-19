@@ -159,6 +159,7 @@
     "@metamask/sdk-communication-layer": "^0.1.0",
     "@metamask/snaps-controllers": "0.26.2",
     "@metamask/snaps-utils": "0.26.2",
+    "@metamask/subject-metadata-controller": "^1.0.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^2.0.0",
     "@metamask/utils": "^5.0.0",

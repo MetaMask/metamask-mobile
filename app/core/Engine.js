@@ -33,6 +33,7 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { SnapController } from '@metamask/snaps-controllers';
+import { SubjectMetadataController } from '@metamask/subject-metadata-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
@@ -362,20 +363,23 @@ class Engine {
         unrestrictedMethods,
       });
 
-      // const subjectMetadataController = new SubjectMetadataController({
-      //   messenger: this.controllerMessenger.getRestricted({
-      //     name: 'SubjectMetadataController',
-      //     allowedActions: [`${this.permissionController.name}:hasPermissions`],
-      //   }),
-      //   state: initState.SubjectMetadataController,
-      //   subjectCacheLimit: 100,
-      // });
+      const subjectMetadataController = new SubjectMetadataController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'SubjectMetadataController',
+          allowedActions: [`${permissionController.name}:hasPermissions`],
+        }),
+        state: initialState.SubjectMetadataController || {},
+        subjectCacheLimit: 100,
+      });
 
       this.setupSnapProvider = (snapId, connectionStream) => {
         console.log(
           '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
           snapId,
         );
+        // TO DO:
+        // Develop a simpler getRpcMethodMiddleware object for SnapBridge
+        // Consider developing an abstract class to derived custom implementations for each use case
         const bridge = new SnapBridge({
           snapId,
           connectionStream,
@@ -431,7 +435,7 @@ class Engine {
           `${permissionController.name}:revokePermissions`,
           `${permissionController.name}:revokePermissionForAllSubjects`,
           `${permissionController.name}:grantPermissions`,
-          'SubjectMetadataController:getSubjectMetadata',
+          `${subjectMetadataController.name}:getSubjectMetadata`,
           'ExecutionService:executeSnap',
           'ExecutionService:getRpcRequestHandler',
           'ExecutionService:terminateSnap',
@@ -593,6 +597,7 @@ class Engine {
         approvalController,
         permissionController,
         snapController,
+        subjectMetadataController,
       ];
 
       // set initial state
@@ -1061,6 +1066,7 @@ export default {
       NftDetectionController,
       SnapController,
       PermissionController,
+      SubjectMetadataController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1096,6 +1102,7 @@ export default {
       NftDetectionController,
       SnapController,
       PermissionController,
+      SubjectMetadataController,
     };
   },
   get datamodel() {
