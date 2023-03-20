@@ -1,8 +1,8 @@
+import { StackNavigationProp } from '@react-navigation/stack';
 import BackgroundTimer from 'react-native-background-timer';
 import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../AppConstants';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { v1 as random } from 'uuid';
+import AppConstants from '../AppConstants';
 
 import {
   TransactionController,
@@ -20,7 +20,6 @@ import getRpcMethodMiddleware, {
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import { EventEmitter2 } from 'eventemitter2';
 import {
   CommunicationLayerMessage,
   CommunicationLayerPreference,
@@ -30,10 +29,22 @@ import {
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
+import { ethErrors } from 'eth-rpc-errors';
+import { EventEmitter2 } from 'eventemitter2';
+import Routes from '../../../app/constants/navigation/Routes';
 import generateOTP from './generateOTP.util';
 import { wait } from './wait.util';
-import Routes from '../../../app/constants/navigation/Routes';
-import { ethErrors } from 'eth-rpc-errors';
+
+import {
+  mediaDevices,
+  MediaStream,
+  MediaStreamTrack,
+  registerGlobals,
+  RTCIceCandidate,
+  RTCPeerConnection,
+  RTCSessionDescription,
+  RTCView,
+} from 'react-native-webrtc';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -66,6 +77,17 @@ export interface approveHostProps {
   hostname: string;
   context?: string;
 }
+
+const webrtc = {
+  RTCPeerConnection,
+  RTCIceCandidate,
+  RTCSessionDescription,
+  RTCView,
+  MediaStream,
+  MediaStreamTrack,
+  mediaDevices,
+  registerGlobals,
+};
 
 export const TIMEOUT_PAUSE_CONNECTIONS = 20000;
 
@@ -222,13 +244,13 @@ export class Connection extends EventEmitter2 {
       context: AppConstants.MM_SDK.PLATFORM,
       analytics: true,
       logging: {
-        eciesLayer: true,
-        keyExchangeLayer: true,
-        remoteLayer: true,
-        serviceLayer: true,
+        eciesLayer: false,
+        keyExchangeLayer: false,
+        remoteLayer: false,
+        serviceLayer: false,
       },
       storage: {
-        debug: true,
+        debug: false,
       },
     });
 
