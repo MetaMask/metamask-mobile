@@ -13,12 +13,18 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
-import Device from '../util/device';
+import { MMKVStorage } from '../core/Storage';
 
 const TIMEOUT = 40000;
 
 const MigratedStorage = {
   async getItem(key) {
+    // Try accessing MMKV first.
+    const value = MMKVStorage.getString(key);
+    if (value) {
+      return Promise.resolve(value);
+    }
+
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
@@ -42,18 +48,12 @@ const MigratedStorage = {
     }
   },
   async setItem(key, value) {
-    try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
-    } catch (error) {
-      Logger.error(error, { message: 'Failed to set item' });
-    }
+    MMKVStorage.set(key, value);
+    return Promise.resolve(true);
   },
   async removeItem(key) {
-    try {
-      return await FilesystemStorage.removeItem(key);
-    } catch (error) {
-      Logger.error(error, { message: 'Failed to remove item' });
-    }
+    MMKVStorage.delete(key);
+    return Promise.resolve();
   },
 };
 
