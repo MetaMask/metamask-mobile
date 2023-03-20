@@ -11,6 +11,8 @@ import {
   DENIED,
   EXPLORED,
 } from '../constants/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../core/Storage';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -390,6 +392,24 @@ export const migrations = {
 
     return state;
   },
+  15: async (state) => {
+    // Migrate from AsyncStorage to MMKV.
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      for (const key of keys) {
+        const value = await AsyncStorage.getItem(key);
+        if (value != null) {
+          MMKVStorage.set(key, value);
+          AsyncStorage.removeItem(key);
+        }
+      }
+      // Clear any remaining data in AsyncStorage.
+      await AsyncStorage.clear();
+    } catch (error) {
+      console.error(`Failed to migrate from AsyncStorage to MMKV!`, error);
+    }
+    return state;
+  },
 };
 
-export const version = 14;
+export const version = 15;
