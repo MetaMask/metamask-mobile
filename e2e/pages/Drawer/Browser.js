@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { strings } from '../../../locales/i18n';
+import messages from '../../../locales/languages/en.json';
 import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
@@ -19,10 +19,10 @@ import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Compone
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
-const RETURN_HOME_TEXT = strings('webview_error.return_home');
-const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
-const REVOKE_ALL_ACCOUNTS_TEXT = strings('toast.revoked_all');
-const CONNECTED_ACCOUNTS_TEXT = strings('toast.connected_and_active');
+const RETURN_HOME_TEXT = messages.webview_error.return_home;
+const BACK_TO_SAFETY_TEXT = messages.phishing.back_to_safety;
+const REVOKE_ALL_ACCOUNTS_TEXT = messages.toast.revoked_all;
+const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
 
 export default class Browser {
   static async tapUrlInputBox() {

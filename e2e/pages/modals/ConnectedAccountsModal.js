@@ -9,12 +9,12 @@ import {
 } from '../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 import { CELL_SELECT_TEST_ID } from '../../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
 
-import { strings } from '../../../locales/i18n';
+import messages from '../../../locales/languages/en.json';
 
-const CONNECTED_ACCOUNTS_PERMISSION_LINK_TEXT = strings('accounts.permissions');
-const CONNECTED_ACCOUNTS_REVOKE_LINK_TEXT = strings('accounts.revoke');
+const CONNECTED_ACCOUNTS_PERMISSION_LINK_TEXT = messages.accounts.permissions;
+const CONNECTED_ACCOUNTS_REVOKE_LINK_TEXT = messages.accounts.revoke;
 
-const CONNECTED_ACCOUNTS_REVOKE_ALL_TEXT = strings('accounts.revoke_all');
+const CONNECTED_ACCOUNTS_REVOKE_ALL_TEXT = messages.accounts.revoke_all;
 
 export default class ConnectedAccountsModal {
   static async tapCancelButton() {
