@@ -14,7 +14,7 @@ import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useTheme } from '../../../../util/theme';
-import formatNumber from '../../../../util/formatNumber';
+import { formatNumber } from '../../../../util/formatNumber';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

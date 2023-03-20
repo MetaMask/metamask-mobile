@@ -16,4 +16,8 @@ export interface CustomSpendCapProps {
    * function to return to input field
    */
   editValue: () => void;
+  /**
+   * token spend value - The value of the input field
+   */
+  tokenSpendValue: string;
 }

@@ -17,7 +17,7 @@ const createStyles = (colors: any) =>
       textAlign: 'center',
       color: colors.text.default,
       lineHeight: 34,
-      marginVertical: 8,
+      marginVertical: 3,
       paddingHorizontal: 16,
     },
     tokenKey: {
@@ -159,6 +159,17 @@ const createStyles = (colors: any) =>
     },
     transactionWrapper: {
       marginVertical: 10,
+    },
+    symbol: {
+      marginHorizontal: 5,
+    },
+    alignText: {
+      textAlign: 'center',
+    },
+    tokenContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 

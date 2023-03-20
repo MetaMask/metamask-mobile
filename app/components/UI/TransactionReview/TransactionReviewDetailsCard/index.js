@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
-import formatNumber from '../../../../util/formatNumber';
+import { formatNumber } from '../../../../util/formatNumber';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { renderShortAddress } from '../../../../util/address';
 

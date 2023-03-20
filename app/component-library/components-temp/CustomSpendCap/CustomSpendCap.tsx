@@ -8,7 +8,7 @@ import { useStyles } from '../../hooks';
 import { strings } from '../../../../locales/i18n';
 import Button, { ButtonVariants } from '../../components/Buttons/Button';
 import Text, { TextVariant } from '../../components/Texts/Text';
-import formatNumber from '../../../util/formatNumber';
+import { formatNumber, formatLongValue } from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
 import CustomInput from './CustomInput';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
@@ -27,6 +27,7 @@ const CustomSpendCap = ({
   onInputChanged,
   disableEdit,
   editValue,
+  tokenSpendValue,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -53,6 +54,12 @@ const CustomSpendCap = ({
     value && onInputChanged(value);
     return setInputHasError(true);
   }, [value, onInputChanged]);
+
+  useEffect(() => {
+    if (tokenSpendValue) {
+      setValue(tokenSpendValue);
+    }
+  }, [tokenSpendValue]);
 
   const handlePress = () => {
     if (disableEdit) return editValue();
@@ -101,7 +108,7 @@ const CustomSpendCap = ({
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
       <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(dappValue)} ${ticker} `}
+        {` ${formatLongValue(dappValue)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
     </>
@@ -118,6 +125,16 @@ const CustomSpendCap = ({
         {` ${formatNumber(difference)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
+    </>
+  );
+
+  const INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE = (
+    <>
+      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
+      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
+        {` ${formatNumber(tokenSpendValue ?? '0')} ${ticker} `}
+      </Text>
+      {strings('contract_allowance.custom_spend_cap.from_your_balance')}
     </>
   );
 
@@ -212,13 +229,15 @@ const CustomSpendCap = ({
       {!disableEdit && (
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
-            {defaultValueSelected
+            {!value
+              ? NO_SELECTED
+              : defaultValueSelected
               ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
               : maxSelected
               ? MAX_VALUE_SELECTED
               : inputValueHigherThanAccountBalance
               ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-              : NO_SELECTED}
+              : INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE}
           </Text>
         </View>
       )}

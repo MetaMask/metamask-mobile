@@ -4,7 +4,7 @@ import { TextInput, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import formatNumber from '../../../../util/formatNumber';
+import { formatNumber, formatLongValue } from '../../../../util/formatNumber';
 import { strings } from '../../../../../locales/i18n';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 
@@ -66,7 +66,7 @@ const CustomInput = ({
           <Text
             variant={TextVariant.BodyMD}
             style={styles.warningValue}
-          >{`${formatNumber(value)} ${ticker}`}</Text>
+          >{`${formatLongValue(value)} ${ticker}`}</Text>
         ) : (
           <Text>{`${formatNumber(value)} ${ticker}`}</Text>
         )}
