@@ -76,6 +76,8 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
+import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
+import { set } from 'lodash';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -88,6 +90,12 @@ const createStyles = (colors) =>
     content: {
       flexGrow: 1,
       justifyContent: 'center',
+    },
+    accountSelector: {
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
     },
     keypad: {
       flexGrow: 1,
@@ -380,6 +388,17 @@ function SwapsAmountView({
     })();
   }, [isTokenInBalances, selectedAddress, sourceToken]);
 
+  useEffect(() => {
+    setAmount('0');
+    setSourceToken(
+      swapsTokens?.find((token) =>
+        toLowerCaseEquals(token.address, initialSource),
+      ),
+    );
+    setDestinationToken(null);
+    setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+  }, [selectedAddress, swapsTokens, initialSource]);
+
   const hasInvalidDecimals = useMemo(() => {
     if (sourceToken) {
       return amount?.split('.')[1]?.length > sourceToken.decimals;
@@ -627,6 +646,9 @@ function SwapsAmountView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
+        <View style={styles.accountSelector}>
+          <AccountSelector />
+        </View>
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
