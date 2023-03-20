@@ -3,6 +3,10 @@ import Confirm from '.';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
+import Engine from '../../../../core/Engine';
+
+Engine.init();
+
 const initialState = {
   engine: {
     backgroundState: {
