@@ -12,7 +12,7 @@ import {
   BackHandler,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import StyledButton from '../../UI/StyledButton';
@@ -261,10 +261,10 @@ class Login extends PureComponent {
     const authData = await Authentication.getType();
 
     //Setup UI to handle Biometric
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await MMKVStorage.getString(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVStorage.getString(
       PASSCODE_DISABLED,
     );
 

@@ -136,7 +136,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
   const styles = createStyles(colors);
 
   const recordSeenModal = async () => {
-    const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+    const version = await MMKVStorage.getString(CURRENT_APP_VERSION);
     await MMKVStorage.set(WHATS_NEW_APP_VERSION_SEEN, version as string);
   };
 

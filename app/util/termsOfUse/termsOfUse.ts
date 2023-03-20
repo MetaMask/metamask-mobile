@@ -26,7 +26,7 @@ const useTermsDisplayed = () => {
 export default async function navigateTermsOfUse(
   navigate: (key: string, params: any) => void,
 ) {
-  const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
+  const isUseTermsAccepted = await MMKVStorage.getString(USE_TERMS);
   if (!isUseTermsAccepted) {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_MANDATORY,

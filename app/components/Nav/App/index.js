@@ -242,7 +242,7 @@ const App = ({ userLoggedIn }) => {
     const appTriggeredAuth = async () => {
       const { PreferencesController } = Engine.context;
       const selectedAddress = PreferencesController.state.selectedAddress;
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await MMKVStorage.getString(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
@@ -348,7 +348,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function checkExisting() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await MMKVStorage.getString(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
@@ -361,17 +361,17 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const existingUser = await MMKVStorage.getString(EXISTING_USER);
       try {
         const currentVersion = getVersion();
-        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+        const savedVersion = await MMKVStorage.getString(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
             await MMKVStorage.set(LAST_APP_VERSION, savedVersion);
           await MMKVStorage.set(CURRENT_APP_VERSION, currentVersion);
         }
 
-        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+        const lastVersion = await MMKVStorage.getString(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
             // Setting last version to first version if user exists and lastVersion does not, to simulate update

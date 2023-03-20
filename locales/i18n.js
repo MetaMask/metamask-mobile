@@ -133,7 +133,7 @@ export function strings(name, params = {}) {
 
 // Allow persist locale after app closed
 async function getUserPreferableLocale() {
-  const locale = await AsyncStorage.getItem(LANGUAGE);
+  const locale = await MMKVStorage.getString(LANGUAGE);
   if (locale) {
     I18n.locale = locale;
   }

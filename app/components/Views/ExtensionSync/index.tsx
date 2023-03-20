@@ -206,7 +206,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
           pass: opts.password,
         });
         await MMKVStorage.set(EXISTING_USER, TRUE);
-        await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+        await MMKVStorage.delete(SEED_PHRASE_HINTS);
         passwordHasBeenSet();
         setLogIn();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -281,7 +281,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
             {
               text: strings('sync_with_extension.warning_cancel_button'),
               onPress: async () => {
-                await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+                await MMKVStorage.delete(BIOMETRY_CHOICE);
                 await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
                 finishSync({ biometrics: false, password });
               },
@@ -291,7 +291,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
               text: strings('sync_with_extension.warning_ok_button'),
               onPress: async () => {
                 await MMKVStorage.set(BIOMETRY_CHOICE, biometryType as string);
-                await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+                await MMKVStorage.delete(BIOMETRY_CHOICE_DISABLED);
                 finishSync({ biometrics: true, biometryType, password });
               },
             },

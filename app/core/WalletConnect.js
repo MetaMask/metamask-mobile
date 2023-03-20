@@ -358,7 +358,7 @@ class WalletConnect {
 
 const instance = {
   async init() {
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await MMKVStorage.getString(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
 
@@ -419,7 +419,7 @@ const instance = {
   },
   getSessions: async () => {
     let sessions = [];
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await MMKVStorage.getString(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       sessions = JSON.parse(sessionData);
     }

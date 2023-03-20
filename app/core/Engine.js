@@ -566,7 +566,7 @@ class Engine {
     const { type: networkType } = NetworkController.state.providerConfig;
     const { networkId } = Networks[networkType];
     try {
-      const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem(
+      const lastIncomingTxBlockInfoStr = await MMKVStorage.getString(
         LAST_INCOMING_TX_BLOCK_INFO,
       );
       const allLastIncomingTxBlocks =

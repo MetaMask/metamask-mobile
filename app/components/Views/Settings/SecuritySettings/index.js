@@ -316,7 +316,7 @@ class Settings extends PureComponent {
     this.updateNavBar();
     trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
     const analyticsEnabled = MetaMetrics.checkEnabled();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await MMKVStorage.getString(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -506,7 +506,7 @@ class Settings extends PureComponent {
     const { hintText } = this.state;
     if (!hintText) return;
     this.toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await MMKVStorage.getString(
       SEED_PHRASE_HINTS,
     );
     const parsedHints = JSON.parse(currentSeedphraseHints);

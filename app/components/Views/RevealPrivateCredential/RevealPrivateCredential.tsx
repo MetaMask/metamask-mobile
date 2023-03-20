@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
   DefaultTabBar,
@@ -163,7 +163,7 @@ const RevealPrivateCredential = ({
       if (!passwordSet) {
         tryUnlockWithPassword('');
       } else if (availableBiometryType) {
-        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+        const biometryChoice = await MMKVStorage.getString(BIOMETRY_CHOICE);
         if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
           const credentials = await Authentication.getPassword();
           if (credentials) {

@@ -29,7 +29,7 @@ describe('Authentication', () => {
   });
 
   afterEach(() => {
-    AsyncStorage.clear();
+    MMKVStorage.clearAll();
     jest.restoreAllMocks();
   });
 

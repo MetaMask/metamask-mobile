@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
@@ -24,7 +24,7 @@ const useDeleteWallet = () => {
 
   const deleteUser = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem(EXISTING_USER);
+      await MMKVStorage.delete(EXISTING_USER);
     } catch (error: any) {
       const errorMsg = `Failed to remove key: ${EXISTING_USER} from AsyncStorage`;
       Logger.log(error, errorMsg);

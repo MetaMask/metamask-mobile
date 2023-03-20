@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -343,10 +343,10 @@ class ResetPassword extends PureComponent {
 
     const state = { view: CONFIRM_PASSWORD };
     const authData = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await MMKVStorage.getString(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVStorage.getString(
       PASSCODE_DISABLED,
     );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)

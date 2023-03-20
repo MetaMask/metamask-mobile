@@ -75,8 +75,8 @@ export default {
 
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
-    await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-    await AsyncStorage.removeItem(PASSCODE_CHOICE);
+    await MMKVStorage.delete(BIOMETRY_CHOICE);
+    await MMKVStorage.delete(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
     MetaMetrics.applyAuthenticationUserProperty(AUTHENTICATION_TYPE.PASSWORD);
     return Keychain.resetGenericPassword(options);
@@ -130,8 +130,8 @@ export default {
     if (type === this.TYPES.BIOMETRICS) {
       await MMKVStorage.set(BIOMETRY_CHOICE, TRUE);
       await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
-      await AsyncStorage.removeItem(PASSCODE_CHOICE);
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await MMKVStorage.delete(PASSCODE_CHOICE);
+      await MMKVStorage.delete(BIOMETRY_CHOICE_DISABLED);
 
       // If the user enables biometrics, we're trying to read the password
       // immediately so we get the permission prompt
@@ -139,14 +139,14 @@ export default {
         await this.getGenericPassword();
       }
     } else if (type === this.TYPES.PASSCODE) {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-      await AsyncStorage.removeItem(PASSCODE_DISABLED);
+      await MMKVStorage.delete(BIOMETRY_CHOICE);
+      await MMKVStorage.delete(PASSCODE_DISABLED);
       await MMKVStorage.set(PASSCODE_CHOICE, TRUE);
       await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else if (type === this.TYPES.REMEMBER_ME) {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE);
+      await MMKVStorage.delete(BIOMETRY_CHOICE);
       await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
-      await AsyncStorage.removeItem(PASSCODE_CHOICE);
+      await MMKVStorage.delete(PASSCODE_CHOICE);
       await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
       //Don't need to add any parameter
     }

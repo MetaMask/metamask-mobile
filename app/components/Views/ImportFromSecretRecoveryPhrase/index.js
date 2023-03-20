@@ -15,7 +15,7 @@ import { connect } from 'react-redux';
 import zxcvbn from 'zxcvbn';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import DefaultPreference from 'react-native-default-preference';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -121,10 +121,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await AsyncStorage.getItem(
+      const previouslyDisabled = await MMKVStorage.getString(
         BIOMETRY_CHOICE_DISABLED,
       );
-      const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      const passcodePreviouslyDisabled = await MMKVStorage.getString(
         PASSCODE_DISABLED,
       );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {

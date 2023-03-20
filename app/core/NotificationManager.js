@@ -280,7 +280,7 @@ class NotificationManager {
    * with a custom set of rules, like max. number of attempts
    */
   requestPushNotificationsPermission = async () => {
-    const promptCount = await AsyncStorage.getItem(
+    const promptCount = await MMKVStorage.getString(
       PUSH_NOTIFICATIONS_PROMPT_COUNT,
     );
     if (

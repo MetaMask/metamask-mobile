@@ -129,7 +129,7 @@ class ManualBackupStep3 extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await MMKVStorage.getString(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -178,7 +178,7 @@ class ManualBackupStep3 extends PureComponent {
       return;
     }
     this.toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await MMKVStorage.getString(
       SEED_PHRASE_HINTS,
     );
     const parsedHints = JSON.parse(currentSeedphraseHints);

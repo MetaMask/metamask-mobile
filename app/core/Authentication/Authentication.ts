@@ -87,8 +87,8 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController }: any = Engine.context;
     await KeyringController.submitPassword(password);
-    const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const encryptionLib = await MMKVStorage.getString(ENCRYPTION_LIB);
+    const existingUser = await MMKVStorage.getString(EXISTING_USER);
     if (encryptionLib !== ORIGINAL && existingUser) {
       try {
         await recreateVaultWithSamePassword(password, selectedAddress);
@@ -154,10 +154,10 @@ class AuthenticationService {
   private checkAuthenticationMethod = async (): Promise<AuthData> => {
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+    const biometryPreviouslyDisabled = await MMKVStorage.getString(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVStorage.getString(
       PASSCODE_DISABLED,
     );
 
@@ -178,7 +178,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await MMKVStorage.getString(EXISTING_USER);
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
@@ -281,10 +281,10 @@ class AuthenticationService {
   ): Promise<AuthData> => {
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+    const biometryPreviouslyDisabled = await MMKVStorage.getString(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVStorage.getString(
       PASSCODE_DISABLED,
     );
 
@@ -334,7 +334,7 @@ class AuthenticationService {
       await this.createWalletVaultAndKeychain(password);
       await this.storePassword(password, authData?.currentAuthType);
       await MMKVStorage.set(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await MMKVStorage.delete(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
@@ -365,7 +365,7 @@ class AuthenticationService {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
       await MMKVStorage.set(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await MMKVStorage.delete(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {

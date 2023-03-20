@@ -307,10 +307,10 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     const authData = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await MMKVStorage.getString(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await MMKVStorage.getString(
       PASSCODE_DISABLED,
     );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -417,7 +417,7 @@ class ChoosePassword extends PureComponent {
       }
       // Set state in app as it was with no password
       await MMKVStorage.set(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await MMKVStorage.delete(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
       // Should we force people to enable passcode / biometrics?

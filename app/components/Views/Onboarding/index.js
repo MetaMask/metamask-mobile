@@ -12,7 +12,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import {
@@ -263,8 +263,8 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-    if (existingUser !== null) {
+    const existingUser = await MMKVStorage.getString(EXISTING_USER);
+    if (existingUser) {
       this.setState({ existingUser: true });
     }
   }
