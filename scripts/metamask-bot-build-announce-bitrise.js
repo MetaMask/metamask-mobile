@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// eslint-disable-next-line import/no-commonjs
 const axios = require('axios');
 
 const ANDROID_APK_LINK = process.env.BITRISE_PUBLIC_INSTALL_PAGE_URL;
