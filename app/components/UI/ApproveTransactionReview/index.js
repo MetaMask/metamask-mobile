@@ -264,8 +264,9 @@ class ApproveTransactionReview extends PureComponent {
     WALLET_CONNECT_ORIGIN,
   );
 
-  originIsMMSDKRemoteConn =
-    this.props.transaction.origin?.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN);
+  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
+    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+  );
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;

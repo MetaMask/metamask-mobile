@@ -107,7 +107,9 @@ class MessageSign extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          )) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
