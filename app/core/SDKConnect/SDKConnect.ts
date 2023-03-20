@@ -45,6 +45,7 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
+import { Json } from '@metamask/controller-utils';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -571,11 +572,6 @@ export class Connection extends EventEmitter2 {
       return true;
     }
 
-    console.debug(
-      `Connection::checkPermissions approved=${approved} ** selectedAddress=${selectedAddress} origin=${this.origin} otps=${this.otps}`,
-      this.otps,
-    );
-
     if (!this.initialConnection && AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       this.revalidate({ channelId: this.channelId });
     }
@@ -601,7 +597,7 @@ export class Connection extends EventEmitter2 {
                 AppConstants.MM_SDK.UNKNOWN_PARAM,
             ),
           },
-        },
+        } as Json,
       },
       id: random(),
     });
