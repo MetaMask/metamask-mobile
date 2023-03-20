@@ -21,6 +21,10 @@ export default class WalletView {
     await TestHelpers.tapAlertWithButton('OK');
   }
 
+  static async tapOnToken(token) {
+    await TestHelpers.waitAndTap(`asset-${token}`);
+  }
+
   static async tapIdenticon() {
     await TestHelpers.tap(WALLET_ACCOUNT_ICON);
   }

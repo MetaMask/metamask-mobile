@@ -45,7 +45,6 @@ export default class AssetElement extends PureComponent {
      * Callback triggered on long press
      */
     onLongPress: PropTypes.func,
-    testID: PropTypes.string,
   };
 
   handleOnPress = () => {
@@ -62,13 +61,14 @@ export default class AssetElement extends PureComponent {
     const { children } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const { asset } = this.props;
 
     return (
       <TouchableOpacity
         onPress={this.handleOnPress}
         onLongPress={this.handleOnLongPress}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, this.props.testID)}
+        {...generateTestId(Platform, `asset-${asset.symbol}`)}
       >
         {children}
         <View styles={styles.arrow}>

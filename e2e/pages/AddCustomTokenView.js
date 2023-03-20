@@ -57,7 +57,7 @@ export default class AddCustomTokenView {
     }
   }
 
-  static async pasteTokenAddress(address){
+  static async pasteTokenAddress(address) {
     await TestHelpers.tap(TOKEN_ADDRESS_INPUT_BOX_ID);
     await TestHelpers.replaceTextInField(TOKEN_ADDRESS_INPUT_BOX_ID, address);
   }
