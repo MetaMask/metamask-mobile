@@ -68,7 +68,7 @@ export default class AssetElement extends PureComponent {
         onPress={this.handleOnPress}
         onLongPress={this.handleOnLongPress}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, this.testID)}
+        {...generateTestId(Platform, this.props.testID)}
       >
         {children}
         <View styles={styles.arrow}>
