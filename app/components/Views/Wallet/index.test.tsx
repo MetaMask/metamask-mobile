@@ -28,6 +28,12 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+// TODO: Convert STRINGs into a mock SVG component
+jest.mock(
+  '../../../component-library/components/Icons/Icon/assets/diagram.svg',
+  () => 'STRINGs',
+);
+
 const initialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {

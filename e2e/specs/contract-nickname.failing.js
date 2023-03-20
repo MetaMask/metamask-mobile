@@ -24,6 +24,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import TestHelpers from '../helpers';
+import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Adding Contract Nickname', () => {
@@ -54,6 +55,7 @@ describe('Adding Contract Nickname', () => {
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
 
+    await acceptTermOfUse();
     await ImportWalletView.isVisible();
   });
 
