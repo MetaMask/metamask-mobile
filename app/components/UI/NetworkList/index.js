@@ -11,7 +11,6 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks, {
@@ -21,7 +20,9 @@ import Networks, {
 } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
@@ -205,7 +206,7 @@ export class NetworkList extends PureComponent {
     } else {
       onClose(false);
     }
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: type,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,
@@ -249,7 +250,7 @@ export class NetworkList extends PureComponent {
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,

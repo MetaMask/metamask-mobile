@@ -11,10 +11,9 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
-
+import { getSendFlowTitle } from '../../../UI/Navbar';
+import { AddressFrom, AddressTo } from '../AddressInputs';
 import PropTypes from 'prop-types';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-
 import Eth from 'ethjs-query';
 import {
   renderFromWei,
@@ -52,6 +51,8 @@ import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import Analytics from '../../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
@@ -61,7 +62,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
-import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/confusables';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
@@ -71,8 +72,6 @@ import TransactionReview from '../../../UI/TransactionReview/TransactionReviewEI
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import CustomNonce from '../../../UI/CustomNonce';
-import { getSendFlowTitle } from '../../../UI/Navbar';
-import { AddressFrom, AddressTo } from '../AddressInputs';
 import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
@@ -370,7 +369,7 @@ class Confirm extends PureComponent {
       pollToken,
     });
     // For analytics
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -492,7 +491,9 @@ class Confirm extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
-        trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+        Analytics.trackEvent(
+          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+        );
       });
     }
   };
@@ -790,7 +791,7 @@ class Confirm extends PureComponent {
           assetType,
         });
         this.checkRemoveCollectible();
-        trackEvent(
+        AnalyticsV2.trackEvent(
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
@@ -807,7 +808,9 @@ class Confirm extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
-        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        );
       }
     }
     this.setState({ transactionConfirmed: false });
@@ -1101,7 +1104,7 @@ class Confirm extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

@@ -11,7 +11,7 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
@@ -64,7 +64,7 @@ const Step4 = (props) => {
    */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(5);
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 4,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
     });
@@ -75,7 +75,7 @@ const Step4 = (props) => {
    */
   const onBack = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(3);
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 4,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
     });
