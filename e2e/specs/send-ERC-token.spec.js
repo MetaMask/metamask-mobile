@@ -17,15 +17,20 @@ import AddCustomTokenView from '../pages/AddCustomTokenView';
 import SendView from '../pages/SendView';
 import AmountView from '../pages/AmountView';
 import ConfirmView from '../pages/ConfirmView.js';
+import Accounts from '../../wdio/helpers/Accounts';
+import { acceptTermOfUse } from '../viewHelper';
 
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven'; //TODO: put in vault later
-const PASSWORD = `12345678`;
 const AVAX_URL = 'https://api.avax-test.network/ext/C/rpc';
 const TOKEN_ADDRESS = '0x5425890298aed601595a70AB815c96711a31Bc65';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe('Send ERC Token', () => {
+  let validAccount;
+
+  beforeAll(() => {
+    validAccount = Accounts.getValidAccount();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -39,14 +44,15 @@ describe('Send ERC Token', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });
 
   it('should import wallet with valid secret recovery phrase', async () => {
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
+    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+    await ImportWalletView.enterPassword(validAccount.password);
+    await ImportWalletView.reEnterPassword(validAccount.password);
     // await TestHelpers.delay(3500);
     await EnableAutomaticSecurityChecksView.isVisible();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
