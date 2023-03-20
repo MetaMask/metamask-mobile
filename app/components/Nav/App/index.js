@@ -8,7 +8,7 @@ import React, {
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -367,18 +367,18 @@ const App = ({ userLoggedIn }) => {
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
-            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+            await MMKVStorage.set(LAST_APP_VERSION, savedVersion);
+          await MMKVStorage.set(CURRENT_APP_VERSION, currentVersion);
         }
 
         const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
             // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+            await MMKVStorage.set(LAST_APP_VERSION, '0.0.1');
           } else {
             // Setting last version to current version so that it's not treated as an update
-            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+            await MMKVStorage.set(LAST_APP_VERSION, currentVersion);
           }
         }
       } catch (error) {

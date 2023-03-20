@@ -15,7 +15,7 @@ import {
 import zxcvbn from 'zxcvbn';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import { connect } from 'react-redux';
 import AnimatedFox from 'react-native-animated-fox';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -416,7 +416,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await MMKVStorage.set(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);

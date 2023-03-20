@@ -4,7 +4,7 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from './Storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -50,7 +50,7 @@ const persistSessions = async () => {
       lastTimeConnected: new Date(),
     }));
 
-  await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
+  await MMKVStorage.set(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
 };
 
 const waitForInitialization = async () => {

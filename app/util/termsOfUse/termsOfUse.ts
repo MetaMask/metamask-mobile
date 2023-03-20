@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../core/Storage';
 import AppConstants from '../../core/AppConstants';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { trackEvent } from '../analyticsV2';
@@ -11,7 +11,7 @@ import {
 } from '../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
 
 const onConfirmUseTerms = async () => {
-  await AsyncStorage.setItem(USE_TERMS, TRUE);
+  await MMKVStorage.set(USE_TERMS, TRUE);
   trackEvent(MetaMetricsEvents.USER_TERMS, {
     value: AppConstants.TERMS_OF_USE.TERMS_ACCEPTED,
   });

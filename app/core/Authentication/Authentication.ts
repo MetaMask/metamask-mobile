@@ -1,7 +1,7 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { recreateVaultWithSamePassword } from '../Vault';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../Storage';
 import {
   ENCRYPTION_LIB,
   ORIGINAL,
@@ -92,7 +92,7 @@ class AuthenticationService {
     if (encryptionLib !== ORIGINAL && existingUser) {
       try {
         await recreateVaultWithSamePassword(password, selectedAddress);
-        await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+        await MMKVStorage.set(ENCRYPTION_LIB, ORIGINAL);
       } catch (e: any) {
         throw new AuthenticationError(
           (e as Error).message,
@@ -333,7 +333,7 @@ class AuthenticationService {
     try {
       await this.createWalletVaultAndKeychain(password);
       await this.storePassword(password, authData?.currentAuthType);
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await MMKVStorage.set(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
@@ -364,7 +364,7 @@ class AuthenticationService {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await MMKVStorage.set(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;

@@ -27,7 +27,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
 } from '../../../constants/storage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
@@ -205,7 +205,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
           importedAccounts: importedAccountsRef.current,
           pass: opts.password,
         });
-        await AsyncStorage.setItem(EXISTING_USER, TRUE);
+        await MMKVStorage.set(EXISTING_USER, TRUE);
         await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
         passwordHasBeenSet();
         setLogIn();
@@ -282,7 +282,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
               text: strings('sync_with_extension.warning_cancel_button'),
               onPress: async () => {
                 await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-                await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+                await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
                 finishSync({ biometrics: false, password });
               },
               style: 'cancel',
@@ -290,10 +290,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
             {
               text: strings('sync_with_extension.warning_ok_button'),
               onPress: async () => {
-                await AsyncStorage.setItem(
-                  BIOMETRY_CHOICE,
-                  biometryType as string,
-                );
+                await MMKVStorage.set(BIOMETRY_CHOICE, biometryType as string);
                 await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
                 finishSync({ biometrics: true, biometryType, password });
               },

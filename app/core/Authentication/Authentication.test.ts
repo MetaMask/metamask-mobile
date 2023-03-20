@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../Storage';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -46,8 +46,8 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('FaceID');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
@@ -66,7 +66,7 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSCODE);
@@ -76,8 +76,8 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toEqual('Fingerprint');
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);
@@ -89,7 +89,7 @@ describe('Authentication', () => {
     SecureKeychain.getGenericPassword = jest
       .fn()
       .mockReturnValue(mockCredentials);
-    await AsyncStorage.setItem(EXISTING_USER, TRUE);
+    await MMKVStorage.set(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -97,7 +97,7 @@ describe('Authentication', () => {
 
   it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user exists and there are no available biometrics options but the password does not exist in the keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
-    await AsyncStorage.setItem(EXISTING_USER, TRUE);
+    await MMKVStorage.set(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -109,7 +109,7 @@ describe('Authentication', () => {
     SecureKeychain.getGenericPassword = jest
       .fn()
       .mockReturnValue(mockCredentials);
-    await AsyncStorage.setItem(EXISTING_USER, TRUE);
+    await MMKVStorage.set(EXISTING_USER, TRUE);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -119,7 +119,7 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.componentAuthenticationType(
       false,
       true,
@@ -132,8 +132,8 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
     const result = await Authentication.componentAuthenticationType(
       false,
       false,
@@ -146,7 +146,7 @@ describe('Authentication', () => {
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
     const result = await Authentication.componentAuthenticationType(
       true,
       false,

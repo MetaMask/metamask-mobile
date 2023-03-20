@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../core/Storage';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
@@ -10,8 +10,8 @@ export const updateAuthTypeStorageFlags = async (
   newBiometryChoice: boolean,
 ) => {
   if (!newBiometryChoice) {
-    await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+    await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
+    await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
   } else {
     await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
     await AsyncStorage.removeItem(PASSCODE_DISABLED);

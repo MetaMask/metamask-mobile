@@ -31,7 +31,7 @@ import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from './Storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -620,7 +620,7 @@ class Engine {
           lastCheck: Date.now(),
         };
       }
-      await AsyncStorage.setItem(
+      await MMKVStorage.set(
         LAST_INCOMING_TX_BLOCK_INFO,
         JSON.stringify(allLastIncomingTxBlocks),
       );

@@ -12,7 +12,7 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../../core/Storage';
 import { connect } from 'react-redux';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
@@ -372,15 +372,15 @@ class Settings extends PureComponent {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
+      await MMKVStorage.set(EXISTING_USER, TRUE);
 
       if (!enabled) {
         this.setState({ [type]: false, loading: false });
         if (type === PASSCODE_CHOICE_STRING) {
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
         } else if (type === BIOMETRY_CHOICE_STRING) {
-          await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+          await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
         }
 
         return;
@@ -510,7 +510,7 @@ class Settings extends PureComponent {
       SEED_PHRASE_HINTS,
     );
     const parsedHints = JSON.parse(currentSeedphraseHints);
-    await AsyncStorage.setItem(
+    await MMKVStorage.set(
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );

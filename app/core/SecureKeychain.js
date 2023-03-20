@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../core/Storage';
 import { Platform } from 'react-native';
 import { MetaMetricsEvents, MetaMetrics } from '../core/Analytics';
 import {
@@ -128,8 +128,8 @@ export default {
     });
 
     if (type === this.TYPES.BIOMETRICS) {
-      await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+      await MMKVStorage.set(BIOMETRY_CHOICE, TRUE);
+      await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
       await AsyncStorage.removeItem(PASSCODE_CHOICE);
       await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
 
@@ -141,13 +141,13 @@ export default {
     } else if (type === this.TYPES.PASSCODE) {
       await AsyncStorage.removeItem(BIOMETRY_CHOICE);
       await AsyncStorage.removeItem(PASSCODE_DISABLED);
-      await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await MMKVStorage.set(PASSCODE_CHOICE, TRUE);
+      await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else if (type === this.TYPES.REMEMBER_ME) {
       await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+      await MMKVStorage.set(PASSCODE_DISABLED, TRUE);
       await AsyncStorage.removeItem(PASSCODE_CHOICE);
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await MMKVStorage.set(BIOMETRY_CHOICE_DISABLED, TRUE);
       //Don't need to add any parameter
     }
   },

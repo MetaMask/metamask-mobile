@@ -13,7 +13,7 @@ import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../../../core/Storage';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
@@ -137,7 +137,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
 
   const recordSeenModal = async () => {
     const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-    await AsyncStorage.setItem(WHATS_NEW_APP_VERSION_SEEN, version as string);
+    await MMKVStorage.set(WHATS_NEW_APP_VERSION_SEEN, version as string);
   };
 
   const dismissModal = (callback?: () => void) =>

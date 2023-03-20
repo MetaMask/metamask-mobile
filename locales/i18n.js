@@ -1,5 +1,5 @@
 import ReactNative from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from '../app/core/Storage';
 import I18n from 'react-native-i18n';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -98,7 +98,7 @@ export const isRTL = false; // currentLocale.indexOf('jaJp') === 0;
 export async function setLocale(locale) {
   I18n.locale = locale;
   // Platform.OS === 'ios' && getLocaleData(locale);
-  await AsyncStorage.setItem(LANGUAGE, locale);
+  await MMKVStorage.set(LANGUAGE, locale);
   I18nEvents.emit('localeChanged', locale);
 }
 

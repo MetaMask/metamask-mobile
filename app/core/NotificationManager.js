@@ -7,7 +7,7 @@ import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { Alert, AppState } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKVStorage } from './Storage';
 import AppConstants from './AppConstants';
 import {
   PUSH_NOTIFICATIONS_PROMPT_COUNT,
@@ -307,12 +307,9 @@ class NotificationManager {
           );
 
           const times = (promptCount && Number(promptCount) + 1) || 1;
-          AsyncStorage.setItem(
-            PUSH_NOTIFICATIONS_PROMPT_COUNT,
-            times.toString(),
-          );
+          MMKVStorage.set(PUSH_NOTIFICATIONS_PROMPT_COUNT, times.toString());
           // In case we want to prompt again after certain time.
-          AsyncStorage.setItem(
+          MMKVStorage.set(
             PUSH_NOTIFICATIONS_PROMPT_TIME,
             Date.now().toString(),
           );
