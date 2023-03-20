@@ -332,6 +332,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           prices={prices}
           priceDiff={priceDiff}
           isLoading={isLoading}
+          currentCurrency={currentCurrency}
         />
         <View style={styles.chartNavigationWrapper}>
           {['1d', '1w', '1m', '3m', '1y', '3y'].map((label) => (
