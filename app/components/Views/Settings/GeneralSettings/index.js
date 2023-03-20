@@ -8,6 +8,7 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 
@@ -34,6 +35,8 @@ import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { HIDE_TOKENS_WITHOUT_BALANCE_TOGGLE } from '../../../../../wdio/screen-objects/testIDs/Screens/GeneralScreen.testids';
 // import { AppThemeKey } from '../../../../util/theme/models';
 // import StyledButton from '../../../UI/StyledButton';
 
@@ -405,6 +408,10 @@ class Settings extends PureComponent {
                 thumbColor={importedColors.white}
                 style={styles.switch}
                 ios_backgroundColor={colors.border.muted}
+                {...generateTestId(
+                  Platform,
+                  HIDE_TOKENS_WITHOUT_BALANCE_TOGGLE,
+                )}
               />
             </View>
           </View>

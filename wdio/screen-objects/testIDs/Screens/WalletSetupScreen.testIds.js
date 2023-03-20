@@ -18,3 +18,6 @@ export const SKIP_BACKUP_MODAL = 'skip-backup-modal';
 export const SKIP_BUTTON = 'Skip-button';
 export const SKIP_ACCOUNT_SECURITY_MODAL = 'skip_backup_warning';
 export const PROTECT_YOUR_WALLET_CONTAINER_ID = 'protect-your-account-screen';
+export const ONBOARDING_SCREEN_ID = 'onboarding-screen';
+export const IMPORT_FROM_SEED_BUTTON_ID =
+  'wallet-setup-screen-import-from-seed-button-id';

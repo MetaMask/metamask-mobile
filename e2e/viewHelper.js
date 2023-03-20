@@ -12,7 +12,7 @@ import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
 
 import TestHelpers from './helpers';
-import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
+import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
 const PASSWORD = '12345678';
