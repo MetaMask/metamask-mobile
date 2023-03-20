@@ -1,4 +1,9 @@
-import { parseWaitTime } from '.';
+import { parseWaitTime, getGasLimit } from '.'
+import Engine from '../../core/Engine';
+
+Engine.init({
+  TransactionController: {}
+})
 
 describe('CustomGas utils :: parseWaitTime', () => {
   it('parseWaitTime', () => {
@@ -26,3 +31,17 @@ describe('CustomGas utils :: parseWaitTime', () => {
     expect(parseWaitTime(3360, 'hr', 'min', 'sec')).toEqual('2day 8hr');
   });
 });
+
+describe('CustomGas Util:: GetGasLimit', () => {
+  it('getGasLimit', async () => {
+    const estimate = await getGasLimit({gas: '0xF4240', gasPrice: '1234'})
+    expect(estimate.gas.toNumber()).toEqual(21000)
+  })
+
+  
+  it('getGasLimit resetState', async () => {
+    const estimate = await getGasLimit({gas: '0x5208', gasPrice: '1234'}, true)
+
+    expect(estimate.gas.toNumber()).toEqual(21000)
+  })
+})

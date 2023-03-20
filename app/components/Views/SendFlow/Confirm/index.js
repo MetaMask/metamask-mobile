@@ -471,8 +471,7 @@ class Confirm extends PureComponent {
       prepareTransaction,
       transactionState: { transaction },
     } = this.props;
-    const newTransaction = { ...transaction, gas: undefined };
-    const estimation = await getGasLimit(newTransaction);
+    const estimation = await getGasLimit(transaction, true);
     prepareTransaction({ ...transaction, ...estimation });
   };
 
