@@ -77,7 +77,6 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
-import { set } from 'lodash';
 
 const createStyles = (colors) =>
   StyleSheet.create({
