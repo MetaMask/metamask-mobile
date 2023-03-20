@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import AssetActionButton from './';
+import AssetActionButton from '.';
 
 describe('AssetActionButtons', () => {
   const mockText = 'mock text';

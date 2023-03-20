@@ -1,18 +1,25 @@
-import React from 'react';
+import useTokenDescriptions, {
+  TokenDescriptions,
+} from '../../../hooks/useTokenDescriptions';
+import { zeroAddress } from 'ethereumjs-util';
+import React, { useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { Asset } from '../AssetOverview.types';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import ContentDisplay from './ContentDisplay';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import i18n from '../../../../.././locales/i18n';
 
-const createStyles = () => {
-  const grey = '#535A61';
-  return StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
     wrapper: {
-      paddingHorizontal: 16,
+      marginTop: 20,
     },
     text: {
       fontSize: 14,
-      color: grey,
+      color: colors.text.alternative,
       marginVertical: 0,
       lineHeight: 22,
     },
@@ -24,21 +31,58 @@ const createStyles = () => {
       marginBottom: 4,
     },
   });
-};
 
 interface AboutAssetProps {
   asset: Asset;
+  chainId: string;
 }
-const AboutAsset = ({ asset }: AboutAssetProps) => {
-  const styles = createStyles();
+
+const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
+  const { colors = mockTheme.colors } = useContext(ThemeContext);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const locale: keyof TokenDescriptions = i18n.locale;
+
+  const { data: descriptions, isLoading: isDescriptionLoading } =
+    useTokenDescriptions({
+      address: asset.address || zeroAddress(),
+      chainId: chainId as string,
+    });
+
+  const description = descriptions[locale] || descriptions.en;
+
+  if (!isDescriptionLoading && !description) {
+    return null;
+  }
+
   return (
     <View style={styles.wrapper}>
       <Title style={styles.title}>About</Title>
-      <Text style={styles.text}>
-        {asset.symbol} Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        Praesent cursus sit amet dolor vitae luctus. Mauris sed mauris at purus
-        pulvinar eleifend eu non elit.
-      </Text>
+      {isDescriptionLoading ? (
+        <View>
+          <SkeletonPlaceholder>
+            <SkeletonPlaceholder.Item
+              width={'100%'}
+              height={18}
+              borderRadius={6}
+              marginBottom={8}
+            />
+            <SkeletonPlaceholder.Item
+              width={'100%'}
+              height={18}
+              borderRadius={6}
+              marginBottom={8}
+            />
+            <SkeletonPlaceholder.Item
+              width={'100%'}
+              height={18}
+              borderRadius={6}
+              marginBottom={8}
+            />
+          </SkeletonPlaceholder>
+        </View>
+      ) : (
+        <ContentDisplay content={description} />
+      )}
     </View>
   );
 };

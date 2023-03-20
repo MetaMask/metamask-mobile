@@ -34,7 +34,7 @@ import {
 import { isSwapsAllowed } from '../Swaps/utils';
 
 import Identicon from '../Identicon';
-import AssetActionButton from '../AssetActionButton';
+import AssetActionButton from '../AssetOverview-V2/AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOnRampAggregator';

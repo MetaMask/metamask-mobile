@@ -1,26 +1,26 @@
-import React from 'react';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import React, { useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 
-const createStyles = () => {
-  const grey = '#535A61';
-  return StyleSheet.create({
-    wrapper: {
-      paddingHorizontal: 16,
-    },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    wrapper: {},
     text: {
       fontSize: 12,
-      color: grey,
+      color: colors.text.alternative,
       marginVertical: 0,
+      lineHeight: 20,
     },
     fiatBalance: {
       fontSize: 18,
       fontWeight: 'bold',
       marginVertical: 0,
+      lineHeight: 24,
     },
   });
-};
 
 interface BalanceProps {
   balance: string;
@@ -28,7 +28,9 @@ interface BalanceProps {
 }
 
 const Balance = ({ balance, fiatBalance }: BalanceProps) => {
-  const styles = createStyles();
+  const { colors = mockTheme.colors } = useContext(ThemeContext);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.wrapper}>
       <Text style={styles.text}>Your Balance</Text>

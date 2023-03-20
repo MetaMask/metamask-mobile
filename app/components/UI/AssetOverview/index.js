@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import AssetActionButton from '../AssetActionButton';
+import AssetActionButton from '../AssetOverview-V2/AssetActionButton';
 import TokenImage from '../../UI/TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';

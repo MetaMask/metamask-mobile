@@ -1,8 +1,10 @@
-import { TokenPrice } from 'app/components/hooks/Pricing/useTokenHistoricalPrices';
-import React from 'react';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
+import React, { useContext } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -28,6 +30,8 @@ interface PriceChartProps {
 }
 
 const PriceChart = ({ prices, priceDiff, isLoading }: PriceChartProps) => {
+  const { colors = mockTheme.colors as ThemeColors } = useContext(ThemeContext);
+
   if (isLoading) {
     return (
       <View style={styles.chartLoading}>
@@ -68,7 +72,11 @@ const PriceChart = ({ prices, priceDiff, isLoading }: PriceChartProps) => {
         backgroundGradientTo: '#FFF',
         backgroundGradientToOpacity: 0,
         color: () =>
-          priceDiff > 0 ? '#28A745' : priceDiff < 0 ? '#FF3B30' : '#535A61',
+          priceDiff > 0
+            ? '#28A745'
+            : priceDiff < 0
+            ? '#FF3B30'
+            : colors.text.alternative,
         strokeWidth: 2, // optional, default 3
         propsForDots: {
           r: '0',

@@ -26,7 +26,7 @@ import {
 } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { getEther } from '../../../util/transactions';
-import AssetActionButton from '../AssetActionButton';
+import AssetActionButton from './AssetActionButton';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -40,7 +40,7 @@ import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { zeroAddress } from 'ethereumjs-util';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import useTokenHistoricalPrices from '../../hooks/Pricing/useTokenHistoricalPrices';
+import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
 import { Asset } from './AssetOverview.types';
 import PriceChart from './PriceChart';
 import Price from './Price';
@@ -60,13 +60,9 @@ const createStyles = (colors: ThemeColors) =>
       flexDirection: 'row',
     },
     wrapper: {
-      flex: 1,
-      padding: 20,
+      paddingTop: 20,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border.muted,
-      alignContent: 'center',
-      alignItems: 'center',
-      paddingBottom: 30,
     },
     balance: {
       alignItems: 'center',
@@ -90,12 +86,6 @@ const createStyles = (colors: ThemeColors) =>
       ...fontStyles.light,
       textTransform: 'uppercase',
     },
-    actions: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'flex-start',
-      flexDirection: 'row',
-    },
     warning: {
       borderRadius: 8,
       color: colors.text.default,
@@ -118,7 +108,20 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: 20,
     },
     balanceWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+    },
+
+    balanceButtons: {
+      display: 'flex',
+      flexDirection: 'row',
+    },
+    aboutWrapper: {
       marginBottom: 20,
+      paddingHorizontal: 16,
     },
   });
 
@@ -133,7 +136,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   navigation,
   asset,
 }: AssetOverviewProps) => {
-  const [timePeriod, setTimePeriod] = React.useState('1d');
+  const [timePeriod, setTimePeriod] = React.useState<
+    '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y'
+  >('1d');
   const accounts = useSelector(
     (state: RootStateOrAny) =>
       state.engine.backgroundState.AccountTrackerController.accounts,
@@ -169,7 +174,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.address || zeroAddress(),
     chainId: chainId as string,
-    timePeriod: timePeriod as '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y',
+    timePeriod,
     vsCurrency: 'usd',
   });
 
@@ -248,7 +253,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   //     </Text>
   //   </TouchableOpacity>
   // );
-  const handleSelectTimePeriod = (_timePeriod: string) => {
+  const handleSelectTimePeriod = (
+    _timePeriod: '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y',
+  ) => {
     setTimePeriod(_timePeriod);
   };
 
@@ -285,6 +292,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       currentCurrency,
     );
   }
+  console.log({
+    balance,
+    balanceFiat,
+    fiatUnitPrice,
+    conversionRate,
+  });
   // choose balances depending on 'primaryCurrency'
   if (primaryCurrency === 'ETH') {
     mainBalance = `${balance} ${asset.symbol}`;
@@ -307,12 +320,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     >
       <View>
         <Price
-          symbol={asset.symbol}
+          asset={asset}
           priceDiff={priceDiff}
           currentCurrency={currentCurrency}
           currentPrice={currentPrice}
           comparePrice={comparePrice}
           isLoading={isLoading}
+          timePeriod={timePeriod}
         />
         <PriceChart
           prices={prices}
@@ -331,31 +345,26 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         </View>
         <View style={styles.balanceWrapper}>
           <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
+          <View style={styles.balanceButtons}>
+            <AssetActionButton icon="receive" onPress={onReceive} />
+            <AssetActionButton icon="send" onPress={onSend} />
+          </View>
         </View>
-        <View style={styles.balanceWrapper}>
-          <AboutAsset asset={asset} />
+        <View style={styles.aboutWrapper}>
+          <AboutAsset asset={asset} chainId={chainId} />
         </View>
       </View>
 
-      {!asset.balanceError && (
-        <View style={styles.actions}>
-          <AssetActionButton
-            icon="receive"
-            onPress={onReceive}
-            label={strings('asset_overview.receive_button')}
-          />
+      {/* {!asset.balanceError && (
+        <View>
           {asset.isETH && allowedToBuy(chainId) && (
             <AssetActionButton
-              icon="buy"
+              icon="add"
               onPress={onBuy}
               label={strings('asset_overview.buy_button')}
             />
           )}
-          <AssetActionButton
-            icon="send"
-            onPress={onSend}
-            label={strings('asset_overview.send_button')}
-          />
+
           {AppConstants.SWAPS.ACTIVE && (
             <AssetSwapButton
               isFeatureLive={swapsIsLive}
@@ -367,7 +376,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             />
           )}
         </View>
-      )}
+      )} */}
     </View>
   );
 };
