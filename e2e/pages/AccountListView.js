@@ -7,9 +7,9 @@ import {
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { CELL_SELECT_TEST_ID } from '../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
 
-import { strings } from '../../locales/i18n';
+import messages from '../../locales/languages/en.json';
 
-const REMOVE_IMPORTED_ACCOUNT_TEXT = strings('accounts.yes_remove_it');
+const REMOVE_IMPORTED_ACCOUNT_TEXT = messages.accounts.yes_remove_it;
 
 export default class AccountListView {
   static async tapCreateAccountButton() {

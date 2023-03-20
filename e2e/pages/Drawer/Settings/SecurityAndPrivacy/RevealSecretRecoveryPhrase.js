@@ -1,5 +1,5 @@
 import TestHelpers from '../../../../helpers';
-import { strings } from '../../../../../locales/i18n';
+import messages from '../../../../../locales/languages/en.json';
 
 const SECRET_RECOVERY_PHRASE_CONTAINER_ID = 'reveal-private-credential-screen';
 const PASSWORD_INPUT_BOX_ID = 'private-credential-password-text-input';
@@ -8,8 +8,7 @@ const REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID =
   'private-credential-touchable';
 const SECRET_RECOVERY_PHRASE_TEXT = 'private-credential-text';
 
-// this way if the strings ever change the tests will not break :)
-const PASSWORD_WARNING = strings('reveal_credential.unknown_error');
+const PASSWORD_WARNING = messages.reveal_credential.unknown_error;
 
 export default class RevealSecretRecoveryPhrase {
   static async enterPassword(password) {
