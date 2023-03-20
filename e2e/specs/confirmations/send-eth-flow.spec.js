@@ -6,21 +6,32 @@ import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import WalletView from '../../pages/WalletView';
 import {
   importWalletWithRecoveryPhrase,
-  switchToGoreliNetwork,
+  addLocalhostNetwork,
 } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import Accounts from '../../../wdio/helpers/Accounts';
+import Ganache from '../../../app/util/test/ganache';
 
+const validAccount = Accounts.getValidAccount();
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
 describe('Send ETH Tests', () => {
-  beforeEach(() => {
+  let ganacheServer;
+  beforeEach(async () => {
     jest.setTimeout(150000);
+
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+  });
+
+  afterEach(async () => {
+    await ganacheServer.quit();
   });
 
   it('should go to send view', async () => {
     await importWalletWithRecoveryPhrase();
-    await switchToGoreliNetwork();
+    await addLocalhostNetwork();
     // Navigate to send flow
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
@@ -36,15 +47,14 @@ describe('Send ETH Tests', () => {
     await AmountView.isVisible();
   });
 
-  it('should switch currency from crypto to fiat and back to crypto', async () => {
-    await AmountView.typeInTransactionAmount('0.004');
-    await AmountView.tapCurrencySwitch();
-    await AmountView.isTransactionAmountConversionValueCorrect(
-      '0.004 GoerliETH',
-    );
-    await AmountView.tapCurrencySwitch();
-    await AmountView.isTransactionAmountCorrect('0.004');
-  });
+  // TODO: Add support for conversion rate on localhost during e2e tests
+  // it('should switch currency from crypto to fiat and back to crypto', async () => {
+  //   await AmountView.typeInTransactionAmount('0.004');
+  //   await AmountView.tapCurrencySwitch();
+  //   await AmountView.isTransactionAmountConversionValueCorrect('0.004 TST');
+  //   await AmountView.tapCurrencySwitch();
+  //   await AmountView.isTransactionAmountCorrect('0.004');
+  // });
 
   it('should input and validate amount', async () => {
     // Input acceptable value
@@ -57,7 +67,7 @@ describe('Send ETH Tests', () => {
 
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0 GoerliETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect('0 TST');
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen
