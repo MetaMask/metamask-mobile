@@ -1,0 +1,30 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
+index 7578c18..90173a7 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.js
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
+@@ -21,6 +21,7 @@ const async_mutex_1 = require("async-mutex");
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const LOCALHOST_RPC_URL = 'http://localhost:8545';
++const LINEA_TESTNET_URL = 'https://rpc.goerli.linea.build';
+ const name = 'NetworkController';
+ const defaultState = {
+     network: 'loading',
+@@ -78,6 +79,9 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+             case 'ropsten':
+                 this.setupInfuraProvider(type);
+                 break;
++            case 'lineatestnet':
++                this.setupStandardProvider(LINEA_TESTNET_URL);
++                break;
+             case 'localhost':
+                 this.setupStandardProvider(LOCALHOST_RPC_URL);
+                 break;
+@@ -124,6 +128,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+             chainId !== controller_utils_1.NetworksChainId.rinkeby &&
+             chainId !== controller_utils_1.NetworksChainId.goerli &&
+             chainId !== controller_utils_1.NetworksChainId.ropsten &&
++            chainId !== controller_utils_1.NetworksChainId.lineatestnet &&
+             chainId !== controller_utils_1.NetworksChainId.localhost);
+     }
+     setupStandardProvider(rpcTarget, chainId, ticker, nickname) {

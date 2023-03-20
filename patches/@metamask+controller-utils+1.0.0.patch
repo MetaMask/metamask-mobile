@@ -1,0 +1,47 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
+index 89a57e8..22b7f56 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.js
++++ b/node_modules/@metamask/controller-utils/dist/constants.js
+@@ -44,6 +44,7 @@ exports.TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL = {
+     mainnet: '',
+     rpc: '',
+     localhost: '',
++    lineatestnet: 'LineaETH',
+ };
+ // APIs
+ exports.OPENSEA_PROXY_URL = 'https://proxy.metaswap.codefi.network/opensea/v1/api/v1';
+diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
+index 9c53b1a..376c2b2 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/types.d.ts
+@@ -1,7 +1,7 @@
+ /**
+  * Human-readable network name
+  */
+-export declare type NetworkType = 'kovan' | 'localhost' | 'mainnet' | 'rinkeby' | 'goerli' | 'ropsten' | 'rpc';
++export declare type NetworkType = 'kovan' | 'localhost' | 'mainnet' | 'rinkeby' | 'goerli' | 'ropsten' | 'rpc' | 'lineatestnet';
+ export declare enum NetworksChainId {
+     mainnet = "1",
+     kovan = "42",
+@@ -9,7 +9,8 @@ export declare enum NetworksChainId {
+     goerli = "5",
+     ropsten = "3",
+     localhost = "",
+-    rpc = ""
++    rpc = "",
++    lineatestnet = '59140',
+ }
+ export declare type Json = null | boolean | number | string | Json[] | {
+     [prop: string]: Json;
+diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
+index f28bc0f..02c9fc3 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.js
++++ b/node_modules/@metamask/controller-utils/dist/types.js
+@@ -10,5 +10,6 @@ var NetworksChainId;
+     NetworksChainId["ropsten"] = "3";
+     NetworksChainId["localhost"] = "";
+     NetworksChainId["rpc"] = "";
++    NetworksChainId["lineatestnet"] = "59140";
+ })(NetworksChainId = exports.NetworksChainId || (exports.NetworksChainId = {}));
+ //# sourceMappingURL=types.js.map
+\ No newline at end of file
