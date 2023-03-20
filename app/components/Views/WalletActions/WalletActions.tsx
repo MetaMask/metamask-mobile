@@ -52,9 +52,13 @@ const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
 
-  const onReceive = () => dispatch(toggleReceiveModal());
+  const onReceive = () => {
+    sheetRef.current?.hide();
+    dispatch(toggleReceiveModal());
+  };
 
   const onBuy = () => {
+    sheetRef.current?.hide();
     navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
       trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
@@ -66,18 +70,20 @@ const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
   };
 
   const onSend = () => {
+    sheetRef.current?.hide();
     ticker && dispatch(newAssetTransaction(getEther(ticker)));
     navigate('SendFlowView');
   };
 
-  const goToSwaps = () =>
+  const goToSwaps = () => {
+    sheetRef.current?.hide();
     navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
         sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       },
     });
-
+  };
   return (
     <SheetBottom
       ref={sheetRef}
