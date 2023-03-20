@@ -11,13 +11,6 @@ describe('App', () => {
       user: {
         loggedIn: true,
       },
-      engine: {
-        backgroundState: {
-          PreferencesController: {
-            selectedAddress: '0x1',
-          },
-        },
-      },
     };
 
     const wrapper = shallow(<App />, {
