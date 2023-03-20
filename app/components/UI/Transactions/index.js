@@ -14,15 +14,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {
-  getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainnetByChainId,
+  getBlockExplorerAddressUrl,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -32,12 +28,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
-import {
-  RPC,
-  NO_RPC_BLOCK_EXPLORER,
-  LINEA_TESTNET,
-  LINEA_TESTNET_BLOCK_EXPLORER,
-} from '../../../constants/network';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import TransactionActionModal from '../TransactionActionModal';
 import Logger from '../../../util/Logger';
 import { validateTransactionActionBalance } from '../../../util/transactions';
@@ -354,19 +345,11 @@ class Transactions extends PureComponent {
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      let url;
-      let title;
-      if (type === RPC) {
-        url = `${rpcBlockExplorer}/address/${selectedAddress}`;
-        title = new URL(rpcBlockExplorer).hostname;
-      } else if (type === LINEA_TESTNET) {
-        url = `${LINEA_TESTNET_BLOCK_EXPLORER}/address/${selectedAddress}`;
-        title = new URL(LINEA_TESTNET_BLOCK_EXPLORER).hostname;
-      } else {
-        const networkResult = getNetworkTypeById(network);
-        url = getEtherscanAddressUrl(networkResult, selectedAddress);
-        title = getEtherscanBaseUrl(networkResult).replace('https://', '');
-      }
+      const { url, title } = getBlockExplorerAddressUrl(
+        type,
+        selectedAddress,
+        rpcBlockExplorer,
+      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {
