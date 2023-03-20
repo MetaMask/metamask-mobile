@@ -23,6 +23,7 @@ import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 import Accounts from '../../wdio/helpers/Accounts';
 
@@ -53,12 +54,13 @@ describe('Wallet Tests', () => {
   it('should tap on import seed phrase button', async () => {
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
-
     await OnboardingView.isVisible();
     await OnboardingView.tapImportWalletFromSeedPhrase();
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });

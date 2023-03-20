@@ -14,8 +14,9 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -47,6 +48,10 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     scrollView: {
@@ -136,6 +141,13 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       flexDirection: 'row',
     },
+    netWorthContainer: {
+      justifyItems: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    portfolioLink: { marginLeft: 5 },
+    portfolioIcon: { color: colors.primary.default },
   });
 
 /**
@@ -205,6 +217,10 @@ class AccountOverview extends PureComponent {
      * Current provider ticker
      */
     ticker: PropTypes.string,
+    /**
+     * Current opens tabs in browser
+     */
+    browserTabs: PropTypes.array,
   };
 
   state = {
@@ -342,6 +358,32 @@ class AccountOverview extends PureComponent {
     } catch {}
   };
 
+  onOpenPortfolio = () => {
+    const { navigation, browserTabs } = this.props;
+    const existingPortfolioTab = browserTabs.find((tab) =>
+      tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+    );
+    let existingTabId;
+    let newTabUrl;
+    if (existingPortfolioTab) {
+      existingTabId = existingPortfolioTab.id;
+    } else {
+      newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+      timestamp: Date.now(),
+    };
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
+    });
+    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      portfolioUrl: AppConstants.PORTFOLIO_URL,
+    });
+  };
+
   render() {
     const {
       account: { address, name },
@@ -450,7 +492,19 @@ class AccountOverview extends PureComponent {
                 </View>
               )}
             </View>
-            <Text style={styles.amountFiat}>{fiatBalance}</Text>
+            <View style={styles.netWorthContainer}>
+              <Text style={styles.amountFiat}>{fiatBalance}</Text>
+              <TouchableOpacity
+                onPress={this.onOpenPortfolio}
+                style={styles.portfolioLink}
+              >
+                <Icon
+                  style={styles.portfolioIcon}
+                  name={IconName.Diagram}
+                  size={20}
+                />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={styles.addressWrapper}
               onPress={this.copyAccountToClipboard}
@@ -478,6 +532,7 @@ const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   network: String(selectNetwork(state)),
   swapsIsLive: swapsLivenessSelector(state),
+  browserTabs: state.browser.tabs,
 });
 
 const mapDispatchToProps = (dispatch) => ({

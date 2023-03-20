@@ -16,6 +16,8 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  PORTFOLIO_URL:
+    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -130,4 +132,10 @@ export default {
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
+  TERMS_OF_USE: {
+    TERMS_DISPLAYED: 'ToU Displayed',
+    TERMS_ACCEPTED: 'ToU Accepted',
+    TERMS_OF_USE_URL_WITHOUT_COOKIES:
+      'https://consensys.net/terms-of-use?standalone=true',
+  },
 };

@@ -23,6 +23,7 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import WalletView from '../pages/WalletView';
+import { acceptTermOfUse } from '../viewHelper';
 
 import Accounts from '../../wdio/helpers/Accounts';
 
@@ -65,6 +66,8 @@ describe('Deep linking Tests', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
+import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -35,16 +35,16 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
-import { connect, useSelector, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import {
-  EXISTING_USER,
   CURRENT_APP_VERSION,
+  EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import {
-  setCurrentRoute,
   setCurrentBottomNavRoute,
+  setCurrentRoute,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
@@ -70,6 +70,13 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
+import { RestoreWallet } from '../../Views/RestoreWallet';
+import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
+import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -83,12 +90,6 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
-import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
-import { RestoreWallet } from '../../Views/RestoreWallet';
-import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
-import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 
 const Stack = createStackNavigator();
 /**
@@ -353,6 +354,7 @@ const App = ({ userLoggedIn }) => {
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
+
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
@@ -383,6 +385,7 @@ const App = ({ userLoggedIn }) => {
         Logger.error(error);
       }
     }
+
     startApp();
   }, []);
 
@@ -440,6 +443,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.MODAL_CONFIRMATION}
         component={ModalConfirmation}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_MANDATORY}
+        component={ModalMandatory}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
