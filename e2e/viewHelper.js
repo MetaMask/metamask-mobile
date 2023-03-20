@@ -12,18 +12,30 @@ import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
 
 import TestHelpers from './helpers';
+import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
 const PASSWORD = '12345678';
 const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
 
+export const acceptTermOfUse = async () => {
+  // tap on accept term of use screen
+  await TermsOfUseModal.isDisplayed();
+  await TermsOfUseModal.tapScrollEndButton();
+  await TermsOfUseModal.tapAgreeCheckBox();
+  await TermsOfUseModal.tapAcceptButton();
+  await TermsOfUseModal.isNotDisplayed();
+};
+
 export const importWalletWithRecoveryPhrase = async () => {
-  // tap on import seed phrase button'
+  // tap on import seed phrase button
+  await OnboardingCarouselView.isVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await MetaMetricsOptIn.tapAgreeButton();
 
+  await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);

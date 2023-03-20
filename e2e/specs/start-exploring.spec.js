@@ -16,6 +16,7 @@ import { Browser } from '../pages/Drawer/Browser';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
@@ -29,6 +30,7 @@ describe('Start Exploring', () => {
     // Check that we are on the onboarding carousel screen
     await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
     await OnboardingCarouselView.isVisible();
+
     await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
     await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
     // Swipe left
@@ -53,7 +55,7 @@ describe('Start Exploring', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapNoThanksButton();
-
+    await acceptTermOfUse();
     await CreatePasswordView.isVisible();
   });
 
