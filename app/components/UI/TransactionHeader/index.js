@@ -179,12 +179,13 @@ const TransactionHeader = (props) => {
     const { url, currentEnsName, spenderAddress, origin } =
       props.currentPageInformation;
     let title = '';
+
     if (originIsDeeplink) title = renderShortAddress(spenderAddress);
     else if (originIsWalletConnect)
       title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     else if (originIsMMSDKRemoteConn) {
       title = getHost(origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]);
-    } else title = getHost(currentEnsName || url || origin);
+    }
 
     if (title === undefined || title.length === 0)
       title = getHost(currentEnsName || url || origin);
