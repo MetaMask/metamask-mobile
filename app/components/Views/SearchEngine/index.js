@@ -41,7 +41,7 @@ const SearchEngine = (props) => {
     setAddedUrls([...addedUrls, ...newEngine]);
 
     if (engines) {
-      newEngine = [...JSON.parse(engines), newEngine]
+      newEngine = [...engines, ...newEngine];
     } 
     AsyncStorage.setItem("SearchEngines", JSON.stringify(newEngine));
     setTitle('');
