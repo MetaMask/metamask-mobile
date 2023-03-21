@@ -8427,6 +8427,11 @@ bech32@1.1.4:
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
   integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
 
+big-int@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/big-int/-/big-int-0.0.6.tgz#6203bba2a2e6a8a76b480bd269bbc7b0c7defcce"
+  integrity sha512-pZqaIaokMooq6YfKHAezWZigcARydjTLubkRh3cbaEtJwoCXvhmQu80mhwZq8Synv8khZjKq6M8GNM4cICRioQ==
+
 big-integer@1.6.x, big-integer@^1.6.17:
   version "1.6.51"
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.51.tgz#0df92a5d9880560d3ff2d5fd20245c889d130686"
