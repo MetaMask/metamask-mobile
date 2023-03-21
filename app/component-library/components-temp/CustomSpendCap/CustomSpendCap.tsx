@@ -159,6 +159,20 @@ const CustomSpendCap = ({
     </Text>
   );
 
+  let message;
+
+  if (!value) {
+    message = NO_SELECTED;
+  } else if (maxSelected) {
+    message = MAX_VALUE_SELECTED;
+  } else if (defaultValueSelected) {
+    message = DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE;
+  } else if (inputValueHigherThanAccountBalance) {
+    message = INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE;
+  } else {
+    message = INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE;
+  }
+
   return (
     <View style={styles.container} testID={CUSTOM_SPEND_CAP_TEST_ID}>
       {isModalVisible ? (
@@ -229,15 +243,7 @@ const CustomSpendCap = ({
       {!disableEdit && (
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
-            {!value
-              ? NO_SELECTED
-              : defaultValueSelected
-              ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-              : maxSelected
-              ? MAX_VALUE_SELECTED
-              : inputValueHigherThanAccountBalance
-              ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-              : INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE}
+            {message}
           </Text>
         </View>
       )}
