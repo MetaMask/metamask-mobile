@@ -1,5 +1,6 @@
 /* eslint-disable import/no-commonjs, import/prefer-default-export, @typescript-eslint/no-require-imports */
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
@@ -18,59 +19,114 @@ export const whatsNew: WhatsNew = {
     [
       {
         type: 'image',
-        image: require('../../../images/whats-new-token-detection.png'),
-      }, // eslint-disable-line
+        image: require('../../../images/whats-new-onramp-slide-1.png'),
+      },
       {
         type: 'title',
-        title: strings('whats_new.feature_token_detection_title'),
+        title: strings('whats_new.slide_1_subtitle'),
       },
       {
         type: 'description',
-        description: strings('whats_new.feature_token_detection_description'),
+        description: strings('whats_new.slide_1_body_1'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.slide_1_body_2'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.slide_1_body_3'),
       },
       {
         type: 'button',
         buttonType: 'normal',
-        buttonText: strings('whats_new.feature_token_detection_button_text'),
+        buttonText: strings('whats_new.slides_button'),
         onPress: (props: any) =>
-          props.navigation.navigate('SettingsView', {
-            screen: 'SettingsFlow',
-            params: {
-              screen: 'AdvancedSettings',
-              params: {
-                scrollToBottom: true,
-                isFullScreenModal: true,
-              },
-            },
-          }),
+          props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID),
       },
     ],
     [
       {
-        type: 'title',
-        title: strings('whats_new.feature_token_security_title_1'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.feature_token_security_description_1'),
-      },
-      {
-        type: 'title',
-        title: strings('whats_new.feature_token_security_title_2'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.feature_token_security_description_2'),
-      },
-      {
         type: 'image',
-        image: require('../../../images/whats-new-token-security.png'),
-      }, // eslint-disable-line
+        image: require('../../../images/whats-new-onramp-slide-2.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.slide_2_subtitle'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.slide_2_body_1'),
+      },
       {
         type: 'button',
-        buttonType: 'blue',
-        buttonText: strings('whats_new.feature_token_security_button_text'),
-        onPress: () => null,
+        buttonType: 'normal',
+        buttonText: strings('whats_new.slides_button'),
+        onPress: (props: any) =>
+          props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID),
+      },
+    ],
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats-new-onramp-slide-3.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.slide_3_subtitle'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.slide_3_body_1'),
+      },
+      {
+        type: 'button',
+        buttonType: 'normal',
+        buttonText: strings('whats_new.slides_button'),
+        onPress: (props: any) =>
+          props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID),
+      },
+    ],
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats-new-onramp-slide-4.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.slide_4_subtitle'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.slide_4_body_1'),
+      },
+      {
+        type: 'button',
+        buttonType: 'normal',
+        buttonText: strings('whats_new.slides_button'),
+        onPress: (props: any) =>
+          props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID),
+      },
+    ],
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats-new-onramp-slide-5.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.slide_5_subtitle'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.slide_5_body_1'),
+      },
+      {
+        type: 'button',
+        buttonType: 'normal',
+        buttonText: strings('whats_new.slides_button'),
+        onPress: (props: any) =>
+          props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID),
       },
     ],
   ],
