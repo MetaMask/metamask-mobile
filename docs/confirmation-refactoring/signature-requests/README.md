@@ -2,7 +2,7 @@
 
 Metamask mobile support the 5 different signature requests:
 
-1. ETH Sign
+1. ETH Sign: ETH sign is disabled by default. It can be enabled from advanced settings.
     ETH sign is disabled by default.
 
      <img src="https://github.com/MetaMask/metamask-mobile/blob/signature_request_refactoring_doc/docs/confirmation-refactoring/signature-requests/eth_sign.png?raw=true" width="150"/>
