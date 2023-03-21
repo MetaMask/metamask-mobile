@@ -27,8 +27,4 @@ export default class LoginView {
   static async isLoginErrorVisible() {
     await TestHelpers.checkIfVisible(LOGIN_PASSWORD_ERROR);
   }
-
-  static async tapUnlock() {
-    await TestHelpers.tapByText('UNLOCK');
-  }
 }

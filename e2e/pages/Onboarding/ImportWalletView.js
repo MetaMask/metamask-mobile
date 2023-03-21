@@ -22,14 +22,14 @@ const Invalid_Seed_Error = strings('import_from_seed.invalid_seed_phrase');
 
 export default class ImportWalletView {
   static async enterPassword(password) {
-    await TestHelpers.replaceTextInField(
+    await TestHelpers.typeTextAndHideKeyboard(
       CREATE_PASSWORD_INPUT_BOX_ID,
       password,
     );
   }
 
   static async reEnterPassword(password) {
-    await TestHelpers.replaceTextInField(
+    await TestHelpers.typeTextAndHideKeyboard(
       CONFIRM_PASSWORD_INPUT_BOX_ID,
       password,
     );
@@ -68,7 +68,7 @@ export default class ImportWalletView {
         by.id(IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID),
       ).tapReturnKey();
     } else {
-      await TestHelpers.replaceTextInField(
+      await TestHelpers.typeTextAndHideKeyboard(
         IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
         secretRecoveryPhrase,
       );
