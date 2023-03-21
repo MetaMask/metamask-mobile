@@ -264,7 +264,9 @@ class Settings extends PureComponent {
       label: languages[key],
       key,
     }));
+
     (async () => await this.getSearchEngines())();
+    
     this.primaryCurrencyOptions = [
       {
         value: 'ETH',
