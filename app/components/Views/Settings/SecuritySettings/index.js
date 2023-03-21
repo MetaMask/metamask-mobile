@@ -479,13 +479,6 @@ class Settings extends PureComponent {
       await this.trackOptInEvent('Metrics Opt Out');
       Analytics.disable();
       this.setState({ analyticsEnabled: false });
-<<<<<<< HEAD
-      Alert.alert(
-        strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_restart_required'),
-      );
-=======
->>>>>>> e78207494 (Revert "[IMPROVEMENT] Analytics Alert (#5892)")
     }
   };
 
