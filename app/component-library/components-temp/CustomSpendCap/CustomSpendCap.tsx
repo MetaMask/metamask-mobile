@@ -1,14 +1,13 @@
 // Third party dependencies.
 import React, { useState, useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import BigNumber from 'bignumber.js';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
 import { strings } from '../../../../locales/i18n';
 import Button, { ButtonVariants } from '../../components/Buttons/Button';
 import Text, { TextVariant } from '../../components/Texts/Text';
-import { formatNumber, formatLongValue } from '../../../util/formatNumber';
+import formatNumber from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
 import CustomInput from './CustomInput';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
@@ -73,8 +72,8 @@ const CustomSpendCap = ({
     if (maxSelected) setValue(accountBalance);
   }, [maxSelected, accountBalance]);
 
-  const editedDefaultValue = new BigNumber(dappProposedValue);
-  const newValue = new BigNumber(value);
+  const editedDefaultValue = formatNumber(dappProposedValue);
+  const newValue = formatNumber(value);
 
   const dappValue = editedDefaultValue.minus(accountBalance).toFixed();
   const difference = newValue.minus(accountBalance).toFixed();
@@ -108,7 +107,7 @@ const CustomSpendCap = ({
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
       <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatLongValue(dappValue)} ${ticker} `}
+        {` ${formatNumber(dappValue)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
     </>

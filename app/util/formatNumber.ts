@@ -1,5 +1,6 @@
-export const formatNumber = (value: number | string) =>
-  Number(value).toLocaleString('en-US');
+import BigNumber from 'bignumber.js';
 
-export const formatLongValue = (value: number | string) =>
-  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const formatNumber = (value: number | string) =>
+  new BigNumber(value).toFormat();
+
+export default formatNumber;
