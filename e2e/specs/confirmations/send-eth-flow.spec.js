@@ -1,7 +1,6 @@
 'use strict';
 
 import AmountView from '../../pages/AmountView';
-import DrawerView from '../../pages/Drawer/DrawerView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import WalletView from '../../pages/WalletView';

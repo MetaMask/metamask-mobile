@@ -1,14 +1,7 @@
 'use strict';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-
 import TestHelpers from '../helpers';
 
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
