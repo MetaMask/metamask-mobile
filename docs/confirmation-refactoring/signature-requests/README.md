@@ -1,8 +1,8 @@
 # Signature Request Pages
 
-Metamask mobile support the 4 different signature requests:
+Metamask mobile support the 5 different signature requests:
 
-1. ETH Sign
+1. ETH Sign: ETH sign is disabled by default. It can be enabled from advanced settings.
     ETH sign is disabled by default.
 
      <img src="https://github.com/MetaMask/metamask-mobile/blob/signature_request_refactoring_doc/docs/confirmation-refactoring/signature-requests/eth_sign.png?raw=true" width="150"/>
@@ -32,7 +32,7 @@ Metamask mobile support the 4 different signature requests:
     - Personal Message Signature requests are handled by [PersonalMessageManager](https://github.com/MetaMask/core/blob/main/packages/message-manager/src/PersonalMessageManager.ts)
     - Typed Message Signature requests are handled by [TypedMessageManager](https://github.com/MetaMask/core/blob/main/packages/message-manager/src/TypedMessageManager.ts)
 
-2. [RootRPCMethodsUI](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Nav/Main/RootRPCMethodsUI.js) has event lisneters defined to handle new un-approved message. It triggers modal and renders one of the following components:
+2. [RootRPCMethodsUI](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Nav/Main/RootRPCMethodsUI.js) has event listeners defined to handle new un-approved message. It triggers the signature modal and renders one of the following components:
     - [MessageSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/MessageSign)
     - [PersonalSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/PersonalSign)
     - [TypedSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/TypedSign)
@@ -40,7 +40,7 @@ Metamask mobile support the 4 different signature requests:
 3. All the 3 Signature Request components use [SignatureRequest](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/SignatureRequest) component to render the page.
 
 ### Proposed Refactoring / Code Cleanup:
-1. [RootRPCMethodsUI](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Nav/Main/RootRPCMethodsUI.js): All Signature request related code from here should all be moved to a component `/app/components/Nav/UI/SigantureRequestBase`. This component will have events liteners for `un-approved messages` and render modal appropriately. `SignatureRequestBase` should be included in `RootRPCMethodsUI`.
+1. [RootRPCMethodsUI](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Nav/Main/RootRPCMethodsUI.js): All Signature request related code from here should all be moved to a component `/app/components/Nav/UI/SignatureRequestBase`. This component will have events listeners for `un-approved messages` and render modal appropriately. `SignatureRequestBase` should be included in `RootRPCMethodsUI`.
 2. Signature Request Components - [MessageSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/MessageSign), [PersonalSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/PersonalSign), [TypedSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/TypedSign). The 3 components have a lot of code duplication:
     - `showWalletConnectNotification` this function is duplicated in 3 components. It can be moved to [SignatureRequest](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/SignatureRequest)
     - Methods `signMessage`, `rejectMessage`, `cancelSignature`, `confirmSignature` are also duplicated at 3 places. These should be moved to [SignatureRequest](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/SignatureRequest)
