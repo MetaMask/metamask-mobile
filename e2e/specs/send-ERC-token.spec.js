@@ -113,7 +113,6 @@ describe('Send ERC Token', () => {
 
   it('should send token to address via Token Overview screen', async () => {
     // Navigate back to main wallet view and tap on Token
-    // await WalletView.tapOnToken('AVAX'); // tapping burger menu
     await WalletView.tapOnToken('AVAX'); // tapping burger menu
     await TestHelpers.waitAndTap('token-send-button');
     await SendView.inputAddress(SEND_ADDRESS);
