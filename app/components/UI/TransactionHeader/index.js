@@ -187,8 +187,7 @@ const TransactionHeader = (props) => {
       title = getHost(origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]);
     }
 
-    if (title === undefined || title.length === 0)
-      title = getHost(currentEnsName || url || origin);
+    if (!title) title = getHost(currentEnsName || url || origin);
 
     return <Text style={styles.domainUrl}>{title}</Text>;
   };
