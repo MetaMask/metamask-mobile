@@ -609,7 +609,8 @@ app:
       IOS_APP_LINK: ''
 meta:
   bitrise.io:
-    stack: osx-xcode-13.4.x
+    stack: osx-xcode-14.2.x-ventura
+    machine_type_id: g2-m1.8core # M1 large - 8 CPU @ 3.2GHz - 12 GB RAM - 4 credits/min
 
 trigger_map:
   - push_branch: release/*
