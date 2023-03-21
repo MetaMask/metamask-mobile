@@ -50,7 +50,6 @@ const createStyles = (colors, typography) =>
       ...typography.sHeadingMD,
       textAlign: 'center',
       color: colors.text.default,
-      fontSize: Device.isSmallDevice() ? 16 : 20,
       marginBottom: 8,
       marginTop: 16,
     },
@@ -58,7 +57,6 @@ const createStyles = (colors, typography) =>
       ...typography.sHeadingMD,
       textAlign: 'center',
       color: colors.text.default,
-      fontSize: Device.isSmallDevice() ? 16 : 20,
       marginBottom: 8,
       marginTop: 16,
       marginLeft: 16,
@@ -76,7 +74,6 @@ const createStyles = (colors, typography) =>
       color: colors.text.default,
       paddingHorizontal: 24,
       marginBottom: 16,
-      fontSize: 14,
       width: '100%',
       textAlign: 'center',
     },
@@ -138,7 +135,6 @@ const createStyles = (colors, typography) =>
     },
     optionText: {
       ...typography.lBodyMD,
-      fontSize: 16,
       color: colors.text.default,
     },
     selectedCircle: {
