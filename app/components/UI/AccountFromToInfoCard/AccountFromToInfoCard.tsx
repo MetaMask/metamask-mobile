@@ -57,14 +57,14 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
+    if (!fromAddress) {
+      return;
+    }
     if (transactionFromName) {
       setFromAccountName(transactionFromName);
       return;
     }
     (async () => {
-      if (!fromAddress) {
-        return;
-      }
       const { name: fromName } = identities[fromAddress];
       const fromEns = await doENSReverseLookup(fromAddress);
       setFromAccountName(fromEns || fromName);
@@ -80,9 +80,11 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       return;
     }
     (async () => {
-      const { name: toName } = identities[toAddress];
-      const toEns = await doENSReverseLookup(toAddress);
-      setToAccountName(toEns || toName);
+      if (identities[toAddress]) {
+        const { name: toName } = identities[toAddress];
+        const toEns = await doENSReverseLookup(toAddress);
+        setToAccountName(toEns || toName);
+      }
     })();
   }, [addressBook, identities, network, toAddress, transactionToName]);
 
