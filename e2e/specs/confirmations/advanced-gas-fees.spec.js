@@ -22,10 +22,7 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     // Check that we are on the wallet screen
     await WalletView.isVisible();
     // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await WalletView.tapSendIcon();
 
     await SendView.inputAddress(VALID_ADDRESS);
     await SendView.tapNextButton();

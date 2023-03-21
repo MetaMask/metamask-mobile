@@ -9,7 +9,9 @@ import {
   NAVBAR_NETWORK_BUTTON,
   NFT_TAB_CONTAINER_ID,
   SEND_BUTTON_ID,
+  getAssetTestId,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
@@ -22,7 +24,7 @@ export default class WalletView {
   }
 
   static async tapOnToken(token) {
-    await TestHelpers.waitAndTap(`asset-${token}`);
+    await TestHelpers.waitAndTap(getAssetTestId(token));
   }
 
   static async tapIdenticon() {
@@ -96,6 +98,13 @@ export default class WalletView {
       await TestHelpers.checkIfExists(WALLET_CONTAINER_ID);
     }
   }
+  static async isToastNotificationVisible() {
+    if (!device.getPlatform() === 'android') {
+      // Check that we are on the wallet screen
+      await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
+    }
+  }
+
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(WALLET_CONTAINER_ID);
   }

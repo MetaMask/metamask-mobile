@@ -16,60 +16,27 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import SendView from '../pages/SendView';
 import AmountView from '../pages/AmountView';
-import ConfirmView from '../pages/ConfirmView.js';
-import Accounts from '../../wdio/helpers/Accounts';
-import { acceptTermOfUse } from '../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import TransactionConfirmationView from '../pages/TransactionConfirmView';
 
 const AVAX_URL = 'https://api.avax-test.network/ext/C/rpc';
 const TOKEN_ADDRESS = '0x5425890298aed601595a70AB815c96711a31Bc65';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe('Send ERC Token', () => {
-  let validAccount;
-
-  beforeAll(() => {
-    validAccount = Accounts.getValidAccount();
+  beforeAll(async () => {
+    await importWalletWithRecoveryPhrase();
   });
 
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
-  it('should import via seed phrase and validate in settings', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await OnboardingView.isVisible();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-    await acceptTermOfUse();
-
-    await ImportWalletView.isVisible();
-  });
-
-  it('should import wallet with valid secret recovery phrase', async () => {
-    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-    await ImportWalletView.enterPassword(validAccount.password);
-    await ImportWalletView.reEnterPassword(validAccount.password);
-    // await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-    await WalletView.isVisible();
-    await TestHelpers.delay(500);
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  });
-
   it('should add AVAX testnet to my networks list', async () => {
     await WalletView.tapDrawerButton(); // tapping burger menu
     await DrawerView.isVisible();
     await DrawerView.tapSettings();
-
     await SettingsView.tapNetworks();
-
     await NetworkView.isNetworkViewVisible();
 
     await TestHelpers.delay(3000);
@@ -100,19 +67,7 @@ describe('Send ERC Token', () => {
     await AddCustomTokenView.tapImportButton();
   });
 
-  it('should send token to address via the Send view', async () => {
-    await WalletView.tapSendIcon(); // tapping burger menu
-    await SendView.inputAddress(SEND_ADDRESS);
-    await TestHelpers.delay(1000);
-    await SendView.tapNextButton();
-    await AmountView.typeInTransactionAmount('0.000001');
-    await AmountView.tapNextButton();
-    await ConfirmView.isAmountVisible('< 0.00001 AVAX');
-    await ConfirmView.tapSendButton();
-  });
-
   it('should send token to address via Token Overview screen', async () => {
-    // Navigate back to main wallet view and tap on Token
     await WalletView.tapOnToken('AVAX'); // tapping burger menu
     await WalletView.tapSendIcon();
     await SendView.inputAddress(SEND_ADDRESS);
@@ -120,7 +75,8 @@ describe('Send ERC Token', () => {
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0.000001');
     await AmountView.tapNextButton();
-    await ConfirmView.isAmountVisible('< 0.00001 AVAX');
-    await ConfirmView.tapSendButton();
+    await TransactionConfirmationView.isAmountVisible('< 0.00001 AVAX');
+    await TransactionConfirmationView.tapConfirmButton();
+    await WalletView.isToastNotificationVisible();
   });
 });

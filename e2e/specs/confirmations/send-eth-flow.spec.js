@@ -20,10 +20,8 @@ describe('Send ETH Tests', () => {
   it('should go to send view', async () => {
     await importWalletWithRecoveryPhrase();
     await switchToGoreliNetwork();
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    // Navigate to send flow
+    await WalletView.tapSendIcon();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });

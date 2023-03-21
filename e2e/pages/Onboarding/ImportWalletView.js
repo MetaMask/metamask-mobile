@@ -33,7 +33,6 @@ export default class ImportWalletView {
       CONFIRM_PASSWORD_INPUT_BOX_ID,
       password,
     );
-    await this.tapImportButton();
   }
 
   static async tapImportButton() {
