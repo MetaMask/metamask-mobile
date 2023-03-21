@@ -32,7 +32,7 @@ Metamask mobile support the 5 different signature requests:
     - Personal Message Signature requests are handled by [PersonalMessageManager](https://github.com/MetaMask/core/blob/main/packages/message-manager/src/PersonalMessageManager.ts)
     - Typed Message Signature requests are handled by [TypedMessageManager](https://github.com/MetaMask/core/blob/main/packages/message-manager/src/TypedMessageManager.ts)
 
-2. [RootRPCMethodsUI](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Nav/Main/RootRPCMethodsUI.js) has event lisneters defined to handle new un-approved message. It triggers modal and renders one of the following components:
+2. [RootRPCMethodsUI](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Nav/Main/RootRPCMethodsUI.js) has event listeners defined to handle new un-approved message. It triggers the signature modal and renders one of the following components:
     - [MessageSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/MessageSign)
     - [PersonalSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/PersonalSign)
     - [TypedSign](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/TypedSign)
