@@ -19,7 +19,6 @@ import { Theme } from '@metamask/design-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { capitalize } from 'lodash';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
@@ -275,7 +274,7 @@ const Wallet = ({ navigation }: any) => {
 
       assets = [
         {
-          name: getTicker(ticker) === 'ETH' ? 'Ether' : capitalize(ticker),
+          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
           balance,
