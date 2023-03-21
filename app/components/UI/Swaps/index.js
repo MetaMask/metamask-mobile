@@ -194,6 +194,8 @@ function SwapsAmountView({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const previousSelectedAddress = useRef();
+
   const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const [amount, setAmount] = useState('0');
@@ -390,14 +392,17 @@ function SwapsAmountView({
    * Reset the state when account changes
    */
   useEffect(() => {
-    setAmount('0');
-    setSourceToken(
-      swapsTokens?.find((token) =>
-        toLowerCaseEquals(token.address, initialSource),
-      ),
-    );
-    setDestinationToken(null);
-    setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+    if (selectedAddress !== previousSelectedAddress.current) {
+      setAmount('0');
+      setSourceToken(
+        swapsTokens?.find((token) =>
+          toLowerCaseEquals(token.address, initialSource),
+        ),
+      );
+      setDestinationToken(null);
+      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+      previousSelectedAddress.current = selectedAddress;
+    }
   }, [selectedAddress, swapsTokens, initialSource]);
 
   const hasInvalidDecimals = useMemo(() => {
