@@ -1,9 +1,12 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../app/component-library/components/Icons/Icon';
 import React from 'react';
 import { StyleSheet, Text, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../../app/util/device';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -55,11 +58,11 @@ export const SDKFeedback = ({ onConfirm }: SDKFeedbackProps) => {
 
   return (
     <View style={styles.root}>
-      <FontAwesome
+      <Icon
+        name={IconName.Warning}
+        size={IconSize.Xl}
+        color={colors.warning.default}
         style={styles.icon}
-        name={'warning'}
-        size={32}
-        color={colors.text.default}
       />
       <Text style={styles.title}>{strings('sdk_feedback_modal.title')}</Text>
       <Text style={styles.info}>{strings('sdk_feedback_modal.info')}</Text>
