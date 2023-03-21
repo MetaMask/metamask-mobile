@@ -25,6 +25,7 @@ import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import onUrlSubmit, {
   getHost,
   prefixUrlWithProtocol,
@@ -88,6 +89,7 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+import { useNavigation } from '@react-navigation/native';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -252,6 +254,7 @@ export const BrowserTab = (props) => {
   const backgroundBridges = useRef([]);
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
+  const navigation = useNavigation();
   const permittedAccountsList = useSelector((state) => {
     const permissionsControllerState =
       state.engine.backgroundState.PermissionController;
@@ -449,7 +452,7 @@ export const BrowserTab = (props) => {
         if (type === 'ipfs-ns') {
           gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
             query || ''
-          }`;
+            }`;
           const response = await fetch(gatewayUrl);
           const statusCode = response.status;
           if (statusCode >= 400) {
@@ -460,11 +463,11 @@ export const BrowserTab = (props) => {
         } else if (type === 'swarm-ns') {
           gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
             pathname || '/'
-          }${query || ''}`;
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
           gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
             pathname || '/'
-          }${query || ''}`;
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -899,7 +902,7 @@ export const BrowserTab = (props) => {
     - since we are changing it here, this would give us a circular dependency and infinite re renders
     */
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [props.searchEngine],
   );
 
   /**
@@ -1285,6 +1288,21 @@ export const BrowserTab = (props) => {
                   {...generateTestId(Platform, NEW_TAB_OPTION)}
                 >
                   {strings('browser.new_tab')}
+                </Text>
+              </Button>
+              <Button onPress={() => navigation.navigate(Routes.BROWSER.SEARCH_ENGINE)} style={styles.option}>
+                <View style={styles.optionIconWrapper}>
+                  <AntDesign
+                    name="search1"
+                    size={18}
+                    style={styles.optionIcon}
+                  />
+                </View>
+                <Text
+                  style={styles.optionText}
+                  numberOfLines={1}
+                >
+                  {strings('browser.search_engines')}
                 </Text>
               </Button>
               {renderNonHomeOptions()}

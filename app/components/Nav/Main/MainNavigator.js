@@ -71,6 +71,7 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
+import SearchEngine from '../../Views/SearchEngine';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -199,6 +200,7 @@ const BrowserFlow = () => (
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
+    <Stack.Screen name={Routes.BROWSER.SEARCH_ENGINE} component={SearchEngine}  options={{  headerTitle:"Search Engine" }}/>
   </Stack.Navigator>
 );
 

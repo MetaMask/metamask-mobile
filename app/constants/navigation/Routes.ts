@@ -61,6 +61,7 @@ const Routes = {
     HOME: 'BrowserTabHome',
     URL_MODAL: 'BrowserUrlModal',
     VIEW: 'BrowserView',
+    SEARCH_ENGINE: 'SearchEngine'
   },
   WEBVIEW: {
     MAIN: 'Webview',

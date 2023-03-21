@@ -11,7 +11,7 @@ const initialState = {
   browser: { history: [] },
   settings: {
     lockTime: 1000,
-    searchEngine: 'DuckDuckGo',
+    searchEngine: 'https://presearch.com/search?q=%s',
     useBlockieIcon: true,
   },
   engine: {

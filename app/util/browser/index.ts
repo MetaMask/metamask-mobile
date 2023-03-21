@@ -29,7 +29,7 @@ export const prefixUrlWithProtocol = (
  */
 export default function onUrlSubmit(
   input: string,
-  searchEngine = 'Google',
+  searchEngine = 'https://presearch.com/search?q=%s',
   defaultProtocol = 'https://',
 ) {
   //Check if it's a url or a keyword
@@ -42,13 +42,7 @@ export default function onUrlSubmit(
       !input.startsWith('http://localhost') &&
       !input.startsWith('localhost')
     ) {
-      // In case of keywords we default to google search
-      let searchUrl =
-        'https://www.google.com/search?q=' + encodeURIComponent(input);
-      if (searchEngine === 'DuckDuckGo') {
-        searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
-      }
-      return searchUrl;
+      return searchEngine.replace(/%s/g, encodeURIComponent(input));
     }
   }
   return prefixUrlWithProtocol(input, defaultProtocol);

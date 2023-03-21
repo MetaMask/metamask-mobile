@@ -3,7 +3,7 @@
 exports[`GeneralSettings should render correctly 1`] = `
 <Settings
   currentCurrency="USD"
-  searchEngine="DuckDuckGo"
+  searchEngine="https://presearch.com/search?q=%s"
   selectedAddress="0x0"
   setHideZeroBalanceTokens={[Function]}
   setPrimaryCurrency={[Function]}

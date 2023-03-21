@@ -34,6 +34,7 @@ import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { AppThemeKey } from '../../../../util/theme/models';
 // import StyledButton from '../../../UI/StyledButton';
 
@@ -198,6 +199,7 @@ class Settings extends PureComponent {
   state = {
     currentLanguage: I18n.locale.substr(0, 2),
     languages: {},
+    searchEngineOptions: []
   };
 
   selectCurrency = async (currency) => {
@@ -236,7 +238,23 @@ class Settings extends PureComponent {
       ),
     );
   };
+  getSearchEngines = async () => {
+    let engines = await AsyncStorage.getItem('SearchEngines');
+    var tempArr = [
+      { value: 'https://presearch.com/search?q=%s', key: "Presearch", label: "Presearch"},
+      { value: 'https://duckduckgo.com/?q=%s', label: 'DuckDuckGo', key: 'DuckDuckGo' }
+    ];
+    if (JSON.parse(engines)) {
+      tempArr = [
+        ...tempArr,
+        ...JSON.parse(engines)
+      ];
+    } 
+    this.setState({
+      searchEngineOptions: tempArr
+    })
 
+  }
   componentDidMount = () => {
     this.updateNavBar();
     const languages = getLanguages();
@@ -246,10 +264,7 @@ class Settings extends PureComponent {
       label: languages[key],
       key,
     }));
-    this.searchEngineOptions = [
-      { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
-      { value: 'Google', label: 'Google', key: 'Google' },
-    ];
+    (async () => await this.getSearchEngines())();
     this.primaryCurrencyOptions = [
       {
         value: 'ETH',
@@ -377,12 +392,12 @@ class Settings extends PureComponent {
               {strings('app_settings.engine_desc')}
             </Text>
             <View style={styles.picker}>
-              {this.searchEngineOptions && (
+              {this.state.searchEngineOptions?.length > 0 && (
                 <SelectComponent
                   selectedValue={this.props.searchEngine}
                   onValueChange={this.selectSearchEngine}
                   label={strings('app_settings.search_engine')}
-                  options={this.searchEngineOptions}
+                  options={this.state.searchEngineOptions}
                 />
               )}
             </View>
