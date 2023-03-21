@@ -247,7 +247,9 @@ class Approve extends PureComponent {
     if (!this.props?.transaction?.gas) this.handleGetGasLimit();
 
     this.startPolling();
-    showCustomNonce && (await this.setNetworkNonce());
+    if (showCustomNonce) {
+      await this.setNetworkNonce();
+    }
     AppState.addEventListener('change', this.handleAppStateChange);
   };
 
