@@ -2,7 +2,7 @@
 @androidApp
 @ChainScenarios
 @regression
-Feature: Change password, Lock and Reset Wallet
+Feature: Change password
 
     Scenario: Import wallet
         Given the app displayed the splash animation

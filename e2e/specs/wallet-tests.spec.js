@@ -16,6 +16,7 @@ import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Wallet Tests', () => {
   const GOERLI = 'Goerli Test Network';
@@ -31,11 +32,7 @@ describe('Wallet Tests', () => {
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
   const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-  let validAccount;
-
-  beforeAll(() => {
-    validAccount = Accounts.getValidAccount();
-  });
+  const validAccount = Accounts.getValidAccount();
 
   beforeEach(() => {
     jest.setTimeout(200000);
