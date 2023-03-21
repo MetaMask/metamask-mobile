@@ -175,13 +175,15 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   return (
     <>
       <View style={styles.inputWrapper}>
-        <AddressFrom
-          fromAccountAddress={fromAddress}
-          fromAccountName={fromAccountName}
-          fromAccountBalance={fromAccountBalance}
-          layout={layout}
-          onPressIcon={onPressFromAddressIcon}
-        />
+        {fromAddress && (
+          <AddressFrom
+            fromAccountAddress={fromAddress}
+            fromAccountName={fromAccountName}
+            fromAccountBalance={fromAccountBalance}
+            layout={layout}
+            onPressIcon={onPressFromAddressIcon}
+          />
+        )}
         {!isExistingContact && confusableCollection.length ? (
           <TouchableOpacity onPress={() => setShowWarningModal(true)}>
             {addressTo}
