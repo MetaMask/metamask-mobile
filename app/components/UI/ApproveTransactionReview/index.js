@@ -35,6 +35,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
+import Identicon from '../../UI/Identicon';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -677,7 +678,9 @@ class ApproveTransactionReview extends PureComponent {
               onCancelPress={this.onCancelPress}
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={
-                !tokenSpendValue || Boolean(gasError) || transactionConfirmed
+                (!fetchingUpdateDone && !tokenSpendValue) ||
+                Boolean(gasError) ||
+                transactionConfirmed
               }
             >
               <View>
@@ -720,11 +723,15 @@ class ApproveTransactionReview extends PureComponent {
                   )}
                   {tokenStandard === ERC20 && (
                     <View style={styles.tokenContainer}>
-                      <Avatar
-                        variant={AvatarVariants.Token}
-                        size={AvatarSize.Md}
-                        imageSource={{ uri: tokenImage }}
-                      />
+                      {tokenImage ? (
+                        <Avatar
+                          variant={AvatarVariants.Token}
+                          size={AvatarSize.Md}
+                          imageSource={{ uri: tokenImage }}
+                        />
+                      ) : (
+                        <Identicon address={to} diameter={25} />
+                      )}
                       <Text
                         variant={TextVariant.HeadingMD}
                         style={styles.symbol}
@@ -750,7 +757,6 @@ class ApproveTransactionReview extends PureComponent {
                       <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
                     )
                   ) : null}
-                   {/* </Text> */}
 
                 {tokenStandard !== ERC721 &&
                   tokenStandard !== ERC1155 &&
@@ -810,7 +816,8 @@ class ApproveTransactionReview extends PureComponent {
                       )
                     )}
                     {((tokenStandard === ERC20 && spendCapCreated) ||
-                      !tokenStandard === ERC20) && (
+                      tokenStandard === ERC721 ||
+                      tokenStandard === ERC1155) && (
                       <View style={styles.transactionWrapper}>
                         <TransactionReview
                           gasSelected={gasSelected}
