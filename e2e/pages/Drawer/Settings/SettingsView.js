@@ -18,10 +18,6 @@ export default class SettingsView {
     await TestHelpers.tapByText('Networks');
   }
 
-  static async tapSend() {
-    await TestHelpers.tapByText('Send');
-  }
-
   static async tapCloseButton() {
     if (device.getPlatform() === 'android') {
       await TestHelpers.tap(ANDROID_BACK_BUTTON_ON_SETTINGS_PAGE_ID);

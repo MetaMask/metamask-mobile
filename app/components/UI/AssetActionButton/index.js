@@ -59,6 +59,7 @@ const createStyles = (colors) =>
     },
   });
 
+// eslint-disable-next-line react/prop-types
 function AssetActionButton({ onPress, icon, label, disabled, testID }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
