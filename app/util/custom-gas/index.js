@@ -112,7 +112,9 @@ export async function getGasLimit(transaction, resetGas = false) {
 
   let estimation;
   try {
-    let newTransactionObj = resetGas ? { ...transaction, gas: undefined } : transaction;
+    const newTransactionObj = resetGas
+      ? { ...transaction, gas: undefined }
+      : transaction;
 
     estimation = await TransactionController.estimateGas(newTransactionObj);
   } catch (error) {
