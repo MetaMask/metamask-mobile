@@ -92,7 +92,6 @@ const createStyles = (colors) =>
     },
     accountSelector: {
       width: '100%',
-      justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 16,
     },
@@ -387,6 +386,9 @@ function SwapsAmountView({
     })();
   }, [isTokenInBalances, selectedAddress, sourceToken]);
 
+  /**
+   * Reset the state when account changes
+   */
   useEffect(() => {
     setAmount('0');
     setSourceToken(
