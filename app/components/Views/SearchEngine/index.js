@@ -135,7 +135,7 @@ const createStyles = (colors, shadows) =>
     wrapper: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      marginHorizontal: 40
+      paddingHorizontal: 40
     },
     scrollView: {
       ...baseStyles.flexGrow,

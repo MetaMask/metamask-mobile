@@ -191,7 +191,7 @@ const BrowserFlow = () => (
     initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
     screenOptions={{
-      cardStyle: { backgroundColor: importedColors.transparent },
+      headerBackTitle: "Back"
     }}
   >
     <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
@@ -200,7 +200,7 @@ const BrowserFlow = () => (
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
-    <Stack.Screen name={Routes.BROWSER.SEARCH_ENGINE} component={SearchEngine}  options={{  headerTitle:"Search Engine" }}/>
+    <Stack.Screen name={Routes.BROWSER.SEARCH_ENGINE} component={SearchEngine} options={{ headerTitle: "Search Engine" }}/>
   </Stack.Navigator>
 );
 
