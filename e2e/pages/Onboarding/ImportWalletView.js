@@ -35,10 +35,6 @@ export default class ImportWalletView {
     );
   }
 
-  static async tapImportButton() {
-    await TestHelpers.tapByText('IMPORT');
-  }
-
   static async tapIUnderstandCheckBox() {
     if (device.getPlatform() === 'ios') {
       await TestHelpers.tap(IOS_I_UNDERSTAND_BUTTON_ID);

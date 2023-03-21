@@ -99,10 +99,7 @@ export default class WalletView {
     }
   }
   static async isToastNotificationVisible() {
-    if (!device.getPlatform() === 'android') {
-      // Check that we are on the wallet screen
-      await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
-    }
+    await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
   }
 
   static async isNotVisible() {

@@ -21,7 +21,7 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     await switchToGoreliNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
-    // Open Drawer
+    //Tap send Icon
     await WalletView.tapSendIcon();
 
     await SendView.inputAddress(VALID_ADDRESS);
