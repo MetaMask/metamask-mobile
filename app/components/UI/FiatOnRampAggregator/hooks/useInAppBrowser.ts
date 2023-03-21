@@ -39,10 +39,9 @@ export default function useInAppBrowser() {
   );
 
   const handleSuccessfulOrder = useCallback(
-    (order: Order, orderId: string) => {
+    (order: Order) => {
       const transformedOrder: FiatOrder = {
         ...aggregatorOrderToFiatOrder(order),
-        id: orderId,
         account: selectedAddress,
         network: selectedChainId,
       };
@@ -56,7 +55,7 @@ export default function useInAppBrowser() {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
       NotificationManager.showSimpleNotification(
-        getNotificationDetails(transformedOrder as any),
+        getNotificationDetails(transformedOrder),
       );
       trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
         provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
@@ -115,16 +114,8 @@ export default function useInAppBrowser() {
         try {
           dispatch(setLockTime(-1));
           const result = await InAppBrowser.openAuth(url, deeplinkRedirectUrl);
-          let orderId;
-          let orders;
 
-          if (result.type === 'success' && result.url) {
-            orders = await SDK.orders();
-            orderId = await orders.getOrderIdFromCallback(
-              provider.id,
-              result.url,
-            );
-          } else {
+          if (result.type !== 'success' || !result.url) {
             trackEvent('ONRAMP_PURCHASE_CANCELLED', {
               amount: amount as number,
               chain_id_destination: selectedChainId,
@@ -137,11 +128,12 @@ export default function useInAppBrowser() {
             return;
           }
 
-          if (!orderId) {
-            return;
-          }
-
-          const order = await orders.getOrder(orderId, selectedAddress);
+          const orders = await SDK.orders();
+          const order = await orders.getOrderFromCallback(
+            provider.id,
+            result.url,
+            selectedAddress,
+          );
 
           if (!order) return;
 
@@ -162,7 +154,7 @@ export default function useInAppBrowser() {
             return;
           }
 
-          handleSuccessfulOrder(order, orderId);
+          handleSuccessfulOrder(order);
         } catch (error) {
           Logger.error(error as Error, {
             message:

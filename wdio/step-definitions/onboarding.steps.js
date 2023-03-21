@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@wdio/cucumber-framework';
+import {Then, When} from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
@@ -10,13 +10,6 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 
-Given(/^I just installed MetaMask on my device/, async () => {
-  /** This is automatically done by the automation framework **/
-});
-
-When(/^I launch MetaMask mobile app/, async () => {
-  /** This is automatically done by the automation framework **/
-});
 
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {

@@ -324,13 +324,25 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0].from,
-          chainId: req.params[0].chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
+        return RPCMethods.eth_sendTransaction({
+          next,
+          req,
+          res,
+          validateAccountAndChainId: async ({
+            from,
+            chainId,
+          }: {
+            from?: string;
+            chainId?: number;
+          }) => {
+            await checkActiveAccountAndChainId({
+              hostname,
+              address: from,
+              chainId,
+              checkSelectedAddress: isMMSDK || isWalletConnect,
+            });
+          },
         });
-        next();
       },
       eth_signTransaction: async () => {
         // This is implemented later in our middleware stack – specifically, in
@@ -338,7 +350,15 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.rpc.methodNotSupported();
       },
       eth_sign: async () => {
-        const { MessageManager } = Engine.context;
+        const { MessageManager, PreferencesController } = Engine.context;
+        const { disabledRpcMethodPreferences } = PreferencesController.state;
+        const { eth_sign } = disabledRpcMethodPreferences;
+
+        if (!eth_sign) {
+          throw ethErrors.rpc.methodNotFound(
+            'eth_sign has been disabled. You must enable it in the advanced settings',
+          );
+        }
         const pageMeta = {
           meta: {
             url: url.current,
