@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useState, useEffect } from 'react';
 import { Pressable, View } from 'react-native';
+import BigNumber from 'bignumber.js';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
@@ -72,8 +73,8 @@ const CustomSpendCap = ({
     if (maxSelected) setValue(accountBalance);
   }, [maxSelected, accountBalance]);
 
-  const editedDefaultValue = formatNumber(dappProposedValue);
-  const newValue = formatNumber(value);
+  const editedDefaultValue = new BigNumber(dappProposedValue);
+  const newValue = new BigNumber(value);
 
   const dappValue = editedDefaultValue.minus(accountBalance).toFixed();
   const difference = newValue.minus(accountBalance).toFixed();
