@@ -272,7 +272,7 @@ export const AddressTo = (props) => {
             )}
             <View style={styles.toInputWrapper}>
               <View style={[styles.address, styles.checkAddress]}>
-                {isENS(toAddressName) && (
+                {toAddressName && (
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
@@ -281,9 +281,7 @@ export const AddressTo = (props) => {
                 <View style={styles.addressWrapper}>
                   <Text
                     style={
-                      isENS(toAddressName)
-                        ? styles.textBalance
-                        : styles.textAddress
+                      toAddressName ? styles.textBalance : styles.textAddress
                     }
                     numberOfLines={1}
                   >

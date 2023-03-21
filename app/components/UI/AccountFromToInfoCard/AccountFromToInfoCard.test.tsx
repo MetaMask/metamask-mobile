@@ -94,6 +94,14 @@ describe('AccountFromToInfoCard', () => {
     expect(await findByText('Balance: < 0.00001 ETH')).toBeDefined();
   });
 
+  it('should render to account name', async () => {
+    const { findByText } = renderWithProvider(
+      <AccountFromToInfoCard transactionState={transactionState} />,
+      { state: initialState },
+    );
+    expect(await findByText('Account 2')).toBeDefined();
+  });
+
   it('should render to address', async () => {
     const { findByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,

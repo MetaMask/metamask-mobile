@@ -449,6 +449,51 @@ Array [
                 ]
               }
             >
+              <Text
+                numberOfLines={1}
+                style={
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                    },
+                  ]
+                }
+              >
+                Account 2
+              </Text>
               <View
                 style={
                   Object {
@@ -491,9 +536,9 @@ Array [
                       undefined,
                       undefined,
                       Object {
-                        "color": "#24272A",
+                        "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                       },
                     ]
