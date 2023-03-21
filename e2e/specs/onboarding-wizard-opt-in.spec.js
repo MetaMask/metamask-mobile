@@ -8,6 +8,7 @@ import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
 
@@ -20,6 +21,7 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 const PASSWORD = '12345678';
 
@@ -33,6 +35,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
   });
@@ -51,6 +54,12 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on "Got it" Button in the whats new modal', async () => {
@@ -111,6 +120,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
     await SecurityAndPrivacy.tapOKAlertButton();
     await SecurityAndPrivacy.isMetaMetricsToggleOff();
   });
+
   it('should relaunch the app and log in', async () => {
     // Relaunch app
     await TestHelpers.relaunchApp();

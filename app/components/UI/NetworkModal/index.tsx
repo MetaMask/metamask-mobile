@@ -1,6 +1,6 @@
 import Modal from 'react-native-modal';
 import React from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet, Linking, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -14,22 +14,25 @@ import URLPARSE from 'url-parse';
 import scaling from '../../../util/scaling';
 import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import sanitizeUrl from '../../../util/sanitizeUrl';
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 import {
   APPROVE_NETWORK_DISPLAY_NAME_ID,
-  APPROVE_NETWORK_MODAL_ID,
   APPROVE_NETWORK_CANCEL_BUTTON_ID,
-  APPROVE_NETWORK_APPROVE_BUTTON_ID,
 } from '../../../constants/test-ids';
+import {
+  APPROVE_NETWORK_APPROVE_BUTTON,
+  APPROVE_NETWORK_MODAL,
+} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
-const createStyles = (colors) =>
+const createStyles = (colors: any) =>
   StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
@@ -106,6 +109,7 @@ interface NetworkProps {
   onClose: () => void;
   network: any;
   navigation: any;
+  shouldNetworkSwitchPopToWallet: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -121,6 +125,7 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    shouldNetworkSwitchPopToWallet,
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
@@ -140,7 +145,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const { PreferencesController } = Engine.context;
+    const { PreferencesController } = Engine.context as any;
     let formChainId = chainId.trim().toLowerCase();
 
     if (!formChainId.startsWith('0x')) {
@@ -151,7 +156,6 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (validUrl) {
       const url = new URLPARSE(rpcUrl);
-      const sanitizedUrl = sanitizeUrl(url.href);
       const decimalChainId = getDecimalChainId(chainId);
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       PreferencesController.addToFrequentRpcList(
@@ -165,18 +169,12 @@ const NetworkModals = (props: NetworkProps) => {
       );
 
       const analyticsParamsAdd = {
-        rpc_url: sanitizedUrl,
         chain_id: decimalChainId,
         source: 'Popular network list',
         symbol: ticker,
-        block_explorer_url: blockExplorerUrl,
-        network_name: nickname,
       };
 
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       setNetworkAdded(true);
     } else {
       setNetworkAdded(false);
@@ -192,13 +190,15 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context as any;
     const url = new URLPARSE(rpcUrl);
     const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
     closeModal();
-    navigation.navigate('WalletView');
+    shouldNetworkSwitchPopToWallet
+      ? navigation.navigate('WalletView')
+      : navigation.goBack();
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 
@@ -239,7 +239,10 @@ const NetworkModals = (props: NetworkProps) => {
                 message={strings('networks.provider')}
               />
             )}
-            <View style={styles.nameWrapper} testID={APPROVE_NETWORK_MODAL_ID}>
+            <View
+              style={styles.nameWrapper}
+              {...generateTestId(Platform, APPROVE_NETWORK_MODAL)}
+            >
               <ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
               <Text black>{nickname}</Text>
             </View>
@@ -302,7 +305,7 @@ const NetworkModals = (props: NetworkProps) => {
                 type={'confirm'}
                 onPress={addNetwork}
                 containerStyle={[styles.button, styles.confirm]}
-                testID={APPROVE_NETWORK_APPROVE_BUTTON_ID}
+                testID={APPROVE_NETWORK_APPROVE_BUTTON}
                 disabled={!validateRpcUrl(rpcUrl)}
               >
                 {strings('networks.approve')}

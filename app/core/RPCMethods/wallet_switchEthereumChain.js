@@ -1,16 +1,18 @@
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { MetaMetricsEvents } from '../Analytics';
 import {
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
   isSafeChainId,
 } from '../../util/networks';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { trackEvent } from '../../util/analyticsV2';
 
 const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
+  analytics,
 }) => {
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
@@ -59,7 +61,7 @@ const wallet_switchEthereumChain = async ({
     (rpc) => rpc.chainId === chainIdDecimal,
   );
   if (existingNetworkRPC || existingNetworkDefault) {
-    const currentChainId = NetworkController.state.provider.chainId;
+    const currentChainId = NetworkController.state.providerConfig.chainId;
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;
@@ -69,6 +71,7 @@ const wallet_switchEthereumChain = async ({
     let analyticsParams = {
       chain_id: _chainId,
       source: 'Switch Network API',
+      ...analytics,
     };
     if (existingNetworkRPC) {
       requestData = {
@@ -79,10 +82,7 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        rpc_url: existingNetworkRPC?.rpcUrl,
         symbol: existingNetworkRPC?.ticker,
-        block_explorer_url: existingNetworkRPC?.blockExplorerUrl,
-        network_name: 'rpc',
       };
     } else {
       requestData = {
@@ -93,7 +93,6 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        network_name: existingNetworkDefault?.shortName,
       };
     }
 
@@ -115,10 +114,7 @@ const wallet_switchEthereumChain = async ({
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED,
-      analyticsParams,
-    );
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;

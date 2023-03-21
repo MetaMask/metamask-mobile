@@ -13,7 +13,7 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: { type: MAINNET, rpcTarget: '' },
+        providerConfig: { type: MAINNET, rpcTarget: '' },
       },
       PreferencesController: { useTokenDetection: true, frequentRpcList: [] },
     },

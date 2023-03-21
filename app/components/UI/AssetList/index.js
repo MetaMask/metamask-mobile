@@ -1,11 +1,13 @@
 import React, { PureComponent } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TOKEN_RESULTS_LIST_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
 
 const styles = StyleSheet.create({
   rowWrapper: {
@@ -81,7 +83,7 @@ export default class AssetList extends PureComponent {
               containerStyle={styles.item}
               onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
               key={i}
-              testID={'searched-token-result'}
+              {...generateTestId(Platform, TOKEN_RESULTS_LIST_ID)}
             >
               <View style={styles.assetListElement}>
                 <AssetIcon address={address} logo={iconUrl} />

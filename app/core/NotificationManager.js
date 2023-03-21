@@ -192,7 +192,7 @@ class NotificationManager {
         const {
           TokenBalancesController,
           TokenDetectionController,
-          CollectibleDetectionController,
+          NftDetectionController,
           AccountTrackerController,
         } = Engine.context;
         // account balances for ETH txs
@@ -211,7 +211,7 @@ class NotificationManager {
             break;
           }
           case 'ERC721':
-            pollPromises.push(CollectibleDetectionController.start());
+            pollPromises.push(NftDetectionController.start());
             break;
         }
         Promise.all(pollPromises);
@@ -404,7 +404,7 @@ class NotificationManager {
       NetworkController,
     } = Engine.context;
     const { selectedAddress } = PreferencesController.state;
-    const { type: networkType } = NetworkController.state.provider;
+    const { type: networkType } = NetworkController.state.providerConfig;
 
     /// Find the incoming TX
     const { transactions } = TransactionController.state;

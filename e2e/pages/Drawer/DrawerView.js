@@ -5,11 +5,6 @@ const ADD_FUNDS_BUTTON_ID = 'drawer-receive-button';
 const DRAWER_CONTAINER_ID = 'drawer-screen';
 const SEND_BUTTON_ID = 'drawer-send-button';
 export default class DrawerView {
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
-    await TestHelpers.delay(1000);
-  }
-
   static async tapSettings() {
     await TestHelpers.tapByText('Settings');
   }

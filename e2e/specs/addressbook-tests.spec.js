@@ -20,7 +20,10 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+
 import TestHelpers from '../helpers';
+import { acceptTermOfUse } from '../viewHelper';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -43,6 +46,8 @@ describe('Addressbook Tests', () => {
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
 
+    await acceptTermOfUse();
+
     await CreatePasswordView.isVisible();
     await CreatePasswordView.enterPassword(PASSWORD);
     await CreatePasswordView.reEnterPassword(PASSWORD);
@@ -58,6 +63,11 @@ describe('Addressbook Tests', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should tap on the close button to dismiss the whats new modal', async () => {

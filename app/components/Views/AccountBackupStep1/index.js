@@ -8,8 +8,13 @@ import {
   StyleSheet,
   BackHandler,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import DefaultPreference from 'react-native-default-preference';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -19,17 +24,18 @@ import Device from '../../../util/device';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
-import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
-import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  PROTECT_YOUR_WALLET_CONTAINER_ID,
+  REMIND_LATER_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -159,9 +165,7 @@ const AccountBackupStep1 = (props) => {
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
     });
   };
 
@@ -170,9 +174,7 @@ const AccountBackupStep1 = (props) => {
 
     setRemindLaterModal(true);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_INITIATED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
     });
   };
 
@@ -192,9 +194,7 @@ const AccountBackupStep1 = (props) => {
   const skip = async () => {
     hideRemindLaterModal();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_CONFIRMED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     });
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -217,7 +217,10 @@ const AccountBackupStep1 = (props) => {
         style={styles.mainWrapper}
         testID={'account-backup-step-1-screen'}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View
+          style={styles.wrapper}
+          {...generateTestId(Platform, PROTECT_YOUR_WALLET_CONTAINER_ID)}
+        >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.title}>
@@ -244,9 +247,11 @@ const AccountBackupStep1 = (props) => {
                   style={styles.remindLaterButton}
                   onPress={showRemindLater}
                   hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                  testID={'remind-me-later-button'}
                 >
-                  <Text style={styles.remindLaterText}>
+                  <Text
+                    style={styles.remindLaterText}
+                    {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
+                  >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>
                 </TouchableOpacity>

@@ -1,22 +1,44 @@
 import URL from 'url-parse';
+import { utils } from 'ethers';
+import EthContract from 'ethjs-contract';
+import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
+import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
+import networksWithImages from 'images/image-icons';
 import AppConstants from '../../core/AppConstants';
 import {
-  MAINNET,
-  ROPSTEN,
-  KOVAN,
-  RINKEBY,
   GOERLI,
+  KOVAN,
+  MAINNET,
+  NETWORKS_CHAIN_ID,
+  RINKEBY,
+  ROPSTEN,
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
-import { toLowerCaseEquals } from './../general';
-import { fastSplit } from '../../util/number';
-
+import { toLowerCaseEquals } from '../general';
+import { fastSplit } from '../number';
+import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
+import {
+  GOERLI_TEST_NETWORK_OPTION,
+  KOVAN_NETWORK_OPTION,
+  RINKEBY_NETWORK_OPTION,
+  ROPSTEN_NETWORK_OPTION,
+} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
+
+/* eslint-disable */
+const ethLogo = require('../../images/eth-logo-new.png');
+const ropstenLogo = require('../../images/ropsten-logo-dark.png');
+const kovanLogo = require('../../images/kovan-logo-dark.png');
+const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
+const goerliLogo = require('../../images/goerli-logo-dark.png');
+/* eslint-enable */
+import PopularList from './customNetworks';
+import { strings } from '../../../locales/i18n';
 
 /**
  * List of the supported networks
@@ -34,6 +56,7 @@ const NetworkList = {
     hexChainId: '0x1',
     color: '#3cc29e',
     networkType: 'mainnet',
+    imageSource: ethLogo,
   },
   [ROPSTEN]: {
     name: 'Ropsten Test Network',
@@ -43,6 +66,8 @@ const NetworkList = {
     hexChainId: '0x3',
     color: '#ff4a8d',
     networkType: 'ropsten',
+    imageSource: ropstenLogo,
+    testId: ROPSTEN_NETWORK_OPTION,
   },
   [KOVAN]: {
     name: 'Kovan Test Network',
@@ -52,6 +77,8 @@ const NetworkList = {
     hexChainId: '0x2a',
     color: '#7057ff',
     networkType: 'kovan',
+    imageSource: kovanLogo,
+    testId: KOVAN_NETWORK_OPTION,
   },
   [RINKEBY]: {
     name: 'Rinkeby Test Network',
@@ -61,6 +88,8 @@ const NetworkList = {
     hexChainId: '0x4',
     color: '#f6c343',
     networkType: 'rinkeby',
+    imageSource: rinkebyLogo,
+    testId: RINKEBY_NETWORK_OPTION,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -70,6 +99,8 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
+    imageSource: goerliLogo,
+    testId: GOERLI_TEST_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',
@@ -86,8 +117,16 @@ export default NetworkList;
 export const getAllNetworks = () =>
   NetworkListKeys.filter((name) => name !== RPC);
 
+/**
+ * Checks if network is default mainnet.
+ *
+ * @param {string} networkType - Type of network.
+ * @returns If the network is default mainnet.
+ */
+export const isDefaultMainnet = (networkType) => networkType === MAINNET;
+
 export const isMainNet = (network) =>
-  network?.provider?.type === MAINNET || network === String(1);
+  isDefaultMainnet(network?.providerConfig?.type) || network === String(1);
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
@@ -99,8 +138,28 @@ export const getDecimalChainId = (chainId) => {
 export const isMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(1);
 
+export const isMultiLayerFeeNetwork = (chainId) =>
+  chainId === NETWORKS_CHAIN_ID.OPTIMISM;
+
 export const getNetworkName = (id) =>
   NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
+
+/**
+ * Gets the test network image icon.
+ *
+ * @param {string} networkType - Type of network.
+ * @returns - Image of test network or undefined.
+ */
+export const getTestNetImage = (networkType) => {
+  if (
+    networkType === ROPSTEN ||
+    networkType === GOERLI ||
+    networkType === KOVAN ||
+    networkType === RINKEBY
+  ) {
+    return networksWithImages?.[networkType.toUpperCase()];
+  }
+};
 
 export const isTestNet = (networkId) => {
   const networkName = getNetworkName(networkId);
@@ -244,7 +303,7 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await util.query(
+  const networkNonce = await query(
     TransactionController.ethQuery,
     'getTransactionCount',
     [from, 'pending'],
@@ -271,3 +330,71 @@ export function blockTagParamIndex(payload) {
       return undefined;
   }
 }
+
+/**
+ * Gets the current network name given the network provider.
+ *
+ * @param {Object} provider - Network provider state from the NetworkController.
+ * @returns {string} Name of the network.
+ */
+export const getNetworkNameFromProvider = (provider) => {
+  let name = strings('network_information.unknown_network');
+  if (provider.nickname) {
+    name = provider.nickname;
+  } else {
+    const networkType = provider.type;
+    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+  }
+  return name;
+};
+
+/**
+ * Gets the image source given both the network type and the chain ID.
+ *
+ * @param {object} params - Params that contains information about the network.
+ * @param {string} params.networkType - Type of network from the provider.
+ * @param {string} params.chainId - ChainID of the network.
+ * @returns {Object} - Image source of the network.
+ */
+export const getNetworkImageSource = ({ networkType, chainId }) => {
+  const defaultNetwork = getDefaultNetworkByChainId(chainId);
+  const isDefaultEthMainnet = isDefaultMainnet(networkType);
+  if (defaultNetwork && isDefaultEthMainnet) {
+    return defaultNetwork.imageSource;
+  }
+  const popularNetwork = PopularList.find(
+    (network) => network.chainId === chainId,
+  );
+  if (popularNetwork) {
+    return popularNetwork.rpcPrefs.imageSource;
+  }
+  return getTestNetImage(networkType);
+};
+
+// The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
+const buildOVMGasPriceOracleContract = (eth) => {
+  const OVMGasPriceOracle = getContractFactory('OVM_GasPriceOracle').attach(
+    predeploys.OVM_GasPriceOracle,
+  );
+  const abi = JSON.parse(
+    OVMGasPriceOracle.interface.format(utils.FormatTypes.json),
+  );
+  const contract = new EthContract(eth);
+  return contract(abi).at(OVMGasPriceOracle.address);
+};
+
+/**
+ * It returns an estimated L1 fee for a multi layer network.
+ * Currently only for the Optimism network, but can be extended to other networks.
+ *
+ * @param {Object} eth
+ * @param {Object} txMeta
+ * @returns {String}
+ */
+export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
+  const contract = buildOVMGasPriceOracleContract(eth);
+  const serializedTransaction =
+    buildUnserializedTransaction(txMeta).serialize();
+  const result = await contract.getL1Fee(serializedTransaction);
+  return result?.[0]?.toString(16);
+};

@@ -10,8 +10,10 @@ import {
   Alert,
   Image,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -22,11 +24,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
-import SecureKeychain from '../../../core/SecureKeychain';
-import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import TermsAndConditions from '../TermsAndConditions';
-import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
@@ -41,10 +39,18 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  WALLET_SETUP_SCREEN_TITLE_ID,
+  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
+  WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
+  WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
@@ -68,9 +74,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       width: Device.isIos() ? 90 : 45,
       height: Device.isIos() ? 90 : 45,
-    },
-    termsAndConditions: {
-      paddingBottom: 30,
     },
     title: {
       fontSize: 24,
@@ -174,7 +177,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    logOut: PropTypes.func,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -236,6 +238,7 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
@@ -266,21 +269,14 @@ class Onboarding extends PureComponent {
     }
   }
 
-  logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
-  };
-
   onLogin = async () => {
     const { passwordSet } = this.props;
     if (!passwordSet) {
-      const { KeyringController } = Engine.context;
-      // Restore vault with empty password
-      await KeyringController.submitPassword('');
-      await SecureKeychain.resetGenericPassword();
-      this.props.navigation.navigate('HomeNav');
+      await Authentication.resetVault();
+      this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } else {
-      this.logOut();
+      await Authentication.lockApp();
+      this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
     }
   };
 
@@ -299,14 +295,14 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
           },
         });
       }
@@ -329,14 +325,14 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate('ExtensionSync', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+        this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ExtensionSync', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+            this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
           },
         });
       }
@@ -348,13 +344,17 @@ class Onboarding extends PureComponent {
     const action = async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
-        this.props.navigation.push('ImportFromSeed');
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+        this.props.navigation.push(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        );
+        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
-            this.props.navigation.replace('ImportFromSeed');
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+            this.props.navigation.replace(
+              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+            );
+            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
           },
         });
       }
@@ -364,8 +364,8 @@ class Onboarding extends PureComponent {
 
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
+      if (MetaMetrics.checkEnabled()) {
+        trackEvent(...eventArgs);
         return;
       }
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
@@ -408,11 +408,17 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <Text style={styles.title} testID={'onboarding-screen-title'}>
+        <Text
+          style={styles.title}
+          {...generateTestId(Platform, WALLET_SETUP_SCREEN_TITLE_ID)}
+        >
           {strings('onboarding.title')}
         </Text>
         <View style={styles.importWrapper}>
-          <Text style={styles.buttonDescription}>
+          <Text
+            style={styles.buttonDescription}
+            {...generateTestId(Platform, WALLET_SETUP_SCREEN_DESCRIPTION_ID)}
+          >
             {strings('onboarding.import')}
           </Text>
         </View>
@@ -421,7 +427,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'normal'}
               onPress={this.onPressImport}
-              testID={'import-wallet-import-from-seed-button'}
+              testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
             >
               {strings('import_wallet.import_from_seed_button')}
             </StyledButton>
@@ -443,7 +449,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'blue'}
               onPress={this.onPressCreate}
-              testID={'create-wallet-button'}
+              testID={WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID}
             >
               {strings('onboarding.start_exploring_now')}
             </StyledButton>
@@ -516,9 +522,6 @@ class Onboarding extends PureComponent {
               </View>
             )}
           </ScrollView>
-          <View style={styles.termsAndConditions}>
-            <TermsAndConditions navigation={this.props.navigation} />
-          </View>
         </OnboardingScreenWithBg>
         <FadeOutOverlay />
 

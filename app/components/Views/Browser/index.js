@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { connect } from 'react-redux';
+import React, { useEffect, useRef, useContext } from 'react';
+import { connect, useSelector } from 'react-redux';
 import { View, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import {
@@ -17,9 +17,23 @@ import Device from '../../../util/device';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
-
+import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  getPermittedAccounts,
+  getPermittedAccountsByHostname,
+} from '../../../core/Permissions';
+import getAccountNameWithENS from '../../../util/accounts';
+import { useAccounts } from '../../../components/hooks/useAccounts';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { strings } from '../../../../locales/i18n';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import URL from 'url-parse';
+import { isEqual } from 'lodash';
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
 const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
@@ -39,17 +53,54 @@ const Browser = (props) => {
     updateTab,
     activeTab: activeTabId,
     tabs,
+    accountsLength,
   } = props;
-  const { drawerRef } = useContext(DrawerContext);
   const previousTabs = useRef(null);
   const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
+  const browserUrl = props.route?.params?.url;
+  const prevSiteHostname = useRef(browserUrl);
+  const { accounts, ensByAccountAddress } = useAccounts();
+  const accountAvatarType = useSelector((state) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+
+  //frequentRpcList has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
+  const nonTestnetNetworks = props.frequentRpcList.length + 1;
+
+  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const permittedAccountsList = useSelector((state) => {
+    if (!activeTab) return [];
+
+    const permissionsControllerState =
+      state.engine.backgroundState.PermissionController;
+    const hostname = new URL(activeTab.url).hostname;
+    const permittedAcc = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    return permittedAcc;
+  }, isEqual);
+
+  const handleRightTopButtonAnalyticsEvent = () => {
+    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
+      number_of_accounts: accountsLength,
+      number_of_accounts_connected: permittedAccountsList.length,
+      number_of_networks: nonTestnetNetworks,
+    });
+  };
 
   useEffect(
-    () => {
+    () =>
       navigation.setOptions(
-        getBrowserViewNavbarOptions(navigation, route, drawerRef, colors),
-      );
-    },
+        getBrowserViewNavbarOptions(
+          route,
+          colors,
+          handleRightTopButtonAnalyticsEvent,
+        ),
+      ),
     /* eslint-disable-next-line */
     [navigation, route, colors],
   );
@@ -73,16 +124,58 @@ const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
+    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
   };
 
+  const hasAccounts = useRef(Boolean(accounts.length));
+
+  useEffect(() => {
+    const checkIfActiveAccountChanged = async () => {
+      const hostname = new URL(browserUrl).hostname;
+      const permittedAccounts = await getPermittedAccounts(hostname);
+      const activeAccountAddress = permittedAccounts?.[0];
+      if (activeAccountAddress) {
+        const accountName = getAccountNameWithENS({
+          accountAddress: activeAccountAddress,
+          accounts,
+          ensByAccountAddress,
+        });
+        // Show active account toast
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Account,
+          labelOptions: [
+            {
+              label: `${accountName} `,
+              isBold: true,
+            },
+            { label: strings('toast.now_active') },
+          ],
+          accountAddress: activeAccountAddress,
+          accountAvatarType,
+        });
+      }
+    };
+
+    // Handle when the Browser initially mounts and when url changes.
+    if (accounts.length && browserUrl) {
+      const hostname = new URL(browserUrl).hostname;
+      if (prevSiteHostname.current !== hostname || !hasAccounts.current) {
+        checkIfActiveAccountChanged();
+      }
+      hasAccounts.current = true;
+      prevSiteHostname.current = hostname;
+    }
+  }, [browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
+
   // componentDidMount
   useEffect(
     () => {
       const currentUrl = route.params?.newTabUrl;
-      if (!currentUrl) {
+      const existingTabId = route.params?.existingTabId;
+      if (!currentUrl && !existingTabId) {
         // Nothing from deeplink, carry on.
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
@@ -125,13 +218,23 @@ const Browser = (props) => {
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
+      const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from deeplink.
         newTab(newTabUrl);
+      } else if (existingTabId) {
+        const existingTab = tabs.find((tab) => tab.id === existingTabId);
+        if (existingTab) {
+          switchToTab(existingTab);
+        }
       }
     },
     /* eslint-disable-next-line */
-    [route.params?.timestamp, route.params?.newTabUrl],
+    [
+      route.params?.timestamp,
+      route.params?.newTabUrl,
+      route.params?.existingTabId,
+    ],
   );
 
   const takeScreenshot = (url, tabID) =>
@@ -262,6 +365,11 @@ const Browser = (props) => {
 };
 
 const mapStateToProps = (state) => ({
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });
@@ -311,6 +419,10 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  accountsLength: PropTypes.number,
+  frequentRpcList: PropTypes.array,
 };
+
+export { default as createBrowserNavDetails } from './Browser.types';
 
 export default connect(mapStateToProps, mapDispatchToProps)(Browser);

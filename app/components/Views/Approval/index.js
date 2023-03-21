@@ -1,16 +1,16 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
-import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
-import TransactionEditor from '../../UI/TransactionEditor';
+import { connect } from 'react-redux';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import Modal from 'react-native-modal';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import TransactionEditor from '../../UI/TransactionEditor';
 import { addHexPrefix, BNToHex } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
-import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
@@ -24,8 +24,7 @@ import {
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
@@ -35,6 +34,10 @@ import {
   TX_SUBMITTED,
   TX_REJECTED,
 } from '../../../constants/transaction';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -186,8 +189,8 @@ class Approval extends PureComponent {
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED,
+    trackEvent(
+      MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
   };
@@ -196,8 +199,8 @@ class Approval extends PureComponent {
    * Call Analytics to track confirm started event for approval screen
    */
   trackConfirmScreen = () => {
-    Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED,
+    trackLegacyEvent(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
   };
@@ -208,21 +211,18 @@ class Approval extends PureComponent {
   trackEditScreen = async () => {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
-    Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
-    );
+    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION, {
+      ...this.getTrackingParams(),
+      actionKey,
+    });
   };
 
   /**
    * Call Analytics to track cancel pressed
    */
   trackOnCancel = () => {
-    Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+    trackLegacyEvent(
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
   };
@@ -247,19 +247,13 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const {
-        activeTabUrl,
-        chainId,
-        transaction,
-        networkType,
-        selectedAddress,
-      } = this.props;
+      const { activeTabUrl, chainId, transaction, selectedAddress } =
+        this.props;
       const { selectedAsset } = transaction;
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
         dapp_url: activeTabUrl,
-        network_name: networkType,
         chain_id: chainId,
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         asset_type: { value: transaction?.assetType, anonymous: true },
@@ -283,7 +277,7 @@ class Approval extends PureComponent {
     const { transaction } = this.props;
     InteractionManager.runAfterInteractions(() => {
       transaction.origin &&
-        transaction.origin.includes(WALLET_CONNECT_ORIGIN) &&
+        transaction.origin.startsWith(WALLET_CONNECT_ORIGIN) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
@@ -299,8 +293,8 @@ class Approval extends PureComponent {
     this.props.toggleDappTransactionModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED,
+    trackEvent(
+      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
       this.getAnalyticsParams(),
     );
   };
@@ -371,14 +365,12 @@ class Approval extends PureComponent {
           'error while trying to send transaction (Approval)',
         );
       } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
       this.setState({ transactionHandled: false });
     }
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
+    trackEvent(
+      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       this.getAnalyticsParams({ gasEstimateType, gasSelected }),
     );
     this.setState({ transactionConfirmed: false });
@@ -506,9 +498,9 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   showCustomNonce: state.settings.showCustomNonce,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
 });
 

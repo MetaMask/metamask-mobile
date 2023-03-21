@@ -33,6 +33,9 @@
 # -keep class com.facebook.hermes.unicode.** { *; }
 # -keep class com.facebook.jni.** { *; }#
 
+# react-native-webrt https://github.com/react-native-webrtc/react-native-webrtc/issues/590
+-keep class org.webrtc.** { *; }
+
 # :react-native-inappbrowser-reborn
 -keepattributes *Annotation*
 -keepclassmembers class ** {

@@ -5,6 +5,7 @@ import {
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { FiatOrder } from '../../../../reducers/fiatOrders';
 
 /**
  * Transforms an AggregatorOrder state into a FiatOrder state
@@ -37,21 +38,6 @@ interface InitialAggregatorOrder {
   network: string;
 }
 
-export const aggregatorInitialFiatOrder = (
-  initialOrder: InitialAggregatorOrder,
-) => ({
-  ...initialOrder,
-  state: FIAT_ORDER_STATES.PENDING,
-  provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-  createdAt: Date.now(),
-  amount: null,
-  fee: null,
-  currency: '',
-  cryptoAmount: null,
-  cryptocurrency: '',
-  data: null,
-});
-
 export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   id: aggregatorOrder.id,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -65,11 +51,12 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
   network:
     aggregatorOrder.network ||
-    (aggregatorOrder.cryptoCurrency?.network?.chainId &&
-      String(aggregatorOrder.cryptoCurrency.network.chainId)),
+    String(aggregatorOrder.cryptoCurrency?.network?.chainId),
   state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
+  excludeFromPurchases: aggregatorOrder.excludeFromPurchases,
+  orderType: aggregatorOrder.orderType,
   data: aggregatorOrder,
 });
 
@@ -80,7 +67,7 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
  */
 export async function processAggregatorOrder(
   order: ReturnType<typeof aggregatorOrderToFiatOrder> | InitialAggregatorOrder,
-) {
+): Promise<FiatOrder> {
   try {
     const orders = await SDK.orders();
     const updatedOrder = await orders.getOrder(order.id, order.account);
@@ -103,6 +90,6 @@ export async function processAggregatorOrder(
       message: 'FiatOrders::AggregatorProcessor error while processing order',
       order,
     });
-    return order;
+    return order as FiatOrder;
   }
 }

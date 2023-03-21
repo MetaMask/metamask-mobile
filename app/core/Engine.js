@@ -1,30 +1,35 @@
 import {
   AccountTrackerController,
-  AddressBookController,
   AssetsContractController,
   TokenListController,
-  ControllerMessenger,
-  ComposableController,
   CurrencyRateController,
-  KeyringController,
-  PersonalMessageManager,
-  MessageManager,
-  NetworkController,
-  PhishingController,
-  PreferencesController,
   TokenBalancesController,
   TokenRatesController,
+  TokensController,
+  NftController,
+  TokenDetectionController,
+  NftDetectionController,
+} from '@metamask/assets-controllers';
+import { AddressBookController } from '@metamask/address-book-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import { ComposableController } from '@metamask/composable-controller';
+import { KeyringController } from '@metamask/keyring-controller';
+import {
+  PersonalMessageManager,
+  MessageManager,
+  TypedMessageManager,
+} from '@metamask/message-manager';
+import { NetworkController } from '@metamask/network-controller';
+import { PhishingController } from '@metamask/phishing-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
+import {
   Transaction,
   TransactionController,
-  TypedMessageManager,
   WalletDevice,
-  GasFeeController,
-  TokensController,
-  CollectiblesController,
-  TokenDetectionController,
-  CollectibleDetectionController,
-  ApprovalController,
-} from '@metamask/controllers';
+} from '@metamask/transaction-controller';
+import { GasFeeController } from '@metamask/gas-fee-controller';
+import { ApprovalController } from '@metamask/approval-controller';
+import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
@@ -33,6 +38,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
+  fetchEstimatedMultiLayerL1Fee,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -45,7 +51,14 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
-import AnalyticsV2 from '../util/analyticsV2';
+import { MetaMetricsEvents } from '../core/Analytics';
+import { trackEvent } from '../util/analyticsV2';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from './Permissions/specifications.js';
+import { backupVault } from './BackupVault';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -71,8 +84,9 @@ class Engine {
   /**
    * Creates a CoreController instance
    */
-  constructor(initialState = {}) {
+  constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
+      this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(
         {},
         {
@@ -80,65 +94,78 @@ class Engine {
           useTokenDetection:
             initialState?.PreferencesController?.useTokenDetection ?? true,
           // TODO: Use previous value when preferences UI is available
-          useCollectibleDetection: false,
+          useNftDetection: false,
           openSeaEnabled: false,
         },
       );
-      const networkController = new NetworkController({
+
+      const networkControllerOpts = {
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        providerConfig: {
-          static: {
-            eth_sendTransaction: async (
-              payload: { params: any[], origin: any },
-              next: any,
-              end: (arg0: undefined, arg1: undefined) => void,
-            ) => {
-              const { TransactionController } = this.context;
-              try {
-                const hash = await (
-                  await TransactionController.addTransaction(
-                    payload.params[0],
-                    payload.origin,
-                    WalletDevice.MM_MOBILE,
-                  )
-                ).result;
-                end(undefined, hash);
-              } catch (error) {
-                end(error);
-              }
-            },
-          },
-          getAccounts: (
-            end: (arg0: null, arg1: any[]) => void,
-            payload: { hostname: string | number },
+        state: initialState.NetworkController,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'NetworkController',
+          allowedEvents: [],
+          allowedActions: [],
+        }),
+      };
+
+      const networkController = new NetworkController(networkControllerOpts);
+      networkController.providerConfig = {
+        static: {
+          eth_sendTransaction: async (
+            payload: { params: any[], origin: any },
+            next: any,
+            end: (arg0: undefined, arg1: undefined) => void,
           ) => {
-            const { approvedHosts, privacyMode } = store.getState();
-            const isEnabled = !privacyMode || approvedHosts[payload.hostname];
-            const { KeyringController } = this.context;
-            const isUnlocked = KeyringController.isUnlocked();
-            const selectedAddress =
-              this.context.PreferencesController.state.selectedAddress;
-            end(
-              null,
-              isUnlocked && isEnabled && selectedAddress
-                ? [selectedAddress]
-                : [],
-            );
+            const { TransactionController } = this.context;
+            try {
+              const hash = await (
+                await TransactionController.addTransaction(
+                  payload.params[0],
+                  payload.origin,
+                  WalletDevice.MM_MOBILE,
+                )
+              ).result;
+              end(undefined, hash);
+            } catch (error) {
+              end(error);
+            }
           },
         },
-      });
+        getAccounts: (
+          end: (arg0: null, arg1: any[]) => void,
+          payload: { hostname: string | number },
+        ) => {
+          const { approvedHosts } = store.getState();
+          const isEnabled = approvedHosts[payload.hostname];
+          const { KeyringController } = this.context;
+          const isUnlocked = KeyringController.isUnlocked();
+          const selectedAddress =
+            this.context.PreferencesController.state.selectedAddress;
+          end(
+            null,
+            isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : [],
+          );
+        },
+      };
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
       });
-      const collectiblesController = new CollectiblesController(
+      const nftController = new NftController(
         {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
           getERC721AssetName: assetsContractController.getERC721AssetName.bind(
             assetsContractController,
           ),
@@ -168,14 +195,23 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
-        config: { provider: networkController.provider },
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        config: {
+          provider: networkController.provider,
+          chainId: networkController.state.providerConfig.chainId,
+        },
       });
-      this.controllerMessenger = new ControllerMessenger();
+
       const tokenListController = new TokenListController({
-        chainId: networkController.provider.chainId,
+        chainId: networkController.state.providerConfig.chainId,
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
         messenger: this.controllerMessenger,
       });
       const currencyRateController = new CurrencyRateController({
@@ -188,12 +224,15 @@ class Engine {
         messenger: this.controllerMessenger,
         getProvider: () => networkController.provider,
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
         getCurrentNetworkEIP1559Compatibility: async () =>
           await networkController.getEIP1559Compatibility(),
-        getChainId: () => networkController.state.provider.chainId,
+        getChainId: () => networkController.state.providerConfig.chainId,
         getCurrentNetworkLegacyGasAPICompatibility: () => {
-          const chainId = networkController.state.provider.chainId;
+          const chainId = networkController.state.providerConfig.chainId;
           return (
             isMainnetByChainId(chainId) ||
             chainId === swapsUtils.BSC_CHAIN_ID ||
@@ -207,30 +246,54 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+      });
+
+      const phishingController = new PhishingController();
+      phishingController.maybeUpdateState();
+
       const additionalKeyrings = [QRHardwareKeyring];
 
+      const getIdentities = () => {
+        const identities = preferencesController.state.identities;
+        const newIdentities = {};
+        Object.keys(identities).forEach((key) => {
+          newIdentities[key.toLowerCase()] = identities[key];
+        });
+        return newIdentities;
+      };
+
+      const keyringState =
+        initialKeyringState || initialState.KeyringController;
+
+      const keyringController = new KeyringController(
+        {
+          removeIdentity: preferencesController.removeIdentity.bind(
+            preferencesController,
+          ),
+          syncIdentities: preferencesController.syncIdentities.bind(
+            preferencesController,
+          ),
+          updateIdentities: preferencesController.updateIdentities.bind(
+            preferencesController,
+          ),
+          setSelectedAddress: preferencesController.setSelectedAddress.bind(
+            preferencesController,
+          ),
+          setAccountLabel: preferencesController.setAccountLabel.bind(
+            preferencesController,
+          ),
+        },
+        { encryptor, keyringTypes: additionalKeyrings },
+        keyringState,
+      );
+
       const controllers = [
-        new KeyringController(
-          {
-            removeIdentity: preferencesController.removeIdentity.bind(
-              preferencesController,
-            ),
-            syncIdentities: preferencesController.syncIdentities.bind(
-              preferencesController,
-            ),
-            updateIdentities: preferencesController.updateIdentities.bind(
-              preferencesController,
-            ),
-            setSelectedAddress: preferencesController.setSelectedAddress.bind(
-              preferencesController,
-            ),
-            setAccountLabel: preferencesController.setAccountLabel.bind(
-              preferencesController,
-            ),
-          },
-          { encryptor, keyringTypes: additionalKeyrings },
-          initialState.KeyringController,
-        ),
+        keyringController,
         new AccountTrackerController({
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
@@ -238,14 +301,17 @@ class Engine {
         }),
         new AddressBookController(),
         assetsContractController,
-        collectiblesController,
+        nftController,
         tokensController,
         tokenListController,
         new TokenDetectionController({
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
           onTokenListStateChange: (listener) =>
             this.controllerMessenger.subscribe(
               `${tokenListController.name}:stateChange`,
@@ -253,16 +319,13 @@ class Engine {
             ),
           addDetectedTokens: (tokens) => {
             // Track detected tokens event
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.TOKEN_DETECTED,
-              {
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                chain_id: getDecimalChainId(
-                  networkController.state.provider.chainId,
-                ),
-              },
-            );
+            trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              chain_id: getDecimalChainId(
+                networkController.state.providerConfig.chainId,
+              ),
+            });
             tokensController.addDetectedTokens(tokens);
           },
           getTokensState: () => tokensController.state,
@@ -274,24 +337,24 @@ class Engine {
               assetsContractController,
             ),
         }),
-        new CollectibleDetectionController({
-          onCollectiblesStateChange: (listener) =>
-            collectiblesController.subscribe(listener),
+        new NftDetectionController({
+          onNftsStateChange: (listener) => nftController.subscribe(listener),
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
-          getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
-          addCollectible: collectiblesController.addCollectible.bind(
-            collectiblesController,
-          ),
-          getCollectiblesState: () => collectiblesController.state,
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+          getOpenSeaApiKey: () => nftController.openSeaApiKey,
+          addNft: nftController.addNft.bind(nftController),
+          getNftState: () => nftController.state,
         }),
         currencyRateController,
         new PersonalMessageManager(),
         new MessageManager(),
         networkController,
-        new PhishingController(),
+        phishingController,
         preferencesController,
         new TokenBalancesController(
           {
@@ -305,27 +368,39 @@ class Engine {
           },
           { interval: 10000 },
         ),
-        new TokenRatesController({
-          onTokensStateChange: (listener) =>
-            tokensController.subscribe(listener),
-          onCurrencyRateStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              `${currencyRateController.name}:stateChange`,
-              listener,
-            ),
-          onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
-        }),
+        new TokenRatesController(
+          {
+            onTokensStateChange: (listener) =>
+              tokensController.subscribe(listener),
+            onCurrencyRateStateChange: (listener) =>
+              this.controllerMessenger.subscribe(
+                `${currencyRateController.name}:stateChange`,
+                listener,
+              ),
+            onNetworkStateChange: (listener) =>
+              this.controllerMessenger.subscribe(
+                AppConstants.NETWORK_STATE_CHANGE_EVENT,
+                listener,
+              ),
+          },
+          {
+            chainId: networkController.state.providerConfig.chainId,
+          },
+        ),
         new TransactionController({
           getNetworkState: () => networkController.state,
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
           getProvider: () => networkController.provider,
         }),
         new TypedMessageManager(),
         new SwapsController(
           {
             fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+            fetchEstimatedMultiLayerL1Fee,
           },
           {
             clientId: AppConstants.SWAPS.CLIENT_ID,
@@ -340,17 +415,37 @@ class Engine {
               swapsUtils.SWAPS_TESTNET_CHAIN_ID,
               swapsUtils.POLYGON_CHAIN_ID,
               swapsUtils.AVALANCHE_CHAIN_ID,
+              swapsUtils.ARBITRUM_CHAIN_ID,
+              swapsUtils.OPTIMISM_CHAIN_ID,
             ],
           },
         ),
         gasFeeController,
-        new ApprovalController({
+        approvalController,
+        new PermissionController({
           messenger: this.controllerMessenger.getRestricted({
-            name: 'ApprovalController',
+            name: 'PermissionController',
+            allowedActions: [
+              `${approvalController.name}:addRequest`,
+              `${approvalController.name}:hasRequest`,
+              `${approvalController.name}:acceptRequest`,
+              `${approvalController.name}:rejectRequest`,
+            ],
           }),
-          showApprovalRequest: () => null,
+          state: initialState.PermissionController,
+          caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+          permissionSpecifications: {
+            ...getPermissionSpecifications({
+              getAllAccounts: () => keyringController.getAccounts(),
+            }),
+            /*
+            ...this.getSnapPermissionSpecifications(),
+            */
+          },
+          unrestrictedMethods,
         }),
       ];
+
       // set initial state
       // TODO: Pass initial state into each controller constructor instead
       // This is being set post-construction for now to ensure it's functionally equivalent with
@@ -366,6 +461,7 @@ class Engine {
           controller.update(initialState[controller.name]);
         }
       }
+
       this.datamodel = new ComposableController(
         controllers,
         this.controllerMessenger,
@@ -376,44 +472,63 @@ class Engine {
       }, {});
 
       const {
-        CollectiblesController: collectibles,
+        NftController: nfts,
         KeyringController: keyring,
-        NetworkController: network,
         TransactionController: transaction,
       } = this.context;
 
-      collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
-      network.refreshNetwork();
+      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
+
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-      network.subscribe(
-        (state: { network: string, provider: { chainId: any } }) => {
+      this.controllerMessenger.subscribe(
+        AppConstants.NETWORK_STATE_CHANGE_EVENT,
+        (state: { network: string, providerConfig: { chainId: any } }) => {
           if (
             state.network !== 'loading' &&
-            state.provider.chainId !== currentChainId
+            state.providerConfig.chainId !== currentChainId
           ) {
             // We should add a state or event emitter saying the provider changed
             setTimeout(() => {
               this.configureControllersOnNetworkChange();
-              currentChainId = state.provider.chainId;
+              currentChainId = state.providerConfig.chainId;
             }, 500);
           }
         },
       );
       this.configureControllersOnNetworkChange();
       this.startPolling();
+      this.handleVaultBackup();
       Engine.instance = this;
     }
+
     return Engine.instance;
+  }
+
+  handleVaultBackup() {
+    const { KeyringController } = this.context;
+    KeyringController.subscribe((state) =>
+      backupVault(state)
+        .then((result) => {
+          if (result.success) {
+            Logger.log('Engine', 'Vault back up successful');
+          } else {
+            Logger.log('Engine', 'Vault backup failed', result.error);
+          }
+        })
+        .catch((error) => {
+          Logger.error(error, 'Engine Vault backup failed');
+        }),
+    );
   }
 
   startPolling() {
     const {
-      CollectibleDetectionController,
+      NftDetectionController,
       TokenDetectionController,
       TokenListController,
     } = this.context;
     TokenListController.start();
-    CollectibleDetectionController.start();
+    NftDetectionController.start();
     TokenDetectionController.start();
   }
 
@@ -422,7 +537,7 @@ class Engine {
       AccountTrackerController,
       AssetsContractController,
       TokenDetectionController,
-      CollectibleDetectionController,
+      NftDetectionController,
       NetworkController: { provider, state: NetworkControllerState },
       TransactionController,
       SwapsController,
@@ -434,13 +549,13 @@ class Engine {
 
     SwapsController.configure({
       provider,
-      chainId: NetworkControllerState?.provider?.chainId,
+      chainId: NetworkControllerState?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     TransactionController.configure({ provider });
     TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
-    CollectibleDetectionController.detectCollectibles();
+    NftDetectionController.detectNfts();
     AccountTrackerController.refresh();
   }
 
@@ -448,7 +563,7 @@ class Engine {
     const { TransactionController, PreferencesController, NetworkController } =
       this.context;
     const { selectedAddress } = PreferencesController.state;
-    const { type: networkType } = NetworkController.state.provider;
+    const { type: networkType } = NetworkController.state.providerConfig;
     const { networkId } = Networks[networkType];
     try {
       const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem(
@@ -586,7 +701,7 @@ class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
-      const collectibles = backgroundState.CollectiblesController.collectibles;
+      const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
       const tokenBalances =
         backgroundState.TokenBalancesController.contractBalances;
@@ -603,7 +718,7 @@ class Engine {
 
       const fiatBalance = this.getTotalFiatAccountBalance();
 
-      return fiatBalance > 0 || tokenFound || collectibles.length > 0;
+      return fiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
     }
@@ -616,10 +731,14 @@ class Engine {
     const {
       TransactionController,
       TokensController,
-      CollectiblesController,
+      NftController,
       TokenBalancesController,
       TokenRatesController,
+      PermissionController,
     } = this.context;
+
+    // Remove all permissions.
+    PermissionController?.clearState?.();
 
     //Clear assets info
     TokensController.update({
@@ -628,12 +747,10 @@ class Engine {
       tokens: [],
       suggestedAssets: [],
     });
-    CollectiblesController.update({
-      allCollectibleContracts: {},
-      allCollectibles: {},
-      collectibleContracts: [],
-      collectibles: [],
-      ignoredCollectibles: [],
+    NftController.update({
+      allNftContracts: {},
+      allNfts: {},
+      ignoredNfts: [],
     });
 
     TokensController.update({
@@ -674,7 +791,7 @@ class Engine {
     } = this.context;
 
     // Select same network ?
-    await NetworkController.setProviderType(network.provider.type);
+    await NetworkController.setProviderType(network.providerConfig.type);
 
     // Recreate accounts
     await KeyringController.createNewVaultAndRestore(pass, seed);
@@ -750,6 +867,16 @@ class Engine {
 
     return true;
   };
+
+  removeAllListeners() {
+    this.controllerMessenger.clearSubscriptions();
+  }
+
+  async destroyEngineInstance() {
+    this.removeAllListeners();
+    await this.resetState();
+    Engine.instance = null;
+  }
 }
 
 let instance: Engine;
@@ -766,7 +893,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
-      CollectiblesController,
+      NftController,
       TokenListController,
       CurrencyRateController,
       KeyringController,
@@ -782,7 +909,8 @@ export default {
       GasFeeController,
       TokensController,
       TokenDetectionController,
-      CollectibleDetectionController,
+      NftDetectionController,
+      PermissionController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -799,7 +927,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
-      CollectiblesController,
+      NftController,
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
       KeyringController,
@@ -815,7 +943,8 @@ export default {
       SwapsController,
       GasFeeController,
       TokenDetectionController,
-      CollectibleDetectionController,
+      NftDetectionController,
+      PermissionController,
     };
   },
   get datamodel() {
@@ -830,14 +959,20 @@ export default {
   resetState() {
     return instance.resetState();
   },
+
+  destroyEngine() {
+    instance && instance.destroyEngineInstance();
+    instance = null;
+  },
+
   sync(data: any) {
     return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
   },
-  init(state: {} | undefined) {
-    instance = new Engine(state);
+  init(state: {} | undefined, keyringState = null) {
+    instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },

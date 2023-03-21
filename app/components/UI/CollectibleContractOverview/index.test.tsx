@@ -9,15 +9,15 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: {
+        providerConfig: {
           chainId: 1,
         },
       },
       PreferencesController: {
         selectedAddress: '0x1',
       },
-      CollectiblesController: {
-        allCollectibles: {
+      NftController: {
+        allNfts: {
           '0x1': {
             1: [],
           },

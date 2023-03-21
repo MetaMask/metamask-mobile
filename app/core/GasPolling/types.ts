@@ -114,6 +114,7 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    */
   gasSelected: string | null;
   onlyGas?: boolean;
+
   /**
    * The type of transaction (EIP1559, legacy)
    */
@@ -132,6 +133,8 @@ export interface UseGasTransactionProps extends GasTransactionProps {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
+
+  multiLayerL1FeeTotal?: string;
 }
 
 export interface TransactionSharedProps {
@@ -209,6 +212,8 @@ export interface LegacyProps {
   currentCurrency: string;
   transactionState: any;
   ticker: string;
+  suggestedGasPrice: any;
+  suggestedGasLimit: string;
   onlyGas?: boolean;
-  gas: any;
+  multiLayerL1FeeTotal?: string;
 }

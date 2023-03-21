@@ -7,8 +7,8 @@ import {
   IOS_I_UNDERSTAND_BUTTON_ID,
   ANDROID_I_UNDERSTAND_BUTTON_ID,
   IMPORT_PASSWORD_CONTAINER_ID,
-  SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
 } from '../../../app/constants/test-ids';
+import { IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID } from '../../../wdio/screen-objects/testIDs/Screens/ImportFromSeedScreen.testIds';
 
 const REMEMBER_ME_ID = 'remember-me-toggle';
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
@@ -56,19 +56,21 @@ export default class ImportWalletView {
   static async enterSecretRecoveryPhrase(secretRecoveryPhrase) {
     if (device.getPlatform() === 'android') {
       await TestHelpers.replaceTextInField(
-        SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
+        IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
         secretRecoveryPhrase,
       );
-      await element(by.id(SECRET_RECOVERY_PHRASE_INPUT_BOX_ID)).tapReturnKey();
+      await element(
+        by.id(IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID),
+      ).tapReturnKey();
     } else {
       await TestHelpers.typeTextAndHideKeyboard(
-        SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
+        IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
         secretRecoveryPhrase,
       );
     }
   }
   static async clearSecretRecoveryPhraseInputBox() {
-    await TestHelpers.clearField(SECRET_RECOVERY_PHRASE_INPUT_BOX_ID);
+    await TestHelpers.clearField(IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID);
   }
 
   static async toggleRememberMe() {
