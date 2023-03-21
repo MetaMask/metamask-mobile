@@ -1,21 +1,21 @@
-import { swapsUtils } from '@metamask/swaps-controller';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import { zeroAddress } from 'ethereumjs-util';
 import React, { useContext, useEffect, useMemo } from 'react';
-import { InteractionManager, Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
-  swapsLivenessSelector,
-  swapsTokensObjectSelector,
-} from '../../../reducers/swaps';
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import { safeToChecksumAddress } from '../../../util/address';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
@@ -26,65 +26,27 @@ import {
 } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { getEther } from '../../../util/transactions';
-import AssetActionButton from './AssetActionButton';
-import { allowedToBuy } from '../FiatOnRampAggregator';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
-import { isSwapsAllowed } from '../Swaps/utils';
-// import { isTestNet } from '../../../util/networks';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
-// import { createWebviewNavDetails } from '../../Views/SimpleWebview';
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { zeroAddress } from 'ethereumjs-util';
-import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import Text from '../../Base/Text';
 import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
-import { Asset } from './AssetOverview.types';
-import PriceChart from './PriceChart';
-import Price from './Price';
-import ChartNavigationButton from './ChartNavigationButton';
-import Balance from './Balance';
+import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import AboutAsset from './AboutAsset/AboutAsset';
+import AssetActionButton from './AssetActionButton';
+import { Asset } from './AssetOverview.types';
+import Balance from './Balance';
+import ChartNavigationButton from './ChartNavigationButton';
+import Price from './Price';
+import PriceChart from './PriceChart';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    chart: {
-      paddingRight: 0,
-    },
-    mainBalance: {
-      flexDirection: 'row',
-    },
-    price: {
-      flexDirection: 'row',
-    },
     wrapper: {
       paddingTop: 20,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border.muted,
     },
-    balance: {
-      alignItems: 'center',
-      marginTop: 10,
+    warningWrapper: {
+      paddingHorizontal: 16,
       marginBottom: 20,
-    },
-    amount: {
-      fontSize: 30,
-      color: colors.text.default,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
-    testNetAmount: {
-      fontSize: 30,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    amountFiat: {
-      fontSize: 18,
-      color: colors.text.alternative,
-      ...fontStyles.light,
-      textTransform: 'uppercase',
     },
     warning: {
       borderRadius: 8,
@@ -114,7 +76,6 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'space-between',
       paddingHorizontal: 16,
     },
-
     balanceButtons: {
       display: 'flex',
       flexDirection: 'row',
@@ -124,6 +85,8 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 16,
     },
   });
+
+type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
 
 interface AssetOverviewProps {
   navigation: {
@@ -136,9 +99,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   navigation,
   asset,
 }: AssetOverviewProps) => {
-  const [timePeriod, setTimePeriod] = React.useState<
-    '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y'
-  >('1d');
+  const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const accounts = useSelector(
     (state: RootStateOrAny) =>
       state.engine.backgroundState.AccountTrackerController.accounts,
@@ -164,12 +125,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
   const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
-  const swapsIsLive = useSelector((state: RootStateOrAny) =>
-    swapsLivenessSelector(state),
-  );
-  const swapsTokens = useSelector((state: RootStateOrAny) =>
-    swapsTokensObjectSelector(state),
-  );
 
   const { prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.address || zeroAddress(),
@@ -200,19 +155,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onReceive = () => {
     dispatch(toggleReceiveModal(asset));
   };
-  const onBuy = () => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-    InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy',
-        location: 'Token Screen',
-        chain_id_destination: chainId,
-      });
-    });
-  };
 
   const onSend = async () => {
-    if (asset.isETH) {
+    if (asset.isETH && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
       dispatch(newAssetTransaction(asset));
@@ -220,48 +165,38 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('SendFlowView');
   };
 
-  const goToSwaps = () => {
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: asset.isETH
-          ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
-          : asset.address,
-      },
-    });
+  const goToBrowserUrl = (url: string) => {
+    navigation.navigate(
+      ...createWebviewNavDetails({
+        url,
+      }),
+    );
   };
 
-  // const goToBrowserUrl = (url: string) => {
-  //   navigation.navigate(
-  //     ...createWebviewNavDetails({
-  //       url,
-  //     }),
-  //   );
-  // };
+  const renderWarning = () => (
+    <View style={styles.warningWrapper}>
+      <TouchableOpacity
+        onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
+      >
+        <Text style={styles.warning}>
+          {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
+          {strings('asset_overview.balance')}{' '}
+          <Text style={styles.warningLinks}>
+            {strings('asset_overview.troubleshooting_missing')}
+          </Text>{' '}
+          {strings('asset_overview.for_help')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
-  // const renderWarning = () => (
-  //   <TouchableOpacity
-  //     onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
-  //   >
-  //     <Text style={styles.warning}>
-  //       {strings('asset_overview.were_unable')} {asset.symbol}{' '}
-  //       {strings('asset_overview.balance')}{' '}
-  //       <Text style={styles.warningLinks}>
-  //         {strings('asset_overview.troubleshooting_missing')}
-  //       </Text>{' '}
-  //       {strings('asset_overview.for_help')}
-  //     </Text>
-  //   </TouchableOpacity>
-  // );
-  const handleSelectTimePeriod = (
-    _timePeriod: '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y',
-  ) => {
+  const handleSelectTimePeriod = (_timePeriod: TimePeriod) => {
     setTimePeriod(_timePeriod);
   };
 
-  let mainBalance, secondaryBalance;
   const itemAddress = safeToChecksumAddress(asset.address);
-  let balance, balanceFiat, fiatUnitPrice;
+
+  let balance, balanceFiat;
   if (asset.isETH) {
     balance = renderFromWei(accounts[selectedAddress]?.balance);
     balanceFiat = weiToFiat(
@@ -269,7 +204,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       conversionRate,
       currentCurrency,
     );
-    fiatUnitPrice = conversionRate;
   } else {
     const exchangeRate =
       itemAddress && itemAddress in tokenExchangeRates
@@ -285,20 +219,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       exchangeRate,
       currentCurrency,
     );
-    fiatUnitPrice = balanceToFiat(
-      1,
-      conversionRate,
-      exchangeRate,
-      currentCurrency,
-    );
   }
-  console.log({
-    balance,
-    balanceFiat,
-    fiatUnitPrice,
-    conversionRate,
-  });
-  // choose balances depending on 'primaryCurrency'
+
+  let mainBalance, secondaryBalance;
   if (primaryCurrency === 'ETH') {
     mainBalance = `${balance} ${asset.symbol}`;
     secondaryBalance = balanceFiat;
@@ -308,76 +231,58 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? balanceFiat
       : `${balance} ${asset.symbol}`;
   }
-
   const currentPrice = prices[prices.length - 1]?.[1] || 0;
   const comparePrice = prices[0]?.[1] || 0;
-
   const priceDiff = currentPrice - comparePrice;
+
   return (
     <View
       style={styles.wrapper}
       {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
     >
-      <View>
-        <Price
-          asset={asset}
-          priceDiff={priceDiff}
-          currentCurrency={currentCurrency}
-          currentPrice={currentPrice}
-          comparePrice={comparePrice}
-          isLoading={isLoading}
-          timePeriod={timePeriod}
-        />
-        <PriceChart
-          prices={prices}
-          priceDiff={priceDiff}
-          isLoading={isLoading}
-          currentCurrency={currentCurrency}
-        />
-        <View style={styles.chartNavigationWrapper}>
-          {['1d', '1w', '1m', '3m', '1y', '3y'].map((label) => (
-            <ChartNavigationButton
-              key={label}
-              label={label}
-              onPress={handleSelectTimePeriod.bind(this, label)}
-              selected={timePeriod === label}
-            />
-          ))}
-        </View>
-        <View style={styles.balanceWrapper}>
-          <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
-          <View style={styles.balanceButtons}>
-            <AssetActionButton icon="receive" onPress={onReceive} />
-            <AssetActionButton icon="send" onPress={onSend} />
+      {asset.balanceError ? (
+        renderWarning()
+      ) : (
+        <View>
+          <Price
+            asset={asset}
+            priceDiff={priceDiff}
+            currentCurrency={currentCurrency}
+            currentPrice={currentPrice}
+            comparePrice={comparePrice}
+            isLoading={isLoading}
+            timePeriod={timePeriod}
+          />
+          <PriceChart
+            prices={prices}
+            priceDiff={priceDiff}
+            isLoading={isLoading}
+            currentCurrency={currentCurrency}
+          />
+          <View style={styles.chartNavigationWrapper}>
+            {(['1d', '1w', '1m', '3m', '1y', '3y'] as TimePeriod[]).map(
+              (label) => (
+                <ChartNavigationButton
+                  key={label}
+                  label={label}
+                  onPress={handleSelectTimePeriod.bind(this, label)}
+                  selected={timePeriod === label}
+                />
+              ),
+            )}
+          </View>
+          <View style={styles.balanceWrapper}>
+            <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
+            <View style={styles.balanceButtons}>
+              <AssetActionButton icon="receive" onPress={onReceive} />
+              <AssetActionButton icon="send" onPress={onSend} />
+            </View>
+          </View>
+          <View style={styles.aboutWrapper}>
+            <AboutAsset asset={asset} chainId={chainId} />
           </View>
         </View>
-        <View style={styles.aboutWrapper}>
-          <AboutAsset asset={asset} chainId={chainId} />
-        </View>
-      </View>
-
-      {/* {!asset.balanceError && (
-        <View>
-          {asset.isETH && allowedToBuy(chainId) && (
-            <AssetActionButton
-              icon="add"
-              onPress={onBuy}
-              label={strings('asset_overview.buy_button')}
-            />
-          )}
-
-          {AppConstants.SWAPS.ACTIVE && (
-            <AssetSwapButton
-              isFeatureLive={swapsIsLive}
-              isNetworkAllowed={isSwapsAllowed(chainId)}
-              isAssetAllowed={
-                asset.isETH || asset.address?.toLowerCase() in swapsTokens
-              }
-              onPress={goToSwaps}
-            />
-          )}
-        </View>
-      )} */}
+      )}
     </View>
   );
 };

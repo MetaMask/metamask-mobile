@@ -1,7 +1,5 @@
 import React, { ReactNode } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import FeatherIcon from 'react-native-vector-icons/Feather';
-import Ionicon from 'react-native-vector-icons/Ionicons';
 import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
@@ -86,23 +84,13 @@ const AssetActionButton = ({
         return <Icon name={IconName.Add} style={styles.buttonIcon} />;
       }
       case 'information': {
-        return (
-          <Ionicon name="md-information" size={30} style={styles.buttonIcon} />
-        );
+        return <Icon name={IconName.Info} style={styles.buttonIcon} />;
       }
       case 'swap': {
-        return (
-          <Icon name={IconName.SwapHorizontal} style={styles.buttonIcon} />
-        );
+        return <Icon name={IconName.Swap} style={styles.buttonIcon} />;
       }
       case 'buy': {
-        return (
-          <FeatherIcon
-            name="credit-card"
-            size={20}
-            style={[styles.buttonIcon, styles.buyIcon]}
-          />
-        );
+        return <Icon name={IconName.Card} style={styles.buttonIcon} />;
       }
       default: {
         return null;

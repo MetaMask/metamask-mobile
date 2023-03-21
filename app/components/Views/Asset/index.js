@@ -1,38 +1,53 @@
+import { swapsUtils } from '@metamask/swaps-controller/';
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
   InteractionManager,
-  View,
   StyleSheet,
+  View,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { swapsUtils } from '@metamask/swaps-controller/';
+import { strings } from '../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
 import {
-  TX_UNAPPROVED,
-  TX_SUBMITTED,
-  TX_SIGNED,
-  TX_PENDING,
   TX_CONFIRMED,
+  TX_PENDING,
+  TX_SIGNED,
+  TX_SUBMITTED,
+  TX_UNAPPROVED,
 } from '../../../constants/transaction';
-import AssetOverview from '../../UI/AssetOverview-V2';
-import Transactions from '../../UI/Transactions';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { sortTransactions } from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
-import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
-  findBlockExplorerForRpc,
-  isMainnetByChainId,
-} from '../../../util/networks';
+  swapsLivenessSelector,
+  swapsTokensObjectSelector,
+} from '../../../reducers/swaps';
 import {
   selectChainId,
   selectRpcTarget,
 } from '../../../selectors/networkController';
-import Routes from '../../../constants/navigation/Routes';
+import { sortTransactions } from '../../../util/activity';
+import { safeToChecksumAddress } from '../../../util/address';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
+import { toLowerCaseEquals } from '../../../util/general';
+import {
+  findBlockExplorerForRpc,
+  isMainnetByChainId,
+} from '../../../util/networks';
+import { mockTheme, ThemeContext } from '../../../util/theme';
+import { addAccountTimeFlagFilter } from '../../../util/transactions';
+import AssetOverview from '../../UI/AssetOverview-V2';
+import { allowedToBuy } from '../../UI/FiatOnRampAggregator';
+import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
+import Transactions from '../../UI/Transactions';
+import ActivityHeader from './ActivityHeader';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -48,6 +63,27 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    footer: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      backgroundColor: colors.background.default,
+      paddingBottom: 32,
+      paddingHorizontal: 12,
+      shadowOffset: {
+        width: 0,
+        height: -2,
+      },
+      shadowRadius: 8,
+      shadowOpacity: 0.4,
+      shadowColor: colors.background.primary,
+      elevation: 2,
+      paddingTop: 16,
+    },
+    footerButton: {
+      flexGrow: 1,
+      marginHorizontal: 4,
     },
   });
 
@@ -95,6 +131,8 @@ class Asset extends PureComponent {
      * Indicates whether third party API mode is enabled
      */
     thirdPartyApiMode: PropTypes.bool,
+    swapsIsLive: PropTypes.bool,
+    swapsTokens: PropTypes.object,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -384,6 +422,33 @@ class Asset extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const asset = navigation && params;
+    const isSwapsFeatureLive = this.props.swapsIsLive;
+    const isNetworkAllowed = isSwapsAllowed(chainId);
+    const isAssetAllowed =
+      asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
+
+    const onBuy = () => {
+      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      InteractionManager.runAfterInteractions(() => {
+        trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+          text: 'Buy',
+          location: 'Token Screen',
+          chain_id_destination: chainId,
+        });
+      });
+    };
+
+    const goToSwaps = () => {
+      navigation.navigate('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: asset.isETH
+            ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
+            : asset.address,
+        },
+      });
+    };
 
     return (
       <View style={styles.wrapper}>
@@ -392,12 +457,12 @@ class Asset extends PureComponent {
         ) : (
           <Transactions
             header={
-              <AssetOverview
-                navigation={navigation}
-                asset={navigation && params}
-              />
+              <>
+                <AssetOverview navigation={navigation} asset={asset} />
+                <ActivityHeader asset={asset} />
+              </>
             }
-            assetSymbol={navigation && params.symbol}
+            assetSymbol={asset.symbol}
             navigation={navigation}
             transactions={transactions}
             submittedTransactions={submittedTxs}
@@ -410,6 +475,31 @@ class Asset extends PureComponent {
             headerHeight={280}
           />
         )}
+        {!asset.balanceError && (
+          <View style={styles.footer}>
+            {asset.isETH && allowedToBuy(chainId) && (
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                label={strings('asset_overview.buy_button')}
+                style={styles.footerButton}
+                onPress={onBuy}
+              />
+            )}
+            {AppConstants.SWAPS.ACTIVE && (
+              <Button
+                disabled={
+                  !isSwapsFeatureLive || !isNetworkAllowed || !isAssetAllowed
+                }
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                label={'Swap'}
+                style={styles.footerButton}
+                onPress={goToSwaps}
+              />
+            )}
+          </View>
+        )}
       </View>
     );
   };
@@ -418,6 +508,8 @@ class Asset extends PureComponent {
 Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
+  swapsIsLive: swapsLivenessSelector(state),
+  swapsTokens: swapsTokensObjectSelector(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   conversionRate:

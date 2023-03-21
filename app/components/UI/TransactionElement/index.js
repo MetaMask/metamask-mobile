@@ -38,8 +38,6 @@ const createStyles = (colors) =>
     row: {
       backgroundColor: colors.background.default,
       flex: 1,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
     },
     actionContainerStyle: {
       height: 25,
@@ -54,8 +52,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 10,
     },
     icon: {
-      width: 28,
-      height: 28,
+      width: 32,
+      height: 32,
     },
     summaryWrapper: {
       padding: 15,
@@ -77,6 +75,31 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.alternative,
       paddingTop: 10,
     },
+    listItemDate: {
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
+    listItemContent: {
+      alignItems: 'flex-start',
+      marginTop: 0,
+      paddingTop: 0,
+    },
+    listItemTitle: {
+      fontSize: 16,
+      marginTop: 0,
+    },
+    listItemStatus: {
+      fontSize: 14,
+    },
+    listItemFiatAmount: {
+      fontSize: 16,
+      color: colors.text.default,
+      marginTop: 0,
+    },
+    listItemAmount: {
+      fontSize: 14,
+      color: colors.text.alternative,
+    },
   });
 
 /* eslint-disable import/no-commonjs */
@@ -84,11 +107,13 @@ const transactionIconApprove = require('../../../images/transaction-icons/approv
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
 const transactionIconSent = require('../../../images/transaction-icons/send.png');
 const transactionIconReceived = require('../../../images/transaction-icons/receive.png');
+const transactionIconSwap = require('../../../images/transaction-icons/swap.png');
 
 const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png');
 const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png');
 const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
+const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
 /* eslint-enable import/no-commonjs */
 
 /**
@@ -262,6 +287,11 @@ class TransactionElement extends PureComponent {
           ? transactionIconInteractionFailed
           : transactionIconInteraction;
         break;
+      case TRANSACTION_TYPES.SWAPS_TRANSACTION:
+        icon = isFailedTransaction
+          ? transactionIconSwapFailed
+          : transactionIconSwap;
+        break;
       case TRANSACTION_TYPES.APPROVE:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
@@ -284,6 +314,8 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       tx: { time, status },
     } = this.props;
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
       status === 'submitted' || (status === 'approved' && !isQRHardwareAccount);
@@ -294,21 +326,29 @@ class TransactionElement extends PureComponent {
       <>
         {accountImportTime > time && this.renderImportTime()}
         <ListItem>
-          <ListItem.Date>{this.renderTxTime()}</ListItem.Date>
-          <ListItem.Content>
+          <ListItem.Date style={styles.listItemDate}>
+            {this.renderTxTime()}
+          </ListItem.Date>
+          <ListItem.Content style={styles.listItemContent}>
             <ListItem.Icon>
               {this.renderTxElementIcon(transactionElement, status)}
             </ListItem.Icon>
             <ListItem.Body>
-              <ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
-              <StatusText status={status} />
+              <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+                {actionKey}
+              </ListItem.Title>
+              <StatusText status={status} style={styles.listItemStatus} />
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
-                <ListItem.Amount>{value}</ListItem.Amount>
                 {isMainNet(chainId) && (
-                  <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+                  <ListItem.FiatAmount style={styles.listItemFiatAmount}>
+                    {fiatValue}
+                  </ListItem.FiatAmount>
                 )}
+                <ListItem.Amount style={styles.listItemAmount}>
+                  {value}
+                </ListItem.Amount>
               </ListItem.Amounts>
             )}
           </ListItem.Content>

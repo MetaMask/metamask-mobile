@@ -185,6 +185,7 @@ export enum IconName {
   Student = 'Student',
   SwapHorizontal = 'SwapHorizontal',
   SwapVertival = 'SwapVertival',
+  Swap = 'Swap',
   Tag = 'Tag',
   Tilde = 'Tilde',
   Timer = 'Timer',

@@ -10,19 +10,43 @@ import {
   View,
 } from 'react-native';
 import {
+  Circle,
+  Defs,
   G,
+  Line as SvgLine,
+  LinearGradient,
   Path,
   Rect,
-  Text as SvgText,
-  Line as SvgLine,
-  Circle,
+  Stop,
 } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import { addCurrencySymbol } from '../../../../util/number';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import Text from '../../../Base/Text';
+import Title from '../../../Base/Title';
+
+const placeholderData = [
+  3, 5, 6, 8, 7, 5, 7, 9, 10, 12, 14, 15, 14, 12, 11, 10, 9, 10, 8, 7, 5, 6, 5,
+  4, 5, 4, 3, 4, 5, 6, 7, 8, 10, 12, 13, 12, 10, 9, 8, 10, 11, 10, 8, 7, 8, 10,
+  12, 13, 14, 16, 15, 13, 12, 11, 12, 14, 15, 13, 11, 10, 9, 7, 6, 5, 4, 3, 2,
+  3, 4, 5, 6, 5, 7, 8, 10, 11, 13, 14, 16, 15, 14, 12, 10, 9, 11, 12, 10, 8, 7,
+  8, 9, 11, 13, 14, 16, 15, 13, 11, 9, 7, 6, 5, 4, 5, 7, 8, 28, 26, 24, 22, 20,
+  18, 20, 22, 19, 18, 20, 22, 24, 26, 23, 21, 20, 19, 22, 21, 20, 22, 23, 21,
+  19, 18, 16, 14, 12, 14, 13, 15, 16, 18, 20, 22, 24, 22, 21, 20, 18, 16, 15,
+  14, 12, 14, 13, 11, 10, 11, 13, 12, 10, 12, 14, 16, 18, 17, 16, 14, 12, 10, 9,
+  8, 10, 11, 13, 14, 12, 11, 9, 8, 7, 6, 7, 8, 10, 11, 12, 10, 9, 8, 7, 5, 10,
+  11, 12, 10, 12, 13, 14, 15, 17, 19, 21, 22, 24, 23, 26, 27, 29, 27, 32, 28,
+  35, 30, 39, 40, 38, 41, 36, 39, 42, 40, 37, 35, 38, 39, 40, 41, 43, 45, 47,
+  43, 41, 38, 36, 35, 33, 31, 30, 28, 27, 29, 30,
+];
 
 const createStyles = () =>
   StyleSheet.create({
@@ -32,6 +56,7 @@ const createStyles = () =>
       height: 305, // hack to remove internal padding that is not configurable
       paddingTop: 0,
       marginVertical: 10,
+      width: Dimensions.get('screen').width,
     },
     chartArea: {
       flex: 1,
@@ -40,6 +65,35 @@ const createStyles = () =>
       width: Dimensions.get('screen').width,
       paddingHorizontal: 16,
       paddingTop: 10,
+    },
+    priceChannel: {
+      height: 14,
+      marginBottom: 10,
+    },
+    priceChannelText: {
+      textAlign: 'center',
+      fontSize: 12,
+    },
+    noDataOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 96,
+      zIndex: 1,
+    },
+    noDataOverlayTitle: {
+      textAlign: 'center',
+      fontSize: 18,
+      lineHeight: 24,
+    },
+    noDataOverlayText: {
+      textAlign: 'center',
+      fontSize: 16,
+      lineHeight: 24,
     },
   });
 const styles = createStyles();
@@ -69,6 +123,7 @@ function distributeDataPoints(dataPoints: TokenPrice[]): TokenPrice[] {
 
 interface LineProps {
   line: string;
+  chartHasData: boolean;
 }
 interface TooltipProps {
   x: (index: number) => number;
@@ -153,78 +208,94 @@ const PriceChart = ({
   );
 
   const Line = (props: Partial<LineProps>) => {
-    const { line } = props as LineProps;
+    const { line, chartHasData } = props as LineProps;
     return (
       <Path
         key="line"
         d={line}
-        stroke={chartColor}
-        strokeWidth={apx(6)}
+        stroke={chartHasData ? chartColor : colors.text.alternative}
+        strokeWidth={apx(4)}
         fill="none"
+        opacity={chartHasData ? 1 : 0.85}
       />
     );
   };
 
+  const NoDataGradient = () => {
+    // gradient with transparent center and grey edges
+    const gradient = (
+      <Defs key="gradient">
+        <LinearGradient id="gradient" x1="0" y1="1" x2="0" y2="0">
+          <Stop
+            offset="0"
+            stopColor={colors.background.default}
+            stopOpacity="1"
+          />
+          <Stop
+            offset="0.5"
+            stopColor={colors.background.default}
+            stopOpacity="0.5"
+          />
+          <Stop
+            offset="1"
+            stopColor={colors.background.default}
+            stopOpacity="1"
+          />
+        </LinearGradient>
+      </Defs>
+    );
+
+    return (
+      <G key="no-data-gradient">
+        {gradient}
+        <Rect
+          x="0"
+          y="0"
+          width={Dimensions.get('screen').width}
+          height={315}
+          fill="url(#gradient)"
+        />
+      </G>
+    );
+  };
+
+  const NoDataOverlay = () => (
+    <View style={styles.noDataOverlay}>
+      <Text>
+        <Icon
+          name={IconName.Warning}
+          color={IconColor.Muted}
+          size={IconSize.Xl}
+        />
+      </Text>
+      <Title style={styles.noDataOverlayTitle}>No chart data</Title>
+      <Text style={styles.noDataOverlayText}>
+        We could not fetch any data for this token
+      </Text>
+    </View>
+  );
+
   const Tooltip = ({ x, y, ticks }: Partial<TooltipProps>) => {
-    const tooltipWidth = apx(160);
     if (positionX < 0) {
       return null;
     }
 
-    const date = dateList[positionX];
-
     return (
       <G x={x?.(positionX)} key="tooltip">
-        <G
-          x={positionX > dateList.length / 2 ? -tooltipWidth - 10 : apx(20)}
-          y={y?.(priceList[positionX]) || 0 - apx(10)}
-        >
-          <Rect
-            y={-apx(24 + 24 + 20) / 2}
-            rx={apx(12)} // borderRadius
-            ry={apx(12)} // borderRadius
-            width={tooltipWidth}
-            height={apx(96)}
-            stroke={colors.text.alternative}
-            fill="rgba(255, 255, 255, 0.8)"
-          />
+        <SvgLine
+          y1={ticks?.[0]}
+          y2={ticks?.[Number(ticks.length)]}
+          stroke={'#848C96'}
+          strokeWidth={apx(1)}
+        />
 
-          <SvgText
-            x={apx(20)}
-            fill={colors.text.alternative}
-            opacity={0.65}
-            fontSize={apx(24)}
-          >
-            {new Date(date).toLocaleDateString()}
-          </SvgText>
-          <SvgText
-            x={apx(20)}
-            y={apx(24 + 20)}
-            fontSize={apx(24)}
-            fontWeight="bold"
-            fill={chartColor}
-          >
-            {addCurrencySymbol(priceList[positionX], currentCurrency)}
-          </SvgText>
-        </G>
-
-        <G>
-          <SvgLine
-            y1={ticks?.[0]}
-            y2={ticks?.[Number(ticks.length)]}
-            stroke={chartColor}
-            strokeWidth={apx(4)}
-            strokeDasharray={[6, 3]}
-          />
-
-          <Circle
-            cy={y?.(priceList[positionX])}
-            r={apx(20 / 2)}
-            stroke="#fff"
-            strokeWidth={apx(2)}
-            fill={chartColor}
-          />
-        </G>
+        <Circle
+          cy={y?.(priceList[positionX])}
+          r={apx(20 / 2)}
+          stroke="#fff"
+          strokeWidth={apx(2)}
+          fill={chartColor}
+        />
       </G>
     );
   };
@@ -242,17 +313,31 @@ const PriceChart = ({
       </View>
     );
   }
+  const date = dateList[positionX];
+  const price = priceList[positionX];
+
+  const chartHasData = priceList.length > 0;
+
   return (
     <View style={styles.chart}>
       <View style={styles.chartArea} {...panResponder.current.panHandlers}>
+        <Text style={styles.priceChannel}>
+          {positionX !== -1 && chartHasData && (
+            <Text style={styles.priceChannelText}>
+              {new Date(date).toLocaleDateString()}{' '}
+              {addCurrencySymbol(price, currentCurrency)}
+            </Text>
+          )}
+        </Text>
+        {!chartHasData && <NoDataOverlay />}
         <AreaChart
           style={styles.chartArea}
-          data={priceList}
+          data={chartHasData ? priceList : placeholderData}
           curve={curveMonotoneX}
           contentInset={{ top: apx(40), bottom: apx(40) }}
         >
-          <Line />
-          <Tooltip />
+          <Line chartHasData={chartHasData} />
+          {chartHasData ? <Tooltip /> : <NoDataGradient />}
         </AreaChart>
       </View>
     </View>
