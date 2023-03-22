@@ -12,7 +12,6 @@ import {
   NETWORKS_CHAIN_ID,
   RINKEBY,
   ROPSTEN,
-  LINEA_TESTNET,
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
@@ -27,7 +26,6 @@ import {
   KOVAN_NETWORK_OPTION,
   RINKEBY_NETWORK_OPTION,
   ROPSTEN_NETWORK_OPTION,
-  LINEA_TESTNET_NETWORK_OPTION,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
@@ -111,17 +109,6 @@ const NetworkList = {
     imageSource: goerliLogo,
     testId: GOERLI_TEST_NETWORK_OPTION,
   },
-  [LINEA_TESTNET]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: 59140,
-    hexChainId: '0xe704',
-    color: '#000000',
-    networkType: 'lineatestnet',
-    imageSource: lineaLogo,
-    testId: LINEA_TESTNET_NETWORK_OPTION,
-  },
   [RPC]: {
     name: 'Private Network',
     shortName: 'Private',
@@ -130,13 +117,9 @@ const NetworkList = {
   },
 };
 
-let NetworkListKeys = Object.keys(NetworkList);
+const NetworkListKeys = Object.keys(NetworkList);
 
 export const shouldShowZKEVM = new Date().getTime() > Date.UTC(2023, 2, 28);
-
-if (!shouldShowZKEVM) {
-  NetworkListKeys = NetworkListKeys.filter((name) => name !== LINEA_TESTNET);
-}
 
 export default NetworkList;
 
@@ -194,8 +177,7 @@ export const isTestNet = (networkId) => {
     networkName === ROPSTEN ||
     networkName === GOERLI ||
     networkName === KOVAN ||
-    networkName === RINKEBY ||
-    networkName === LINEA_TESTNET
+    networkName === RINKEBY
   );
 };
 
@@ -438,8 +420,7 @@ export const getBlockExplorerAddressUrl = (
   address,
   rpcBlockExplorer = null,
 ) => {
-  const isCustomRpcBlockExplorerNetwork =
-    network === RPC || network === LINEA_TESTNET;
+  const isCustomRpcBlockExplorerNetwork = network === RPC;
 
   if (isCustomRpcBlockExplorerNetwork) {
     if (!rpcBlockExplorer) return { url: null, title: null };
@@ -466,8 +447,7 @@ export const getBlockExplorerTxUrl = (
   transactionHash,
   rpcBlockExplorer = null,
 ) => {
-  const isCustomRpcBlockExplorerNetwork =
-    network === RPC || network === LINEA_TESTNET;
+  const isCustomRpcBlockExplorerNetwork = network === RPC;
 
   if (isCustomRpcBlockExplorerNetwork) {
     if (!rpcBlockExplorer) return { url: null, title: null };

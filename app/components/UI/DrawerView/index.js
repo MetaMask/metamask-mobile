@@ -53,11 +53,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
-import {
-  LINEA_TESTNET,
-  LINEA_TESTNET_BLOCK_EXPLORER,
-  RPC,
-} from '../../../constants/network';
+import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import {
@@ -782,11 +778,6 @@ class DrawerView extends PureComponent {
     } = this.props;
     if (network.providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
-      const url = `${blockExplorer}/address/${selectedAddress}`;
-      const title = new URL(blockExplorer).hostname;
-      this.goToBrowserUrl(url, title);
-    } else if (network.providerConfig.type === LINEA_TESTNET) {
-      const blockExplorer = LINEA_TESTNET_BLOCK_EXPLORER;
       const url = `${blockExplorer}/address/${selectedAddress}`;
       const title = new URL(blockExplorer).hostname;
       this.goToBrowserUrl(url, title);
