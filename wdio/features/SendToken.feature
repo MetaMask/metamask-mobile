@@ -27,7 +27,7 @@ Feature tests the sending of Native and ERC Tokens
       | Network   | rpcUrl                                  | ChainID | Symbol |
       | AVAX Fuji | https://api.avax-test.network/ext/C/rpc | 43113   | AVAX   |
 
-  Scenario Outline: Import Custom Token
+  Scenario Outline: Import Custom Goerli Token
     Given I tap on the navbar network title button
     And I tap on <NETWORK> on Networks list to switch
     And I tap on Got it in the network education modal
@@ -42,8 +42,21 @@ Feature tests the sending of Native and ERC Tokens
     Examples:
       | NETWORK             | TOKENADDRESS                               |
       | Goerli Test Network | 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984 |
-      | AVAX Fuji           | 0x5425890298aed601595a70AB815c96711a31Bc65 |
 
+  Scenario Outline: Import Custom AVAX Fuji Token
+    Given I tap on the navbar network title button
+    And I tap on <NETWORK> on Networks list to switch
+
+    When I tap Import Tokens
+    And I type <TOKENADDRESS> into token Address field
+    Then The Token Symbol is displayed
+
+    When I tap on the Import button
+    Then I should see "Imported Token" toast message
+
+    Examples:
+      | NETWORK   | TOKENADDRESS                               |
+      | AVAX Fuji | 0x5425890298aed601595a70AB815c96711a31Bc65 |
 
   Scenario Outline: A user can send native tokens to an Address via the wallet view send button
     Given I see "<NETWORK>" visible in the top navigation bar

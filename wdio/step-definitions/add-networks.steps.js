@@ -1,14 +1,15 @@
 /* global driver */
-import { When, Then } from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
+import CommonScreen from '../screen-objects/CommonScreen';
 
 When(/^I tap on the Add a Network button/, async () => {
-  await AddNetworksModal.clickAddNetworks();
+  await AddNetworksModal.tapAddNetworks();
 });
 
 When(/^"([^"]*)?" tab is displayed on networks screen/, async (netWorkTab) => {
@@ -45,7 +46,7 @@ When(
   async (buttons) => {
     switch (buttons) {
       case 'Switch Network':
-        await NetworkApprovalModal.isApproveNetworkButton();
+        await NetworkApprovalModal.isSwitchToNetworkButtonDisplayed();
         break;
       case 'Close':
         await NetworkApprovalModal.isCloseNetworkButton();
@@ -68,13 +69,11 @@ When(/^I am back to the wallet view/, async () => {
 When(
   /^I should see the added network name "([^"]*)?" in the top navigation bar/,
   async (network) => {
-    await WalletMainScreen.isNetworkNameCorrect(network);
+    await WalletMainScreen.isNetworkNavbarTitle(network);
   },
 );
 
 Then(/^I tap on the burger menu/, async () => {
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
   await WalletMainScreen.tapBurgerButton();
 });
 
@@ -109,6 +108,7 @@ Then(
   /^"([^"]*)?" is not visible in the Popular Networks section/,
   async (network) => {
     await NetworksScreen.isNetworkNotVisible(network);
+    await NetworksScreen.tapBackButton();
   },
 );
 
@@ -174,8 +174,6 @@ Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard(); // hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
   await NetworksScreen.tapAddButton();
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
 });
 
 Then(/^I tap and hold network "([^"]*)?"/, async (network) => {
@@ -194,6 +192,8 @@ Then(
   /^"([^"]*)?" should be removed from the list of RPC networks/,
   async (network) => {
     await NetworksScreen.isNetworkRemoved(network);
+    await CommonScreen.waitForToastToDisplay();
+    await CommonScreen.waitForToastToDisappear();
   },
 );
 
@@ -259,4 +259,7 @@ Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
 
 Then(/^I close the networks screen view$/, async () => {
   await NetworksScreen.tapCloseNetworkScreen();
+});
+Given(/^the network screen is displayed$/, async () => {
+  await NetworksScreen.waitForDisplayed();
 });

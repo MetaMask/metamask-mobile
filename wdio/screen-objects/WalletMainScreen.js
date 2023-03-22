@@ -1,4 +1,3 @@
-/* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
@@ -8,15 +7,16 @@ import {
 } from './testIDs/Components/OnboardingWizard.testIds';
 
 import {
-  WALLET_VIEW_BURGER_ICON_ID,
   HAMBURGER_MENU_BUTTON,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
-  WALLET_ACCOUNT_ICON,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
   NAVBAR_NETWORK_BUTTON,
+  NAVBAR_NETWORK_TEXT,
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
   SECURE_WALLET_BACKUP_ALERT_MODAL,
+  WALLET_ACCOUNT_ICON,
+  WALLET_VIEW_BURGER_ICON_ID,
 } from './testIDs/Screens/WalletView.testIds';
 
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
@@ -55,6 +55,7 @@ class WalletMainScreen {
   get HamburgerButton() {
     return Selectors.getElementByPlatform(HAMBURGER_MENU_BUTTON);
   }
+
   get Identicon() {
     return Selectors.getElementByPlatform(WALLET_ACCOUNT_ICON);
   }
@@ -85,8 +86,12 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(SECURE_WALLET_BACKUP_ALERT_MODAL);
   }
 
+  get networkNavbarTitle() {
+    return Selectors.getElementByPlatform(NAVBAR_NETWORK_TEXT);
+  }
+
   async tapSettings() {
-    await Gestures.tap(this.drawerSettings);
+    await Gestures.waitAndTap(this.drawerSettings);
   }
 
   async tapSendIcon(text) {
@@ -102,7 +107,7 @@ class WalletMainScreen {
   }
 
   async tapBurgerButton() {
-    await Gestures.tap(this.HamburgerButton);
+    await Gestures.waitAndTap(this.HamburgerButton);
   }
 
   async tapImportTokensButton() {
@@ -123,15 +128,13 @@ class WalletMainScreen {
   async tapNFTTab() {
     await Gestures.tapTextByXpath('NFTs');
   }
+
   async tapIdenticon() {
     await Gestures.waitAndTap(this.Identicon);
   }
 
   async tapNetworkNavBar() {
-    const timeOut = 3000;
-    await driver.pause(timeOut);
-    await Gestures.tap(await this.networkInNavBar);
-    await driver.pause(timeOut);
+    await Gestures.waitAndTap(await this.networkInNavBar);
   }
 
   async tapRemindMeLaterOnNotification() {
@@ -143,14 +146,15 @@ class WalletMainScreen {
     const element = await this.backupAlertModal;
     return element.isDisplayed();
   }
+
   async isVisible() {
     const element = await this.WalletScreenContainer;
     await element.waitForDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
-    const networkName = Selectors.getXpathElementByTextContains(network);
-    await expect(networkName).toBeDisplayed();
+    const networkName = await Selectors.getXpathElementByTextContains(network);
+    await networkName.waitForDisplayed();
   }
 
   async isTokenTextVisible(token) {
@@ -172,6 +176,11 @@ class WalletMainScreen {
     await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
+  }
+
+  async isNetworkNavbarTitle(text) {
+    const element = await this.networkNavbarTitle;
+    await expect(await element.getText()).toContain(text);
   }
 }
 

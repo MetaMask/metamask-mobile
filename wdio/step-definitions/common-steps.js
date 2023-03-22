@@ -45,7 +45,6 @@ Then(/^Terms of Use is not displayed$/, async () => {
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -198,6 +197,7 @@ Then(/^I tap (.*) containing text "([^"]*)?"/, async (elementType, button) => {
 Then(
   /^I tap button "([^"]*)?" to navigate to (.*) view/,
   async (button, screen) => {
+    await CommonScreen.tapOnText(button);
     await CommonScreen.tapOnText(button);
   },
 );

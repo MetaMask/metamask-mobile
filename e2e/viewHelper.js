@@ -13,11 +13,9 @@ import WhatsNewModal from './pages/modals/WhatsNewModal';
 
 import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
+import Accounts from '../wdio/helpers/Accounts';
 
 const GOERLI = 'Goerli Test Network';
-const PASSWORD = '12345678';
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
@@ -29,6 +27,8 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
+  const validAccount = Accounts.getValidAccount();
+
   // tap on import seed phrase button
   await OnboardingCarouselView.isVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
@@ -38,9 +38,9 @@ export const importWalletWithRecoveryPhrase = async () => {
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-  await ImportWalletView.enterPassword(PASSWORD);
-  await ImportWalletView.reEnterPassword(PASSWORD);
+  await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+  await ImportWalletView.enterPassword(validAccount.password);
+  await ImportWalletView.reEnterPassword(validAccount.password);
 
   // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
