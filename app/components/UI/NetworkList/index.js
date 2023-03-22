@@ -418,7 +418,7 @@ export class NetworkList extends PureComponent {
     return (
       <SafeAreaView
         style={styles.wrapper}
-        testID={NETWORK_LIST_MODAL_CONTAINER_ID}
+        {...generateTestId(Platform, NETWORK_LIST_MODAL_CONTAINER_ID)}
       >
         <View style={styles.titleWrapper}>
           <Text

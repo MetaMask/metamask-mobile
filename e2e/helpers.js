@@ -16,6 +16,7 @@ export default class TestHelpers {
       .atIndex(index || 0)
       .tap();
   }
+
   static doubleTapByText(text, index) {
     return element(by.text(text))
       .atIndex(index || 0)
@@ -31,7 +32,7 @@ export default class TestHelpers {
   }
 
   static tapItemAtIndex(elementID, index) {
-    return element(by.id(elementID))
+    return element(by.id(elementID, index))
       .atIndex(index || 0)
       .tap();
   }
