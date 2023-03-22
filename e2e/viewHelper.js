@@ -13,7 +13,7 @@ import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
 
 import TestHelpers from './helpers';
-import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
+import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
 const PASSWORD = '12345678';
@@ -22,6 +22,7 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
+  await TestHelpers.delay(3500);
   await TermsOfUseModal.isDisplayed();
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
@@ -35,6 +36,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await MetaMetricsOptIn.tapAgreeButton();
+  await TestHelpers.delay(3500);
 
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase

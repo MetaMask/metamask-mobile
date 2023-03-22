@@ -36,7 +36,6 @@ describe('Permission System: Deleting wallet after connecting to a dapp', () => 
 
   it('should navigate to browser', async () => {
     await TabBarComponent.tapBrowser();
-    // Check that we are on the browser screen
     await Browser.isVisible();
   });
 
@@ -75,11 +74,11 @@ describe('Permission System: Deleting wallet after connecting to a dapp', () => 
     await DeleteWalletModal.tapIUnderstandButton();
     await DeleteWalletModal.typeDeleteInInputBox();
     await DeleteWalletModal.tapDeleteMyWalletButton();
-    await TestHelpers.delay(2000);
-    await OnboardingView.isVisible();
+    await OnboardingView.isDeleteWalletToastVisible();
   });
 
   it('should create new wallet', async () => {
+    await OnboardingView.deleteWalletToastisNotVisible();
     await OnboardingView.tapCreateWallet();
 
     await CreatePasswordView.isVisible();
@@ -90,7 +89,6 @@ describe('Permission System: Deleting wallet after connecting to a dapp', () => 
   });
 
   it('Should skip backup check', async () => {
-    // Check that we are on the Secure your wallet screen
     await ProtectYourWalletView.isVisible();
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
@@ -101,7 +99,6 @@ describe('Permission System: Deleting wallet after connecting to a dapp', () => 
 
   it('should go to browser', async () => {
     await TabBarComponent.tapBrowser();
-    // Check that we are on the browser screen
     await Browser.isVisible();
   });
 
