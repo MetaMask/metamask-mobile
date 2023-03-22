@@ -43,4 +43,18 @@ Feature: Adding a custom token to your wallet
     Examples:
       | NETWORK             | TOKENADDRESS                               |
       | Goerli Test Network | 0x326C977E6efc84E512bB9C30f76E30c160eD06FB |
-      | AVAX Fuji           | 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846 |
+
+  Scenario Outline: Importing Custom tokens
+    When I tap on the navbar network title button
+    And I tap on <NETWORK> on Networks list to switch
+
+    When I tap Import Tokens
+    And I type <TOKENADDRESS> into token Address field
+    Then The Token Symbol is displayed
+
+    When I tap on the Import button
+    Then I should see "Imported Token" toast message
+
+    Examples:
+      | NETWORK   | TOKENADDRESS                               |
+      | AVAX Fuji | 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846 |
