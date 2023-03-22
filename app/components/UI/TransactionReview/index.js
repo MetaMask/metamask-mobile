@@ -47,12 +47,12 @@ import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import AppConstants from '../../../core/AppConstants';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -409,9 +409,9 @@ class TransactionReview extends PureComponent {
       return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (
       transaction.origin &&
-      transaction.origin.startsWith(MM_SDK_REMOTE_ORIGIN)
+      transaction.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
     ) {
-      return transaction.origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      return transaction.origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
 
     browser.tabs.forEach((tab) => {
@@ -443,7 +443,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      transaction: { origin: transactionOrigin },
+      transaction: { origin, from, ensRecipient },
     } = this.props;
     const {
       actionKey,
@@ -454,9 +454,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
       multiLayerL1FeeTotal,
     } = this.state;
-    const currentPageInformation = { url: this.getUrlFromBrowser() };
-    const { currentEnsName, spenderAddress, origin, url } =
-      currentPageInformation;
+    const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
 
     return (
@@ -468,10 +466,10 @@ class TransactionReview extends PureComponent {
           ])}
         >
           <ApproveTransactionHeader
-            currentEnsName={currentEnsName}
-            spenderAddress={spenderAddress}
-            origin={origin || transactionOrigin}
+            currentEnsName={ensRecipient}
+            origin={origin}
             url={url}
+            from={from}
           />
           <TransactionReviewSummary
             actionKey={actionKey}
@@ -512,9 +510,7 @@ class TransactionReview extends PureComponent {
                         onCancelPress={this.props.onCancel}
                         gasEstimateType={gasEstimateType}
                         EIP1559GasData={EIP1559GasData}
-                        origin={
-                          dappSuggestedGas ? currentPageInformation?.url : null
-                        }
+                        origin={dappSuggestedGas ? url : null}
                         gasSelected={gasSelected}
                         originWarning={dappSuggestedGasWarning}
                         onUpdatingValuesStart={onUpdatingValuesStart}

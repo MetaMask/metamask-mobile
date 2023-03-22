@@ -43,7 +43,7 @@ describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <ApproveTransactionHeader origin="0x" spenderAddress="0x" url="" />
+        <ApproveTransactionHeader origin="0x" from="0x" url="" />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

@@ -612,7 +612,6 @@
     "third_party_title": "Dapatkan transaksi masuk",
     "third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami mengambil data dari layanan tersebut.",
     "metametrics_opt_out": "Pilih keluar dari MetaMetrics",
-    "metametrics_restart_required": "Anda harus memulai ulang aplikasi untuk menerapkan perubahan.",
     "create_password": "Buat kata sandi",
     "invalid_password": "Kata sandi tidak valid",
     "invalid_password_message": "Kata sandi salah. Silakan coba lagi.",
@@ -745,6 +744,7 @@
     "send_button": "Kirim",
     "buy_button": "Beli",
     "receive_button": "Terima",
+    "portfolio_button": "Portofolio",
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
     "swap": "Tukar",
@@ -2237,5 +2237,26 @@
       "wrong_answer_title": "Tidak! Jangan pernah membagikan Frasa Pemulihan Rahasia kepada siapa pun",
       "wrong_answer_description": "Siapa pun yang mengaku membutuhkan Frasa Pemulihan Rahasia, mereka berbohong kepada Anda. Jika membaginya, mereka akan mencuri aset Anda."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Pemulihan diperlukan",
+    "restore_needed_description": "Ada yang salah, tetapi jangan khawatir! Mari coba pulihkan dompet Anda.",
+    "restore_needed_action": "Pulihkan dompet"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Dompet Anda sudah siap!",
+    "wallet_restored_action": "Lanjutkan ke dompet",
+    "wallet_restored_description_part_one": "Anda perlu menambahkan beberapa aset, jaringan, dan pengaturan lagi secara manual.",
+    "wallet_restored_description_part_two": "Luangkan waktu sejenak untuk",
+    "wallet_restored_description_link": "mencadangkan Frasa Pemulihan Rahasia",
+    "wallet_restored_description_part_three": "bilamana dompet Anda perlu dipulihkan lagi di masa mendatang."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Dompet baru diperlukan",
+    "new_wallet_needed_create_new_wallet_action": "Buat dompet baru",
+    "new_wallet_needed_create_try_again_action": "Coba pulihkan dompet",
+    "new_wallet_needed_description_part_one": "Ada yang salah dengan dompet Anda. Buat yang baru. Karena akun Anda berada di blockchain, maka keamanannya masih terjaga. Hanya preferensi, jaringan tersimpan, nama akun, dan data terkait yang tersimpan di perangkat yang hilang.",
+    "new_wallet_needed_description_part_two": "Untuk mengimpor akun ke dompet baru, Anda memerlukan Frasa Pemulihan Rahasia. Jika tidak memiliki Frasa Pemulihan Rahasia, akun Anda tidak akan bisa diimpor.",
+    "new_wallet_needed_description_part_three": "Agar hal ini tidak terjadi lagi, pastikan untuk selalu memperbarui aplikasi dan OS MetaMask ke versi terbaru."
   }
 }

@@ -612,7 +612,6 @@
     "third_party_title": "Obtenir les transactions entrantes",
     "third_party_description": "Des API tierces (Etherscan) sont utilisées pour afficher vos transactions entrantes dans l’historique. Désactivez cette option si vous ne voulez pas que nous récupérions les données de ces services.",
     "metametrics_opt_out": "Désactiver MetaMetrics",
-    "metametrics_restart_required": "Vous devez redémarrer l’application pour que les modifications prennent effet.",
     "create_password": "Créer un mot de passe",
     "invalid_password": "Mot de passe incorrect",
     "invalid_password_message": "Le mot de passe était incorrect. Veuillez réessayer.",
@@ -745,6 +744,7 @@
     "send_button": "Envoyer",
     "buy_button": "Acheter",
     "receive_button": "Recevoir",
+    "portfolio_button": "Portefeuille",
     "add_collectible_button": "Ajouter",
     "info": "Infos",
     "swap": "Échanger",
@@ -2237,5 +2237,26 @@
       "wrong_answer_title": "C'est faux ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
       "wrong_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Une restauration est nécessaire",
+    "restore_needed_description": "Quelque chose a mal tourné. Mais ne vous inquiétez pas, nous allons essayer de restaurer votre portefeuille.",
+    "restore_needed_action": "Restaurer le portefeuille"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Votre portefeuille est prêt !",
+    "wallet_restored_action": "Accéder au portefeuille",
+    "wallet_restored_description_part_one": "Il se peut que vous ayez à nouveau besoin d'ajouter manuellement certains de vos actifs, réseaux et paramètres.",
+    "wallet_restored_description_part_two": "Prenez un moment pour",
+    "wallet_restored_description_link": "sauvegarder votre Phrase secrète de récupération",
+    "wallet_restored_description_part_three": "au cas où vous auriez besoin de restaurer votre portefeuille à l'avenir."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Un nouveau portefeuille est nécessaire",
+    "new_wallet_needed_create_new_wallet_action": "Créer un nouveau portefeuille",
+    "new_wallet_needed_create_try_again_action": "Essayez de récupérer le portefeuille",
+    "new_wallet_needed_description_part_one": "Vous devez créer un nouveau portefeuille, car un problème est survenu avec votre portefeuille actuel. Comme vos comptes sont sur la blockchain, ils sont toujours bien sécurisés. Seuls les préférences, les réseaux enregistrés, les noms de comptes et les données connexes sauvegardées sur votre appareil ont disparu.",
+    "new_wallet_needed_description_part_two": "Pour importer vos comptes dans un nouveau portefeuille, vous aurez besoin de votre phrase secrète de récupération. Si vous ne vous souvenez pas de votre phrase secrète de récupération, vous ne pourrez pas importer vos comptes.",
+    "new_wallet_needed_description_part_three": "Pour éviter que cela ne se reproduise, veillez à ce que votre application MetaMask et votre système d'exploitation soient toujours mis à jour."
   }
 }
