@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import { connect, useSelector } from 'react-redux';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import {
   createNewTab,
@@ -32,6 +32,9 @@ import {
 } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+
 import URL from 'url-parse';
 import { isEqual } from 'lodash';
 const margin = 16;
@@ -357,7 +360,10 @@ const Browser = (props) => {
     ));
 
   return (
-    <View style={baseStyles.flexGrow} testID={'browser-screen'}>
+    <View
+      style={baseStyles.flexGrow}
+      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
+    >
       {renderBrowserTabs()}
       {renderTabsView()}
     </View>
