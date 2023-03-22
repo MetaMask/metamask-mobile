@@ -13,22 +13,11 @@ import {
   ViewStyle,
   Dimensions,
   StyleProp,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, {
-  eq,
-  EasingNode,
-  not,
-  block,
-  cond,
-  clockRunning,
-  Value,
-  interpolateNode,
-  useCode,
-  set,
-  Extrapolate,
-} from 'react-native-reanimated';
 import {
   onGestureEvent,
   withSpring,
@@ -60,7 +49,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const { colors } = useTheme();
 
   // Animation config
-  const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
+  const animationConfig: Omit<Animated.SpringAnimationConfig, 'toValue'> = {
     damping: 100,
     overshootClamping: false,
     restSpeedThreshold: 5,
@@ -70,15 +59,15 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   };
 
   // Set up gesture handler
-  const offset = useMemo(() => new Value(hiddenOffset), []);
-  const state = useMemo(() => new Value(State.UNDETERMINED), []);
-  const velocityX = useMemo(() => new Value(0), []);
-  const translationX = useMemo(() => new Value(0), []);
+  const offset = useMemo(() => new Animated.Value(hiddenOffset), []);
+  const state = useMemo(() => new Animated.Value(State.UNDETERMINED), []);
+  const velocityX = useMemo(() => new Animated.Value(0), []);
+  const translationX = useMemo(() => new Animated.Value(0), []);
   const gestureHandler = useMemo(
     () => onGestureEvent({ translationX, state, velocityX }),
     [],
   );
-  const clock = useMemo(() => new Animated.Clock(), []);
+  /* const clock = useMemo(() => new Animated.Clock(), []); */
   const translateX = useMemo(
     () =>
       clamp(
@@ -162,42 +151,42 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   }, [hiddenOffset, visibleOffset, translateX, safeAreaInsets, colors]);
 
   // Declarative logic that animates overlay
-  useCode(
-    () =>
-      block([
-        // Animate IN overlay
-        cond(eq(triggerShowDrawer, new Value(1)), [
-          set(
-            offset,
-            timing({
-              clock,
-              from: offset,
-              easing: EasingNode.inOut(EasingNode.ease) as any,
-              duration: 250,
-              to: visibleOffset,
-            }),
-          ),
-          // Reset value that toggles animating in overlay
-          cond(not(clockRunning(clock)), block([set(triggerShowDrawer, 0)])),
-        ]),
-        // Animate OUT overlay
-        cond(eq(triggerDismissDrawer, new Value(1)), [
-          set(
-            offset,
-            timing({
-              clock,
-              from: offset,
-              easing: EasingNode.inOut(EasingNode.ease) as any,
-              duration: 200,
-              to: hiddenOffset,
-            }),
-          ),
-          // Dismiss overlay after animating out
-          cond(not(clockRunning(clock)), block([set(triggerDismissDrawer, 0)])),
-        ]),
-      ]),
-    [],
-  );
+  /* useCode( */
+  /*   () => */
+  /*     block([ */
+  /*       // Animate IN overlay */
+  /*       cond(eq(triggerShowDrawer, new Value(1)), [ */
+  /*         set( */
+  /*           offset, */
+  /*           timing({ */
+  /*             clock, */
+  /*             from: offset, */
+  /*             easing: Easing.inOut(Easing.ease) as any, */
+  /*             duration: 250, */
+  /*             to: visibleOffset, */
+  /*           }), */
+  /*         ), */
+  /*         // Reset value that toggles animating in overlay */
+  /*         cond(not(clockRunning(clock)), block([set(triggerShowDrawer, 0)])), */
+  /*       ]), */
+  /*       // Animate OUT overlay */
+  /*       cond(eq(triggerDismissDrawer, new Value(1)), [ */
+  /*         set( */
+  /*           offset, */
+  /*           timing({ */
+  /*             clock, */
+  /*             from: offset, */
+  /*             easing: Easing.inOut(Easing.ease) as any, */
+  /*             duration: 200, */
+  /*             to: hiddenOffset, */
+  /*           }), */
+  /*         ), */
+  /*         // Dismiss overlay after animating out */
+  /*         cond(not(clockRunning(clock)), block([set(triggerDismissDrawer, 0)])), */
+  /*       ]), */
+  /*     ]), */
+  /*   [], */
+  /* ); */
 
   // Expose actions for external components
   useImperativeHandle(ref, () => ({

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import { Animated, Easing } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated, { EasingNode } from 'react-native-reanimated';
 import { useNavigationState } from '@react-navigation/native';
 import {
   removeCurrentNotification,
@@ -35,7 +35,7 @@ function Notification({
     Animated.timing(animatedRef, {
       toValue,
       duration: 500,
-      easing: EasingNode.linear,
+      easing: Easing.linear,
       useNativeDriver: true,
     }).start(({ finished }) => finished && callback?.());
   }, []);

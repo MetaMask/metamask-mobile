@@ -11,6 +11,8 @@ import {
   Image,
   InteractionManager,
   Platform,
+  Animated,
+  Easing,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
@@ -33,7 +35,6 @@ import {
 } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
-import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -192,7 +193,7 @@ class Onboarding extends PureComponent {
     Animated.timing(animatedRef, {
       toValue,
       duration: 500,
-      easing: EasingNode.linear,
+      easing: Easing.linear,
       useNativeDriver: true,
     }).start();
   };
