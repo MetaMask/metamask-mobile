@@ -526,10 +526,10 @@ const App = ({ selectedAddress, userLoggedIn }) => {
                 options={{ headerShown: false }}
               />
             )}
-            <Stack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
-            />
+            {/* <Stack.Screen */}
+            {/*   name={Routes.MODAL.ROOT_MODAL_FLOW} */}
+            {/*   component={RootModalFlow} */}
+            {/* /> */}
             <Stack.Screen
               name="ImportPrivateKeyView"
               component={ImportPrivateKeyView}

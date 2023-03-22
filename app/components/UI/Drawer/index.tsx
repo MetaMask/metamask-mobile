@@ -14,7 +14,6 @@ import {
   Dimensions,
   StyleProp,
   Animated,
-  Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
@@ -64,41 +63,42 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const velocityX = useMemo(() => new Animated.Value(0), []);
   const translationX = useMemo(() => new Animated.Value(0), []);
   const gestureHandler = useMemo(
-    () => onGestureEvent({ translationX, state, velocityX }),
+    () => null,
     [],
   );
   /* const clock = useMemo(() => new Animated.Clock(), []); */
-  const translateX = useMemo(
-    () =>
-      clamp(
-        withSpring({
-          // onSnap: (val) => {
-          // 	const offset = val[0];
-          // 	if (offset == visibleOffset) {
-          // 		// TODO: Use optional chaining once prettier is fixed
-          // 		triggerDismissed();
-          // 	}
-          // },
-          state,
-          velocity: velocityX,
-          offset,
-          value: translationX,
-          snapPoints: [hiddenOffset, visibleOffset],
-          config: animationConfig,
-        }),
-        hiddenOffset,
-        visibleOffset,
-      ),
-    [visibleOffset, hiddenOffset, translationX, velocityX],
-  );
+  const translateX = 0
+  /* const translateX = useMemo( */
+  /*   () => */
+  /*     clamp( */
+  /*       withSpring({ */
+  /*         // onSnap: (val) => { */
+  /*         // 	const offset = val[0]; */
+  /*         // 	if (offset == visibleOffset) { */
+  /*         // 		// TODO: Use optional chaining once prettier is fixed */
+  /*         // 		triggerDismissed(); */
+  /*         // 	} */
+  /*         // }, */
+  /*         state, */
+  /*         velocity: velocityX, */
+  /*         offset, */
+  /*         value: translationX, */
+  /*         snapPoints: [hiddenOffset, visibleOffset], */
+  /*         config: animationConfig, */
+  /*       }), */
+  /*       hiddenOffset, */
+  /*       visibleOffset, */
+  /*     ), */
+  /*   [visibleOffset, hiddenOffset, translationX, velocityX], */
+  /* ); */
 
   // Programatically trigger hiding and showing
   const triggerShowDrawer: Animated.Value<0 | 1> = useMemo(
-    () => new Value(0),
+    () => new Animated.Value(0),
     [],
   );
   const triggerDismissDrawer: Animated.Value<0 | 1> = useMemo(
-    () => new Value(0),
+    () => new Animated.Value(0),
     [],
   );
 
@@ -118,17 +118,10 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
       overlayBackground: {
         backgroundColor: colors.overlay.default,
         ...styles.absoluteFill,
-        opacity: interpolateNode(translateX, {
-          inputRange: [hiddenOffset + 1, visibleOffset],
-          outputRange: [0, 1],
-        }) as any,
+        opacity: 1,
         transform: [
           {
-            translateX: interpolateNode(translateX, {
-              inputRange: [hiddenOffset, hiddenOffset + 1],
-              outputRange: [hiddenOffset, visibleOffset],
-              extrapolate: Extrapolate.CLAMP,
-            }) as any,
+            translateX: 0,
           },
         ],
       },
@@ -136,10 +129,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
         ...StyleSheet.absoluteFillObject,
         transform: [
           {
-            translateX: interpolateNode(translateX, {
-              inputRange: [visibleOffset - 1, visibleOffset],
-              outputRange: [hiddenOffset, visibleOffset],
-            }) as any,
+            translateX: 0,
           },
         ],
       },
@@ -223,7 +213,8 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   return (
     <View style={styles.fill}>
       {children}
-      {renderDrawer()}
+      {/* Uncomment to show drawer */}
+      {/* {renderDrawer()} */}
     </View>
   );
 });
