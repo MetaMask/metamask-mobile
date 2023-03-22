@@ -143,7 +143,7 @@ const AssetDetails = (props: Props) => {
   useEffect(() => {
     navigation.setOptions(
       getNetworkNavbarOptions(
-        'Token Details',
+        strings('asset_details.options.token_details'),
         false,
         navigation,
         colors,
