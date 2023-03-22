@@ -70,6 +70,6 @@ describe('Send ERC Token', () => {
     await AmountView.tapNextButton();
     await TransactionConfirmationView.isAmountVisible('< 0.00001 AVAX');
     await TransactionConfirmationView.tapConfirmButton();
-    await WalletView.isToastNotificationVisible();
+    TestHelpers.checkIfElementWithTextIsNotVisible('Transaction submitted');
   });
 });

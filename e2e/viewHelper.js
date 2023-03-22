@@ -14,11 +14,9 @@ import Accounts from '../wdio/helpers/Accounts';
 
 import TestHelpers from './helpers';
 
-import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import Accounts from '../wdio/helpers/Accounts';
+import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
-import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
