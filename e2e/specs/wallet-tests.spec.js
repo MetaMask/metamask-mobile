@@ -1,15 +1,9 @@
 'use strict';
 import TestHelpers from '../helpers';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
 import ImportAccountView from '../pages/ImportAccountView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
 import SendView from '../pages/SendView';
@@ -18,13 +12,10 @@ import TransactionConfirmationView from '../pages/TransactionConfirmView';
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
 
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
-import { acceptTermOfUse } from '../viewHelper';
-
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Wallet Tests', () => {
@@ -41,66 +32,14 @@ describe('Wallet Tests', () => {
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
   const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-  let validAccount;
-
-  beforeAll(() => {
-    validAccount = Accounts.getValidAccount();
-  });
+  const validAccount = Accounts.getValidAccount();
 
   beforeEach(() => {
     jest.setTimeout(200000);
   });
 
-  it('should tap on import seed phrase button', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await OnboardingView.isVisible();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-
-    await acceptTermOfUse();
-
-    await ImportWalletView.isVisible();
-  });
-
-  it('should import wallet with secret recovery phrase', async () => {
-    await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-    await ImportWalletView.enterPassword(validAccount.password);
-    await ImportWalletView.reEnterPassword(validAccount.password);
-    await WalletView.isVisible();
-  });
-
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should tap on the close button to dismiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
-    await WalletView.isAccountBalanceCorrect();
+  it('should import wallet and go to the wallet view', async () => {
+    await importWalletWithRecoveryPhrase();
   });
 
   it('should be able to add new accounts', async () => {
@@ -297,7 +236,7 @@ describe('Wallet Tests', () => {
     await WalletView.isTokenVisibleInWallet('0 BLT');
   });
 
-  it('should switch to Goerli network', async () => {
+  it('should switch back to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.changeNetwork(GOERLI);
