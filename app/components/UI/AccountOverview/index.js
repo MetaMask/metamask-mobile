@@ -1,58 +1,58 @@
-import React, { PureComponent } from 'react';
+import { swapsUtils } from '@metamask/swaps-controller';
 import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
 import {
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
   InteractionManager,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
-import Engine from '../../../core/Engine';
+import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
-import Device from '../../../util/device';
-import { renderFiat } from '../../../util/number';
+import { protectWalletModalVisible } from '../../../actions/user';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
-import { getEther } from '../../../util/transactions';
+import Device from '../../../util/device';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
+import { renderFiat } from '../../../util/number';
+import { getEther } from '../../../util/transactions';
 import { isSwapsAllowed } from '../Swaps/utils';
 
-import Identicon from '../Identicon';
-import AssetActionButton from '../AssetActionButton';
-import EthereumAddress from '../EthereumAddress';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import { allowedToBuy } from '../FiatOnRampAggregator';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import Routes from '../../../constants/navigation/Routes';
+import ClipboardManager from '../../../core/ClipboardManager';
 import {
   selectChainId,
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
+import { baseStyles, fontStyles } from '../../../styles/common';
+import { mockTheme, ThemeContext } from '../../../util/theme';
+import AssetActionButton from '../AssetActionButton';
+import EthereumAddress from '../EthereumAddress';
+import { allowedToBuy } from '../FiatOnRampAggregator';
+import Identicon from '../Identicon';
+import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Icon, {
