@@ -52,6 +52,17 @@ class AccountListComponent {
     });
   }
 
+  async longPressOnAccount(account) {
+    const elements = await this.accountsListed;
+    await elements.every(async (element) => {
+      if ((await element.getText()) === account) {
+        await Gestures.longPress(element, 3000);
+        return false;
+      }
+      return true;
+    });
+  }
+
   async isComponentDisplayed() {
     await expect(await this.accountListContainer).toBeDisplayed();
   }

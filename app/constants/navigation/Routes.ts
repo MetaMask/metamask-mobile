@@ -54,6 +54,8 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    SDK_LOADING: 'SDKLoading',
+    SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
   },

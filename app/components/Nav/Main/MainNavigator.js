@@ -71,6 +71,7 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import isUrl from 'is-url';
 import WalletActions from '../../../components/Views/WalletActions';
+import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -359,6 +360,7 @@ const SettingsFlow = () => (
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
     />
+    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
       name="SecuritySettings"
       component={SecuritySettings}
