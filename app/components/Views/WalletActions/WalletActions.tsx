@@ -112,7 +112,11 @@ const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
               iconName={IconName.SwapHorizontal}
               iconSize={IconSize.Md}
               onPress={goToSwaps}
-              containerStyle={styles.otherActionContainer}
+              containerStyle={
+                allowedToBuy(chainId)
+                  ? styles.otherActionContainer
+                  : styles.firstActionContainer
+              }
               {...generateTestId(Platform, WALLET_SWAP)}
             />
           )}
@@ -122,7 +126,14 @@ const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
           iconName={IconName.Arrow2Right}
           iconSize={IconSize.Md}
           onPress={onSend}
-          containerStyle={styles.otherActionContainer}
+          containerStyle={
+            allowedToBuy(chainId) &&
+            AppConstants.SWAPS.ACTIVE &&
+            swapsIsLive &&
+            isSwapsAllowed(chainId)
+              ? styles.otherActionContainer
+              : styles.firstActionContainer
+          }
           iconStyle={{ transform: [{ rotate: '-45deg' }] }}
           {...generateTestId(Platform, WALLET_SEND)}
         />
