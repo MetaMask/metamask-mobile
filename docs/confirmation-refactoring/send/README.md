@@ -50,7 +50,7 @@ The component is taking care to do following:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_warnings.png?raw=true" width="150"/>
 
-    All of above concerns should be moved into small independent components which can be well tested. The smaller components can be placed individually in [/components/UI](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI).
+    All of above concerns should be moved into small independent components which can be well tested. The smaller components can be placed individually in [/components/UI](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI). Components which are possibly re-usable at pther places should not be nested in sub-folders.
 
 ### Send Component
 [/Views/Send](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/Send) component is responsible to render following 2 pages:
