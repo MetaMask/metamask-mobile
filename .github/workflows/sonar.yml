@@ -13,6 +13,7 @@ jobs:
           fetch-depth: 0
       - uses: sonarsource/sonarqube-scan-action@427bad70165a74f9d7133d48ea31b482a53ee9fa
         with:
+          projectBaseDir: app/
           args: >
             -Dsonar.javascript.lcov.reportPaths=tests/coverage/lcov.info
         env:
