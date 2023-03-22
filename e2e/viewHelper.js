@@ -16,9 +16,6 @@ import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
-const PASSWORD = '12345678';
-
-const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
@@ -31,6 +28,8 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
+  const validAccount = Accounts.getValidAccount();
+
   // tap on import seed phrase button
   await OnboardingCarouselView.isVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
@@ -42,8 +41,8 @@ export const importWalletWithRecoveryPhrase = async () => {
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportWalletView.enterPassword(PASSWORD);
-  await ImportWalletView.reEnterPassword(PASSWORD);
+  await ImportWalletView.enterPassword(validAccount.password);
+  await ImportWalletView.reEnterPassword(validAccount.password);
 
   // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
