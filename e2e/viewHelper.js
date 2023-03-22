@@ -10,15 +10,18 @@ import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
+import Accounts from '../wdio/helpers/Accounts';
 
 import TestHelpers from './helpers';
-import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import Accounts from '../wdio/helpers/Accounts';
+import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
 
+const validAccount = Accounts.getValidAccount();
+
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
+  await TestHelpers.delay(3500);
   await TermsOfUseModal.isDisplayed();
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
@@ -27,13 +30,12 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
-  const validAccount = Accounts.getValidAccount();
-
   // tap on import seed phrase button
   await OnboardingCarouselView.isVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await MetaMetricsOptIn.tapAgreeButton();
+  await TestHelpers.delay(3500);
 
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase

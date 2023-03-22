@@ -271,10 +271,9 @@ const Wallet = ({ navigation }: any) => {
     let assets = tokens;
     if (accounts[selectedAddress]) {
       balance = renderFromWei(accounts[selectedAddress].balance);
-
       assets = [
         {
-          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
+          name: 'Ethereum',
           symbol: getTicker(ticker),
           isETH: true,
           balance,

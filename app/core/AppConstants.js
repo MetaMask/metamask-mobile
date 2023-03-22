@@ -16,6 +16,8 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  PORTFOLIO_URL:
+    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -125,6 +127,12 @@ export default {
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
+    // Adjust the serverUrl during local dev if need to debug the communication protocol.
+    // SERVER_URL: 'http://192.168.50.114:4000',
+    SERVER_URL: 'https://metamask-sdk-socket.metafi.codefi.network/',
+    PLATFORM: 'metamask-mobile',
+    SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
+    UNKNOWN_PARAM: 'UNKNOWN',
   },
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
