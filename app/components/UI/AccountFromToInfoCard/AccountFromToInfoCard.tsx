@@ -75,7 +75,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     const existingContact =
       toAddress && addressBook[network] && addressBook[network][toAddress];
     setIsExistingContact(existingContact !== undefined);
-    if (transactionToName) {
+    if (transactionToName && transactionToName !== toAddress) {
       setToAccountName(transactionToName);
       return;
     }
