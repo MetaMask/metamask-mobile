@@ -34,10 +34,6 @@ export const whatsNew: WhatsNew = {
         description: strings('whats_new.slide_1_body_2'),
       },
       {
-        type: 'description',
-        description: strings('whats_new.slide_1_body_3'),
-      },
-      {
         type: 'button',
         buttonType: 'normal',
         buttonText: strings('whats_new.slides_button'),
