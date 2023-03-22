@@ -745,6 +745,51 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
             ]
           }
         >
+          <Text
+            numberOfLines={1}
+            style={
+              Array [
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                },
+              ]
+            }
+          >
+            DUMMY_ACCOUNT
+          </Text>
           <View
             style={
               Object {
@@ -787,9 +832,9 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                   undefined,
                   undefined,
                   Object {
-                    "color": "#24272A",
+                    "color": "#535A61",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 12,
                     "fontWeight": "400",
                   },
                 ]
@@ -1043,6 +1088,51 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
             ]
           }
         >
+          <Text
+            numberOfLines={1}
+            style={
+              Array [
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                },
+              ]
+            }
+          >
+            DUMMY_ACCOUNT
+          </Text>
           <View
             style={
               Object {
@@ -1085,9 +1175,9 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                   undefined,
                   undefined,
                   Object {
-                    "color": "#24272A",
+                    "color": "#535A61",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontSize": 12,
                     "fontWeight": "400",
                   },
                 ]
