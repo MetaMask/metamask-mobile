@@ -278,17 +278,19 @@ export const getRpcMethodMiddleware = ({
           res.result = [selectedAddress];
         } else if (isMMSDK) {
           try {
-            let { selectedAddress } =
-              Engine.context.PreferencesController.state;
-            selectedAddress = selectedAddress?.toLowerCase();
-            // Prompts user approval UI in RootRPCMethodsUI.js.
-            await requestUserApproval({
-              type: ApprovalTypes.CONNECT_ACCOUNTS,
-              requestData: { hostname },
-            });
+            const approved = getApprovedHosts()[hostname];
+
+            if (!approved) {
+              // Prompts user approval UI in RootRPCMethodsUI.js.
+              await requestUserApproval({
+                type: ApprovalTypes.CONNECT_ACCOUNTS,
+                requestData: { hostname },
+              });
+            }
             // Stores approvals in SDKConnect.ts.
             approveHost?.(hostname);
-            res.result = selectedAddress ? [selectedAddress] : [];
+            const accounts = getAccounts();
+            res.result = accounts;
           } catch (e) {
             throw ethErrors.provider.userRejectedRequest(
               'User denied account authorization.',
@@ -324,13 +326,25 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0].from,
-          chainId: req.params[0].chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
+        return RPCMethods.eth_sendTransaction({
+          next,
+          req,
+          res,
+          validateAccountAndChainId: async ({
+            from,
+            chainId,
+          }: {
+            from?: string;
+            chainId?: number;
+          }) => {
+            await checkActiveAccountAndChainId({
+              hostname,
+              address: from,
+              chainId,
+              checkSelectedAddress: isMMSDK || isWalletConnect,
+            });
+          },
         });
-        next();
       },
       eth_signTransaction: async () => {
         // This is implemented later in our middleware stack – specifically, in
@@ -691,7 +705,9 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         res.result = {
           ...getProviderState(),
-          accounts: await getPermittedAccounts(hostname),
+          accounts: isMMSDK
+            ? getAccounts()
+            : await getPermittedAccounts(hostname),
         };
       },
 

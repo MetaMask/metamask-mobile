@@ -70,6 +70,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { scale } from 'react-native-size-matters';
 import SecureKeychain from '../../../core/SecureKeychain';
+import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -298,6 +299,12 @@ class ChoosePassword extends PureComponent {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   };
 
+  termsOfUse = async () => {
+    if (this.props.navigation) {
+      await navigateTermsOfUse(this.props.navigation.navigate);
+    }
+  };
+
   async componentDidMount() {
     const authData = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
@@ -325,6 +332,7 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
+    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {

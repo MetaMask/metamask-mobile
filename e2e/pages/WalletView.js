@@ -31,6 +31,9 @@ export default class WalletView {
     await TestHelpers.tapByText('Browser');
     await TestHelpers.delay(1000);
   }
+  static async tapWallet() {
+    await TestHelpers.tapByText('Wallet');
+  }
 
   static async tapNetworksButtonOnNavBar() {
     await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
