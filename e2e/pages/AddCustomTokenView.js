@@ -45,7 +45,7 @@ export default class AddCustomTokenView {
   }
 
   static async scrollDownOnImportCustomTokens() {
-    await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.2);
+    await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
   }
 
   static async typeTokenAddress(address) {
