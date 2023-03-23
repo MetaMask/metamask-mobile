@@ -21,6 +21,7 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 const PASSWORD = '12345678';
 
@@ -34,6 +35,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
   });
@@ -118,6 +120,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
     await SecurityAndPrivacy.tapOKAlertButton();
     await SecurityAndPrivacy.isMetaMetricsToggleOff();
   });
+
   it('should relaunch the app and log in', async () => {
     // Relaunch app
     await TestHelpers.relaunchApp();
