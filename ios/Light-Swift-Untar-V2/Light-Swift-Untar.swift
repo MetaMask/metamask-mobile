@@ -10,7 +10,6 @@
 
 import Foundation
 
-import Foundation
 public typealias Closure = (Double) -> Void
 
 enum UntarError: Error, LocalizedError {
@@ -49,8 +48,7 @@ public extension FileManager {
         let name = self.name(object: tarObject, offset: location)
         let filePath = URL(fileURLWithPath: path).appendingPathComponent(name).path
         let size = self.size(object: tarObject, offset: location)
-        if size == 0 { try "".write(toFile: filePath, atomically: true, encoding: .utf8) }
-        else {
+        if size == 0 { try "".write(toFile: filePath, atomically: true, encoding: .utf8) } else {
           blockCount += (size - 1) / FileManager.tarBlockSize + 1 // size / tarBlockSize rounded up
           writeFileData(object: tarObject, location: location + FileManager.tarBlockSize,
                         length: size, path: filePath)
@@ -87,7 +85,7 @@ public extension FileManager {
     var nameSize = FileManager.tarNameSize
     for i in 0...FileManager.tarNameSize {
       let char = String(data: data(object: object, location: offset + FileManager.tarNamePosition + i, length: 1)!, encoding: .ascii)!
-      if (char == "\0") {
+      if char == "\0" {
         nameSize = i
         break
       }
@@ -104,7 +102,7 @@ public extension FileManager {
 
   private func writeFileData(object: Any, location _loc: UInt64, length _len: UInt64,
                              path: String) {
-    
+
     let pathURL = URL(fileURLWithPath: path)
     let directoryPathURL = pathURL.deletingLastPathComponent()
     if let data = object as? Data {

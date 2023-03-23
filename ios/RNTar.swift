@@ -9,21 +9,22 @@
 import Foundation
 import Gzip
 
-
 enum UnTarError: Error, LocalizedError {
   case unableToDecompressFile(file: String, error: Error? = nil)
   case sourceFileNotFound(file: String)
   public var errorDescription: String? {
     switch self {
-    case let .unableToDecompressFile(file: file, error: error): return "RNTar failed to decompress file \(file)  \(error as Optional)"
-    case let .sourceFileNotFound(file: file): return "Source file \(file) not found"
+    case let .unableToDecompressFile(file: file, error: error):
+      return "RNTar failed to decompress file \(file)  \(error as Optional)"
+    case let .sourceFileNotFound(file: file):
+      return "Source file \(file) not found"
     }
   }
 }
 
 @objc(RNTar)
 class RNTar: NSObject {
-  
+
   @objc
   static func requiresMainQueueSetup() -> Bool {
     return false
@@ -43,17 +44,23 @@ class RNTar: NSObject {
     else {
       throw UnTarError.unableToDecompressFile(file: path)
     }
-    
+
     if !fileManager.fileExists(atPath: sourceUrl.path) {
-      try! fileManager.createDirectory(atPath: sourceUrl.path, withIntermediateDirectories: true)
+      do {
+        try (fileManager.createDirectory(atPath: sourceUrl.path, withIntermediateDirectories: true))
+      } catch {
+        throw UnTarError.unableToDecompressFile(file: path)
+      }
     }
-    let untarResponse = try FileManager.default.createFilesAndDirectories(path: destinationUrl.path, tarData: decompressedData)
+    let untarResponse = try FileManager.default
+      .createFilesAndDirectories(path: destinationUrl.path, tarData: decompressedData)
+
     if untarResponse {
       return destinationUrl.path
     }
     throw UnTarError.unableToDecompressFile(file: destinationUrl.path)
   }
-  
+
   @objc func unTar(_ pathToRead: String, pathToWrite: String,
                    resolver: @escaping RCTPromiseResolveBlock,
                    rejecter: @escaping RCTPromiseRejectBlock) {
@@ -64,5 +71,5 @@ class RNTar: NSObject {
         rejecter("Error uncompressing file:", error.localizedDescription, error)
     }
   }
-  
+
 }
