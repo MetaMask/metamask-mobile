@@ -275,7 +275,10 @@ export class NetworkList extends PureComponent {
         symbol: LINEA_TESTNET_TICKER,
       };
 
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_ADDED,
+        analyticsParamsAdd,
+      );
       rpc = {
         rpcUrl: url.href,
         chainId: decimalChainId,
