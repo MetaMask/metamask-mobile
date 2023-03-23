@@ -263,7 +263,7 @@ class ApproveTransactionReview extends PureComponent {
     transaction: this.props.transaction,
     token: {},
     spendCapCreated: false,
-    tokenSpendValue: null,
+    tokenSpendValue: '',
     showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
@@ -436,7 +436,7 @@ class ApproveTransactionReview extends PureComponent {
 
     if (prevState?.tokenSpendValue !== tokenSpendValue) {
       const newApprovalTransaction = generateTxWithNewTokenAllowance(
-        tokenSpendValue,
+        tokenSpendValue || '0',
         tokenDecimals,
         spenderAddress,
         transaction,
@@ -663,7 +663,8 @@ class ApproveTransactionReview extends PureComponent {
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
     } (#${tokenValue})`;
     const shouldDisableConfirmButton =
-      (!fetchingUpdateDone && !tokenSpendValue) ||
+      !fetchingUpdateDone ||
+      !tokenSpendValue ||
       Boolean(gasError) ||
       transactionConfirmed;
 

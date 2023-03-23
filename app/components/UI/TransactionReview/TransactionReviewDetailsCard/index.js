@@ -174,7 +174,7 @@ export default class TransactionReviewDetailsCard extends Component {
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
               {tokenStandard === ERC20
-                ? `${formatNumber(tokenSpendValue ?? '0')} ${tokenSymbol}`
+                ? `${formatNumber(tokenSpendValue || '0')} ${tokenSymbol}`
                 : `${tokenName} (#${tokenValue})`}
             </Text>
           </View>

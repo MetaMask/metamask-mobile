@@ -34,7 +34,7 @@ const CustomSpendCap = ({
     theme: { colors },
   } = useStyles(customSpendCapStyles, {});
 
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(tokenSpendValue);
   const [inputDisabled, setInputDisabled] = useState(true);
   const [maxSelected, setMaxSelected] = useState(false);
   const [defaultValueSelected, setDefaultValueSelected] = useState(false);
@@ -51,15 +51,9 @@ const CustomSpendCap = ({
       return onInputChanged(value);
     }
 
-    value && onInputChanged(value);
+    onInputChanged(value);
     return setInputHasError(true);
   }, [value, onInputChanged]);
-
-  useEffect(() => {
-    if (tokenSpendValue) {
-      setValue(tokenSpendValue);
-    }
-  }, [tokenSpendValue]);
 
   const handlePress = () => {
     if (disableEdit) return editValue();
