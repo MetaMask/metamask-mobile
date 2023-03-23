@@ -667,7 +667,7 @@
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
     "experimental_title": "Experimental",
-    "experimental_desc": "MetaMask SDK, WalletConnect & more...",
+    "experimental_desc": "WalletConnect & more...",
     "legal_title": "Legal",
     "conversion_title": "Currency conversion",
     "conversion_desc": "Display fiat values in using a specific currency throughout the application.",
@@ -741,6 +741,8 @@
     "clear_sdk_connections_title": "Clear all MetaMask SDK Connections",
     "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
     "sdk_connections": "MetaMask SDK Connections",
+    "manage_sdk_connections_title": "Manage connections",
+    "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
       "title": "Buy Crypto",
       "description": "Region & more...",
@@ -754,6 +756,21 @@
       "add": "Add",
       "cancel": "Cancel"
     }
+  },
+  "sdk": {
+    "disconnect_title": "Disconnect all sites?",
+    "disconnect_all_info": "If you remove your connections to all sites, you’ll need to give permission to connect again.",
+    "disconnect": "Disconnect",
+    "disconnect_all": "Disconnect all",
+    "cancel": "Cancel",
+    "loading": "Connecting to MetaMask...",
+    "unkown_dapp": "DAPP name not available",
+    "no_connections": "No connections found"
+  },
+  "sdk_feedback_modal": {
+    "ok": "OK",
+    "title": "Account couldn't connect",
+    "info": "Please scan the QR code on the dApp to reconnect to MetaMask"
   },
   "app_information": {
     "title": "Information",
@@ -1371,8 +1388,13 @@
     "title": "CONNECT REQUEST",
     "walletconnect_title": "WALLETCONNECT REQUEST",
     "action": "Connect to this site?",
+    "action_reconnect": "To resume connection, choose the number you see on the dApp",
+    "action_reconnect_deeplink": "Do you want to reconnect to this dApp?",
     "connect": "Connect",
+    "resume": "Resume",
     "cancel": "Cancel",
+    "donot_rememberme": "Do not remember this dApp connection",
+    "disconnect": "Disconnect",
     "permission": "View your",
     "address": "public address",
     "sign_messages": "Sign messages",

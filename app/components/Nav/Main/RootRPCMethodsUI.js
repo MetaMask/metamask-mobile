@@ -564,7 +564,11 @@ const RootRPCMethodsUI = (props) => {
   // Accept pending approval using MetaMask SDK.
   const acceptPendingApproval = (id, requestData) => {
     const { ApprovalController } = Engine.context;
-    ApprovalController.accept(id, requestData);
+    try {
+      ApprovalController.accept(id, requestData);
+    } catch (err) {
+      // Ignore err if request already approved or doesn't exists.
+    }
   };
 
   const onAddCustomNetworkReject = () => {
@@ -655,7 +659,9 @@ const RootRPCMethodsUI = (props) => {
    * When user clicks on approve to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsConfirm = () => {
-    acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    if (hostToApprove) {
+      acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    }
     setShowPendingApproval(false);
   };
 
@@ -687,6 +693,7 @@ const RootRPCMethodsUI = (props) => {
       <AccountApproval
         onCancel={onAccountsReject}
         onConfirm={onAccountsConfirm}
+        navigation={props.navigation}
         currentPageInformation={currentPageMeta}
       />
     </Modal>

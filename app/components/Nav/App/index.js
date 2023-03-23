@@ -50,7 +50,7 @@ import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import SDKConnect from '../../../core/SDKConnect';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -77,6 +77,8 @@ import ModalMandatory from '../../../component-library/components/Modals/ModalMa
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
+import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -343,8 +345,13 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
-    SDKConnect.init();
-  }, []);
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
+    return () => {
+      SDKConnect.getInstance().unmount();
+    };
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {
@@ -452,6 +459,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_LOADING}
+        component={SDKLoadingModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_FEEDBACK}
+        component={SDKFeedbackModal}
       />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}

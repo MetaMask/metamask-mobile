@@ -1,26 +1,24 @@
-import React, { PureComponent } from 'react';
+import { swapsUtils } from '@metamask/swaps-controller';
 import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
 import {
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
   InteractionManager,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
-import Engine from '../../../core/Engine';
+import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
@@ -31,6 +29,8 @@ import {
   renderAccountName,
 } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
+import { protectWalletModalVisible } from '../../../actions/user';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
@@ -50,8 +50,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
