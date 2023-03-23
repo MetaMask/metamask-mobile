@@ -747,6 +747,7 @@
     "send_button": "Enviar",
     "buy_button": "Comprar",
     "receive_button": "Recibir",
+    "portfolio_button": "Portafolio",
     "add_collectible_button": "Agregar",
     "info": "Información",
     "swap": "Canjear",
@@ -2239,5 +2240,26 @@
       "wrong_answer_title": "¡No! Nunca comparta su frase secreta de recuperación con nadie, nunca",
       "wrong_answer_description": "Cualquiera que afirme que necesita su frase de recuperación secreta le está mintiendo. Si la comparte con esa persona, le robará sus activos."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Restauración necesaria",
+    "restore_needed_description": "¡Algo salió mal, pero no se preocupe! Intentemos restaurar su billetera.",
+    "restore_needed_action": "Restaurar billetera"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "¡Su billetera está lista!",
+    "wallet_restored_action": "Continuar a la billetera",
+    "wallet_restored_description_part_one": "Es posible que deba volver a agregar algunos de sus activos, redes y configuraciones manualmente.",
+    "wallet_restored_description_part_two": "Tome un instante para",
+    "wallet_restored_description_link": "respaldar su frase secreta de recuperación",
+    "wallet_restored_description_part_three": "en caso de que necesite volver a restaurar su billetera en el futuro."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Se necesita una nueva billetera",
+    "new_wallet_needed_create_new_wallet_action": "Crear una nueva billetera",
+    "new_wallet_needed_create_try_again_action": "Intente recuperar la billetera",
+    "new_wallet_needed_description_part_one": "Algo anda mal con su billetera y tendrá que crear una nueva. Debido a que sus cuentas están en la cadena de bloques, aún permanecen seguras. Solo desaparecen las preferencias, las redes guardadas, los nombres de cuenta y los datos relacionados guardados en su dispositivo.",
+    "new_wallet_needed_description_part_two": "Para importar sus cuentas a una billetera nueva, necesitará su frase secreta de recuperación. Si no tiene su frase secreta de recuperación, no podrá importar sus cuentas.",
+    "new_wallet_needed_description_part_three": "Para evitar que esto vuelva a ocurrir, asegúrese de mantener siempre actualizados a la última versión la aplicación de MetaMask y el sistema operativo."
   }
 }

@@ -73,6 +73,7 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
+import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,6 +86,11 @@ const createStyles = (colors) =>
     content: {
       flexGrow: 1,
       justifyContent: 'center',
+    },
+    accountSelector: {
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 16,
     },
     keypad: {
       flexGrow: 1,
@@ -184,6 +190,8 @@ function SwapsAmountView({
   const route = useRoute();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const previousSelectedAddress = useRef();
 
   const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
@@ -380,6 +388,23 @@ function SwapsAmountView({
       }
     })();
   }, [isTokenInBalances, selectedAddress, sourceToken]);
+
+  /**
+   * Reset the state when account changes
+   */
+  useEffect(() => {
+    if (selectedAddress !== previousSelectedAddress.current) {
+      setAmount('0');
+      setSourceToken(
+        swapsTokens?.find((token) =>
+          toLowerCaseEquals(token.address, initialSource),
+        ),
+      );
+      setDestinationToken(null);
+      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+      previousSelectedAddress.current = selectedAddress;
+    }
+  }, [selectedAddress, swapsTokens, initialSource]);
 
   const hasInvalidDecimals = useMemo(() => {
     if (sourceToken) {
@@ -628,6 +653,9 @@ function SwapsAmountView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
+        <View style={styles.accountSelector}>
+          <AccountSelector />
+        </View>
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
