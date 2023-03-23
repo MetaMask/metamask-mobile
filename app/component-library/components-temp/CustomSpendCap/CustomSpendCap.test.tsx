@@ -22,6 +22,9 @@ describe('CustomSpendCap', () => {
         dappProposedValue={DAPP_PROPOSED_VALUE}
         domain={DAPP_DOMAIN}
         onInputChanged={INPUT_VALUE_CHANGED}
+        disableEdit={false}
+        editValue={() => ({})}
+        tokenSpendValue={''}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(
