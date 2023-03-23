@@ -104,10 +104,11 @@ const createStyles = (colors, typography) =>
       marginRight: 6,
     },
     rememberme: {
-      marginTop: 10,
+      marginTop: 15,
+      marginBottom: 10,
       flexDirection: 'row',
       justifyContent: 'flex-start',
-      marginLeft: 30,
+      marginLeft: 20,
       alignItems: 'center',
     },
     rememberCheckbox: {
