@@ -51,12 +51,7 @@ export default abstract class SnapDuplex extends Duplex {
 
   _write(data: StreamData, _encoding: string | null, cb: () => void): void {
     // eslint-disable-next-line no-console
-    console.log(
-      '[SNAP DUPLEX LOG] SnapDuplex+_write: Job',
-      this._jobId,
-      'write data (keys)',
-      Object.keys(data.data),
-    );
+    console.log('[SNAP DUPLEX LOG] SnapDuplex+_write: Job', this._jobId);
     this._stream.write({ data, jobId: this._jobId });
     cb();
   }

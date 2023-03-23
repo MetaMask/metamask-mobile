@@ -4,7 +4,9 @@ import {
   NpmSnapFileNames,
   createSnapManifest,
   normalizeRelative,
+  HttpSnapIdStruct,
 } from '@metamask/snaps-utils';
+import { assert, assertStruct } from '@metamask/utils';
 
 import { SnapLocation } from './location';
 
@@ -37,8 +39,7 @@ export class HttpLocation implements SnapLocation {
   private readonly fetchOptions?: RequestInit;
 
   constructor(url: URL, opts: HttpOptions = {}) {
-    // TODO get the asserts working from @metamask/utils
-    // assertStruct(url.toString(), HttpSnapIdStruct, 'Invalid Snap Id: ');
+    assertStruct(url.toString(), HttpSnapIdStruct, 'Invalid Snap Id: ');
     this.fetchFn = opts.fetch ?? globalThis.fetch.bind(globalThis);
     this.fetchOptions = opts.fetchOptions;
     this.url = url;
@@ -89,12 +90,11 @@ export class HttpLocation implements SnapLocation {
     });
 
     const blob = await response.text();
+    assert(
+      !this.cache.has(relativePath),
+      'Corrupted cache, multiple files with same path.',
+    );
 
-    //TODO: get the asserts working from @metamask/utils
-    // assert(
-    //   !this.cache.has(relativePath),
-    //   'Corrupted cache, multiple files with same path.',
-    // );
     this.cache.set(relativePath, { file: vfile, contents: blob });
 
     return this.fetch(relativePath);
@@ -105,8 +105,7 @@ export class HttpLocation implements SnapLocation {
   }
 
   private toCanonical(path: string): URL {
-    // TODO get the asserts working from @metamask/utils
-    // assert(!path.startsWith('/'), 'Tried to parse absolute path.');
+    assert(!path.startsWith('/'), 'Tried to parse absolute path.');
     return new URL(path, this.url.toString());
   }
 }
