@@ -83,6 +83,7 @@ import {
   AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
+  CURRENCY_SWITCH,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
@@ -1126,10 +1127,14 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    this.setState({
-      internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
-    });
-    this.onInputChange(inputValueConversion);
+    this.setState(
+      {
+        internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
+      },
+      () => {
+        this.onInputChange(inputValueConversion);
+      },
+    );
   };
 
   renderTokenInput = () => {
@@ -1174,6 +1179,7 @@ class Amount extends PureComponent {
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
+                {...generateTestId(Platform, CURRENCY_SWITCH)}
               >
                 <Text
                   style={styles.textSwitch}
