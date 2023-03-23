@@ -8,9 +8,6 @@ export const RPC = 'rpc';
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
 export const DEFAULT_MAINNET_CUSTOM_NAME = 'Ethereum Main Custom';
-export const LINEA_TESTNET_BLOCK_EXPLORER =
-  'https://explorer.goerli.linea.build';
-export const LINEA_TESTNET_RPC_URL = 'https://rpc.goerli.linea.build';
 export const LINEA_TESTNET_NICKNAME = 'Linea Goerli Test Network';
 export const LINEA_TESTNET_TICKER = 'LineaETH';
 

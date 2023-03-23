@@ -32,8 +32,6 @@ import {
   RPC,
   PRIVATENETWORK,
   NETWORKS_CHAIN_ID,
-  LINEA_TESTNET_RPC_URL,
-  LINEA_TESTNET_BLOCK_EXPLORER,
   LINEA_TESTNET_TICKER,
   LINEA_TESTNET_NICKNAME,
 } from '../../../constants/network';
@@ -53,6 +51,10 @@ import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Scre
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import {
+  LINEA_TESTNET_BLOCK_EXPLORER,
+  LINEA_TESTNET_RPC_URL,
+} from '../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -536,7 +538,7 @@ export class NetworkList extends PureComponent {
             this.renderNonInfuraNetwork(
               NETWORKS_CHAIN_ID.LINEA_TESTNET,
               LINEA_TESTNET_RPC_URL,
-              'Linea Goerli Test Network',
+              LINEA_TESTNET_NICKNAME,
             )}
         </ScrollView>
         <View style={styles.footer}>

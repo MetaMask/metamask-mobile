@@ -119,7 +119,7 @@ const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const shouldShowZKEVM = new Date().getTime() > Date.UTC(2023, 2, 28);
+export const shouldShowZKEVM = new Date().getTime() > Date.UTC(2023, 2, 28, 8);
 
 export default NetworkList;
 

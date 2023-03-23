@@ -23,12 +23,7 @@ import Networks, {
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import {
-  LINEA_TESTNET_RPC_URL,
-  MAINNET,
-  NETWORKS_CHAIN_ID,
-  RPC,
-} from '../../../../constants/network';
+import { MAINNET, NETWORKS_CHAIN_ID, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
@@ -40,6 +35,7 @@ import {
   AvatarVariants,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
