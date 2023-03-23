@@ -53,7 +53,7 @@ describe('Send ERC Token', () => {
   it('should Import custom AVAX token ', async () => {
     await WalletView.isVisible();
     await WalletView.tapImportTokensButton();
-    await AddCustomTokenView.pasteTokenAddress(TOKEN_ADDRESS);
+    await AddCustomTokenView.typeTokenAddressAndHideKeyboard(TOKEN_ADDRESS);
     await AddCustomTokenView.scrollDownOnImportCustomTokens();
     await TestHelpers.delay(2000);
     await AddCustomTokenView.tapTokenSymbolText();
