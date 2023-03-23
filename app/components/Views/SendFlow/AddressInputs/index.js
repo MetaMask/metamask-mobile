@@ -17,6 +17,8 @@ import {
   isENS,
   getAddressAccountType,
   getLabelTextByAddress,
+  isHardwareAccount,
+  isImportedAccount,
 } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
@@ -242,9 +244,10 @@ export const AddressTo = (props) => {
     isConfirmScreen = false,
     isFromAddressBook = false,
   } = props;
-  const isImportedOrHardwareAccount = toSelectedAddress
-    ? getAddressAccountType(toSelectedAddress)
-    : false;
+  const isImportedOrHardwareAccount =
+    toSelectedAddress &&
+    (isHardwareAccount(toSelectedAddress) ||
+      isImportedAccount(toSelectedAddress));
   const accountLabel = isImportedOrHardwareAccount
     ? getLabelTextByAddress(toSelectedAddress)
     : '';

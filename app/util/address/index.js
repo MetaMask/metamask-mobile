@@ -234,7 +234,7 @@ export function getLabelTextByAddress(address) {
         return null;
     }
   }
-  throw new Error(`The address: ${address} is not imported`);
+  return null;
 }
 /**
  * judge address's account type for tracking
