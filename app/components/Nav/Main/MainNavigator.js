@@ -72,6 +72,7 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import URL from 'url-parse';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
