@@ -180,6 +180,14 @@ const BIOMETRY_CHOICE_STRING = 'biometryChoice';
 class Settings extends PureComponent {
   static propTypes = {
     /**
+     * Called to toggle flag for batch balances for multiple accounts
+     */
+    setMultiAccountBalanceChecker: PropTypes.func,
+    /**
+     * Indicates whether batch balances for multiple accounts is enabled
+     */
+    useMultiAccountBalanceChecker: PropTypes.bool,
+    /**
      * Called to toggle set party api mode
      */
     setThirdPartyApiMode: PropTypes.func,
@@ -696,6 +704,42 @@ class Settings extends PureComponent {
     );
   };
 
+  toggleMultiAccountBalanceChecker = (useMultiAccountBalanceChecker) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setMultiAccountBalanceChecker(
+      useMultiAccountBalanceChecker,
+    );
+  };
+
+  renderBatchAccountBalancesSection = () => {
+    const { useMultiAccountBalanceChecker } = this.props;
+    const { styles, colors } = this.getStyles();
+
+    return (
+      <View style={styles.setting} testID={'third-party-section'}>
+        <Text style={styles.title}>
+          {strings('app_settings.batch_balance_requests_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.batch_balance_requests_description')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={useMultiAccountBalanceChecker}
+            onValueChange={this.toggleMultiAccountBalanceChecker}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+    );
+  };
+
   renderThirdPartySection = () => {
     const { thirdPartyApiMode } = this.props;
     const { styles, colors } = this.getStyles();
@@ -881,6 +925,7 @@ class Settings extends PureComponent {
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
+          {this.renderBatchAccountBalancesSection()}
           {this.renderThirdPartySection()}
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
@@ -911,6 +956,9 @@ const mapStateToProps = (state) => ({
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: selectProviderType(state),
+  useMultiAccountBalanceChecker:
+    state.engine.backgroundState.PreferencesController
+      .useMultiAccountBalanceChecker,
 });
 
 const mapDispatchToProps = (dispatch) => ({
