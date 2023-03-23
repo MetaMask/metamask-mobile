@@ -47,7 +47,6 @@ const createStyles = (colors: any) =>
     confirm: {
       marginLeft: 8,
     },
-<<<<<<< HEAD
     heading: {
       fontSize: 16,
       fontWeight: 'bold',
@@ -75,8 +74,6 @@ const createStyles = (colors: any) =>
       marginBottom: 10,
       fontSize: 16,
     },
-=======
->>>>>>> 3cc578eb5 (Integrate PS)
   });
 
 export default createStyles;
