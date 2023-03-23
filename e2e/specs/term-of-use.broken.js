@@ -1,4 +1,4 @@
-import TermsOfUseModal from '../pages/Onboarding/TermsOfUseModal';
+import TermsOfUseModal from '../pages/modals/TermsOfUseModal';
 import TestHelpers from '../helpers';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
