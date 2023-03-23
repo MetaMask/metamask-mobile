@@ -422,7 +422,7 @@
         "build": "yarn start:ios:e2e",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11 Pro"
+          "type": "iPhone 14 Pro"
         }
       },
       "ios.sim.release": {
@@ -430,7 +430,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11 Pro"
+          "type": "iPhone 14 Pro"
         }
       },
       "android.emu.debug": {
