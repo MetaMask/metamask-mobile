@@ -8,7 +8,7 @@ class Accounts {
   static getValidAccount() {
     return {
       // A correct BIP39 SRP that can be used for testing. Requires the var to be set in the environment.
-      seedPhrase: process.env.MM_TEST_ACCOUNT_SRP || 'undefined SRP env var',
+      seedPhrase: 'buzz pill embody elite name festival crystal pigeon grief memory allow blue' || 'undefined SRP env var',
       // Ethereum address for 1st account of derived on the seed that can be used for testing. Requires the var to be set in the environment.
       address: process.env.MM_TEST_ACCOUNT_ADDRESS || 'undefined address env var',
       password: CORRECT_PASSWORD,
