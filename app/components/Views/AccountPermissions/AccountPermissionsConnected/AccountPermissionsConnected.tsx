@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext, useMemo } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 // External dependencies.
@@ -28,6 +28,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
+import {
+  CONNECTED_ACCOUNTS_MODAL_CONTAINER,
+  CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
+
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -129,7 +135,10 @@ const AccountPermissionsConnected = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      <View style={styles.body}>
+      <View
+        style={styles.body}
+        {...generateTestId(Platform, CONNECTED_ACCOUNTS_MODAL_CONTAINER)}
+      >
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}
@@ -144,6 +153,10 @@ const AccountPermissionsConnected = ({
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}
+          {...generateTestId(
+            Platform,
+            CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
+          )}
         />
       </View>
       <AccountSelectorList
