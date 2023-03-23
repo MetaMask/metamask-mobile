@@ -79,6 +79,7 @@ jobs:
   build:
     name: Sonar
     runs-on: ubuntu-latest
+    needs: tests
     steps:
       - uses: actions/checkout@v3
         with:
