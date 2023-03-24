@@ -67,7 +67,7 @@ class CreateNewWalletScren {
     await driver.hideKeyboard();
   }
 
-  async tapSubmitButton() {
+  async tapSubmitButton(){
     await Gestures.tap(this.newWalletSubmitButton);
   }
 

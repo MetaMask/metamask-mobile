@@ -589,7 +589,10 @@ export const getRpcMethodMiddleware = ({
         try {
           const permittedAccounts = await getPermittedAccounts(hostname);
           // This should return the current active account on the Dapp.
-          const interactingAddress = permittedAccounts?.[0];
+          const selectedAddress =
+            Engine.context.PreferencesController.state.selectedAddress;
+          // Fallback to wallet address if there is no connected account to Dapp.
+          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
           const watchAssetResult = await TokensController.watchAsset(
             { address, symbol, decimals, image },
             type,

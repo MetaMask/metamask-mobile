@@ -62,7 +62,7 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
@@ -162,7 +162,6 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -246,7 +245,7 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Wallet,
       tabBarLabel: strings('drawer.wallet'),
       callback: () => {
-        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
         });
@@ -257,7 +256,7 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Browser,
       tabBarLabel: strings('drawer.browser'),
       callback: () => {
-        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
           source: 'Navigation Tab',
@@ -389,7 +388,6 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
     />
     <Stack.Screen
       name="WalletConnectSessionsView"

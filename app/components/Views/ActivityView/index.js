@@ -12,7 +12,7 @@ import FiatOrdersView from '../FiatOrdersView';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const styles = StyleSheet.create({
@@ -38,7 +38,7 @@ const ActivityView = () => {
       screen: Routes.SHEET.ACCOUNT_SELECTOR,
     });
     // Track Event: "Opened Acount Switcher"
-    trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
       number_of_accounts: Object.keys(accounts ?? {}).length,
     });
   }, [navigation, accounts]);
@@ -64,7 +64,7 @@ const ActivityView = () => {
   const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
 
   return (
-    <ErrorBoundary view="ActivityView">
+    <ErrorBoundary navigation={navigation} view="ActivityView">
       <View style={styles.wrapper}>
         <ScrollableTabView
           renderTabBar={renderTabBar}

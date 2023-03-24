@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.1.1",
+  "version": "6.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -158,7 +158,7 @@
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^2.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@react-native-async-storage/async-storage": "^1.17.10",
+    "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.5.12",
