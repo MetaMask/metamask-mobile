@@ -34,7 +34,7 @@ export interface AccountBaseProps {
   /**
    * i18n string of account type label
    */
-  accountTypeLabel: string;
+  accountTypeLabel?: string;
   /**
    * Avatar Account Type Enum, either Jazzicon or Blockies
    */

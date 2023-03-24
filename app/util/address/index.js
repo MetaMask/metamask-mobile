@@ -215,25 +215,12 @@ export function isImportedAccount(address) {
  * @returns {String} - Returns address's i18n label text
  */
 export function getLabelTextByAddress(address) {
-  const { KeyringController } = Engine.context;
-  const { keyrings } = KeyringController.state;
-  const targetKeyring = keyrings.find((keyring) =>
-    keyring.accounts
-      .map((account) => account.toLowerCase())
-      .includes(address.toLowerCase()),
-  );
-  if (targetKeyring) {
-    switch (targetKeyring.type) {
-      case KeyringTypes.qr:
-        return 'transaction.hardware';
-      case KeyringTypes.simple:
-        return 'accounts.imported';
-      case KeyringTypes.ledger:
-        return 'accounts.ledger';
-      default:
-        return null;
-    }
-  }
+  if (isHardwareAccount(address, [KeyringTypes.ledger]))
+    return 'accounts.ledger';
+  if (isHardwareAccount(address, [KeyringTypes.qr]))
+    return 'transaction.hardware';
+  if (isImportedAccount(address)) return 'accounts.imported';
+
   return null;
 }
 /**

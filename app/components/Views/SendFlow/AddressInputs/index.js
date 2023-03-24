@@ -248,9 +248,8 @@ export const AddressTo = (props) => {
     toSelectedAddress &&
     (isHardwareAccount(toSelectedAddress) ||
       isImportedAccount(toSelectedAddress));
-  const accountLabel = isImportedOrHardwareAccount
-    ? getLabelTextByAddress(toSelectedAddress)
-    : '';
+  const accountLabel =
+    isImportedOrHardwareAccount && getLabelTextByAddress(toSelectedAddress);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
