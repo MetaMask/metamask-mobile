@@ -31,6 +31,8 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
       backgroundColor: colors.background.default,
     },
     shadow: {
+      // borderWidth: 0.5,
+      // borderColor: colors.border.muted,
       shadowColor: colors.overlay.default,
       shadowOpacity: 1,
       shadowOffset: { height: 4, width: 0 },
