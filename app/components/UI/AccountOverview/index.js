@@ -18,7 +18,6 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
