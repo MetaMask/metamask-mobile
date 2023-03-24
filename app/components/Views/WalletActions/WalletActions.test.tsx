@@ -32,6 +32,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -39,6 +40,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -58,10 +60,9 @@ describe('WalletActions', () => {
         .fn()
         .mockImplementation((callback) => callback(mockInitialState)),
     }));
-    const { getByTestId } = renderWithProvider(
-      <WalletActions setActionSheetVisible={() => null} />,
-      { state: mockInitialState },
-    );
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
 
     expect(getByTestId(WALLET_BUY)).toBeDefined();
     expect(getByTestId(WALLET_SEND)).toBeDefined();
@@ -91,41 +92,34 @@ describe('WalletActions', () => {
       useSelector: jest.fn().mockImplementation((callback) => callback(state)),
     }));
 
-    const { queryByTestId } = renderWithProvider(
-      <WalletActions setActionSheetVisible={() => null} />,
-      {
-        state,
-      },
-    );
+    const { queryByTestId } = renderWithProvider(<WalletActions />, {
+      state,
+    });
 
     expect(queryByTestId(WALLET_BUY)).toBeNull();
     expect(queryByTestId(WALLET_SWAP)).toBeNull();
   });
 
   it('should call the onBuy function when the Buy button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletActions setActionSheetVisible={() => null} />,
-      { state: mockInitialState },
-    );
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByTestId(WALLET_BUY));
     expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletActions setActionSheetVisible={() => null} />,
-    );
+    const { getByTestId } = renderWithProvider(<WalletActions />);
 
     fireEvent.press(getByTestId(WALLET_SEND));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
   it('should call the goToSwaps function when the Send button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletActions setActionSheetVisible={() => null} />,
-      { state: mockInitialState },
-    );
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByTestId(WALLET_SWAP));
 
