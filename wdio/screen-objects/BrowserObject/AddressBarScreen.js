@@ -3,20 +3,20 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 import {
-  CANCEL_BUTTON,
+  CANCEL_BUTTON_ON_BROWSER_ID,
   HOME_SUGGESTION,
-  MODAL_INPUT,
+  URL_INPUT_BOX_ID,
   UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
 } from '../testIDs/BrowserScreen/AddressBar.testIds';
 
 class AddressBarScreen {
   get urlCancelButton() {
-    return Selectors.getXpathElementByResourceId(CANCEL_BUTTON);
+    return Selectors.getElementByPlatform(CANCEL_BUTTON_ON_BROWSER_ID);
   }
 
   get urlModalInput() {
-    return Selectors.getXpathElementByResourceId(MODAL_INPUT);
+    return Selectors.getElementByPlatform(URL_INPUT_BOX_ID);
   }
 
   get uniswapSuggestionsButton() {

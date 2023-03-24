@@ -24,7 +24,6 @@ import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
@@ -77,9 +76,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       width: Device.isIos() ? 90 : 45,
       height: Device.isIos() ? 90 : 45,
-    },
-    termsAndConditions: {
-      paddingBottom: 30,
     },
     title: {
       fontSize: 24,
@@ -244,6 +240,7 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
@@ -527,9 +524,6 @@ class Onboarding extends PureComponent {
               </View>
             )}
           </ScrollView>
-          <View style={styles.termsAndConditions}>
-            <TermsAndConditions navigation={this.props.navigation} />
-          </View>
         </OnboardingScreenWithBg>
         <FadeOutOverlay />
 

@@ -82,12 +82,14 @@ import {
   AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
+  CURRENCY_SWITCH,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -703,7 +705,10 @@ class Amount extends PureComponent {
       transactionObject.readableValue = value;
     }
 
-    if (selectedAsset.isETH) transactionObject.to = transactionTo;
+    if (selectedAsset.isETH) {
+      transactionObject.data = PREFIX_HEX_STRING;
+      transactionObject.to = transactionTo;
+    }
 
     setTransactionObject(transactionObject);
   };
@@ -1122,10 +1127,14 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    this.setState({
-      internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
-    });
-    this.onInputChange(inputValueConversion);
+    this.setState(
+      {
+        internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
+      },
+      () => {
+        this.onInputChange(inputValueConversion);
+      },
+    );
   };
 
   renderTokenInput = () => {
@@ -1170,6 +1179,7 @@ class Amount extends PureComponent {
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
+                {...generateTestId(Platform, CURRENCY_SWITCH)}
               >
                 <Text
                   style={styles.textSwitch}

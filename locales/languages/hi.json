@@ -747,6 +747,7 @@
     "send_button": "भेजें",
     "buy_button": "खरीदें",
     "receive_button": "प्राप्त करें",
+    "portfolio_button": "पोर्टफोलियो",
     "add_collectible_button": "जोड़ें",
     "info": "जानकारी",
     "swap": "स्वैप",
@@ -2239,5 +2240,26 @@
       "wrong_answer_title": "नहीं! अपने सीक्रेट रिकवरी फ्रेज़ को कभी भी किसी के साथ साझा न करें",
       "wrong_answer_description": "आपके सीक्रेट रिकवरी फ्रेज़ की आवश्यकता का दावा करने वाला कोई भी व्यक्ति आपसे झूठ बोल रहा है। यदि आप इसे उनके साथ साझा करते हैं, तो वे आपकी संपत्ति चुरा लेंगे।"
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "पुनर्स्थापित करने की आवश्यकता है",
+    "restore_needed_description": "कुछ गलत हुआ है लेकिन चिंता न करें! आइए आपके वॉलेट को पुनर्स्थापित करने का प्रयास करें।",
+    "restore_needed_action": "वॉलेट पुनर्स्थापित करें"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "आपका वॉलेट तैयार है!",
+    "wallet_restored_action": "वॉलेट जारी रखें",
+    "wallet_restored_description_part_one": "आपको अपनी कुछ संपत्तियों, नेटवर्कों और सेटिंग्स को मैन्युअल रूप से फिर से जोड़ने की आवश्यकता हो सकती है।",
+    "wallet_restored_description_part_two": "इसके लिए थोड़ा सा समय लें",
+    "wallet_restored_description_link": "अपने गुप्त पुनर्प्राप्ति वाक्यांश का बैकअप लें",
+    "wallet_restored_description_part_three": "यदि आपको भविष्य में फिर से अपने वॉलेट को पुनर्स्थापित करने की आवश्यकता हो।"
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "नए वॉलेट की जरूरत है",
+    "new_wallet_needed_create_new_wallet_action": "एक नया वॉलेट बनाएं",
+    "new_wallet_needed_create_try_again_action": "वॉलेट पुनर्प्राप्त करने का प्रयास करें",
+    "new_wallet_needed_description_part_one": "आपके वॉलेट में कुछ गड़बड़ है, और आपको एक नया बनाना होगा। क्योंकि आपके खाते ब्लॉकचेन पर हैं, वे अब भी सुरक्षित हैं। केवल प्राथमिकताएं, सहेजे गए नेटवर्क, खाता नाम और आपके डिवाइस पर सहेजा गया संबंधित डेटा चला गया है।",
+    "new_wallet_needed_description_part_two": "अपने खातों को एक नए वॉलेट में आयात करने के लिए, आपको अपने गुप्त पुनर्प्राप्ति वाक्यांश की आवश्यकता होगी। यदि आपके पास अपना गुप्त पुनर्प्राप्ति वाक्यांश नहीं है, तो आप अपने खाते आयात नहीं कर पाएंगे।",
+    "new_wallet_needed_description_part_three": "इसे फिर से होने से रोकने के लिए, सुनिश्चित करें कि आपका MetaMask ऐप और OS हमेशा नवीनतम संस्करण में अपडेट रहें।"
   }
 }
