@@ -4,7 +4,7 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
-export interface WalletActionI {
+export interface WalletActionProps {
   actionTitle: string;
   actionDescription: string;
   iconName: IconName;

@@ -20,9 +20,6 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
 }));
 
-// Mock the setActionSheetVisible function.
-const setActionSheetVisible = jest.fn();
-
 // Define the test cases.
 describe('TabBar', () => {
   const state = {
@@ -43,7 +40,7 @@ describe('TabBar', () => {
     '2': {
       options: {
         tabBarIconKey: TabBarIconKey.Actions,
-        rootScreenName: Routes.WALLET.ACTIONS,
+        rootScreenName: Routes.MODAL.WALLET_ACTIONS,
       },
     },
     '3': {
@@ -60,7 +57,6 @@ describe('TabBar', () => {
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as any}
         navigation={navigation as any}
-        setActionSheetVisible={setActionSheetVisible}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
@@ -72,7 +68,6 @@ describe('TabBar', () => {
         state={state as TabNavigationState<ParamListBase>}
         descriptors={descriptors as any}
         navigation={navigation as any}
-        setActionSheetVisible={setActionSheetVisible}
       />,
     );
 

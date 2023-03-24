@@ -70,7 +70,6 @@ import { TabBarIconKey } from '../../../component-library/components/Navigation/
 import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import isUrl from 'is-url';
-import WalletActions from '../../../components/Views/WalletActions';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 
 const Stack = createStackNavigator();
@@ -208,7 +207,6 @@ export const DrawerContext = React.createContext({ drawerRef: null });
 const HomeTabs = () => {
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
-  const [isActionSheetVisible, setActionSheetVisible] = useState(false);
 
   const accountsLength = useSelector(
     (state) =>
@@ -255,7 +253,7 @@ const HomeTabs = () => {
     },
     actions: {
       tabBarIconKey: TabBarIconKey.Actions,
-      rootScreenName: Routes.WALLET.ACTIONS,
+      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
     },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
@@ -301,7 +299,6 @@ const HomeTabs = () => {
                 state={state}
                 descriptors={descriptors}
                 navigation={navigation}
-                setActionSheetVisible={setActionSheetVisible}
               />
             ) : null
           }
@@ -311,22 +308,17 @@ const HomeTabs = () => {
             options={options.home}
             component={WalletTabModalFlow}
           />
-
           <Tab.Screen
-            name={Routes.WALLET.ACTIONS}
+            name={Routes.MODAL.WALLET_ACTIONS}
             options={options.actions}
             component={WalletTabModalFlow}
           />
-
           <Tab.Screen
             name={Routes.BROWSER.HOME}
             options={options.browser}
             component={BrowserFlow}
           />
         </Tab.Navigator>
-        {isActionSheetVisible && (
-          <WalletActions setActionSheetVisible={setActionSheetVisible} />
-        )}
       </Drawer>
     </DrawerContext.Provider>
   );

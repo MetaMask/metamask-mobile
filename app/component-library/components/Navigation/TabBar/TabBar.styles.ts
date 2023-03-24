@@ -28,18 +28,15 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
       height: Device.isAndroid() ? 62 : 48,
       paddingHorizontal: 16,
       marginBottom: bottomInset,
-      borderTopWidth: 0.5,
-      borderColor: colors.border.muted,
-      paddingTop: Device.isAndroid() ? 0 : 20,
+      backgroundColor: colors.background.default,
     },
-    iconContainer: {
-      width: 32,
-      height: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 16,
-      marginBottom: 8,
-      backgroundColor: colors.primary.default,
+    shadow: {
+      shadowColor: colors.overlay.default,
+      shadowOpacity: 1,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+      backgroundColor: colors.background.default,
+      flexBasis: 1,
     },
   });
 };

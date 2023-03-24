@@ -18,14 +18,17 @@ const AvatarIcon = ({
   size = AvatarSize.Md,
   name,
   style,
+  iconColor: iconColorProp,
+  backgroundColor,
   ...props
 }: AvatarIconProps) => {
-  const { styles, theme } = useStyles(stylesheet, { style });
+  const { styles, theme } = useStyles(stylesheet, { style, backgroundColor });
   const iconSize = ICON_SIZE_BY_AVATAR_SIZE[size];
+  const iconColor = iconColorProp || theme.colors.primary.default;
 
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
-      <Icon name={name} size={iconSize} color={theme.colors.primary.default} />
+      <Icon name={name} size={iconSize} color={iconColor} />
     </AvatarBase>
   );
 };

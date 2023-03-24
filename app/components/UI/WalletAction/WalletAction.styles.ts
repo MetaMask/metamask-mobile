@@ -31,6 +31,9 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       marginHorizontal: 16,
     },
+    descriptionLabel: {
+      color: colors.text.alternative,
+    },
   });
 };
 

@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { View, InteractionManager, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 
 // External dependencies.
@@ -34,7 +34,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
-import { WalletActionsI } from './WalletActions.types';
 import {
   WALLET_BUY,
   WALLET_RECEIVE,
@@ -42,7 +41,7 @@ import {
   WALLET_SWAP,
 } from './WalletActions.constants';
 
-const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
+const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<SheetBottomRef>(null);
   const { navigate } = useNavigation();
@@ -53,14 +52,12 @@ const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
   const dispatch = useDispatch();
 
   const onReceive = () => {
-    sheetRef.current?.hide();
-    dispatch(toggleReceiveModal());
+    sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
   };
 
   const onBuy = () => {
-    sheetRef.current?.hide();
-    navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-    InteractionManager.runAfterInteractions(() => {
+    sheetRef.current?.hide(() => {
+      navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Wallet',
@@ -70,26 +67,25 @@ const WalletActions = ({ setActionSheetVisible }: WalletActionsI) => {
   };
 
   const onSend = () => {
-    sheetRef.current?.hide();
-    ticker && dispatch(newAssetTransaction(getEther(ticker)));
-    navigate('SendFlowView');
+    sheetRef.current?.hide(() => {
+      navigate('SendFlowView');
+      ticker && dispatch(newAssetTransaction(getEther(ticker)));
+    });
   };
 
   const goToSwaps = () => {
-    sheetRef.current?.hide();
-    navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      },
-    });
+    sheetRef.current?.hide(() =>
+      navigate('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        },
+      }),
+    );
   };
+
   return (
-    <SheetBottom
-      ref={sheetRef}
-      navigateBack={false}
-      onDismissed={() => setActionSheetVisible(false)}
-    >
+    <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
         {allowedToBuy(chainId) && (
           <WalletAction

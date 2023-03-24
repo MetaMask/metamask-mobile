@@ -9,7 +9,7 @@ import Text, {
 import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
-import { WalletActionI } from './WalletAction.types';
+import { WalletActionProps } from './WalletAction.types';
 import styleSheet from './WalletAction.styles';
 
 const WalletAction = ({
@@ -21,7 +21,7 @@ const WalletAction = ({
   containerStyle,
   iconStyle,
   ...props
-}: WalletActionI) => {
+}: WalletActionProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   return (
@@ -40,7 +40,9 @@ const WalletAction = ({
       </View>
       <View>
         <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
-        <Text variant={TextVariant.BodyMD}>{actionDescription}</Text>
+        <Text variant={TextVariant.BodyMD} style={styles.descriptionLabel}>
+          {actionDescription}
+        </Text>
       </View>
     </TouchableOpacity>
   );

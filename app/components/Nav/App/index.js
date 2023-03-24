@@ -79,6 +79,7 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import WalletActions from '../../Views/WalletActions';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -443,6 +444,10 @@ const App = ({ userLoggedIn }) => {
 
   const RootModalFlow = () => (
     <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+      <Stack.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        component={WalletActions}
+      />
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}

@@ -1,8 +1,9 @@
 // Third party dependencies.
-import { TouchableOpacityProps, ViewStyle } from 'react-native';
+import { TouchableOpacityProps } from 'react-native';
+import { AvatarSize } from '../../Avatars/Avatar';
 
 // External dependencies.
-import { IconProps, IconSize } from '../../Icons/Icon';
+import { IconProps } from '../../Icons/Icon';
 
 /**
  * TabBarItem component props.
@@ -17,31 +18,24 @@ export interface TabBarItemProps extends TouchableOpacityProps {
    */
   icon: IconProps['name'];
   /**
-   * Boolean that states if the item is selected.
-   */
-  isSelected: boolean;
-  /**
    * Function to call when pressed.
    */
   onPress: () => void;
   /**
-   * Optional icon size property
+   * Size to apply to icon.
    */
-  iconSize?: IconSize;
+  iconSize: AvatarSize;
   /**
-   * Optional icon size property
+   * Color to apply to icon.
    */
-  iconColor?: string;
+  iconColor: string;
   /**
-   * Optional styles for the Touchable Opacity
+   * Color to apply to icon background color.
    */
-  iconContainerStyle?: ViewStyle;
+  iconBackgroundColor: string;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type TabBarItemStyleSheetVars = Pick<
-  TabBarItemProps,
-  'style' | 'isSelected'
->;
+export type TabBarItemStyleSheetVars = Pick<TabBarItemProps, 'style'>;

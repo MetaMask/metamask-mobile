@@ -16,13 +16,10 @@ import { useTheme } from '../../../../util/theme';
 import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
+import { colors as importedColors } from '../../../../styles/common';
+import { AvatarSize } from '../../Avatars/Avatar';
 
-const TabBar = ({
-  state,
-  descriptors,
-  navigation,
-  setActionSheetVisible,
-}: TabBarProps) => {
+const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
@@ -49,8 +46,10 @@ const TabBar = ({
               },
             });
             break;
-          case Routes.WALLET.ACTIONS:
-            setActionSheetVisible(true);
+          case Routes.MODAL.WALLET_ACTIONS:
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.MODAL.WALLET_ACTIONS,
+            });
             break;
           case Routes.BROWSER_VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
@@ -59,35 +58,33 @@ const TabBar = ({
         }
       };
 
+      const isWalletAction = rootScreenName === Routes.MODAL.WALLET_ACTIONS;
+      const iconProps = {
+        size: isWalletAction ? AvatarSize.Md : AvatarSize.Lg,
+        backgroundColor: isWalletAction
+          ? colors.primary.default
+          : importedColors.transparent,
+        color: isWalletAction
+          ? colors.primary.inverse
+          : isSelected
+          ? colors.primary.default
+          : colors.icon.muted,
+      };
+
       return (
         <TabBarItem
           key={key}
-          isSelected={isSelected}
           label={label}
           icon={icon}
           onPress={onPress}
-          iconContainerStyle={
-            rootScreenName === Routes.WALLET.ACTIONS
-              ? styles.iconContainer
-              : undefined
-          }
-          iconColor={
-            rootScreenName === Routes.WALLET.ACTIONS
-              ? colors.background.default
-              : undefined
-          }
+          iconSize={iconProps.size}
+          iconBackgroundColor={iconProps.backgroundColor}
+          iconColor={iconProps.color}
           {...generateTestId(Platform, key)}
         />
       );
     },
-    [
-      state,
-      descriptors,
-      navigation,
-      setActionSheetVisible,
-      styles.iconContainer,
-      colors.background.default,
-    ],
+    [state, descriptors, navigation, colors],
   );
 
   const renderTabBarItems = useCallback(
@@ -95,7 +92,12 @@ const TabBar = ({
     [state, renderTabBarItem],
   );
 
-  return <View style={styles.base}>{renderTabBarItems()}</View>;
+  return (
+    <>
+      <View style={styles.shadow} />
+      <View style={styles.base}>{renderTabBarItems()}</View>
+    </>
+  );
 };
 
 export default TabBar;

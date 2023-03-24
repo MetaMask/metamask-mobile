@@ -30,6 +30,7 @@ const Routes = {
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
+    WALLET_ACTIONS: 'WalletActions',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -71,7 +72,6 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
-    ACTIONS: 'WalletActions',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
