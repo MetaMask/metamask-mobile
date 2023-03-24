@@ -4,6 +4,9 @@ import { StyleSheet, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 
+// Internal dependencies.
+import { DEFAULT_BADGENETWORK_NETWORKICON_SIZE } from './BadgeNetwork.constants';
+
 /**
  * Style sheet function for BadgeNetwork component.
  *
@@ -13,24 +16,27 @@ import { Theme } from '../../../../../../util/theme/models';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: any }) => {
-  const { theme, vars } = params;
-  const { style } = vars;
+  const { vars } = params;
+  const { style, containerSize } = vars;
+  let scaleRatio = 1;
+  if (containerSize) {
+    scaleRatio =
+      containerSize.height / Number(DEFAULT_BADGENETWORK_NETWORKICON_SIZE);
+  }
 
   return StyleSheet.create({
     base: Object.assign(
       {
         height: '50%',
         aspectRatio: 1,
-        minHeight: 10,
-        backgroundColor: theme.colors.background.default,
-        borderRadius: 9999,
+        minHeight: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    image: {
-      flex: 1,
-      height: undefined,
-      width: undefined,
+    networkIcon: {
+      transform: [{ scale: scaleRatio }],
     },
   });
 };

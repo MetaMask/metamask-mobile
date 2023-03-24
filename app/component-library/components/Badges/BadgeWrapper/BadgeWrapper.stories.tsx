@@ -37,7 +37,6 @@ storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
   const badgeProps: BadgeProps = {
     variant: BadgeVariants.Network,
     name: TEST_NETWORK_NAME,
-    imageSource: TEST_REMOTE_IMAGE_SOURCE,
   };
   const BadgeElement = <Badge {...badgeProps} />;
 
@@ -56,9 +55,9 @@ storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
         <View
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
-            height: 50,
-            width: 50,
-            borderRadius: 25,
+            height: 100,
+            width: 100,
+            borderRadius: 50,
             backgroundColor: mockTheme.colors.background.default,
             alignItems: 'center',
             justifyContent: 'center',
