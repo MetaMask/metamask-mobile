@@ -1,12 +1,12 @@
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { MetaMetricsEvents } from '../Analytics';
 import {
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
   isSafeChainId,
 } from '../../util/networks';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { trackEvent } from '../../util/analyticsV2';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -61,7 +61,7 @@ const wallet_switchEthereumChain = async ({
     (rpc) => rpc.chainId === chainIdDecimal,
   );
   if (existingNetworkRPC || existingNetworkDefault) {
-    const currentChainId = NetworkController.state.provider.chainId;
+    const currentChainId = NetworkController.state.providerConfig.chainId;
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;
@@ -114,7 +114,7 @@ const wallet_switchEthereumChain = async ({
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;

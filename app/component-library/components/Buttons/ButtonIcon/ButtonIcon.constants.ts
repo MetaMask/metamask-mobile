@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { IconSize } from '../../Icon';
+import { IconSize } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { ButtonIconSizes, IconSizeByButtonIconSize } from './ButtonIcon.types';

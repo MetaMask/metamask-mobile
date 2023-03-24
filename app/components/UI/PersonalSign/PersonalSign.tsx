@@ -8,14 +8,15 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
+import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
+import AppConstants from '../../../core/AppConstants';
 
 /**
  * Component that supports personal_sign
@@ -46,7 +47,7 @@ const PersonalSign = ({
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
       const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -63,17 +64,16 @@ const PersonalSign = ({
   }, [currentPageInformation, messageParams]);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGN_REQUEST_STARTED, getAnalyticsParams());
   }, [getAnalyticsParams]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          )) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
@@ -107,24 +107,21 @@ const PersonalSign = ({
 
   const cancelSignature = () => {
     rejectMessage();
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGN_REQUEST_CANCELLED, getAnalyticsParams());
     onCancel();
   };
 
   const confirmSignature = async () => {
     try {
       await signMessage();
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         getAnalyticsParams(),
       );
       onConfirm();
     } catch (e: any) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(),
         );
@@ -142,7 +139,7 @@ const PersonalSign = ({
   };
 
   const renderMessageText = () => {
-    const textChild = hexToText(messageParams.data)
+    const textChild = sanitizeString(hexToText(messageParams.data))
       .split('\n')
       .map((line, i) => (
         <Text

@@ -10,6 +10,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 import formatNumber from '../../../../util/formatNumber';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import { renderShortAddress } from '../../../../util/address';
 
 const {
   ASSET: { ERC20 },
@@ -101,8 +102,8 @@ export default class TransactionReviewDetailsCard extends Component {
     method: PropTypes.string,
     nickname: PropTypes.string,
     nicknameExists: PropTypes.bool,
-    tokenId: PropTypes.string,
-    tokenType: PropTypes.string,
+    tokenValue: PropTypes.string,
+    tokenStandard: PropTypes.string,
     tokenName: PropTypes.string,
   };
 
@@ -120,9 +121,9 @@ export default class TransactionReviewDetailsCard extends Component {
       displayViewData,
       nickname,
       nicknameExists,
-      tokenId,
+      tokenValue,
       tokenName,
-      tokenType,
+      tokenStandard,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -150,27 +151,29 @@ export default class TransactionReviewDetailsCard extends Component {
                   {nickname}
                 </Text>
               ) : (
-                <Text style={styles.address}>{address}</Text>
+                <Text style={styles.address}>
+                  {renderShortAddress(address)}
+                </Text>
               )}
               <Feather
                 name="copy"
                 size={16}
                 color={colors.primary.default}
                 style={styles.copyIcon}
-                onPress={copyContractAddress}
+                onPress={() => copyContractAddress(address)}
               />
             </View>
           </View>
           <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
-              {tokenType === ERC20
+              {tokenStandard === ERC20
                 ? strings('spend_limit_edition.spending_cap')
                 : strings('spend_limit_edition.approve_asset')}
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
-              {tokenType === ERC20
+              {tokenStandard === ERC20
                 ? `${formatNumber(allowance)} ${tokenSymbol}`
-                : `${tokenName} (#${tokenId})`}
+                : `${tokenName} (#${tokenValue})`}
             </Text>
           </View>
         </View>

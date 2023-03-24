@@ -3,20 +3,19 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
-import URL from 'url-parse';
+import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import sanitizeString from '../../../util/string';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -86,7 +85,7 @@ class TypedSign extends PureComponent {
     try {
       const { currentPageInformation, messageParams } = this.props;
       const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(messageParams.from),
@@ -103,7 +102,7 @@ class TypedSign extends PureComponent {
   };
 
   componentDidMount = () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
@@ -124,7 +123,9 @@ class TypedSign extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          )) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
@@ -167,7 +168,7 @@ class TypedSign extends PureComponent {
 
   cancelSignature = () => {
     this.rejectMessage();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -177,14 +178,14 @@ class TypedSign extends PureComponent {
   confirmSignature = async () => {
     try {
       await this.signMessage();
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );
@@ -216,12 +217,15 @@ class TypedSign extends PureComponent {
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
           <View>
-            <Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
+            <Text style={[styles.messageText, styles.msgKey]}>
+              {sanitizeString(key)}:
+            </Text>
             <View>{this.renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
           <Text style={styles.messageText}>
-            <Text style={styles.msgKey}>{key}:</Text> {`${obj[key]}`}
+            <Text style={styles.msgKey}>{sanitizeString(key)}:</Text>{' '}
+            {sanitizeString(`${obj[key]}`)}
           </Text>
         )}
       </View>
@@ -238,10 +242,10 @@ class TypedSign extends PureComponent {
           {messageParams.data.map((obj, i) => (
             <View key={`${obj.name}_${i}`}>
               <Text style={[styles.messageText, styles.msgKey]}>
-                {obj.name}:
+                {sanitizeString(obj.name)}:
               </Text>
               <Text style={styles.messageText} key={obj.name}>
-                {` ${obj.value}`}
+                {sanitizeString(` ${obj.value}`)}
               </Text>
             </View>
           ))}

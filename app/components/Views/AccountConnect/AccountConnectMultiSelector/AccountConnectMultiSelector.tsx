@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -19,6 +19,7 @@ import AccountSelectorList from '../../../UI/AccountSelectorList';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
 import USER_INTENT from '../../../../constants/permissions';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -27,10 +28,10 @@ const AccountConnectMultiSelector = ({
   onSelectAddress,
   isLoading,
   onUserAction,
-  hostname,
   favicon,
   secureIcon,
   isAutoScrollEnabled = true,
+  urlWithProtocol,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -144,6 +145,7 @@ const AccountConnectMultiSelector = ({
             ...(isConnectDisabled && styles.disabled),
           }}
           disabled={isConnectDisabled}
+          {...generateTestId(Platform, 'multiconnect-connect-button')}
         />
       </View>
     );
@@ -157,7 +159,11 @@ const AccountConnectMultiSelector = ({
     <>
       <SheetHeader title={strings('accounts.connect_accounts_title')} />
       <View style={styles.body}>
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

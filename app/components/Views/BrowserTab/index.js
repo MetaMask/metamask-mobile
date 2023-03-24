@@ -49,9 +49,14 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import {
+  trackEvent,
+  trackLegacyEvent,
+  trackErrorAsAnalytics,
+  getMetaMetricsId,
+  checkEnabled,
+} from '../../../util/analyticsV2';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
@@ -357,7 +362,7 @@ export const BrowserTab = (props) => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
+      trackLegacyEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
     });
   }, [dismissTextSelectionIfNeeded, showOptions]);
 
@@ -399,12 +404,9 @@ export const BrowserTab = (props) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
-    const phishingListsAreOutOfDate = PhishingController.isOutOfDate();
-    if (phishingListsAreOutOfDate) {
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.updatePhishingLists();
-    }
+    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+    // down network requests. The configuration is updated for the next request.
+    PhishingController.maybeUpdateState();
 
     const phishingControllerTestResult = PhishingController.test(hostname);
 
@@ -640,8 +642,8 @@ export const BrowserTab = (props) => {
    */
   const injectHomePageScripts = async (bookmarks) => {
     const { current } = webviewRef;
-    const analyticsEnabled = Analytics.checkEnabled();
-    const disctinctId = await Analytics.getDistinctId();
+    const analyticsEnabled = checkEnabled();
+    const disctinctId = getMetaMetricsId();
     const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};
 			window.__mmSearchEngine = "${props.searchEngine}";
@@ -769,7 +771,7 @@ export const BrowserTab = (props) => {
   );
 
   const trackEventSearchUsed = useCallback(() => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+    trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
       option_chosen: 'Search on URL',
       number_of_tabs: undefined,
     });
@@ -854,13 +856,10 @@ export const BrowserTab = (props) => {
         return;
       }
       if (data.name) {
+        const origin = new URL(nativeEvent.url).origin;
         backgroundBridges.current.forEach((bridge) => {
-          if (bridge.isMainFrame) {
-            const { origin } = data && data.origin && new URL(data.origin);
-            bridge.url === origin && bridge.onMessage(data);
-          } else {
-            bridge.url === data.origin && bridge.onMessage(data);
-          }
+          const bridgeOrigin = new URL(bridge.url).origin;
+          bridgeOrigin === origin && bridge.onMessage(data);
         });
         return;
       }
@@ -876,7 +875,7 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
-    Analytics.trackEvent(MetaMetricsEvents.DAPP_HOME);
+    trackLegacyEvent(MetaMetricsEvents.DAPP_HOME);
   };
 
   /**
@@ -1017,12 +1016,9 @@ export const BrowserTab = (props) => {
           error,
           setAccountsPermissionsVisible: () => {
             // Track Event: "Opened Acount Switcher"
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH,
-              {
-                number_of_accounts: accounts?.length,
-              },
-            );
+            trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
+              number_of_accounts: accounts?.length,
+            });
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
@@ -1085,7 +1081,7 @@ export const BrowserTab = (props) => {
    * Track new tab event
    */
   const trackNewTabEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
+    trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
       option_chosen: 'Browser Options',
       number_of_tabs: undefined,
     });
@@ -1095,7 +1091,7 @@ export const BrowserTab = (props) => {
    * Track add site to favorites event
    */
   const trackAddToFavoritesEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
+    trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
       dapp_name: title.current || '',
       dapp_url: url.current || '',
     });
@@ -1105,14 +1101,14 @@ export const BrowserTab = (props) => {
    * Track share site event
    */
   const trackShareEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
+    trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
   };
 
   /**
    * Track reload site event
    */
   const trackReloadEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
+    trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
   };
 
   /**
@@ -1149,7 +1145,7 @@ export const BrowserTab = (props) => {
       },
     });
     trackAddToFavoritesEvent();
-    Analytics.trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
+    trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
   };
 
   /**
@@ -1176,7 +1172,7 @@ export const BrowserTab = (props) => {
         error,
       ),
     );
-    Analytics.trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
+    trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
   };
 
   /**

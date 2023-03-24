@@ -11,7 +11,10 @@ import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { useTheme } from '../../../util/theme';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import {
+  selectNickname,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -93,7 +96,9 @@ const TransactionHeader = (props) => {
   );
 
   const originIsMMSDKRemoteConn =
-    props.currentPageInformation.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
+    props.currentPageInformation.origin?.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+    );
 
   /**
    * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
@@ -129,7 +134,7 @@ const TransactionHeader = (props) => {
         originIsWalletConnect
           ? origin.split(WALLET_CONNECT_ORIGIN)[1]
           : originIsMMSDKRemoteConn
-          ? origin.split(MM_SDK_REMOTE_ORIGIN)[1]
+          ? origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]
           : url,
       ).protocol === 'https:'
         ? 'lock'
@@ -157,7 +162,7 @@ const TransactionHeader = (props) => {
       url = origin.split(WALLET_CONNECT_ORIGIN)[1];
       iconTitle = getHost(url);
     } else if (originIsMMSDKRemoteConn) {
-      url = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      url = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
     return (
       <WebsiteIcon
@@ -174,12 +179,15 @@ const TransactionHeader = (props) => {
     const { url, currentEnsName, spenderAddress, origin } =
       props.currentPageInformation;
     let title = '';
+
     if (originIsDeeplink) title = renderShortAddress(spenderAddress);
     else if (originIsWalletConnect)
       title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     else if (originIsMMSDKRemoteConn) {
-      title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
-    } else title = getHost(currentEnsName || url || origin);
+      title = getHost(origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]);
+    }
+
+    if (!title) title = getHost(currentEnsName || url || origin);
 
     return <Text style={styles.domainUrl}>{title}</Text>;
   };
@@ -217,8 +225,8 @@ TransactionHeader.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  nickname: state.engine.backgroundState.NetworkController.provider.nickname,
+  networkType: selectProviderType(state),
+  nickname: selectNickname(state),
 });
 
 export default connect(mapStateToProps)(TransactionHeader);

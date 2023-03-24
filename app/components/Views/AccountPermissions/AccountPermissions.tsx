@@ -28,12 +28,12 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
-import { IconName } from '../../../component-library/components/Icon';
-import { getUrlObj } from '../../../util/browser';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -80,10 +80,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const secureIcon = useMemo(
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
-        ? IconName.LockFilled
-        : IconName.LockSlashFilled,
+        ? IconName.Lock
+        : IconName.LockSlash,
     [origin],
   );
+
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
   /**
    * Get image url from favicon api.
    */
@@ -179,11 +181,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          {},
-        );
-        AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+        trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
@@ -235,7 +234,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const totalAccounts = accountsLength;
       // TODO: confirm this value is the newly added accounts or total connected accounts
       const connectedAccounts = connectedAccountLength;
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
+      trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
         number_of_accounts: totalAccounts,
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
@@ -265,7 +264,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Confirm: {
           handleConnect();
           hideSheet(() => {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+            trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
               source: metricsSource,
               number_of_accounts: accounts?.length,
             });
@@ -284,17 +283,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-            {},
-          );
+          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
 
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
 
           break;
         }
@@ -326,6 +322,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         selectedAddresses={[activeAddress]}
         favicon={favicon}
         hostname={hostname}
+        urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
       />
@@ -340,6 +337,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hideSheet,
       favicon,
       hostname,
+      urlWithProtocol,
       secureIcon,
       accountAvatarType,
     ],
@@ -355,7 +353,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         favicon={favicon}
-        hostname={hostname}
+        urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
       />
@@ -367,7 +365,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountsFilteredByPermissions,
       setUserIntent,
       favicon,
-      hostname,
+      urlWithProtocol,
       secureIcon,
     ],
   );
@@ -381,6 +379,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
         favicon={favicon}
+        urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
@@ -394,6 +393,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setPermissionsScreen,
       favicon,
       hostname,
+      urlWithProtocol,
       secureIcon,
       accountAvatarType,
     ],

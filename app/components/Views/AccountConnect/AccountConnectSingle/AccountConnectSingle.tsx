@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -21,7 +21,9 @@ import Button, {
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
-import Icon, { IconName } from '../../../../component-library/components/Icon';
+import Icon, {
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
@@ -34,6 +36,7 @@ import {
   CANCEL_BUTTON_ID,
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -42,8 +45,8 @@ const AccountConnectSingle = ({
   onUserAction,
   isLoading,
   favicon,
-  hostname,
   secureIcon,
+  urlWithProtocol,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
@@ -147,7 +150,7 @@ const AccountConnectSingle = ({
         style={isLoading && styles.disabled}
       >
         <View style={styles.downCaretContainer}>
-          <Icon name={IconName.ArrowDownOutline} />
+          <Icon name={IconName.ArrowDown} />
         </View>
       </Cell>
     );
@@ -163,8 +166,15 @@ const AccountConnectSingle = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
-      <View style={styles.body} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
-        <TagUrl imageSource={favicon} label={hostname} iconName={secureIcon} />
+      <View
+        style={styles.body}
+        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+      >
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

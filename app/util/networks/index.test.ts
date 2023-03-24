@@ -6,6 +6,8 @@ import {
   findBlockExplorerForRpc,
   compareRpcUrls,
   handleNetworkSwitch,
+  getBlockExplorerAddressUrl,
+  getBlockExplorerTxUrl,
 } from '.';
 import {
   MAINNET,
@@ -27,7 +29,7 @@ jest.mock('./../../core/Engine', () => ({
       setRpcTarget: () => jest.fn(),
       setProviderType: () => jest.fn(),
       state: {
-        provider: {
+        providerConfig: {
           chainId: '3',
         },
       },
@@ -52,7 +54,7 @@ describe('NetworkUtils::isMainNet', () => {
     expect(isMainNet('1')).toEqual(true);
     expect(
       isMainNet({
-        provider: {
+        providerConfig: {
           type: MAINNET,
         },
       }),
@@ -63,7 +65,7 @@ describe('NetworkUtils::isMainNet', () => {
     expect(
       isMainNet({
         network: {
-          provider: {
+          providerConfig: {
             type: ROPSTEN,
           },
         },
@@ -87,7 +89,6 @@ describe('NetworkUtils::getNetworkName', () => {
     const main = getNetworkName(String(42));
     expect(main).toEqual(KOVAN);
   });
-
   it(`should return undefined for unknown network id`, () => {
     const main = getNetworkName(String(99));
     expect(main).toEqual(undefined);
@@ -215,5 +216,68 @@ describe('NetworkUtils::handleNetworkSwitch', () => {
       },
     );
     expect(newNetwork).toBe(network.nickname);
+  });
+});
+
+describe('NetworkUtils::getBlockExplorerAddressUrl', () => {
+  const mockEthereumAddress = '0x0000000000000000000000000000000000000001';
+  it('should return null result when network type === "rpc" | network type === "lineatestnet" and rpcBlockExplorerUrl === null', () => {
+    const { url, title } = getBlockExplorerAddressUrl(RPC, mockEthereumAddress);
+
+    expect(url).toBe(null);
+    expect(title).toBe(null);
+  });
+
+  it('should return rpc block explorer address url when network type === "rpc"', () => {
+    const { url, title } = getBlockExplorerAddressUrl(
+      RPC,
+      mockEthereumAddress,
+      'http://avalanche-rpc-url',
+    );
+
+    expect(url).toBe(`http://avalanche-rpc-url/address/${mockEthereumAddress}`);
+    expect(title).toBe(`avalanche-rpc-url`);
+  });
+
+  it('should return etherscan block explorer address url when network type !== "rpc" and type !== "lineatestnet"', () => {
+    const { url, title } = getBlockExplorerAddressUrl(
+      GOERLI,
+      mockEthereumAddress,
+    );
+
+    expect(url).toBe(
+      `https://goerli.etherscan.io/address/${mockEthereumAddress}`,
+    );
+    expect(title).toBe(`goerli.etherscan.io`);
+  });
+});
+
+describe('NetworkUtils::getBlockExplorerTxUrl', () => {
+  const mockTransactionHash =
+    '0xc4fd7d4ca49e57fed7f533dedc9447cdf3818df2a1f61b405d3e5c10e8fd5b86';
+
+  it('should return null result when network type === "rpc" and rpcBlockExplorerUrl === null', () => {
+    const { url, title } = getBlockExplorerTxUrl(RPC, mockTransactionHash);
+
+    expect(url).toBe(null);
+    expect(title).toBe(null);
+  });
+
+  it('should return rpc block explorer address url when network type === "rpc"', () => {
+    const { url, title } = getBlockExplorerTxUrl(
+      RPC,
+      mockTransactionHash,
+      'http://avalanche-rpc-url',
+    );
+
+    expect(url).toBe(`http://avalanche-rpc-url/tx/${mockTransactionHash}`);
+    expect(title).toBe(`avalanche-rpc-url`);
+  });
+
+  it('should return etherscan block explorer address url when network type !== "rpc" and type !== "lineatestnet"', () => {
+    const { url, title } = getBlockExplorerTxUrl(GOERLI, mockTransactionHash);
+
+    expect(url).toBe(`https://goerli.etherscan.io/tx/${mockTransactionHash}`);
+    expect(title).toBe(`goerli.etherscan.io`);
   });
 });

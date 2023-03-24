@@ -9,6 +9,9 @@ const createStyles = (colors: any) =>
       width: '100%',
       paddingVertical: 10,
     },
+    actionViewWrapper: {
+      height: Device.isMediumDevice() ? '100%' : 630,
+    },
     title: {
       ...fontStyles.bold,
       textAlign: 'center',
@@ -100,12 +103,6 @@ const createStyles = (colors: any) =>
       textDecorationLine: 'underline',
       ...fontStyles.bold,
     },
-    actionViewWrapper: {
-      height: Device.isMediumDevice() ? 200 : 280,
-    },
-    actionViewChildren: {
-      height: 300,
-    },
     actionViewQRObject: {
       height: 648,
     },
@@ -118,17 +115,37 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       marginVertical: 15,
     },
-    nickname: {
-      ...fontStyles.normal,
+    verifyContractLink: {
       textAlign: 'center',
       color: colors.primary.default,
-      marginBottom: 10,
+      paddingVertical: 16,
+      lineHeight: 22,
     },
     actionIcon: {
       color: colors.primary.default,
     },
     buttonColor: {
       color: colors.primary.default,
+    },
+    headerWrapper: {
+      position: 'relative',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: 15,
+      marginVertical: 5,
+      paddingVertical: 10,
+    },
+    icon: {
+      position: 'absolute',
+      right: 0,
+      padding: 10,
+      color: colors.icon.default,
+    },
+    headerText: {
+      color: colors.text.default,
+      textAlign: 'center',
+      fontSize: 15,
     },
   });
 

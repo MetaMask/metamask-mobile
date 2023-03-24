@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import Engine from '../../../core/Engine';
 import {
   StyleSheet,
   Text,
@@ -17,6 +16,8 @@ import {
   AppState,
   AppStateStatus,
 } from 'react-native';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
@@ -28,9 +29,7 @@ import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { trackEvent } from '../../../util/analyticsV2';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -227,7 +226,7 @@ const QRSigningDetails = ({
         setSentOrCanceled(true);
         successCallback?.();
       } else {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
           error:
             'received signature request id is not matched with origin request',
         });

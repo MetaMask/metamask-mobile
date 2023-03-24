@@ -21,7 +21,7 @@ import {
 } from '@metamask/transaction-controller';
 import { query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   addHexPrefix,
   fromTokenMinimalUnit,
@@ -48,9 +48,7 @@ import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
@@ -69,7 +67,11 @@ import GasEditModal from './components/GasEditModal';
 import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import {
+  trackLegacyEvent,
+  trackLegacyAnonymousEvent,
+  trackErrorAsAnalytics,
+} from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
@@ -78,6 +80,11 @@ import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 import { isQRHardwareAccount } from '../../../util/address';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
+import { resetTransaction, setRecipient } from '../../../actions/transaction';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -364,6 +371,8 @@ function SwapsQuotesView({
   gasFeeEstimates,
   usedGasEstimate,
   usedCustomGas,
+  setRecipient,
+  resetTransaction,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -701,14 +710,10 @@ function SwapsQuotesView({
             : '',
           chain_id: chainId,
         };
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.GAS_FEES_CHANGED,
-          {},
-        );
-        Analytics.trackEventWithParameters(
+        trackLegacyEvent(MetaMetricsEvents.GAS_FEES_CHANGED, {});
+        trackLegacyAnonymousEvent(
           MetaMetricsEvents.GAS_FEES_CHANGED,
           parameters,
-          true,
         );
       });
     },
@@ -864,12 +869,8 @@ function SwapsQuotesView({
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           chain_id: chainId,
         };
-        Analytics.trackEventWithParameters(MetaMetricsEvents.SWAP_STARTED, {});
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.SWAP_STARTED,
-          parameters,
-          true,
-        );
+        trackLegacyEvent(MetaMetricsEvents.SWAP_STARTED, {});
+        trackLegacyAnonymousEvent(MetaMetricsEvents.SWAP_STARTED, parameters);
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -897,6 +898,7 @@ function SwapsQuotesView({
       }
 
       try {
+        resetTransaction();
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             ...selectedQuote.trade,
@@ -914,6 +916,7 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
+        setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
@@ -928,6 +931,9 @@ function SwapsQuotesView({
       selectedQuote,
       sourceToken,
       updateSwapsTransactions,
+      selectedAddress,
+      setRecipient,
+      resetTransaction,
     ],
   );
 
@@ -939,6 +945,7 @@ function SwapsQuotesView({
       isHardwareAccount,
     ) => {
       try {
+        resetTransaction();
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             ...approvalTransaction,
@@ -950,6 +957,9 @@ function SwapsQuotesView({
           process.env.MM_FOX_CODE,
           WalletDevice.MM_MOBILE,
         );
+
+        setRecipient(selectedAddress);
+
         approvalTransactionMetaId = transactionMeta.id;
         newSwapsTransactions[transactionMeta.id] = {
           action: 'approval',
@@ -989,6 +999,9 @@ function SwapsQuotesView({
       handleSwapTransaction,
       sourceToken.address,
       sourceToken.decimals,
+      selectedAddress,
+      setRecipient,
+      resetTransaction,
     ],
   );
 
@@ -1090,14 +1103,10 @@ function SwapsQuotesView({
         custom_spend_limit_amount: currentAmount,
         chain_id: chainId,
       };
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED,
-        {},
-      );
-      Analytics.trackEventWithParameters(
+      trackLegacyEvent(MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED, {});
+      trackLegacyAnonymousEvent(
         MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED,
         parameters,
-        true,
       );
     });
   }, [
@@ -1145,12 +1154,8 @@ function SwapsQuotesView({
         available_quotes: allQuotes.length,
         chain_id: chainId,
       };
-      Analytics.trackEventWithParameters(MetaMetricsEvents.QUOTES_RECEIVED, {});
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.QUOTES_RECEIVED,
-        parameters,
-        true,
-      );
+      trackLegacyEvent(MetaMetricsEvents.QUOTES_RECEIVED, {});
+      trackLegacyAnonymousEvent(MetaMetricsEvents.QUOTES_RECEIVED, parameters);
     });
   }, [
     chainId,
@@ -1195,14 +1200,10 @@ function SwapsQuotesView({
         available_quotes: allQuotes.length,
         chain_id: chainId,
       };
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED,
-        {},
-      );
-      Analytics.trackEventWithParameters(
+      trackLegacyEvent(MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED, {});
+      trackLegacyAnonymousEvent(
         MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED,
         parameters,
-        true,
       );
     });
   }, [
@@ -1240,14 +1241,10 @@ function SwapsQuotesView({
             ...data,
             gas_fees: '',
           };
-          Analytics.trackEventWithParameters(
-            MetaMetricsEvents.QUOTES_TIMED_OUT,
-            {},
-          );
-          Analytics.trackEventWithParameters(
+          trackLegacyEvent(MetaMetricsEvents.QUOTES_TIMED_OUT, {});
+          trackLegacyAnonymousEvent(
             MetaMetricsEvents.QUOTES_TIMED_OUT,
             parameters,
-            true,
           );
         });
       } else if (
@@ -1255,14 +1252,10 @@ function SwapsQuotesView({
       ) {
         InteractionManager.runAfterInteractions(() => {
           const parameters = { ...data };
-          Analytics.trackEventWithParameters(
-            MetaMetricsEvents.NO_QUOTES_AVAILABLE,
-            {},
-          );
-          Analytics.trackEventWithParameters(
+          trackLegacyEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, {});
+          trackLegacyAnonymousEvent(
             MetaMetricsEvents.NO_QUOTES_AVAILABLE,
             parameters,
-            true,
           );
         });
       } else {
@@ -1293,7 +1286,7 @@ function SwapsQuotesView({
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   }, [navigation]);
 
@@ -1541,15 +1534,8 @@ function SwapsQuotesView({
     navigation.setParams({ selectedQuote: undefined });
     navigation.setParams({ quoteBegin: Date.now() });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.QUOTES_REQUESTED,
-        {},
-      );
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.QUOTES_REQUESTED,
-        data,
-        true,
-      );
+      trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUESTED, {});
+      trackLegacyAnonymousEvent(MetaMetricsEvents.QUOTES_REQUESTED, data);
     });
   }, [
     chainId,
@@ -2315,12 +2301,14 @@ SwapsQuotesView.propTypes = {
   gasFeeEstimates: PropTypes.object,
   usedGasEstimate: PropTypes.object,
   usedCustomGas: PropTypes.object,
+  setRecipient: PropTypes.func,
+  resetTransaction: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:
@@ -2354,4 +2342,9 @@ const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensSelector(state),
 });
 
-export default connect(mapStateToProps)(SwapsQuotesView);
+const mapDispatchToProps = (dispatch) => ({
+  setRecipient: (from) => dispatch(setRecipient(from, '', '', '', '')),
+  resetTransaction: () => dispatch(resetTransaction()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SwapsQuotesView);

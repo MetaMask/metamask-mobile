@@ -67,6 +67,11 @@ import {
 } from '../../../component-library/components/Toast';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
+import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import {
+  selectProviderConfig,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const Stack = createStackNavigator();
 
@@ -217,9 +222,7 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const networkProvider = useSelector(selectProviderConfig);
   const prevNetworkProvider = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 
@@ -319,13 +322,23 @@ const Main = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const termsOfUse = useCallback(async () => {
+    if (props.navigation) {
+      await navigateTermsOfUse(props.navigation.navigate);
+    }
+  }, [props.navigation]);
+
+  useEffect(() => {
+    termsOfUse();
+  }, [termsOfUse]);
+
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(MM_DEPRECATED_NETWORKS);
   };
 
   const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
     const { wizardStep } = props;
-    const { type } = network.provider;
+    const { type } = network.providerConfig;
     if (
       (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
       showDeprecatedAlert &&
@@ -442,7 +455,7 @@ Main.propTypes = {
 const mapStateToProps = (state) => ({
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   network: state.engine.backgroundState.NetworkController,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
   wizardStep: state.wizard.step,

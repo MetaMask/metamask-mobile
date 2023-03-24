@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
@@ -23,7 +24,7 @@ class AddCustomImportToken {
     await Gestures.typeText(this.customTokenAddressField, text);
   }
   async scrollToImportButton() {
-    await Gestures.swipe({ x: 400, y: 1450 }, { x: 100, y: 10 });
+    await Gestures.swipe({ x: 300, y: 1000 }, { x: 300, y: 10 });
   }
 
   async tapImportButton() {
@@ -35,6 +36,11 @@ class AddCustomImportToken {
 
   async tapTokenSymbolField() {
     await Gestures.tap(this.symbolField);
+  }
+
+  async isTokenSymbolDisplayed() {
+    await Gestures.tap(this.symbolField);
+    await expect(this.symbolField).toBeDisplayed();
   }
 
   async tapTokenSymbolFieldAndDismissKeyboard() {

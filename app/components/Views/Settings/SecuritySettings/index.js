@@ -10,12 +10,13 @@ import {
   ActivityIndicator,
   Keyboard,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
@@ -25,28 +26,26 @@ import {
   colors as importedColors,
 } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
-import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
   EXISTING_USER,
-  BIOMETRY_CHOICE,
-  PASSCODE_CHOICE,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2, {
+import {
+  trackEvent,
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
+import { Authentication } from '../../../../core';
+import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
@@ -59,10 +58,12 @@ import {
   RememberMeOptionSection,
   AutomaticSecurityChecks,
   ProtectYourWallet,
+  LoginOptionsSettings,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
-
-const isIos = Device.isIos();
+import { selectProviderType } from '../../../../selectors/networkController';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -170,6 +171,9 @@ Heading.propTypes = {
   first: PropTypes.bool,
 };
 
+const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+const BIOMETRY_CHOICE_STRING = 'biometryChoice';
+
 /**
  * Main view for app configurations
  */
@@ -244,11 +248,8 @@ class Settings extends PureComponent {
 
   state = {
     approvalModalVisible: false,
-    biometryChoice: null,
-    biometryType: false,
     browserHistoryModalVisible: false,
     analyticsEnabled: false,
-    passcodeChoice: false,
     showHint: false,
     hintText: '',
   };
@@ -313,39 +314,18 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    const analyticsEnabled = Analytics.checkEnabled();
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
+    const analyticsEnabled = MetaMetrics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
-
-    if (biometryType) {
-      let passcodeEnabled = false;
-      const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-      if (!biometryChoice) {
-        const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
-        if (passcodeChoice !== '' && passcodeChoice === TRUE) {
-          passcodeEnabled = true;
-        }
-      }
-      this.setState({
-        biometryType:
-          biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: !!biometryChoice,
-        analyticsEnabled,
-        passcodeChoice: passcodeEnabled,
-        hintText: manualBackup,
-      });
-    } else {
-      this.setState({
-        analyticsEnabled,
-        hintText: manualBackup,
-      });
-    }
+    this.setState({
+      analyticsEnabled,
+      hintText: manualBackup,
+    });
 
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
@@ -355,20 +335,21 @@ class Settings extends PureComponent {
     this.updateNavBar();
   };
 
-  onSingInWithBiometrics = async (enabled) => {
+  setPassword = async (enabled, passwordType) => {
     this.setState({ loading: true }, async () => {
       let credentials;
       try {
-        credentials = await SecureKeychain.getGenericPassword();
+        credentials = await Authentication.getPassword();
       } catch (error) {
         Logger.error(error);
       }
+
       if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'biometryChoice');
+        this.storeCredentials(credentials.password, enabled, passwordType);
       } else {
         this.props.navigation.navigate('EnterPasswordSimple', {
           onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'biometryChoice');
+            this.storeCredentials(password, enabled, passwordType);
           },
         });
       }
@@ -378,29 +359,16 @@ class Settings extends PureComponent {
   isMainnet = () => this.props.type === MAINNET;
 
   onSignInWithPasscode = async (enabled) => {
-    this.setState({ loading: true }, async () => {
-      let credentials;
-      try {
-        credentials = await SecureKeychain.getGenericPassword();
-      } catch (error) {
-        Logger.error(error);
-      }
+    await this.setPassword(enabled, PASSCODE_CHOICE_STRING);
+  };
 
-      if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
-      } else {
-        this.props.navigation.navigate('EnterPasswordSimple', {
-          onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'passcodeChoice');
-          },
-        });
-      }
-    });
+  onSingInWithBiometrics = async (enabled) => {
+    await this.setPassword(enabled, BIOMETRY_CHOICE_STRING);
   };
 
   storeCredentials = async (password, enabled, type) => {
     try {
-      await SecureKeychain.resetGenericPassword();
+      await Authentication.resetPassword();
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
@@ -408,25 +376,29 @@ class Settings extends PureComponent {
 
       if (!enabled) {
         this.setState({ [type]: false, loading: false });
-        if (type === 'passcodeChoice') {
+        if (type === PASSCODE_CHOICE_STRING) {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (type === 'biometryChoice') {
+        } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
       }
 
-      if (type === 'passcodeChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.PASSCODE,
-        );
-      else if (type === 'biometryChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.BIOMETRICS,
-        );
+      try {
+        let authType;
+        if (type === BIOMETRY_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.BIOMETRIC;
+        } else if (type === PASSCODE_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.PASSCODE;
+        } else {
+          authType = AUTHENTICATION_TYPE.PASSWORD;
+        }
+        await Authentication.storePassword(password, authType);
+      } catch (error) {
+        Logger.error(error);
+      }
 
       this.props.passwordSet();
 
@@ -491,7 +463,7 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: true,
       });
@@ -500,22 +472,22 @@ class Settings extends PureComponent {
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      Analytics.enable();
+      MetaMetrics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      Analytics.disable();
+      MetaMetrics.disable();
       this.setState({ analyticsEnabled: false });
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_restart_required'),
+        strings('app_settings.metametrics_opt_out_description'),
       );
     }
   };
 
   goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
       hasNavigation: true,
@@ -613,58 +585,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderBiometricOptionsSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'biometrics-option'}>
-        <Text style={styles.title}>
-          {strings(
-            `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-          )}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={this.state.biometryChoice}
-            onValueChange={this.onSingInWithBiometrics}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  renderDevicePasscodeSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting}>
-        <Text style={styles.title}>
-          {isIos
-            ? strings(`biometrics.enable_device_passcode_ios`)
-            : strings(`biometrics.enable_device_passcode_android`)}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            onValueChange={this.onSignInWithPasscode}
-            value={this.state.passcodeChoice}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
   renderPrivateKeySection = () => {
     const { accounts, identities, selectedAddress } = this.props;
     const account = {
@@ -701,10 +621,7 @@ class Settings extends PureComponent {
     const { styles } = this.getStyles();
 
     return (
-      <View
-        style={[styles.setting, styles.firstSetting]}
-        testID={'clear-privacy-section'}
-      >
+      <View style={[styles.setting]} testID={'clear-privacy-section'}>
         <Text style={styles.title}>
           {strings('app_settings.clear_privacy_title')}
         </Text>
@@ -805,6 +722,10 @@ class Settings extends PureComponent {
     );
   };
 
+  goToSDKSessionManager = () => {
+    this.props.navigation.navigate('SDKSessionsManager');
+  };
+
   renderApprovalModal = () => {
     const { approvalModalVisible } = this.state;
     const { styles } = this.getStyles();
@@ -852,6 +773,31 @@ class Settings extends PureComponent {
           </Text>
         </View>
       </ActionModal>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <View
+        style={[styles.setting, styles.firstSetting]}
+        testID={'sdk-section'}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.manage_sdk_connections_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.manage_sdk_connections_text')}
+        </Text>
+        <StyledButton
+          type="normal"
+          containerStyle={styles.confirm}
+          onPress={this.goToSDKSessionManager}
+        >
+          {strings('app_settings.manage_sdk_connections_title')}
+        </StyledButton>
+      </View>
     );
   };
 
@@ -919,7 +865,7 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const { hintText, biometryType, biometryChoice, loading } = this.state;
+    const { hintText, loading } = this.state;
     const { seedphraseBackedUp } = this.props;
     const { styles } = this.getStyles();
 
@@ -933,7 +879,8 @@ class Settings extends PureComponent {
     return (
       <ScrollView
         style={styles.wrapper}
-        testID={'security-settings-scrollview'}
+        testID={SECURITY_PRIVACY_VIEW_ID}
+        {...generateTestId(Platform, SECURITY_PRIVACY_VIEW_ID)}
         ref={(view) => {
           this.scrollView = view;
         }}
@@ -947,13 +894,14 @@ class Settings extends PureComponent {
           />
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
-          {biometryType && this.renderBiometricOptionsSection()}
+          <LoginOptionsSettings
+            onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
+            onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
+          />
           <RememberMeOptionSection />
-          {biometryType &&
-            !biometryChoice &&
-            this.renderDevicePasscodeSection()}
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
+          {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
@@ -989,7 +937,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  type: state.engine.backgroundState.NetworkController.provider.type,
+  type: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

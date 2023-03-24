@@ -1,13 +1,13 @@
 /* global driver */
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../testIDs/Components/TermsAndConditions.testIds';
 import {
-  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  CREATE_PASSWORD_INPUT_FIRST_FIELD,
   CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+  CREATE_PASSWORD_INPUT_FIRST_FIELD,
   I_UNDERSTAND_BUTTON_ID,
-  SUBMIT_BUTTON,
-  REMIND_LATER_BUTTON_ID,
   PROTECT_YOUR_WALLET_CONTAINER_ID,
+  REMIND_LATER_BUTTON_ID,
+  SUBMIT_BUTTON,
+  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
 } from '../testIDs/Screens/WalletSetupScreen.testIds';
 import { SKIP_BUTTON } from '../testIDs/Components/SkipAccountSecurityModalTestIds';
 import Gestures from '../../helpers/Gestures';
@@ -26,6 +26,7 @@ class CreateNewWalletScren {
   get secureWalletScreen() {
     return Selectors.getElementByPlatform(PROTECT_YOUR_WALLET_CONTAINER_ID);
   }
+
   get skipButton() {
     return Selectors.getElementByPlatform(SKIP_BUTTON);
   }
@@ -58,6 +59,15 @@ class CreateNewWalletScren {
     await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
     await driver.hideKeyboard();
     await Gestures.tap(this.termsAndConditionCheckBox);
+    await Gestures.tap(this.newWalletSubmitButton);
+  }
+
+  async inputConfirmResetPasswordField(secondPassword) {
+    await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
+    await driver.hideKeyboard();
+  }
+
+  async tapSubmitButton() {
     await Gestures.tap(this.newWalletSubmitButton);
   }
 

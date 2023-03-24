@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
+import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,7 +20,7 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import ImportFromSeed from '../../Views/ImportFromSeed';
+import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
@@ -35,23 +35,22 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
-import Analytics from '../../../core/Analytics/Analytics';
-import { connect, useSelector, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import {
-  EXISTING_USER,
   CURRENT_APP_VERSION,
+  EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import { checkedAuth } from '../../../actions/user';
 import {
-  setCurrentRoute,
   setCurrentBottomNavRoute,
+  setCurrentRoute,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import SDKConnect from '../../../core/SDKConnect';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -70,6 +69,16 @@ import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
+import { RestoreWallet } from '../../Views/RestoreWallet';
+import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
+import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
+import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -83,9 +92,6 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
-import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -136,9 +142,9 @@ const OnboardingNav = () => (
       options={ManualBackupStep3.navigationOptions}
     />
     <Stack.Screen
-      name="ImportFromSeed"
-      component={ImportFromSeed}
-      options={ImportFromSeed.navigationOptions}
+      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+      component={ImportFromSecretRecoveryPhrase}
+      options={ImportFromSecretRecoveryPhrase.navigationOptions}
     />
     <Stack.Screen
       name="OptinMetrics"
@@ -187,20 +193,37 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
+const VaultRecoveryFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+    screenOptions={{ headerShown: false }}
+  >
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+      component={RestoreWallet}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
+      component={WalletRestored}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
+      component={WalletResetNeeded}
+    />
+  </Stack.Navigator>
+);
+
 const App = ({ userLoggedIn }) => {
-  const animation = useRef(null);
-  const animationName = useRef(null);
+  const animationRef = useRef(null);
+  const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
-  const [animationPlayed, setAnimationPlayed] = useState();
+  const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-
-  const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
-  const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -215,6 +238,43 @@ const App = ({ userLoggedIn }) => {
   const network = useSelector(
     (state) => state.engine.backgroundState.NetworkController.network,
   );
+
+  useEffect(() => {
+    if (prevNavigator.current || !navigator) return;
+    const appTriggeredAuth = async () => {
+      const { PreferencesController } = Engine.context;
+      const selectedAddress = PreferencesController.state.selectedAddress;
+      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      try {
+        if (existingUser && selectedAddress) {
+          await Authentication.appTriggeredAuth(selectedAddress);
+          // we need to reset the navigator here so that the user cannot go back to the login screen
+          navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+        }
+      } catch (error) {
+        // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
+        if (
+          error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
+        ) {
+          navigator.dispatch(
+            CommonActions.setParams({
+              locked: true,
+            }),
+          );
+        }
+        await Authentication.lockApp(false);
+        trackErrorAsAnalytics(
+          'App: Max Attempts Reached',
+          error?.message,
+          `Unlock attempts: 1`,
+        );
+      } finally {
+        animationRef?.current?.play();
+        animationNameRef?.current?.play();
+      }
+    };
+    appTriggeredAuth();
+  }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -285,16 +345,13 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
-    const initAnalytics = async () => {
-      await Analytics.init();
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
+    return () => {
+      SDKConnect.getInstance().unmount();
     };
-
-    initAnalytics();
-  }, []);
-
-  useEffect(() => {
-    SDKConnect.init();
-  }, []);
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {
@@ -303,10 +360,8 @@ const App = ({ userLoggedIn }) => {
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
-      if (!existingUser) {
-        triggerCheckedAuth();
-      }
     }
+
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
@@ -341,18 +396,6 @@ const App = ({ userLoggedIn }) => {
     startApp();
   }, []);
 
-  useEffect(() => {
-    if (!isAuthChecked) {
-      return;
-    }
-    const startAnimation = async () => {
-      await new Promise((res) => setTimeout(res, 50));
-      animation?.current?.play();
-      animationName?.current?.play();
-    };
-    startAnimation();
-  }, [isAuthChecked]);
-
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
       setNavigator(ref);
@@ -374,8 +417,8 @@ const App = ({ userLoggedIn }) => {
     if (!animationPlayed) {
       return (
         <MetaMaskAnimation
-          animation={animation}
-          animationName={animationName}
+          animationRef={animationRef}
+          animationName={animationNameRef}
           opacity={opacity}
           onAnimationFinish={onAnimationFinished}
         />
@@ -408,10 +451,22 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.MODAL_CONFIRMATION}
         component={ModalConfirmation}
       />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_MANDATORY}
+        component={ModalMandatory}
+      />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_LOADING}
+        component={SDKLoadingModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_FEEDBACK}
+        component={SDKFeedbackModal}
       />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -502,7 +557,7 @@ const App = ({ userLoggedIn }) => {
             }}
           >
             <Stack.Screen
-              name="Login"
+              name={Routes.ONBOARDING.LOGIN}
               component={Login}
               options={{ headerShown: false }}
             />
@@ -513,11 +568,15 @@ const App = ({ userLoggedIn }) => {
             />
             {userLoggedIn && (
               <Stack.Screen
-                name="HomeNav"
+                name={Routes.ONBOARDING.HOME_NAV}
                 component={Main}
                 options={{ headerShown: false }}
               />
             )}
+            <Stack.Screen
+              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+              component={VaultRecoveryFlow}
+            />
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}

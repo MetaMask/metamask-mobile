@@ -21,11 +21,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import DefaultPreference from 'react-native-default-preference';
 import Modal from 'react-native-modal';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
+import { trackEvent } from '../../../util/analyticsV2';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import ElevatedView from 'react-native-elevated-view';
 import { useTheme } from '../../../util/theme';
@@ -96,11 +96,11 @@ const OnboardingWizard = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(0);
     drawerRef?.current?.dismissDrawer?.();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
+      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
         tutorial_step_count: step,
         tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
       });
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
+      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
     });
   };
 

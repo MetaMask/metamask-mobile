@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { When, Then } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
