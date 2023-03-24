@@ -274,7 +274,7 @@ class AccountApproval extends PureComponent {
       // onConfirm will close current window by rejecting current approvalRequest.
       this.props.onCancel();
 
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
         this.getAnalyticsParams(),
       );
