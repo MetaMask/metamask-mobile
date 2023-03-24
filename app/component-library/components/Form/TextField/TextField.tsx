@@ -24,9 +24,9 @@ const TextField: React.FC<TextFieldProps> = ({
   size = DEFAULT_TEXTFIELD_SIZE,
   startAccessory,
   endAccessory,
-  error = false,
-  inputComponent,
-  disabled = false,
+  isError = false,
+  inputElement,
+  isDisabled = false,
   autoFocus = false,
   onBlur,
   onFocus,
@@ -37,29 +37,29 @@ const TextField: React.FC<TextFieldProps> = ({
   const { styles } = useStyles(styleSheet, {
     style,
     size,
-    error,
-    disabled,
+    isError,
+    isDisabled,
     isFocused,
   });
 
   const onBlurHandler = useCallback(
     (e: any) => {
-      if (!disabled) {
+      if (!isDisabled) {
         setIsFocused(false);
         onBlur?.(e);
       }
     },
-    [disabled, setIsFocused, onBlur],
+    [isDisabled, setIsFocused, onBlur],
   );
 
   const onFocusHandler = useCallback(
     (e: any) => {
-      if (!disabled) {
+      if (!isDisabled) {
         setIsFocused(true);
         onFocus?.(e);
       }
     },
-    [disabled, setIsFocused, onFocus],
+    [isDisabled, setIsFocused, onFocus],
   );
 
   return (
@@ -73,13 +73,13 @@ const TextField: React.FC<TextFieldProps> = ({
         </View>
       )}
       <View style={styles.input}>
-        {inputComponent ? (
-          { inputComponent }
+        {inputElement ? (
+          { inputElement }
         ) : (
           <Input
-            disableStateStyles
+            isStateStylesDisabled
             textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
-            disabled={disabled}
+            isDisabled={isDisabled}
             autoFocus={autoFocus}
             onBlur={onBlurHandler}
             onFocus={onFocusHandler}

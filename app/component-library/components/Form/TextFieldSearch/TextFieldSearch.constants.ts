@@ -7,11 +7,11 @@ import { ButtonIconSizes } from '../../Buttons/ButtonIcon';
 // Internal dependencies.
 import { TextFieldSearchProps } from './TextFieldSearch.types';
 
-// Tokens
-export const TOKEN_TEXTFIELDSEARCH_SEARCHICON_NAME = IconName.Search;
-export const TOKEN_TEXTFIELDSEARCH_SEARCHICON_SIZE = IconSize.Sm;
-export const TOKEN_TEXTFIELDSEARCH_CLOSEICON_NAME = IconName.Close;
-export const TOKEN_TEXTFIELDSEARCH_CLOSEICON_SIZE = ButtonIconSizes.Sm;
+// Defaults
+export const DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME = IconName.Search;
+export const DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE = IconSize.Sm;
+export const DEFAULT_TEXTFIELDSEARCH_CLOSEICON_NAME = IconName.Close;
+export const DEFAULT_TEXTFIELDSEARCH_CLOSEICON_SIZE = ButtonIconSizes.Sm;
 
 // Test IDs
 export const TEXTFIELDSEARCH_TEST_ID = 'textfieldsearch';
@@ -19,7 +19,7 @@ export const TEXTFIELDSEARCH_TEST_ID = 'textfieldsearch';
 // Sample consts
 export const SAMPLE_TEXTFIELDSEARCH_PROPS: TextFieldSearchProps = {
   showClearButton: false,
-  clearButtonOnPress: () => {
+  onPressClearButton: () => {
     console.log('clicked');
   },
 };

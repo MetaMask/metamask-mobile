@@ -8,7 +8,7 @@ This component extends [TextProps](../../Texts/Text/Text.types.ts).
 
 ### `severity`
 
-Optional enum to select the severity color between `Default`,  `Success`, `Error`, `Warning`, and `Info`.
+Optional enum to select the severity color between `Default`,  `Success`, and `Error`.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |

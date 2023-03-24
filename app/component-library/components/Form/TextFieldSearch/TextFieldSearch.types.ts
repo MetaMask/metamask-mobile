@@ -14,7 +14,7 @@ export interface TextFieldSearchProps extends TextFieldProps {
   /**
    * Function to trigger when pressing the clear button.
    */
-  clearButtonOnPress?: () => void;
+  onPressClearButton?: () => void;
   /**
    * Optional prop to pass any additional props to the clear button.
    */

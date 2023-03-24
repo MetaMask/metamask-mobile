@@ -12,6 +12,8 @@ export const INPUT_TEST_ID = 'input';
 // Sample consts
 export const SAMPLE_INPUT_PROPS: InputProps = {
   textVariant: DEFAULT_TEXT_VARIANT,
-  disabled: false,
-  disableStateStyles: false,
+  isDisabled: false,
+  isStateStylesDisabled: false,
+  isReadonly: false,
+  placeholder: 'Sample Placeholder',
 };

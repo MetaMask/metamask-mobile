@@ -16,8 +16,9 @@ import { INPUT_TEST_ID } from './Input.constants';
 const Input: React.FC<InputProps> = ({
   style,
   textVariant = DEFAULT_TEXT_VARIANT,
-  disableStateStyles = false,
-  disabled = false,
+  isStateStylesDisabled = false,
+  isDisabled = false,
+  isReadonly = false,
   onBlur,
   onFocus,
   autoFocus = false,
@@ -28,29 +29,29 @@ const Input: React.FC<InputProps> = ({
   const { styles } = useStyles(styleSheet, {
     style,
     textVariant,
-    disableStateStyles,
-    disabled,
+    isStateStylesDisabled,
+    isDisabled,
     isFocused,
   });
 
   const onBlurHandler = useCallback(
     (e: any) => {
-      if (!disabled) {
+      if (!isDisabled) {
         setIsFocused(false);
         onBlur?.(e);
       }
     },
-    [disabled, setIsFocused, onBlur],
+    [isDisabled, setIsFocused, onBlur],
   );
 
   const onFocusHandler = useCallback(
     (e: any) => {
-      if (!disabled) {
+      if (!isDisabled) {
         setIsFocused(true);
         onFocus?.(e);
       }
     },
-    [disabled, setIsFocused, onFocus],
+    [isDisabled, setIsFocused, onFocus],
   );
 
   return (
@@ -58,7 +59,7 @@ const Input: React.FC<InputProps> = ({
       testID={INPUT_TEST_ID}
       {...props}
       style={styles.base}
-      editable={!disabled}
+      editable={!isDisabled || !isReadonly}
       autoFocus
       onBlur={onBlurHandler}
       onFocus={onFocusHandler}

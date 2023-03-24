@@ -5,6 +5,9 @@ import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 import { colors } from '../../../../../../styles/common';
 
+// Internal dependencies
+import { InputStyleSheetVars } from './Input.types';
+
 /**
  * Style sheet function for Input component.
  *
@@ -13,15 +16,16 @@ import { colors } from '../../../../../../styles/common';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
   const { theme, vars } = params;
-  const { style, textVariant, disabled, disableStateStyles, isFocused } = vars;
-  const stateObj = disableStateStyles
+  const { style, textVariant, isDisabled, isStateStylesDisabled, isFocused } =
+    vars;
+  const stateObj = isStateStylesDisabled
     ? {
         opacity: 1,
       }
     : {
-        opacity: disabled ? 0.5 : 1,
+        opacity: isDisabled ? 0.5 : 1,
         borderColor: isFocused
           ? theme.colors.primary.default
           : colors.transparent,

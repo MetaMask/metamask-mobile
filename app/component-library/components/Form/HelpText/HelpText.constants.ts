@@ -21,9 +21,7 @@ export const HELPTEXT_TEST_ID = 'helptext';
 export const TEXT_COLOR_BY_HELPTEXT_SEVERITY: TextColorByHelpTextSeverity = {
   [HelpTextSeverity.Default]: TextColor.Default,
   [HelpTextSeverity.Error]: TextColor.Error,
-  [HelpTextSeverity.Info]: TextColor.Info,
   [HelpTextSeverity.Success]: TextColor.Success,
-  [HelpTextSeverity.Warning]: TextColor.Warning,
 };
 
 // Sample consts

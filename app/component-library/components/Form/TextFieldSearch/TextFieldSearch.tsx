@@ -12,15 +12,15 @@ import TextField from '../TextField/TextField';
 import { TextFieldSearchProps } from './TextFieldSearch.types';
 import {
   TEXTFIELDSEARCH_TEST_ID,
-  TOKEN_TEXTFIELDSEARCH_SEARCHICON_NAME,
-  TOKEN_TEXTFIELDSEARCH_SEARCHICON_SIZE,
-  TOKEN_TEXTFIELDSEARCH_CLOSEICON_NAME,
-  TOKEN_TEXTFIELDSEARCH_CLOSEICON_SIZE,
+  DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME,
+  DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE,
+  DEFAULT_TEXTFIELDSEARCH_CLOSEICON_NAME,
+  DEFAULT_TEXTFIELDSEARCH_CLOSEICON_SIZE,
 } from './TextFieldSearch.constants';
 
 const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   showClearButton = false,
-  clearButtonOnPress,
+  onPressClearButton,
   clearButtonProps,
   value,
   ...props
@@ -29,20 +29,20 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
 
   const searchIcon = (
     <Icon
-      name={TOKEN_TEXTFIELDSEARCH_SEARCHICON_NAME}
-      size={TOKEN_TEXTFIELDSEARCH_SEARCHICON_SIZE}
+      name={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME}
+      size={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE}
     />
   );
 
   const clearButtonHandler = useCallback(() => {
     setCurrentValue('');
-    clearButtonOnPress?.();
-  }, [setCurrentValue, clearButtonOnPress]);
+    onPressClearButton?.();
+  }, [setCurrentValue, onPressClearButton]);
 
   const clearButton = (
     <ButtonIcon
-      size={TOKEN_TEXTFIELDSEARCH_CLOSEICON_SIZE}
-      iconName={TOKEN_TEXTFIELDSEARCH_CLOSEICON_NAME}
+      size={DEFAULT_TEXTFIELDSEARCH_CLOSEICON_SIZE}
+      iconName={DEFAULT_TEXTFIELDSEARCH_CLOSEICON_NAME}
       onPress={clearButtonHandler}
       {...clearButtonProps}
     />

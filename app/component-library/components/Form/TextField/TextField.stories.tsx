@@ -20,13 +20,13 @@ export const getTextFieldStoryProps = (): TextFieldProps => {
     DEFAULT_TEXTFIELD_SIZE,
     storybookPropsGroupID,
   );
-  const error = boolean('error', false, storybookPropsGroupID);
-  const disabled = boolean('disabled', false, storybookPropsGroupID);
+  const isError = boolean('isError', false, storybookPropsGroupID);
+  const isDisabled = boolean('isDisabled', false, storybookPropsGroupID);
 
   return {
     size: sizeSelector,
-    error,
-    disabled,
+    isError,
+    isDisabled,
   };
 };
 

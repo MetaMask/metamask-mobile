@@ -4,6 +4,9 @@ import { StyleSheet, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
+// Internal dependencies
+import { TextFieldStyleSheetVars } from './TextField.types';
+
 /**
  * Style sheet function for TextField component.
  *
@@ -12,11 +15,14 @@ import { Theme } from '../../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: TextFieldStyleSheetVars;
+}) => {
   const { theme, vars } = params;
-  const { style, size, error, disabled, isFocused } = vars;
+  const { style, size, isError, isDisabled, isFocused } = vars;
   let borderColor = theme.colors.border.default;
-  if (error) {
+  if (isError) {
     borderColor = theme.colors.error.default;
   }
   if (isFocused) {
@@ -32,7 +38,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
         height: Number(size),
         borderWidth: 1,
         borderColor,
-        opacity: disabled ? 0.5 : 1,
+        opacity: isDisabled ? 0.5 : 1,
         paddingHorizontal: 16,
         backgroundColor: theme.colors.background.default,
       } as ViewStyle,

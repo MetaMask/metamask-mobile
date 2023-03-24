@@ -16,7 +16,7 @@ export enum TextFieldSize {
 export interface TextFieldProps
   extends Omit<InputProps, 'textVariant' | 'disableStateStyles'> {
   /**
-   * Size of the TextField.
+   * Optional prop for size of the TextField.
    * @default TextFieldSize.Md
    */
   size?: TextFieldSize;
@@ -32,9 +32,19 @@ export interface TextFieldProps
    * Optional boolean to show the error state.
    * @default false
    */
-  error?: boolean;
+  isError?: boolean;
   /**
    * Optional prop to replace defaulted input with custom Input.
    */
-  inputComponent?: React.ReactNode;
+  inputElement?: React.ReactNode;
 }
+
+/**
+ * Style sheet TextField parameters.
+ */
+export type TextFieldStyleSheetVars = Pick<
+  TextFieldProps,
+  'style' | 'size' | 'isError' | 'isDisabled'
+> & {
+  isFocused: boolean;
+};

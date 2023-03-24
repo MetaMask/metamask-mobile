@@ -13,7 +13,7 @@ Optional boolean to show the Clear button.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                              | No                                                     | false                                               |
 
-### `clearButtonOnPress`
+### `onPressClearButton`
 
 Function to trigger when pressing the clear button.
 
@@ -34,5 +34,6 @@ Optional prop to pass any additional props to the clear button.
 ```javascript
 <TextFieldSearch 
   showClearButton
-  clearButtonOnPress={()=> {}}
+  onPressClearButton={()=> {}}
+  />
 ```

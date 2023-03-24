@@ -9,8 +9,6 @@ export enum HelpTextSeverity {
   Default = 'Default',
   Success = 'Success',
   Error = 'Error',
-  Warning = 'Warning',
-  Info = 'Info',
 }
 
 /**
