@@ -21,7 +21,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -150,7 +150,7 @@ class OnboardingCarousel extends PureComponent {
     InteractionManager.runAfterInteractions(async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
-        trackEvent(eventArgs);
+        AnalyticsV2.trackEvent(eventArgs);
       } else {
         this.props.saveOnboardingEvent(eventArgs);
       }
