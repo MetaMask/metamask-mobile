@@ -59,7 +59,7 @@ const Input: React.FC<InputProps> = ({
       testID={INPUT_TEST_ID}
       {...props}
       style={styles.base}
-      editable={!isDisabled || !isReadonly}
+      editable={!isDisabled && !isReadonly}
       autoFocus
       onBlur={onBlurHandler}
       onFocus={onFocusHandler}

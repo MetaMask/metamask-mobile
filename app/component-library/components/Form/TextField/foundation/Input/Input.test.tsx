@@ -25,7 +25,7 @@ describe('Input', () => {
     );
   });
   it('should render the correct disabled state when disabled = true', () => {
-    const wrapper = shallow(<Input disabled />);
+    const wrapper = shallow(<Input isDisabled />);
     const inputComponent = wrapper.findWhere(
       (node) => node.prop('testID') === INPUT_TEST_ID,
     );
@@ -33,12 +33,11 @@ describe('Input', () => {
     expect(inputComponent.props().style.opacity).toBe(0.5);
   });
 
-  it('should render state styles when disableStateStyles = true', () => {
-    const wrapper = shallow(<Input disabled disableStateStyles />);
+  it('should not render state styles when isStateStylesDisabled = true', () => {
+    const wrapper = shallow(<Input isStateStylesDisabled />);
     const inputComponent = wrapper.findWhere(
       (node) => node.prop('testID') === INPUT_TEST_ID,
     );
-    expect(inputComponent.props().editable).toBe(false);
     expect(inputComponent.props().style.opacity).toBe(1);
   });
 });

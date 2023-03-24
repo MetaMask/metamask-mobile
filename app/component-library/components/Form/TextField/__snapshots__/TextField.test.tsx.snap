@@ -26,8 +26,8 @@ exports[`TextField should render default settings correctly 1`] = `
   >
     <Input
       autoFocus={false}
-      disableStateStyles={true}
-      disabled={false}
+      isDisabled={false}
+      isStateStylesDisabled={true}
       onBlur={[Function]}
       onFocus={[Function]}
       textVariant="sBodyMD"
