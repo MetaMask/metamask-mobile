@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
-import { View, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Platform, BackHandler } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 
 // External dependencies.
@@ -50,6 +50,18 @@ const WalletActions = () => {
   const ticker = useSelector(selectTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
+
+  // Dismiss the sheet when Android back button is pressed.
+  useEffect(() => {
+    const hardwareBackPress = () => {
+      sheetRef.current?.hide();
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+    };
+  }, []);
 
   const onReceive = () => {
     sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
