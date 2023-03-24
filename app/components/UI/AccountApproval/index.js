@@ -54,6 +54,13 @@ const createStyles = (colors, typography) =>
       marginBottom: 8,
       marginTop: 16,
     },
+    otpContainer: {},
+    selectOtp: {
+      marginTop: 0,
+      padding: 2,
+      marginLeft: 20,
+      marginRight: 20,
+    },
     intro_reconnect: {
       ...typography.sHeadingMD,
       textAlign: 'center',
