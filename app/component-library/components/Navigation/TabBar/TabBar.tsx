@@ -94,7 +94,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
 
   return (
     <>
-      <View style={styles.shadow} />
+      <View style={styles.border} />
       <View style={styles.base}>{renderTabBarItems()}</View>
     </>
   );

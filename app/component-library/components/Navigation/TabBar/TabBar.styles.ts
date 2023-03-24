@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -21,6 +21,20 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
     vars: { bottomInset },
     theme: { colors },
   } = params;
+
+  const borderStyle: StyleProp<ViewStyle> = Device.isAndroid()
+    ? {
+        borderWidth: 0.5,
+        borderColor: colors.border.muted,
+      }
+    : {
+        shadowColor: colors.overlay.default,
+        shadowOpacity: 1,
+        shadowOffset: { height: 4, width: 0 },
+        shadowRadius: 8,
+        flexBasis: 1,
+      };
+
   return StyleSheet.create({
     base: {
       flexDirection: 'row',
@@ -30,15 +44,9 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
       marginBottom: bottomInset,
       backgroundColor: colors.background.default,
     },
-    shadow: {
-      // borderWidth: 0.5,
-      // borderColor: colors.border.muted,
-      shadowColor: colors.overlay.default,
-      shadowOpacity: 1,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
+    border: {
+      ...borderStyle,
       backgroundColor: colors.background.default,
-      flexBasis: 1,
     },
   });
 };
