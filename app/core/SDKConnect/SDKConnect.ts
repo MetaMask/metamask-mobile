@@ -792,7 +792,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
-    if (session && !session?.isConnected()) {
+    if (session && !session?.isConnected() && !this.connecting[channelId]) {
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
