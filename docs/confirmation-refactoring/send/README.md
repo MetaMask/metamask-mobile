@@ -6,8 +6,9 @@ Metamask mobile supports send flow for ETH and other assets. This view is render
 - [/Views/Send](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/Send)
 
 ### Folder Structure
-Currently above two views have confusing folder structure and component name. We should make it more clear and understandable.
+Currently above two views have confusing folder structure and component names. We should make it more clear and understandable.
 
+Current folder structure:
 <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_view_structure.png?raw=true" width="150"/>
 
 Proposed folder structure:
@@ -28,46 +29,50 @@ Proposed folder structure:
         - SendTo.tsx
         - SendTo.test.tsx
 ```
-There will be more components added to the list above as we do refactoring.
+There will be more components added to the list above as we do refactoring to break down bigger components into smaller ones.
 
 ### SendTo Component
-[/Views/SendFlow/SendTo](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/SendFlow/SendTo) is responsible to render following send page:
+[/Views/SendFlow/SendTo](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/SendFlow/SendTo) is responsible to render first send page where receipient address is selected:
 
 <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_to.png?raw=true" width="150"/>
 
 The component is taking care to do following:
-- Render address from / to address section
+- Render `address from / to` section in the top:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_fromto.png?raw=true" width="150"/>
 
-- Render address to selection options
+- Render `to address` selection options:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_acclist.png?raw=true" width="150"/>
-- Render option to add to address to address book
+
+- Render option to add `to address` to `address book`:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_addressbook.png?raw=true" width="150"/>
-- Render different errors / warnings
+
+- Render different errors / warnings messages:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_warnings.png?raw=true" width="150"/>
 
-    All of above concerns should be moved into small independent components which can be well tested. The smaller components can be placed individually in [/components/UI](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI). Components which are possibly re-usable at pther places should not be nested in sub-folders.
+    All of above concerns should be moved into small independent components which can be well tested. The smaller components can be placed in [/components/UI](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI). Components which are possibly re-usable at other places should not be nested in sub-folders but directly put inside [/components/UI](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI).
 
 ### Send Component
 [/Views/Send](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/Send) component is responsible to render following 2 pages:
 
+1. Transaction amount is entered:
 <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_amount.png?raw=true" width="150"/>
 
+2. Transactionis confirmed:
 <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_confirm.png?raw=true" width="150"/>
 
 #### Amount Page
-Amount page is rendered by [/Views/SendFlow/Amount](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/SendFlow/Amount) component. The page is again quite huge and taking care of 2 different inputs:
+Amount page is rendered by [/Views/SendFlow/Amount](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/Views/SendFlow/Amount) component. The page is again quite huge and taking care of 2 different categories inputs:
 
 - token amount input
 - asset input
 
-These can be broken down into different components to reduce complexity of this component.
+These can be broken down into 2 different components to reduce complexity of this component.
 
-Additionally the components has a lot of different transaction / gas related methods defined in it, these should be converted(fully or partially) into re-uable utility methods or hooks. Here is a list of the methods I could find but there will be more to it:
+Additionally the components has a lot of different transaction / gas related methods defined in it, these should be converted(fully or partially) into re-uable utility methods or hooks. A function not requiring state changes can be made a utility method, function more closely tied to state change should be hook. Here is a list of the methods I could find but there will be more to it:
 
 1. Code [here](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L476) to estimate total gas for both Legacy and EIP-1559 gas estimates.
 2. Function [ValidateCollectibleOwnership](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L546)
@@ -76,7 +81,7 @@ Additionally the components has a lot of different transaction / gas related met
 5. Function [validateAmount](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L746)
 6. Function [estimateGasLimit](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L782)
 7. Function [useMax](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L795)
-8. For conversion methods used at places as [these](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L863) we can defined utility methods or hook (if that needs state too).
+8. For conversion methods used at places as [these](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L863) we can defined utility methods or hooks.
 9. Function [processCollectibles](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L1067)
 
 #### Confirm Page
@@ -88,13 +93,13 @@ This component is again taking care to render a lot of different sections of the
     There is already a [PR](https://github.com/MetaMask/metamask-mobile/pull/5900) to extract this out into a separate component.
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_confirm_address.png?raw=true" width="150"/>
-2. Gas EIP-1559 modal
+2. Gas EIP-1559 modal:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_confirm_gas.png?raw=true" width="150"/>
 3. Legacy Gas modal
 4. Custom Nonce modal
 5. Hex Data modal
-6. Transaction Info
+6. Transaction Info:
 
     <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_confirm_info.png?raw=true" width="150"/>
 
