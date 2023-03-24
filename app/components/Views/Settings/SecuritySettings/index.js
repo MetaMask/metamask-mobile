@@ -62,7 +62,10 @@ import {
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
-import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import {
+  SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID,
+  SECURITY_PRIVACY_VIEW_ID
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
@@ -716,7 +719,7 @@ class Settings extends PureComponent {
     const { styles, colors } = this.getStyles();
 
     return (
-      <View style={styles.setting} testID={'third-party-section'}>
+      <View style={styles.setting}>
         <Text style={styles.title}>
           {strings('app_settings.batch_balance_requests_title')}
         </Text>
@@ -734,6 +737,7 @@ class Settings extends PureComponent {
             thumbColor={importedColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
+            {...generateTestId(Platform, SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID)}
           />
         </View>
       </View>
