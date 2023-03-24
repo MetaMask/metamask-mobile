@@ -1,6 +1,6 @@
 # Signature Request Pages
 
-Metamask mobile support the 5 different signature requests:
+#### MetaMask mobile support for 5 different signature requests:
 
 1. ETH Sign: ETH sign is disabled by default. It can be enabled from advanced settings.
 
