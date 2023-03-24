@@ -26,7 +26,7 @@ export default class AmountView {
   }
 
   static isTransactionAmountCorrect(amount) {
-    return TestHelpers.checkIfElementHasString(
+    return TestHelpers.checkIfHasText(
       TRANSACTION_AMOUNT_INPUT,
       amount,
     );
