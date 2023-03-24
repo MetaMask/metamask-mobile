@@ -744,6 +744,7 @@
     "send_button": "Senden",
     "buy_button": "Kaufen",
     "receive_button": "Abheben",
+    "portfolio_button": "Portfolio",
     "add_collectible_button": "Hinzufügen",
     "info": "Info",
     "swap": "Tauschen",
@@ -2236,5 +2237,26 @@
       "wrong_answer_title": "Nein! Teilen Sie Ihre geheime Wiederherstellungsphrase mit niemandem, niemals",
       "wrong_answer_description": "Jeder, der behauptet, Ihre gemeine Wiederherstellungsphrase zu benötigen, lügt Sie an. Wenn Sie diese mit einer solchen Person teilen, wird sie Ihre Vermögenswerte stehlen."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Wiederherstellung erforderlich",
+    "restore_needed_description": "Etwas ist schief gelaufen, aber keine Sorge! Versuchen wir, Ihre Wallet wiederherzustellen.",
+    "restore_needed_action": "Wallet wiederherstellen"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Ihre Wallet ist bereit!",
+    "wallet_restored_action": "Weiter zur Wallet",
+    "wallet_restored_description_part_one": "Sie können einige Ihrer Assets, Netzwerke und Einstellungen manuell wieder hinzufügen.",
+    "wallet_restored_description_part_two": "Nehmen Sie sich einen Moment, um",
+    "wallet_restored_description_link": "Ihre geheime Wiederherstellungsphrase zu sichern,",
+    "wallet_restored_description_part_three": "falls Sie Ihr Wallet in Zukunft erneut wiederherstellen müssen."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Neues Wallet erforderlich",
+    "new_wallet_needed_create_new_wallet_action": "Neues Wallet erstellen",
+    "new_wallet_needed_create_try_again_action": "Versuchen, Wallet wiederherzustellen",
+    "new_wallet_needed_description_part_one": "Es gibt ein Problem mit Ihrem Wallet und Sie müssen ein neues erstellen. Da Ihre Konten auf der Blockchain liegen, sind sie weiterhin sicher. Nur die Einstellungen, gespeicherte Netzwerke, Kontonamen und damit verbundenen Daten, die auf Ihrem Gerät gespeichert waren, sind weg.",
+    "new_wallet_needed_description_part_two": "Zum Importieren Ihrer Konten in ein neues Wallet benötigen Sie Ihre geheime Wiederherstellungsphrase. Sollten Sie keine geheime Wiederherstellungsphrase haben, können Sie Ihre Konten nicht importieren.",
+    "new_wallet_needed_description_part_three": "Halten Sie Ihre MetaMask-App und Ihr Betriebssystem immer auf dem neuesten Stand, um zu vermeiden, dass dies erneut geschieht."
   }
 }

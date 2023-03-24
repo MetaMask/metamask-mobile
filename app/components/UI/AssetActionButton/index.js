@@ -28,6 +28,7 @@ const createStyles = (colors) =>
       paddingLeft: 1,
       justifyContent: 'center',
       alignContent: 'center',
+      alignItems: 'center',
       backgroundColor: colors.primary.default,
     },
     buttonIcon: {

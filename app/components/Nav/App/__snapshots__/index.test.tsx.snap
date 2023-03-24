@@ -3,13 +3,11 @@
 exports[`App should render correctly when logged in 1`] = `
 <App
   dispatch={[Function]}
-  selectedAddress="0x1"
 />
 `;
 
 exports[`App should render correctly when logged in 2`] = `
 <App
   dispatch={[Function]}
-  selectedAddress="0x1"
 />
 `;

@@ -1,35 +1,8 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import {
-  aggregatorInitialFiatOrder,
   aggregatorOrderToFiatOrder,
   processAggregatorOrder,
 } from './aggregator';
-
-describe('aggregatorInitialFiatOrder', () => {
-  it('should return an initial aggregator fiat order', () => {
-    jest.spyOn(Date, 'now').mockImplementationOnce(() => 1233123123);
-    expect(
-      aggregatorInitialFiatOrder({
-        id: 'test-id',
-        account: '0x1235',
-        network: '1',
-      }),
-    ).toEqual({
-      id: 'test-id',
-      account: '0x1235',
-      network: '1',
-      state: 'PENDING',
-      provider: 'AGGREGATOR',
-      createdAt: 1233123123,
-      amount: null,
-      fee: null,
-      currency: '',
-      cryptoAmount: null,
-      cryptocurrency: '',
-      data: null,
-    });
-  });
-});
 
 describe('aggregatorOrderToFiatOrder', () => {
   it('should return a fiat order', () => {

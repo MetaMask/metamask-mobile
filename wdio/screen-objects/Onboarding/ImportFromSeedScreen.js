@@ -74,6 +74,9 @@ class ImportFromSeed {
     await Gestures.waitAndTap(this.screenTitle);
     await Gestures.waitAndTap(this.importButton);
   }
+  async tapImportFromSeedTextToDismissKeyboard() {
+    await Gestures.waitAndTap(this.screenTitle);
+  }
 
   async isPasswordStrengthTextCorrect(text) {
     await expect(this.passwordStrengthLabel).toHaveText(text);
