@@ -354,7 +354,6 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    SDKConnect.init();
     if (navigator) {
       SDKConnect.getInstance().init({ navigation: navigator });
     }
