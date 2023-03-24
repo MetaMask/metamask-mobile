@@ -11,7 +11,6 @@ import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
 export enum BadgeStatusState {
   Connected = 'Connected',
   Disconnected = 'Disconnected',
-  Warning = 'Warning',
 }
 
 /**

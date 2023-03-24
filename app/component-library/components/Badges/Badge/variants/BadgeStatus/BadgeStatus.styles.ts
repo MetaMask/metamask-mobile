@@ -27,9 +27,6 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
     case BadgeStatusState.Disconnected:
       stateColor = theme.colors.icon.alternative;
       break;
-    case BadgeStatusState.Warning:
-      stateColor = theme.colors.warning.default;
-      break;
     default:
       stateColor = theme.colors.icon.alternative;
       break;
