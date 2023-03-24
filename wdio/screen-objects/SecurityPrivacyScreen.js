@@ -1,3 +1,4 @@
+/* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import { SECURITY_PRIVACY_REMEMBER_ME_TOGGLE, SECURITY_PRIVACY_VIEW_ID } from './testIDs/Screens/SecurityPrivacy.testIds';
@@ -31,6 +32,7 @@ class SecurityPrivacyScreen {
   async isRememberMeToggle(value) {
     const element = await this.rememberMeToggle;
     await expect(await element.getText()).toEqual(value);
+    await driver.pause(1000);
   }
 
   async isScreenDisplayed() {

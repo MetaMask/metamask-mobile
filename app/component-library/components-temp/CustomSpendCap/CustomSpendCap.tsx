@@ -151,7 +151,9 @@ const CustomSpendCap = ({
                   )
                 : strings(
                     'contract_allowance.custom_spend_cap.no_value_selected',
-                    { domain },
+                    {
+                      domain,
+                    },
                   )}
             </Text>
           }

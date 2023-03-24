@@ -747,6 +747,7 @@
     "send_button": "Gönder",
     "buy_button": "Satın Al",
     "receive_button": "Al",
+    "portfolio_button": "Portföy",
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
     "swap": "Kaydır",
@@ -2239,5 +2240,26 @@
       "wrong_answer_title": "Hayır! Gizli Kurtarma İfadenizi asla hiç kimse ile paylaşmayın, asla",
       "wrong_answer_description": "Gizli Kurtarma İfadenizi isteyen kişi size yalan söylüyordur. Kendisi ile paylaşırsanız varlıklarınızı çalacaktır."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Geri yükleme gerekiyor",
+    "restore_needed_description": "Bir sorunla karşılaşıldı ama endişelenme! Cüzdanını geri geri yüklemeye çalışalım.",
+    "restore_needed_action": "Cüzdanı geri yükle"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Cüzdanın hazır!",
+    "wallet_restored_action": "Cüzdana devam et",
+    "wallet_restored_description_part_one": "Bazı varlıklarını, ağlarını ve ayarlarını tekrar manuel olarak eklemen gerekebilir.",
+    "wallet_restored_description_part_two": "Bir dakikanı ayırarak",
+    "wallet_restored_description_link": "Gizli Kurtarma İfadeni yedekle",
+    "wallet_restored_description_part_three": "çünkü gelecekte cüzdanını tekrar geri yüklemen gerekebilir."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Yeni cüzdan gerekli",
+    "new_wallet_needed_create_new_wallet_action": "Yeni bir cüzdan oluştur",
+    "new_wallet_needed_create_try_again_action": "Cüzdanı kurtarmayı dene",
+    "new_wallet_needed_description_part_one": "Cüzdanınla ilgili bir sorun oluştu ve yeni bir tane oluşturman gerekecek. Hesapların blok zincirinde olduğu için hâlâ güvende. Sadece cihazında kayıtlı olan tercihler, kaydedilen ağlar, hesap adları ve ilgili veriler kayboldu.",
+    "new_wallet_needed_description_part_two": "Hesapları yeni bir cüzdana aktarmak için Gizli Kurtarma İfadene ihtiyacın olacak. Gizli Kurtarma İfaden yoksa hesaplarını içe aktaramayacaksın.",
+    "new_wallet_needed_description_part_three": "Bunun tekrar olmasını önlemek için her zaman MetaMask uygulamanı ve işletim sistemini en yeni sürümde güncel tuttuğundan emin ol."
   }
 }
