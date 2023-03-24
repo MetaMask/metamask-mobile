@@ -12,11 +12,13 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
+
 import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
