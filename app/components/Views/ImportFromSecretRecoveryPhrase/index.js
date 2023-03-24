@@ -72,7 +72,6 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -146,16 +145,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const termsOfUse = useCallback(async () => {
-    if (navigation) {
-      await navigateTermsOfUse(navigation.navigate);
-    }
-  }, [navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);

@@ -36,16 +36,6 @@ describe('Send ETH Tests', () => {
     await AmountView.isVisible();
   });
 
-  it('should switch currency from crypto to fiat and back to crypto', async () => {
-    await AmountView.typeInTransactionAmount('0.004');
-    await AmountView.tapCurrencySwitch();
-    await AmountView.isTransactionAmountConversionValueCorrect(
-      '0.004 GoerliETH',
-    );
-    await AmountView.tapCurrencySwitch();
-    await AmountView.isTransactionAmountCorrect('0.004');
-  });
-
   it('should input and validate amount', async () => {
     // Input acceptable value
     await AmountView.typeInTransactionAmount('0');

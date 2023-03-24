@@ -7,7 +7,7 @@ import { IconName } from '../Icons/Icon';
 
 // Internal dependencies.
 import Checkbox from './Checkbox';
-import { CHECKBOX_ICON_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { CHECKBOX_ICON_ID } from './Checkbox.constants';
 
 describe('Checkbox', () => {
   it('should render correctly', () => {

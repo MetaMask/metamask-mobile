@@ -9,7 +9,6 @@ import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
-import Routes from '../../../constants/navigation/Routes.ts';
 
 const styles = StyleSheet.create({
   bottomModal: {
@@ -59,12 +58,9 @@ const CollectibleModal = (props) => {
 
   const openLink = useCallback(
     (url) => {
-      navigation.navigate(Routes.BROWSER_TAB_HOME, {
-        screen: Routes.BROWSER_VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-        },
+      navigation.replace('Webview', {
+        screen: 'SimpleWebview',
+        params: { url },
       });
     },
     [navigation],

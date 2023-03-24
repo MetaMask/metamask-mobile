@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import { connect, useSelector } from 'react-redux';
-import { View, Dimensions, Platform } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import {
   createNewTab,
@@ -32,9 +32,6 @@ import {
 } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-
 import URL from 'url-parse';
 import { isEqual } from 'lodash';
 const margin = 16;
@@ -177,8 +174,7 @@ const Browser = (props) => {
   useEffect(
     () => {
       const currentUrl = route.params?.newTabUrl;
-      const existingTabId = route.params?.existingTabId;
-      if (!currentUrl && !existingTabId) {
+      if (!currentUrl) {
         // Nothing from deeplink, carry on.
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (activeTab) {
@@ -221,23 +217,13 @@ const Browser = (props) => {
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
-      const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from deeplink.
         newTab(newTabUrl);
-      } else if (existingTabId) {
-        const existingTab = tabs.find((tab) => tab.id === existingTabId);
-        if (existingTab) {
-          switchToTab(existingTab);
-        }
       }
     },
     /* eslint-disable-next-line */
-    [
-      route.params?.timestamp,
-      route.params?.newTabUrl,
-      route.params?.existingTabId,
-    ],
+    [route.params?.timestamp, route.params?.newTabUrl],
   );
 
   const takeScreenshot = (url, tabID) =>
@@ -360,10 +346,7 @@ const Browser = (props) => {
     ));
 
   return (
-    <View
-      style={baseStyles.flexGrow}
-      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
-    >
+    <View style={baseStyles.flexGrow} testID={'browser-screen'}>
       {renderBrowserTabs()}
       {renderTabsView()}
     </View>

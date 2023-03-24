@@ -4,14 +4,12 @@
 
 Feature: This feature file covers the option menu in the browser.
 
-  Scenario: Import wallet
+  Background: The user navigates to the Browser screen
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-
-  Scenario: The user navigates to the Browser screen
-    When I navigate to the browser
+    And I navigate to the browser
     And I am on Home MetaMask website
 
     When I navigate to "https://app.uniswap.org/"

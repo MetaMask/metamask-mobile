@@ -14,13 +14,8 @@ export default class OnboardingCarouselView {
   static async swipeCarousel() {
     await TestHelpers.swipe(ONBOARDING_CAROUSEL_ID, 'left');
   }
-
   static async tapOnGetStartedButton() {
     await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-  }
-
-  static async isGetStartedButtonVisible() {
-    await TestHelpers.checkIfVisible(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
   static async isMetaMaskWelcomeTextVisible() {
@@ -29,7 +24,6 @@ export default class OnboardingCarouselView {
       'Welcome to MetaMask',
     );
   }
-
   static async isWelcomeToMetaMaskImageVisible() {
     await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_ONE_IMAGE_ID);
   }

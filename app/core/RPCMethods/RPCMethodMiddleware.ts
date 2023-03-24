@@ -278,19 +278,17 @@ export const getRpcMethodMiddleware = ({
           res.result = [selectedAddress];
         } else if (isMMSDK) {
           try {
-            const approved = getApprovedHosts()[hostname];
-
-            if (!approved) {
-              // Prompts user approval UI in RootRPCMethodsUI.js.
-              await requestUserApproval({
-                type: ApprovalTypes.CONNECT_ACCOUNTS,
-                requestData: { hostname },
-              });
-            }
+            let { selectedAddress } =
+              Engine.context.PreferencesController.state;
+            selectedAddress = selectedAddress?.toLowerCase();
+            // Prompts user approval UI in RootRPCMethodsUI.js.
+            await requestUserApproval({
+              type: ApprovalTypes.CONNECT_ACCOUNTS,
+              requestData: { hostname },
+            });
             // Stores approvals in SDKConnect.ts.
             approveHost?.(hostname);
-            const accounts = getAccounts();
-            res.result = accounts;
+            res.result = selectedAddress ? [selectedAddress] : [];
           } catch (e) {
             throw ethErrors.provider.userRejectedRequest(
               'User denied account authorization.',
@@ -696,9 +694,7 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         res.result = {
           ...getProviderState(),
-          accounts: isMMSDK
-            ? getAccounts()
-            : await getPermittedAccounts(hostname),
+          accounts: await getPermittedAccounts(hostname),
         };
       },
 

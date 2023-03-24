@@ -11,7 +11,6 @@ import ROPSTEN from './ropsten-logo-dark.png';
 import KOVAN from './kovan-logo-dark.png';
 import RINKEBY from './rinkeby-logo-dark.png';
 import GOERLI from './goerli-logo-dark.png';
-import LINEATESTNET from './linea-logo-dark.png';
 
 export default {
   PALM,
@@ -27,5 +26,4 @@ export default {
   KOVAN,
   RINKEBY,
   GOERLI,
-  LINEATESTNET,
 };

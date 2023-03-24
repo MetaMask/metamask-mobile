@@ -6,6 +6,6 @@ exports[`Checkbox should render correctly 1`] = `
   name="CheckBoxOn"
   size="24"
   style={Object {}}
-  testID="checkbox"
+  testID="checkbox-icon"
 />
 `;

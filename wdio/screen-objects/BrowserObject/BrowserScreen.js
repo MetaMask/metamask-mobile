@@ -10,7 +10,7 @@ import {
   NAVBAR_TITLE_NETWORK,
   NETWORK_AVATAR_ICON,
   OPTIONS_BUTTON,
-  BROWSER_SCREEN_ID,
+  SCREEN_ID,
   SEARCH_BUTTON,
   TABS_BUTTON,
   TABS_NUMBER,
@@ -18,7 +18,7 @@ import {
 
 class BrowserScreen {
   get container() {
-    return Selectors.getElementByPlatform(BROWSER_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(SCREEN_ID);
   }
 
   get urlBarTitle() {
@@ -26,15 +26,15 @@ class BrowserScreen {
   }
 
   get accountIconButton() {
-    return Selectors.getElementByPlatform(ACCOUNT_BUTTON);
+    return Selectors.getXpathElementByResourceId(ACCOUNT_BUTTON);
   }
 
   get optionButton() {
-    return Selectors.getElementByPlatform(OPTIONS_BUTTON);
+    return Selectors.getXpathElementByResourceId(OPTIONS_BUTTON);
   }
 
   get tabsButton() {
-    return Selectors.getElementByPlatform(TABS_BUTTON);
+    return Selectors.getXpathElementByResourceId(TABS_BUTTON);
   }
 
   get tabsButtonTextElement() {
@@ -42,23 +42,23 @@ class BrowserScreen {
   }
 
   get homeButton() {
-    return Selectors.getElementByPlatform(HOME_BUTTON);
+    return Selectors.getXpathElementByResourceId(HOME_BUTTON);
   }
 
   get backButton() {
-    return Selectors.getElementByPlatform(BACK_BUTTON);
+    return Selectors.getXpathElementByResourceId(BACK_BUTTON);
   }
 
   get forwardButton() {
-    return Selectors.getElementByPlatform(FORWARD_BUTTON);
+    return Selectors.getXpathElementByResourceId(FORWARD_BUTTON);
   }
 
   get searchButton() {
-    return Selectors.getElementByPlatform(SEARCH_BUTTON);
+    return Selectors.getXpathElementByResourceId(SEARCH_BUTTON);
   }
 
   get networkAvatarIcon() {
-    return Selectors.getElementByPlatform(NETWORK_AVATAR_ICON);
+    return Selectors.getXpathElementByResourceId(NETWORK_AVATAR_ICON);
   }
 
   async isScreenContentDisplayed() {

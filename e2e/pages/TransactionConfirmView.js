@@ -60,10 +60,6 @@ export default class TransactionConfirmationView {
   static async isVisible() {
     await TestHelpers.checkIfVisible(TRANSACTION_VIEW_CONTAINER_ID);
   }
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(TRANSACTION_VIEW_CONTAINER_ID);
-  }
-
   static async isNetworkNameVisible(text) {
     await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_TEXT, text);
   }

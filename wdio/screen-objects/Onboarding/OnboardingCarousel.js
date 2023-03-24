@@ -1,4 +1,4 @@
-/* global driver */
+/* global $, driver */
 import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
@@ -32,7 +32,7 @@ class WelcomeScreen {
 
   async waitForSplashAnimationToDisplay() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForExist();
+    await elem.waitForDisplayed();
   }
 
   async waitForSplashAnimationToNotExit() {
@@ -69,23 +69,17 @@ class WelcomeScreen {
     // Get the rectangles of the carousel and store it in a global that will be used for a next call.
     // We dont want ask for the rectangles of the carousel if we already know them.
     // This will save unneeded webdriver calls.
-    const element = await this.screen;
     this.CAROUSEL_RECTANGLES =
       this.CAROUSEL_RECTANGLES ||
-      (await driver.getElementRect(element.elementId));
+      (await driver.getElementRect(
+        await $(`~${WELCOME_SCREEN_CAROUSEL_CONTAINER_ID}`).elementId,
+      ));
 
     return this.CAROUSEL_RECTANGLES;
   }
 
   async clickGetStartedButton() {
-    const element = await this.screen;
-    let screenExist = await element.isExisting();
-
-    while (screenExist) {
-      await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(5000);
-      screenExist = await element.isExisting();
-    }
+    await Gestures.waitAndTap(this.getStartedButton);
   }
 
   async waitForScreenToDisplay() {

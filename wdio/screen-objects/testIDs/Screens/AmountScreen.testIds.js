@@ -13,5 +13,3 @@ export const TRANSACTION_AMOUNT_CONVERSION_VALUE =
 export const AMOUNT_ERROR = 'amount-error';
 
 export const CARET_DROP_DOWN = 'amount-screen-caret-drop-down';
-
-export const CURRENCY_SWITCH = 'amount-screen-currency-switch';

@@ -3,8 +3,8 @@ import { AuthData } from './Authentication';
 class AuthenticationError extends Error {
   public authData: AuthData;
   public customErrorMessage: string;
-  constructor(message: string, customErrorMessage: string, authData: AuthData) {
-    super(message);
+  constructor(msg: string, customErrorMessage: string, authData: AuthData) {
+    super(msg);
     this.authData = authData;
     this.customErrorMessage = customErrorMessage;
     // Set the prototype explicitly.
