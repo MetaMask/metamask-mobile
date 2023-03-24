@@ -64,9 +64,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
 import {
   SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID,
-  SECURITY_PRIVACY_VIEW_ID
+  SECURITY_PRIVACY_VIEW_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { OFF, ON } from '../../../../core/Analytics/MetaMetrics.constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -708,6 +709,10 @@ class Settings extends PureComponent {
   };
 
   toggleMultiAccountBalanceChecker = (useMultiAccountBalanceChecker) => {
+    trackEvent(
+      MetaMetricsEvents.SWITCH_BATCH_ACCOUNT_BALANCE_REQUESTS_SETTING,
+      { batch: useMultiAccountBalanceChecker ? ON : OFF },
+    );
     const { PreferencesController } = Engine.context;
     PreferencesController.setMultiAccountBalanceChecker(
       useMultiAccountBalanceChecker,
@@ -737,7 +742,10 @@ class Settings extends PureComponent {
             thumbColor={importedColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
-            {...generateTestId(Platform, SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID)}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
           />
         </View>
       </View>
