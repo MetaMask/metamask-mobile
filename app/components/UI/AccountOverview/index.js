@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
+
 import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
