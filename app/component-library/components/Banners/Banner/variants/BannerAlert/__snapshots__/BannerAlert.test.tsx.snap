@@ -2,8 +2,12 @@
 
 exports[`BannerAlert should render default settings correctly 1`] = `
 <BannerBase
-  actionButtonLabel="Sample Action Button Label"
-  actionButtonOnPress={[Function]}
+  actionButtonProps={
+    Object {
+      "label": "Sample Action Button Label",
+      "onPress": [Function],
+    }
+  }
   description="Sample Banner Alert Description"
   onClose={[Function]}
   startAccessory={

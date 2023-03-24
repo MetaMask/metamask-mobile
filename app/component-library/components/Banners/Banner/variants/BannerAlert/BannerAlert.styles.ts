@@ -5,7 +5,10 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import { BannerAlertSeverity } from './BannerAlert.types';
+import {
+  BannerAlertSeverity,
+  BannerAlertStyleSheetVars,
+} from './BannerAlert.types';
 
 /**
  * Style sheet function for BannerAlert component.
@@ -15,7 +18,10 @@ import { BannerAlertSeverity } from './BannerAlert.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: BannerAlertStyleSheetVars;
+}) => {
   const { theme, vars } = params;
   const { style, severity } = vars;
 

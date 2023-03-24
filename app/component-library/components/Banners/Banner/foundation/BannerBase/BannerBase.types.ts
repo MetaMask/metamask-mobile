@@ -2,7 +2,6 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies.
-import { TextProps } from '../../../../Texts/Text/Text.types';
 import { ButtonProps } from '../../../../Buttons/Button/Button.types';
 import { ButtonIconProps } from '../../../../Buttons/ButtonIcon/ButtonIcon.types';
 import { BannerVariant } from '../../Banner.types';
@@ -16,43 +15,23 @@ export interface BannerBaseProps extends ViewProps {
    */
   variant?: BannerVariant;
   /**
-   * Content to be displayed before the info section.
+   * Optional content to be displayed before the info section.
    */
   startAccessory?: React.ReactNode;
   /**
-   * Title of the Banner.
+   * Optional prop for title of the Banner.
    */
-  title?: string;
-  /**
-   * Optional prop to control the title's props.
-   */
-  titleProps?: TextProps;
+  title?: string | React.ReactNode;
   /**
    * Optional description below the title.
    */
-  description?: string;
-  /**
-   * Optional prop to control the description's props.
-   */
-  descriptionProps?: TextProps;
-  /**
-   * For custom description with links, pass in node element.
-   */
-  descriptionEl?: React.ReactNode;
-  /**
-   * Label for optional action button below the description and title.
-   */
-  actionButtonLabel?: string;
-  /**
-   * Function to trigger when pressing the action button.
-   */
-  actionButtonOnPress?: () => void;
+  description?: string | React.ReactNode;
   /**
    * Optional prop to control the action button's props.
    */
   actionButtonProps?: ButtonProps;
   /**
-   * Function to trigger when pressing the close button.
+   * Optional function to trigger when pressing the close button.
    */
   onClose?: () => void;
   /**
@@ -60,3 +39,8 @@ export interface BannerBaseProps extends ViewProps {
    */
   closeButtonProps?: ButtonIconProps;
 }
+
+/**
+ * Style sheet Banner Base parameters.
+ */
+export type BannerBaseStyleSheetVars = Pick<BannerBaseProps, 'style'>;

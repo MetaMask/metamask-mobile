@@ -34,3 +34,8 @@ export interface BannerTipProps extends BannerBaseProps {
    */
   logoType?: BannerTipLogoType;
 }
+
+/**
+ * Style sheet Banner Tip parameters.
+ */
+export type BannerTipStyleSheetVars = Pick<BannerTipProps, 'style'>;

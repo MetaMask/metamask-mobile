@@ -14,9 +14,7 @@ import {
 
 // Defaults
 export const DEFAULT_BANNERALERT_SEVERITY = BannerAlertSeverity.Info;
-
-// Tokens
-export const TOKEN_BANNERALERT_ICONSIZE = IconSize.Lg;
+export const DEFAULT_BANNERALERT_ICONSIZE = IconSize.Lg;
 
 // Mappings
 export const ICONNAME_BY_BANNERALERTSEVERITY: IconNameByBannerAlertSeverity = {
@@ -39,7 +37,9 @@ export const SAMPLE_BANNERALERT_PROPS: BannerAlertProps = {
   severity: DEFAULT_BANNERALERT_SEVERITY,
   title: SAMPLE_BANNERALERT_TITLE,
   description: SAMPLE_BANNERALERT_DESCRIPTION,
-  actionButtonLabel: SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
-  actionButtonOnPress: () => console.log('actionButton clicked!'),
+  actionButtonProps: {
+    label: SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
+    onPress: () => console.log('actionButton clicked!'),
+  },
   onClose: () => console.log('closeButton clicked!'),
 };

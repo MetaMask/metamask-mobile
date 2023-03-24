@@ -13,7 +13,7 @@ import styleSheet from './BannerAlert.styles';
 import { BannerAlertProps } from './BannerAlert.types';
 import {
   DEFAULT_BANNERALERT_SEVERITY,
-  TOKEN_BANNERALERT_ICONSIZE,
+  DEFAULT_BANNERALERT_ICONSIZE,
   ICONNAME_BY_BANNERALERTSEVERITY,
   BANNERALERT_TEST_ID,
 } from './BannerAlert.constants';
@@ -29,7 +29,7 @@ const BannerAlert: React.FC<BannerAlertProps> = ({
     <Icon
       name={ICONNAME_BY_BANNERALERTSEVERITY[severity]}
       color={styles.severityIcon.color}
-      size={TOKEN_BANNERALERT_ICONSIZE}
+      size={DEFAULT_BANNERALERT_ICONSIZE}
     />
   );
 

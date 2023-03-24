@@ -41,8 +41,10 @@ export const getBannerAlertStoryProps = (): BannerAlertProps => {
     severity: severitySelector,
     title,
     description,
-    actionButtonLabel,
-    actionButtonOnPress: () => console.log('actionButton clicked!'),
+    actionButtonProps: {
+      label: actionButtonLabel,
+      onPress: () => console.log('actionButton clicked!'),
+    },
     onClose: () => console.log('closeButton clicked!'),
   };
 };

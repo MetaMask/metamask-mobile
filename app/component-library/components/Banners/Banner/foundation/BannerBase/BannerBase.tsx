@@ -8,59 +8,58 @@ import { View } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import Text from '../../../../Texts/Text';
-import Button, { ButtonSize, ButtonVariants } from '../../../../Buttons/Button';
-import ButtonIcon, { ButtonIconVariants } from '../../../../Buttons/ButtonIcon';
-import { IconName } from '../../../../Icons/Icon';
+import Button from '../../../../Buttons/Button';
+import ButtonIcon from '../../../../Buttons/ButtonIcon';
 
 // Internal dependencies.
 import styleSheet from './BannerBase.styles';
 import { BannerBaseProps } from './BannerBase.types';
 import {
-  TOKEN_BANNERBASE_TITLE_TEXTVARIANT,
-  TOKEN_BANNERBASE_DESCRIPTION_TEXTVARIANT,
-  TOKEN_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE,
+  DEFAULT_BANNERBASE_TITLE_TEXTVARIANT,
+  DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT,
+  DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT,
+  DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE,
+  DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT,
+  DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE,
+  DEFAULT_BANNERBASE_CLOSEBUTTON_ICONNAME,
 } from './BannerBase.constants';
 
 const BannerBase: React.FC<BannerBaseProps> = ({
   style,
   startAccessory,
   title,
-  titleProps,
   description,
-  descriptionProps,
-  descriptionEl,
-  actionButtonLabel,
-  actionButtonOnPress,
   actionButtonProps,
   onClose,
   closeButtonProps,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
+  const renderTitle = () =>
+    typeof title === 'string' ? (
+      <Text variant={DEFAULT_BANNERBASE_TITLE_TEXTVARIANT}>{title}</Text>
+    ) : (
+      { title }
+    );
+  const renderDescription = () =>
+    typeof description === 'string' ? (
+      <Text variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
+        {description}
+      </Text>
+    ) : (
+      { description }
+    );
+
   return (
     <View style={styles.base} {...props}>
       <View style={styles.startAccessory}>{startAccessory}</View>
       <View style={styles.info}>
-        {(title || titleProps) && (
-          <Text variant={TOKEN_BANNERBASE_TITLE_TEXTVARIANT} {...titleProps}>
-            {title}
-          </Text>
-        )}
-        {description && (
-          <Text
-            variant={TOKEN_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-            {...descriptionProps}
-          >
-            {description}
-          </Text>
-        )}
-        {descriptionEl && { descriptionEl }}
-        {((actionButtonLabel && actionButtonOnPress) || actionButtonProps) && (
+        {renderTitle()}
+        {renderDescription()}
+        {actionButtonProps && (
           <Button
-            variant={ButtonVariants.Link}
-            size={ButtonSize.Auto}
-            label={actionButtonLabel || actionButtonProps?.label || ''}
-            onPress={actionButtonOnPress || actionButtonProps?.onPress || noop}
+            variant={DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT}
+            size={DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE}
             {...actionButtonProps}
           />
         )}
@@ -68,10 +67,10 @@ const BannerBase: React.FC<BannerBaseProps> = ({
       {(onClose || closeButtonProps) && (
         <View style={styles.endAccessory}>
           <ButtonIcon
-            variant={ButtonIconVariants.Secondary}
-            size={TOKEN_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE}
+            variant={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT}
+            size={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE}
             onPress={onClose || closeButtonProps?.onPress || noop}
-            iconName={IconName.Close}
+            iconName={DEFAULT_BANNERBASE_CLOSEBUTTON_ICONNAME}
             {...closeButtonProps}
           />
         </View>

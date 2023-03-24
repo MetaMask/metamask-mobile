@@ -35,3 +35,10 @@ export interface BannerAlertProps extends BannerBaseProps {
    */
   severity?: BannerAlertSeverity;
 }
+
+/**
+ * Style sheet Banner Alert parameters.
+ */
+export type BannerAlertStyleSheetVars = Pick<BannerAlertProps, 'style'> & {
+  severity: BannerAlertSeverity;
+};

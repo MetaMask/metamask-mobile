@@ -92,6 +92,7 @@ const stories = [
   '../app/component-library/components/Form/TextInput/TextInput.stories',
   '../app/component-library/components/Icons/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
+  '../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',

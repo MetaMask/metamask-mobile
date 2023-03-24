@@ -40,7 +40,9 @@ export const SAMPLE_BANNERTIP_PROPS: BannerTipProps = {
   logoType: DEFAULT_BANNERTIP_LOGOTYPE,
   title: SAMPLE_BANNERTIP_TITLE,
   description: SAMPLE_BANNERTIP_DESCRIPTION,
-  actionButtonLabel: SAMPLE_BANNERTIP_ACTIONBUTTONLABEL,
-  actionButtonOnPress: () => console.log('actionButton clicked!'),
+  actionButtonProps: {
+    label: SAMPLE_BANNERTIP_ACTIONBUTTONLABEL,
+    onPress: () => console.log('actionButton clicked!'),
+  },
   onClose: () => console.log('closeButton clicked!'),
 };
