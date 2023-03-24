@@ -12,6 +12,7 @@ import styleSheet from './BadgeWrapper.styles';
 import {
   DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE,
   DEFAULT_BADGEWRAPPER_BADGEPOSITION,
+  BADGE_WRAPPER_BADGE_TEST_ID,
 } from './BadgeWrapper.constants';
 
 const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
@@ -32,7 +33,11 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   });
 
   return (
-    <View style={styles.base} onLayout={onLayoutContainerSize}>
+    <View
+      style={styles.base}
+      onLayout={onLayoutContainerSize}
+      testID={BADGE_WRAPPER_BADGE_TEST_ID}
+    >
       <View>{children}</View>
       <View style={styles.badge}>{badgeElement}</View>
     </View>
