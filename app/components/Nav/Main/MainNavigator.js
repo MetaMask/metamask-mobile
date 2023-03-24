@@ -71,6 +71,8 @@ import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import URL from 'url-parse';
+import Logger from '../../../util/Logger';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -228,15 +230,20 @@ const HomeTabs = () => {
   const activeConnectedDapp = useSelector((state) => {
     const activeTabUrl = getActiveTabUrl(state);
     if (!isUrl(activeTabUrl)) return [];
-
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
-    const hostname = new URL(activeTabUrl).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-    return permittedAcc;
+    try {
+      const permissionsControllerState =
+        state.engine.backgroundState.PermissionController;
+      const hostname = new URL(activeTabUrl).hostname;
+      const permittedAcc = getPermittedAccountsByHostname(
+        permissionsControllerState,
+        hostname,
+      );
+      return permittedAcc;
+    } catch (error) {
+      Logger.error(error, {
+        message: 'ParseUrl::MainNavigator error while parsing URL',
+      });
+    }
   }, isEqual);
 
   const options = {
