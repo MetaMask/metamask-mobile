@@ -43,7 +43,6 @@ import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
-  NETWORKS_CHAIN_ID,
   PRIVATENETWORK,
   RPC,
 } from '../../../../../constants/network';
@@ -337,9 +336,6 @@ class NetworkSettings extends PureComponent {
           networkInformation.rpcPrefs.blockExplorerUrl;
         ticker = networkInformation.ticker;
         editable = true;
-        if (networkInformation.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET) {
-          editable = false;
-        }
         rpcUrl = network;
       }
       const initialState =

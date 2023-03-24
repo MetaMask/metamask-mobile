@@ -115,37 +115,17 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       marginVertical: 15,
     },
-    verifyContractLink: {
+    nickname: {
+      ...fontStyles.normal,
       textAlign: 'center',
       color: colors.primary.default,
-      paddingVertical: 16,
-      lineHeight: 22,
+      marginBottom: 10,
     },
     actionIcon: {
       color: colors.primary.default,
     },
     buttonColor: {
       color: colors.primary.default,
-    },
-    headerWrapper: {
-      position: 'relative',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginHorizontal: 15,
-      marginVertical: 5,
-      paddingVertical: 10,
-    },
-    icon: {
-      position: 'absolute',
-      right: 0,
-      padding: 10,
-      color: colors.icon.default,
-    },
-    headerText: {
-      color: colors.text.default,
-      textAlign: 'center',
-      fontSize: 15,
     },
   });
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes } from 'react-native';
+import { ViewPropTypes, View, StyleSheet } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/device';
@@ -23,10 +23,6 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 
   const onError = () => setError(true);
 
-  // Video source can be either a number returned by import for bundled files
-  // or an object of the form { uri: 'http://...' } for remote files
-  const source = Number.isInteger(uri) ? uri : { uri };
-
   return (
     <View style={style}>
       {loading && (
@@ -39,7 +35,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
           onLoad={onLoad}
           onError={onError}
           onClose={onClose}
-          source={source}
+          source={{ uri }}
           textTracks={textTracks}
           selectedTextTrack={selectedTextTrack}
         />
@@ -49,7 +45,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
           onError={onError}
           style={style}
           muted
-          source={source}
+          source={{ uri }}
           controls
           textTracks={textTracks}
           selectedTextTrack={selectedTextTrack}
@@ -63,10 +59,8 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
 MediaPlayer.propTypes = {
   /**
    * Media URI
-   * Can be a number returned by import for bundled files
-   * or a string for remote files (http://...)
    */
-  uri: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  uri: PropTypes.string,
   /**
    * Custom style object
    */
@@ -76,11 +70,11 @@ MediaPlayer.propTypes = {
    */
   onClose: PropTypes.func,
   /**
-   * Array of remote possible text tracks to display
+   * Array of possible text tracks to display
    */
   textTracks: PropTypes.arrayOf(PropTypes.object),
   /**
-   * The selected text track to display by id, language, title, index
+   * The selected text track to dispaly by id, language, title, index
    */
   selectedTextTrack: PropTypes.object,
 };

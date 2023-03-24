@@ -7,15 +7,18 @@ Feature: Import Wallet Regression
   Users can use the app to import an existing wallet or create a new one.
 
   Scenario: Get Started
-    Given the Welcome Screen is displayed
+    Given I just installed MetaMask on my device
+
+    When I launch MetaMask mobile app
+    Then "METAMASK" is displayed
+
     When I tap "Get started"
     Then "Wallet setup" is displayed
+
     When I tap "Import using Secret Recovery Phrase"
     Then "Help us improve MetaMask" is displayed
+
     When I tap "I agree"
-    And Terms of Use is displayed
-    And I agree to terms
-    And Terms of Use is not displayed
     Then "Import from seed" is displayed
 
   Scenario Outline: Password Strength
@@ -48,7 +51,7 @@ Feature: Import Wallet Regression
       | fold media south not valid secret recovery phrase pause cloth just raven | Invalid Secret Recovery Phrase                              |
       | fold media south add since false relax immense pause cloth just          | Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words |
 
-  Scenario Outline: Import Wallet
+  Scenario: Import Wallet
     When I type <SRP> in SRP field
     And I type <password> in confirm password field
     And I tap "Import"

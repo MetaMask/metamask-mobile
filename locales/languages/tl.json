@@ -747,7 +747,6 @@
     "send_button": "Magpadala",
     "buy_button": "Bumili",
     "receive_button": "Tumanggap",
-    "portfolio_button": "Portfolio",
     "add_collectible_button": "Magdagdag",
     "info": "Impormasyon",
     "swap": "I-swap",
@@ -2240,26 +2239,5 @@
       "wrong_answer_title": "Hindi! Huwag kailanman ibahagi ang iyong Secret Recovery Phrase sa sinuman, kailanman",
       "wrong_answer_description": "Sinumang nagsasabing nangangailangan ng iyong Secret Recovery Phrase ay nagsisinungaling sa iyo. Kung ibabahagi mo ito sa kanila, magnanakaw sila ng iyong mga ari-arian."
     }
-  },
-  "restore_wallet": {
-    "restore_needed_title": "Kinailangan ang pag-restore",
-    "restore_needed_description": "Nagkaproblema pero huwag mag-alala! Subukan natin muli na i-restore ang iyong wallet.",
-    "restore_needed_action": "I-restore ang wallet"
-  },
-  "wallet_restored": {
-    "wallet_restored_title": "Handa na ang iyong wallet!",
-    "wallet_restored_action": "Magpatuloy sa wallet",
-    "wallet_restored_description_part_one": "Maaaring kailanganin mong manwal na magdagdag muli ng ilan sa mga asset mo, network, at settings.",
-    "wallet_restored_description_part_two": "Maglaan ng sandali para",
-    "wallet_restored_description_link": "i-back up ang iyong Secret Recovery Phrase",
-    "wallet_restored_description_part_three": "sakaling kailangan mong i-restore muli ang iyong wallet sa susunod."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Bagong wallet na kailangan",
-    "new_wallet_needed_create_new_wallet_action": "Gumawa ng bagong wallet",
-    "new_wallet_needed_create_try_again_action": "Subukang mabawi ang wallet",
-    "new_wallet_needed_description_part_one": "Nagkaproblema sa iyong wallet, at kakailanganin mo na gumawa ng bago. Dahil ang mga account mo ay nasa blockchain, ligtas pa rin ang mga iyon. Mga preference, naka-save na network, pangalan ng account at nauugnay na data na naka-save sa iyong device lang ang mawawala.",
-    "new_wallet_needed_description_part_two": "Para i-import ang iyong mga account sa bagong wallet, kailangan mo ang iyong Secret Recovery Phrase. Kung wala kang Secret Recovery Phrase, hindi mo mai-import ang mga account mo.",
-    "new_wallet_needed_description_part_three": "Para maiwasan na mangyari itong muli, tiyakin na laging naka-update sa pinakabagong bersyon ang iyong MetaMask app at OS."
   }
 }

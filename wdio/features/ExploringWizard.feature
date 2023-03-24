@@ -4,7 +4,8 @@
 Feature: Exploring wizard
 
   Scenario: A user should be able to go through the start exploring tutorial
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And the onboarding wizard is visible on wallet view
 
@@ -53,8 +54,9 @@ Feature: Exploring wizard
     Then the onboarding wizard is no longer visible
     And the "Skip" button is no longer visible
 
-  Scenario: A user should be able to tap the Skip butto
-    Given I have imported my wallet
+  Scenario: A user should be able to tap the Skip button and the onboarding tutorial modal should disappear
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And the onboarding wizard is visible on wallet view
 

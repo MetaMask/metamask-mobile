@@ -1,8 +1,8 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import ContractBoxBase from './ContractBoxBase';
-import TEST_ADDRESS from '../../../../constants/address';
 import {
+  CONTRACT_ADDRESS,
   CONTRACT_PET_NAME,
   CONTRACT_LOCAL_IMAGE,
 } from '../ContractBox/ContractBox.constants';
@@ -14,7 +14,7 @@ describe('Component ContractBoxBase', () => {
 
   beforeEach(() => {
     props = {
-      contractAddress: TEST_ADDRESS,
+      contractAddress: CONTRACT_ADDRESS,
       contractPetName: CONTRACT_PET_NAME,
       contractLocalImage: CONTRACT_LOCAL_IMAGE,
     };

@@ -36,16 +36,9 @@ const ropstenLogo = require('../../images/ropsten-logo-dark.png');
 const kovanLogo = require('../../images/kovan-logo-dark.png');
 const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
-const lineaLogo = require('../../images/linea-logo-dark.png');
-
 /* eslint-enable */
 import PopularList from './customNetworks';
 import { strings } from '../../../locales/i18n';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-  getEtherscanTransactionUrl,
-} from '../etherscan';
 
 /**
  * List of the supported networks
@@ -118,8 +111,6 @@ const NetworkList = {
 };
 
 const NetworkListKeys = Object.keys(NetworkList);
-
-export const shouldShowZKEVM = new Date().getTime() > Date.UTC(2023, 2, 28, 8);
 
 export default NetworkList;
 
@@ -406,58 +397,4 @@ export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
     buildUnserializedTransaction(txMeta).serialize();
   const result = await contract.getL1Fee(serializedTransaction);
   return result?.[0]?.toString(16);
-};
-
-/**
- * Returns block explorer address url and title by network
- *
- * @param {string} network Network type
- * @param {string} address Ethereum address to be used on the link
- * @param {string} rpcBlockExplorer rpc block explorer base url
- */
-export const getBlockExplorerAddressUrl = (
-  network,
-  address,
-  rpcBlockExplorer = null,
-) => {
-  const isCustomRpcBlockExplorerNetwork = network === RPC;
-
-  if (isCustomRpcBlockExplorerNetwork) {
-    if (!rpcBlockExplorer) return { url: null, title: null };
-
-    const url = `${rpcBlockExplorer}/address/${address}`;
-    const title = new URL(rpcBlockExplorer).hostname;
-    return { url, title };
-  }
-
-  const url = getEtherscanAddressUrl(network, address);
-  const title = getEtherscanBaseUrl(network).replace('https://', '');
-  return { url, title };
-};
-
-/**
- * Returns block explorer transaction url and title by network
- *
- * @param {string} network Network type
- * @param {string} transactionHash hash of the transaction to be used on the link
- * @param {string} rpcBlockExplorer rpc block explorer base url
- */
-export const getBlockExplorerTxUrl = (
-  network,
-  transactionHash,
-  rpcBlockExplorer = null,
-) => {
-  const isCustomRpcBlockExplorerNetwork = network === RPC;
-
-  if (isCustomRpcBlockExplorerNetwork) {
-    if (!rpcBlockExplorer) return { url: null, title: null };
-
-    const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
-    const title = new URL(rpcBlockExplorer).hostname;
-    return { url, title };
-  }
-
-  const url = getEtherscanTransactionUrl(network, transactionHash);
-  const title = getEtherscanBaseUrl(network).replace('https://', '');
-  return { url, title };
 };

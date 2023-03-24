@@ -1,52 +1,36 @@
 import TestHelpers from '../../helpers';
 import { strings } from '../../../locales/i18n';
-import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
-import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
-import {
-  BROWSER_SCREEN_ID,
-  HOME_BUTTON,
-  TABS_BUTTON,
-  BACK_BUTTON,
-  OPTIONS_BUTTON,
-  SEARCH_BUTTON,
-} from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
-import {
-  ADD_BOOKMARKS_SCREEN_ID,
-  ADD_BOOKMARKS_BUTTON_ID,
-} from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
-import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+
+export const BROWSER_SCREEN_ID = 'browser-screen';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
+const ADD_BOOKMARKS_SCREEN_ID = 'add-bookmark-screen';
+const ADD_BOOKMARKS_BUTTON_ID = 'add-bookmark-confirm-button';
 const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
+const BOTTOM_NAVIGATION_SEARCH_BAR_ID = 'search-button';
+const HOME_BUTTON_ID = 'home-button';
+const GO_BACK_BUTTON_ID = 'go-back-button';
+const OPTIONS_BUTTON_ID = 'options-button';
+const URL_INPUT_BOX_ID = 'url-input';
 const RETURN_HOME_TEXT = strings('webview_error.return_home');
 const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
-const REVOKE_ALL_ACCOUNTS_TEXT = strings('toast.revoked_all');
-const CONNECTED_ACCOUNTS_TEXT = strings('toast.connected_and_active');
 
-export default class Browser {
+export class Browser {
   static async tapUrlInputBox() {
     await TestHelpers.tapByText('home.metamask.io');
     await TestHelpers.delay(1000);
   }
 
   static async tapBottomSearchBar() {
-    await TestHelpers.tap(SEARCH_BUTTON);
+    await TestHelpers.tap(BOTTOM_NAVIGATION_SEARCH_BAR_ID);
   }
 
   static async tapOptionsButton() {
-    await TestHelpers.waitAndTap(OPTIONS_BUTTON);
+    await TestHelpers.waitAndTap(OPTIONS_BUTTON_ID);
   }
 
-  static async tapOpenAllTabsButton() {
-    await TestHelpers.waitAndTap(TABS_BUTTON);
-  }
-
-  static async tapOpenNewTabButton() {
-    await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
-  }
-  static async tapNetworkAvatarButtonOnBrowser() {
-    await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
+  static async tapOpenTabButton() {
+    await TestHelpers.tapByText('New tab');
   }
 
   static async tapAddToFavoritesButton() {
@@ -57,7 +41,7 @@ export default class Browser {
     await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
   }
   static async tapHomeButton() {
-    await TestHelpers.tap(HOME_BUTTON);
+    await TestHelpers.tap(HOME_BUTTON_ID);
   }
 
   static async tapBackToSafetyButton() {
@@ -68,7 +52,7 @@ export default class Browser {
   }
   static async tapBrowserBackButton() {
     // This action is android specific
-    await TestHelpers.tap(BACK_BUTTON);
+    await TestHelpers.tap(GO_BACK_BUTTON_ID);
   }
 
   static async navigateToURL(url) {
@@ -119,19 +103,5 @@ export default class Browser {
 
   static async isBackToSafetyButtonVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible('Back to safety');
-  }
-  static async isAccountToastVisible(accountName) {
-    const connectedAccountMessage = `${accountName} ${CONNECTED_ACCOUNTS_TEXT}`;
-    await TestHelpers.checkIfElementHasString(
-      NOTIFICATION_TITLE,
-      connectedAccountMessage,
-    );
-  }
-
-  static async isRevokeAllAccountToastVisible() {
-    await TestHelpers.checkIfElementHasString(
-      NOTIFICATION_TITLE,
-      REVOKE_ALL_ACCOUNTS_TEXT,
-    );
   }
 }

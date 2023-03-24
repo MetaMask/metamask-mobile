@@ -104,9 +104,6 @@ const keychainMock = {
     IRIS: 'Iris',
   },
   getSupportedBiometryType: jest.fn().mockReturnValue('FaceID'),
-  setInternetCredentials: jest
-    .fn(('server', 'username', 'password'))
-    .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
 };
 
 jest.mock('react-native-keychain', () => keychainMock);

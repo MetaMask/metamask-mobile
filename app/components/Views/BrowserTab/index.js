@@ -851,10 +851,13 @@ export const BrowserTab = (props) => {
         return;
       }
       if (data.name) {
-        const origin = new URL(nativeEvent.url).origin;
         backgroundBridges.current.forEach((bridge) => {
-          const bridgeOrigin = new URL(bridge.url).origin;
-          bridgeOrigin === origin && bridge.onMessage(data);
+          if (bridge.isMainFrame) {
+            const { origin } = data && data.origin && new URL(data.origin);
+            bridge.url === origin && bridge.onMessage(data);
+          } else {
+            bridge.url === data.origin && bridge.onMessage(data);
+          }
         });
         return;
       }

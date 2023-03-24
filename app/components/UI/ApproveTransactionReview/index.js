@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
   safeToChecksumAddress,
+  renderShortAddress,
   getAddressAccountType,
   getTokenDetails,
 } from '../../../util/address';
@@ -22,6 +23,7 @@ import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN } from '@metamask/controller-utils';
 import { fromTokenMinimalUnit } from '../../../util/number';
+import EthereumAddress from '../EthereumAddress';
 import {
   getTicker,
   getNormalizedTxState,
@@ -32,6 +34,8 @@ import {
   minimumTokenAllowance,
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
+import Feather from 'react-native-vector-icons/Feather';
+import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -51,7 +55,6 @@ import {
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -61,20 +64,19 @@ import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
 import { allowedToBuy } from '../FiatOnRampAggregator';
+import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import createStyles from './styles';
 import {
   selectChainId,
   selectNetwork,
   selectProviderType,
   selectTicker,
-  selectRpcTarget,
 } from '../../../selectors/networkController';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
-import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
-import ShowBlockExplorer from './ShowBlockExplorer';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -198,9 +200,9 @@ class ApproveTransactionReview extends PureComponent {
      */
     setTransactionObject: PropTypes.func,
     /**
-     * toggle nickname modal
+     * Update contract nickname
      */
-    toggleModal: PropTypes.func,
+    onUpdateContractNickname: PropTypes.func,
     /**
      * The saved nickname of the address
      */
@@ -228,15 +230,6 @@ class ApproveTransactionReview extends PureComponent {
      */
     eip1559GasObject: PropTypes.object,
     showBlockExplorer: PropTypes.func,
-    /**
-     * function to toggle the verify contract details modal
-     */
-    showVerifyContractDetails: PropTypes.func,
-    savedContactListToArray: PropTypes.array,
-    closeVerifyContractDetails: PropTypes.func,
-    shouldVerifyContractDetails: PropTypes.bool,
-    frequentRpcList: PropTypes.array,
-    providerRpcTarget: PropTypes.string,
   };
 
   state = {
@@ -256,8 +249,6 @@ class ApproveTransactionReview extends PureComponent {
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
     fetchingUpdateDone: false,
-    showBlockExplorerModal: false,
-    address: '',
   };
 
   customSpendLimitInput = React.createRef();
@@ -265,9 +256,8 @@ class ApproveTransactionReview extends PureComponent {
     WALLET_CONNECT_ORIGIN,
   );
 
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  originIsMMSDKRemoteConn =
+    this.props.transaction.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
@@ -304,7 +294,7 @@ class ApproveTransactionReview extends PureComponent {
     if (this.originIsWalletConnect) {
       host = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
     } else if (this.originIsMMSDKRemoteConn) {
-      host = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
+      host = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
     } else {
       host = getHost(origin);
     }
@@ -488,8 +478,9 @@ class ApproveTransactionReview extends PureComponent {
     this.setState({ spendLimitCustomValue: value });
   };
 
-  copyContractAddress = async (address) => {
-    await ClipboardManager.setString(address);
+  copyContractAddress = async () => {
+    const { transaction } = this.props;
+    await ClipboardManager.setString(transaction.to);
     this.props.showAlert({
       isVisible: true,
       autodismiss: 1500,
@@ -628,6 +619,8 @@ class ApproveTransactionReview extends PureComponent {
     return createStyles(colors);
   };
 
+  toggleDisplay = () => this.props.onUpdateContractNickname();
+
   renderDetails = () => {
     const {
       originalApproveAmount,
@@ -655,7 +648,6 @@ class ApproveTransactionReview extends PureComponent {
       eip1559GasObject,
       updateTransactionState,
       showBlockExplorer,
-      showVerifyContractDetails,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -767,14 +759,35 @@ class ApproveTransactionReview extends PureComponent {
                     }`,
                   )}`}
                 </Text>
-                <ButtonLink
-                  variant={TextVariant.BodyMD}
-                  onPress={showVerifyContractDetails}
-                  style={styles.verifyContractLink}
-                  label={strings(
-                    'contract_allowance.token_allowance.verify_third_party_details',
-                  )}
-                />
+                <View style={styles.contactWrapper}>
+                  <Text>{strings('nickname.contract')}: </Text>
+                  <TouchableOpacity
+                    style={styles.addressWrapper}
+                    onPress={this.copyContractAddress}
+                    testID={'contract-address'}
+                  >
+                    <Identicon
+                      address={this.state.transaction.to}
+                      diameter={20}
+                    />
+                    {this.props.nicknameExists ? (
+                      <Text numberOfLines={1} style={styles.address}>
+                        {this.props.nickname}
+                      </Text>
+                    ) : (
+                      <EthereumAddress
+                        address={this.state.transaction.to}
+                        style={styles.address}
+                        type={'short'}
+                      />
+                    )}
+                    <Feather name="copy" size={18} style={styles.actionIcon} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.nickname} onPress={this.toggleDisplay}>
+                  {this.props.nicknameExists ? 'Edit' : 'Add'}{' '}
+                  {strings('nickname.nickname')}
+                </Text>
                 <View style={styles.paddingHorizontal}>
                   <View style={styles.section}>
                     <TransactionReview
@@ -869,7 +882,7 @@ class ApproveTransactionReview extends PureComponent {
         copyContractAddress={this.copyContractAddress}
         nickname={nickname}
         nicknameExists={nicknameExists}
-        address={to}
+        address={renderShortAddress(to)}
         host={host}
         allowance={allowance}
         tokenSymbol={tokenSymbol}
@@ -879,83 +892,6 @@ class ApproveTransactionReview extends PureComponent {
         tokenStandard={tokenStandard}
         method={method}
         displayViewData={viewData}
-      />
-    );
-  };
-
-  renderVerifyContractDetails = () => {
-    const {
-      providerType,
-      providerRpcTarget,
-      savedContactListToArray,
-      toggleModal,
-      closeVerifyContractDetails,
-      frequentRpcList,
-    } = this.props;
-    const {
-      transaction: { to },
-      showBlockExplorerModal,
-      spenderAddress,
-      token: { tokenSymbol },
-    } = this.state;
-
-    const toggleBlockExplorerModal = (address) => {
-      closeVerifyContractDetails();
-      this.setState({
-        showBlockExplorerModal: !showBlockExplorerModal,
-        address,
-      });
-    };
-
-    const showNickname = (address) => {
-      toggleModal(address);
-    };
-
-    return (
-      <VerifyContractDetails
-        closeVerifyContractView={closeVerifyContractDetails}
-        toggleBlockExplorer={toggleBlockExplorerModal}
-        contractAddress={spenderAddress}
-        tokenAddress={to}
-        showNickname={showNickname}
-        savedContactListToArray={savedContactListToArray}
-        copyAddress={this.copyContractAddress}
-        providerType={providerType}
-        tokenSymbol={tokenSymbol}
-        providerRpcTarget={providerRpcTarget}
-        frequentRpcList={frequentRpcList}
-        tokenStandard={this.state.token?.tokenStandard}
-      />
-    );
-  };
-
-  renderBlockExplorerView = () => {
-    const {
-      providerType,
-      showVerifyContractDetails,
-      frequentRpcList,
-      providerRpcTarget,
-    } = this.props;
-    const { showBlockExplorerModal, address } = this.state;
-
-    const styles = this.getStyles();
-    const closeModal = () => {
-      showVerifyContractDetails();
-      this.setState({
-        showBlockExplorerModal: !showBlockExplorerModal,
-      });
-    };
-
-    return (
-      <ShowBlockExplorer
-        setIsBlockExplorerVisible={closeModal}
-        type={providerType}
-        address={address}
-        headerWrapperStyle={styles.headerWrapper}
-        headerTextStyle={styles.headerText}
-        iconStyle={styles.icon}
-        providerRpcTarget={providerRpcTarget}
-        frequentRpcList={frequentRpcList}
       />
     );
   };
@@ -1025,18 +961,12 @@ class ApproveTransactionReview extends PureComponent {
   }
 
   render = () => {
-    const { viewDetails, editPermissionVisible, showBlockExplorerModal } =
-      this.state;
-    const { isSigningQRObject, shouldVerifyContractDetails } = this.props;
-
+    const { viewDetails, editPermissionVisible } = this.state;
+    const { isSigningQRObject } = this.props;
     return (
       <View>
         {viewDetails
           ? this.renderTransactionReview()
-          : shouldVerifyContractDetails
-          ? this.renderVerifyContractDetails()
-          : showBlockExplorerModal
-          ? this.renderBlockExplorerView()
           : editPermissionVisible
           ? this.renderEditPermission()
           : isSigningQRObject
@@ -1050,18 +980,12 @@ class ApproveTransactionReview extends PureComponent {
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   ticker: selectTicker(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  provider: state.engine.backgroundState.NetworkController.provider,
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
   ).length,
   tokensLength: state.engine.backgroundState.TokensController.tokens.length,
   providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
   network: selectNetwork(state),

@@ -21,11 +21,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  URL_CLEAR_ICON,
-  URL_INPUT_BOX_ID,
-  CANCEL_BUTTON_ON_BROWSER_ID,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
+import { URL_CLEAR_ICON } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -84,7 +80,7 @@ const BrowserUrlModal = () => {
             ref={inputRef}
             autoCapitalize="none"
             autoCorrect={false}
-            {...generateTestId(Platform, URL_INPUT_BOX_ID)}
+            testID={'url-input'}
             onChangeText={setAutocompleteValue}
             onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
             placeholder={strings('autocomplete.placeholder')}
@@ -112,7 +108,7 @@ const BrowserUrlModal = () => {
         </View>
         <TouchableOpacity
           style={styles.cancelButton}
-          {...generateTestId(Platform, CANCEL_BUTTON_ON_BROWSER_ID)}
+          testID={'cancel-url-button'}
           onPress={triggerClose}
         >
           <Text style={styles.cancelButtonText}>

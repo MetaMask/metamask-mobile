@@ -19,11 +19,10 @@ import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   isDefaultMainnet,
-  shouldShowZKEVM,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import { MAINNET, NETWORKS_CHAIN_ID, RPC } from '../../../../constants/network';
+import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
@@ -35,7 +34,6 @@ import {
   AvatarVariants,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -244,7 +242,7 @@ class NetworksSettings extends PureComponent {
                     </View>
                   ))}
                 <Text style={styles.networkLabel}>{name}</Text>
-                {(network !== LINEA_TESTNET_RPC_URL || !isCustomRPC) && (
+                {!isCustomRPC && (
                   <FontAwesome
                     name="lock"
                     size={20}
@@ -269,13 +267,11 @@ class NetworksSettings extends PureComponent {
 
   renderRpcNetworks = () => {
     const { frequentRpcList } = this.props;
-    return frequentRpcList
-      .filter(({ chainId }) => chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET)
-      .map(({ rpcUrl, nickname, chainId }, i) => {
-        const { name } = { name: nickname || rpcUrl };
-        const image = getNetworkImageSource({ chainId });
-        return this.networkElement(name, image, i, rpcUrl, true);
-      });
+    return frequentRpcList.map(({ rpcUrl, nickname, chainId }, i) => {
+      const { name } = { name: nickname || rpcUrl };
+      const image = getNetworkImageSource({ chainId });
+      return this.networkElement(name, image, i, rpcUrl, true);
+    });
   };
 
   renderRpcNetworksView = () => {
@@ -283,11 +279,7 @@ class NetworksSettings extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (
-      frequentRpcList.filter(
-        ({ chainId }) => chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      ).length > 0
-    ) {
+    if (frequentRpcList.length > 0) {
       return (
         <View testID={'rpc-networks'}>
           <Text style={styles.sectionLabel}>
@@ -296,23 +288,6 @@ class NetworksSettings extends PureComponent {
           {this.renderRpcNetworks()}
         </View>
       );
-    }
-  };
-
-  renderNonInfuraNetworksView = () => {
-    const { frequentRpcList } = this.props;
-    if (
-      frequentRpcList.filter(
-        ({ chainId }) => chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      ).length > 0
-    ) {
-      return frequentRpcList
-        .filter(({ chainId }) => chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET)
-        .map(({ rpcUrl, nickname, chainId }, i) => {
-          const { name } = { name: nickname || rpcUrl };
-          const image = getNetworkImageSource({ chainId });
-          return this.networkElement(name, image, i, rpcUrl, true);
-        });
     }
   };
 
@@ -433,7 +408,6 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.test_network_name')}
               </Text>
               {this.renderOtherNetworks()}
-              {shouldShowZKEVM && this.renderNonInfuraNetworksView()}
             </>
           )}
         </ScrollView>

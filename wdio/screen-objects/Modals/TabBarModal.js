@@ -7,7 +7,7 @@ import Gestures from '../../helpers/Gestures';
 
 class TabBarModal {
   get walletButton() {
-    return Selectors.getXpathElementByContentDescription(TAB_BAR_WALLET_BUTTON);
+    return Selectors.getElementByPlatform(TAB_BAR_WALLET_BUTTON);
   }
 
   get browserButton() {
@@ -15,7 +15,7 @@ class TabBarModal {
   }
 
   async tapWalletButton() {
-    await Gestures.tap(this.walletButton);
+    await Gestures.waitAndTap(this.walletButton);
   }
 
   async tapBrowserButton() {

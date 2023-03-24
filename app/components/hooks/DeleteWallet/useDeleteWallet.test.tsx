@@ -14,6 +14,7 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
+
 describe('useDeleteWallet', () => {
   test('it should provide two outputs of type function', () => {
     const { result } = renderHook(() => useDeleteWallet());
@@ -32,7 +33,7 @@ describe('useDeleteWallet', () => {
     );
     const resetStateSpy = jest.spyOn(Engine, 'resetState');
     await resetWalletState();
-    expect(resetStateSpy).toHaveBeenCalledTimes(1);
+    expect(resetStateSpy).toHaveBeenCalled();
     expect(newWalletAndKeychain).toHaveBeenCalledWith('123', {
       currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
     });

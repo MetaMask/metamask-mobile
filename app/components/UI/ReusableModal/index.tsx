@@ -53,11 +53,10 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
   onDismiss?: (hasPendingAction: boolean) => void;
-  isDismissable?: boolean;
 }
 
 const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
-  const { style, children, onDismiss, isDismissable = true } = props;
+  const { style, children, onDismiss } = props;
   const topOffset = 0;
   const bottomOffset = screenHeight;
   const navigation = useNavigation();
@@ -92,8 +91,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
   const velocityY = useMemo(() => new Value(0), []);
   const translationY = useMemo(() => new Value(0), []);
   const gestureHandler = useMemo(
-    () =>
-      isDismissable ? onGestureEvent({ translationY, state, velocityY }) : {},
+    () => onGestureEvent({ translationY, state, velocityY }),
     [],
   );
   const clock = useMemo(() => new Animated.Clock(), []);
@@ -235,10 +233,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
       <PanGestureHandler {...gestureHandler}>
         <Animated.View style={[animatedStyles.modal, style]}>
           <Animated.View style={animatedStyles.overlayBackgroundTouchable}>
-            <TouchableOpacity
-              style={styles.fill}
-              onPress={isDismissable ? dismissOverlay : () => {}}
-            />
+            <TouchableOpacity style={styles.fill} onPress={dismissOverlay} />
           </Animated.View>
           {children}
         </Animated.View>

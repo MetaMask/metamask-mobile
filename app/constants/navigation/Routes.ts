@@ -23,7 +23,6 @@ const Routes = {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
     MODAL_CONFIRMATION: 'ModalConfirmation',
-    MODAL_MANDATORY: 'ModalMandatory',
     WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
@@ -54,8 +53,6 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
-    SDK_LOADING: 'SDKLoading',
-    SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
   },
@@ -71,11 +68,6 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
-  },
-  VAULT_RECOVERY: {
-    RESTORE_WALLET: 'RestoreWallet',
-    WALLET_RESTORED: 'WalletRestored',
-    WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
 };
 
