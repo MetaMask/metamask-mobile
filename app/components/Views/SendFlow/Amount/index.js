@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { fontStyles } from '../../../../styles/common';
 import {
   StyleSheet,
   Text,
@@ -12,14 +13,6 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
-import { BN } from 'ethereumjs-util';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Modal from 'react-native-modal';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { fontStyles } from '../../../../styles/common';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   setSelectedAsset,
   prepareTransaction,
@@ -27,7 +20,10 @@ import {
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
-
+import PropTypes from 'prop-types';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Modal from 'react-native-modal';
 import TokenImage from '../../../UI/TokenImage';
 import {
   renderFromTokenMinimalUnit,
@@ -53,15 +49,18 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN, BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
-import { trackLegacyEvent } from '../../../../util/analyticsV2';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
+import { BN } from 'ethereumjs-util';
+import Analytics from '../../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { renderShortText } from '../../../../util/general';
@@ -83,6 +82,7 @@ import {
   AMOUNT_ERROR,
   FIAT_CONVERSION_WARNING_TEXT,
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
+  CURRENCY_SWITCH,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
@@ -615,9 +615,10 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
-        network: providerType,
-      });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
+        { network: providerType },
+      );
     });
 
     setSelectedAsset(selectedAsset);
@@ -1126,10 +1127,14 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    this.setState({
-      internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
-    });
-    this.onInputChange(inputValueConversion);
+    this.setState(
+      {
+        internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
+      },
+      () => {
+        this.onInputChange(inputValueConversion);
+      },
+    );
   };
 
   renderTokenInput = () => {
@@ -1174,6 +1179,7 @@ class Amount extends PureComponent {
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
+                {...generateTestId(Platform, CURRENCY_SWITCH)}
               >
                 <Text
                   style={styles.textSwitch}
