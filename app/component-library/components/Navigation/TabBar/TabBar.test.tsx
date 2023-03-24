@@ -85,6 +85,11 @@ describe('TabBar', () => {
     });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));
-    expect(setActionSheetVisible).toHaveBeenCalledWith(true);
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      {
+        screen: Routes.MODAL.WALLET_ACTIONS,
+      },
+    );
   });
 });
