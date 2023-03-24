@@ -3,53 +3,35 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { BadgeVariants } from '../../Badge.types';
-import {
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { BadgeVariant } from '../../Badge.types';
 
 // Internal dependencies.
 import BadgeStatus from './BadgeStatus';
-import { BADGE_NETWORK_TEST_ID } from '../../Badge.constants';
-import { BadgeStatusPosition } from './BadgeStatus.types';
-
-describe('BadgeStatus - snapshots', () => {
-  it('should render badge network with default position correctly', () => {
-    const wrapper = shallow(
-      <BadgeStatus
-        variant={BadgeVariants.Network}
-        name={TEST_NETWORK_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render badge network with bottom right position correctly', () => {
-    const wrapper = shallow(
-      <BadgeStatus
-        variant={BadgeVariants.Network}
-        name={TEST_NETWORK_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
-        position={BadgeStatusPosition.BottomRight}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+import {
+  BADGE_STATUS_TEST_ID,
+  SAMPLE_BADGESTATUS_PROPS,
+} from './BadgeStatus.constants';
 
 describe('BadgeStatus', () => {
-  it('should render badge network with the given content', () => {
+  it('should render badge status correctly', () => {
     const wrapper = shallow(
       <BadgeStatus
-        variant={BadgeVariants.Network}
-        name={TEST_NETWORK_NAME}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+        variant={BadgeVariant.Status}
+        {...SAMPLE_BADGESTATUS_PROPS}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render badge status', () => {
+    const wrapper = shallow(
+      <BadgeStatus
+        variant={BadgeVariant.Status}
+        {...SAMPLE_BADGESTATUS_PROPS}
       />,
     );
 
     const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_NETWORK_TEST_ID,
+      (node) => node.prop('testID') === BADGE_STATUS_TEST_ID,
     );
     expect(contentElement.exists()).toBe(true);
   });

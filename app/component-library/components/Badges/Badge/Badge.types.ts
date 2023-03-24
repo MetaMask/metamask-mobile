@@ -5,7 +5,7 @@ import { BadgeStatusProps } from './variants/BadgeStatus';
 /**
  * Badge variants.
  */
-export enum BadgeVariants {
+export enum BadgeVariant {
   Network = 'network',
   Status = 'status',
 }
@@ -13,4 +13,9 @@ export enum BadgeVariants {
 /**
  * Badge Account component props.
  */
-export type BadgeProps = BadgeNetworkProps | BadgeStatusProps;
+export type BadgeProps = (BadgeNetworkProps | BadgeStatusProps) & {
+  /**
+   * Optional prop to control the variant of Badge.
+   */
+  variant: BadgeVariant;
+};

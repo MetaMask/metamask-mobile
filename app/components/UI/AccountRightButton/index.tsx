@@ -28,7 +28,7 @@ import {
   getNetworkNameFromProvider,
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
 
@@ -147,7 +147,7 @@ const AccountRightButton = ({
         isNetworkVisible ? (
           <BadgeWrapper
             badgeProps={{
-              variant: BadgeVariants.Network,
+              variant: BadgeVariant.Network,
               name: networkName,
               imageSource: networkImageSource,
             }}

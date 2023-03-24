@@ -2,7 +2,7 @@
 import { ColorValue } from 'react-native';
 
 // External dependencies.
-import { BadgeVariants } from '../../Badge.types';
+import { BadgeVariant } from '../../Badge.types';
 import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
 
 /**
@@ -18,16 +18,26 @@ export enum BadgeStatusState {
  */
 export interface BadgeStatusProps extends Omit<BadgeBaseProps, 'children'> {
   /**
-   * Variant of badge.
+   * Optional prop to control the variant of badge.
    */
-  variant: BadgeVariants.Status;
+  variant: BadgeVariant.Status;
   /**
-   * Status of BadgeStatus.
-   * @default BadgeStatusState.Connected
+   * Optional prop to control the status of BadgeStatus.
+   * @default BadgeStatusState.Disconnected
    */
   state?: BadgeStatusState;
   /**
-   * Color of the border.
+   * Optional prop to change the color of the border.
    */
   borderColor?: ColorValue;
 }
+
+/**
+ * Style sheet BadgeStatus parameters.
+ */
+export type BadgeStatusStyleSheetVars = Pick<
+  BadgeStatusProps,
+  'style' | 'borderColor'
+> & {
+  state: BadgeStatusState;
+};

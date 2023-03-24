@@ -5,7 +5,10 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import { BadgeStatusState } from './BadgeStatus.types';
+import {
+  BadgeStatusState,
+  BadgeStatusStyleSheetVars,
+} from './BadgeStatus.types';
 
 /**
  * Style sheet function for BadgeStatus component.
@@ -15,7 +18,10 @@ import { BadgeStatusState } from './BadgeStatus.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: BadgeStatusStyleSheetVars;
+}) => {
   const { theme, vars } = params;
   const { style, state, borderColor } = vars;
   let stateColor;

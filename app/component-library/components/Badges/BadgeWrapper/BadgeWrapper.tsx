@@ -1,40 +1,40 @@
 /* eslint-disable react/prop-types */
 // Third library dependencies.
-import React, { useState } from 'react';
-import { View, LayoutChangeEvent } from 'react-native';
+import React from 'react';
+import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import { useComponentSize, useStyles } from '../../../hooks';
 
 // Internal dependencies
 import { BadgeWrapperProps } from './BadgeWrapper.types';
 import styleSheet from './BadgeWrapper.styles';
+import {
+  DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE,
+  DEFAULT_BADGEWRAPPER_BADGEPOSITION,
+} from './BadgeWrapper.constants';
 
 const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
-  anchorElementShape,
-  badgePosition,
-  badgePositionObj,
+  anchorElementShape = DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE,
+  badgePosition = DEFAULT_BADGEWRAPPER_BADGEPOSITION,
   children,
-  badge,
+  badgeElement,
   style,
 }) => {
-  const [elementHeight, setElementHeight] = useState(0);
-  const updateElementHeight = (e: LayoutChangeEvent) => {
-    setElementHeight(e.nativeEvent.layout.height);
-  };
+  const { size: containerSize, onLayout: onLayoutContainerSize } =
+    useComponentSize();
 
   const { styles } = useStyles(styleSheet, {
     style,
     anchorElementShape,
     badgePosition,
-    badgePositionObj,
-    elementHeight,
+    containerSize,
   });
 
   return (
-    <View style={styles.base} onLayout={updateElementHeight}>
+    <View style={styles.base} onLayout={onLayoutContainerSize}>
       <View>{children}</View>
-      <View style={styles.badge}>{badge}</View>
+      <View style={styles.badge}>{badgeElement}</View>
     </View>
   );
 };

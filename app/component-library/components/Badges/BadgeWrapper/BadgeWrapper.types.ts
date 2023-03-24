@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { ReactElement, JSXElementConstructor } from 'react';
+import React from 'react';
 import { ViewProps } from 'react-native';
 
 /**
@@ -35,19 +35,15 @@ export interface BadgePositionObj {
  */
 export interface BadgeWrapperProps extends ViewProps {
   /**
-   * Shape of the element the badge will anchor to.
+   * Optional prop to control the shape of the element the badge will anchor to.
    * @default BadgeAnchorElementShape.Circular
    */
   anchorElementShape?: BadgeAnchorElementShape;
   /**
-   * Position of the badge.
+   * Optional prop to control the position of the badge.
    * @default BadgePosition.TopRight
    */
-  badgePosition?: BadgePosition;
-  /**
-   * Optional position obj prop to override the badge position.
-   */
-  badgePositionObj?: BadgePositionObj;
+  badgePosition?: BadgePosition | BadgePositionObj;
   /**
    * The children element that the badge will attach itself to.
    */
@@ -55,5 +51,14 @@ export interface BadgeWrapperProps extends ViewProps {
   /**
    * Any element that will be placed in the position of the badge.
    */
-  badge: ReactElement<any, string | JSXElementConstructor<any>>;
+  badgeElement: React.ReactNode;
 }
+
+/**
+ * Style sheet BadgeWrapper parameters.
+ */
+export type BadgeWrapperStyleSheetVars = Pick<BadgeWrapperProps, 'style'> & {
+  anchorElementShape: BadgeAnchorElementShape;
+  badgePosition: BadgePosition | BadgePositionObj;
+  containerSize: { width: number; height: number } | null;
+};

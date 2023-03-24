@@ -6,6 +6,7 @@ import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
 import { DEFAULT_BADGENETWORK_NETWORKICON_SIZE } from './BadgeNetwork.constants';
+import { BadgeNetworkStyleSheetVars } from './BadgeNetwork.types';
 
 /**
  * Style sheet function for BadgeNetwork component.
@@ -15,7 +16,10 @@ import { DEFAULT_BADGENETWORK_NETWORKICON_SIZE } from './BadgeNetwork.constants'
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: BadgeNetworkStyleSheetVars;
+}) => {
   const { vars } = params;
   const { style, containerSize } = vars;
   let scaleRatio = 1;
