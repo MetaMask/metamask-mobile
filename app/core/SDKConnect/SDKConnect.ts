@@ -32,7 +32,7 @@ import {
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import Routes from '../../../app/constants/navigation/Routes';
-import generateOTP from './generateOTP.util';
+import generateOTP from './utils/generateOTP.util';
 import {
   wait,
   waitForEmptyRPCQueue,
@@ -40,7 +40,7 @@ import {
   addToRpcQeue,
   resetRPCQueue,
   removeFromRPCQueue,
-} from './wait.util';
+} from './utils/wait.util';
 
 import {
   mediaDevices,
@@ -215,12 +215,12 @@ export class Connection extends EventEmitter2 {
         version,
       },
       context: AppConstants.MM_SDK.PLATFORM,
-      analytics: true,
+      analytics: false,
       logging: {
-        eciesLayer: true,
-        keyExchangeLayer: true,
-        remoteLayer: true,
-        serviceLayer: true,
+        eciesLayer: false,
+        keyExchangeLayer: false,
+        remoteLayer: false,
+        serviceLayer: false,
       },
       storage: {
         debug: true,
@@ -671,6 +671,7 @@ export class SDKConnect extends EventEmitter2 {
     origin,
   }: ConnectionProps) {
     const existingConnection = this.connected[id] !== undefined;
+
     if (existingConnection && !this.paused) {
       // if paused --- wait for resume --- otherwise reconnect.
       this.reconnect({ channelId: id });
@@ -792,7 +793,8 @@ export class SDKConnect extends EventEmitter2 {
 
   public resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
-    if (session && !session?.isConnected() && !this.connecting[channelId]) {
+
+    if (session && !session?.isConnected() && this.connecting[channelId]) {
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
@@ -999,7 +1001,7 @@ export class SDKConnect extends EventEmitter2 {
     this.emit('refresh');
   }
 
-  private _handleAppState(appState: string) {
+  private async _handleAppState(appState: string) {
     this.appState = appState;
     if (appState === 'active') {
       // Reset wentBack state
@@ -1009,6 +1011,8 @@ export class SDKConnect extends EventEmitter2 {
       } else if (this.timeout) clearTimeout(this.timeout);
 
       if (this.paused) {
+        // Add delay in case app opened from deeplink so that it doesn't create 2 connections.
+        await wait(1000);
         this.reconnected = false;
         for (const id in this.connected) {
           this.resume({ channelId: id });
