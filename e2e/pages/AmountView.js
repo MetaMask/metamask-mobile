@@ -26,10 +26,7 @@ export default class AmountView {
   }
 
   static isTransactionAmountCorrect(amount) {
-    return TestHelpers.checkIfHasText(
-      TRANSACTION_AMOUNT_INPUT,
-      amount,
-    );
+    return TestHelpers.checkIfHasText(TRANSACTION_AMOUNT_INPUT, amount);
   }
 
   static async tapCurrencySwitch() {

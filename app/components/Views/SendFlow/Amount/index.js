@@ -858,7 +858,7 @@ class Amount extends PureComponent {
       inputValue = inputValue.replace(',', '.');
     }
     // Remove other non numeric characters
-    inputValue = inputValue && inputValue.replace(/[^0-9.]/g, '');    
+    inputValue = inputValue && inputValue.replace(/[^0-9.]/g, '');
     const processedTicker = getTicker(ticker);
     const processedInputValue = isDecimal(inputValue)
       ? handleWeiNumber(inputValue)
