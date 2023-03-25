@@ -781,8 +781,17 @@ class Confirm extends PureComponent {
           WalletDevice.MM_MOBILE,
         );
 
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        KeyringTypes.ledger,
+      ]);
       const finalizeConfirmation = async (confirmed) => {
         const rejectTransaction = () => {
+          if (isLedgerAccount) {
+            TransactionController.cancelTransaction(transactionMeta.id);
+            TransactionController.hub.removeAllListeners(
+              `${transactionMeta.id}:finished`,
+            );
+          }
           this.setState({ transactionConfirmed: false });
           navigation && navigation.dangerouslyGetParent()?.popToTop();
         };
@@ -843,7 +852,7 @@ class Confirm extends PureComponent {
         );
       };
 
-      if (isHardwareAccount(transaction.from, [KeyringTypes.ledger])) {
+      if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
         // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
 
