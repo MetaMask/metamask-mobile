@@ -20,7 +20,7 @@ import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
+import Analytics from '../../../core/Analytics/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { strings } from '../../../../locales/i18n';
@@ -58,7 +58,7 @@ const WalletActions = () => {
   const onBuy = () => {
     sheetRef.current?.hide(() => {
       navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Wallet',
         chain_id_destination: chainId,
