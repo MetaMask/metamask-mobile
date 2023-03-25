@@ -462,7 +462,7 @@ class Approve extends PureComponent {
           }
         }
 
-        trackEvent(
+        AnalyticsV2.trackEvent(
           MetaMetricsEvents.APPROVAL_COMPLETED,
           this.getAnalyticsParams(),
         );

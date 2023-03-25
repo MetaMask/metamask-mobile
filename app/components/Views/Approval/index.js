@@ -352,7 +352,7 @@ class Approval extends PureComponent {
       }
 
       this.showWalletConnectNotification(true);
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
         this.getAnalyticsParams({ gasEstimateType, gasSelected }),
       );

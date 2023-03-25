@@ -809,22 +809,13 @@ class Confirm extends PureComponent {
           if (error.message.includes('0x6985')) {
             return rejectTransaction();
           }
-          this.setState({ transactionConfirmed: false, stopUpdateGas: false });
-          Alert.alert(
-            strings('transactions.transaction_error'),
-            error && error.message,
-            [{ text: 'OK' }],
-          );
-          Logger.error(
-            error,
-            'error while trying to send transaction (Confirm)',
-          );
-          throw error;
         }
 
         if (transactionMeta.error) {
           if (transactionMeta?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-            trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+            AnalyticsV2.trackEvent(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            );
           } else {
             Alert.alert(
               strings('transactions.transaction_error'),
@@ -845,7 +836,7 @@ class Confirm extends PureComponent {
             assetType,
           });
           this.checkRemoveCollectible();
-          trackEvent(
+          AnalyticsV2.trackEvent(
             MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
             this.getAnalyticsParams(),
           );
