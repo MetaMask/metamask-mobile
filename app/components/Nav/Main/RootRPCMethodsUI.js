@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+
 import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
@@ -13,11 +14,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import Engine from '../../../core/Engine';
-import {
-  trackEvent,
-  trackLegacyEvent,
-  trackLegacyAnonymousEvent,
-} from '../../../util/analyticsV2';
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
@@ -53,11 +49,14 @@ import {
   toggleDappTransactionModal,
   toggleApproveModal,
 } from '../../../actions/modals';
+import Analytics from '../../../core/Analytics/Analytics';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
@@ -220,13 +219,13 @@ const RootRPCMethodsUI = (props) => {
             quote_vs_executionRatio: quoteVsExecutionRatio,
             token_to_amount_received: tokenToAmountReceived.toString(),
           };
-          trackLegacyEvent(event, {});
-          trackLegacyAnonymousEvent(event, parameters);
+          Analytics.trackEventWithParameters(event, {});
+          Analytics.trackEventWithParameters(event, parameters, true);
         });
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
         InteractionManager.runAfterInteractions(() => {
-          trackLegacyEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
+          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
             error: e,
           });
         });
@@ -298,7 +297,9 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          );
         }
       }
     },
@@ -767,7 +768,7 @@ const RootRPCMethodsUI = (props) => {
 
             const totalAccounts = props.accountsLength;
 
-            trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
               number_of_accounts: totalAccounts,
               source: 'PERMISSION SYSTEM',
             });

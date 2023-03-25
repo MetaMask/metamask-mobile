@@ -159,6 +159,12 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
+NativeModules.RCTAnalytics = {
+  optIn: jest.fn(),
+  trackEvent: jest.fn(),
+  getRemoteVariables: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };

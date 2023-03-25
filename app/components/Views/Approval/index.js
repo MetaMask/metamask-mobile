@@ -1,16 +1,16 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import Modal from 'react-native-modal';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
+import Modal from 'react-native-modal';
 import { addHexPrefix, BNToHex } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
+import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
@@ -25,7 +25,8 @@ import {
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
@@ -203,7 +204,7 @@ class Approval extends PureComponent {
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -213,7 +214,7 @@ class Approval extends PureComponent {
    * Call Analytics to track confirm started event for approval screen
    */
   trackConfirmScreen = () => {
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
@@ -225,17 +226,20 @@ class Approval extends PureComponent {
   trackEditScreen = async () => {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
-    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION, {
-      ...this.getTrackingParams(),
-      actionKey,
-    });
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
+      {
+        ...this.getTrackingParams(),
+        actionKey,
+      },
+    );
   };
 
   /**
    * Call Analytics to track cancel pressed
    */
   trackOnCancel = () => {
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
@@ -307,7 +311,7 @@ class Approval extends PureComponent {
     this.props.toggleDappTransactionModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -425,11 +429,13 @@ class Approval extends PureComponent {
           'error while trying to send transaction (Approval)',
         );
       } else {
-        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        );
       }
       this.setState({ transactionHandled: false });
     }
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       this.getAnalyticsParams({ gasEstimateType, gasSelected }),
     );

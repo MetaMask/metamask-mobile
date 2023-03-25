@@ -12,12 +12,11 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
+import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
-
+import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -330,7 +329,7 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
     });
   };
 
@@ -345,7 +344,7 @@ class AccountOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Wallet',
         chain_id_destination: this.props.chainId,
@@ -391,7 +390,7 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+    Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
       portfolioUrl: AppConstants.PORTFOLIO_URL,
     });
   };

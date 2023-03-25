@@ -54,7 +54,7 @@ import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
-import { trackEvent } from '../util/analyticsV2';
+import AnalyticsV2 from '../util/analyticsV2';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -322,7 +322,7 @@ class Engine {
             ),
           addDetectedTokens: (tokens) => {
             // Track detected tokens event
-            trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
               token_standard: 'ERC20',
               asset_type: 'token',
               chain_id: getDecimalChainId(

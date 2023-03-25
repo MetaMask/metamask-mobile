@@ -1,14 +1,12 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
-
+import { connect } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
@@ -16,8 +14,9 @@ import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import { isHardwareAccount } from '../../../util/address';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
@@ -170,7 +169,7 @@ class SignatureRequest extends PureComponent {
    */
   onCancel = () => {
     this.props.onCancel();
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
@@ -181,7 +180,7 @@ class SignatureRequest extends PureComponent {
    */
   onConfirm = () => {
     this.props.onConfirm();
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );
