@@ -803,13 +803,22 @@ class Confirm extends PureComponent {
 
         try {
           await new Promise((resolve) => resolve(result));
-        } catch (e) {
+        } catch (error) {
           // This is the LedgerCode for device rejection
-          if (e.message.includes('0x6985')) {
+          if (error.message.includes('0x6985')) {
             return rejectTransaction();
           }
-
-          throw e;
+          this.setState({ transactionConfirmed: false, stopUpdateGas: false });
+          Alert.alert(
+            strings('transactions.transaction_error'),
+            error && error.message,
+            [{ text: 'OK' }],
+          );
+          Logger.error(
+            error,
+            'error while trying to send transaction (Confirm)',
+          );
+          throw error;
         }
 
         if (transactionMeta.error) {
