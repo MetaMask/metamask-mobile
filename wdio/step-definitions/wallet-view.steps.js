@@ -1,8 +1,10 @@
 /* global driver */
-import { When, Then } from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import CommonScreen from '../screen-objects/CommonScreen';
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
+import WalletActionModal from '../screen-objects/Modals/WalletActionModal';
 
 Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
   const timeout = 1500;
@@ -76,4 +78,8 @@ When(/^I dismiss the account list/, async () => {
 });
 Then(/^Wallet view is displayed$/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
+});
+Given(/^On the Main Wallet view I tap on the Send Action$/, async () => {
+  await TabBarModal.tapActionButton();
+  await WalletActionModal.tapSendButton();
 });

@@ -13,7 +13,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And On the Main Wallet view I tap "Send"
+    And On the Main Wallet view I tap on the Send Action
 
   Scenario Outline: Validate invalid and valid wallet address <Case>
     When I enter address "<contractAddress>" in the sender's input box
@@ -30,7 +30,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And I tap on button with text "Cancel"
 
   Scenario Outline: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
-    When On the Main Wallet view I tap "Send"
+    When On the Main Wallet view I tap on the Send Action
 
     When I enter address "<Address>" in the sender's input box
     And I tap on button with text "Add this address to your address book"
@@ -77,7 +77,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     Then the saved contact "<EditContactName>" should appear
 
     When I go back to the main wallet screen
-    And On the Main Wallet view I tap "Send"
+    And On the Main Wallet view I tap on the Send Action
     Then I should see the edited name "<EditContactName>" contact under Recents on the send screen
     And the deleted contact "<DeletedContactName>" should not appear
 
