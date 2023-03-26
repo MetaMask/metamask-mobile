@@ -40,8 +40,8 @@ export default class AddCustomTokenView {
     await TestHelpers.tap(TOKEN_ADDRESS_SYMBOL_ID);
   }
 
-  static async tapTokenSymbolText() {
-    await TestHelpers.tapByText('Token Symbol');
+  static async tapTokenDecimalText() {
+    await TestHelpers.tapByText('Token Decimal');
   }
 
   static async scrollDownOnImportCustomTokens() {

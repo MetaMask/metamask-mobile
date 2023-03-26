@@ -54,11 +54,13 @@ describe('Send ERC Token', () => {
     await WalletView.isVisible();
     await WalletView.tapImportTokensButton();
     await AddCustomTokenView.typeTokenAddressAndHideKeyboard(TOKEN_ADDRESS);
-    await AddCustomTokenView.tapTokenSymbolText();
+    await AddCustomTokenView.tapTokenDecimalText();
     await AddCustomTokenView.scrollDownOnImportCustomTokens();
     await TestHelpers.delay(2000);
-    await AddCustomTokenView.tapTokenSymbolText();
+    await AddCustomTokenView.tapTokenDecimalText();
+    await AddCustomTokenView.tapTokenDecimalText();
     await AddCustomTokenView.scrollDownOnImportCustomTokens();
+    await TestHelpers.swipeByText('Token Decimal', 'up', 'slow', 0.1);
     await AddCustomTokenView.tapImportButton();
   });
 
