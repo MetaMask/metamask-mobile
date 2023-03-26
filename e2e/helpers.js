@@ -7,6 +7,14 @@ export default class TestHelpers {
     return element(by.id(elementId)).tap();
   }
 
+  static async waitAndTapText(text, timeout) {
+    await waitFor(element(by.text(text)))
+      .toBeVisible()
+      .withTimeout(timeout || 8000);
+
+    return element(by.text(text)).tap();
+  }
+
   static tap(elementId) {
     return element(by.id(elementId)).tap();
   }
