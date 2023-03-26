@@ -40,8 +40,8 @@ export default class AddCustomTokenView {
     await TestHelpers.tap(TOKEN_ADDRESS_SYMBOL_ID);
   }
 
-  static async tapTokenDecimalText() {
-    await TestHelpers.tapByText('Token Decimal');
+  static async tapTokenSymbolText() {
+    await TestHelpers.tapByText('Token Symbol');
   }
 
   static async scrollDownOnImportCustomTokens() {
@@ -60,10 +60,7 @@ export default class AddCustomTokenView {
   static async typeTokenAddressAndHideKeyboard(address) {
     //Required to hide keyboard after typing on detox
     await TestHelpers.tap(TOKEN_ADDRESS_INPUT_BOX_ID);
-    await TestHelpers.typeTextAndHideKeyboard(
-      TOKEN_ADDRESS_INPUT_BOX_ID,
-      address,
-    );
+    await TestHelpers.typeText(TOKEN_ADDRESS_INPUT_BOX_ID, address);
   }
 
   static async typeTokenSymbol(symbol) {
