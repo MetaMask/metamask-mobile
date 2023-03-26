@@ -57,12 +57,6 @@ export default class AddCustomTokenView {
     }
   }
 
-  static async typeTokenAddressAndHideKeyboard(address) {
-    //Required to hide keyboard after typing on detox
-    await TestHelpers.tap(TOKEN_ADDRESS_INPUT_BOX_ID);
-    await TestHelpers.typeText(TOKEN_ADDRESS_INPUT_BOX_ID, address);
-  }
-
   static async typeTokenSymbol(symbol) {
     await TestHelpers.typeTextAndHideKeyboard(TOKEN_ADDRESS_SYMBOL_ID, symbol);
   }
