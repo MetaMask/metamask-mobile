@@ -50,6 +50,7 @@ import {
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -383,7 +384,7 @@ class AssetOverview extends PureComponent {
               />
             )}
             <AssetActionButton
-              testID={'token-send-button'}
+              testID={SEND_BUTTON_ID}
               icon="send"
               onPress={this.onSend}
               label={strings('asset_overview.send_button')}
