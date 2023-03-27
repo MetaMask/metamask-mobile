@@ -758,6 +758,18 @@ export const getRpcMethodMiddleware = ({
           },
         });
       },
+
+      snap_manageState: () => {
+        console.log('Snaps/ snap_manageState called');
+      },
+
+      wallet_snap_: () => {
+        console.log('Snaps/ wallet_snap_ called');
+      },
+
+      snap_notify: () => {
+        console.log('Snaps/ snap_notify called');
+      },
     };
 
     const blockRefIndex = blockTagParamIndex(req);

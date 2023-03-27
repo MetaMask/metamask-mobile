@@ -9,7 +9,7 @@ import {
   buildSnapRestrictedMethodSpecifications,
   ExcludedSnapPermissions,
   ExcludedSnapEndowments,
-} from './permissions';
+} from './permissions/permissions';
 import { detectSnapLocation, fetchFunction } from './location';
 
 export {
