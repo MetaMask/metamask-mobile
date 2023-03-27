@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
