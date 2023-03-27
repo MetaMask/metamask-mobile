@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
+import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
 
 const SNAPS_FETCH_LOG_TAG = 'Snaps/ fetch';
@@ -11,7 +11,7 @@ const SNAPS_FETCH_LOG_TAG = 'Snaps/ fetch';
  */
 const readAndParseFile = async (path: string) => {
   try {
-    const data = await ReactNativeBlobUtil.fs.readFile(path, 'utf8');
+    const data = await RNFetchBlob.fs.readFile(path, 'utf8');
     return data;
   } catch (error) {
     Logger.log(SNAPS_FETCH_LOG_TAG, 'readAndParseFile error', error);
@@ -37,7 +37,7 @@ const convertFetchBlobResponseToResponse = async (
 export const fetchFunction = async (
   inputRequest: RequestInfo,
 ): Promise<Response> => {
-  const { config } = ReactNativeBlobUtil;
+  const { config } = RNFetchBlob;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
   const response: FetchBlobResponse = await config({ fileCache: true }).fetch(
