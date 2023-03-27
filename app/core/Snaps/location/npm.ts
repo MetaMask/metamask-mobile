@@ -15,6 +15,9 @@ import { assert, assertStruct, isObject } from '@metamask/utils';
 
 import { DetectSnapLocationOptions, SnapLocation } from './location';
 import { NativeModules } from 'react-native';
+import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import Logger from '../../../util/Logger';
+
 const { RNTar } = NativeModules;
 
 const DEFAULT_NPM_REGISTRY = 'https://registry.npmjs.org';
@@ -52,10 +55,6 @@ export interface NpmOptions {
   allowCustomRegistries?: boolean;
 }
 
-/* eslint-disable import/prefer-default-export */
-import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
-import Logger from '../../../util/Logger';
-
 const SNAPS_NPM_LOG_TAG = 'snaps/ NPM';
 
 /**
@@ -82,7 +81,7 @@ const decompressFile = async (
 const readAndParseSourceCode = async (path: string) => {
   try {
     const sourceCodePath = `${path}/package/dist/bundle.js`;
-    const data = await ReactNativeBlobUtil.fs.readFile(sourceCodePath, 'utf8');
+    const data = await RNFetchBlob.fs.readFile(sourceCodePath, 'utf8');
     return data;
   } catch (error) {
     Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseSourceCode error', error);
@@ -92,7 +91,7 @@ const readAndParseSourceCode = async (path: string) => {
 const readAndParseManifest = async (path: string) => {
   try {
     const manifestPath = `${path}/package/snap.manifest.json`;
-    const data = await ReactNativeBlobUtil.fs.readFile(manifestPath, 'utf8');
+    const data = await RNFetchBlob.fs.readFile(manifestPath, 'utf8');
     return data;
   } catch (error) {
     Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseManifest error', error);
@@ -102,7 +101,7 @@ const readAndParseManifest = async (path: string) => {
 const readAndParseIcon = async (path: string) => {
   try {
     const iconPath = `${path}/package/images/icon.svg`;
-    const data = await ReactNativeBlobUtil.fs.readFile(iconPath, 'utf8');
+    const data = await RNFetchBlob.fs.readFile(iconPath, 'utf8');
     return data;
   } catch (error) {
     Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseManifest error', error);
@@ -112,8 +111,8 @@ const readAndParseIcon = async (path: string) => {
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
-  const { config } = ReactNativeBlobUtil;
-  const filePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/archive.tgz`;
+  const { config } = RNFetchBlob;
+  const filePath = `${RNFetchBlob.fs.dirs.DocumentDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
 
@@ -123,7 +122,7 @@ const fetchAndStoreNPMPackage = async (
       path: filePath,
     }).fetch('GET', urlToFetch);
     const dataPath = response.data;
-    const targetPath = ReactNativeBlobUtil.fs.dirs.DocumentDir;
+    const targetPath = RNFetchBlob.fs.dirs.DocumentDir;
     try {
       const decompressedPath = await decompressFile(dataPath, targetPath);
       return decompressedPath;
