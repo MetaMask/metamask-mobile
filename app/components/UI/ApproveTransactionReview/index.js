@@ -1032,7 +1032,7 @@ class ApproveTransactionReview extends PureComponent {
     const { onConfirm } = this.props;
 
     if (tokenStandard === ERC20 && !spendCapCreated) {
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
         this.getAnalyticsParams(),
       );
