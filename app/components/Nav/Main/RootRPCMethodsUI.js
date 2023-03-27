@@ -710,7 +710,11 @@ const RootRPCMethodsUI = (props) => {
           // eslint-disable-next-line no-case-declarations
           const totalAccounts = props.accountsLength;
 
+<<<<<<< HEAD
           AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+=======
+          trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+>>>>>>> 4ffc810ec (Install snap from a Dapp (#6002))
             number_of_accounts: totalAccounts,
             source: 'PERMISSION SYSTEM',
           });
