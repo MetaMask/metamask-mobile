@@ -381,7 +381,7 @@ class Approve extends PureComponent {
   };
 
   prepareTransaction = (transaction) => {
-    const { gasEstimateType } = this.props;
+    const { gasEstimateType, showCustomNonce } = this.props;
     const { legacyGasTransaction, eip1559GasTransaction } = this.state;
     const transactionToSend = {
       ...transaction,
@@ -404,6 +404,10 @@ class Approve extends PureComponent {
       transactionToSend.gasPrice = addHexPrefix(
         legacyGasTransaction.suggestedGasPriceHex,
       );
+    }
+
+    if (showCustomNonce && transactionToSend.nonce) {
+      transactionToSend.nonce = BNToHex(transactionToSend.nonce);
     }
 
     return transactionToSend;
