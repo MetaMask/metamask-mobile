@@ -115,6 +115,10 @@
 		android:value="io.metamask"/>
 		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_color"
 		android:resource="@color/lightgray"/>
+		<!-- MIXPANEL -->
+		<meta-data android:name="com.mixpanel.android.mpmetrics.MixpanelAPI.token" android:value="${MM_MIXPANEL_TOKEN}"	/>
+		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
+		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
 
 		<provider
 			android:name="androidx.core.content.FileProvider"

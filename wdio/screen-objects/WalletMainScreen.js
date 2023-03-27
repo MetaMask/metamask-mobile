@@ -1,6 +1,8 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
+import {
+  WALLET_CONTAINER_ID,
+} from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,

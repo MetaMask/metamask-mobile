@@ -314,7 +314,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-ETH"
                         >
                           <View
                             style={
@@ -496,7 +496,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-BAT"
                         >
                           <View
                             style={
@@ -663,6 +663,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
+                                  "textAlign": "center",
                                 }
                               }
                             >
@@ -1027,7 +1028,7 @@ exports[`Tokens should render correctly 1`] = `
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-ETH"
                         >
                           <View
                             style={
@@ -1209,7 +1210,7 @@ exports[`Tokens should render correctly 1`] = `
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-BAT"
                         >
                           <View
                             style={
@@ -1376,6 +1377,7 @@ exports[`Tokens should render correctly 1`] = `
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
+                                  "textAlign": "center",
                                 }
                               }
                             >
@@ -1740,7 +1742,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-ETH"
                         >
                           <View
                             style={
@@ -1922,7 +1924,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-BAT"
                         >
                           <View
                             style={
@@ -2070,7 +2072,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "paddingVertical": 10,
                             }
                           }
-                          testID="asset-element"
+                          testID="asset-LINK"
                         >
                           <View
                             style={
@@ -2237,6 +2239,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
+                                  "textAlign": "center",
                                 }
                               }
                             >

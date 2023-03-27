@@ -326,25 +326,13 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-        return RPCMethods.eth_sendTransaction({
-          next,
-          req,
-          res,
-          validateAccountAndChainId: async ({
-            from,
-            chainId,
-          }: {
-            from?: string;
-            chainId?: number;
-          }) => {
-            await checkActiveAccountAndChainId({
-              hostname,
-              address: from,
-              chainId,
-              checkSelectedAddress: isMMSDK || isWalletConnect,
-            });
-          },
+        await checkActiveAccountAndChainId({
+          hostname,
+          address: req.params[0].from,
+          chainId: req.params[0].chainId,
+          checkSelectedAddress: isMMSDK || isWalletConnect,
         });
+        next();
       },
       eth_signTransaction: async () => {
         // This is implemented later in our middleware stack – specifically, in
@@ -601,7 +589,10 @@ export const getRpcMethodMiddleware = ({
         try {
           const permittedAccounts = await getPermittedAccounts(hostname);
           // This should return the current active account on the Dapp.
-          const interactingAddress = permittedAccounts?.[0];
+          const selectedAddress =
+            Engine.context.PreferencesController.state.selectedAddress;
+          // Fallback to wallet address if there is no connected account to Dapp.
+          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
           const watchAssetResult = await TokensController.watchAsset(
             { address, symbol, decimals, image },
             type,

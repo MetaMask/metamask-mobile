@@ -9,7 +9,6 @@ import {
 import { useSelector } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
@@ -19,7 +18,9 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { safeToChecksumAddress } from '../../../util/address';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
@@ -121,7 +122,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     setIsAddTokenEnabled(false);
     navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(chainId),
       });
@@ -137,7 +138,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         disabled={!isAddTokenEnabled}
         {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
       >
-        <Text>
+        <Text style={styles.centered}>
           <Text style={styles.emptyText}>
             {strings('wallet.no_available_tokens')}
           </Text>{' '}
@@ -275,7 +276,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToBuy = () => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
         chain_id_destination: chainId,
@@ -286,7 +287,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(chainId),
         tokens: detectedTokens.map(
@@ -375,7 +376,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         }),
       });
       InteractionManager.runAfterInteractions(() =>
-        trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
           location: 'assets_list',
           token_standard: 'ERC20',
           asset_type: 'token',

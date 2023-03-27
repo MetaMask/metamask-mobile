@@ -79,9 +79,13 @@ const createStyles = (colors: Colors) =>
     },
     buyTitle: {
       marginVertical: 5,
+      textAlign: 'center',
     },
     buyButton: {
       marginVertical: 5,
+    },
+    centered: {
+      textAlign: 'center',
     },
   });
 

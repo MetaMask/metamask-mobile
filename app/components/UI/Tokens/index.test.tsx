@@ -7,6 +7,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
 import {
+  getAssetTestId,
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -172,8 +173,7 @@ describe('Tokens', () => {
 
   it('shows remove menu when remove button is pressed', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
-
-    fireEvent.press(queryAllByTestId('asset-element')[0], 'longPress');
+    fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
     expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
   });
 });

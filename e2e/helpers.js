@@ -7,6 +7,14 @@ export default class TestHelpers {
     return element(by.id(elementId)).tap();
   }
 
+  static async waitAndTapText(text, timeout) {
+    await waitFor(element(by.text(text)))
+      .toBeVisible()
+      .withTimeout(timeout || 8000);
+
+    return element(by.text(text)).tap();
+  }
+
   static tap(elementId) {
     return element(by.id(elementId)).tap();
   }
@@ -24,7 +32,11 @@ export default class TestHelpers {
   }
 
   static tapAtPoint(elementId, point) {
-    return element(by.id(elementId)).tapAtPoint(point);
+    return element(by.id(elementId)).tap(point);
+  }
+
+  static async tapAtCoordinates(point) {
+    await device.tap(point);
   }
 
   static tapItemAtIndex(elementID, index) {

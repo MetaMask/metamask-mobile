@@ -2,6 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 describe('AssetElement', () => {
   const onPressMock = jest.fn();
@@ -39,7 +40,7 @@ describe('AssetElement', () => {
       <AssetElement asset={erc20Token} onPress={onPressMock} />,
     );
 
-    fireEvent.press(getByTestId('asset-element'));
+    fireEvent.press(getByTestId(getAssetTestId(erc20Token.symbol)));
 
     expect(onPressMock).toHaveBeenCalledWith(erc20Token);
   });
@@ -49,7 +50,7 @@ describe('AssetElement', () => {
       <AssetElement asset={erc20Token} onLongPress={onLongPressMock} />,
     );
 
-    fireEvent(getByTestId('asset-element'), 'onLongPress');
+    fireEvent(getByTestId(getAssetTestId(erc20Token.symbol)), 'onLongPress');
 
     expect(onLongPressMock).toHaveBeenCalledWith(erc20Token);
   });
