@@ -12,25 +12,23 @@ import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { getNetworkNonce } from '../../../../util/networks';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { setTransactionObject, setNonce,
-  setProposedNonce, } from '../../../../actions/transaction';
+import {
+  setTransactionObject,
+  setNonce,
+  setProposedNonce,
+} from '../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
-import { getNetworkNonce } from '../../../../util/networks';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
-import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import EditGasFee1559 from '../../../UI/EditGasFee1559';
-import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
