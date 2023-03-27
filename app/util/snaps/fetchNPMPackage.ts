@@ -1,6 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-// import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
-import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
+import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import { Buffer } from 'buffer';
 
 // https://github.com/nodeca/pako
@@ -36,7 +35,7 @@ const downloadBlobIntoFile = async (
   url: string,
 ): Promise<FetchBlobResponse> => {
   try {
-    const response = await ReactNativeBlobUtil.config({
+    const response = await RNFetchBlob.config({
       fileCache: true,
     }).fetch('GET', url);
     return response;
@@ -65,10 +64,10 @@ const unzipData = (base64Data: string): string =>
  * @returns {string} Path to the file containing the unzipped data.
  */
 const unzip = (base64: string, snapId: string): string => {
-  const filePath = ReactNativeBlobUtil.fs.dirs.DocumentDir + `/snap-${snapId}`;
+  const filePath = RNFetchBlob.fs.dirs.DocumentDir + `/snap-${snapId}`;
   const unzipped = unzipData(base64);
 
-  ReactNativeBlobUtil.fs.writeFile(filePath, unzipped, 'utf8');
+  RNFetchBlob.fs.writeFile(filePath, unzipped, 'utf8');
   return filePath;
 };
 
