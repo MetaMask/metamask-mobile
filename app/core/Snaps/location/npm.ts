@@ -70,6 +70,10 @@ const decompressFile = async (
   try {
     const decompressedDataLocation = await RNTar.unTar(path, targetPath);
     if (decompressedDataLocation) {
+      console.log(
+        'Snaps/ NPM: decompressFileLocation',
+        decompressedDataLocation,
+      );
       return decompressedDataLocation;
     }
     throw new Error('Was unable to decompress tgz file');

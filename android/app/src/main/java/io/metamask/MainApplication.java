@@ -1,7 +1,6 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
-import com.cmcewen.blurview.BlurViewPackage;
 import com.brentvatne.react.ReactVideoPackage;
 import android.content.Context;
 import com.facebook.react.PackageList;
@@ -17,6 +16,7 @@ import cl.json.ShareApplication;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
+import io.metamask.nativeModules.RNTar.RNTarPackage;
 import android.webkit.WebView;
 
 import androidx.multidex.MultiDexApplication;
@@ -43,7 +43,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			packages.add(new RCTAnalyticsPackage());
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
-
+      		packages.add(new RNTarPackage());
 			return packages;
 		}
 
