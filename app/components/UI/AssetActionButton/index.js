@@ -59,6 +59,7 @@ const createStyles = (colors) =>
     },
   });
 
+// eslint-disable-next-line react/prop-types
 function AssetActionButton({ onPress, icon, label, disabled, testID }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -120,11 +121,10 @@ function AssetActionButton({ onPress, icon, label, disabled, testID }) {
 
   return (
     <TouchableOpacity
+      {...generateTestId(Platform, testID)}
       onPress={onPress}
       style={[styles.button, disabled && styles.disabledButton]}
       disabled={disabled}
-      testID={testID}
-      {...generateTestId(Platform, testID)}
     >
       <View style={styles.buttonIconWrapper}>
         {icon && (typeof icon === 'string' ? getIcon(icon) : icon)}
@@ -143,7 +143,6 @@ AssetActionButton.propTypes = {
   icon: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   label: PropTypes.string,
   disabled: PropTypes.bool,
-  testID: PropTypes.string,
 };
 
 export default AssetActionButton;

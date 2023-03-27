@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
 import {
   InteractionManager,
-  Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -17,11 +17,11 @@ import { strings } from '../../../../locales/i18n';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 import {
-  balanceToFiat,
-  hexToBN,
   renderFromTokenMinimalUnit,
+  balanceToFiat,
   renderFromWei,
   weiToFiat,
+  hexToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
@@ -40,7 +40,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { mockTheme, ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { isTestNet } from '../../../util/networks';
 import {
@@ -49,10 +49,8 @@ import {
 } from '../../../selectors/networkController';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  TOKEN_ASSET_OVERVIEW,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -131,9 +129,9 @@ class AssetOverview extends PureComponent {
      */
     accounts: PropTypes.object,
     /**
-     /* navigation object required to access the props
-     /* passed by the parent component
-     */
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
     navigation: PropTypes.object,
     /**
      * Object that represents the asset to be displayed
@@ -386,7 +384,7 @@ class AssetOverview extends PureComponent {
               />
             )}
             <AssetActionButton
-              testID={TOKEN_OVERVIEW_SEND_BUTTON}
+              testID={SEND_BUTTON_ID}
               icon="send"
               onPress={this.onSend}
               label={strings('asset_overview.send_button')}

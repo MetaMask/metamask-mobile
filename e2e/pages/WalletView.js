@@ -1,23 +1,30 @@
 import TestHelpers from '../helpers';
 
 import {
+  WALLET_ACCOUNT_ICON,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
+  WALLET_ACCOUNT_NAME_LABEL_INPUT,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
   NFT_TAB_CONTAINER_ID,
-  WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
+  SEND_BUTTON_ID,
+  getAssetTestId,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { TAB_BAR_BROWSER_BUTTON } from '../../wdio/screen-objects/testIDs/Components/TabBar.testIds';
+import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
+
 export default class WalletView {
   static async tapOKAlertButton() {
     await TestHelpers.tapAlertWithButton('OK');
+  }
+
+  static async tapOnToken(token) {
+    await TestHelpers.waitAndTap(getAssetTestId(token));
   }
 
   static async tapIdenticon() {
@@ -29,25 +36,26 @@ export default class WalletView {
   }
 
   static async tapBrowser() {
-    await TestHelpers.tap(TAB_BAR_BROWSER_BUTTON);
+    await TestHelpers.tapByText('Browser');
     await TestHelpers.delay(1000);
   }
   static async tapWallet() {
     await TestHelpers.tapByText('Wallet');
   }
 
+  static async tapSendIcon() {
+    await TestHelpers.waitAndTap(SEND_BUTTON_ID);
+  }
+
   static async tapNetworksButtonOnNavBar() {
     await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
   }
-
   static async tapNftTab() {
     await TestHelpers.tapByText('NFTs');
   }
-
   static async tapTokensTab() {
     await TestHelpers.tapByText('Tokens');
   }
-
   static async scrollDownOnNFTsTab() {
     await TestHelpers.swipe(NFT_TAB_CONTAINER_ID, 'up', 'slow', 0.6);
   }
@@ -63,7 +71,6 @@ export default class WalletView {
   static async tapImportTokensButton() {
     await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
   }
-
   static async tapOnNFTInWallet(nftName) {
     await TestHelpers.tapByText(nftName);
   }
@@ -94,15 +101,16 @@ export default class WalletView {
       await TestHelpers.checkIfExists(WALLET_CONTAINER_ID);
     }
   }
+  static async isToastNotificationVisible() {
+    await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
+  }
 
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(WALLET_CONTAINER_ID);
   }
-
   static async isNFTVisibleInWallet(nftName) {
     await TestHelpers.checkIfElementByTextIsVisible(nftName);
   }
-
   static async isTokenVisibleInWallet(tokenName) {
     await TestHelpers.checkIfElementByTextIsVisible(tokenName);
   }
@@ -128,7 +136,6 @@ export default class WalletView {
       accountName,
     );
   }
-
   static async isAccountBalanceCorrect(accountBalance) {
     await TestHelpers.checkIfElementHasString('balance', accountBalance);
   }

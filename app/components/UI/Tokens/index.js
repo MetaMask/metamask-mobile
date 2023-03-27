@@ -304,7 +304,6 @@ class Tokens extends PureComponent {
     return (
       <AssetElement
         key={itemAddress || '0x'}
-        testID={'asset'}
         onPress={this.onItemPress}
         onLongPress={asset.isETH ? null : this.showRemoveMenu}
         asset={asset}

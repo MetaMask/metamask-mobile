@@ -13,6 +13,7 @@ import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
 
 import TestHelpers from './helpers';
+
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
