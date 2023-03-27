@@ -28,7 +28,6 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { renderFiat } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import { isSwapsAllowed } from '../Swaps/utils';
 
@@ -54,9 +53,6 @@ import Identicon from '../Identicon';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -393,7 +389,6 @@ class AccountOverview extends PureComponent {
   render() {
     const {
       account: { address, name },
-      currentCurrency,
       onboardingWizard,
       chainId,
       swapsIsLive,
@@ -402,22 +397,13 @@ class AccountOverview extends PureComponent {
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
-    const fiatBalance = `${renderFiat(
-      Engine.getTotalFiatAccountBalance(),
-      currentCurrency,
-    )}`;
-
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
     const isQRHardwareWalletAccount = isQRHardwareAccount(address);
 
     return (
-      <View
-        style={baseStyles.flexGrow}
-        ref={this.scrollViewContainer}
-        collapsable={false}
-      >
+      <View ref={this.scrollViewContainer} collapsable={false}>
         <ScrollView
           bounces={false}
           keyboardShouldPersistTaps={'never'}
@@ -500,19 +486,7 @@ class AccountOverview extends PureComponent {
                 </View>
               )}
             </View>
-            <View style={styles.netWorthContainer}>
-              <Text style={styles.amountFiat}>{fiatBalance}</Text>
-              <TouchableOpacity
-                onPress={this.onOpenPortfolio}
-                style={styles.portfolioLink}
-              >
-                <Icon
-                  style={styles.portfolioIcon}
-                  name={IconName.Diagram}
-                  size={20}
-                />
-              </TouchableOpacity>
-            </View>
+
             <TouchableOpacity
               style={styles.addressWrapper}
               onPress={this.copyAccountToClipboard}

@@ -6,6 +6,8 @@ import {
   View,
   InteractionManager,
   Platform,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
@@ -14,6 +16,7 @@ import ActionSheet from 'react-native-actionsheet';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
+  renderFiat,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -48,13 +51,17 @@ import { selectChainId } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
+import AppConstants from '../../../core/AppConstants';
+import Icon, {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      minHeight: 500,
     },
     emptyView: {
       backgroundColor: colors.background.default,
@@ -142,6 +149,19 @@ const createStyles = (colors) =>
     buyButton: {
       marginVertical: 5,
     },
+    networth: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 16,
+      marginVertical: 24,
+    },
+    fiatBalance: {
+      ...fontStyles.normal,
+      fontSize: 32,
+      lineHeight: 40,
+      fontWeight: '500',
+    },
+    portfolioLink: { marginLeft: 8 },
   });
 
 /**
@@ -202,6 +222,10 @@ class Tokens extends PureComponent {
      * Boolean that indicates if token detection is enabled
      */
     isTokenDetectionEnabled: PropTypes.bool,
+    /**
+     * Current opens tabs in browser
+     */
+    browserTabs: PropTypes.array,
   };
 
   actionSheet = null;
@@ -210,6 +234,7 @@ class Tokens extends PureComponent {
 
   state = {
     isAddTokenEnabled: true,
+    refreshing: false,
   };
 
   getStyles = () => {
@@ -419,8 +444,33 @@ class Tokens extends PureComponent {
     );
   };
 
+  onRefresh = async () => {
+    requestAnimationFrame(async () => {
+      this.setState({ refreshing: true });
+
+      const {
+        TokenDetectionController,
+        AccountTrackerController,
+        CurrencyRateController,
+        TokenRatesController,
+      } = Engine.context;
+      const actions = [
+        TokenDetectionController.detectTokens(),
+        AccountTrackerController.refresh(),
+        CurrencyRateController.start(),
+        TokenRatesController.poll(),
+      ];
+      await Promise.all(actions);
+      this.setState({ refreshing: false });
+    });
+  };
+
   renderList() {
     const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
+    const { refreshing } = this.state;
+
+    const colors = this.context.colors || mockTheme.colors;
+
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
           const { address, isETH } = token;
@@ -429,11 +479,80 @@ class Tokens extends PureComponent {
       : tokens;
 
     return (
-      <View>
-        {tokensToDisplay.map((item) => this.renderItem(item))}
-        {this.renderTokensDetectedSection()}
-        {this.renderBuyButton()}
-        {this.renderFooter()}
+      <FlatList
+        ListHeaderComponent={this.renderNetworth()}
+        data={tokensToDisplay}
+        renderItem={({ item }) => this.renderItem(item)}
+        keyExtractor={(_, index) => index}
+        ListFooterComponent={() => (
+          <>
+            {this.renderTokensDetectedSection()}
+            {this.renderBuyButton()}
+            {this.renderFooter()}
+          </>
+        )}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={this.onRefresh}
+          />
+        }
+      />
+    );
+  }
+
+  renderNetworth() {
+    const styles = this.getStyles();
+    const { currentCurrency } = this.props;
+
+    const fiatBalance = `${renderFiat(
+      Engine.getTotalFiatAccountBalance(),
+      currentCurrency,
+    )}`;
+
+    const onOpenPortfolio = () => {
+      const { navigation, browserTabs } = this.props;
+      const existingPortfolioTab = browserTabs.find((tab) =>
+        tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+      );
+      let existingTabId;
+      let newTabUrl;
+      if (existingPortfolioTab) {
+        existingTabId = existingPortfolioTab.id;
+      } else {
+        newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+      }
+      const params = {
+        ...(newTabUrl && { newTabUrl }),
+        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+        timestamp: Date.now(),
+      };
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params,
+      });
+      Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+        portfolioUrl: AppConstants.PORTFOLIO_URL,
+      });
+    };
+
+    return (
+      <View style={styles.networth}>
+        <Text
+          style={styles.fiatBalance}
+          {...generateTestId(Platform, 'total-balance-text')}
+        >
+          {fiatBalance}
+        </Text>
+        <TouchableOpacity
+          onPress={onOpenPortfolio}
+          style={styles.portfolioLink}
+          {...generateTestId(Platform, 'portfolio-button')}
+        >
+          <Icon color={IconColor.Primary} name={IconName.Diagram} size={18} />
+        </TouchableOpacity>
       </View>
     );
   }
@@ -535,6 +654,7 @@ const mapStateToProps = (state) => ({
   detectedTokens: state.engine.backgroundState.TokensController.detectedTokens,
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
+  browserTabs: state.browser.tabs,
 });
 
 Tokens.contextType = ThemeContext;
