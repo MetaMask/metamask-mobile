@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 export const createStyles = () =>
   StyleSheet.create({
     webview: {
-      height: 60,
+      height: 0,
       // marginBottom: 50,
       // borderWidth: 1,
       // borderStyle: 'dashed',

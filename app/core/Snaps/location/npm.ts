@@ -99,6 +99,16 @@ const readAndParseManifest = async (path: string) => {
   }
 };
 
+const readAndParseIcon = async (path: string) => {
+  try {
+    const iconPath = `${path}/package/images/icon.svg`;
+    const data = await ReactNativeBlobUtil.fs.readFile(iconPath, 'utf8');
+    return data;
+  } catch (error) {
+    Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseManifest error', error);
+  }
+};
+
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
@@ -251,7 +261,7 @@ export class NpmLocation implements SnapLocation {
 
   async #lazyInit() {
     assert(this.files === undefined);
-    const [manifest, sourceCode, actualVersion] = await fetchNpmTarball(
+    const [manifest, sourceCode, icon, actualVersion] = await fetchNpmTarball(
       this.meta.packageName,
       this.meta.requestedRange,
       this.meta.registry,
@@ -286,6 +296,16 @@ export class NpmLocation implements SnapLocation {
     });
 
     this.files = new Map<string, VirtualFile>();
+
+    if (icon) {
+      const iconVFile = new VirtualFile({
+        value: icon,
+        path: 'images/icon.svg',
+        data: { canonicalPath: canonicalBase },
+      });
+      this.files.set('images/icon.svg', iconVFile);
+    }
+
     this.files.set('snap.manifest.json', manifestVFile);
     this.files.set('dist/bundle.js', sourceCodeVFile);
   }
@@ -309,7 +329,7 @@ async function fetchNpmTarball(
   versionRange: SemVerRange,
   registryUrl: string,
   fetchFunction: typeof fetch,
-): Promise<[string, string, SemVerVersion]> {
+): Promise<[string, string, string, SemVerVersion]> {
   const urlToFetch = new URL(packageName, registryUrl).toString();
   const packageMetadata = await (await fetchFunction(urlToFetch)).json();
 
@@ -360,8 +380,18 @@ async function fetchNpmTarball(
   const manifest = await readAndParseManifest(npmPackageDataLocation);
   const sourceCode = await readAndParseSourceCode(npmPackageDataLocation);
 
+  let icon;
+  try {
+    icon = await readAndParseIcon(npmPackageDataLocation);
+  } catch (error) {
+    Logger.log(
+      `Failed to fetch icon for package "${packageName}". Using default icon instead.`,
+      error,
+    );
+  }
+
   if (!manifest || !sourceCode) {
     throw new Error(`Failed to fetch tarball for package "${packageName}".`);
   }
-  return [manifest, sourceCode, targetVersion];
+  return [manifest, sourceCode, icon, targetVersion];
 }

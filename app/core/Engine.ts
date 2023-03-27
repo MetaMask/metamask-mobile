@@ -218,6 +218,18 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => {
+          console.log('Snaps/ approvalController showApprovalRequest');
+        },
+      });
+
+      const phishingController = new PhishingController();
+      phishingController.maybeUpdateState();
+
       const additionalKeyrings = [QRHardwareKeyring];
 
       const getIdentities = () => {
@@ -281,16 +293,16 @@ class Engine {
             this.controllerMessenger,
             'SnapController:getSnapState',
           ),
-          // showConfirmation: (origin, confirmationData) =>
-          //   this.approvalController.addAndShowApprovalRequest({
-          //     origin,
-          //     type: MESSAGE_TYPE.SNAP_CONFIRM,
-          //     requestData: confirmationData,
-          //   }),
           updateSnapState: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:updateSnapState',
           ),
+          showConfirmation: (origin, confirmationData) =>
+            this.approvalController.addAndShowApprovalRequest({
+              origin,
+              type: 'snapConfirmation',
+              requestData: confirmationData,
+            }),
         }),
       });
 

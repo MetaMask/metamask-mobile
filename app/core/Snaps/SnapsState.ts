@@ -1,6 +1,6 @@
 const snapsState = {
-  stream: null,
-  webview: null,
+  stream: undefined,
+  webview: undefined,
 };
 
 export default snapsState;
