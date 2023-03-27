@@ -20,8 +20,9 @@ import {
   setAutomaticSecurityChecksModalOpen,
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
-import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
@@ -50,7 +51,7 @@ const EnableAutomaticSecurityChecksModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   useEffect(() => {
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
       generateDeviceAnalyticsMetaData(),
     );
@@ -66,7 +67,7 @@ const EnableAutomaticSecurityChecksModal = () => {
   const triggerCloseAndDisableAutomaticSecurityChecks = useCallback(
     () =>
       dismissModal(() => {
-        trackEvent(
+        AnalyticsV2.trackEvent(
           MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
           generateDeviceAnalyticsMetaData(),
         );
@@ -77,7 +78,7 @@ const EnableAutomaticSecurityChecksModal = () => {
 
   const enableAutomaticSecurityChecks = useCallback(() => {
     dismissModal(() => {
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
         generateDeviceAnalyticsMetaData(),
       );

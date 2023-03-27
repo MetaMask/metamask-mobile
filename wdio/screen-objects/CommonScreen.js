@@ -1,5 +1,5 @@
 import Selectors from '../helpers/Selectors';
-import Gestures from '../helpers/Gestures';
+import Gestures from "../helpers/Gestures";
 
 class CommonScreen {
   async isTextDisplayed(text) {

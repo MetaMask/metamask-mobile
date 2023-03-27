@@ -7,12 +7,10 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import { connect } from 'react-redux';
-import ActionSheet from 'react-native-actionsheet';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import ActionSheet from 'react-native-actionsheet';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
@@ -20,8 +18,12 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
+import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
@@ -135,6 +137,7 @@ const createStyles = (colors) =>
     },
     buyTitle: {
       marginVertical: 5,
+      textAlign: 'center',
     },
     buyButton: {
       marginVertical: 5,
@@ -243,7 +246,7 @@ class Tokens extends PureComponent {
           disabled={!this.state.isAddTokenEnabled}
           {...generateTestId(Platform, IMPORT_TOKEN_BUTTON_ID)}
         >
-          <Text>
+          <Text centered>
             <Text style={styles.emptyText}>
               {strings('wallet.no_available_tokens')}
             </Text>{' '}
@@ -339,7 +342,7 @@ class Tokens extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
         chain_id_destination: this.props.chainId,
@@ -352,7 +355,7 @@ class Tokens extends PureComponent {
     const { detectedTokens } = this.props;
     this.props.navigation.navigate(...createDetectedTokensNavDetails());
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(
           NetworkController?.state?.providerConfig?.chainId,
@@ -440,7 +443,7 @@ class Tokens extends PureComponent {
     this.setState({ isAddTokenEnabled: false });
     this.props.navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(
           NetworkController?.state?.providerConfig?.chainId,
@@ -470,7 +473,7 @@ class Tokens extends PureComponent {
         }),
       });
       InteractionManager.runAfterInteractions(() =>
-        trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
           location: 'assets_list',
           token_standard: 'ERC20',
           asset_type: 'token',
