@@ -71,5 +71,4 @@ class RNTar: NSObject {
         rejecter("Error uncompressing file:", error.localizedDescription, error)
     }
   }
-
 }

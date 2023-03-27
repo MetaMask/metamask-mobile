@@ -771,25 +771,25 @@ const RootRPCMethodsUI = (props) => {
           console.log('Update Snap');
           break;
         case ApprovalTypes.REQUEST_PERMISSIONS:
-          if (requestData?.permissions?.eth_accounts) {
-            const {
-              metadata: { id },
-            } = requestData;
+          // eslint-disable-next-line no-case-declarations
+          const {
+            metadata: { id },
+          } = requestData;
 
-            const totalAccounts = props.accountsLength;
+          // eslint-disable-next-line no-case-declarations
+          const totalAccounts = props.accountsLength;
 
-            trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-              number_of_accounts: totalAccounts,
-              source: 'PERMISSION SYSTEM',
-            });
+          trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+            number_of_accounts: totalAccounts,
+            source: 'PERMISSION SYSTEM',
+          });
 
-            props.navigation.navigate(
-              ...createAccountConnectNavDetails({
-                hostInfo: requestData,
-                permissionRequestId: id,
-              }),
-            );
-          }
+          props.navigation.navigate(
+            ...createAccountConnectNavDetails({
+              hostInfo: requestData,
+              permissionRequestId: id,
+            }),
+          );
           break;
         case ApprovalTypes.CONNECT_ACCOUNTS:
           setHostToApprove({ data: requestData, id: request.id });
