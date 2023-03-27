@@ -13,11 +13,10 @@ import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
 
 import TestHelpers from './helpers';
+
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
-const PASSWORD = '12345678';
-
 const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
@@ -42,8 +41,8 @@ export const importWalletWithRecoveryPhrase = async () => {
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportWalletView.enterPassword(PASSWORD);
-  await ImportWalletView.reEnterPassword(PASSWORD);
+  await ImportWalletView.enterPassword(validAccount.password);
+  await ImportWalletView.reEnterPassword(validAccount.password);
 
   // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
