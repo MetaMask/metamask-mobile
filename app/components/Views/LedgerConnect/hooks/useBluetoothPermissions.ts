@@ -41,7 +41,7 @@ const useBluetoothPermissions = () => {
         PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
       );
 
-      if (deviceOSVersion > 12) {
+      if (deviceOSVersion >= 12) {
         const connectPermissionStatus = await request(
           PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
         );
