@@ -11,6 +11,13 @@ import java.util.Map;
 import java.util.HashMap;
 import android.util.Log;
 import com.facebook.react.bridge.Promise;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.TarEntry;
+import java.util.zip.TarInputStream;
 
 
 public class RNTar extends ReactContextBaseJavaModule {
@@ -26,9 +33,46 @@ public class RNTar extends ReactContextBaseJavaModule {
     return MODULE_NAME;
   }
 
-  private String uncompressTgzFile(String atPath, String toDirectory) {
-    return "Temp";
-  };
+
+  private String decompressTgzFile(String sourceFilePath, String destinationDirPath) {
+  try {
+      FileInputStream fis = new FileInputStream(sourceFilePath);
+      GZIPInputStream gzis = new GZIPInputStream(fis);
+      TarInputStream tis = new TarInputStream(gzis);
+
+      File destinationDir = new File(destinationDirPath);
+      if (!destinationDir.exists()) {
+          destinationDir.mkdirs();
+      }
+
+      TarEntry entry;
+      while ((entry = tis.getNextEntry()) != null) {
+          String fileName = entry.getName();
+          File outputFile = new File(destinationDirPath + File.separator + fileName);
+
+          if (entry.isDirectory()) {
+              if (!outputFile.exists()) {
+                  outputFile.mkdirs();
+              }
+          } else {
+              byte[] buffer = new byte[1024];
+              FileOutputStream fos = new FileOutputStream(outputFile);
+              int len;
+              while ((len = tis.read(buffer)) > 0) {
+                  fos.write(buffer, 0, len);
+              }
+              fos.close();
+          }
+      }
+
+      tis.close();
+      gzis.close();
+      fis.close();
+
+  } catch (IOException e) {
+      Log.e("DecompressTgzFile", "Error decompressing tgz file", e);
+  }
+}
   @ReactMethod
   public void unTar(String pathToRead, String pathToWrite, final Promise promise) {
     Log.d(MODULE_NAME, "Create event called with name: " + pathToRead
