@@ -19,7 +19,7 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
 import { createQRScannerNavDetails } from '../../QRScanner';
 import Text from '../../../Base/Text';
-import { AddressFrom, AddressTo } from './../AddressInputs';
+import { AddressFrom, AddressTo } from '../../../UI/AddressInputs';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import ActionModal from '../../../UI/ActionModal';
