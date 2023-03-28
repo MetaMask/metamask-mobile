@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
+import { strings } from '../../../../../locales/i18n';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -33,9 +34,9 @@ const Balance = ({ balance, fiatBalance }: BalanceProps) => {
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.text}>Your Balance</Text>
+      <Text style={styles.text}>{strings('asset_overview.your_balance')}</Text>
       <Title style={styles.fiatBalance}>
-        {fiatBalance || 'Unable to load balance'}
+        {fiatBalance || strings('asset_overview.unable_to_load_balance')}
       </Title>
       <Text style={styles.text}>{balance}</Text>
     </View>

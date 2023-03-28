@@ -61,6 +61,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     warningLinks: {
       color: colors.primary.default,
+      fontSize: 14,
     },
     chartNavigationWrapper: {
       display: 'flex',
@@ -264,7 +265,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               (label) => (
                 <ChartNavigationButton
                   key={label}
-                  label={label}
+                  label={strings(
+                    `asset_overview.chart_time_period_navigation.${label}`,
+                  )}
                   onPress={handleSelectTimePeriod.bind(this, label)}
                   selected={timePeriod === label}
                 />

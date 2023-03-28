@@ -493,7 +493,7 @@ class Asset extends PureComponent {
                 }
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
-                label={'Swap'}
+                label={strings('asset_overview.swap')}
                 style={styles.footerButton}
                 onPress={goToSwaps}
               />

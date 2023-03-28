@@ -1,7 +1,8 @@
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { strings } from '../../../../locales/i18n';
 import { Asset } from '../../../components/UI/AssetOverview-V2/AssetOverview.types';
 import Title from '../../Base/Title';
-import React from 'react';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -28,7 +29,11 @@ const ActivityHeader = ({ asset }: ActivityHeaderProps) => {
   const styles = createStyles();
   return (
     <View style={styles.wrapper}>
-      <Title style={styles.title}>{asset.name || asset.symbol} activity</Title>
+      <Title style={styles.title}>
+        {strings('asset_overview.activity', {
+          symbol: asset.name || asset.symbol,
+        })}
+      </Title>
     </View>
   );
 };

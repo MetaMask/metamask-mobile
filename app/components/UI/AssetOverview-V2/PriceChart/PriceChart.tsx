@@ -18,6 +18,7 @@ import {
   Path,
   Rect,
   Stop,
+  Text as SvgText,
 } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
@@ -276,29 +277,78 @@ const PriceChart = ({
   );
 
   const Tooltip = ({ x, y, ticks }: Partial<TooltipProps>) => {
+    const tooltipWidth = apx(300);
     if (positionX < 0) {
       return null;
     }
 
+    const date = dateList[positionX];
+
     return (
       <G x={x?.(positionX)} key="tooltip">
-        <SvgLine
-          y1={ticks?.[0]}
-          y2={ticks?.[Number(ticks.length)]}
-          stroke={'#848C96'}
-          strokeWidth={apx(1)}
-        />
+        <G
+          x={
+            positionX > dateList.length / 2
+              ? -tooltipWidth + apx(30)
+              : tooltipWidth / 2 - apx(30)
+          }
+          y={10}
+        >
+          <SvgText
+            x={apx(20)}
+            fill={colors.text.alternative}
+            opacity={0.65}
+            fontSize={apx(24)}
+            textAnchor={positionX > dateList.length / 2 ? 'start' : 'end'}
+          >
+            {new Date(date).toLocaleDateString()}{' '}
+            {addCurrencySymbol(priceList[positionX], currentCurrency)}
+          </SvgText>
+        </G>
+        <G>
+          <SvgLine
+            y1={ticks?.[0]}
+            y2={ticks?.[Number(ticks.length)]}
+            stroke={'#848C96'}
+            strokeWidth={apx(1)}
+          />
 
-        <Circle
-          cy={y?.(priceList[positionX])}
-          r={apx(20 / 2)}
-          stroke="#fff"
-          strokeWidth={apx(2)}
-          fill={chartColor}
-        />
+          <Circle
+            cy={y?.(priceList[positionX])}
+            r={apx(20 / 2)}
+            stroke="#fff"
+            strokeWidth={apx(2)}
+            fill={chartColor}
+          />
+        </G>
       </G>
     );
   };
+
+  // const Tooltip = ({ x, y, ticks }: Partial<TooltipProps>) => {
+  //   if (positionX < 0) {
+  //     return null;
+  //   }
+
+  //   return (
+  //     <G x={x?.(positionX)} key="tooltip">
+  //       <SvgLine
+  //         y1={ticks?.[0]}
+  //         y2={ticks?.[Number(ticks.length)]}
+  //         stroke={'#848C96'}
+  //         strokeWidth={apx(1)}
+  //       />
+
+  //       <Circle
+  //         cy={y?.(priceList[positionX])}
+  //         r={apx(20 / 2)}
+  //         stroke="#fff"
+  //         strokeWidth={apx(2)}
+  //         fill={chartColor}
+  //       />
+  //     </G>
+  //   );
+  // };
 
   if (isLoading) {
     return (
@@ -313,22 +363,12 @@ const PriceChart = ({
       </View>
     );
   }
-  const date = dateList[positionX];
-  const price = priceList[positionX];
 
   const chartHasData = priceList.length > 0;
 
   return (
     <View style={styles.chart}>
       <View style={styles.chartArea} {...panResponder.current.panHandlers}>
-        <Text style={styles.priceChannel}>
-          {positionX !== -1 && chartHasData && (
-            <Text style={styles.priceChannelText}>
-              {new Date(date).toLocaleDateString()}{' '}
-              {addCurrencySymbol(price, currentCurrency)}
-            </Text>
-          )}
-        </Text>
         {!chartHasData && <NoDataOverlay />}
         <AreaChart
           style={styles.chartArea}

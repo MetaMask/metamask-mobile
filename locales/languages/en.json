@@ -785,7 +785,29 @@
     "buy_description": "Buy crypto with cash",
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
-    "receive_description": "Receive crypto"
+    "receive_description": "Receive crypto",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity"
   },
   "account_details": {
     "title": "Account Details",
@@ -2258,12 +2280,12 @@
     "title": "Automatic security checks",
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
-"terms_of_use_modal": {
-  "title": "Our Terms of Use have been updated",
-  "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
-  "accept_cta": "Accept",
-  "accept_helper_description": "Please scroll to read all sections"
-},
+  "terms_of_use_modal": {
+    "title": "Our Terms of Use have been updated",
+    "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+    "accept_cta": "Accept",
+    "accept_helper_description": "Please scroll to read all sections"
+  },
   "update_needed": {
     "title": "Updates needed",
     "description": "We've increased security for your wallet! Please take a moment to protect yourself and update to the latest version.",
@@ -2415,7 +2437,7 @@
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App"
   },
-  "account_actions":{
+  "account_actions": {
     "edit_name": "Edit account name",
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",

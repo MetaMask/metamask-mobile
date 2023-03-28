@@ -8,6 +8,7 @@ import React, { useContext, useMemo } from 'react';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { Asset } from '../AssetOverview.types';
+import { strings } from '../../../../../locales/i18n';
 
 const createStyles = (colors: ThemeColors, priceDiff: number) => {
   const red = '#FF3B30';
@@ -84,13 +85,13 @@ const Price = ({
     '1d' | '7d' | '1w' | '1m' | '3m' | '1y' | '3y',
     string
   > = {
-    '1d': 'Today',
-    '7d': 'Past 7 days',
-    '1w': 'Past week',
-    '1m': 'Past month',
-    '3m': 'Past 3 months',
-    '1y': 'Past year',
-    '3y': 'Past 3 years',
+    '1d': strings('asset_overview.chart_time_period.1d'),
+    '7d': strings('asset_overview.chart_time_period.7d'),
+    '1w': strings('asset_overview.chart_time_period.1w'),
+    '1m': strings('asset_overview.chart_time_period.1m'),
+    '3m': strings('asset_overview.chart_time_period.3m'),
+    '1y': strings('asset_overview.chart_time_period.1y'),
+    '3y': strings('asset_overview.chart_time_period.3y'),
   };
   return (
     <View style={styles.wrapper}>
