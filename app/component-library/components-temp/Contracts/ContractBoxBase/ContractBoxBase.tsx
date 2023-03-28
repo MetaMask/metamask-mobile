@@ -72,7 +72,7 @@ const ContractBoxBase = ({
               variant={ButtonVariants.Link}
               textVariant={TextVariant.HeadingMD}
               label={formattedAddress}
-              // style={styles.header}
+              style={styles.header}
               onPress={onContractPress}
             />
           </View>
