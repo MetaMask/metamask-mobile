@@ -84,9 +84,7 @@ export const SDKSessionItem = ({
         </Text>
       )}
 
-      <Text style={styles.dappName}>
-        {sessionName} {connection.id}
-      </Text>
+      <Text style={styles.dappName}>{sessionName}</Text>
       <StyledButton
         type="normal"
         onPress={() => onDisconnect(connection.id)}
