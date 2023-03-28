@@ -114,7 +114,7 @@ This component is again taking care to render a lot of different sections of the
 
 <img src="https://github.com/MetaMask/metamask-mobile/blob/send_architectural_doc/docs/confirmation-refactoring/send/send_confirm_info.png?raw=true" width="150"/>
 
-The component also has a lot of different transaction / gas related methods defined in it, these should be converted (fully or partially) into re-uable utility methods or hooks:
+The component also has a lot of different transaction / gas related methods defined in it; these should be converted (fully or partially) into reusable utility methods or hooks:
 
 1. Function [parseTransactionDataHeader](https://github.com/MetaMask/metamask-mobile/blob/de80215b19337e45c8dee5d492645d3ff899822e/app/components/Views/SendFlow/Confirm/index.js#L509)
 2. Function [validateGas](https://github.com/MetaMask/metamask-mobile/blob/de80215b19337e45c8dee5d492645d3ff899822e/app/components/Views/SendFlow/Confirm/index.js#L612) is not used and can be removed.
