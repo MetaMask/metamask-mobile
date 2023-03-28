@@ -257,7 +257,10 @@ export class NetworkList extends PureComponent {
 
     let rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
 
-    if (!isLineaTestnetInFrequentRpcList) {
+    if (
+      !isLineaTestnetInFrequentRpcList &&
+      rpcTarget === LINEA_TESTNET_RPC_URL
+    ) {
       const url = new URLPARSE(LINEA_TESTNET_RPC_URL);
       const decimalChainId = getDecimalChainId(NETWORKS_CHAIN_ID.LINEA_TESTNET);
       PreferencesController.addToFrequentRpcList(
