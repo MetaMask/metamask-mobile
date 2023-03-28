@@ -48,7 +48,7 @@ describe('Send ETH Tests', () => {
 
   it('should input and validate amount', async () => {
     // Input acceptable value
-    await AmountView.typeInTransactionAmount('0');
+    await AmountView.typeInTransactionAmount('.00001');
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view
