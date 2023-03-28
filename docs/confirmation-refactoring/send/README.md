@@ -79,7 +79,7 @@ Amount page is rendered by [/Views/SendFlow/Amount](https://github.com/MetaMask/
 
 These can be broken down into 2 different components to reduce complexity of this component.
 
-Additionally the components has a lot of different transaction / gas related methods defined in it, these should be converted(fully or partially) into re-uable utility methods or hooks. A function not requiring state changes can be made a utility method, function more closely tied to state change should be hook. Here is a list of the methods I could find but there will be more to it:
+Additionally the components has a lot of different transaction / gas related methods defined in it, these should be converted(fully or partially) into reusable utility methods or hooks. A function not requiring state changes can be made a utility method, function more closely tied to state change should be hook. Here is a list of the methods I could find but there will be more to it:
 
 1. Code [here](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L476) to estimate total gas for both Legacy and EIP-1559 gas estimates.
 2. Function [ValidateCollectibleOwnership](https://github.com/MetaMask/metamask-mobile/blob/e8f8544e64a71d3846153a65e75149687324df31/app/components/Views/SendFlow/Amount/index.js#L546)
