@@ -6,32 +6,37 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import Identicon from '../../../UI/Identicon';
+import Identicon from '../Identicon';
 import {
   isQRHardwareAccount,
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
-} from '../../../../util/address';
-import { strings } from '../../../../../locales/i18n';
-import Text from '../../../Base/Text';
-import { hasZeroWidthPoints } from '../../../../util/confusables';
-import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { SEND_ADDRESS_INPUT_FIELD } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-const createStyles = (colors) =>
-  StyleSheet.create({
+} from '../../../util/address';
+import { strings } from '../../../../locales/i18n';
+import Text from '../../Base/Text';
+import { hasZeroWidthPoints } from '../../../util/confusables';
+import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+const createStyles = (colors, layout = 'horizontal') => {
+  const isVerticalLayout = layout === 'vertical';
+  return StyleSheet.create({
     wrapper: {
-      flexDirection: 'row',
+      flexDirection: isVerticalLayout ? 'column' : 'row',
       marginHorizontal: 8,
+      minHeight: isVerticalLayout ? 82 : 52,
+    },
+    marginedWrapper: {
+      marginTop: 8,
     },
     selectWrapper: {
       flex: 1,
-      marginLeft: 8,
+      marginLeft: isVerticalLayout ? 0 : 8,
       paddingHorizontal: 10,
       minHeight: 52,
       flexDirection: 'row',
@@ -41,7 +46,7 @@ const createStyles = (colors) =>
     },
     inputWrapper: {
       flex: 1,
-      marginLeft: 8,
+      marginLeft: isVerticalLayout ? 0 : 8,
       padding: 10,
       minHeight: 52,
       flexDirection: 'row',
@@ -172,6 +177,7 @@ const createStyles = (colors) =>
     },
     checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
   });
+};
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
   const { colors } = useTheme();
@@ -230,15 +236,20 @@ export const AddressTo = (props) => {
     displayExclamation,
     isConfirmScreen = false,
     isFromAddressBook = false,
+    layout = 'horizontal',
   } = props;
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, layout);
 
   const isInputFilled = toSelectedAddress?.length;
 
   if (isConfirmScreen) {
+    const wrapperStyles = [styles.wrapper];
+    if (layout === 'vertical') {
+      wrapperStyles.push(styles.marginedWrapper);
+    }
     return (
-      <View style={styles.wrapper}>
+      <View style={wrapperStyles}>
         <View style={styles.label}>
           <Text style={styles.labelText}>To:</Text>
         </View>
@@ -261,7 +272,7 @@ export const AddressTo = (props) => {
             )}
             <View style={styles.toInputWrapper}>
               <View style={[styles.address, styles.checkAddress]}>
-                {isENS(toAddressName) && (
+                {toAddressName && (
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
@@ -270,9 +281,7 @@ export const AddressTo = (props) => {
                 <View style={styles.addressWrapper}>
                   <Text
                     style={
-                      isENS(toAddressName)
-                        ? styles.textBalance
-                        : styles.textAddress
+                      toAddressName ? styles.textBalance : styles.textAddress
                     }
                     numberOfLines={1}
                   >
@@ -534,6 +543,7 @@ AddressTo.propTypes = {
    * Returns if it selected from address book
    */
   isFromAddressBook: PropTypes.bool,
+  layout: PropTypes.string,
 };
 
 export const AddressFrom = (props) => {
@@ -543,10 +553,11 @@ export const AddressFrom = (props) => {
     fromAccountName,
     fromAccountBalance,
     fromAccountAddress,
+    layout = 'horizontal',
   } = props;
   const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, layout);
 
   return (
     <View style={styles.wrapper}>
@@ -616,4 +627,5 @@ AddressFrom.propTypes = {
    * Account balance of selected address as string
    */
   fromAccountBalance: PropTypes.string,
+  layout: PropTypes.string,
 };
