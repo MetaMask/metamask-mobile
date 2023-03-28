@@ -32,7 +32,6 @@ const ContractBoxBase = ({
   onExportAddress,
   onContractPress,
   hasBlockExplorer,
-  tokenSymbol,
 }: ContractBoxBaseProps) => {
   const formattedAddress = formatAddress(contractAddress, 'short');
   const {
@@ -56,8 +55,6 @@ const ContractBoxBase = ({
               size={AvatarSize.Md}
               imageSource={contractLocalImage}
             />
-          ) : tokenSymbol ? (
-            <Text variant={TextVariant.BodyMDBold}>{tokenSymbol}</Text>
           ) : (
             <Identicon address={contractAddress} diameter={25} />
           )}
@@ -75,7 +72,7 @@ const ContractBoxBase = ({
               variant={ButtonVariants.Link}
               textVariant={TextVariant.HeadingMD}
               label={formattedAddress}
-              style={styles.header}
+              // style={styles.header}
               onPress={onContractPress}
             />
           </View>
