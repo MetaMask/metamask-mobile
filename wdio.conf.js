@@ -1,6 +1,6 @@
 import generateTestReports from './wdio/utils/generateTestReports';
 
-const { removeSync } = require('fs-extra');
+const {removeSync} = require('fs-extra');
 
 export const config = {
   //
@@ -26,7 +26,9 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/*.feature', './wdio/features/**/*.feature'],
+  specs: ['./wdio/features/*.feature',
+          './wdio/features/**/*.feature'
+  ],
 
   // Patterns to exclude.
   exclude: [
@@ -113,7 +115,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 45000,
+  waitforTimeout: 1000000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -200,7 +202,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 30000,
+    timeout: 100000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },

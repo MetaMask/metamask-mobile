@@ -1,16 +1,14 @@
+/* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import {
-  SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
-  SECURITY_PRIVACY_VIEW_ID,
-} from './testIDs/Screens/SecurityPrivacy.testIds';
+import { SECURITY_PRIVACY_REMEMBER_ME_TOGGLE, SECURITY_PRIVACY_VIEW_ID } from './testIDs/Screens/SecurityPrivacy.testIds';
 
 class SecurityPrivacyScreen {
   get rememberMeToggle() {
     return Selectors.getElementByPlatform(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
   }
 
-  get container() {
+  get container () {
     return Selectors.getElementByPlatform(SECURITY_PRIVACY_VIEW_ID);
   }
 
@@ -34,11 +32,12 @@ class SecurityPrivacyScreen {
   async isRememberMeToggle(value) {
     const element = await this.rememberMeToggle;
     await expect(await element.getText()).toEqual(value);
+    await driver.pause(1000);
   }
 
   async isScreenDisplayed() {
     const element = await this.container;
-    await element.waitForDisplayed({ interval: 1000 });
+    await element.waitForDisplayed({ interval: 1000});
   }
 }
 

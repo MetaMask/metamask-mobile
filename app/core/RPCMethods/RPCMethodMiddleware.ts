@@ -278,17 +278,19 @@ export const getRpcMethodMiddleware = ({
           res.result = [selectedAddress];
         } else if (isMMSDK) {
           try {
-            let { selectedAddress } =
-              Engine.context.PreferencesController.state;
-            selectedAddress = selectedAddress?.toLowerCase();
-            // Prompts user approval UI in RootRPCMethodsUI.js.
-            await requestUserApproval({
-              type: ApprovalTypes.CONNECT_ACCOUNTS,
-              requestData: { hostname },
-            });
+            const approved = getApprovedHosts()[hostname];
+
+            if (!approved) {
+              // Prompts user approval UI in RootRPCMethodsUI.js.
+              await requestUserApproval({
+                type: ApprovalTypes.CONNECT_ACCOUNTS,
+                requestData: { hostname },
+              });
+            }
             // Stores approvals in SDKConnect.ts.
             approveHost?.(hostname);
-            res.result = selectedAddress ? [selectedAddress] : [];
+            const accounts = getAccounts();
+            res.result = accounts;
           } catch (e) {
             throw ethErrors.provider.userRejectedRequest(
               'User denied account authorization.',
@@ -587,7 +589,10 @@ export const getRpcMethodMiddleware = ({
         try {
           const permittedAccounts = await getPermittedAccounts(hostname);
           // This should return the current active account on the Dapp.
-          const interactingAddress = permittedAccounts?.[0];
+          const selectedAddress =
+            Engine.context.PreferencesController.state.selectedAddress;
+          // Fallback to wallet address if there is no connected account to Dapp.
+          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
           const watchAssetResult = await TokensController.watchAsset(
             { address, symbol, decimals, image },
             type,
@@ -691,7 +696,9 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         res.result = {
           ...getProviderState(),
-          accounts: await getPermittedAccounts(hostname),
+          accounts: isMMSDK
+            ? getAccounts()
+            : await getPermittedAccounts(hostname),
         };
       },
 

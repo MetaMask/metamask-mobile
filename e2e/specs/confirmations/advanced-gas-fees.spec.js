@@ -1,6 +1,5 @@
 'use strict';
 import WalletView from '../../pages/WalletView';
-import DrawerView from '../../pages/Drawer/DrawerView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
@@ -21,11 +20,8 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     await switchToGoreliNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    //Tap send Icon
+    await WalletView.tapSendIcon();
 
     await SendView.inputAddress(VALID_ADDRESS);
     await SendView.tapNextButton();
