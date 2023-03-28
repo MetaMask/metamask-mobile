@@ -32,6 +32,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     onPressFromAddressIcon,
     ticker,
     transactionState,
+    layout = 'horizontal',
   } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
@@ -56,14 +57,14 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
+    if (!fromAddress) {
+      return;
+    }
     if (transactionFromName) {
       setFromAccountName(transactionFromName);
       return;
     }
     (async () => {
-      if (!fromAddress) {
-        return;
-      }
       const { name: fromName } = identities[fromAddress];
       const fromEns = await doENSReverseLookup(fromAddress);
       setFromAccountName(fromEns || fromName);
@@ -74,14 +75,16 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     const existingContact =
       toAddress && addressBook[network] && addressBook[network][toAddress];
     setIsExistingContact(existingContact !== undefined);
-    if (transactionToName) {
+    if (transactionToName && transactionToName !== toAddress) {
       setToAccountName(transactionToName);
       return;
     }
     (async () => {
-      const { name: toName } = identities[toAddress];
-      const toEns = await doENSReverseLookup(toAddress);
-      setToAccountName(toEns || toName);
+      if (identities[toAddress]) {
+        const { name: toName } = identities[toAddress];
+        const toEns = await doENSReverseLookup(toAddress);
+        setToAccountName(toEns || toName);
+      }
     })();
   }, [addressBook, identities, network, toAddress, transactionToName]);
 
@@ -165,6 +168,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       confusableCollection={(!isExistingContact && confusableCollection) || []}
       displayExclamation={!isExistingContact && !!confusableCollection.length}
       isConfirmScreen
+      layout={layout}
       toAddressName={toAccountName}
       toSelectedAddress={toAddress}
     />
@@ -173,12 +177,15 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   return (
     <>
       <View style={styles.inputWrapper}>
-        <AddressFrom
-          fromAccountAddress={fromAddress}
-          fromAccountName={fromAccountName}
-          fromAccountBalance={fromAccountBalance}
-          onPressIcon={onPressFromAddressIcon}
-        />
+        {fromAddress && (
+          <AddressFrom
+            fromAccountAddress={fromAddress}
+            fromAccountName={fromAccountName}
+            fromAccountBalance={fromAccountBalance}
+            layout={layout}
+            onPressIcon={onPressFromAddressIcon}
+          />
+        )}
         {!isExistingContact && confusableCollection.length ? (
           <TouchableOpacity onPress={() => setShowWarningModal(true)}>
             {addressTo}
