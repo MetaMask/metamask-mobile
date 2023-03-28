@@ -215,7 +215,7 @@ export class Connection extends EventEmitter2 {
         version,
       },
       context: AppConstants.MM_SDK.PLATFORM,
-      analytics: false,
+      analytics: true,
       logging: {
         eciesLayer: false,
         keyExchangeLayer: false,
@@ -223,7 +223,7 @@ export class Connection extends EventEmitter2 {
         serviceLayer: false,
       },
       storage: {
-        debug: true,
+        debug: false,
       },
     });
 
@@ -346,7 +346,7 @@ export class Connection extends EventEmitter2 {
             this.setLoading(false);
             // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
             addToRpcQeue({
-              id: (message.id as string) ?? 'UNK',
+              id: (message.id as string) ?? 'unknown',
               method: message.method,
             });
           }
