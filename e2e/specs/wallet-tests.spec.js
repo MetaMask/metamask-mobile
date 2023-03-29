@@ -6,9 +6,7 @@ import AccountListView from '../pages/AccountListView';
 import ImportAccountView from '../pages/ImportAccountView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
-import SendView from '../pages/SendView';
-import AmountView from '../pages/AmountView';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
+
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
 
