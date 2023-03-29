@@ -69,6 +69,7 @@ const BrowserUrlModal = () => {
         }
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const triggerClose = useCallback(() => dismissModal(), [dismissModal]);
