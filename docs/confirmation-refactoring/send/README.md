@@ -127,8 +127,6 @@ The component also has a lot of different transaction / gas related methods defi
 
 #### Other refactoring areas:
 
-<<<<<<< HEAD
-
 1. A lot of components have logic to update NarBar defined as:
    ```
    componentDidUpdate = () => {
@@ -136,24 +134,10 @@ The component also has a lot of different transaction / gas related methods defi
    };
    ```
    As we make components functional this can be converted to a tested re-usable hook used across all the components.
-2. # Code to start / stop gas polling is used at few places, it can be converted to re-usable hoo.
+2. Code to start / stop gas polling is used at a few places; it can be converted to a re-usable hook.
 
-3. A lot of components have logic to update NarBar defined as:
-   ```
-   componentDidUpdate = () => {
-       this.updateNavBar();
-   };
-   ```
-   As we make components functional this can be converted to a tested re-usable hook used across all the components.
-4. Code to start / stop gas polling is used at a few places; it can be converted to a re-usable hook.
+3. Different send pages have functions to update transaction - there is [reducer](https://github.com/MetaMask/metamask-mobile/blob/main/app/reducers/transaction/index.js) defined for updating transaction we should use this to add any transaction update related methods to ensure that all transaction update logic is at one place.
 
-   > > > > > > > efc25d3c7d681d8d9d8c6de15045eb3a718023ba
+4. Also, there is a transaction [utility file](https://github.com/MetaMask/metamask-mobile/blob/main/app/util/transactions/index.js) any re-usable transaction utility methods should be moved to it.
 
-5. Different send pages have functions to update transaction - there is [reducer](https://github.com/MetaMask/metamask-mobile/blob/main/app/reducers/transaction/index.js) defined for updating transaction we should use this to add any transaction update related methods to ensure that all transaction update logic is at one place.
-
-6. Also, there is a transaction [utility file](https://github.com/MetaMask/metamask-mobile/blob/main/app/util/transactions/index.js) any re-usable transaction utility methods should be moved to it.
-
-<<<<<<< HEAD 5. A requirement for all the editing is to write Functional React components using TypeScript and ensure Test coverage.
-======= 5. A requirement for all the editing is to write Functional React components using TypeScript and ensure Test coverage.
-
-> > > > > > > efc25d3c7d681d8d9d8c6de15045eb3a718023ba
+5. A requirement for all the editing is to write Functional React components using TypeScript and ensure Test coverage.
