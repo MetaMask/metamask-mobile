@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index a5e5af1..e2dbbd2 100644
+index a5e5af1..39042d0 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 @@ -125,6 +125,7 @@ class KeyringController extends base_controller_1.BaseController {
@@ -26,7 +26,30 @@ index a5e5af1..e2dbbd2 100644
          });
      }
      /**
-@@ -313,8 +315,8 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -241,6 +243,22 @@ class KeyringController extends base_controller_1.BaseController {
+         }
+         throw new Error('Invalid password');
+     }
++
++      /**
++     * Temporary function that gets the mnemonic of the HD keyring.
++     * This method is not password protected
++     * 
++     * @returns Promise resolving to the seed phrase.
++     */
++    exportMnemonic() {
++        const mnemonic = __classPrivateFieldGet(this, _KeyringController_keyring, "f").keyrings[0].mnemonic;
++        if (mnemonic) {
++            console.log('Snaps/ KeyringController: exportMnemonic returns', mnemonic);
++            return mnemonic;
++        }
++        throw new Error('No mnemonic found');
++    }
++
+     /**
+      * Gets the private key from the keyring controlling an address.
+      *
+@@ -313,8 +331,8 @@ class KeyringController extends base_controller_1.BaseController {
              const accounts = yield newKeyring.getAccounts();
              const allAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
              this.updateIdentities(allAccounts);
@@ -37,7 +60,7 @@ index a5e5af1..e2dbbd2 100644
          });
      }
      /**
-@@ -615,16 +617,19 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -615,16 +633,19 @@ class KeyringController extends base_controller_1.BaseController {
              yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(keyring);
              const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
              this.updateIdentities(newAccounts);
@@ -58,7 +81,7 @@ index a5e5af1..e2dbbd2 100644
          });
      }
      getAccountKeyringType(account) {
-@@ -635,13 +640,15 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -635,13 +656,15 @@ class KeyringController extends base_controller_1.BaseController {
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
              const keyring = yield this.getOrAddQRKeyring();

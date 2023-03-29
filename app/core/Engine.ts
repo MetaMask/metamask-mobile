@@ -315,12 +315,15 @@ class Engine {
        * Gets the mnemonic of the user's primary keyring.
        */
       const getPrimaryKeyringMnemonic = async () => {
-        const accounts = await keyringController.getAccounts();
-        console.log('Snaps/ getPrimaryKeyringMnemonic accounts', accounts);
-        if (accounts[0]) {
-          throw new Error('Primary keyring mnemonic unavailable.');
+        try {
+          const mnemonic = await keyringController.exportMnemonic();
+          if (mnemonic) {
+            return mnemonic;
+          }
+          throw new Error('No mnemonic found');
+        } catch (error) {
+          console.error(error);
         }
-        return accounts[0];
       };
 
       const getAppState = () => {
