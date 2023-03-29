@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -29,6 +28,7 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -40,8 +40,8 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import {
-  trackEvent,
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
 import { Authentication } from '../../../../core';
@@ -62,8 +62,12 @@ import {
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
-import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import {
+  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+  SECURITY_PRIVACY_VIEW_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { OFF, ON } from '../../../../core/Analytics/MetaMetrics.constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -318,8 +322,8 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const analyticsEnabled = MetaMetrics.checkEnabled();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
+    const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -467,7 +471,7 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: true,
       });
@@ -476,25 +480,25 @@ class Settings extends PureComponent {
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      MetaMetrics.enable();
+      Analytics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      MetaMetrics.disable();
+      Analytics.disable();
       this.setState({ analyticsEnabled: false });
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_opt_out_description'),
+        strings('app_settings.metametrics_restart_required'),
       );
     }
   };
 
   goToExportPrivateKey = () => {
-    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
-      hasNavigation: true,
+      shouldUpdateNav: true,
     });
   };
 
@@ -625,10 +629,7 @@ class Settings extends PureComponent {
     const { styles } = this.getStyles();
 
     return (
-      <View
-        style={[styles.setting, styles.firstSetting]}
-        testID={'clear-privacy-section'}
-      >
+      <View style={[styles.setting]} testID={'clear-privacy-section'}>
         <Text style={styles.title}>
           {strings('app_settings.clear_privacy_title')}
         </Text>
@@ -701,6 +702,10 @@ class Settings extends PureComponent {
   };
 
   toggleIsMultiAccountBalancesEnabled = (isMultiAccountBalancesEnabled) => {
+    trackEvent(
+      MetaMetricsEvents.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING,
+      { batch: isMultiAccountBalancesEnabled ? ON : OFF },
+    );
     const { PreferencesController } = Engine.context;
     PreferencesController.setIsMultiAccountBalancesEnabled(
       isMultiAccountBalancesEnabled,
@@ -712,7 +717,7 @@ class Settings extends PureComponent {
     const { styles, colors } = this.getStyles();
 
     return (
-      <View style={styles.setting} testID={'third-party-section'}>
+      <View style={styles.setting}>
         <Text style={styles.title}>
           {strings('app_settings.batch_balance_requests_title')}
         </Text>
@@ -730,6 +735,10 @@ class Settings extends PureComponent {
             thumbColor={importedColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
           />
         </View>
       </View>
@@ -763,6 +772,10 @@ class Settings extends PureComponent {
         </View>
       </View>
     );
+  };
+
+  goToSDKSessionManager = () => {
+    this.props.navigation.navigate('SDKSessionsManager');
   };
 
   renderApprovalModal = () => {
@@ -812,6 +825,31 @@ class Settings extends PureComponent {
           </Text>
         </View>
       </ActionModal>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <View
+        style={[styles.setting, styles.firstSetting]}
+        testID={'sdk-section'}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.manage_sdk_connections_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.manage_sdk_connections_text')}
+        </Text>
+        <StyledButton
+          type="normal"
+          containerStyle={styles.confirm}
+          onPress={this.goToSDKSessionManager}
+        >
+          {strings('app_settings.manage_sdk_connections_title')}
+        </StyledButton>
+      </View>
     );
   };
 
@@ -915,6 +953,7 @@ class Settings extends PureComponent {
           <RememberMeOptionSection />
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
+          {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />

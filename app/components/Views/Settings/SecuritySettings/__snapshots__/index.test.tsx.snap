@@ -12,6 +12,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       },
     }
   }
+  isMultiAccountBalancesEnabled={true}
   keyrings={
     Array [
       Object {
