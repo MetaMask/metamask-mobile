@@ -1,18 +1,20 @@
+import { PhishingController as PhishingControllerClass } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
-const BLACKLISTED_DOMAINS = ['metamask.app.link'];
+const DENYLISTED_DOMAINS = ['metamask.app.link'];
 
 const isAllowedProtocol = (protocol: string): boolean =>
   ALLOWED_PROTOCOLS.includes(protocol);
 
 const isAllowedHostname = (hostname: string): boolean => {
-  const { PhishingController } = Engine.context as any;
+  const { PhishingController } = Engine.context as {
+    PhishingController: PhishingControllerClass;
+  };
   PhishingController.maybeUpdateState();
   const phishingControllerTestResult = PhishingController.test(hostname);
 
   return !(
-    phishingControllerTestResult.result ||
-    BLACKLISTED_DOMAINS.includes(hostname)
+    phishingControllerTestResult.result || DENYLISTED_DOMAINS.includes(hostname)
   );
 };
 
@@ -20,9 +22,7 @@ export const isLinkSafe = (link: string): boolean => {
   try {
     const url = new URL(link);
     const { protocol, hostname } = url;
-    if (!isAllowedProtocol(protocol)) return false;
-    if (!isAllowedHostname(hostname)) return false;
-    return true;
+    return isAllowedProtocol(protocol) && isAllowedHostname(hostname);
   } catch (err) {
     return false;
   }
