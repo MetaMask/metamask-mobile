@@ -702,8 +702,8 @@ class Settings extends PureComponent {
   };
 
   toggleIsMultiAccountBalancesEnabled = (isMultiAccountBalancesEnabled) => {
-    trackEvent(MetaMetricsEvents.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING, {
-      batch: isMultiAccountBalancesEnabled ? ON : OFF,
+    AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING, {
+      enabled: isMultiAccountBalancesEnabled ? ON : OFF,
     });
     const { PreferencesController } = Engine.context;
     PreferencesController.setIsMultiAccountBalancesEnabled(
@@ -711,7 +711,7 @@ class Settings extends PureComponent {
     );
   };
 
-  renderBatchAccountBalancesSection = () => {
+  renderMultiAccountBalancesSection = () => {
     const { isMultiAccountBalancesEnabled } = this.props;
     const { styles, colors } = this.getStyles();
 
@@ -959,7 +959,7 @@ class Settings extends PureComponent {
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
-          {this.renderBatchAccountBalancesSection()}
+          {this.renderMultiAccountBalancesSection()}
           {this.renderThirdPartySection()}
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
