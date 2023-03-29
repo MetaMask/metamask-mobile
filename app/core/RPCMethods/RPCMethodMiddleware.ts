@@ -29,6 +29,7 @@ export enum ApprovalTypes {
   ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
+  EXAMPLE = 'EXAMPLE',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -214,6 +215,34 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
+    const createExampleConfirmation = async () => {
+      const id = random();
+
+      const approvalRequest = Engine.context.ApprovalController.add({
+        origin: hostname,
+        type: ApprovalTypes.EXAMPLE,
+        requestData: { value: 'Example Value' },
+        id,
+      });
+
+      let counter = 1;
+
+      const interval = setInterval(async () => {
+        await Engine.context.ApprovalController.updateRequestState({
+          id,
+          requestState: { counter },
+        });
+
+        counter += 1;
+      }, 1000);
+
+      try {
+        await approvalRequest;
+      } finally {
+        clearInterval(interval);
+      }
+    };
+
     const rpcMethods: any = {
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
@@ -305,6 +334,7 @@ export const getRpcMethodMiddleware = ({
             try {
               checkTabActive();
               await Engine.context.ApprovalController.clear();
+              await createExampleConfirmation();
               await Engine.context.PermissionController.requestPermissions(
                 { origin: hostname },
                 { eth_accounts: {} },

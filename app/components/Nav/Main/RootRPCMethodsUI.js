@@ -63,6 +63,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import ExampleApproval from '../../UI/ExampleApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -91,6 +92,8 @@ const RootRPCMethodsUI = (props) => {
 
   const [watchAsset, setWatchAsset] = useState(false);
   const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+
+  const [exampleRequest, setExampleRequest] = useState(null);
 
   const setTransactionObject = props.setTransactionObject;
   const toggleApproveModal = props.toggleApproveModal;
@@ -665,6 +668,47 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
+   * When user clicks on approve in example modal.
+   */
+  const onExampleConfirm = () => {
+    acceptPendingApproval(exampleRequest.id, exampleRequest.requestData);
+    setShowPendingApproval(false);
+    setExampleRequest(undefined);
+  };
+
+  /**
+   * When user clicks on reject in example modal.
+   */
+  const onExampleReject = () => {
+    rejectPendingApproval(exampleRequest.id, exampleRequest.requestData);
+    setShowPendingApproval(false);
+    setExampleRequest(undefined);
+  };
+
+  const renderExampleModal = () => (
+    <Modal
+      isVisible={showPendingApproval?.type === ApprovalTypes.EXAMPLE}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={300}
+      animationOutTiming={300}
+      onSwipeComplete={onExampleReject}
+      onBackdropPress={onExampleReject}
+      swipeDirection={'down'}
+    >
+      <ExampleApproval
+        onCancel={onExampleReject}
+        onConfirm={onExampleConfirm}
+        value={exampleRequest?.requestData.value}
+        counter={exampleRequest?.requestState?.counter}
+      />
+    </Modal>
+  );
+
+  /**
    * On rejection addinga an asset
    */
   const onCancelWatchAsset = () => {
@@ -766,6 +810,13 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.EXAMPLE:
+          setExampleRequest(request);
+          showPendingApprovalModal({
+            type: ApprovalTypes.EXAMPLE,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -829,6 +880,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderExampleModal()}
     </React.Fragment>
   );
 };
