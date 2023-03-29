@@ -1,5 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
+// eslint-disable-next-line import/no-commonjs
+const TextEncodingPolyfill = require('text-encoding');
+
+Object.assign(global, {
+  TextEncoder: TextEncodingPolyfill.TextEncoder,
+  TextDecoder: TextEncodingPolyfill.TextDecoder,
+});
 
 if (!global.btoa) {
   global.btoa = encode;
