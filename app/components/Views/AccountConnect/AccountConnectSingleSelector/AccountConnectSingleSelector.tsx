@@ -22,6 +22,8 @@ const AccountConnectSingleSelector = ({
   onSetScreen,
   onSetSelectedAddresses,
   onUserAction,
+  selectedAddress,
+  isMultiAccountBalancesEnabled,
 }: AccountConnectSingleSelectorProps) => {
   const onBack = useCallback(
     () => onSetScreen(AccountConnectScreens.SingleConnect),
@@ -72,6 +74,8 @@ const AccountConnectSingleSelector = ({
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
         selectedAddresses={selectedAddresses}
+        selectedAddress={selectedAddress}
+        isMultiAccountBalancesEnabled={isMultiAccountBalancesEnabled}
       />
       {renderSheetActions()}
     </>

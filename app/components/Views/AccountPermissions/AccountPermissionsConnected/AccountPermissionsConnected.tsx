@@ -48,6 +48,8 @@ const AccountPermissionsConnected = ({
   secureIcon,
   accountAvatarType,
   urlWithProtocol,
+  selectedAddress,
+  isMultiAccountBalancesEnabled,
 }: AccountPermissionsConnectedProps) => {
   const dispatch = useDispatch();
   const networkController = useSelector(
@@ -166,6 +168,8 @@ const AccountPermissionsConnected = ({
         isLoading={isLoading}
         selectedAddresses={selectedAddresses}
         isRemoveAccountEnabled
+        selectedAddress={selectedAddress}
+        isMultiAccountBalancesEnabled={isMultiAccountBalancesEnabled}
       />
       {renderSheetAction()}
     </>

@@ -39,7 +39,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const sheetRef = useRef<SheetBottomRef>(null);
   const navigation = useNavigation();
-  const { accounts, ensByAccountAddress } = useAccounts({
+  const {
+    accounts,
+    ensByAccountAddress,
+    selectedAddress,
+    isMultiAccountBalancesEnabled,
+  } = useAccounts({
     checkBalanceError,
     isLoading,
   });
@@ -141,6 +146,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
         isRemoveAccountEnabled
+        selectedAddress={selectedAddress}
+        isMultiAccountBalancesEnabled={isMultiAccountBalancesEnabled}
         {...generateTestId(Platform, ACCOUNT_LIST_ID)}
       />
       <View style={styles.sheet}>{renderSheetActions()}</View>
