@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for SheetBottom component.
+ * Style sheet function for WalletAction component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -31,7 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       marginHorizontal: 16,
     },
-    descriptionLabel: {
+    text: {
       color: colors.text.alternative,
     },
   });

@@ -326,13 +326,25 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0].from,
-          chainId: req.params[0].chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
+        return RPCMethods.eth_sendTransaction({
+          next,
+          req,
+          res,
+          validateAccountAndChainId: async ({
+            from,
+            chainId,
+          }: {
+            from?: string;
+            chainId?: number;
+          }) => {
+            await checkActiveAccountAndChainId({
+              hostname,
+              address: from,
+              chainId,
+              checkSelectedAddress: isMMSDK || isWalletConnect,
+            });
+          },
         });
-        next();
       },
       eth_signTransaction: async () => {
         // This is implemented later in our middleware stack – specifically, in
