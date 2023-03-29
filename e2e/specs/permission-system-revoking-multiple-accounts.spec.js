@@ -48,7 +48,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await Browser.waitForBrowserPageToLoad();
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 150, y: 270 });
+    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 170, y: 280 });
     await ConnectModal.isVisible();
   });
 

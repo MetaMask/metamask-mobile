@@ -45,7 +45,7 @@ describe('Permission System: Deleting wallet after connecting to a dapp', () => 
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 150, y: 270 });
+    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 170, y: 280 });
     await ConnectModal.isVisible();
     await ConnectModal.tapConnectButton();
   });

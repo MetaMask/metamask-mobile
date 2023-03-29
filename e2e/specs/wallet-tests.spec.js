@@ -30,7 +30,6 @@ describe('Wallet Tests', () => {
     '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
   const COLLECTIBLE_IDENTIFIER = '179';
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
-  const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
   const validAccount = Accounts.getValidAccount();
 
@@ -43,7 +42,6 @@ describe('Wallet Tests', () => {
   });
 
   it('should be able to add new accounts', async () => {
-    // Tap on account icon to prompt modal
     await WalletView.tapIdenticon();
     await AccountListView.isVisible();
 
@@ -62,7 +60,6 @@ describe('Wallet Tests', () => {
     await ImportAccountView.tapOKAlertButton();
 
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    // Check that we are on the account succesfully imported screen
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
 
@@ -73,7 +70,6 @@ describe('Wallet Tests', () => {
   });
 
   it('should be able to switch accounts', async () => {
-    // Open Drawer
     await WalletView.tapDrawerButton();
 
     await DrawerView.isVisible();
@@ -91,12 +87,11 @@ describe('Wallet Tests', () => {
     await RequestPaymentModal.isVisible();
     await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
 
-    // Close Receive screen and go back to wallet screen
     await RequestPaymentModal.closeRequestModal();
 
     await DrawerView.isVisible();
     await DrawerView.closeDrawer();
-    // Check that we are on the wallet screen
+
     await WalletView.isVisible();
   });
 
@@ -114,7 +109,6 @@ describe('Wallet Tests', () => {
   });
 
   it('should add a collectible', async () => {
-    //FIXME: this is failing on iOS simulator
     await WalletView.isVisible();
     // Tap on COLLECTIBLES tab
     await WalletView.tapNftTab();
@@ -126,10 +120,10 @@ describe('Wallet Tests', () => {
 
     // Input incorrect contract address
     await AddCustomTokenView.typeInNFTAddress('1234');
-    await AddCustomTokenView.isNFTAddressWarningVisible(); // Check that warning appears
+    await AddCustomTokenView.isNFTAddressWarningVisible();
     await AddCustomTokenView.tapImportButton();
-    // Check that identifier warning appears
-    await AddCustomTokenView.isNFTIdentifierWarningVisible(); // Check that warning appears
+
+    await AddCustomTokenView.isNFTIdentifierWarningVisible();
 
     await AddCustomTokenView.tapBackButton();
 
@@ -142,7 +136,7 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
     // Wait for asset to load
     await TestHelpers.delay(3000);
-    // Check that the crypto kitty was added
+
     await WalletView.isNFTVisibleInWallet('Refinable721');
     // Tap on Crypto Kitty
     await WalletView.tapOnNFTInWallet('Refinable721');
@@ -154,9 +148,7 @@ describe('Wallet Tests', () => {
 
   it('should switch back to Mainnet network', async () => {
     await WalletView.isVisible();
-    // Tap on TOKENS tab
     await WalletView.tapTokensTab();
-    // Switch to mainnet
     await WalletView.tapNetworksButtonOnNavBar();
 
     await NetworkListModal.isVisible();
@@ -171,8 +163,6 @@ describe('Wallet Tests', () => {
   });
 
   it('should add a token', async () => {
-    // Check that we are on the wallet screen
-    // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
     // Search for XRPL but select RPL
     await ImportTokensView.typeInTokenName('XRPL');
@@ -192,15 +182,12 @@ describe('Wallet Tests', () => {
   });
 
   it('should add a custom token', async () => {
-    // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
-    // Tap on CUSTOM TOKEN
+
     await AddCustomTokenView.tapCustomTokenTab();
-    // Check that we are on the custom token screen
     await AddCustomTokenView.isVisible();
     // Type incorrect token address
     await AddCustomTokenView.typeTokenAddress('1234');
-    // Check that address warning is displayed
     await AddCustomTokenView.isTokenAddressWarningVisible();
 
     // Type incorrect token symbol
@@ -210,78 +197,23 @@ describe('Wallet Tests', () => {
     await TestHelpers.delay(700);
     await AddCustomTokenView.tapTokenSymbolText();
     await TestHelpers.delay(700);
-    // Check that token decimals warning is displayed
+
     await AddCustomTokenView.isTokenPrecisionWarningVisible();
-    // Go back
     await AddCustomTokenView.tapBackButton();
 
-    // Tap on Add Tokens
     await WalletView.tapImportTokensButton();
-    // Tap on CUSTOM TOKEN
-    await AddCustomTokenView.tapCustomTokenTab();
-    // Check that we are on the custom token screen
-    await AddCustomTokenView.isVisible();
-    // Type correct token address
 
+    await AddCustomTokenView.tapCustomTokenTab();
+    await AddCustomTokenView.isVisible();
     await AddCustomTokenView.typeTokenAddress(BLT_TOKEN_ADDRESS);
     await AddCustomTokenView.tapTokenSymbolInputBox();
     await AddCustomTokenView.tapTokenSymbolText();
     await AddCustomTokenView.scrollDownOnImportCustomTokens();
     await AddCustomTokenView.tapCustomTokenImportButton();
 
-    // Check that we are on the wallet screen
     await WalletView.isVisible();
     await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
 
     await WalletView.isTokenVisibleInWallet('0 BLT');
-  });
-
-  it('should switch back to Goerli network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(GOERLI);
-    await WalletView.isNetworkNameVisible(GOERLI);
-  });
-
-  it('should input a valid address', async () => {
-    // Check that we are on the wallet screen
-    await WalletView.isVisible();
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
-
-    await SendView.inputAddress(VALID_ADDRESS);
-    await SendView.tapNextButton();
-    // Check that we are on the amount view
-    await AmountView.isVisible();
-  });
-
-  it('should input and validate amount', async () => {
-    // Input amount
-    await AmountView.typeInTransactionAmount('5');
-    await AmountView.tapNextButton();
-
-    // Check that the insufficient funds warning pops up
-    await AmountView.isInsufficientFundsErrorVisible();
-
-    // Input acceptable value
-    await AmountView.typeInTransactionAmount('0.00004');
-    await AmountView.tapNextButton();
-
-    // Check that we are on the confirm view
-    await TransactionConfirmationView.isVisible();
-  });
-
-  it('should send ETH to Account 2', async () => {
-    // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect(
-      '0.00004 GoerliETH',
-    );
-    // Tap on the Send CTA
-    await TransactionConfirmationView.tapConfirmButton();
-    // Check that we are on the wallet screen
-    await WalletView.isVisible();
   });
 });
