@@ -824,7 +824,8 @@
     "your_balance": "Your balance",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
-    "activity": "{{symbol}} activity"
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Third-party content is provided solely for informational purposes and should not be treated as financial or investment advice. Consensys neither supports nor suggests the use of this content and is not responsible for it's accuracy."
   },
   "account_details": {
     "title": "Account Details",
