@@ -142,6 +142,13 @@ export default class SnapBridge {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
+    const { PermissionController } = Engine.context as any;
+    engine.push(
+      PermissionController.createPermissionMiddleware({
+        origin: this.snapId,
+      }),
+    );
+
     // User-Facing RPC methods
     engine.push(
       this.getRPCMethodMiddleware({
