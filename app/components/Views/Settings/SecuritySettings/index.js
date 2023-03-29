@@ -180,13 +180,9 @@ const BIOMETRY_CHOICE_STRING = 'biometryChoice';
 class Settings extends PureComponent {
   static propTypes = {
     /**
-     * Called to toggle flag for batch balances for multiple accounts
-     */
-    setMultiAccountBalanceChecker: PropTypes.func,
-    /**
      * Indicates whether batch balances for multiple accounts is enabled
      */
-    useMultiAccountBalanceChecker: PropTypes.bool,
+    isMultiAccountBalancesEnabled: PropTypes.bool,
     /**
      * Called to toggle set party api mode
      */
@@ -704,15 +700,15 @@ class Settings extends PureComponent {
     );
   };
 
-  toggleMultiAccountBalanceChecker = (useMultiAccountBalanceChecker) => {
+  toggleIsMultiAccountBalancesEnabled = (isMultiAccountBalancesEnabled) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setMultiAccountBalanceChecker(
-      useMultiAccountBalanceChecker,
+    PreferencesController.setIsMultiAccountBalancesEnabled(
+      isMultiAccountBalancesEnabled,
     );
   };
 
   renderBatchAccountBalancesSection = () => {
-    const { useMultiAccountBalanceChecker } = this.props;
+    const { isMultiAccountBalancesEnabled } = this.props;
     const { styles, colors } = this.getStyles();
 
     return (
@@ -725,8 +721,8 @@ class Settings extends PureComponent {
         </Text>
         <View style={styles.switchElement}>
           <Switch
-            value={useMultiAccountBalanceChecker}
-            onValueChange={this.toggleMultiAccountBalanceChecker}
+            value={isMultiAccountBalancesEnabled}
+            onValueChange={this.toggleIsMultiAccountBalancesEnabled}
             trackColor={{
               true: colors.primary.default,
               false: colors.border.muted,
@@ -956,9 +952,9 @@ const mapStateToProps = (state) => ({
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: selectProviderType(state),
-  useMultiAccountBalanceChecker:
+  isMultiAccountBalancesEnabled:
     state.engine.backgroundState.PreferencesController
-      .useMultiAccountBalanceChecker,
+      .isMultiAccountBalancesEnabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({
