@@ -20,6 +20,10 @@ const PASSWORD = '12345678';
 
 const validAccount = Accounts.getValidAccount();
 
+// detox on ios does not have a clean way of interacting with webview eleemnts. You would need to tap by coordinates
+export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
+export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
+
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
   await TestHelpers.delay(3500);

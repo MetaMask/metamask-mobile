@@ -17,7 +17,11 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
 import Accounts from '../../wdio/helpers/Accounts';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  testDappConnectButtonCooridinates,
+  testDappSendEIP1559ButtonCoordinates,
+} from '../viewHelper';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const GOERLI = 'Goerli Test Network';
@@ -44,7 +48,10 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 170, y: 280 });
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappConnectButtonCooridinates,
+    );
     await ConnectModal.isVisible();
   });
 
@@ -85,7 +92,10 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
 
   it('should submit a EIP1559 transaction ', async () => {
     await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 320, y: 500 });
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappSendEIP1559ButtonCoordinates,
+    );
 
     await TestHelpers.tapByText('Confirm', 1);
     await TransactionConfirmationView.isNotVisible();

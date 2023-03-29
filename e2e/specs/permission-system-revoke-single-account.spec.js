@@ -21,7 +21,10 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
-import { acceptTermOfUse } from '../viewHelper';
+import {
+  acceptTermOfUse,
+  testDappConnectButtonCooridinates,
+} from '../viewHelper';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
@@ -112,7 +115,10 @@ describe('Revoke Single Account after connecting to a dapp', () => {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 170, y: 280 });
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappConnectButtonCooridinates,
+    );
     await ConnectModal.isVisible();
     await ConnectModal.tapConnectButton();
     await Browser.isAccountToastVisible('Account 1');

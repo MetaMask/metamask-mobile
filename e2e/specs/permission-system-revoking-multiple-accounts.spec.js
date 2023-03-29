@@ -11,7 +11,10 @@ import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  testDappConnectButtonCooridinates,
+} from '../viewHelper';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
@@ -48,7 +51,10 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await Browser.waitForBrowserPageToLoad();
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 170, y: 280 });
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappConnectButtonCooridinates,
+    );
     await ConnectModal.isVisible();
   });
 
