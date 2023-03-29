@@ -40,7 +40,7 @@ The available arguments are:
 
 #### Example
 
-```
+```javascript
 const approvalData = await Engine.context.ApprovalController.add({
     origin: hostname,
     type: ApprovalTypes.EXAMPLE,
@@ -63,7 +63,7 @@ The available arguments are:
 
 #### Example
 
-```
+```javascript
 await Engine.context.ApprovalController.updateRequestState({
     id,
     requestState: { counter },
@@ -73,6 +73,15 @@ await Engine.context.ApprovalController.updateRequestState({
 ### 3. Define Approval Type
 
 Update the `ApprovalTypes` enum in [app/core/RPCMethods/RPCMethodMiddleware.ts](../app/core/RPCMethods/RPCMethodMiddleware.ts) to include a new entry to identify the new confirmations.
+
+#### Example
+
+```typescript
+export enum ApprovalTypes {
+  ...
+  EXAMPLE = 'EXAMPLE'
+}
+```
 
 This must match the `opts.type` provided in the `add` request.
 
@@ -84,7 +93,7 @@ This case needs to update the local React state using any relevant data from the
 
 #### Example
 
-```
+```javascript
 case ApprovalTypes.EXAMPLE:
     setExampleRequest({ data: requestData, id: request.id });
     showPendingApprovalModal({
@@ -116,7 +125,7 @@ Ensure any related local state is cleared.
 
 #### Example
 
-```
+```javascript
 const onExampleConfirm = () => {
     acceptPendingApproval(exampleRequest.id, exampleRequest.requestData);
     setShowPendingApproval(false);
@@ -142,7 +151,7 @@ Reference the new handlers in the `Modal` properties `onSwipeComplete` and `onBa
 
 #### Example
 
-```
+```javascript
 const renderExampleModal = () => (
     <Modal
       isVisible={showPendingApproval?.type === ApprovalTypes.EXAMPLE}
