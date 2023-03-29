@@ -1,10 +1,11 @@
 import {
   JsonRpcEngine,
+  JsonRpcFailure,
   JsonRpcMiddleware,
   JsonRpcRequest,
+  JsonRpcResponse,
   JsonRpcSuccess,
 } from 'json-rpc-engine';
-import { assertIsJsonRpcSuccess, JsonRpcFailure } from '@metamask/utils';
 import type { Transaction } from '@metamask/transaction-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 import Engine from '../Engine';
@@ -51,6 +52,24 @@ const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
  * need to use "as const" each time.
  */
 const jsonrpc = '2.0' as const;
+
+/**
+ * Assert that the given response was successful.
+ *
+ * TODO: Replace this with `assertIsJsonRpcSuccess` from `@metamask/utils`
+ *
+ * @param value - The value to check.
+ * @throws If the given value is not a valid {@link JsonRpcSuccess} object.
+ */
+function assertIsJsonRpcSuccess(
+  response: JsonRpcResponse<unknown>,
+): asserts response is JsonRpcSuccess<unknown> {
+  if ('error' in response) {
+    throw new Error(`Response failed with error '${JSON.stringify('error')}'`);
+  } else if (!('result' in response)) {
+    throw new Error(`Response is missing 'result' property`);
+  }
+}
 
 /**
  * Return a minimal set of options for `getRpcMethodMiddleware`. These options
