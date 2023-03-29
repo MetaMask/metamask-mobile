@@ -702,9 +702,12 @@ class Settings extends PureComponent {
   };
 
   toggleIsMultiAccountBalancesEnabled = (isMultiAccountBalancesEnabled) => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING, {
-      enabled: isMultiAccountBalancesEnabled ? ON : OFF,
-    });
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING,
+      {
+        enabled: isMultiAccountBalancesEnabled ? ON : OFF,
+      },
+    );
     const { PreferencesController } = Engine.context;
     PreferencesController.setIsMultiAccountBalancesEnabled(
       isMultiAccountBalancesEnabled,
