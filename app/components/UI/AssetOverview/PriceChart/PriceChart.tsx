@@ -276,7 +276,7 @@ const PriceChart = ({
     </View>
   );
 
-  const Tooltip = ({ x, y, ticks }: Partial<TooltipProps>) => {
+  const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
     const tooltipWidth = Dimensions.get('window').width;
     if (positionX < 0) {
       return null;
