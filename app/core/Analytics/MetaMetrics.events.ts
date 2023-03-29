@@ -153,7 +153,7 @@ enum EVENT_NAME {
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
-  SWITCH_BATCH_ACCOUNT_BALANCE_REQUESTS_SETTING = 'Batch account balance requests',
+  SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING = 'Batch account balance requests',
 
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
@@ -480,8 +480,8 @@ const events = {
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
-  SWITCH_BATCH_ACCOUNT_BALANCE_REQUESTS_SETTING: generateOpt(
-    EVENT_NAME.SWITCH_BATCH_ACCOUNT_BALANCE_REQUESTS_SETTING,
+  SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING: generateOpt(
+    EVENT_NAME.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING,
   ),
 
   // Reveal SRP

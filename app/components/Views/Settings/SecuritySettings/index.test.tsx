@@ -15,7 +15,7 @@ const initialState = {
       PreferencesController: {
         selectedAddress: '0x',
         identities: { '0x': { name: 'Account 1' } },
-        useMultiAccountBalanceChecker: true,
+        isMultiAccountBalancesEnabled: true,
       },
       AccountTrackerController: { accounts: {} },
       KeyringController: {
