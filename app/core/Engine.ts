@@ -11,10 +11,11 @@ import {
   TokenDetectionController,
   NftDetectionController,
 } from '@metamask/assets-controllers';
+import { AppState } from 'react-native';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
-import { KeyringController } from '@metamask/keyring-controller';
+import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import {
   PersonalMessageManager,
   MessageManager,
@@ -310,6 +311,23 @@ class Engine {
         keyringState,
       );
 
+      /**
+       * Gets the mnemonic of the user's primary keyring.
+       */
+      const getPrimaryKeyringMnemonic = async () => {
+        const accounts = await keyringController.getAccounts();
+        console.log('Snaps/ getPrimaryKeyringMnemonic accounts', accounts);
+        if (accounts[0]) {
+          throw new Error('Primary keyring mnemonic unavailable.');
+        }
+        return accounts[0];
+      };
+
+      const getAppState = () => {
+        const state = AppState.currentState;
+        return state === 'active';
+      };
+
       const getSnapPermissionSpecifications = () => ({
         ...buildSnapEndowmentSpecifications(),
         ...buildSnapRestrictedMethodSpecifications({
@@ -317,10 +335,8 @@ class Engine {
             this.controllerMessenger,
             'SnapController:clearSnapState',
           ),
-          // getMnemonic: this.getPrimaryKeyringMnemonic.bind(this),
-          // getUnlockPromise: this.appStateController.getUnlockPromise.bind(
-          //   this.appStateController,
-          // ),
+          getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+          getUnlockPromise: getAppState.bind(this),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -343,6 +359,14 @@ class Engine {
               type: 'snapConfirmation',
               requestData: confirmationData,
             }),
+          showInAppNotification: (origin, args) => {
+            console.log(
+              'Snaps/ showInAppNotification called with args: ',
+              args,
+              ' and origin: ',
+              origin,
+            );
+          },
         }),
       });
 
