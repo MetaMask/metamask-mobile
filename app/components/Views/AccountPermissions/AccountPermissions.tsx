@@ -107,7 +107,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const sheetRef = useRef<SheetBottomRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(AccountPermissionsScreens.Connected);
-  const { accounts, ensByAccountAddress } = useAccounts({
+  const {
+    accounts,
+    ensByAccountAddress,
+    selectedAddress,
+    isMultiAccountBalancesEnabled,
+  } = useAccounts({
     isLoading,
   });
   const previousPermittedAccounts = useRef<string[]>();
@@ -325,6 +330,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
+        selectedAddress={selectedAddress}
+        isMultiAccountBalancesEnabled={isMultiAccountBalancesEnabled}
       />
     ),
     [
@@ -340,6 +347,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       urlWithProtocol,
       secureIcon,
       accountAvatarType,
+      selectedAddress,
+      isMultiAccountBalancesEnabled,
     ],
   );
 
@@ -356,6 +365,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
+        selectedAddress={selectedAddress}
+        isMultiAccountBalancesEnabled={isMultiAccountBalancesEnabled}
       />
     ),
     [
@@ -367,6 +378,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       favicon,
       urlWithProtocol,
       secureIcon,
+      selectedAddress,
+      isMultiAccountBalancesEnabled,
     ],
   );
 

@@ -61,6 +61,12 @@ const useAccounts = ({
   );
   const ticker = useSelector(selectTicker);
 
+  const isMultiAccountBalancesEnabled = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController
+        .isMultiAccountBalancesEnabled,
+  );
+
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
@@ -199,7 +205,12 @@ const useAccounts = ({
     };
   }, [getAccounts, isLoading]);
 
-  return { accounts, ensByAccountAddress };
+  return {
+    accounts,
+    ensByAccountAddress,
+    selectedAddress,
+    isMultiAccountBalancesEnabled,
+  };
 };
 
 export default useAccounts;
