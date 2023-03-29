@@ -32,8 +32,15 @@ import {
 import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import Routes from '../../../app/constants/navigation/Routes';
-import generateOTP from './generateOTP.util';
-import { wait } from './wait.util';
+import generateOTP from './utils/generateOTP.util';
+import {
+  wait,
+  waitForEmptyRPCQueue,
+  waitForKeychainUnlocked,
+  addToRpcQeue,
+  resetRPCQueue,
+  removeFromRPCQueue,
+} from './utils/wait.util';
 
 import {
   mediaDevices,
@@ -46,6 +53,7 @@ import {
   RTCView,
 } from 'react-native-webrtc';
 import { Json } from '@metamask/controller-utils';
+import { parseSource } from './utils/parseSource';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -114,42 +122,6 @@ let wentBack = false;
 
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
-
-export enum Sources {
-  'web-desktop' = 'web-desktop',
-  'web-mobile' = 'web-mobile',
-  'nodejs' = 'nodejs',
-  'unity' = 'unity',
-}
-
-const parseSource = (source: string) => {
-  if ((Object as any).values(Sources).includes(source)) return source;
-  return 'undefined';
-};
-
-const waitForKeychainUnlocked = async () => {
-  let i = 0;
-  const keyringController = (
-    Engine.context as { KeyringController: KeyringController }
-  ).KeyringController;
-  while (!keyringController.isUnlocked()) {
-    await new Promise<void>((res) => setTimeout(() => res(), 600));
-    if (i++ > 60) break;
-  }
-};
-
-let rpcQueue: { [id: string]: string } = {};
-const waitForEmptyRPCQueue = async () => {
-  let i = 0;
-  let queue = Object.keys(rpcQueue);
-  while (queue.length > 0) {
-    await new Promise<void>((res) => setTimeout(() => res(), 1000));
-    queue = Object.keys(rpcQueue);
-    if (i++ > 30) {
-      break;
-    }
-  }
-};
 
 export class Connection extends EventEmitter2 {
   channelId;
@@ -361,7 +333,10 @@ export class Connection extends EventEmitter2 {
           this.requestsToRedirect[message?.id] = true;
         }
 
-        await waitForKeychainUnlocked();
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        await waitForKeychainUnlocked({ keyringController });
 
         // Check if channel is permitted
         try {
@@ -370,7 +345,10 @@ export class Connection extends EventEmitter2 {
           if (needsRedirect) {
             this.setLoading(false);
             // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
-            rpcQueue[(message.id as string) ?? 'UNK'] = message.method;
+            addToRpcQeue({
+              id: (message.id as string) ?? 'unknown',
+              method: message.method,
+            });
           }
         } catch (error) {
           // Approval failed - redirect to app with error.
@@ -642,7 +620,7 @@ export class Connection extends EventEmitter2 {
 
     if (!needsRedirect) return;
 
-    delete rpcQueue[msg?.data?.id];
+    removeFromRPCQueue(msg?.data?.id);
     delete this.requestsToRedirect[msg?.data?.id];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
@@ -693,6 +671,7 @@ export class SDKConnect extends EventEmitter2 {
     origin,
   }: ConnectionProps) {
     const existingConnection = this.connected[id] !== undefined;
+
     if (existingConnection && !this.paused) {
       // if paused --- wait for resume --- otherwise reconnect.
       this.reconnect({ channelId: id });
@@ -751,6 +730,19 @@ export class SDKConnect extends EventEmitter2 {
         }
       },
     );
+
+    connection.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
+      const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
+      // Prevent disabled connection ( if user chose do not remember session )
+      if (this.disabledHosts[host] !== undefined) {
+        this.removeChannel(connection.channelId, true);
+        this.updateSDKLoadingState({
+          channelId: connection.channelId,
+          loading: false,
+        });
+      }
+    });
+
     connection.on(CONNECTION_LOADING_EVENT, (event: { loading: boolean }) => {
       const channelId = connection.channelId;
       const { loading } = event;
@@ -801,7 +793,8 @@ export class SDKConnect extends EventEmitter2 {
 
   public resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
-    if (session && !session?.isConnected()) {
+
+    if (session && !session?.isConnected() && !this.connecting[channelId]) {
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
@@ -1008,7 +1001,7 @@ export class SDKConnect extends EventEmitter2 {
     this.emit('refresh');
   }
 
-  private _handleAppState(appState: string) {
+  private async _handleAppState(appState: string) {
     this.appState = appState;
     if (appState === 'active') {
       // Reset wentBack state
@@ -1018,6 +1011,8 @@ export class SDKConnect extends EventEmitter2 {
       } else if (this.timeout) clearTimeout(this.timeout);
 
       if (this.paused) {
+        // Add delay in case app opened from deeplink so that it doesn't create 2 connections.
+        await wait(1000);
         this.reconnected = false;
         for (const id in this.connected) {
           this.resume({ channelId: id });
@@ -1028,7 +1023,7 @@ export class SDKConnect extends EventEmitter2 {
       // Reset wentBack state
       wentBack = false;
       // Cancel rpc queue anytime app is backgrounded
-      rpcQueue = {};
+      resetRPCQueue();
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.
@@ -1117,7 +1112,10 @@ export class SDKConnect extends EventEmitter2 {
     // We prioritize the deeplink and thus use the delay here.
 
     if (!this.paused) {
-      await waitForKeychainUnlocked();
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+      await waitForKeychainUnlocked({ keyringController });
       await wait(2000);
       this.reconnectAll();
     }
