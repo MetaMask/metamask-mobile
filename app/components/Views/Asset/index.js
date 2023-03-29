@@ -22,6 +22,7 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
@@ -34,7 +35,6 @@ import {
 } from '../../../selectors/networkController';
 import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForRpc,
@@ -431,11 +431,14 @@ class Asset extends PureComponent {
     const onBuy = () => {
       navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       InteractionManager.runAfterInteractions(() => {
-        trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-          text: 'Buy',
-          location: 'Token Screen',
-          chain_id_destination: chainId,
-        });
+        Analytics.trackEventWithParameters(
+          MetaMetricsEvents.BUY_BUTTON_CLICKED,
+          {
+            text: 'Buy',
+            location: 'Token Screen',
+            chain_id_destination: chainId,
+          },
+        );
       });
     };
 
