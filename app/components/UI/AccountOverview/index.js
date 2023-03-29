@@ -1,63 +1,61 @@
-import React, { PureComponent } from 'react';
+import { swapsUtils } from '@metamask/swaps-controller';
 import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
 import {
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
   InteractionManager,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
-
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
-import Device from '../../../util/device';
-import { renderFiat } from '../../../util/number';
+import { protectWalletModalVisible } from '../../../actions/user';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
-import { getEther } from '../../../util/transactions';
+import Device from '../../../util/device';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
+import { renderFiat } from '../../../util/number';
+import { getEther } from '../../../util/transactions';
 import { isSwapsAllowed } from '../Swaps/utils';
 
-import Identicon from '../Identicon';
-import AssetActionButton from '../AssetOverview/AssetActionButton';
-import EthereumAddress from '../EthereumAddress';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import { allowedToBuy } from '../FiatOnRampAggregator';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import Routes from '../../../constants/navigation/Routes';
+import ClipboardManager from '../../../core/ClipboardManager';
 import {
   selectChainId,
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
-
+import { baseStyles, fontStyles } from '../../../styles/common';
+import { mockTheme, ThemeContext } from '../../../util/theme';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import AssetActionButton from '../AssetOverview/AssetActionButton';
+import EthereumAddress from '../EthereumAddress';
+import { allowedToBuy } from '../FiatOnRampAggregator';
+import Identicon from '../Identicon';
+import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -325,7 +323,7 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
     });
   };
 
@@ -340,7 +338,7 @@ class AccountOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Wallet',
         chain_id_destination: this.props.chainId,
@@ -386,7 +384,7 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+    Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
       portfolioUrl: AppConstants.PORTFOLIO_URL,
     });
   };

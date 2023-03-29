@@ -31,15 +31,11 @@ import {
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isQRHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
 import Logger from '../../../util/Logger';
 import {
   findBlockExplorerForRpc,
+  getBlockExplorerAddressUrl,
   getBlockExplorerName,
-  getNetworkTypeById,
   isMainnetByChainId,
 } from '../../../util/networks';
 import { renderFromWei } from '../../../util/number';
@@ -344,16 +340,11 @@ class Transactions extends PureComponent {
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      let url;
-      let title;
-      if (type === RPC) {
-        url = `${rpcBlockExplorer}/address/${selectedAddress}`;
-        title = new URL(rpcBlockExplorer).hostname;
-      } else {
-        const networkResult = getNetworkTypeById(network);
-        url = getEtherscanAddressUrl(networkResult, selectedAddress);
-        title = getEtherscanBaseUrl(networkResult).replace('https://', '');
-      }
+      const { url, title } = getBlockExplorerAddressUrl(
+        type,
+        selectedAddress,
+        rpcBlockExplorer,
+      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {

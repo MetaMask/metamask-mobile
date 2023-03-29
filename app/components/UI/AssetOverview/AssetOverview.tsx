@@ -3,6 +3,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import React, { useContext, useEffect, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { strings } from '../../../../locales/i18n';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -278,7 +279,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
             <View style={styles.balanceButtons}>
               <AssetActionButton icon="receive" onPress={onReceive} />
-              <AssetActionButton icon="send" onPress={onSend} />
+              <AssetActionButton
+                testID={SEND_BUTTON_ID}
+                icon="send"
+                onPress={onSend}
+              />
             </View>
           </View>
           <View style={styles.aboutWrapper}>

@@ -16,6 +16,9 @@ function loadStories() {
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
+  require('../app/component-library/components/Banners/Banner/Banner.stories');
+  require('../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories');
+  require('../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
@@ -27,7 +30,10 @@ function loadStories() {
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
-  require('../app/component-library/components/Form/TextInput/TextInput.stories');
+  require('../app/component-library/components/Form/HelpText/HelpText.stories');
+  require('../app/component-library/components/Form/Label/Label.stories');
+  require('../app/component-library/components/Form/TextField/TextField.stories');
+  require('../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories');
   require('../app/component-library/components/Icons/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories');
@@ -72,6 +78,9 @@ const stories = [
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
+  '../app/component-library/components/Banners/Banner/Banner.stories',
+  '../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories',
+  '../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
@@ -83,9 +92,13 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
-  '../app/component-library/components/Form/TextInput/TextInput.stories',
+  '../app/component-library/components/Form/HelpText/HelpText.stories',
+  '../app/component-library/components/Form/Label/Label.stories',
+  '../app/component-library/components/Form/TextField/TextField.stories',
+  '../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.stories',
   '../app/component-library/components/Icons/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
+  '../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',

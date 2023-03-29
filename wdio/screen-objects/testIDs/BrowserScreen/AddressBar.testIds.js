@@ -1,6 +1,6 @@
-export const MODAL_INPUT = 'url-input';
+export const URL_INPUT_BOX_ID = 'url-input';
 
-export const CANCEL_BUTTON = 'cancel-url-button';
+export const CANCEL_BUTTON_ON_BROWSER_ID = 'cancel-url-button';
 
 export const UNISWAP_SUGGESTION = 'https://uniswap.exchange/';
 
