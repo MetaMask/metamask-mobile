@@ -105,14 +105,14 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
-        hide();
+        isInteractable && hide();
         return true;
       };
       BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
       };
-    }, [hide]);
+    }, [hide, isInteractable]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
