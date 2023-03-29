@@ -24,13 +24,11 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { strings } from '../../../../locales/i18n';
-import {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
@@ -92,9 +90,10 @@ const WalletActions = () => {
             actionTitle={strings('asset_overview.buy_button')}
             actionDescription={strings('asset_overview.buy_description')}
             iconName={IconName.Add}
-            iconSize={IconSize.Xl}
+            iconSize={AvatarSize.Md}
             onPress={onBuy}
             containerStyle={styles.firstActionContainer}
+            iconStyle={styles.icon}
             {...generateTestId(Platform, WALLET_BUY)}
           />
         )}
@@ -106,13 +105,14 @@ const WalletActions = () => {
               actionTitle={strings('asset_overview.swap')}
               actionDescription={strings('asset_overview.swap_description')}
               iconName={IconName.SwapHorizontal}
-              iconSize={IconSize.Md}
+              iconSize={AvatarSize.Md}
               onPress={goToSwaps}
               containerStyle={
                 allowedToBuy(chainId)
                   ? styles.otherActionContainer
                   : styles.firstActionContainer
               }
+              iconStyle={styles.icon}
               {...generateTestId(Platform, WALLET_SWAP)}
             />
           )}
@@ -120,7 +120,7 @@ const WalletActions = () => {
           actionTitle={strings('asset_overview.send_button')}
           actionDescription={strings('asset_overview.send_description')}
           iconName={IconName.Arrow2Right}
-          iconSize={IconSize.Md}
+          iconSize={AvatarSize.Md}
           onPress={onSend}
           containerStyle={
             allowedToBuy(chainId) &&
@@ -130,16 +130,20 @@ const WalletActions = () => {
               ? styles.otherActionContainer
               : styles.firstActionContainer
           }
-          iconStyle={{ transform: [{ rotate: '-45deg' }] }}
+          iconStyle={{
+            transform: [{ rotate: '-45deg' }],
+            ...styles.icon,
+          }}
           {...generateTestId(Platform, WALLET_SEND)}
         />
         <WalletAction
           actionTitle={strings('asset_overview.receive_button')}
           actionDescription={strings('asset_overview.receive_description')}
           iconName={IconName.Received}
-          iconSize={IconSize.Md}
+          iconSize={AvatarSize.Md}
           onPress={onReceive}
           containerStyle={styles.otherActionContainer}
+          iconStyle={styles.icon}
           {...generateTestId(Platform, WALLET_RECEIVE)}
         />
       </View>

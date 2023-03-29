@@ -59,7 +59,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       onDismissed,
       isInteractable = true,
       reservedMinOverlayHeight = DEFAULT_MIN_OVERLAY_HEIGHT,
-      navigateBack = true,
       ...props
     },
     ref,
@@ -88,10 +87,10 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
 
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
-      navigateBack && navigation.goBack();
+      navigation.goBack();
       onDismissed?.();
       postCallback.current?.();
-    }, [navigation, onDismissed, navigateBack]);
+    }, [navigation, onDismissed]);
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
