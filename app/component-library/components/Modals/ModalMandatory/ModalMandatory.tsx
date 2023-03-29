@@ -1,6 +1,7 @@
 // Third party dependencies
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  BackHandler,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
@@ -98,6 +99,19 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   useEffect(() => {
     onRender?.();
   }, [onRender]);
+
+  /**
+   * Disable back press
+   */
+  useEffect(() => {
+    const hardwareBackPress = () => true;
+
+    BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+    };
+  }, []);
 
   const renderHeader = () => (
     <Text style={styles.headerText}>{headerTitle}</Text>

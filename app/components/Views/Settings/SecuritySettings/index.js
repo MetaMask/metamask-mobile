@@ -629,10 +629,7 @@ class Settings extends PureComponent {
     const { styles } = this.getStyles();
 
     return (
-      <View
-        style={[styles.setting, styles.firstSetting]}
-        testID={'clear-privacy-section'}
-      >
+      <View style={[styles.setting]} testID={'clear-privacy-section'}>
         <Text style={styles.title}>
           {strings('app_settings.clear_privacy_title')}
         </Text>
@@ -777,6 +774,10 @@ class Settings extends PureComponent {
     );
   };
 
+  goToSDKSessionManager = () => {
+    this.props.navigation.navigate('SDKSessionsManager');
+  };
+
   renderApprovalModal = () => {
     const { approvalModalVisible } = this.state;
     const { styles } = this.getStyles();
@@ -824,6 +825,31 @@ class Settings extends PureComponent {
           </Text>
         </View>
       </ActionModal>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <View
+        style={[styles.setting, styles.firstSetting]}
+        testID={'sdk-section'}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.manage_sdk_connections_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.manage_sdk_connections_text')}
+        </Text>
+        <StyledButton
+          type="normal"
+          containerStyle={styles.confirm}
+          onPress={this.goToSDKSessionManager}
+        >
+          {strings('app_settings.manage_sdk_connections_title')}
+        </StyledButton>
+      </View>
     );
   };
 
@@ -927,6 +953,7 @@ class Settings extends PureComponent {
           <RememberMeOptionSection />
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
+          {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />

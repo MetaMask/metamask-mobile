@@ -9,6 +9,7 @@ import StyledButton from '../../StyledButton';
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
 
+const RemoteImageComponent = RemoteImage as any;
 interface Props {
   customActionButton: PaymentCustomActionButton;
   isLoading?: boolean;
@@ -35,10 +36,11 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
   }
 
   if (value.image) {
-    const { url, width, height } = value.image;
+    const { url, width, height, label } = value.image;
     return (
-      <RemoteImage
+      <RemoteImageComponent
         key={url}
+        accessibilityLabel={label}
         source={{ uri: url }}
         style={[styles.buttonImage, { width, height }]}
       />
