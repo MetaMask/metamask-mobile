@@ -277,78 +277,49 @@ const PriceChart = ({
   );
 
   const Tooltip = ({ x, y, ticks }: Partial<TooltipProps>) => {
-    const tooltipWidth = apx(300);
+    const tooltipWidth = Dimensions.get('window').width;
     if (positionX < 0) {
       return null;
     }
 
     const date = dateList[positionX];
+    const text =
+      new Date(date).toLocaleDateString() +
+      ' ' +
+      addCurrencySymbol(priceList[positionX], currentCurrency);
+    const textXMargin = 10;
+    const textXPosition =
+      positionX > dateList.length / 2
+        ? text.length * -6.5 - textXMargin
+        : 2 + textXMargin;
 
     return (
       <G x={x?.(positionX)} key="tooltip">
-        <G
-          x={
-            positionX > dateList.length / 2
-              ? -tooltipWidth + apx(30)
-              : tooltipWidth / 2 - apx(30)
-          }
-          y={10}
-        >
+        <G x={textXPosition} y={10}>
           <SvgText
-            x={apx(20)}
+            x={0}
+            textLength={tooltipWidth}
             fill={colors.text.alternative}
             opacity={0.65}
             fontSize={apx(24)}
-            textAnchor={positionX > dateList.length / 2 ? 'start' : 'end'}
+            textAnchor={'start'}
           >
-            {new Date(date).toLocaleDateString()}{' '}
-            {addCurrencySymbol(priceList[positionX], currentCurrency)}
+            {text}
           </SvgText>
         </G>
         <G>
-          <SvgLine
-            y1={ticks?.[0]}
-            y2={ticks?.[Number(ticks.length)]}
-            stroke={'#848C96'}
-            strokeWidth={apx(1)}
-          />
-
+          <SvgLine y1={1} y2={315} stroke={'#848C96'} strokeWidth={1} />
           <Circle
             cy={y?.(priceList[positionX])}
             r={apx(20 / 2)}
             stroke="#fff"
-            strokeWidth={apx(2)}
+            strokeWidth={apx(1)}
             fill={chartColor}
           />
         </G>
       </G>
     );
   };
-
-  // const Tooltip = ({ x, y, ticks }: Partial<TooltipProps>) => {
-  //   if (positionX < 0) {
-  //     return null;
-  //   }
-
-  //   return (
-  //     <G x={x?.(positionX)} key="tooltip">
-  //       <SvgLine
-  //         y1={ticks?.[0]}
-  //         y2={ticks?.[Number(ticks.length)]}
-  //         stroke={'#848C96'}
-  //         strokeWidth={apx(1)}
-  //       />
-
-  //       <Circle
-  //         cy={y?.(priceList[positionX])}
-  //         r={apx(20 / 2)}
-  //         stroke="#fff"
-  //         strokeWidth={apx(2)}
-  //         fill={chartColor}
-  //       />
-  //     </G>
-  //   );
-  // };
 
   if (isLoading) {
     return (
