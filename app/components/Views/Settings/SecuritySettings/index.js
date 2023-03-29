@@ -63,7 +63,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
 import {
-  SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID,
+  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
   SECURITY_PRIVACY_VIEW_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -737,7 +737,7 @@ class Settings extends PureComponent {
             ios_backgroundColor={colors.border.muted}
             {...generateTestId(
               Platform,
-              SECURITY_PRIVACY_BATCH_ACCOUNT_BALANCES_TOGGLE_ID,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
             )}
           />
         </View>
