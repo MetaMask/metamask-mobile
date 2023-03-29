@@ -118,7 +118,9 @@ const ApproveTransactionHeader = ({
     } else if (isOriginWalletConnect) {
       title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
     } else if (isOriginMMSDKRemoteConn) {
-      title = getUrlObj(origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]).origin;
+      title = getUrlObj(
+        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+      ).origin;
     } else {
       title = getUrlObj(currentEnsName || url || origin).origin;
     }
