@@ -2,10 +2,8 @@
 import { StyleSheet } from 'react-native';
 
 /**
- * Style sheet function for SheetBottom component.
+ * Style sheet function for WalletActions component.
  *
- * @param params Style sheet params.
- * @param params.theme App theme from ThemeContext.
  * @returns StyleSheet object.
  */
 const styleSheet = () =>
@@ -17,6 +15,9 @@ const styleSheet = () =>
     firstActionContainer: { marginVertical: 32 },
     otherActionContainer: {
       marginBottom: 32,
+    },
+    icon: {
+      marginHorizontal: 16,
     },
   });
 
