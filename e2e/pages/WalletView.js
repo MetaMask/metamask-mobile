@@ -8,15 +8,23 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
   NFT_TAB_CONTAINER_ID,
+  SEND_BUTTON_ID,
+  getAssetTestId,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
+
 export default class WalletView {
   static async tapOKAlertButton() {
     await TestHelpers.tapAlertWithButton('OK');
+  }
+
+  static async tapOnToken(token) {
+    await TestHelpers.waitAndTap(getAssetTestId(token));
   }
 
   static async tapIdenticon() {
@@ -33,6 +41,10 @@ export default class WalletView {
   }
   static async tapWallet() {
     await TestHelpers.tapByText('Wallet');
+  }
+
+  static async tapSendIcon() {
+    await TestHelpers.waitAndTap(SEND_BUTTON_ID);
   }
 
   static async tapNetworksButtonOnNavBar() {
@@ -89,6 +101,10 @@ export default class WalletView {
       await TestHelpers.checkIfExists(WALLET_CONTAINER_ID);
     }
   }
+  static async isToastNotificationVisible() {
+    await TestHelpers.checkIfExists(NOTIFICATION_TITLE);
+  }
+
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(WALLET_CONTAINER_ID);
   }

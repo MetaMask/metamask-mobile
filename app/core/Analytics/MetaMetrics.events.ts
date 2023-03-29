@@ -12,14 +12,14 @@ const generateOpt = (
 ): IMetaMetricsEvent => {
   if (action || description) {
     return {
-      name,
+      category: name,
       properties: {
         ...(action && { action }),
         ...(description && { name: description }),
       },
     };
   }
-  return { name };
+  return { category: name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
@@ -342,11 +342,7 @@ enum ACTIONS {
 }
 
 const events = {
-  // V2 TRACKING EVENTS
-
-  // Error
   ERROR: generateOpt(EVENT_NAME.ERROR),
-  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -481,10 +477,14 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
+
+  // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   SWITCH_BATCH_ACCOUNT_BALANCE_REQUESTS_SETTING: generateOpt(
     EVENT_NAME.SWITCH_BATCH_ACCOUNT_BALANCE_REQUESTS_SETTING,
   ),
+
+  // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
   GO_BACK_SRP_SCREEN: generateOpt(EVENT_NAME.GO_BACK_SRP_SCREEN),

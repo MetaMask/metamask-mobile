@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -29,6 +28,7 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -40,8 +40,8 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import {
-  trackEvent,
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
 import { Authentication } from '../../../../core';
@@ -322,8 +322,8 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const analyticsEnabled = MetaMetrics.checkEnabled();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
+    const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -471,7 +471,7 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: true,
       });
@@ -480,25 +480,25 @@ class Settings extends PureComponent {
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      MetaMetrics.enable();
+      Analytics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      MetaMetrics.disable();
+      Analytics.disable();
       this.setState({ analyticsEnabled: false });
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_opt_out_description'),
+        strings('app_settings.metametrics_restart_required'),
       );
     }
   };
 
   goToExportPrivateKey = () => {
-    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
-      hasNavigation: true,
+      shouldUpdateNav: true,
     });
   };
 

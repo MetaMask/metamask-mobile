@@ -36,14 +36,16 @@ const createStyles = (
       textAlign: 'center',
     } as TextStyle,
     dappName: {
-      flexGrow: 1,
+      flexShrink: 1,
       marginLeft: 5,
       marginRight: 5,
+      flexWrap: 'wrap',
     },
     disconnectContainer: {
       borderColor: colors.error.default,
       alignItems: 'center',
       height: 24,
+      width: 120,
       paddingLeft: 10,
       paddingRight: 10,
     },
