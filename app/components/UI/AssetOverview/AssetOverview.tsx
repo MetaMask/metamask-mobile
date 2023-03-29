@@ -30,7 +30,7 @@ import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
-import AboutAsset from './AboutAsset/AboutAsset';
+import AboutAsset from './AboutAsset';
 import AssetActionButton from './AssetActionButton';
 import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
