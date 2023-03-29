@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { Asset } from '../../../components/UI/AssetOverview-V2/AssetOverview.types';
+import { Asset } from '../../UI/AssetOverview/AssetOverview.types';
 import Title from '../../Base/Title';
 
 const createStyles = () =>

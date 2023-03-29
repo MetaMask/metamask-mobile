@@ -42,7 +42,7 @@ import {
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import AssetOverview from '../../UI/AssetOverview-V2';
+import AssetOverview from '../../UI/AssetOverview';
 import { allowedToBuy } from '../../UI/FiatOnRampAggregator';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
