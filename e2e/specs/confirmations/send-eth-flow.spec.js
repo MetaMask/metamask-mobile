@@ -1,7 +1,6 @@
 'use strict';
 
 import AmountView from '../../pages/AmountView';
-import DrawerView from '../../pages/Drawer/DrawerView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import WalletView from '../../pages/WalletView';
@@ -20,10 +19,8 @@ describe('Send ETH Tests', () => {
   it('should go to send view', async () => {
     await importWalletWithRecoveryPhrase();
     await switchToGoreliNetwork();
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    // Navigate to send flow
+    await WalletView.tapSendIcon();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
@@ -34,6 +31,16 @@ describe('Send ETH Tests', () => {
     await SendView.tapNextButton();
     // Check that we are on the amount view
     await AmountView.isVisible();
+  });
+
+  it('should switch currency from crypto to fiat and back to crypto', async () => {
+    await AmountView.typeInTransactionAmount('0.004');
+    await AmountView.tapCurrencySwitch();
+    await AmountView.isTransactionAmountConversionValueCorrect(
+      '0.004 GoerliETH',
+    );
+    await AmountView.tapCurrencySwitch();
+    await AmountView.isTransactionAmountCorrect('0.004');
   });
 
   it('should input and validate amount', async () => {
