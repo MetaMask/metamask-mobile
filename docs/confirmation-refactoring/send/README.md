@@ -134,7 +134,7 @@ The component also has a lot of different transaction / gas related methods defi
    };
    ```
    As we make components functional this can be converted to a tested re-usable hook used across all the components.
-2. Code to start / stop gas polling is used at few places, it can be converted to re-usable hoo.
+2. Code to start / stop gas polling is used at a few places; it can be converted to a re-usable hook.
 
 3. Different send pages have functions to update transaction - there is [reducer](https://github.com/MetaMask/metamask-mobile/blob/main/app/reducers/transaction/index.js) defined for updating transaction we should use this to add any transaction update related methods to ensure that all transaction update logic is at one place.
 
