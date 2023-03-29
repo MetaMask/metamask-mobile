@@ -11,10 +11,7 @@ const styleSheet = () =>
     actionsContainer: {
       alignItems: 'flex-start',
       justifyContent: 'center',
-    },
-    firstActionContainer: { marginVertical: 32 },
-    otherActionContainer: {
-      marginBottom: 32,
+      paddingVertical: 16,
     },
     icon: {
       marginHorizontal: 16,

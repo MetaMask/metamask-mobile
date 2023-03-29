@@ -21,17 +21,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
+      paddingVertical: 16,
     },
-    iconContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.primary.default,
-      borderRadius: 16,
-      height: 32,
-      width: 32,
-      marginHorizontal: 16,
-    },
-    text: {
+    descriptionLabel: {
       color: colors.text.alternative,
     },
   });

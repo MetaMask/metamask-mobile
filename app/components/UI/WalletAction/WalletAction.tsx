@@ -41,10 +41,8 @@ const WalletAction = ({
         iconColor={colors.background.default}
       />
       <View>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.text}>
-          {actionTitle}
-        </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.text}>
+        <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
+        <Text variant={TextVariant.BodyMD} style={styles.descriptionLabel}>
           {actionDescription}
         </Text>
       </View>

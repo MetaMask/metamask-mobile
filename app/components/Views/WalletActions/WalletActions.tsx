@@ -92,7 +92,6 @@ const WalletActions = () => {
             iconName={IconName.Add}
             iconSize={AvatarSize.Md}
             onPress={onBuy}
-            containerStyle={styles.firstActionContainer}
             iconStyle={styles.icon}
             {...generateTestId(Platform, WALLET_BUY)}
           />
@@ -107,11 +106,6 @@ const WalletActions = () => {
               iconName={IconName.SwapHorizontal}
               iconSize={AvatarSize.Md}
               onPress={goToSwaps}
-              containerStyle={
-                allowedToBuy(chainId)
-                  ? styles.otherActionContainer
-                  : styles.firstActionContainer
-              }
               iconStyle={styles.icon}
               {...generateTestId(Platform, WALLET_SWAP)}
             />
@@ -122,14 +116,6 @@ const WalletActions = () => {
           iconName={IconName.Arrow2Right}
           iconSize={AvatarSize.Md}
           onPress={onSend}
-          containerStyle={
-            allowedToBuy(chainId) &&
-            AppConstants.SWAPS.ACTIVE &&
-            swapsIsLive &&
-            isSwapsAllowed(chainId)
-              ? styles.otherActionContainer
-              : styles.firstActionContainer
-          }
           iconStyle={{
             transform: [{ rotate: '-45deg' }],
             ...styles.icon,
@@ -142,7 +128,6 @@ const WalletActions = () => {
           iconName={IconName.Received}
           iconSize={AvatarSize.Md}
           onPress={onReceive}
-          containerStyle={styles.otherActionContainer}
           iconStyle={styles.icon}
           {...generateTestId(Platform, WALLET_RECEIVE)}
         />
