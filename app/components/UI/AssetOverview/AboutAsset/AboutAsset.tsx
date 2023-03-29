@@ -81,7 +81,10 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
           </SkeletonPlaceholder>
         </View>
       ) : (
-        <ContentDisplay content={description} />
+        <ContentDisplay
+          content={description}
+          disclaimer={strings('asset_overview.disclaimer')}
+        />
       )}
     </View>
   );

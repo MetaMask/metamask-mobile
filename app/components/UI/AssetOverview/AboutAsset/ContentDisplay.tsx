@@ -14,16 +14,23 @@ const createStyles = (colors: ThemeColors) =>
     content: {
       color: colors.text.alternative,
     },
+    disclaimer: {
+      color: colors.text.alternative,
+      fontSize: 12,
+      paddingTop: 16,
+    },
   });
 
 interface ContentDisplayProps {
   content: string;
   numberOfLines?: number;
+  disclaimer?: string;
 }
 
 const ContentDisplay = ({
   content,
   numberOfLines = 3,
+  disclaimer,
 }: ContentDisplayProps) => {
   const { colors = mockTheme.colors } = useContext(ThemeContext);
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -42,6 +49,9 @@ const ContentDisplay = ({
       >
         {content}
       </Text>
+      {disclaimer && isExpanded && (
+        <Text style={styles.disclaimer}>{disclaimer}</Text>
+      )}
       <TouchableOpacity onPress={toggleContent}>
         <Text style={styles.button}>
           {isExpanded ? 'Show less' : 'Show more'}
