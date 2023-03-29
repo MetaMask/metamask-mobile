@@ -28,6 +28,7 @@ exports[`SecuritySettings should render correctly 1`] = `
   selectedAddress="0x"
   setLockTime={[Function]}
   setThirdPartyApiMode={[Function]}
+  useMultiAccountBalanceChecker={true}
   type="mainnet"
 />
 `;
