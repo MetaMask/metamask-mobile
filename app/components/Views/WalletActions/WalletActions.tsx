@@ -51,15 +51,25 @@ const WalletActions = () => {
 
   const onReceive = () => {
     sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.RECEIVE_BUTTON_CLICKED,
+      {
+        text: '',
+        tokenSymbol: '',
+        location: 'TabBar',
+        chain_id: chainId,
+      },
+    );
   };
 
   const onBuy = () => {
     sheetRef.current?.hide(() => {
       navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy',
-        location: 'Wallet',
-        chain_id_destination: chainId,
+        text: '',
+        tokenSymbol: '',
+        location: 'TabBar',
+        chain_id: chainId,
       });
     });
   };
@@ -68,18 +78,36 @@ const WalletActions = () => {
     sheetRef.current?.hide(() => {
       navigate('SendFlowView');
       ticker && dispatch(newAssetTransaction(getEther(ticker)));
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.SEND_BUTTON_CLICKED,
+        {
+          text: '',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: chainId,
+        },
+      );
     });
   };
 
   const goToSwaps = () => {
-    sheetRef.current?.hide(() =>
+    sheetRef.current?.hide(() => {
       navigate('Swaps', {
         screen: 'SwapsAmountView',
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
         },
-      }),
-    );
+      });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.SWAP_BUTTON_CLICKED,
+        {
+          text: '',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: chainId,
+        },
+      );
+    });
   };
 
   return (

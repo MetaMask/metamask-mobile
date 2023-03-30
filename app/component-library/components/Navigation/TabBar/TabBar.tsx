@@ -4,6 +4,7 @@
 import React, { useCallback } from 'react';
 import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 
 // External dependencies.
 import TabBarItem from '../TabBarItem';
@@ -11,6 +12,9 @@ import { useStyles } from '../../../hooks';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
+import Analytics from '../../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { selectChainId } from '../../../../selectors/networkController';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
@@ -23,7 +27,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
-
+  const chainId = useSelector(selectChainId);
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
@@ -50,6 +54,13 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.MODAL.WALLET_ACTIONS,
             });
+            Analytics.trackEventWithParameters(
+              MetaMetricsEvents.ACTIONS_BUTTON_CLICKED,
+              {
+                text: '',
+                chain_id: chainId,
+              },
+            );
             break;
           case Routes.BROWSER_VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
