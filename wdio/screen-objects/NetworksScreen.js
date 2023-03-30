@@ -208,12 +208,8 @@ class NetworksScreen {
   }
 
   async tapBackButtonInNewScreen() {
-    driver.pause(2000);
-    (
-      await Selectors.getXpathElementByContentDescription(
-        NETWORK_BACK_ARROW_BUTTON_ID,
-      )
-    ).touchAction('tap');
+    await driver.pause(2000);
+    Gestures.waitAndTap(this.networkScreenBackButton);
   }
 
   async tapBackButtonInSettingsScreen() {

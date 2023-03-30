@@ -13,7 +13,7 @@ Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
 });
 
 When(/^I tap burger icon/, async () => {
-  const setTimeout = 1500; //added to run on physical device
+  const setTimeout = 2500; //added to run on physical device
   await driver.pause(setTimeout); //added to run on physical device
   await WalletMainScreen.tapBurgerIcon();
 });

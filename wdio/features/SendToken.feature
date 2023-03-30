@@ -6,7 +6,8 @@ Feature: Sending Native and ERC Tokens
 Feature tests the sending of Native and ERC Tokens
 
   Scenario: Import wallet to setup
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     When I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     Then I am on the wallet view

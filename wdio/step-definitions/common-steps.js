@@ -45,7 +45,6 @@ Then(/^Terms of Use is not displayed$/, async () => {
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
