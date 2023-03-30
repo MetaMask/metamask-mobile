@@ -15,7 +15,7 @@ import { AppState } from 'react-native';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
-import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
+import { KeyringController } from '@metamask/keyring-controller';
 import {
   PersonalMessageManager,
   MessageManager,

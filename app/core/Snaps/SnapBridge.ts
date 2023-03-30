@@ -13,10 +13,7 @@ import { NetworksChainId } from '@metamask/controller-utils';
 
 import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
-import {
-  createOriginMiddleware,
-  createLoggerMiddleware,
-} from '../../util/middlewares';
+import { createOriginMiddleware } from '../../util/middlewares';
 import Logger from '../../util/Logger';
 import { getAllNetworks } from '../../util/networks';
 import { createSnapMethodMiddleware } from './createSnapMethodMiddleware';

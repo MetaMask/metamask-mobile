@@ -39,6 +39,7 @@ const InstallSnapApproval = ({
     onCancel();
   };
   const renderPermissions = () => {
+    // eslint-disable-next-line react/prop-types
     const { permissions } = requestData.requestData;
     const keys = Object.keys(permissions);
     const keyItems: KeyItem[] = keys.map((key) => ({ key }));

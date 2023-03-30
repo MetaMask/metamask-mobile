@@ -20,10 +20,10 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      # - yarn@0:
-      #     title: Lint
-      #     inputs:
-      #       - command: lint
+      - yarn@0:
+          title: Lint
+          inputs:
+            - command: lint
       # - yarn@0:
       #     inputs:
       #       - command: audit:ci
