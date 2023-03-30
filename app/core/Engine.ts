@@ -357,10 +357,16 @@ class Engine {
             'SnapController:updateSnapState',
           ),
           showConfirmation: (origin, confirmationData) =>
-            this.approvalController.addAndShowApprovalRequest({
+            approvalController.addAndShowApprovalRequest({
               origin,
               type: 'snapConfirmation',
               requestData: confirmationData,
+            }),
+          showDialog: (origin, type, content, placeholder) =>
+            approvalController.addAndShowApprovalRequest({
+              origin,
+              type,
+              requestData: { content, placeholder },
             }),
           showInAppNotification: (origin, args) => {
             console.log(

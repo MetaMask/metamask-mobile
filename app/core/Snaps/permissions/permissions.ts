@@ -4,7 +4,7 @@ import {
   selectHooks,
 } from '@metamask/rpc-methods';
 
-export const ExcludedSnapPermissions = new Set(['snap_dialog']);
+export const ExcludedSnapPermissions = new Set([]);
 export const ExcludedSnapEndowments = new Set(['endowment:keyring']);
 
 /**
