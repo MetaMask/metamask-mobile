@@ -37,6 +37,7 @@ const useAccounts = ({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
+
   const identities = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,
@@ -155,6 +156,7 @@ const useAccounts = ({
         const balanceTicker = getTicker(ticker);
         const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
         const balanceError = checkBalanceError?.(balanceWeiHex);
+        const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           name,
           address: checksummedAddress,
@@ -163,7 +165,7 @@ const useAccounts = ({
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
           // assets
-          assets: { fiatBalance: balanceLabel },
+          assets: isBalanceAvailable && { fiatBalance: balanceLabel },
           balanceError,
         };
         result.push(mappedAccount);
@@ -190,6 +192,7 @@ const useAccounts = ({
     currentCurrency,
     ticker,
     checkBalanceError,
+    isMultiAccountBalancesEnabled,
   ]);
 
   useEffect(() => {
@@ -208,8 +211,6 @@ const useAccounts = ({
   return {
     accounts,
     ensByAccountAddress,
-    selectedAddress,
-    isMultiAccountBalancesEnabled,
   };
 };
 

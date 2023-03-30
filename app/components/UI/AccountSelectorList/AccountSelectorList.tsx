@@ -37,8 +37,6 @@ const AccountSelectorList = ({
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
-  selectedAddress,
-  isMultiAccountBalancesEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
   const Engine = UntypedEngine as any;
@@ -69,7 +67,9 @@ const AccountSelectorList = ({
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets) => (
       <View style={styles.balancesContainer}>
-        <Text style={styles.balanceLabel}>{fiatBalance}</Text>
+        <Text style={styles.balanceLabel} testID="balance-label">
+          {fiatBalance}
+        </Text>
         {tokens && <AvatarGroup tokenList={tokens} />}
       </View>
     ),
@@ -163,21 +163,6 @@ const AccountSelectorList = ({
         opacity: isLoading ? 0.5 : 1,
       };
 
-      const renderRightContent = () => {
-        if (renderRightAccessory?.(address, accountName)) {
-          return renderRightAccessory(address, accountName);
-        }
-
-        if (!isMultiAccountBalancesEnabled) {
-          if (selectedAddress === address) {
-            return assets && renderAccountBalances(assets);
-          }
-          return null;
-        }
-
-        return assets && renderAccountBalances(assets);
-      };
-
       return (
         <Cell
           onLongPress={() => {
@@ -203,7 +188,8 @@ const AccountSelectorList = ({
           disabled={isDisabled}
           style={cellStyle}
         >
-          {renderRightContent()}
+          {renderRightAccessory?.(address, accountName) ||
+            (assets && renderAccountBalances(assets))}
         </Cell>
       );
     },
@@ -218,8 +204,6 @@ const AccountSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
-      isMultiAccountBalancesEnabled,
-      selectedAddress,
     ],
   );
 

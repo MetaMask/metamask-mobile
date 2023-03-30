@@ -86,14 +86,4 @@ export interface UseAccounts {
    * Mapping of ENS names by account address.
    */
   ensByAccountAddress: EnsByAccountAddress;
-
-  /**
-   * Current selected address.
-   */
-  selectedAddress: string;
-
-  /**
-   * Boolean that indicates if multi account balances are enabled.
-   */
-  isMultiAccountBalancesEnabled: boolean;
 }

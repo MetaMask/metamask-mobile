@@ -32,8 +32,6 @@ const AccountConnectMultiSelector = ({
   secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
-  selectedAddress,
-  isMultiAccountBalancesEnabled,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -182,8 +180,6 @@ const AccountConnectMultiSelector = ({
         isMultiSelect
         isRemoveAccountEnabled
         isAutoScrollEnabled={isAutoScrollEnabled}
-        selectedAddress={selectedAddress}
-        isMultiAccountBalancesEnabled={isMultiAccountBalancesEnabled}
       />
       {renderSheetActions()}
       <View style={styles.body}>{renderCtaButtons()}</View>
