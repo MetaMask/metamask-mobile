@@ -23,8 +23,9 @@ export interface BadgeNetworkProps extends Omit<BadgeBaseProps, 'children'> {
   variant: BadgeVariants.Network;
   /**
    * Name of the network.
+   * Resolved to "?" if undefined or null.
    */
-  name: string;
+  name?: string;
   /**
    * Image of the network from either a local or remote source.
    */

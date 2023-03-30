@@ -36,7 +36,9 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
         variant="Token"
       />
     </View>
-    <Component>
+    <Component
+      onPress={[Function]}
+    >
       <Text
         style={
           Object {
@@ -65,6 +67,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
   >
     <IconView
       name="Copy"
+      onPress={[Function]}
       size="24"
       testID="copy-icon"
     />

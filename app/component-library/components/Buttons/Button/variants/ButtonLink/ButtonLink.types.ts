@@ -1,4 +1,5 @@
 // External dependencies.
+import { TextStyle } from 'react-native';
 import { TextVariant } from '../../../../Texts/Text/Text.types';
 import { ButtonVariants } from '../../Button.types';
 import { ButtonBaseProps } from '../../foundation/ButtonBase';
@@ -19,4 +20,8 @@ export interface ButtonLinkProps extends Omit<ButtonBaseProps, 'labelColor'> {
    * Text component variants.
    */
   textVariant?: TextVariant;
+  /**
+   * Text component style.
+   */
+  style?: TextStyle;
 }
