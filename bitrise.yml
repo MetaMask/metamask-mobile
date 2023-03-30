@@ -24,10 +24,10 @@ workflows:
           title: Lint
           inputs:
             - command: lint
-      # - yarn@0:
-      #     inputs:
-      #       - command: audit:ci
-      #     title: Audit Dependencies
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
   code_setup_dev:
     before_run:
       - setup
