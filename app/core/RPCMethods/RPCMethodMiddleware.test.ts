@@ -7,6 +7,7 @@ import {
   JsonRpcSuccess,
 } from 'json-rpc-engine';
 import type { Transaction } from '@metamask/transaction-controller';
+import type { ProviderConfig } from '@metamask/network-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
@@ -173,6 +174,56 @@ async function callMiddleware({
   return await engine.handle(request);
 }
 
+/**
+ * Setup any global state relevant for one of these tests.
+ *
+ * @param options - Options.
+ * @param options.activeTab - The current active tab.
+ * @param options.addTransactionResult - The result that the `TransactionController.addTransaction`
+ * method should return.
+ * @param options.permittedAccounts - Permitted accounts, keyed by hostname.
+ * @param options.providerConfig - The provider configuration for the current selected network.
+ * @param options.selectedAddress - The current selected address.
+ */
+function setupGlobalState({
+  activeTab,
+  addTransactionResult,
+  permittedAccounts,
+  providerConfig,
+  selectedAddress,
+}: {
+  activeTab?: number;
+  addTransactionResult?: Promise<string>;
+  permittedAccounts?: Record<string, string[]>;
+  providerConfig?: ProviderConfig;
+  selectedAddress?: string;
+}) {
+  if (activeTab) {
+    mockStore.getState.mockImplementation(() => ({
+      browser: {
+        activeTab,
+      },
+    }));
+  }
+  if (addTransactionResult) {
+    MockEngine.context.TransactionController.addTransaction.mockImplementation(
+      async () => ({ result: addTransactionResult }),
+    );
+  }
+  if (permittedAccounts) {
+    mockGetPermittedAccounts.mockImplementation(
+      (hostname) => permittedAccounts[hostname] || [],
+    );
+  }
+  if (providerConfig) {
+    MockEngine.context.NetworkController.state.providerConfig = providerConfig;
+  }
+  if (selectedAddress) {
+    MockEngine.context.PreferencesController.state.selectedAddress =
+      selectedAddress;
+  }
+}
+
 describe('getRpcMethodMiddleware', () => {
   it('allows unrecognized methods to pass through', async () => {
     const engine = new JsonRpcEngine();
@@ -201,26 +252,17 @@ describe('getRpcMethodMiddleware', () => {
       it('sends the transaction and returns the resulting hash', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // Ensure mock address is permitted for the hostname used by this request
-        mockGetPermittedAccounts.mockImplementation((hostname) =>
-          hostname === 'example.metamask.io' ? [mockAddress] : [],
-        );
-        // Ensure tab used by middleware matches current tab
         const mockTabId = 10;
-        mockStore.getState.mockImplementation(() => ({
-          browser: {
-            activeTab: mockTabId,
+        setupGlobalState({
+          activeTab: mockTabId,
+          addTransactionResult: Promise.resolve('fake-hash'),
+          permittedAccounts: { 'example.metamask.io': [mockAddress] },
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
           },
-        }));
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalBrowserOptions(),
           hostname: 'example.metamask.io',
@@ -242,30 +284,23 @@ describe('getRpcMethodMiddleware', () => {
       it('returns a JSON-RPC error if the transaction is requested by a non-active tab', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // Ensure mock address is permitted for the hostname used by this request
-        mockGetPermittedAccounts.mockImplementation((hostname) =>
-          hostname === 'example.metamask.io' ? [mockAddress] : [],
-        );
         // Tab used by middleware DOES NOT match current tab
-        const mockTabId = 10;
-        mockStore.getState.mockImplementation(() => ({
-          browser: {
-            activeTab: 20,
+        const requestTabId = 10;
+        const activeTabId = 20;
+        setupGlobalState({
+          activeTab: activeTabId,
+          addTransactionResult: Promise.resolve('fake-hash'),
+          permittedAccounts: { 'example.metamask.io': [mockAddress] },
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
           },
-        }));
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalBrowserOptions(),
           hostname: 'example.metamask.io',
-          tabId: mockTabId,
+          tabId: requestTabId,
         });
         const request = {
           jsonrpc,
@@ -286,24 +321,18 @@ describe('getRpcMethodMiddleware', () => {
       it('returns a JSON-RPC error if the site does not have permission to use the referenced account', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // No accounts permitted for this test
-        mockGetPermittedAccounts.mockImplementation(() => []);
-        // Ensure tab used by middleware matches current tab
         const mockTabId = 10;
-        mockStore.getState.mockImplementation(() => ({
-          browser: {
-            activeTab: mockTabId,
+        setupGlobalState({
+          activeTab: mockTabId,
+          addTransactionResult: Promise.resolve('fake-hash'),
+          // Note that no accounts are permitted
+          permittedAccounts: {},
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
           },
-        }));
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalBrowserOptions(),
           hostname: 'example.metamask.io',
@@ -332,18 +361,15 @@ describe('getRpcMethodMiddleware', () => {
       it('sends the transaction and returns the resulting hash', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // Ensure mock address matches the selected account
-        MockEngine.context.PreferencesController.state.selectedAddress =
-          mockAddress;
+        setupGlobalState({
+          addTransactionResult: Promise.resolve('fake-hash'),
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
+          },
+          selectedAddress: mockAddress,
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
           hostname: 'example.metamask.io',
@@ -366,18 +392,15 @@ describe('getRpcMethodMiddleware', () => {
         const differentMockAddress =
           '0x0000000000000000000000000000000000000002';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // Ensure mock address DOES NOT match the selected account
-        MockEngine.context.PreferencesController.state.selectedAddress =
-          differentMockAddress;
+        setupGlobalState({
+          addTransactionResult: Promise.resolve('fake-hash'),
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
+          },
+          selectedAddress: differentMockAddress,
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
           hostname: 'example.metamask.io',
@@ -405,18 +428,15 @@ describe('getRpcMethodMiddleware', () => {
       it('sends the transaction and returns the resulting hash', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // Ensure mock address matches the selected account
-        MockEngine.context.PreferencesController.state.selectedAddress =
-          mockAddress;
+        setupGlobalState({
+          addTransactionResult: Promise.resolve('fake-hash'),
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
+          },
+          selectedAddress: mockAddress,
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
           hostname: 'example.metamask.io',
@@ -439,18 +459,15 @@ describe('getRpcMethodMiddleware', () => {
         const differentMockAddress =
           '0x0000000000000000000000000000000000000002';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
-        // Transaction will succeed when added
-        MockEngine.context.TransactionController.addTransaction.mockImplementation(
-          async () => ({ result: Promise.resolve('fake-hash') }),
-        );
-        // Set minimal network controller state to support validation
-        MockEngine.context.NetworkController.state.providerConfig = {
-          chainId: '1',
-          type: RPC,
-        };
-        // Ensure mock address DOES NOT match the selected account
-        MockEngine.context.PreferencesController.state.selectedAddress =
-          differentMockAddress;
+        setupGlobalState({
+          addTransactionResult: Promise.resolve('fake-hash'),
+          // Set minimal network controller state to support validation
+          providerConfig: {
+            chainId: '1',
+            type: RPC,
+          },
+          selectedAddress: differentMockAddress,
+        });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
           hostname: 'example.metamask.io',
@@ -477,15 +494,14 @@ describe('getRpcMethodMiddleware', () => {
     it('skips account validation if the account is missing from the transaction parameters', async () => {
       // Downcast needed here because `from` is required by this type
       const mockTransactionParameters = { chainId: 1 } as Transaction;
-      // Transaction will succeed when added
-      MockEngine.context.TransactionController.addTransaction.mockImplementation(
-        async () => ({ result: Promise.resolve('fake-hash') }),
-      );
-      // Set minimal network controller state to support validation
-      MockEngine.context.NetworkController.state.providerConfig = {
-        chainId: '1',
-        type: RPC,
-      };
+      setupGlobalState({
+        addTransactionResult: Promise.resolve('fake-hash'),
+        // Set minimal network controller state to support validation
+        providerConfig: {
+          chainId: '1',
+          type: RPC,
+        },
+      });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -506,14 +522,10 @@ describe('getRpcMethodMiddleware', () => {
     it('skips chain ID validation if the chain ID is missing from the transaction parameters', async () => {
       const mockAddress = '0x0000000000000000000000000000000000000001';
       const mockTransactionParameters = { from: mockAddress };
-      // Transaction will succeed when added
-      MockEngine.context.TransactionController.addTransaction.mockImplementation(
-        async () => ({ result: Promise.resolve('fake-hash') }),
-      );
-      // Ensure mock address is permitted for the hostname used by this request
-      mockGetPermittedAccounts.mockImplementation((hostname) =>
-        hostname === 'example.metamask.io' ? [mockAddress] : [],
-      );
+      setupGlobalState({
+        addTransactionResult: Promise.resolve('fake-hash'),
+        permittedAccounts: { 'example.metamask.io': [mockAddress] },
+      });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -565,12 +577,11 @@ describe('getRpcMethodMiddleware', () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
       const mockTransactionParameters = {} as Transaction;
-      // Transaction returns an error as the result
-      MockEngine.context.TransactionController.addTransaction.mockImplementation(
-        async () => ({
-          result: Promise.reject(new Error('Failed to process transaction')),
-        }),
-      );
+      setupGlobalState({
+        addTransactionResult: Promise.reject(
+          new Error('Failed to process transaction'),
+        ),
+      });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
