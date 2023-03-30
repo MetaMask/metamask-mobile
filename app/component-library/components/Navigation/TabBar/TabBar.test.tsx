@@ -16,8 +16,30 @@ const navigation = {
   navigate: jest.fn(),
 };
 
+const initialState = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        providerConfig: {
+          type: 'mainnet',
+          nickname: 'Ethereum mainnet',
+          ticket: 'eth',
+          chainId: '1',
+        },
+      },
+    },
+  },
+};
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
 }));
 
 // Define the test cases.
