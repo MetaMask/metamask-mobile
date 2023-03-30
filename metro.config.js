@@ -10,7 +10,7 @@ const { getDefaultConfig } = require('metro-config');
 
 module.exports = (async () => {
   const {
-    resolver: { sourceExts, assetExts },
+    resolver: { assetExts, sourceExts },
   } = await getDefaultConfig();
   return {
     transformer: {
@@ -20,15 +20,15 @@ module.exports = (async () => {
           inlineRequires: true,
         },
       }),
-//       babelTransformerPath: require.resolve('react-native-svg-transformer'),
-//       assetPlugins: ['react-native-svg-asset-plugin'],
-//       svgAssetPlugin: {
-//         pngCacheDir: '.png-cache',
-//         scales: [1],
-//         output: {
-//           compressionLevel: 6,
-//         },
-//       },
+      babelTransformerPath: require.resolve('./customTransformer.js'),
+      assetPlugins: ['react-native-svg-asset-plugin'],
+      svgAssetPlugin: {
+        pngCacheDir: '.png-cache',
+        scales: [1],
+        output: {
+          compressionLevel: 6,
+        },
+      },
     },
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
