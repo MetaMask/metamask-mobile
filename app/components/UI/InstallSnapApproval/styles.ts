@@ -47,6 +47,33 @@ const createStyles = (colors: any) =>
     confirm: {
       marginLeft: 8,
     },
+    heading: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    listItem: {
+      marginBottom: 5,
+    },
+    permissionContainer: {
+      marginBottom: 10,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    keysContainer: {
+      flexWrap: 'wrap',
+    },
+    key: {
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      marginRight: 10,
+      marginBottom: 10,
+      fontSize: 16,
+    },
   });
 
 export default createStyles;
