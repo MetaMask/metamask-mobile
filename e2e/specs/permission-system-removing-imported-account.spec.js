@@ -26,7 +26,7 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const GOERLI = 'Goerli Test Network';
 
-const validAccount = Accounts.getValidAccount();
+const accountPrivateKey = Accounts.getAccountPrivateKey();
 
 describe('Permission System Test: Revoking accounts after connecting to a dapp', () => {
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
   it('should import account', async () => {
     await ConnectModal.tapImportAccountButton();
     await ImportAccountView.isVisible();
-    await ImportAccountView.enterPrivateKey(validAccount.privateKey);
+    await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
   });
