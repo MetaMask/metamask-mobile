@@ -32,6 +32,7 @@ const USER_PROFILE_PROPERTY = {
   OFF: 'OFF',
   AUTHENTICATION_TYPE: 'Authentication Type',
   TOKEN_DETECTION: 'token_detection_enable',
+  MULTI_ACCOUNT_BALANCE: 'Batch account balance requests',
 };
 
 /**
@@ -116,6 +117,13 @@ class Analytics {
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.TOKEN_DETECTION,
       preferencesController.useTokenDetection
+        ? USER_PROFILE_PROPERTY.ON
+        : USER_PROFILE_PROPERTY.OFF,
+    );
+    // Track multi account balance toggle
+    RCTAnalytics.setUserProfileProperty(
+      USER_PROFILE_PROPERTY.MULTI_ACCOUNT_BALANCE,
+      preferencesController.isMultiAccountBalancesEnabled
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );
