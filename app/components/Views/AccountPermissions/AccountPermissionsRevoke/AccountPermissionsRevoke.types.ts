@@ -7,16 +7,10 @@ import { UseAccounts } from '../../../hooks/useAccounts';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/AvatarAccount';
 
-type UseAccountsWithoutBalance = Omit<
-  UseAccounts,
-  'selectedAddress' | 'isMultiAccountBalancesEnabled'
->;
-
 /**
  * AccountPermissionsRevoke props.
  */
-export interface AccountPermissionsRevokeProps
-  extends UseAccountsWithoutBalance {
+export interface AccountPermissionsRevokeProps extends UseAccounts {
   isLoading?: boolean;
   permittedAddresses: string[];
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;
