@@ -40,7 +40,6 @@ index a5e5af1..39042d0 100644
 +    exportMnemonic() {
 +        const mnemonic = __classPrivateFieldGet(this, _KeyringController_keyring, "f").keyrings[0].mnemonic;
 +        if (mnemonic) {
-+            console.log('Snaps/ KeyringController: exportMnemonic returns', mnemonic);
 +            return mnemonic;
 +        }
 +        throw new Error('No mnemonic found');
