@@ -199,7 +199,6 @@ class DeeplinkManager {
         ),
     );
     let params;
-    let wcCleanUrl;
 
     if (urlObj.query.length) {
       try {
@@ -305,11 +304,10 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        wcCleanUrl = url.replace('wc://wc?uri=', '');
-        if (!WalletConnect.isValidUri(wcCleanUrl)) return;
+        if (!WalletConnect.isValidUri(params?.uri)) return;
 
         WalletConnect.newSession(
-          wcCleanUrl,
+          params?.uri,
           params?.redirect,
           params?.autosign,
           origin,
@@ -362,13 +360,10 @@ class DeeplinkManager {
           }
           return true;
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
-          const href = cleanUrlObj.href;
-
-          if (!WalletConnect.isValidUri(href)) return;
+          if (!WalletConnect.isValidUri(params?.uri)) return;
 
           WalletConnect.newSession(
-            href,
+            params?.uri,
             params?.redirect,
             params?.autosign,
             origin,
