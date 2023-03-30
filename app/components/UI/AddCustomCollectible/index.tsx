@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
 import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -182,7 +183,10 @@ const AddCustomCollectible = ({
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.COLLECTIBLE_ADDED,
+      getAnalyticsParams(),
+    );
 
     navigation.goBack();
   };

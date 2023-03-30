@@ -301,6 +301,8 @@
       "cancel_cta": "Cancelar",
       "confirm_cta": "Confirmar"
     },
+    "add_to_get_started": "Adicione criptomoedas para começar",
+    "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
     "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
@@ -612,6 +614,7 @@
     "third_party_title": "Receba transações de entrada",
     "third_party_description": "APIs de terceiros (Etherscan) são usadas para exibir suas transações de entrada no histórico. Desative essa opção caso não queira que extraiamos dados desses serviços.",
     "metametrics_opt_out": "Sair da MetaMetrics",
+    "metametrics_restart_required": "Você precisa reiniciar o app para que as alterações entrem em vigor.",
     "create_password": "Criar senha",
     "invalid_password": "Senha inválida",
     "invalid_password_message": "A senha está incorreta. Tente novamente.",
@@ -744,6 +747,7 @@
     "send_button": "Enviar",
     "buy_button": "Comprar",
     "receive_button": "Receber",
+    "portfolio_button": "Portfólio",
     "add_collectible_button": "Adicionar",
     "info": "Informações",
     "swap": "Swap",
@@ -2236,5 +2240,26 @@
       "wrong_answer_title": "Não! Não compartilhe sua Frase de Recuperação Secreta com ninguém, nunca",
       "wrong_answer_description": "Qualquer pessoa que afirme precisar da sua Frase de Recuperação Secreta está mentindo. Se você compartilhar com ela, seus ativos serão roubados."
     }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Restauração necessária",
+    "restore_needed_description": "Algo deu errado, mas não se preocupe! Vamos tentar restaurar sua carteira.",
+    "restore_needed_action": "Restaurar carteira"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Sua carteira está pronta!",
+    "wallet_restored_action": "Prosseguir para a carteira",
+    "wallet_restored_description_part_one": "Você pode precisar adicionar novamente alguns de seus ativos, redes e configurações manualmente.",
+    "wallet_restored_description_part_two": "Reserve um momento para",
+    "wallet_restored_description_link": "fazer o backup da sua Frase de Recuperação Secreta",
+    "wallet_restored_description_part_three": "caso precise restaurar sua carteira novamente no futuro."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Nova carteira necessária",
+    "new_wallet_needed_create_new_wallet_action": "Criar uma nova carteira",
+    "new_wallet_needed_create_try_again_action": "Tentar recuperar a carteira",
+    "new_wallet_needed_description_part_one": "Algo deu errado com a sua carteira, e você precisará criar outra. Visto que suas contas estão na blockchain, elas ainda estão seguras. Somente as preferências, redes salvas, nomes das contas e dados relacionados salvos em seu dispositivo foram perdidos.",
+    "new_wallet_needed_description_part_two": "Para importar suas contas para uma nova carteira, você precisará da sua Frase de Recuperação Secreta. Se não a tiver, você não poderá importar suas contas.",
+    "new_wallet_needed_description_part_three": "Para evitar que isso ocorra novamente, certifique-se de sempre manter seu app MetaMask e sistema operacional atualizados com a última versão."
   }
 }

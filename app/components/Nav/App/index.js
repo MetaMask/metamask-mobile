@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
+import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -35,22 +35,23 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
+import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import {
-  EXISTING_USER,
   CURRENT_APP_VERSION,
+  EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import {
-  setCurrentRoute,
   setCurrentBottomNavRoute,
+  setCurrentRoute,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import SDKConnect from '../../../core/SDKConnect';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -70,6 +71,15 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
+import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
+import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
+import { RestoreWallet } from '../../Views/RestoreWallet';
+import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
+import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
+import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
+import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -83,9 +93,6 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
-import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 
 const Stack = createStackNavigator();
 /**
@@ -187,7 +194,27 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const App = ({ selectedAddress, userLoggedIn }) => {
+const VaultRecoveryFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+    screenOptions={{ headerShown: false }}
+  >
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+      component={RestoreWallet}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
+      component={WalletRestored}
+    />
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
+      component={WalletResetNeeded}
+    />
+  </Stack.Navigator>
+);
+
+const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -216,6 +243,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
+      const { PreferencesController } = Engine.context;
+      const selectedAddress = PreferencesController.state.selectedAddress;
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
@@ -246,7 +275,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
       }
     };
     appTriggeredAuth();
-  }, [navigator, selectedAddress]);
+  }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -317,8 +346,30 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
-    SDKConnect.init();
+    const initAnalytics = async () => {
+      await Analytics.init();
+    };
+
+    initAnalytics();
   }, []);
+
+  useEffect(() => {
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
+    return () => {
+      SDKConnect.getInstance().unmount();
+    };
+  }, [navigator]);
+
+  useEffect(() => {
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
+    return () => {
+      SDKConnect.getInstance().unmount();
+    };
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {
@@ -328,6 +379,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
+
     checkExisting();
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
@@ -358,6 +410,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
         Logger.error(error);
       }
     }
+
     startApp();
   }, []);
 
@@ -416,10 +469,22 @@ const App = ({ selectedAddress, userLoggedIn }) => {
         name={Routes.MODAL.MODAL_CONFIRMATION}
         component={ModalConfirmation}
       />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_MANDATORY}
+        component={ModalMandatory}
+      />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_LOADING}
+        component={SDKLoadingModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_FEEDBACK}
+        component={SDKFeedbackModal}
       />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -527,6 +592,10 @@ const App = ({ selectedAddress, userLoggedIn }) => {
               />
             )}
             <Stack.Screen
+              name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+              component={VaultRecoveryFlow}
+            />
+            <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
             />
@@ -552,8 +621,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  selectedAddress:
-    state.engine.backgroundState?.PreferencesController?.selectedAddress,
 });
 
 export default connect(mapStateToProps)(App);

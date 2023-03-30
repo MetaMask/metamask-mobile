@@ -14,6 +14,7 @@ exports[`AssetElement should render correctly 1`] = `
       "paddingVertical": 10,
     }
   }
+  testID="asset-symbol"
 >
   <View
     styles={
