@@ -10,6 +10,7 @@ import {
 } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TestHelpers from '../../helpers';
 
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
@@ -49,6 +50,7 @@ describe('Send ETH Tests', () => {
   it('should input and validate amount', async () => {
     // Input acceptable value
     await AmountView.typeInTransactionAmount('0');
+    await TestHelpers.delay(2000);
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view
