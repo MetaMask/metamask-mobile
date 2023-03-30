@@ -9,7 +9,7 @@ config.capabilities = [
     fullReset: false,
     maxInstances: 1,
     automationName: 'XCUITest',
-    deviceName: 'iPhone 11 Pro',
+    deviceName: 'iPhone 12 Pro',
     platformVersion: '15.5',
     app: './ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
     settings: {

@@ -609,7 +609,7 @@ app:
       IOS_APP_LINK: ''
 meta:
   bitrise.io:
-    stack: osx-xcode-13.4.x
+    stack: osx-xcode-14.2.x-ventura
 
 trigger_map:
   - push_branch: release/*
