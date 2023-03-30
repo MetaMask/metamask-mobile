@@ -72,6 +72,14 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 
+import {
+  arrToBufArr,
+  bufferToHex,
+  ecsign,
+  publicToAddress,
+  toBuffer,
+} from '@ethereumjs/util';
+
 const Stack = createStackNavigator();
 
 const createStyles = (colors) =>
@@ -224,6 +232,11 @@ const Main = (props) => {
   const networkProvider = useSelector(selectProviderConfig);
   const prevNetworkProvider = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
+
+
+  const uintArr = new Uint8Array([2, 42]);
+  const test = arrToBufArr(uintArr);
+  console.log('test', test);
 
   // Show network switch confirmation.
   useEffect(() => {
