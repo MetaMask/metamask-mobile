@@ -815,6 +815,7 @@ class DrawerView extends PureComponent {
       },
     });
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
+    this.hideDrawer();
   };
 
   goToBrowserUrl(url, title) {
