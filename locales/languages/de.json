@@ -2001,14 +2001,18 @@
   },
   "whats_new": {
     "title": "Neuigkeiten anzeigen",
-    "feature_token_detection_title": "Die verbesserte Token-Erkennung ist da",
-    "feature_token_detection_description": "Die verbesserte Token-Erkennung steht aktuell für die Netzwerke Ethereum Mainnet, Polygon, BSC und Avalanche zur Verfügung. Schon bald wird sie für weitere verfügbar sein!\n\nWir beziehen Tokens von Token-Listen Dritter. Tokens, die auf mehr als einer Token-Liste aufgelistet sind, werden automatisch erkannt.\n\nDie Funktion zur Token-Erkennung ist standardmäßig AKTIVIERT. Sie können diese aber in den Einstellungen deaktivieren.",
-    "feature_token_detection_button_text": "In Einstellungen ansehen",
-    "feature_token_security_title_1": "Betrügereien und Sicherheitsrisiken",
-    "feature_token_security_description_1": "Token können von jedem erstellt werden und doppelte Namen haben. Wenn Sie ein Token sehen, das Ihnen verdächtig vorkommt oder mit dem Sie noch nie interagiert haben, ist es sicherer, diesem nicht zu vertrauen.",
-    "feature_token_security_title_2": "Lange drücken, um Token auszublenden",
-    "feature_token_security_description_2": "In der mobilen App von MetaMask können Sie Tokens immer ausblenden, indem Sie lange auf das Token drücken und „ausblenden“ auswählen.",
-    "feature_token_security_button_text": "Lassen Sie uns anfangen!"
+    "slides_button": "Krypto kaufen",
+    "slide_1_subtitle": "Vergessen Sie zentrale Börsen. Der Kauf von Krypto mit MetaMask ist jetzt noch leichter geworden.",
+    "slide_1_body_1": "Warum finanzieren Sie Ihr MetaMask-Wallet nicht direkt? Wir haben beständig neue Partner und lokale Zahlungsmethoden aufgenommen, um Ihre Fiat-zu-Krypto-Käufe mit MetaMask wesentlich einfacher zu gestalten.",
+    "slide_1_body_2": "Mit 189 unterstützten Ländern in acht verschiedenen Netzen, einschließlich L2, sind Sie bei uns in guten Händen. Wählen Sie Ihre bevorzugte Zahlungsoption und das beste verfügbare Angebot.",
+    "slide_2_subtitle": "Hallo Indien!",
+    "slide_2_body_1": "Nutzer in Indien haben jetzt Zugriff auf UPI und IMPS für günstigere, schnellere und effizientere Zahlungen. Gemeinsam mit Transak und Onramp.money machen wir web3 in Indien zugänglicher wie nie zuvor.",
+    "slide_3_subtitle": "Jetzt aktiviert – PayID, POLi, Interac und iDEAL!",
+    "slide_3_body_1": "Wir haben uns mit Banxa zusammengetan, um eine lokale Bankinfrastruktur und diese neuen Zahlungsmethoden in Kanada, den Niederlanden, Australien, Südafrika und der Türkei anzubieten. Probieren Sie sie aus!",
+    "slide_4_subtitle": "Lokale Zahlungsoptionen in LATAM",
+    "slide_4_body_1": "Gemeinsam mit Transak haben wir AstroPay nun in Brasilien, Mexiko, Uruguay, Chile und Peru aktiviert. Brasilianische Nutzer können auch mit Pix auf Krypto umsteigen.",
+    "slide_5_subtitle": "Vermeiden Sie eine umfangreiche Identitätsüberprüfung",
+    "slide_5_body_1": "Mit Mercuryo können Sie jetzt Kryptowährungen im Wert von bis zu 699 € kaufen, ohne Ihre Identität verifizieren zu müssen. Dies macht den Krypto-Kauf zu einer einfacheren Sache und den Einstieg so viel leichter."
   },
   "invalid_network": {
     "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n%{network} \n muss erneut eingegeben werden.",

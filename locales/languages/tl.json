@@ -2001,14 +2001,18 @@
   },
   "whats_new": {
     "title": "Tingnan kung ano'ng bago",
-    "feature_token_detection_title": "Narito ang pinahusay na pagtukoy ng token",
-    "feature_token_detection_description": "Ang pinahusay na pagtukoy ng token ay kasalukuyang available sa network ng Ethereum Mainnet, Polygon, BSC, at Avalanche. Marami pang darating!\n\nKumukuha kami ng mga token mula sa mga listahan ng mga token ng 3rd party. Ang mga token na nakalista sa higit sa dalawang listahan ng token ay awtomatikong matutukoy.\n\nNAKA-ON bilang default ang feature sa pagtukoy ng token. Ngunit maaari mo itong i-disable mula sa Mga Setting.",
-    "feature_token_detection_button_text": "Bisitahin sa Mga Setting",
-    "feature_token_security_title_1": "Scam at mga panganib sa seguridad",
-    "feature_token_security_description_1": "Ang mga token ay maaaring likhain ng sinuman at maaaring magkaroon ng mga kaparehong pangalan. Kung makakita ka ng isang token na lumalabas na hindi mo pinagkakatiwalaan o hindi ka pa nagkaroon ng interaksyon - mas ligtas na hindi pagkatiwalaan ito.",
-    "feature_token_security_title_2": "Pindutin nang matagal para itago ang mga token",
-    "feature_token_security_description_2": "Sa MetaMask mobile app, maaari mong palaging itago ang mga token sa pamamagitan ng matagal na pagpindot sa token, at piliin ang ‘Itago’.",
-    "feature_token_security_button_text": "Magsimula na tayo!"
+    "slides_button": "Bumili ng crypto",
+    "slide_1_subtitle": "Kalimutan ang mga sentralisadong palitan. Ang pagbili ng crypto gamit ang MetaMask ay naging mas madali.",
+    "slide_1_body_1": "Bakit hindi direktang pondohan ang iyong MetaMask wallet? Naging abala kami sa pag-onboard ng mga bagong ka-partner at lokal na paraan ng pagbabayad upang gawing mas madali ang iyong mga pagbili ng fiat-to-crypto gamit ang MetaMask.",
+    "slide_1_body_2": "Sa 189 na sinusuportahang bansa sa walong iba't ibang network kabilang ang L2's, sinasaklaw ka namin. Piliin ang iyong gustong opsyon sa pagbabayad at piliin ang pinakamahusay na available na quote.",
+    "slide_2_subtitle": "Kumusta India!",
+    "slide_2_body_1": "Maa-access na ng mga user sa India ang UPI at IMPS para sa mas mura, mas mabilis, at mas mahusay na pagbabayad. Kasama ng Transak at Onramp.money, ginagawa naming mas naa-access ang web3 kaysa dati sa India.",
+    "slide_3_subtitle": "Pinapagana ang PayID, POLi, Interac, at iDEAL!",
+    "slide_3_body_1": "Nagsama kami ng Banxa upang mag-alok ng lokal na imprastraktura ng pagbabangko at ang mga bagong paraan ng pagbabayad na ito sa Canada, Netherlands, Australia, South Africa, at Turkey. Tingnan ang mga ito!",
+    "slide_4_subtitle": "Mga opsyon sa lokal na pagbabayad sa LATAM",
+    "slide_4_body_1": "Kasama ng Transak, pinagana na namin ngayon ang AstroPay sa Brazil, Mexico, Uruguay, Chile, at Peru. Ang mga Brazilian user ay maaari ding on-ramp sa crypto gamit ang Pix.",
+    "slide_5_subtitle": "Iwasan ang kumplikadong pag-verify ng pagkakakilanlan",
+    "slide_5_body_1": "Sa Mercuryo, maaari ka na ngayong bumili ng hanggang €699 na halaga ng crypto nang hindi kinakailangang i-verify ang iyong pagkakakilanlan. Pinapasimple nito ang karanasan sa pag-checkout ng crypto at ginagawang mas madali ang pag-onboard."
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit ang chain ID para sa custom na network na \n %{network} \n.",
