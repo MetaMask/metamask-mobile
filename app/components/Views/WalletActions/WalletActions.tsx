@@ -54,7 +54,7 @@ const WalletActions = () => {
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.RECEIVE_BUTTON_CLICKED,
       {
-        text: '',
+        text: 'Receive',
         tokenSymbol: '',
         location: 'TabBar',
         chain_id: chainId,
@@ -66,7 +66,7 @@ const WalletActions = () => {
     sheetRef.current?.hide(() => {
       navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: '',
+        text: 'Buy',
         tokenSymbol: '',
         location: 'TabBar',
         chain_id: chainId,
@@ -81,7 +81,7 @@ const WalletActions = () => {
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.SEND_BUTTON_CLICKED,
         {
-          text: '',
+          text: 'Send',
           tokenSymbol: '',
           location: 'TabBar',
           chain_id: chainId,
@@ -101,7 +101,7 @@ const WalletActions = () => {
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.SWAP_BUTTON_CLICKED,
         {
-          text: '',
+          text: 'Swap',
           tokenSymbol: '',
           location: 'TabBar',
           chain_id: chainId,
