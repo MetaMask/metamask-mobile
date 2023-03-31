@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-index f5d98e7..98918a7 100644
+index f5d98e7..24b5469 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 @@ -40,6 +40,8 @@ const rpc_1 = require("./endowments/rpc");
@@ -38,12 +38,3 @@ index f5d98e7..98918a7 100644
              const _a = (await this.messagingSystem.call('ApprovalController:addRequest', {
                  origin,
                  id,
-@@ -1158,7 +1160,7 @@ async function _SnapController_fetchSnap(snapId, location) {
-     try {
-         const manifest = await location.manifest();
-         const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
--        (0, snaps_utils_1.validateSnapShasum)(manifest.result, sourceCode.toString());
-+        // (0, snaps_utils_1.validateSnapShasum)(manifest.result, sourceCode.toString());
-         const { iconPath } = manifest.result.source.location.npm;
-         const files = [sourceCode];
-         if (iconPath) {
