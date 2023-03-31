@@ -326,7 +326,7 @@ class Engine {
         }
       };
 
-      const getAppState = async () => {
+      const getAppState = () => {
         const state = AppState.currentState;
         return state === 'active';
       };
@@ -343,7 +343,6 @@ class Engine {
           account,
           subject,
         );
-        console.log('[GUTO] AppKey', appKey);
         return appKey;
       };
 
