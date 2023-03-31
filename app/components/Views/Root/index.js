@@ -12,6 +12,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import PolyfillCrypto from 'react-native-webview-crypto';
 
 /**
  * Top level of the component hierarchy
@@ -40,6 +41,7 @@ export default class Root extends PureComponent {
   render = () => (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
+        <PolyfillCrypto />
         <ConnectedRoot />
       </PersistGate>
     </Provider>
