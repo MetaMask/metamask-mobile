@@ -838,6 +838,7 @@ export const calculateEIP1559GasFeeHexes = ({
   };
 };
 
+// TODO - FOURTH GAS ESTIMATION ISSUE
 export const parseTransactionEIP1559 = (
   {
     selectedGasFee,
@@ -855,6 +856,16 @@ export const parseTransactionEIP1559 = (
   { onlyGas } = {},
 ) => {
   value = value || '0x0';
+  // gasFeeEstimates = {};
+  // selectedGasFee.estimatedBaseFee = undefined;
+
+  // We get a NaN issue when gasFeeEstimates = {} and selectedGasFee.estimatedBaseFee = undefined.
+  // The errors do not occur when those fields are populated correctly.
+  console.log('parseTransactionEIP1559 - selectedAsset', selectedAsset);
+  console.log('parseTransactionEIP1559 - value', value);
+  console.log('parseTransactionEIP1559 - data', data);
+  console.log('parseTransactionEIP1559 - gasFeeEstimates', gasFeeEstimates);
+  console.log('parseTransactionEIP1559 - selectedGasFee', selectedGasFee);
 
   const suggestedMaxPriorityFeePerGas = String(
     selectedGasFee.suggestedMaxPriorityFeePerGas,
