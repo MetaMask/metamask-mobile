@@ -9,6 +9,9 @@ import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -33,12 +36,19 @@ const createStyles = (colors: any) =>
     },
     optionButton: {
       height: 60,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      display: 'flex',
+      flexDirection: 'row',
+      paddingHorizontal: 38,
+    },
+    icon: {
+      marginRight: 24,
+      color: colors.primary.default,
     },
     optionLabel: {
       ...(fontStyles.normal as any),
-      color: colors.primary.default,
+      color: colors.text.alternative,
       fontSize: 16,
     },
   });
@@ -46,6 +56,7 @@ const createStyles = (colors: any) =>
 interface Option {
   label: string;
   onPress: () => void;
+  icon: IconName;
 }
 
 interface Props {
@@ -108,20 +119,22 @@ const AssetOptions = (props: Props) => {
       options.push({
         label: strings('asset_details.options.view_on_block'),
         onPress: openOnBlockExplorer,
+        icon: IconName.Export,
       });
     !isNativeCurrency &&
       options.push({
         label: strings('asset_details.options.token_details'),
         onPress: openTokenDetails,
+        icon: IconName.DocumentCode,
       });
     return (
       <>
         {options.map((option) => {
-          const { label, onPress } = option;
+          const { label, onPress, icon } = option;
           return (
             <View key={label}>
-              <View style={styles.divider} />
               <TouchableOpacity style={styles.optionButton} onPress={onPress}>
+                <Icon name={icon} style={styles.icon} />
                 <Text style={styles.optionLabel}>{label}</Text>
               </TouchableOpacity>
             </View>

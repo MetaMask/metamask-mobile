@@ -1,7 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-// import * as React from 'react'
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import { curveMonotoneX } from 'd3-shape';
 import {
   Dimensions,
   GestureResponderEvent,
@@ -344,7 +342,9 @@ const PriceChart = ({
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
-          curve={curveMonotoneX}
+          // TODO: figure out why test fails when using curveMonotoneX
+          // this dependency smooths the line a little bit
+          // curve={curveMonotoneX}
           contentInset={{ top: apx(40), bottom: apx(40) }}
         >
           <Line chartHasData={chartHasData} />

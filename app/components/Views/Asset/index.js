@@ -83,7 +83,7 @@ const createStyles = (colors) =>
     },
     footerButton: {
       flexGrow: 1,
-      marginHorizontal: 4,
+      marginHorizontal: 8,
     },
   });
 

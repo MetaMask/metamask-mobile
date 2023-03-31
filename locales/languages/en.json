@@ -825,7 +825,7 @@
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
     "activity": "{{symbol}} activity",
-    "disclaimer": "Third-party content is provided solely for informational purposes and should not be treated as financial or investment advice. Consensys neither supports nor suggests the use of this content and is not responsible for it's accuracy."
+    "disclaimer": "Third-party and user-generated content is made available for informational purposes only and should not be treated as investment advice. MetaMask does not endorse or recommend such content and is not reponsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",

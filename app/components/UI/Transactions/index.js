@@ -80,6 +80,14 @@ const createStyles = (colors) =>
     viewMoreButton: {
       width: '100%',
     },
+    disclaimerWrapper: {
+      padding: 16,
+    },
+    disclaimerText: {
+      color: colors.text.alternative,
+      fontSize: 12,
+      lineHeight: 20,
+    },
   });
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
@@ -388,7 +396,7 @@ class Transactions extends PureComponent {
     return (
       <View style={styles.viewMoreWrapper}>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Link}
           size={ButtonSize.Lg}
           label={blockExplorerText()}
           style={styles.viewMoreButton}
@@ -610,6 +618,25 @@ class Transactions extends PureComponent {
     }
   };
 
+  renderDisclaimer = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+    return (
+      <View style={styles.disclaimerWrapper}>
+        <Text style={styles.disclaimerText}>
+          {strings('asset_overview.disclaimer')}
+        </Text>
+      </View>
+    );
+  };
+
+  renderFooter = () => (
+    <View>
+      {this.renderViewMore()}
+      {this.renderDisclaimer()}
+    </View>
+  );
+
   renderList = () => {
     const {
       submittedTransactions,
@@ -662,7 +689,7 @@ class Transactions extends PureComponent {
           maxToRenderPerBatch={2}
           onEndReachedThreshold={0.5}
           ListHeaderComponent={header}
-          ListFooterComponent={this.renderViewMore}
+          ListFooterComponent={this.renderFooter}
           style={baseStyles.flexGrow}
           scrollIndicatorInsets={{ right: 1 }}
         />

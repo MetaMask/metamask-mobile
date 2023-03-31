@@ -30,7 +30,6 @@ import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
-import AboutAsset from './AboutAsset';
 import AssetActionButton from './AssetActionButton';
 import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
@@ -42,8 +41,6 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     wrapper: {
       paddingTop: 20,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border.muted,
     },
     warningWrapper: {
       paddingHorizontal: 16,
@@ -286,9 +283,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               />
             </View>
           </View>
-          <View style={styles.aboutWrapper}>
+          {/*  Commented out since we are going to re enable it after curating content */}
+          {/* <View style={styles.aboutWrapper}>
             <AboutAsset asset={asset} chainId={chainId} />
-          </View>
+          </View> */}
         </View>
       )}
     </View>

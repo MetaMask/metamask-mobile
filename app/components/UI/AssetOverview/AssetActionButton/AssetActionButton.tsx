@@ -10,28 +10,34 @@ import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    button: {},
+    button: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
     disabledButton: {
       opacity: 0.5,
     },
     buttonIconWrapper: {
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       borderRadius: 100,
       paddingTop: Device.isAndroid() ? 2 : 4,
 
       display: 'flex',
       justifyContent: 'center',
       alignContent: 'center',
-      backgroundColor: colors.primary.muted,
+      backgroundColor: colors.background.default,
 
       alignItems: 'center',
       flexShrink: 1,
-      marginHorizontal: 5,
+      marginHorizontal: 8,
+      borderWidth: 1.5,
+      borderColor: colors.primary.default,
     },
     buttonIcon: {
-      width: 18,
-      height: 18,
+      width: 20,
+      height: 20,
       color: colors.primary.default,
     },
     buttonText: {
@@ -78,7 +84,7 @@ const AssetActionButton = ({
   const getIcon = (type: string) => {
     switch (type) {
       case 'send': {
-        return <Icon name={IconName.Send1} style={styles.buttonIcon} />;
+        return <Icon name={IconName.SendOutline} style={styles.buttonIcon} />;
       }
       case 'receive': {
         return <Icon name={IconName.Received} style={styles.buttonIcon} />;
@@ -93,7 +99,7 @@ const AssetActionButton = ({
         return <Icon name={IconName.Swap} style={styles.buttonIcon} />;
       }
       case 'buy': {
-        return <Icon name={IconName.Card} style={styles.buttonIcon} />;
+        return <Icon name={IconName.CardOutline} style={styles.buttonIcon} />;
       }
       default: {
         return null;
