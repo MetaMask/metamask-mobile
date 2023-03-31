@@ -5,6 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
@@ -84,9 +85,10 @@ describe('WalletAccount', () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
       state: initialState,
     });
+
     fireEvent.press(getByTestId('account-picker'));
-    expect(mockNavigate).toHaveBeenCalledWith('AccountSelector', {
-      onSelect: expect.any(Function),
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createAccountSelectorNavDetails({}),
+    );
   });
 });
