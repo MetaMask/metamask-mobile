@@ -326,9 +326,25 @@ class Engine {
         }
       };
 
-      const getAppState = () => {
+      const getAppState = async () => {
         const state = AppState.currentState;
         return state === 'active';
+      };
+
+      const getAppKeyForSubject = async (subject, requestedAccount) => {
+        let account;
+
+        if (requestedAccount) {
+          account = requestedAccount;
+        } else {
+          [account] = await keyringController.getAccounts();
+        }
+        const appKey = await keyringController.exportAppKeyForAddress(
+          account,
+          subject,
+        );
+        console.log('[GUTO] AppKey', appKey);
+        return appKey;
       };
 
       const getSnapPermissionSpecifications = () => ({
@@ -486,10 +502,8 @@ class Engine {
         environmentEndowmentPermissions: Object.values(EndowmentPermissions),
         featureFlags: { dappsCanUpdateSnaps: true },
         // TO DO
-        getAppKey: async () =>
-          new Promise((resolve, _) => {
-            resolve('mockAppKey');
-          }),
+        getAppKey: async (subject, appKeyType) =>
+          getAppKeyForSubject(`${appKeyType}:${subject}`),
         checkBlockList: async (snapsToCheck) =>
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: initialState.snapController || {},
