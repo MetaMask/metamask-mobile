@@ -10,8 +10,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
   The contacts you saved on network A does not carry over to network B
 
   Scenario: Import account and navigate to Send
-    Given the app displayed the splash animation
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And On the Main Wallet view I tap "Send"

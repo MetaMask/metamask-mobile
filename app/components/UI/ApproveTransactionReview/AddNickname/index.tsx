@@ -4,7 +4,8 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import StyledButton from '../../StyledButton';
@@ -103,7 +104,10 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      getAnalyticsParams(),
+    );
   };
 
   const saveTokenNickname = () => {
@@ -115,7 +119,7 @@ const AddNickname = (props: AddNicknameProps) => {
       providerNetwork,
     );
     closeModal();
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );

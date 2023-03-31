@@ -283,7 +283,7 @@
     "transactions": "MGA TRANSAKSYON",
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
-    "add_tokens": "MAGDAGDAG NG MGA TOKEN",
+    "add_tokens": "Magdagdag ng mga Token",
     "tokens_detected_in_account": "{{tokenCount}} (na) bagong {{tokensLabel}} ang natagpuan sa account na ito",
     "token_toast": {
       "tokens_imported_title": "Mga Na-import na Token",
@@ -301,6 +301,8 @@
       "cancel_cta": "Kanselahin",
       "confirm_cta": "Kumpirmahin"
     },
+    "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
+    "buy_asset": "Bumili ng {{asset}}",
     "no_tokens": "Wala kang anumang token!",
     "no_nfts_yet": "Wala pang mga NFT",
     "nfts_autodetection_title": "Pagtuklas ng NFT",
@@ -612,6 +614,7 @@
     "third_party_title": "Makuha ang mga papasok na transaksyon",
     "third_party_description": "Ang mga third party AP (Etherscan) ay ginagamit para ipakita ang iyong mga papasok na transakyon sa history. I-off kung ayaw mong i-pull namin ang data mula sa mga serbisyong iyon.",
     "metametrics_opt_out": "Pag-opt out sa MetaMetrics",
+    "metametrics_restart_required": "Kailangan mong i-restart ang app para mailapat ang mga pagbabago.",
     "create_password": "Gumawa ng Password",
     "invalid_password": "Hindi valid ang password",
     "invalid_password_message": "Mali ang password. Pakisubukan ulit.",
@@ -744,6 +747,7 @@
     "send_button": "Magpadala",
     "buy_button": "Bumili",
     "receive_button": "Tumanggap",
+    "portfolio_button": "Portfolio",
     "add_collectible_button": "Magdagdag",
     "info": "Impormasyon",
     "swap": "I-swap",

@@ -13,20 +13,50 @@ import CommonScreen from '../screen-objects/CommonScreen';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
+import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
+
+Then(/^the Welcome Screen is displayed$/, async () => {
+  await WelcomeScreen.waitForScreenToDisplay();
+});
 
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.waitForSplashAnimationToDisplay();
 });
 
+Given(/^the splash animation disappears$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToNotExit();
+});
+
+Then(/^Terms of Use is displayed$/, async () => {
+  await TermOfUseScreen.isDisplayed();
+});
+
+When(/^I agree to terms$/, async () => {
+  await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.tapScrollEndButton();
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapAcceptButton();
+});
+
+Then(/^Terms of Use is not displayed$/, async () => {
+  await TermOfUseScreen.isNotDisplayed();
+});
+
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
+
+  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
-  await driver.pause(1000);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
+  await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
+  await driver.pause();
+  await TermOfUseScreen.tapAcceptButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
@@ -38,13 +68,19 @@ Given(/^I have imported my wallet$/, async () => {
 
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
+
   await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapNoThanksButton();
+  await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
+  await driver.pause();
+  await TermOfUseScreen.tapAcceptButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
@@ -67,11 +103,6 @@ Given(
 );
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const setTimeout = 20000;
-  await driver.pause(setTimeout);
-  await WelcomeScreen.clickGetStartedButton();
-  await OnboardingScreen.clickImportWalletButton();
-  await MetaMetricsScreen.tapIAgreeButton();
   const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
@@ -146,8 +177,7 @@ When(/^I fill my password in the Login screen$/, async () => {
   await LoginScreen.tapTitle();
 });
 When(/^I unlock wallet with (.*)$/, async (password) => {
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
+  await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword(password);
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();

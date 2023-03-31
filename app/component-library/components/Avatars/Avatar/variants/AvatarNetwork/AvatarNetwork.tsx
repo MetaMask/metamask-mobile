@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, ImageSourcePropType } from 'react-native';
+import { Image, ImageSourcePropType, Platform } from 'react-native';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../hooks';
 import { AvatarNetworkProps } from './AvatarNetwork.types';
 import { NETWORK_AVATAR_IMAGE_ID } from './AvatarNetwork.constants';
 import stylesheet from './AvatarNetwork.styles';
+import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 const AvatarNetwork = ({
   size = AvatarSize.Md,
@@ -46,7 +47,7 @@ const AvatarNetwork = ({
           source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
-          testID={NETWORK_AVATAR_IMAGE_ID}
+          {...generateTestId(Platform, NETWORK_AVATAR_IMAGE_ID)}
           resizeMode={'contain'}
         />
       )}

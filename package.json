@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.1.1",
+  "version": "6.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -130,7 +130,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.9.0",
+    "@consensys/on-ramp-sdk": "1.9.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -156,15 +156,14 @@
     "@metamask/post-message-stream": "6.0.0",
     "@metamask/preferences-controller": "^2.1.0",
     "@metamask/rpc-methods": "0.24.1",
-    "@metamask/sdk-communication-layer": "^0.1.0",
+    "@metamask/sdk-communication-layer": "^0.2.0",
     "@metamask/snaps-controllers": "0.26.2",
     "@metamask/snaps-utils": "0.26.2",
     "@metamask/subject-metadata-controller": "^1.0.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^2.0.0",
-    "@metamask/utils": "^5.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@react-native-async-storage/async-storage": "^1.17.10",
+    "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.5.12",
@@ -435,7 +434,7 @@
         "build": "yarn start:ios:e2e",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11 Pro"
+          "type": "iPhone 12 Pro"
         }
       },
       "ios.sim.release": {
@@ -443,7 +442,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11 Pro"
+          "type": "iPhone 12 Pro"
         }
       },
       "android.emu.debug": {

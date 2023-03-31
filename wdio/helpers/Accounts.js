@@ -24,6 +24,14 @@ class Accounts {
     };
   }
 
+  static getAccountPrivateKey() {
+    return {
+      keys:
+        process.env.MM_TEST_ACCOUNT_PRIVATE_KEY ||
+        'undefined Private key env var',
+    };
+  }
+
   static getShortPasswordAccount() {
     const account = Accounts.getValidAccount();
     account.password = SHORT_PASSWORD;

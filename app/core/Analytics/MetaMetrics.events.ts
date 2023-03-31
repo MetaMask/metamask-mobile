@@ -12,14 +12,14 @@ const generateOpt = (
 ): IMetaMetricsEvent => {
   if (action || description) {
     return {
-      name,
+      category: name,
       properties: {
         ...(action && { action }),
         ...(description && { name: description }),
       },
     };
   }
-  return { name };
+  return { category: name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
@@ -63,6 +63,7 @@ enum EVENT_NAME {
   // Connect request
   CONNECT_REQUEST_STARTED = 'Connect Request Started',
   CONNECT_REQUEST_COMPLETED = 'Connect Request Completed',
+  CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
   // Wallet
@@ -79,6 +80,9 @@ enum EVENT_NAME {
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
+
+  // Portfolio
+  PORTFOLIO_LINK_CLICKED = 'Portfolio Link Clicked',
 
   // On-ramp [LEGACY]
   ONRAMP_OPENED = 'On-ramp Opened',
@@ -255,6 +259,8 @@ enum EVENT_NAME {
   SCREENSHOT_LEARN_MORE = 'Clicked Screenshot Warning Learn More',
   SCREENSHOT_OK = 'Clicked Screenshot Warning OK',
 
+  //Terms of Use
+  USER_TERMS = 'Terms of Use',
   // Reveal SRP Quiz
   SRP_REVEAL_QUIZ_PROMPT_SEEN = 'SRP reveal quiz prompt seen',
   SRP_REVEAL_START_CTA_SELECTED = 'SRP reveal get started CTA selected',
@@ -335,11 +341,7 @@ enum ACTIONS {
 }
 
 const events = {
-  // V2 TRACKING EVENTS
-
-  // Error
   ERROR: generateOpt(EVENT_NAME.ERROR),
-  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -364,6 +366,9 @@ const events = {
   SIGN_REQUEST_CANCELLED: generateOpt(EVENT_NAME.SIGN_REQUEST_CANCELLED),
   CONNECT_REQUEST_STARTED: generateOpt(EVENT_NAME.CONNECT_REQUEST_STARTED),
   CONNECT_REQUEST_COMPLETED: generateOpt(EVENT_NAME.CONNECT_REQUEST_COMPLETED),
+  CONNECT_REQUEST_OTPFAILURE: generateOpt(
+    EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
+  ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
@@ -395,6 +400,7 @@ const events = {
   ONRAMP_PURCHASE_COMPLETED_LEGACY: generateOpt(
     EVENT_NAME.ONRAMP_PURCHASE_COMPLETED_LEGACY,
   ),
+  PORTFOLIO_LINK_CLICKED: generateOpt(EVENT_NAME.PORTFOLIO_LINK_CLICKED),
   WALLET_SECURITY_STARTED: generateOpt(EVENT_NAME.WALLET_SECURITY_STARTED),
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt(
     EVENT_NAME.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
@@ -470,7 +476,9 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
+  // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
+  // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
   GO_BACK_SRP_SCREEN: generateOpt(EVENT_NAME.GO_BACK_SRP_SCREEN),
@@ -570,6 +578,7 @@ const events = {
   SCREENSHOT_WARNING: generateOpt(EVENT_NAME.SCREENSHOT_WARNING),
   SCREENSHOT_LEARN_MORE: generateOpt(EVENT_NAME.SCREENSHOT_LEARN_MORE),
   SCREENSHOT_OK: generateOpt(EVENT_NAME.SCREENSHOT_OK),
+  USER_TERMS: generateOpt(EVENT_NAME.USER_TERMS),
   SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
     EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
   ),
