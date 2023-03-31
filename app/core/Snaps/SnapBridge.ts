@@ -133,7 +133,7 @@ export default class SnapBridge {
       engine.emit('notification', message),
     );
 
-    engine.push(createOriginMiddleware({ origin: this.snapId }));
+    // engine.push(createOriginMiddleware({ origin: this.snapId }));
     // engine.push(createLoggerMiddleware({ origin: this.snapId }));
 
     // Filter and subscription polyfills
