@@ -53,7 +53,6 @@ const TransactionReviewEIP1559Update = ({
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  // TODO - FIRST GAS ESTIMATION ISSUE
   const gasTransaction = useGasTransaction({
     onlyGas: !!onlyGas,
     gasSelected,

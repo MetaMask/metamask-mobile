@@ -107,7 +107,6 @@ export const getEIP1559TransactionData = ({
       return 'Incomplete data for EIP1559 transaction';
     }
 
-    // TODO - THIRD GAS ESTIMATION ISSUE
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
         contractExchangeRates,
@@ -221,7 +220,6 @@ export const useGasTransaction = ({
     });
   }
 
-  // TODO - SECOND GAS ESTIMATION ISSUE
   return getEIP1559TransactionData({
     gas: {
       ...(gasSelected
