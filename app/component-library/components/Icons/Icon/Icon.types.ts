@@ -203,4 +203,5 @@ export enum IconName {
   WalletMoney = 'WalletMoney',
   Wallet = 'Wallet',
   Warning = 'Warning',
+  Ellipsis = 'Ellipsis',
 }

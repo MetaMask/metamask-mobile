@@ -20,9 +20,14 @@ const PickerAccount = ({
   accountAddress,
   accountName,
   accountAvatarType,
+  showAddress = true,
+  cellAccountContainerStyle = {},
   ...props
 }: PickerAccountProps) => {
-  const { styles } = useStyles(styleSheet, { style });
+  const { styles } = useStyles(styleSheet, {
+    style,
+    cellAccountContainerStyle,
+  });
   const shortenedAddress = formatAddress(accountAddress, 'short');
 
   const renderCellAccount = () => (
@@ -36,9 +41,11 @@ const PickerAccount = ({
       />
       <View>
         <Text variant={TextVariant.HeadingSMRegular}>{accountName}</Text>
-        <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>
-          {shortenedAddress}
-        </Text>
+        {showAddress && (
+          <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>
+            {shortenedAddress}
+          </Text>
+        )}
       </View>
     </View>
   );
