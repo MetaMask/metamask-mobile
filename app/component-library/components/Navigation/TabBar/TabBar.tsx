@@ -70,16 +70,21 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       };
 
       const isWalletAction = rootScreenName === Routes.MODAL.WALLET_ACTIONS;
+
+      const handleIconColor = () => {
+        if (isWalletAction) return colors.primary.inverse;
+
+        if (isSelected) return colors.primary.default;
+
+        return colors.icon.muted;
+      };
+
       const iconProps = {
         size: isWalletAction ? AvatarSize.Md : AvatarSize.Lg,
         backgroundColor: isWalletAction
           ? colors.primary.default
           : importedColors.transparent,
-        color: isWalletAction
-          ? colors.primary.inverse
-          : isSelected
-          ? colors.primary.default
-          : colors.icon.muted,
+        color: handleIconColor(),
       };
 
       return (
