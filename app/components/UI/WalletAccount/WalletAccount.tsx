@@ -18,13 +18,14 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
-import { InteractionManager, View } from 'react-native';
+import { InteractionManager, Platform, View } from 'react-native';
 import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const WalletAccount = ({ style }: WalletAccountProps) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -41,14 +42,6 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
 
   const handleProtectWalletModalVisible = () =>
     dispatch(protectWalletModalVisible());
-
-  /**
-   * Map of accounts to information objects including balances
-   */
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
 
   /**
    * A string that represents the selected address
@@ -74,7 +67,6 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
   const account = {
     address: selectedAddress,
     ...identities[selectedAddress],
-    ...accounts[selectedAddress],
   };
   const copyAccountToClipboard = async () => {
     await ClipboardManager.setString(selectedAddress);
@@ -101,16 +93,24 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
+        {...generateTestId(Platform, 'account-picker')}
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer}>
         <View style={styles.address}>
-          <Text variant={TextVariant.BodySMBold}>Address:</Text>
+          <Text variant={TextVariant.BodySMBold}>
+            {strings('asset_overview.address')}:
+          </Text>
           <TouchableOpacity
             style={styles.copyButton}
             onPress={copyAccountToClipboard}
+            {...generateTestId(Platform, 'wallet-account-copy-button')}
           >
-            <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
+            <Text
+              color={TextColor.Primary}
+              variant={TextVariant.BodySM}
+              {...generateTestId(Platform, 'wallet-account-address')}
+            >
               {formatAddress(account.address, 'short')}
             </Text>
             <Icon

@@ -1,7 +1,7 @@
 import { ViewStyle } from 'react-native';
 
 export interface WalletAccountProps {
-  style: ViewStyle;
+  style?: ViewStyle;
 }
 
 /**
