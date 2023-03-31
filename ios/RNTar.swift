@@ -30,7 +30,7 @@ class RNTar: NSObject {
     return false
   }
 
-  func uncompressTgzFile(atPath path: String, toDirectory directory: String) throws -> String {
+  func extractTgzFile(atPath path: String, toDirectory directory: String) throws -> String {
     let fileManager = FileManager.default
     guard fileManager.fileExists(atPath: path) else {
       throw UnTarError.sourceFileNotFound(file: path)
@@ -56,7 +56,7 @@ class RNTar: NSObject {
       .createFilesAndDirectories(path: destinationUrl.path, tarData: decompressedData)
 
     if untarResponse {
-      return destinationUrl.path
+      return "\(destinationUrl.path)/package"
     }
     throw UnTarError.unableToDecompressFile(file: destinationUrl.path)
   }
@@ -65,7 +65,7 @@ class RNTar: NSObject {
                    resolver: @escaping RCTPromiseResolveBlock,
                    rejecter: @escaping RCTPromiseRejectBlock) {
     do {
-        let uncompressedPath = try uncompressTgzFile(atPath: pathToRead, toDirectory: pathToWrite)
+        let uncompressedPath = try extractTgzFile(atPath: pathToRead, toDirectory: pathToWrite)
         resolver(uncompressedPath)
     } catch {
         rejecter("Error uncompressing file:", error.localizedDescription, error)

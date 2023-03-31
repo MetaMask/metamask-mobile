@@ -75,39 +75,17 @@ const decompressFile = async (
     throw new Error('Was unable to decompress tgz file');
   } catch (error) {
     Logger.log(SNAPS_NPM_LOG_TAG, 'decompressFile error', error);
-    throw new Error(`decompressFile error: ${error}`);
+    throw new Error(`${SNAPS_NPM_LOG_TAG} decompressFile error: ${error}`);
   }
 };
-const readAndParseSourceCode = async (path: string) => {
+const readAndParseAt = async (path: string) => {
   try {
-    const sourceCodePath = `${path}/package/dist/bundle.js`;
-    const data = await RNFetchBlob.fs.readFile(sourceCodePath, 'utf8');
-    return data;
+    return await RNFetchBlob.fs.readFile(path, 'utf8');
   } catch (error) {
-    Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseSourceCode error', error);
+    Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseAt error', error);
+    throw new Error(`${SNAPS_NPM_LOG_TAG} readAndParseAt error: ${error}`);
   }
 };
-
-const readAndParseManifest = async (path: string) => {
-  try {
-    const manifestPath = `${path}/package/snap.manifest.json`;
-    const data = await RNFetchBlob.fs.readFile(manifestPath, 'utf8');
-    return data;
-  } catch (error) {
-    Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseManifest error', error);
-  }
-};
-
-const readAndParseIcon = async (path: string) => {
-  try {
-    const iconPath = `${path}/package/images/icon.svg`;
-    const data = await RNFetchBlob.fs.readFile(iconPath, 'utf8');
-    return data;
-  } catch (error) {
-    Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseManifest error', error);
-  }
-};
-
 const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
@@ -260,12 +238,13 @@ export class NpmLocation implements SnapLocation {
 
   async #lazyInit() {
     assert(this.files === undefined);
-    const [manifest, sourceCode, icon, actualVersion] = await fetchNpmTarball(
-      this.meta.packageName,
-      this.meta.requestedRange,
-      this.meta.registry,
-      this.meta.fetch,
-    );
+    const [manifestData, sourceCodeData, iconData, actualVersion] =
+      await fetchNpmTarball(
+        this.meta.packageName,
+        this.meta.requestedRange,
+        this.meta.registry,
+        this.meta.fetch,
+      );
     this.meta.version = actualVersion;
 
     let canonicalBase = 'npm://';
@@ -278,35 +257,35 @@ export class NpmLocation implements SnapLocation {
     }
     canonicalBase += this.meta.registry.host;
 
-    const manifestJSON = JSON.parse(manifest);
+    const manifestJSON = JSON.parse(manifestData.data);
     const manifestVFile = new VirtualFile<SnapManifest>({
-      value: manifest,
+      value: manifestData.data,
       result: createSnapManifest(manifestJSON),
-      path: 'snap.manifest.json',
+      path: manifestData.filePath,
       data: {
-        canonicalPath: `${canonicalBase}snap.manifest.json`,
+        canonicalPath: `${canonicalBase}${manifestData.filePath}`,
       },
     });
 
     const sourceCodeVFile = new VirtualFile({
-      value: sourceCode,
-      path: 'dist/bundle.js',
-      data: { canonicalPath: canonicalBase },
+      value: sourceCodeData.data,
+      path: sourceCodeData.filePath,
+      data: { canonicalPath: `${canonicalBase}${sourceCodeData.filePath}` },
     });
 
     this.files = new Map<string, VirtualFile>();
 
-    if (icon) {
+    if (iconData) {
       const iconVFile = new VirtualFile({
-        value: icon,
-        path: 'images/icon.svg',
-        data: { canonicalPath: canonicalBase },
+        value: iconData.data,
+        path: iconData.filePath,
+        data: { canonicalPath: `${canonicalBase}${iconData.filePath}` },
       });
-      this.files.set('images/icon.svg', iconVFile);
+      this.files.set(iconVFile.path, iconVFile);
     }
 
-    this.files.set('snap.manifest.json', manifestVFile);
-    this.files.set('dist/bundle.js', sourceCodeVFile);
+    this.files.set(manifestVFile.path, manifestVFile);
+    this.files.set(sourceCodeVFile.path, sourceCodeVFile);
   }
 }
 
@@ -323,12 +302,20 @@ export class NpmLocation implements SnapLocation {
  * @returns A tuple of the {@link Response} for the package tarball and the
  * actual version of the package.
  */
+
+interface NPMTarBallData {
+  filePath: string;
+  data: string;
+}
+
 async function fetchNpmTarball(
   packageName: string,
   versionRange: SemVerRange,
   registryUrl: string,
   fetchFunction: typeof fetch,
-): Promise<[string, string, string, SemVerVersion]> {
+): Promise<
+  [NPMTarBallData, NPMTarBallData, NPMTarBallData | undefined, SemVerVersion]
+> {
   const urlToFetch = new URL(packageName, registryUrl).toString();
   const packageMetadata = await (await fetchFunction(urlToFetch)).json();
 
@@ -376,21 +363,51 @@ async function fetchNpmTarball(
   );
 
   // read and parse data from file
-  const manifest = await readAndParseManifest(npmPackageDataLocation);
-  const sourceCode = await readAndParseSourceCode(npmPackageDataLocation);
+  const manifestPath = `${npmPackageDataLocation}/snap.manifest.json`;
+  const manifest = await readAndParseAt(manifestPath);
 
-  let icon;
-  try {
-    icon = await readAndParseIcon(npmPackageDataLocation);
-  } catch (error) {
-    Logger.log(
-      `Failed to fetch icon for package "${packageName}". Using default icon instead.`,
-      error,
+  if (!manifest) {
+    throw new Error(
+      `Failed to fetch manifest from tarball for package "${packageName}".`,
     );
   }
 
-  if (!manifest || !sourceCode) {
-    throw new Error(`Failed to fetch tarball for package "${packageName}".`);
+  const manifestData: NPMTarBallData = {
+    filePath: 'snap.manifest.json',
+    data: manifest,
+  };
+  const locations = JSON.parse(manifest).source.location.npm;
+
+  if (!locations && !locations.filePath) {
+    throw new Error(
+      `${SNAPS_NPM_LOG_TAG} No filePath location specified in manifest for "${packageName}".`,
+    );
   }
-  return [manifest, sourceCode, icon, targetVersion];
+  const sourceCodePath = `${npmPackageDataLocation}/${locations.filePath}`;
+  const sourceCode = await readAndParseAt(sourceCodePath);
+
+  if (!sourceCode) {
+    throw new Error(
+      `${SNAPS_NPM_LOG_TAG} Failed to fetch source code from tarball for package "${packageName}".`,
+    );
+  }
+
+  const sourceCodeData: NPMTarBallData = {
+    filePath: locations.filePath,
+    data: sourceCode,
+  };
+  const icon: string | undefined = locations.iconPath
+    ? await readAndParseAt(
+        `${npmPackageDataLocation}/${locations.iconPath}`,
+      ).catch(() => undefined)
+    : undefined;
+
+  const iconData: NPMTarBallData | undefined = icon
+    ? {
+        filePath: locations.iconPath,
+        data: icon,
+      }
+    : undefined;
+
+  return [manifestData, sourceCodeData, iconData, targetVersion];
 }
