@@ -47,6 +47,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
@@ -406,8 +407,7 @@ class AssetOverview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   primaryCurrency: state.settings.primaryCurrency,

@@ -28,6 +28,7 @@ import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import Ratio from './Ratio';
 import { useTheme } from '../../../../util/theme';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({
@@ -525,8 +526,7 @@ QuotesModal.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   quoteValues: state.engine.backgroundState.SwapsController.quoteValues,

@@ -11,6 +11,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { showAlert } from '../../../../actions/alert';
 import GlobalAlert from '../../../../components/UI/GlobalAlert';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -179,8 +180,7 @@ class TransactionReviewData extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   contractExchangeRates:

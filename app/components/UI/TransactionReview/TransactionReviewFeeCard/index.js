@@ -17,6 +17,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FadeAnimationView from '../../FadeAnimationView';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -386,8 +387,7 @@ class TransactionReviewFeeCard extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   chainId: selectChainId(state),

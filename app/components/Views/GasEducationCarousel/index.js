@@ -32,6 +32,7 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { formatCurrency, getTransactionFee } from '../../../util/confirm-tx';
 import Logger from '../../../util/Logger';
 import { selectTicker } from '../../../selectors/networkController';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const IMAGE_3_RATIO = 281 / 354;
 const IMAGE_2_RATIO = 353 / 416;
@@ -432,8 +433,7 @@ GasEducationCarousel.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   nativeCurrency:

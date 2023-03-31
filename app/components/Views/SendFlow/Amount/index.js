@@ -90,6 +90,7 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1379,8 +1380,7 @@ const mapStateToProps = (state, ownProps) => ({
   collectibleContracts: collectibleContractsSelector(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:

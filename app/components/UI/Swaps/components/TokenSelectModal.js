@@ -50,6 +50,7 @@ import {
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -556,8 +557,7 @@ TokenSelectModal.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   selectedAddress:

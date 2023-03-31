@@ -94,6 +94,7 @@ import {
 } from '../../../../selectors/networkController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1270,8 +1271,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,

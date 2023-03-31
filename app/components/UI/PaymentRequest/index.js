@@ -59,6 +59,7 @@ import {
   REQUEST_SEARCH_ASSET_INPUT,
   REQUEST_SEARCH_SCREEN,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -878,8 +879,7 @@ class PaymentRequest extends PureComponent {
 PaymentRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   contractExchangeRates:

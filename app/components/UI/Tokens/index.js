@@ -48,6 +48,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -523,8 +524,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   primaryCurrency: state.settings.primaryCurrency,
   tokenBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,

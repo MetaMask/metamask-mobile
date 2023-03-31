@@ -27,6 +27,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -440,8 +441,7 @@ const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   primaryCurrency: state.settings.primaryCurrency,

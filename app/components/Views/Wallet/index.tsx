@@ -47,6 +47,7 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -96,10 +97,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * ETH to current currency conversion rate
    */
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const conversionRate = useSelector(selectConversionRate);
   /**
    * Currency code of the currently-active currency
    */

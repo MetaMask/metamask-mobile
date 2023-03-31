@@ -83,6 +83,7 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -2346,8 +2347,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   isInPolling: state.engine.backgroundState.SwapsController.isInPolling,

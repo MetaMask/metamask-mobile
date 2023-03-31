@@ -42,6 +42,7 @@ import {
 } from '../../../../selectors/networkController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -758,8 +759,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   nativeCurrency:
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   network: selectNetwork(state),
   providerType: selectProviderType(state),

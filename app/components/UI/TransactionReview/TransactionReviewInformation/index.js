@@ -47,6 +47,7 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
+import { selectConversionRate } from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -710,8 +711,7 @@ class TransactionReviewInformation extends PureComponent {
 
 const mapStateToProps = (state) => ({
   network: selectNetwork(state),
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   contractExchangeRates:

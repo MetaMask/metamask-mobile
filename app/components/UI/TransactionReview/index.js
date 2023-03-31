@@ -54,6 +54,7 @@ import {
 } from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -596,8 +597,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   showHexData: state.settings.showHexData,

@@ -42,6 +42,7 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -887,8 +888,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   nativeCurrency:
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   primaryCurrency: state.settings.primaryCurrency,

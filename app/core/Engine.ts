@@ -60,6 +60,7 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
+import { selectConversionRate } from '../selectors/currencyRateController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -639,10 +640,11 @@ class Engine {
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
-    const conversionRate =
-      CurrencyRateController.state.conversionRate === null
-        ? 0
-        : CurrencyRateController.state.conversionRate;
+    const conversionRate = selectConversionRate({
+      engine: {
+        backgroundState: this.datamodel.state,
+      },
+    });
     const { accounts } = AccountTrackerController.state;
     const { tokens } = TokensController.state;
     let ethFiat = 0;
@@ -912,23 +914,13 @@ export default {
       PermissionController,
     } = instance.datamodel.state;
 
-    // normalize `null` currencyRate to `0`
-    // TODO: handle `null` currencyRate by hiding fiat values instead
-    const modifiedCurrencyRateControllerState = {
-      ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
-    };
-
     return {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
       NftController,
       TokenListController,
-      CurrencyRateController: modifiedCurrencyRateControllerState,
+      CurrencyRateController,
       KeyringController,
       PersonalMessageManager,
       NetworkController,

@@ -33,6 +33,7 @@ import {
   selectRpcTarget,
 } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -422,8 +423,7 @@ Asset.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   selectedAddress:

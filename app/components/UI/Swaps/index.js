@@ -74,6 +74,7 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
+import { selectConversionRate } from '../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -998,8 +999,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   currentCurrency:
