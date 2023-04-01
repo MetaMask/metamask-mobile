@@ -43,9 +43,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             });
             break;
           case Routes.BROWSER_VIEW:
-            /*   navigation.navigate(Routes.BROWSER.HOME, {
-              screen: Routes.BROWSER_VIEW,
-            }); */
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_ACTIONS,
             });

@@ -113,6 +113,7 @@ import Security from './assets/security.svg';
 import Send1 from './assets/send-1.svg';
 import Send2 from './assets/send-2.svg';
 import Setting from './assets/setting.svg';
+import Share from './assets/share.svg';
 import Slash from './assets/slash.svg';
 import SnapsMobile from './assets/snaps-mobile.svg';
 import SnapsPlus from './assets/snaps-plus.svg';
@@ -254,6 +255,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Send1]: Send1,
   [IconName.Send2]: Send2,
   [IconName.Setting]: Setting,
+  [IconName.Share]: Share,
   [IconName.Slash]: Slash,
   [IconName.SnapsMobile]: SnapsMobile,
   [IconName.SnapsPlus]: SnapsPlus,
