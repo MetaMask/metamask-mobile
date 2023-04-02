@@ -121,7 +121,7 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
           </TouchableOpacity>
         </View>
 
-        <Icon name={IconName.Ellipsis} size={IconSize.Sm} />
+        <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} />
       </View>
     </View>
   );

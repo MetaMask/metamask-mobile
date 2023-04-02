@@ -7,8 +7,7 @@ exports[`WalletAccount renders correctly 1`] = `
       "borderColor": "#BBC0C5",
       "borderRadius": 8,
       "borderWidth": 1,
-      "marginHorizontal": 18,
-      "padding": 2,
+      "marginHorizontal": 16,
     }
   }
 >
@@ -19,7 +18,7 @@ exports[`WalletAccount renders correctly 1`] = `
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
         "borderColor": "#BBC0C5",
-        "borderRadius": 4,
+        "borderRadius": 8,
         "borderWidth": 0,
         "flexDirection": "row",
         "padding": 16,
@@ -200,9 +199,12 @@ exports[`WalletAccount renders correctly 1`] = `
       Object {
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 8,
+        "borderWidth": 0,
         "flexDirection": "row",
         "justifyContent": "space-between",
-        "padding": 16,
+        "padding": 20,
       }
     }
   >
@@ -286,7 +288,7 @@ exports[`WalletAccount renders correctly 1`] = `
     <SvgMock
       color="#24272A"
       height={16}
-      name="Ellipsis"
+      name="MoreHorizontal"
       style={
         Object {
           "height": 16,

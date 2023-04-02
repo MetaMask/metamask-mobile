@@ -12,9 +12,7 @@ const styleSheet = (params: {
   const { style } = vars;
   return StyleSheet.create({
     base: {
-      // This padding it's a tricky way of having the border radius filled on the corners
-      padding: 2,
-      marginHorizontal: 18,
+      marginHorizontal: 16,
       borderWidth: 1,
       borderColor: colors.border.default,
       borderRadius: 8,
@@ -23,7 +21,11 @@ const styleSheet = (params: {
     account: {
       alignItems: 'center',
     },
-    accountPicker: { borderWidth: 0 },
+    accountPicker: {
+      borderWidth: 0,
+      borderColor: colors.border.default,
+      borderRadius: 8,
+    },
     middleBorder: {
       borderTopWidth: 1,
       borderColor: colors.border.default,
@@ -34,7 +36,10 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
       alignItems: 'center',
       backgroundColor: colors.background.default,
-      padding: 16,
+      padding: 20,
+      borderWidth: 0,
+      borderColor: colors.border.default,
+      borderRadius: 8,
     },
     address: { flexDirection: 'row' },
     copyButton: {

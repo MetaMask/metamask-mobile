@@ -140,7 +140,6 @@ import WalletCard from './assets/wallet-card.svg';
 import WalletMoney from './assets/wallet-money.svg';
 import Wallet from './assets/wallet.svg';
 import Warning from './assets/warning.svg';
-import Ellipsis from './assets/ellipsis.svg';
 
 /**
  * Asset stored by icon name
@@ -282,5 +281,4 @@ export const assetByIconName: AssetByIconName = {
   [IconName.WalletMoney]: WalletMoney,
   [IconName.Wallet]: Wallet,
   [IconName.Warning]: Warning,
-  [IconName.Ellipsis]: Ellipsis,
 };
