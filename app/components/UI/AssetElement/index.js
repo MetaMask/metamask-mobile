@@ -1,8 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -60,12 +62,14 @@ export default class AssetElement extends PureComponent {
     const { children } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const { asset } = this.props;
 
     return (
       <TouchableOpacity
         onPress={this.handleOnPress}
         onLongPress={this.handleOnLongPress}
         style={styles.itemWrapper}
+        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
       >
         {children}
         <View styles={styles.arrow}>

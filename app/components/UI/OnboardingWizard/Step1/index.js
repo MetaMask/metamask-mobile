@@ -8,16 +8,17 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import {
-  MetaMetricsEvents,
-  ONBOARDING_WIZARD_STEP_DESCRIPTION,
-} from '../../../../core/Analytics';
 import Coachmark from '../Coachmark';
 import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import { trackEvent } from '../../../../util/analyticsV2';
+import {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+} from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
@@ -57,7 +58,7 @@ class Step1 extends PureComponent {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(2);
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
         tutorial_step_count: 1,
         tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
       });
