@@ -66,6 +66,9 @@ export default class TestHelpers {
   }
 
   static async replaceTextInField(elementId, text) {
+    await waitFor(element(by.id(elementId)))
+      .toBeVisible()
+      .withTimeout(8000);
     return element(by.id(elementId)).replaceText(text);
   }
 
