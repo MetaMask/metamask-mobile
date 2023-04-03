@@ -41,16 +41,6 @@ const styleSheet = (params: {
       borderColor: colors.border.default,
       borderRadius: 8,
     },
-    address: { flexDirection: 'row' },
-    copyButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.primary.muted,
-      borderRadius: 20,
-      paddingHorizontal: 8,
-      marginLeft: 8,
-    },
-    icon: { marginLeft: 4 },
   });
 };
 export default styleSheet;
