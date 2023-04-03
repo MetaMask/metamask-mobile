@@ -50,6 +50,7 @@ const styleSheet = (params: {
       paddingHorizontal: 8,
       marginLeft: 8,
     },
+    icon: { marginLeft: 4 },
   });
 };
 export default styleSheet;

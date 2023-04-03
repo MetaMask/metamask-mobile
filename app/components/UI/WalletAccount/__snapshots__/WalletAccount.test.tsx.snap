@@ -277,6 +277,7 @@ exports[`WalletAccount renders correctly 1`] = `
             style={
               Object {
                 "height": 16,
+                "marginLeft": 4,
                 "width": 16,
               }
             }

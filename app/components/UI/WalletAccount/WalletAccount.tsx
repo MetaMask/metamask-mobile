@@ -117,6 +117,7 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
               name={IconName.Copy}
               size={IconSize.Sm}
               color={IconColor.Primary}
+              style={styles.icon}
             />
           </TouchableOpacity>
         </View>
