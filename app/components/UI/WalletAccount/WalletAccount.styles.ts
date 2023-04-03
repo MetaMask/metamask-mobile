@@ -45,7 +45,7 @@ const styleSheet = (params: {
     copyButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.background.defaultHover,
+      backgroundColor: colors.primary.muted,
       borderRadius: 20,
       paddingHorizontal: 8,
       marginLeft: 8,

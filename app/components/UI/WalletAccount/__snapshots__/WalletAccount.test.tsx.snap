@@ -246,7 +246,7 @@ exports[`WalletAccount renders correctly 1`] = `
           style={
             Object {
               "alignItems": "center",
-              "backgroundColor": "#FAFBFC",
+              "backgroundColor": "#0376C919",
               "borderRadius": 20,
               "flexDirection": "row",
               "marginLeft": 8,
