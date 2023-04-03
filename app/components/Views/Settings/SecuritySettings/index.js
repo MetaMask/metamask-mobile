@@ -67,7 +67,6 @@ import {
   SECURITY_PRIVACY_VIEW_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { OFF, ON } from '../../../../core/Analytics/MetaMetrics.constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -703,12 +702,6 @@ class Settings extends PureComponent {
 
   toggleIsMultiAccountBalancesEnabled = (isMultiAccountBalancesEnabled) => {
     const { PreferencesController } = Engine.context;
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SWITCH_MULTI_ACCOUNT_BALANCE_ENABLED_SETTING,
-      {
-        enabled: isMultiAccountBalancesEnabled ? ON : OFF,
-      },
-    );
     PreferencesController.setIsMultiAccountBalancesEnabled(
       isMultiAccountBalancesEnabled,
     );
