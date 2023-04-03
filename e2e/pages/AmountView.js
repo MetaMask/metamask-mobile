@@ -33,7 +33,7 @@ export default class AmountView {
   }
 
   static async tapCurrencySwitch() {
-    await TestHelpers.tap(CURRENCY_SWITCH);
+    await TestHelpers.waitAndTap(CURRENCY_SWITCH);
   }
 
   static async isVisible() {
