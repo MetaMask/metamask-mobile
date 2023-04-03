@@ -19,7 +19,6 @@ import Networks, {
   getDecimalChainId,
   getNetworkImageSource,
   isSafeChainId,
-  shouldShowZKEVM,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -257,7 +256,10 @@ export class NetworkList extends PureComponent {
 
     let rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
 
-    if (!isLineaTestnetInFrequentRpcList) {
+    if (
+      !isLineaTestnetInFrequentRpcList &&
+      rpcTarget === new URL(LINEA_TESTNET_RPC_URL).href
+    ) {
       const url = new URLPARSE(LINEA_TESTNET_RPC_URL);
       const decimalChainId = getDecimalChainId(NETWORKS_CHAIN_ID.LINEA_TESTNET);
       PreferencesController.addToFrequentRpcList(
@@ -399,11 +401,11 @@ export class NetworkList extends PureComponent {
     const { frequentRpcList, providerConfig } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     let rpcList = frequentRpcList;
-    if (!shouldShowZKEVM) {
-      rpcList = frequentRpcList.filter(
-        ({ chainId }) => chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      );
-    }
+
+    rpcList = frequentRpcList.filter(
+      ({ chainId }) => chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
+    );
+
     return rpcList.map(({ nickname, rpcUrl, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getNetworkImageSource({ chainId });
@@ -487,7 +489,7 @@ export class NetworkList extends PureComponent {
       name,
       image,
       networkIndex,
-      rpcUrl,
+      rpcURL.href,
       isCustomRpc,
     );
   };
@@ -505,12 +507,6 @@ export class NetworkList extends PureComponent {
   };
 
   render = () => {
-    const { frequentRpcList } = this.props;
-    const isLineaTestnetInFrequentRpcList =
-      frequentRpcList.findIndex(
-        (frequentRpc) =>
-          frequentRpc.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      ) !== -1;
     const styles = this.getStyles();
     return (
       <SafeAreaView
@@ -537,13 +533,11 @@ export class NetworkList extends PureComponent {
           {this.renderMainnet()}
           {this.renderRpcNetworks()}
           {this.renderOtherNetworks()}
-          {shouldShowZKEVM &&
-            !isLineaTestnetInFrequentRpcList &&
-            this.renderNonInfuraNetwork(
-              NETWORKS_CHAIN_ID.LINEA_TESTNET,
-              LINEA_TESTNET_RPC_URL,
-              LINEA_TESTNET_NICKNAME,
-            )}
+          {this.renderNonInfuraNetwork(
+            NETWORKS_CHAIN_ID.LINEA_TESTNET,
+            LINEA_TESTNET_RPC_URL,
+            LINEA_TESTNET_NICKNAME,
+          )}
         </ScrollView>
         <View style={styles.footer}>
           <StyledButton

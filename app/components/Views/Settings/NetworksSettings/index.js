@@ -20,7 +20,6 @@ import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   isDefaultMainnet,
-  shouldShowZKEVM,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -442,7 +441,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.test_network_name')}
               </Text>
               {this.renderOtherNetworks()}
-              {shouldShowZKEVM && this.renderNonInfuraNetworksView()}
+              {this.renderNonInfuraNetworksView()}
             </>
           )}
         </ScrollView>
