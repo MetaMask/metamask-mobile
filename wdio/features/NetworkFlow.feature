@@ -101,7 +101,7 @@ Feature: Adding Networks via the popular and custom networks flow
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
-    And I type "<Symbol>" into the Network symbol field
+    And I type "<Network>" into the Network symbol field
 
     When I tap on the Add button
     And I tap on Got it in the network education modal
@@ -115,5 +115,5 @@ Feature: Adding Networks via the popular and custom networks flow
     Then "<Network>" should be removed from the list of RPC networks
 
     Examples:
-      | Network            | rpcUrl                           | ChainID | Symbol |
-      | Optimism on Gnosis | https://optimism.gnosischain.com | 300     | xDAI   |
+      | Network      | rpcUrl                 | ChainID |  |
+      | Celo Mainnet | https://forno.celo.org | 42220   |  |
