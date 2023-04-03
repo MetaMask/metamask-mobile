@@ -2,7 +2,8 @@
 Feature: Terms of Use
 
   Scenario: Install and launch app
-    Given the Welcome Screen is displayed
+    Given the app displayed the splash animation
+    And the Welcome Screen is displayed
     When I tap "Get started"
     Then "Wallet setup" is displayed
     When I tap "Import using Secret Recovery Phrase"

@@ -96,6 +96,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           iconSize={iconProps.size}
           iconBackgroundColor={iconProps.backgroundColor}
           iconColor={iconProps.color}
+          testID={key}
           {...generateTestId(Platform, key)}
         />
       );

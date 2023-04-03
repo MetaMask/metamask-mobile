@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const WALLET_VIEW_BURGER_ICON_ID = 'wallet-view-burger-icon';
 
 export const HAMBURGER_MENU_BUTTON = 'hamburger-menu-button-wallet';
@@ -25,3 +24,5 @@ export const SECURE_WALLET_BACKUP_ALERT_MODAL = 'backup-alert';
 export const getAssetTestId = (token) => {
   return `asset-${token}`;
 }
+
+export const NAVBAR_NETWORK_TEXT = 'open-networks-text';
