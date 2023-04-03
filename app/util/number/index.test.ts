@@ -781,8 +781,11 @@ describe('Number utils :: isZeroValue', () => {
   it('returns true for 0', () => {
     expect(isZeroValue(0)).toBe(true);
   });
-  it('returns true for 0x0', () => {
+  it('returns true for a 0x0 hex string', () => {
     expect(isZeroValue('0x0')).toBe(true);
+  });
+  it('returns true for a 0x0 hex value', () => {
+    expect(isZeroValue(0x0)).toBe(true);
   });
   it('returns true for BN zero value', () => {
     expect(isZeroValue(toBN('0'))).toBe(true);
