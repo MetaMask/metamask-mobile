@@ -27,6 +27,8 @@ When(/^I tap Reset password/, async () => {
 });
 Then(/^Creating password is displayed/, async () => {
   await driver.pause(1000);
-  await SecurityAndPrivacyScreen.isChangePasswordTextVisible('Creating password...');
+  await SecurityAndPrivacyScreen.isChangePasswordTextVisible(
+    'Creating password...',
+  );
   await driver.pause(8000);
 });

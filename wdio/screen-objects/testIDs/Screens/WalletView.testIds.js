@@ -24,4 +24,4 @@ export const SECURE_WALLET_BACKUP_ALERT_MODAL = 'backup-alert';
 
 export const getAssetTestId = (token) => {
   return `asset-${token}`;
-}
+};
