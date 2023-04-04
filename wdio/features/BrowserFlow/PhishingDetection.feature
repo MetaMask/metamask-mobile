@@ -2,7 +2,8 @@
 Feature: This feature file covers phishing detection functionality the browser.
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And I navigate to the browser
