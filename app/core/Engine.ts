@@ -109,9 +109,13 @@ class Engine {
           allowedEvents: [],
           allowedActions: [],
         }),
+        trackMetaMetricsEvent: () => {
+          // no-op);
+        },
       };
 
       const networkController = new NetworkController(networkControllerOpts);
+      // networkController.providerConfig = {
       networkController.providerConfig = {
         static: {
           eth_sendTransaction: async (
@@ -150,6 +154,7 @@ class Engine {
           );
         },
       };
+
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -396,7 +401,8 @@ class Engine {
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
-          getProvider: () => networkController.provider,
+          getProviderAndBlockTracker:
+            networkController.getProviderAndBlockTracker,
         }),
         new TypedMessageManager(),
         new SwapsController(
