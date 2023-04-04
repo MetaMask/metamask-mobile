@@ -19,7 +19,7 @@ export default class AmountView {
   }
 
   static async isTransactionAmountConversionValueCorrect(amount) {
-    await TestHelpers.checkIfElementHasString(
+    await TestHelpers.checkIfHasText(
       TRANSACTION_AMOUNT_CONVERSION_VALUE,
       amount,
     );
