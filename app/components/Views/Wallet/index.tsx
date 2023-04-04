@@ -161,6 +161,11 @@ const Wallet = ({ navigation }: any) => {
 
   const { colors: themeColors } = useTheme();
 
+  useEffect(() => {
+    const { TokenRatesController } = Engine.context;
+    TokenRatesController.poll();
+  }, [tokens]);
+
   /**
    * Check to see if we need to show What's New modal
    */
