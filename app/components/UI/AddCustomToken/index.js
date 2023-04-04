@@ -112,7 +112,7 @@ export default class AddCustomToken extends PureComponent {
 
   addToken = async () => {
     if (!(await this.validateCustomToken())) return;
-    const { TokensController } = Engine.context;
+    const { TokensController, TokenRatesController } = Engine.context;
     const { address, symbol, decimals, name } = this.state;
     await TokensController.addToken(address, symbol, decimals, name);
 
@@ -142,6 +142,7 @@ export default class AddCustomToken extends PureComponent {
               tokenSymbol: symbol,
             }),
           });
+          TokenRatesController.poll();
         });
       },
     );

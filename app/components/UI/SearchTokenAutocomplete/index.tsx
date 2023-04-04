@@ -107,7 +107,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   );
 
   const addToken = useCallback(async () => {
-    const { TokensController } = Engine.context as any;
+    const { TokensController, TokenRatesController } = Engine.context as any;
     await TokensController.addToken(address, symbol, decimals, name, iconUrl);
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
@@ -127,6 +127,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           tokenSymbol: symbol,
         }),
       });
+      TokenRatesController.poll();
     });
   }, [
     address,

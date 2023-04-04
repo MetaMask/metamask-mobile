@@ -45,7 +45,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   });
 
   const _onSelectAccount = (address: string) => {
-    const { PreferencesController } = Engine.context;
+    const { PreferencesController, TokenRatesController } = Engine.context;
     PreferencesController.setSelectedAddress(address);
     sheetRef.current?.hide();
     onSelectAccount?.(address);
@@ -55,6 +55,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         source: 'Wallet Tab',
         number_of_accounts: accounts?.length,
       });
+      TokenRatesController.poll();
     });
   };
 
