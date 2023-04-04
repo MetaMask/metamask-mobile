@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 332c87d..1230bb5 100644
+index 332c87d..c110f41 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 @@ -116,6 +116,20 @@ class AssetsContractController extends base_controller_1.BaseController {
@@ -15,7 +15,7 @@ index 332c87d..1230bb5 100644
 +   getERC20TokenName(address) {
 +    return __awaiter(this, void 0, void 0, function* () {
 +        if (this.erc20Standard === undefined) {
-+        throw new Error(MISSING_PROVIDER_ERROR);
++            throw new Error(MISSING_PROVIDER_ERROR);
 +        }
 +        return yield this.erc20Standard.getTokenName(address);
 +    });
