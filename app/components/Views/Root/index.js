@@ -13,6 +13,14 @@ import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import {
+  arrToBufArr,
+  bufferToHex,
+  ecsign,
+  publicToAddress,
+  toBuffer,
+} from '@ethereumjs/util';
+
 /**
  * Top level of the component hierarchy
  * App component is wrapped by the provider from react-redux
@@ -48,6 +56,10 @@ export default class Root extends PureComponent {
 
 const ConnectedRoot = () => {
   const theme = useAppTheme();
+
+  const uintArr = new Uint8Array([2, 42, 58]);
+  const test = arrToBufArr(uintArr);
+  console.log('arrToBufArr', test);
 
   return (
     <SafeAreaProvider>

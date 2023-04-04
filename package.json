@@ -69,71 +69,10 @@
     "prestorybook": "rnstl",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint"
-    ],
-    "*.json": [
-      "prettier --write"
-    ]
-  },
-  "resolutions": {
-    "glob": "8.0.3",
-    "minimatch": "5.1.0",
-    "**/nanoid": "^3.1.31",
-    "**/json-schema": "^0.4.0",
-    "@sentry/react-native/**/xmldom": "^0.6.0",
-    "@sentry/**/simple-plist": "^1.3.1",
-    "@sideway/formula": "3.0.1",
-    "react-native/**/simple-plist": "^1.3.1",
-    "react-native-svg/**/nth-check": "^2.0.1",
-    "**/set-value": "^4.0.1",
-    "**/pac-resolver": "^5.0.0",
-    "**/ansi-regex": "^5.0.1",
-    "**/immer": "^9.0.6",
-    "**/node-fetch": "^2.6.7",
-    "**/node-notifier": "^8.0.1",
-    "**/cookiejar": "2.1.4",
-    "**/lodash": "^4.17.21",
-    "**/ua-parser-js": "^0.7.33",
-    "**/elliptic": "^6.5.4",
-    "**/y18n": "^3.2.2",
-    "pubnub/**/netmask": "^2.0.1",
-    "**/vm2": "3.9.11",
-    "**/optimist/minimist": "^1.2.5",
-    "react-native-level-fs/**/bl": "^1.2.3",
-    "react-native-level-fs/**/semver": "^4.3.2",
-    "@metamask/contract-metadata": "^2.1.0",
-    "@exodus/react-native-payments/validator": "^13.7.0",
-    "react-devtools-core": "4.22.1",
-    "**/got": "^11.8.5",
-    "**/qs": "6.10.3",
-    "simple-get": "4.0.1",
-    "shell-quote": "1.7.3",
-    "oss-attribution-generator/**/underscore": "1.12.1",
-    "oss-attribution-generator/**/deep-extend": "0.5.1",
-    "**/plist": "3.0.5",
-    "**/minimist": "1.2.6",
-    "**/hermes-engine": "0.10.0",
-    "@metamask/**/cross-fetch": "2.2.6",
-    "react-native-gesture-handler/**/cross-fetch": "3.1.5",
-    "@storybook/addon-actions/**/prismjs": "^1.27.0",
-    "@storybook/addon-actions/**/highlight.js": "^10.4.1",
-    "react-native-svg-asset-plugin/sharp": "^0.30.5",
-    "detox/**/moment": "^2.29.4",
-    "oss-attribution-generator/**/debug": "^2.6.9"
-  },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.8.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
-    "@ethereumjs/common": "^2.3.1",
-    "@ethereumjs/tx": "^3.2.1",
+    "@ethereumjs/util": "8.0.0",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
@@ -199,8 +138,6 @@
     "eth-json-rpc-middleware": "4.3.0",
     "eth-rpc-errors": "^4.0.3",
     "eth-url-parser": "1.0.4",
-    "ethereumjs-abi": "0.6.6",
-    "ethereumjs-util": "6.1.0",
     "ethers": "^5.0.14",
     "ethjs-contract": "0.2.3",
     "ethjs-ens": "2.0.1",
@@ -209,7 +146,6 @@
     "eventemitter2": "^6.4.5",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
-    "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.2",
     "improved-yarn-audit": "^3.0.0",
@@ -236,7 +172,7 @@
     "query-string": "^6.12.1",
     "randomfill": "^1.0.4",
     "react": "18.2.0",
-    "react-native": "0.71.4",
+    "react-native": "0.71.1",
     "react-native-actionsheet": "beefe/react-native-actionsheet#107/head",
     "react-native-aes-crypto": "1.3.9",
     "react-native-aes-crypto-forked": "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25",
@@ -249,7 +185,6 @@
     "react-native-camera": "^3.36.0",
     "react-native-confetti": "^0.1.0",
     "react-native-confetti-cannon": "^1.5.0",
-    "react-native-crypto": "2.1.2",
     "react-native-default-preference": "^1.4.3",
     "react-native-device-info": "^9.0.2",
     "react-native-elevated-view": "0.0.6",
@@ -306,7 +241,6 @@
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",
     "socket.io-client": "^4.5.3",
-    "stream-browserify": "1.0.0",
     "swappable-obj-proxy": "^1.1.0",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
@@ -314,14 +248,12 @@
     "url-parse": "1.5.9",
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
-    "vm-browserify": "1.1.2",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
-    "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/eslint-config": "^7.0.0",
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
@@ -333,6 +265,9 @@
     "@storybook/addon-ondevice-actions": "^5.3.23",
     "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/react-native": "^5.3.25",
+    "@svgr/core": "^7.0.0",
+    "@svgr/plugin-jsx": "^7.0.0",
+    "@svgr/plugin-svgo": "^7.0.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@types/enzyme": "^3.10.9",
     "@types/jest": "^27.0.1",
@@ -384,6 +319,7 @@
     "multiple-cucumber-html-reporter": "^3.0.1",
     "octonode": "0.10.2",
     "patch-package": "^6.2.2",
+    "path-dirname": "^1.0.2",
     "prettier": "^2.2.1",
     "prettier-plugin-gherkin": "^1.1.1",
     "react-dom": "17.0.2",
@@ -403,121 +339,5 @@
     "wdio-image-comparison-service": "^3.1.0",
     "wdio-vscode-service": "^0.1.5",
     "xml2js": "^0.4.23"
-  },
-  "config": {
-    "react-native-storybook-loader": {
-      "searchDir": [
-        "./app/component-library/components",
-        "./app/components",
-        "./app/component-library/components-temp"
-      ],
-      "pattern": "**/*.stories.@(js|tsx)",
-      "outputFile": "./storybook/storyLoader.js"
-    }
-  },
-  "detox": {
-    "configurations": {
-      "ios.sim.debug": {
-        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "yarn start:ios:e2e",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 11 Pro"
-        }
-      },
-      "ios.sim.release": {
-        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 11 Pro"
-        }
-      },
-      "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk",
-        "build": "yarn start:android:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "Pixel_3_API_29"
-        }
-      },
-      "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/prod/release/app-prod-release.apk",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "emulator"
-        }
-      },
-      "android.emu.release.qa": {
-        "binaryPath": "android/app/build/outputs/apk/qa/release/app-qa-release.apk",
-        "build": "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "emulator"
-        }
-      }
-    },
-    "runner-config": "e2e/config.json",
-    "test-runner": "jest"
-  },
-  "react-native": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "http": "@tradle/react-native-http",
-    "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
-    "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
-  },
-  "browser": {
-    "crypto": "react-native-crypto",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
-    "stream": "stream-browserify",
-    "http": "@tradle/react-native-http",
-    "https": "https-browserify",
-    "vm": "vm-browserify",
-    "os": "react-native-os",
-    "net": "react-native-tcp",
-    "fs": "react-native-level-fs"
-  },
-  "engines": {
-    "node": "^16.0.0",
-    "yarn": "^1.22.0"
-  },
-  "lavamoat": {
-    "allowScripts": {
-      "@sentry/cli": true,
-      "detox": true,
-      "husky": false,
-      "secp256k1": true,
-      "keccak": true,
-      "@lavamoat/preinstall-always-fail": false,
-      "dtrace-provider": false,
-      "core-js": false,
-      "sharp": true,
-      "highlight.js": false,
-      "es5-ext": false,
-      "react-native-inappbrowser-reborn": false,
-      "appium-chromedriver": false,
-      "bufferutil": false,
-      "utf-8-validate": false,
-      "appium-windows-driver": false,
-      "chromedriver": false,
-      "canvas": false,
-      "react-native-webrtc": true,
-      "node-hid": false,
-      "usb": false
-    }
   }
 }
