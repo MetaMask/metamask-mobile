@@ -16,23 +16,24 @@ module.exports = (async () => {
     transformer: {
       getTransformOptions: async () => ({
         transform: {
-          experimentalImportSupport: false,
+          experimentalImportSupport: true,
           inlineRequires: true,
         },
       }),
-//       babelTransformerPath: require.resolve('react-native-svg-transformer'),
-//       assetPlugins: ['react-native-svg-asset-plugin'],
-//       svgAssetPlugin: {
-//         pngCacheDir: '.png-cache',
-//         scales: [1],
-//         output: {
-//           compressionLevel: 6,
-//         },
-//       },
+      babelTransformerPath: require.resolve('react-native-svg-transformer'),
+      assetPlugins: ['react-native-svg-asset-plugin'],
+      svgAssetPlugin: {
+        pngCacheDir: '.png-cache',
+        scales: [1],
+        output: {
+          compressionLevel: 6,
+        },
+      },
     },
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg'],
     },
+    maxWorkers: 2,
   };
 })();
