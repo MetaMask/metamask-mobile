@@ -32,6 +32,47 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
+import {
+  arrToBufArr,
+  bufferToHex,
+  ecsign,
+  publicToAddress,
+  toBuffer,
+} from '@ethereumjs/util';
+
+// Test arrToBufArr function
+// const arr = [1, 2, 3, 4, 5]; // TypeError: The "value" argument must not be of type number. Received type number
+// const arr = ['a', 'b', 'c']; // TypeError: The "value" argument must not be of type number. Received type number
+const arr = new Uint8Array([1, 2, 3]);
+const bufArr = arrToBufArr(arr);
+console.log(bufArr);
+
+// Test bufferToHex function
+const buffer = Buffer.from('Hello World', 'utf8');
+const hex = bufferToHex(buffer);
+console.log(hex);
+
+// Test ecsign function
+const { hashPersonalMessage } = require('ethereumjs-util');
+const privateKey = Buffer.from(
+  'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899',
+  'hex',
+);
+const message = hashPersonalMessage(Buffer.from('Hello World', 'utf8'));
+const signature = ecsign(message, privateKey);
+console.log(signature);
+
+// Test publicToAddress function
+const { privateToPublic } = require('ethereumjs-util');
+const publicKey = privateToPublic(privateKey);
+const address = publicToAddress(publicKey);
+console.log(address);
+
+// Test toBuffer function
+const int = 12345;
+const bufferInt = toBuffer(int);
+console.log(bufferInt);
+
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -269,7 +310,9 @@ class OnboardingCarousel extends PureComponent {
                 onPress={this.onPressGetStarted}
                 testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
               >
-                {strings('onboarding_carousel.get_started')}
+                {/* imported { arrToBufArr, bufferToHex, ecsign, publicToAddress, toBuffer } from '@ethereumjs/util'; */}
+                {arrToBufArr(new Uint8Array(3))} {/* expect: 000 */}
+                {typeof 1n} {/* expect: bigint */}
               </StyledButton>
             </View>
           </View>
