@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef, useContext, useState } from 'react';
 import { connect, useSelector } from 'react-redux';
 import { View, Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
@@ -69,6 +69,7 @@ const Browser = (props) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+  const [isDeeplink, setIsDeeplink] = useState(false);
 
   //frequentRpcList has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
   const nonTestnetNetworks = props.frequentRpcList.length + 1;
@@ -225,6 +226,7 @@ const Browser = (props) => {
       if (newTabUrl && deeplinkTimestamp) {
         // Open url from deeplink.
         newTab(newTabUrl);
+        setIsDeeplink(true);
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
@@ -356,6 +358,7 @@ const Browser = (props) => {
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
+        isDeeplink={isDeeplink}
       />
     ));
 

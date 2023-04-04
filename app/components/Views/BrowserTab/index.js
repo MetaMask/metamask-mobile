@@ -773,41 +773,6 @@ export const BrowserTab = (props) => {
   }, []);
 
   /**
-   *  Function that allows custom handling of any web view requests.
-   *  Return `true` to continue loading the request and `false` to stop loading.
-   */
-  const onShouldStartLoadWithRequest = ({ url }) => {
-    // Stops normal loading when it's ens, instead call go to be properly set up
-    if (isENSUrl(url)) {
-      go(url.replace(/^http:\/\//, 'https://'));
-      return false;
-    }
-
-    // Continue request loading it the protocol is whitelisted
-    const { protocol } = new URL(url);
-    if (protocolAllowList.includes(protocol)) return true;
-
-    const alertMsg = getAlertMessage(protocol, strings);
-
-    // Pop up an alert dialog box to prompt the user for permission
-    // to execute the request
-    Alert.alert(strings('onboarding.warning_title'), alertMsg, [
-      {
-        text: strings('browser.protocol_alert_options.ignore'),
-        onPress: () => null,
-        style: 'cancel',
-      },
-      {
-        text: strings('browser.protocol_alert_options.allow'),
-        onPress: () => allowLinkOpen(url),
-        style: 'default',
-      },
-    ]);
-
-    return false;
-  };
-
-  /**
    * Sets loading bar progress
    */
   const onLoadProgress = ({ nativeEvent: { progress } }) => {
@@ -994,6 +959,29 @@ export const BrowserTab = (props) => {
     backgroundBridges.current = [];
     const origin = new URL(nativeEvent.url).origin;
     initializeBackgroundBridge(origin, true);
+    const urlObj = new URL(nativeEvent.url);
+    if (!protocolAllowList.includes(urlObj.protocol) || props.isDeeplink) {
+      const alertMsg = getAlertMessage(urlObj.protocol, strings);
+
+      // Pop up an alert dialog box to prompt the user for permission
+      // to execute the request
+      Alert.alert(strings('onboarding.warning_title'), alertMsg, [
+        {
+          text: strings('browser.protocol_alert_options.ignore'),
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {
+          text: strings('browser.protocol_alert_options.allow'),
+          // We need to define the CTA here because the URL already loaded
+          // We have two options ['ignore', 'allow'], both will do the same
+          // Both will let the user be on the page
+          // It should be ['close', 'continue'] on my opinion
+          onPress: () => null,
+          style: 'default',
+        },
+      ]);
+    }
   };
 
   /**
@@ -1381,7 +1369,6 @@ export const BrowserTab = (props) => {
               onLoadProgress={onLoadProgress}
               onMessage={onMessage}
               onError={onError}
-              onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
               sendCookies
               javascriptEnabled
               allowsInlineMediaPlayback
@@ -1489,6 +1476,10 @@ BrowserTab.propTypes = {
    * the current version of the app
    */
   app_version: PropTypes.string,
+  /**
+   * Is deepling origin url
+   */
+  isDeeplink: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {
