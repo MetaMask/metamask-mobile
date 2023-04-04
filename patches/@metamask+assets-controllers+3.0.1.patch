@@ -119,14 +119,14 @@ index 4ed4990..da18116 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..5212ab0 100644
+index e3f81e9..14170bb 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -77,6 +77,7 @@ class TokenRatesController extends base_controller_1.BaseController {
              chainId: '',
              tokens: [],
              threshold: 6 * 60 * 60 * 1000,
-+            exchangeRateNativeCurrency: '',
++            previousNativeCurrency: '',
          };
          this.defaultState = {
              contractExchangeRates: {},
@@ -166,7 +166,7 @@ index e3f81e9..5212ab0 100644
                  const { nativeCurrency } = this.config;
 -                newContractExchangeRates = yield this.fetchAndMapExchangeRates(nativeCurrency, slug);
 +
-+                if (this.config.exchangeRateNativeCurrency !== nativeCurrency || forceFetch) {
++                if (this.config.previousNativeCurrency !== nativeCurrency || forceFetch) {
 +                    newContractExchangeRates = yield this.fetchAndMapExchangeRates(
 +                        nativeCurrency,
 +                        slug
@@ -182,7 +182,7 @@ index e3f81e9..5212ab0 100644
      fetchAndMapExchangeRates(nativeCurrency, slug) {
          return __awaiter(this, void 0, void 0, function* () {
 +            this.update({ contractExchangeRates: {} });
-+            this.configure({ exchangeRateNativeCurrency: nativeCurrency });
++            this.configure({ previousNativeCurrency: nativeCurrency });
              const contractExchangeRates = {};
 +            try{
              // check if native currency is supported as a vs_currency by the API
