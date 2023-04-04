@@ -295,6 +295,12 @@ enum EVENT_NAME {
 
   // Delete Wallet Modal
   DELETE_WALLET_MODAL_WALLET_DELETED = 'Delete Wallet Modal Wallet Deleted',
+
+  // Tab Bar Actions
+  ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
+  RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
+  SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
+  SEND_BUTTON_CLICKED = 'Send Button Clicked',
 }
 
 enum ACTIONS {
@@ -657,6 +663,11 @@ const events = {
   DELETE_WALLET_MODAL_WALLET_DELETED: generateOpt(
     EVENT_NAME.DELETE_WALLET_MODAL_WALLET_DELETED,
   ),
+
+  ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
+  RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
+  SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
+  SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
 };
 
 /**
