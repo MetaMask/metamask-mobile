@@ -7,6 +7,8 @@ import {
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
 } from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -21,7 +23,8 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     // Check that we are on the wallet screen
     await WalletView.isVisible();
     //Tap send Icon
-    await WalletView.tapSendIcon();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
 
     await SendView.inputAddress(VALID_ADDRESS);
     await SendView.tapNextButton();

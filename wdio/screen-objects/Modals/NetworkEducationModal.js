@@ -22,6 +22,11 @@ class NetworkEducationModal {
     await Gestures.waitAndTap(this.networkEducationCloseButton);
   }
 
+  async waitForGotItButtonToDisappear() {
+    const element = await this.networkEducationCloseButton;
+    await element.waitForExist({ reverse: true });
+  }
+
   async isNetworkEducationNetworkName(name) {
     const element = await this.networkEducationNetworkName;
     await expect(await element.getText()).toContain(name);

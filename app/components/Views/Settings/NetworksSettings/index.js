@@ -20,7 +20,6 @@ import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   isDefaultMainnet,
-  shouldShowZKEVM,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -41,6 +40,7 @@ import {
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -442,7 +442,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.test_network_name')}
               </Text>
               {this.renderOtherNetworks()}
-              {shouldShowZKEVM && this.renderNonInfuraNetworksView()}
+              {this.renderNonInfuraNetworksView()}
             </>
           )}
         </ScrollView>

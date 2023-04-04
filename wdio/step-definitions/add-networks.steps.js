@@ -251,9 +251,11 @@ Then(/^I go back to the main wallet screen/, async () => {
 
 Then(/^I tap on Got it in the network education modal/, async () => {
   await NetworkEducationModal.tapGotItButton();
+  await NetworkEducationModal.waitForGotItButtonToDisappear();
 });
 
 Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
+  await NetworkListModal.isVisible();
   await NetworkListModal.changeNetwork(network);
 });
 

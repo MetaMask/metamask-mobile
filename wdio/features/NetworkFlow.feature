@@ -7,7 +7,8 @@ Feature: Adding Networks via the popular and custom networks flow
   A user should also have the ability to a add custom network via the custom network flow.
 
   Scenario Outline: Adding a network via the new popular network flow
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
 
@@ -100,7 +101,7 @@ Feature: Adding Networks via the popular and custom networks flow
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
-    And I type "<Symbol>" into the Network symbol field
+    And I type "<Network>" into the Network symbol field
 
     When I tap on the Add button
     And I tap on Got it in the network education modal
@@ -114,5 +115,5 @@ Feature: Adding Networks via the popular and custom networks flow
     Then "<Network>" should be removed from the list of RPC networks
 
     Examples:
-      | Network            | rpcUrl                           | ChainID | Symbol |
-      | Optimism on Gnosis | https://optimism.gnosischain.com | 300     | xDAI   |
+      | Network      | rpcUrl                 | ChainID |  |
+      | Celo Mainnet | https://forno.celo.org | 42220   |  |

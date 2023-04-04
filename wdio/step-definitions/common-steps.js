@@ -1,5 +1,5 @@
 /* global driver */
-import {Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -45,7 +45,6 @@ Then(/^Terms of Use is not displayed$/, async () => {
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -218,4 +217,9 @@ Then(
 
 Then(/^I am on the main wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
+});
+
+When(/^the toast is displayed$/, async () => {
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
 });
