@@ -206,14 +206,14 @@ const AddNickname = (props: AddNicknameProps) => {
                   style={styles.address}
                 />
               </TouchableOpacity>
-              {hasBlockExplorer && (
+              {hasBlockExplorer ? (
                 <AntDesignIcon
                   style={styles.actionIcon}
                   name="export"
                   size={22}
                   onPress={toggleBlockExplorer}
                 />
-              )}
+              ) : null}
             </View>
             <Text style={styles.label}>{strings('nickname.name')}</Text>
             <TextInput
