@@ -40,7 +40,6 @@ import {
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
