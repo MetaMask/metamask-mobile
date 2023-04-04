@@ -205,6 +205,9 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+          assetsContractController,
+        ),
       });
 
       const tokenListController = new TokenListController({
