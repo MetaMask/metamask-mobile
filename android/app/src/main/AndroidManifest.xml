@@ -17,7 +17,7 @@
 		android:allowBackup="false"
 		android:theme="@style/AppTheme"
 		android:hardwareAccelerated="true"
-		android:usesCleartextTraffic="${isDebug}"
+		android:usesCleartextTraffic="true"
 		tools:targetApi="29"
 		tools:ignore="GoogleAppIndexingWarning"
 		android:networkSecurityConfig="@xml/react_native_config"

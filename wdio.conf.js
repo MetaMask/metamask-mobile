@@ -1,6 +1,8 @@
 import generateTestReports from './wdio/utils/generateTestReports';
+import Ganache from './app/util/test/ganache';
 
 const {removeSync} = require('fs-extra');
+const ganacheServer = new Ganache();
 
 export const config = {
   //
@@ -78,7 +80,7 @@ export const config = {
        appPackage: "io.appium.android.apis",
        appActivity: ".view.TextFields",
        automationName: "UiAutomator2"
-       ***/
+       ***/ 
     },
   ],
   //
@@ -291,6 +293,8 @@ export const config = {
     if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
       await driver.launchApp();
     }
+    await ganacheServer.start();
+    console.log("ACCOUNTS", await ganacheServer.getAccounts())
   },
   /**
    *
@@ -328,6 +332,7 @@ export const config = {
     if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
       await driver.closeApp();
     }
+    await ganacheServer.quit();
   },
   /**
    *
