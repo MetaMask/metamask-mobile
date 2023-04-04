@@ -1,18 +1,19 @@
 // Needed to polyfill random number generation.
-import 'react-native-get-random-values';
+/* import 'react-native-get-random-values'; */
 import './shim.js';
+/**/
+/* import 'react-native-gesture-handler'; */
+/* import 'react-native-url-polyfill/auto'; */
+/**/
+/* import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars */
+//require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
-import 'react-native-gesture-handler';
-import 'react-native-url-polyfill/auto';
-
-import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
-require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
-
-import { setupSentry } from './app/util/sentryUtils';
-setupSentry();
+//import { setupSentry } from './app/util/sentryUtils';
+//setupSentry();
 
 import { AppRegistry, LogBox } from 'react-native';
-import Root from './app/components/Views/Root';
+// import Root from './app/components/Views/Root';
+import App from './app/Test';
 import { name } from './app.json';
 
 // List of warnings that we're ignoring
@@ -76,4 +77,4 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Root);
+AppRegistry.registerComponent(name, () => App);

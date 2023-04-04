@@ -9,10 +9,14 @@
 const { getDefaultConfig } = require('metro-config');
 
 module.exports = (async () => {
-  const { resolver, transformer } = await getDefaultConfig(__dirname);
+  const {
+    resolver: { assetExts, sourceExts },
+  } = await getDefaultConfig();
+
+  console.log('transformero', assetExts, sourceExts);
+
   return {
     transformer: {
-      ...transformer,
       babelTransformerPath: require.resolve('react-native-svg-transformer'),
       getTransformOptions: async () => ({
         transform: {
@@ -20,14 +24,14 @@ module.exports = (async () => {
           inlineRequires: true,
         },
       }),
-      assetPlugins: ['react-native-svg-asset-plugin'],
-      svgAssetPlugin: {
-        pngCacheDir: '.png-cache',
-        scales: [1],
-        output: {
-          compressionLevel: 6,
-        },
-      },
+    /*   assetPlugins: ['react-native-svg-asset-plugin'], */
+    /*   svgAssetPlugin: { */
+    /*     pngCacheDir: '.png-cache', */
+    /*     scales: [1], */
+    /*     output: { */
+    /*       compressionLevel: 6, */
+    /*     }, */
+    /*   }, */
     },
     resolver: {
       ...resolver,
