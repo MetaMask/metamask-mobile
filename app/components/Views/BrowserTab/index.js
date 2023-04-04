@@ -31,7 +31,6 @@ import onUrlSubmit, {
   isTLD,
   protocolAllowList,
   getAlertMessage,
-  allowLinkOpen,
   getUrlObj,
 } from '../../../util/browser';
 import {
