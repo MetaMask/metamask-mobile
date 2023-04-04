@@ -45,8 +45,6 @@ Then(/^Terms of Use is not displayed$/, async () => {
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
@@ -199,6 +197,7 @@ Then(
   /^I tap button "([^"]*)?" to navigate to (.*) view/,
   async (button, screen) => {
     await CommonScreen.tapOnText(button);
+    await CommonScreen.tapOnText(button);
   },
 );
 
@@ -218,4 +217,9 @@ Then(
 
 Then(/^I am on the main wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
+});
+
+When(/^the toast is displayed$/, async () => {
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
 });
