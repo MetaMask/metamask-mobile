@@ -1,6 +1,6 @@
 import TestHelpers from '../../helpers';
 import messages from '../../../locales/languages/en.json';
-import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/constants/test-ids';
 import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
   BROWSER_SCREEN_ID,

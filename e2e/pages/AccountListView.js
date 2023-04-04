@@ -5,7 +5,7 @@ import {
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { CELL_SELECT_TEST_ID } from '../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
+import { CELL_SELECT_TEST_ID } from '../../app/constants/test-ids';
 
 import messages from '../../locales/languages/en.json';
 

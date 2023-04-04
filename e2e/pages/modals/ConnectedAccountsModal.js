@@ -1,13 +1,13 @@
 import TestHelpers from '../../helpers';
 import {
   CANCEL_BUTTON_ID,
+  CELL_SELECT_TEST_ID,
   CONNECT_BUTTON_ID,
 } from '../../../app/constants/test-ids';
 import {
   CONNECTED_ACCOUNTS_MODAL_CONTAINER,
   CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
-import { CELL_SELECT_TEST_ID } from '../../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
 
 import messages from '../../../locales/languages/en.json';
 
