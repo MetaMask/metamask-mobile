@@ -113,20 +113,6 @@ describe('Custom RPC Tests', () => {
 
     await NetworkView.isNetworkViewVisible();
   });
-  // it('should tap add a popular network from network list modal', async () => {
-  // 	await WalletView.tapNetworksButtonOnNavBar();
-
-  // 	await NetworkListModal.isVisible();
-  // 	await NetworkListModal.tapAddNetworkButton();
-  // 	await NetworkView.isNetworkViewVisible();
-
-  // });
-  // it('should add a popular network', async () => {
-  // 	await WalletView.tapNetworksButtonOnNavBar();
-
-  // 	await NetworkView.selectPopularNetwork("Optimism");
-
-  // });
 
   it('should add xDai network', async () => {
     // Tap on Add Network button
@@ -134,7 +120,6 @@ describe('Custom RPC Tests', () => {
     await NetworkView.tapAddNetworkButton();
     await NetworkView.switchToCustomNetworks();
 
-    //await NetworkView.isRpcViewVisible();
     await NetworkView.typeInNetworkName('xDai');
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await NetworkView.isRPCWarningVisble(); // Check that warning is displayed
