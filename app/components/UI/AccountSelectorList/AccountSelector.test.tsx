@@ -1,11 +1,12 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { act, waitFor, within } from '@testing-library/react-native';
+import { waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
 const mockEngine = Engine;
 
@@ -90,12 +91,14 @@ const AccountSelectorListUseAccounts = () => {
   );
 };
 
+const RIGHT_ACCESSORY_TEST_ID = 'right-accessory';
+
 const AccountSelectorListRightAccessoryUseAccounts = () => {
   const { accounts, ensByAccountAddress } = useAccounts();
   return (
     <AccountSelectorList
       renderRightAccessory={(address, name) => (
-        <View testID="right-accessory">{`${address} - ${name}`}</View>
+        <View testID={RIGHT_ACCESSORY_TEST_ID}>{`${address} - ${name}`}</View>
       )}
       isSelectionDisabled
       selectedAddresses={[]}
@@ -114,49 +117,42 @@ describe('AccountSelectorList', () => {
   beforeEach(() => {
     onSelectAccount.mockClear();
     onRemoveImportedAccount.mockClear();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('should render correctly', async () => {
     const { toJSON } = renderComponent(initialState);
-    await act(async () => jest.runOnlyPendingTimers());
     await waitFor(() => expect(toJSON()).toMatchSnapshot());
   });
 
   it('should render all accounts with balances', async () => {
-    const { getAllByTestId, toJSON } = renderComponent(initialState);
-    await act(async () => jest.runOnlyPendingTimers());
-    await waitFor(() => {
-      const accounts = getAllByTestId('cell-account-select');
+    const { queryByTestId, getAllByTestId, toJSON } =
+      renderComponent(initialState);
+
+    await waitFor(async () => {
+      const businessAccountItem = await queryByTestId(
+        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      );
+      const personalAccountItem = await queryByTestId(
+        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
+      );
+
+      expect(within(businessAccountItem).getByText(/1 ETH/)).toBeDefined();
+      expect(within(businessAccountItem).getByText(/\$3200/)).toBeDefined();
+
+      expect(within(personalAccountItem).getByText(/2 ETH/)).toBeDefined();
+      expect(within(personalAccountItem).getByText(/\$6400/)).toBeDefined();
+
+      const accounts = getAllByTestId(
+        new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
+      );
       expect(accounts.length).toBe(2);
 
-      accounts.forEach(async (account) => {
-        const { findByTestId } = within(account);
-        const title = await findByTestId('cell-title');
-
-        if (title === 'Business Account') {
-          const balance = findByTestId('balance-label');
-          expect(balance).toContain('1 ETH');
-          expect(balance).toContain('3200$');
-        }
-
-        if (title === 'Personal Account') {
-          const balance = findByTestId('balance-label');
-          expect(balance).toContain('2 ETH');
-          expect(balance).toContain('6300$');
-        }
-
-        expect(toJSON()).toMatchSnapshot();
-      });
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
   it('should render all accounts but only the balance for selected account', async () => {
-    const { getAllByTestId, toJSON } = renderComponent({
+    const { queryByTestId, getAllByTestId, toJSON } = renderComponent({
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -169,26 +165,18 @@ describe('AccountSelectorList', () => {
       },
     });
 
-    await act(async () => jest.runOnlyPendingTimers());
+    await waitFor(async () => {
+      const accounts = getAllByTestId(
+        new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
+      );
+      expect(accounts.length).toBe(1);
 
-    await waitFor(() => {
-      const accounts = getAllByTestId('cell-account-select');
-      expect(accounts.length).toBe(2);
+      const businessAccountItem = await queryByTestId(
+        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      );
 
-      accounts.forEach(async (account) => {
-        const { findByTestId } = within(account);
-        const title = await findByTestId('cell-title');
-
-        if (title === 'Business Account') {
-          const balance = findByTestId('balance-label');
-          expect(balance).toContain('1 ETH');
-        }
-
-        if (title === 'Personal Account') {
-          const balance = findByTestId('balance-label');
-          expect(balance).toBeFalsy();
-        }
-      });
+      expect(within(businessAccountItem).getByText(/1 ETH/)).toBeDefined();
+      expect(within(businessAccountItem).getByText(/\$3200/)).toBeDefined();
 
       expect(toJSON()).toMatchSnapshot();
     });
@@ -200,13 +188,8 @@ describe('AccountSelectorList', () => {
       AccountSelectorListRightAccessoryUseAccounts,
     );
 
-    await act(async () => jest.runOnlyPendingTimers());
-
     await waitFor(() => {
-      const accounts = getAllByTestId('cell-account-select');
-      expect(accounts.length).toBe(2);
-
-      const rightAccessories = getAllByTestId('right-accessory');
+      const rightAccessories = getAllByTestId(RIGHT_ACCESSORY_TEST_ID);
       expect(rightAccessories.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();

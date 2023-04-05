@@ -123,6 +123,7 @@ const useAccounts = ({
   );
 
   const getAccounts = useCallback(() => {
+    if (!isMountedRef.current) return;
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
     let selectedIndex = 0;
@@ -180,6 +181,7 @@ const useAccounts = ({
       }
       return result;
     }, []);
+
     setAccounts(flattenedAccounts);
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
     /* eslint-disable-next-line */
