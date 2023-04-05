@@ -5,16 +5,15 @@ daysUntilStale: 90
 
 # Number of days of inactivity before an Issue or Pull Request with the stale label is closed.
 # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
-daysUntilClose: 14
+daysUntilClose: 7
 
 # Only issues or pull requests with all of these labels are check if stale. Defaults to `[]` (disabled)
 onlyLabels: []
 
 # Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
 exemptLabels:
-  - pinned
-  - sectypeurity
-  - "[Status] Maybe Later"
+  - type-security
+  - feature-request
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: false
@@ -26,13 +25,14 @@ exemptMilestones: false
 exemptAssignees: false
 
 # Label to use when marking as stale
-staleLabel: wontfix
+staleLabel: stale
 
 # Comment to post when marking as stale. Set to `false` to disable
 markComment: >
   This issue has been automatically marked as stale because it has not had
-  recent activity. It will be closed if no further activity occurs. If you 
-  feel this in error please open again. Thank you for your contributions.
+  recent activity or the issue may no longer be valid. It will be closed in 7 days. 
+  If you feel this as valid error the production version please reopen and 
+  provide evidence. Thank you for your contributions.
 
 # Comment to post when removing the stale label.
 # unmarkComment: >
