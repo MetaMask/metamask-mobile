@@ -106,6 +106,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         symbol = 'ERC20',
         decimals,
         image,
+        name,
       } = selectedAsset;
       const address = safeToChecksumAddress(rawAddress);
       const { TokensController } = Engine.context as any;
@@ -113,7 +114,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         return;
       }
       if (!contractBalances[address]) {
-        TokensController.addToken(address, symbol, decimals, image);
+        TokensController.addToken(address, symbol, decimals, image, name);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

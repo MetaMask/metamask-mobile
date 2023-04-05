@@ -205,6 +205,9 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+          assetsContractController,
+        ),
       });
 
       const tokenListController = new TokenListController({
@@ -333,6 +336,8 @@ class Engine {
             });
             tokensController.addDetectedTokens(tokens);
           },
+          updateTokensName: (tokenList) =>
+            tokensController.updateTokensName(tokenList),
           getTokensState: () => tokensController.state,
           getTokenListState: () => tokenListController.state,
           getNetworkState: () => networkController.state,

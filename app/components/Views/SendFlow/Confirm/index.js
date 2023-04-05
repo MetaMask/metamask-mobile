@@ -501,11 +501,17 @@ class Confirm extends PureComponent {
         currentCurrency,
       );
     } else {
-      const { address, symbol = 'ERC20', decimals, image } = selectedAsset;
+      const {
+        address,
+        symbol = 'ERC20',
+        decimals,
+        image,
+        name,
+      } = selectedAsset;
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken(address, symbol, decimals, image);
+        await TokensController.addToken(address, symbol, decimals, image, name);
       }
 
       const [, , rawAmount] = decodeTransferData('transfer', data);
