@@ -384,6 +384,7 @@ class Engine {
               requestData: { content, placeholder },
             }),
           showInAppNotification: (origin, args) => {
+            // eslint-disable-next-line no-console
             console.log(
               'Snaps/ showInAppNotification called with args: ',
               args,
