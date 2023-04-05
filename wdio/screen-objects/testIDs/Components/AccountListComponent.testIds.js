@@ -6,3 +6,5 @@ export const ACCOUNT_LIST_ACCOUNT_TWO_SELECTED =
   '(//android.view.ViewGroup[@content-desc="cell-account-select"])[2]/android.view.ViewGroup[1]';
 
 export const CELL_TITLE_TEST_ID = 'cell-title';
+
+export const ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID = 'account-balance-by-address';
