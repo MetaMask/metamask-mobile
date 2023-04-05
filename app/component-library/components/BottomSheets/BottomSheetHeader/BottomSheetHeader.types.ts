@@ -1,12 +1,16 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
+// External dependencies.
+import { HeaderProps } from '../../Header/Header.types';
 
 /**
  * BottomSheetHeader component props.
  */
-export interface BottomSheetHeaderProps extends ViewProps {
+export interface BottomSheetHeaderProps extends HeaderProps {
   /**
-   * Content to wrap to display.
+   * Optional function to trigger when pressing the back button.
    */
-  children?: React.ReactNode;
+  onBack?: () => void;
+  /**
+   * Optional function to trigger when pressing the close button.
+   */
+  onClose?: () => void;
 }

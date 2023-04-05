@@ -4,6 +4,9 @@ import { StyleSheet, ViewStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
+// Internal dependencies.
+import { ButtonsAlignment } from './BottomSheetFooter.types';
+
 /**
  * Style sheet function for BottomSheetFooter component.
  *
@@ -14,15 +17,13 @@ import { Theme } from '../../../../util/theme/models';
  */
 const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { vars } = params;
-  const { style } = vars;
+  const { style, buttonsAlignment } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        flexDirection: 'row',
-        margin: -8,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    subsequentButton: {
+      marginLeft: buttonsAlignment === ButtonsAlignment.Horizontal ? 16 : 0,
+      marginTop: buttonsAlignment === ButtonsAlignment.Vertical ? 16 : 0,
+    },
   });
 };
 

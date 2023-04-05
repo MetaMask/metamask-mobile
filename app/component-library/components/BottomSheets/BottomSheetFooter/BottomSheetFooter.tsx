@@ -6,17 +6,33 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
+import Button from '../../Buttons/Button';
 
 // Internal dependencies.
 import styleSheet from './BottomSheetFooter.styles';
-import { BottomSheetFooterProps } from './BottomSheetFooter.types';
+import {
+  BottomSheetFooterProps,
+  ButtonsAlignment,
+} from './BottomSheetFooter.types';
 
 const BottomSheetFooter: React.FC<BottomSheetFooterProps> = ({
   style,
-  children,
+  buttonsAlignment = ButtonsAlignment.Horizontal,
+  buttonPropsArray,
 }) => {
-  const { styles } = useStyles(styleSheet, { style });
-  return <View style={styles.base}>{children}</View>;
+  const { styles } = useStyles(styleSheet, { style, buttonsAlignment });
+
+  return (
+    <View style={styles.base}>
+      {buttonPropsArray.map((buttonProp, index) => (
+        <Button
+          key={index}
+          style={index > 0 && styles.subsequentButton}
+          {...buttonProp}
+        />
+      ))}
+    </View>
+  );
 };
 
 export default BottomSheetFooter;
