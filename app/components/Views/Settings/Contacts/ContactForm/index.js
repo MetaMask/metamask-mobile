@@ -36,7 +36,11 @@ import {
   CONTACT_NAME_INPUT,
   CONTACT_ADD_BUTTON,
   CONTACT_ADDRESS_INPUT,
-} from '../../../../../../wdio/features/testIDs/Screens/Contacts.testids';
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/Contacts.testids';
+import {
+  selectChainId,
+  selectNetwork,
+} from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -504,8 +508,8 @@ ContactForm.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  network: state.engine.backgroundState.NetworkController.network,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  network: selectNetwork(state),
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(ContactForm);

@@ -35,14 +35,18 @@ import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { allowedToBuy } from '../../FiatOnRampAggregator';
+import {
+  selectNetwork,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import { createBrowserNavDetails } from '../../../Views/Browser';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -511,10 +515,12 @@ class TransactionReviewInformation extends PureComponent {
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
-        timestamp: Date.now(),
-      });
+      this.props.navigation.navigate(
+        ...createBrowserNavDetails({
+          newTabUrl: AppConstants.URLS.MM_FAUCET,
+          timestamp: Date.now(),
+        }),
+      );
     });
   };
 
@@ -703,7 +709,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
@@ -711,7 +717,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   transaction: getNormalizedTxState(state),
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   primaryCurrency: state.settings.primaryCurrency,
   showCustomNonce: state.settings.showCustomNonce,
   nativeCurrency:

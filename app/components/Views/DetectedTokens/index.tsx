@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import { Token as TokenType } from '@metamask/controllers';
+import { Token as TokenType } from '@metamask/assets-controllers';
 import Token from './components/Token';
 import Engine from '../../../core/Engine';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +18,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { getDecimalChainId } from '../../../util/networks';
 import { FlatList } from 'react-native-gesture-handler';
+import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -129,7 +131,7 @@ const DetectedTokens = () => {
                   token_address: address,
                   token_symbol: symbol,
                   chain_id: getDecimalChainId(
-                    NetworkController?.state?.provider?.chainId,
+                    NetworkController?.state?.providerConfig?.chainId,
                   ),
                   source: 'detected',
                 }),
@@ -164,7 +166,7 @@ const DetectedTokens = () => {
         asset_type: 'token',
         tokens: detectedTokensForAnalytics,
         chain_id: getDecimalChainId(
-          NetworkController?.state?.provider?.chainId,
+          NetworkController?.state?.providerConfig?.chainId,
         ),
       }),
     );
@@ -261,7 +263,9 @@ const DetectedTokens = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
-      chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
+      chain_id: getDecimalChainId(
+        NetworkController?.state?.providerConfig?.chainId,
+      ),
     });
   };
 
@@ -280,5 +284,10 @@ const DetectedTokens = () => {
     </ReusableModal>
   );
 };
+
+export const createDetectedTokensNavDetails = createNavigationDetails(
+  Routes.MODAL.ROOT_MODAL_FLOW,
+  Routes.MODAL.DETECTED_TOKENS,
+);
 
 export default DetectedTokens;

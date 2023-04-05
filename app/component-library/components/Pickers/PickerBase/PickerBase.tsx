@@ -6,7 +6,7 @@ import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import Icon, { IconName, IconSize } from '../../Icon';
+import Icon, { IconName, IconSize } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { PickerBaseProps } from './PickerBase.types';
@@ -26,7 +26,7 @@ const PickerBase: React.FC<PickerBaseProps> = ({
       <Icon
         size={IconSize.Md}
         color={colors.icon.alternative}
-        name={IconName.ArrowDownOutline}
+        name={IconName.ArrowDown}
         style={styles.dropdownIcon}
       />
     </TouchableOpacity>

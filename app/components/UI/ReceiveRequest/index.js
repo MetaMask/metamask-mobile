@@ -38,6 +38,11 @@ import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -350,9 +355,9 @@ class ReceiveRequest extends PureComponent {
 ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  network: state.engine.backgroundState.NetworkController.network,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  network: selectNetwork(state),
+  ticker: selectTicker(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   receiveAsset: state.modals.receiveAsset,

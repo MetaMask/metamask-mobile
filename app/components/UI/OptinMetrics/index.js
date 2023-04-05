@@ -38,8 +38,7 @@ import {
   OPTIN_METRICS_TITLE_ID,
   METAMETRICS_OPT_IN_CONTAINER_ID,
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-} from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+} from '../../../../wdio/screen-objects/testIDs/Screens/OptinMetricsScreen.testIds';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -365,17 +364,23 @@ class OptinMetrics extends PureComponent {
           <Text>{strings('privacy_policy.fine_print_1')}</Text>
           {'\n\n'}
           {strings('privacy_policy.fine_print_2a') + ' '}
-          <ButtonLink onPress={this.openRPCSettings}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('privacy_policy.here')}
+            onPress={this.openRPCSettings}
+          />
           {' ' + strings('privacy_policy.fine_print_2b') + ' '}
-          <ButtonLink onPress={this.openDataRetentionPost}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            onPress={this.openDataRetentionPost}
+            label={strings('privacy_policy.here')}
+          />
           {strings('privacy_policy.fine_print_2c') + ' '}
-          <ButtonLink onPress={this.openPrivacyPolicy}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('privacy_policy.here')}
+            onPress={this.openPrivacyPolicy}
+          />
           {strings('unit.point')}
         </Text>
       </View>

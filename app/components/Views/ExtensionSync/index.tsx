@@ -26,7 +26,6 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
   TRUE,
 } from '../../../constants/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,7 +46,7 @@ import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
 import { useTheme } from '../../../util/theme';
-import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
+import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -184,6 +183,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
   const finishSync = useCallback(
     async (opts) => {
+      //TODO refactor to use Authentication instead of SecureKeychain when the sync feature is enabled
+
       if (opts.biometrics) {
         try {
           await SecureKeychain.setGenericPassword(
@@ -198,7 +199,6 @@ const ExtensionSync = ({ navigation, route }: any) => {
       }
 
       try {
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
         await Engine.resetState();
         await Engine.sync({
           ...dataToSyncRef.current,
@@ -353,7 +353,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
       initWebsockets();
       await pubnubWrapperRef.current?.startSync?.();
       return true;
-    } catch (e) {
+    } catch (e: any) {
       unsetLoading();
       if (e.message === 'Sync::timeout') {
         Alert.alert(

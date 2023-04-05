@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { scale } from 'react-native-size-matters';
 import {
   TouchableOpacity,
   View,
@@ -14,7 +15,7 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/features/testIDs/Screens/WalletScreen-testIds';
+import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
@@ -39,7 +40,7 @@ const createStyles = (colors) =>
       marginTop: Device.isIos() ? 4 : 5,
     },
     title: {
-      fontSize: 18,
+      fontSize: scale(14),
       ...fontStyles.normal,
       color: colors.text.default,
     },
@@ -100,18 +101,18 @@ class NavbarTitle extends PureComponent {
     const { network, title, translate } = this.props;
     let name = null;
     const color =
-      (Networks[network.provider.type] &&
-        Networks[network.provider.type].color) ||
+      (Networks[network.providerConfig.type] &&
+        Networks[network.providerConfig.type].color) ||
       null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (network.provider.nickname) {
-      name = network.provider.nickname;
+    if (network.providerConfig.nickname) {
+      name = network.providerConfig.nickname;
     } else {
       name =
-        (Networks[network.provider.type] &&
-          Networks[network.provider.type].name) ||
+        (Networks[network.providerConfig.type] &&
+          Networks[network.providerConfig.type].name) ||
         { ...Networks.rpc, color: null }.name;
     }
 
@@ -122,7 +123,7 @@ class NavbarTitle extends PureComponent {
         onPress={this.openNetworkList}
         style={styles.wrapper}
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
-        testID={'open-networks-button'}
+        testID={'navbar-title-text'}
       >
         {title ? (
           <Text numberOfLines={1} style={styles.title}>

@@ -21,7 +21,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_SUCESS_SCREEN_ID,
   IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
-} from '../../../../wdio/features/testIDs/Screens/ImportSuccessScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/ImportSuccessScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -108,8 +108,9 @@ class ImportPrivateKeySuccess extends PureComponent {
   };
 
   dismiss = () => {
-    this.props.navigation.popToTop();
-    this.props.navigation.goBack(null);
+    const { popToTop, canGoBack, goBack } = this.props.navigation;
+    popToTop();
+    canGoBack() && goBack(null);
   };
 
   render() {

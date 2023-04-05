@@ -49,7 +49,8 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { hexToBN, BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -62,7 +63,6 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
-import { isMainNet } from '../../../../util/networks';
 import { renderShortText } from '../../../../util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
@@ -73,13 +73,23 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Alert, { AlertType } from '../../../../components/Base/Alert';
 import {
   AMOUNT_SCREEN,
   AMOUNT_SCREEN_CARET_DROP_DOWN,
-} from '../../../../../wdio/features/testIDs/Screens/AmountScreen.testIds.js';
+  NEXT_BUTTON,
+  TRANSACTION_AMOUNT_INPUT,
+  AMOUNT_ERROR,
+  FIAT_CONVERSION_WARNING_TEXT,
+  TRANSACTION_AMOUNT_CONVERSION_VALUE,
+  CURRENCY_SWITCH,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-const { hexToBN, BNToHex } = util;
+import {
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -306,6 +316,19 @@ const createStyles = (colors) =>
       lineHeight: 16,
       color: colors.text.default,
     },
+    warningTextContainer: {
+      lineHeight: 20,
+      paddingLeft: 10,
+      paddingRight: 10,
+    },
+    warningText: {
+      lineHeight: 20,
+      color: colors.text.default,
+    },
+    warningContainer: {
+      marginTop: 20,
+      marginHorizontal: 20,
+    },
   });
 
 /**
@@ -357,10 +380,6 @@ class Amount extends PureComponent {
      * An array that represents the user tokens
      */
     tokens: PropTypes.array,
-    /**
-     * Chain Id
-     */
-    chainId: PropTypes.string,
     /**
      * Current provider ticker
      */
@@ -491,13 +510,33 @@ class Amount extends PureComponent {
       this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
     }
 
+    const hasExchangeRate = this.hasExchangeRate();
+    let internalPrimaryCurrencyIsCrypto =
+      this.state.internalPrimaryCurrencyIsCrypto;
+
+    // Default to crypto if exchange rate is not available while on Fiat primary currency
+    if (this.props.primaryCurrency === 'Fiat' && !hasExchangeRate) {
+      internalPrimaryCurrencyIsCrypto = true;
+    }
+
     this.setState({
       inputValue: readableValue,
+      internalPrimaryCurrencyIsCrypto,
+      hasExchangeRate,
     });
   };
 
   componentDidUpdate = () => {
     this.updateNavBar();
+  };
+
+  hasExchangeRate = () => {
+    const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
+    if (selectedAsset.isETH) {
+      return !!conversionRate;
+    }
+    const exchangeRate = contractExchangeRates[selectedAsset.address];
+    return !!exchangeRate;
   };
 
   /**
@@ -533,12 +572,11 @@ class Amount extends PureComponent {
       inputValue,
       inputValueConversion,
       internalPrimaryCurrencyIsCrypto,
-      hasExchangeRate,
       maxFiatInput,
     } = this.state;
 
     let value;
-    if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
+    if (internalPrimaryCurrencyIsCrypto) {
       value = inputValue;
     } else {
       value = inputValueConversion;
@@ -555,7 +593,10 @@ class Amount extends PureComponent {
     if (value && value.includes(',')) {
       value = inputValue.replace(',', '.');
     }
-    if (!selectedAsset.tokenId && this.validateAmount(value)) {
+    if (
+      !selectedAsset.tokenId &&
+      this.validateAmount(value, internalPrimaryCurrencyIsCrypto)
+    ) {
       return;
     } else if (selectedAsset.tokenId) {
       const isOwner = await this.validateCollectibleOwnership();
@@ -664,7 +705,10 @@ class Amount extends PureComponent {
       transactionObject.readableValue = value;
     }
 
-    if (selectedAsset.isETH) transactionObject.to = transactionTo;
+    if (selectedAsset.isETH) {
+      transactionObject.data = PREFIX_HEX_STRING;
+      transactionObject.to = transactionTo;
+    }
 
     setTransactionObject(transactionObject);
   };
@@ -700,23 +744,28 @@ class Amount extends PureComponent {
 
   /**
    * Validates crypto value only
-   * Independent of current internalPrimaryCurrencyIsCrypto
    *
    * @param {string} - Crypto value
    * @returns - Whether there is an error with the amount
    */
-  validateAmount = (inputValue) => {
-    const { accounts, selectedAddress, contractBalances, selectedAsset } =
+  validateAmount = (inputValue, internalPrimaryCurrencyIsCrypto) => {
+    const { accounts, selectedAddress, selectedAsset, contractBalances } =
       this.props;
-    const { estimatedTotalGas } = this.state;
+    const { estimatedTotalGas, inputValueConversion } = this.state;
+    let value = inputValue;
+
+    if (!internalPrimaryCurrencyIsCrypto) {
+      value = inputValueConversion;
+    }
+
     let weiBalance, weiInput, amountError;
-    if (isDecimal(inputValue)) {
+    if (isDecimal(value)) {
       if (selectedAsset.isETH) {
         weiBalance = hexToBN(accounts[selectedAddress].balance);
-        weiInput = toWei(inputValue).add(estimatedTotalGas);
+        weiInput = toWei(value).add(estimatedTotalGas);
       } else {
         weiBalance = contractBalances[selectedAsset.address];
-        weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
+        weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
       }
       // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
       amountError = gte(weiBalance, weiInput)
@@ -794,13 +843,8 @@ class Amount extends PureComponent {
   };
 
   onInputChange = (inputValue, selectedAsset, useMax) => {
-    const {
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      chainId,
-      ticker,
-    } = this.props;
+    const { contractExchangeRates, conversionRate, currentCurrency, ticker } =
+      this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
     let inputValueConversion,
       renderableInputValueConversion,
@@ -819,7 +863,7 @@ class Amount extends PureComponent {
       : '0';
     selectedAsset = selectedAsset || this.props.selectedAsset;
     if (selectedAsset.isETH) {
-      hasExchangeRate = isMainNet(chainId) ? !!conversionRate : false;
+      hasExchangeRate = !!conversionRate;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${weiToFiatNumber(
           toWei(processedInputValue),
@@ -838,9 +882,8 @@ class Amount extends PureComponent {
       }
     } else {
       const exchangeRate = contractExchangeRates[selectedAsset.address];
-      hasExchangeRate = isMainNet(chainId) ? !!exchangeRate : false;
-      // If !hasExchangeRate we have to handle crypto amount
-      if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
+      hasExchangeRate = !!exchangeRate;
+      if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
           processedInputValue,
           conversionRate,
@@ -1084,10 +1127,14 @@ class Amount extends PureComponent {
   switchCurrency = async () => {
     const { internalPrimaryCurrencyIsCrypto, inputValueConversion } =
       this.state;
-    await this.setState({
-      internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
-    });
-    this.onInputChange(inputValueConversion);
+    this.setState(
+      {
+        internalPrimaryCurrencyIsCrypto: !internalPrimaryCurrencyIsCrypto,
+      },
+      () => {
+        this.onInputChange(inputValueConversion);
+      },
+    );
   };
 
   renderTokenInput = () => {
@@ -1121,8 +1168,8 @@ class Amount extends PureComponent {
               keyboardType={'numeric'}
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
-              testID={'txn-amount-input'}
               keyboardAppearance={themeAppearance}
+              {...generateTestId(Platform, TRANSACTION_AMOUNT_INPUT)}
             />
           </View>
         </View>
@@ -1132,11 +1179,15 @@ class Amount extends PureComponent {
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
+                {...generateTestId(Platform, CURRENCY_SWITCH)}
               >
                 <Text
                   style={styles.textSwitch}
                   numberOfLines={1}
-                  testID={'txn-amount-conversion-value'}
+                  {...generateTestId(
+                    Platform,
+                    TRANSACTION_AMOUNT_CONVERSION_VALUE,
+                  )}
                 >
                   {renderableInputValueConversion}
                 </Text>
@@ -1158,7 +1209,10 @@ class Amount extends PureComponent {
           )}: ${currentBalance}`}</Text>
         </View>
         {amountError && (
-          <View style={styles.errorMessageWrapper} testID={'amount-error'}>
+          <View
+            style={styles.errorMessageWrapper}
+            {...generateTestId(Platform, AMOUNT_ERROR)}
+          >
             <ErrorMessage errorMessage={amountError} />
           </View>
         )}
@@ -1190,7 +1244,10 @@ class Amount extends PureComponent {
           )}`}</Text>
         </View>
         {amountError && (
-          <View style={styles.errorMessageWrapper} testID={'amount-error'}>
+          <View
+            style={styles.errorMessageWrapper}
+            {...generateTestId(Platform, AMOUNT_ERROR)}
+          >
             <ErrorMessage errorMessage={amountError} />
           </View>
         )}
@@ -1199,7 +1256,7 @@ class Amount extends PureComponent {
   };
 
   render = () => {
-    const { estimatedTotalGas } = this.state;
+    const { estimatedTotalGas, hasExchangeRate } = this.state;
     const {
       selectedAsset,
       transactionState: { isPaymentRequest },
@@ -1214,6 +1271,32 @@ class Amount extends PureComponent {
         {...generateTestId(Platform, AMOUNT_SCREEN)}
       >
         <ScrollView style={styles.scrollWrapper}>
+          {!hasExchangeRate && !selectedAsset.tokenId ? (
+            <Alert
+              small
+              type={AlertType.Warning}
+              renderIcon={() => (
+                <MaterialCommunityIcons
+                  name="information"
+                  size={20}
+                  color={colors.warning.default}
+                />
+              )}
+              style={styles.warningContainer}
+            >
+              {() => (
+                <View style={styles.warningTextContainer}>
+                  <Text
+                    red
+                    style={styles.warningText}
+                    {...generateTestId(Platform, FIAT_CONVERSION_WARNING_TEXT)}
+                  >
+                    {strings('transaction.fiat_conversion_not_available')}
+                  </Text>
+                </View>
+              )}
+            </Alert>
+          ) : null}
           <View style={styles.inputWrapper}>
             <View style={styles.actionsWrapper}>
               <View style={styles.actionBorder} />
@@ -1272,7 +1355,7 @@ class Amount extends PureComponent {
               containerStyle={styles.buttonNext}
               disabled={!estimatedTotalGas}
               onPress={this.onNext}
-              testID={'txn-amount-next-button'}
+              testID={NEXT_BUTTON}
             >
               {strings('transaction.next')}
             </StyledButton>
@@ -1298,12 +1381,11 @@ const mapStateToProps = (state, ownProps) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,

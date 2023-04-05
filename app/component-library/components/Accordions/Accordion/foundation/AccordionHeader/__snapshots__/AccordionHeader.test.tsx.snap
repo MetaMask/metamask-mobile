@@ -18,7 +18,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
   <Text
     style={
       Object {
-        "color": "#037DD6",
+        "color": "#0376C9",
       }
     }
     testID="accordion-header-title"
@@ -44,8 +44,8 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
     testID="accordion-header-arrow-icon-animation"
   >
     <Icon
-      color="#037DD6"
-      name="ArrowUpOutline"
+      color="#0376C9"
+      name="ArrowUp"
       size="16"
       testID="accordion-header-arrow-icon"
     />
@@ -71,7 +71,7 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
   <Text
     style={
       Object {
-        "color": "#037DD6",
+        "color": "#0376C9",
       }
     }
     testID="accordion-header-title"
@@ -97,8 +97,8 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
     testID="accordion-header-arrow-icon-animation"
   >
     <Icon
-      color="#037DD6"
-      name="ArrowUpOutline"
+      color="#0376C9"
+      name="ArrowUp"
       size="16"
       testID="accordion-header-arrow-icon"
     />

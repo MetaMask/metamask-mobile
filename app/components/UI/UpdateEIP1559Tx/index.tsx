@@ -2,11 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import EditGasFee1559Update from '../EditGasFee1559Update';
 import { connect } from 'react-redux';
-import {
-  CANCEL_RATE,
-  SPEED_UP_RATE,
-  GAS_ESTIMATE_TYPES,
-} from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN, fromWei, renderFromWei } from '../../../util/number';
 import BigNumber from 'bignumber.js';
 import { getTicker } from '../../../util/transactions';
@@ -18,6 +15,10 @@ import {
 } from '../../../core/GasPolling/GasPolling';
 import { GasTransactionProps } from '../../../core/GasPolling/types';
 import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -251,13 +252,13 @@ const mapStateToProps = (state: any) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   primaryCurrency: state.settings.primaryCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(UpdateEIP1559Tx);

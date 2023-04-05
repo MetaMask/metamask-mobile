@@ -4,11 +4,13 @@
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
-import { util } from '@metamask/controllers';
+import { BNToHex, hexToBN } from '@metamask/controller-utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
+import { isZero } from '../lodash';
+export { BNToHex, hexToBN };
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -39,15 +41,6 @@ const baseChange = {
   dec: (n) => new BigNumber(n).toString(10),
   BN: (n) => new BN(n.toString(16)),
 };
-/**
- * Converts a BN object to a hex string with a '0x' prefix
- *
- * @param {Object} value - BN instance to convert to a hex string
- * @returns {string} - '0x'-prefixed hex string
- */
-export function BNToHex(value) {
-  return util.BNToHex(value);
-}
 
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
@@ -325,16 +318,6 @@ export function calcTokenValueToSend(value, decimals) {
 }
 
 /**
- * Converts a hex string to a BN object
- *
- * @param {string} value - Number represented as a hex string
- * @returns {Object} - A BN instance
- */
-export function hexToBN(value) {
-  return util.hexToBN(value);
-}
-
-/**
  * Checks if a value is a BN instance
  *
  * @param {object} value - Value to check
@@ -452,17 +435,11 @@ export function weiToFiat(
 ) {
   if (!conversionRate) return undefined;
   if (!wei || !isBN(wei) || !conversionRate) {
-    if (currencySymbols[currencyCode]) {
-      return `${currencySymbols[currencyCode]}${0.0}`;
-    }
-    return `0.00 ${currencyCode}`;
+    return addCurrencySymbol(0, currencyCode);
   }
   decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
-  if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${value}`;
-  }
-  return `${value} ${currencyCode}`;
+  return addCurrencySymbol(value, currencyCode);
 }
 
 /**
@@ -795,4 +772,16 @@ export const calculateEthFeeForMultiLayer = ({
   return new BigNumber(multiLayerL1FeeTotalDecEth)
     .plus(new BigNumber(ethFee ?? 0))
     .toString(10);
+};
+
+/**
+ *
+ * @param {number|string|object} value - Value to check
+ * @returns {boolean} - true if value is zero
+ */
+export const isZeroValue = (value) => {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  return value === '0x0' || (isBN(value) && value.isZero()) || isZero(value);
 };

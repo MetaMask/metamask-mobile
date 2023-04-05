@@ -30,6 +30,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   fromTokenMinimalUnit,
+  isZeroValue,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
@@ -39,7 +40,7 @@ import TransactionReviewData from './TransactionReviewData';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
-import AccountInfoCard from '../AccountInfoCard';
+import AccountFromToInfoCard from '../AccountFromToInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
@@ -47,7 +48,12 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import AppConstants from '../../../core/AppConstants';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -69,10 +75,10 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 230 : 415,
+      height: Device.isMediumDevice() ? 170 : 290,
     },
     actionViewChildren: {
-      height: 330,
+      height: 220,
     },
     accountTransactionWrapper: {
       flex: 1,
@@ -81,7 +87,6 @@ const createStyles = (colors) =>
       height: 624,
     },
     accountInfoCardWrapper: {
-      paddingHorizontal: 24,
       paddingBottom: 12,
     },
     transactionData: {
@@ -92,6 +97,10 @@ const createStyles = (colors) =>
     hidden: {
       opacity: 0,
       height: 0,
+    },
+    accountWrapper: {
+      marginTop: -24,
+      marginBottom: 24,
     },
   });
 
@@ -266,7 +275,7 @@ class TransactionReview extends PureComponent {
     const {
       validate,
       transaction,
-      transaction: { data, to },
+      transaction: { data, to, value },
       tokens,
       chainId,
       tokenList,
@@ -276,7 +285,9 @@ class TransactionReview extends PureComponent {
     let assetAmount, conversionRate, fiatValue;
     showHexData = showHexData || data;
     const approveTransaction =
-      data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+      data &&
+      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      (!value || isZeroValue(value));
     const error = ready && validate && (await validate());
     const actionKey = await getTransactionReviewActionKey(transaction, chainId);
     if (approveTransaction) {
@@ -403,9 +414,9 @@ class TransactionReview extends PureComponent {
       return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (
       transaction.origin &&
-      transaction.origin.startsWith(MM_SDK_REMOTE_ORIGIN)
+      transaction.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
     ) {
-      return transaction.origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      return transaction.origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
 
     browser.tabs.forEach((tab) => {
@@ -437,6 +448,8 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
+      transaction,
+      transaction: { to, origin, from, ensRecipient },
     } = this.props;
     const {
       actionKey,
@@ -447,7 +460,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
       multiLayerL1FeeTotal,
     } = this.state;
-    const currentPageInformation = { url: this.getUrlFromBrowser() };
+    const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
 
     return (
@@ -458,7 +471,12 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          <TransactionHeader currentPageInformation={currentPageInformation} />
+          <ApproveTransactionHeader
+            currentEnsName={ensRecipient}
+            origin={origin}
+            url={url}
+            from={from}
+          />
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}
@@ -468,6 +486,14 @@ class TransactionReview extends PureComponent {
             primaryCurrency={primaryCurrency}
             chainId={chainId}
           />
+          {to && (
+            <View style={styles.accountWrapper}>
+              <AccountFromToInfoCard
+                transactionState={transaction}
+                layout="vertical"
+              />
+            </View>
+          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -480,37 +506,34 @@ class TransactionReview extends PureComponent {
               }
             >
               <View style={styles.actionViewChildren}>
-                <ScrollView>
+                <ScrollView nestedScrollEnabled>
                   <View
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}
                   >
                     <View style={styles.accountInfoCardWrapper}>
-                      <AccountInfoCard />
+                      <TransactionReviewInformation
+                        navigation={navigation}
+                        error={error}
+                        edit={this.edit}
+                        ready={ready}
+                        assetAmount={assetAmount}
+                        fiatValue={fiatValue}
+                        toggleDataView={this.toggleDataView}
+                        over={over}
+                        onCancelPress={this.props.onCancel}
+                        gasEstimateType={gasEstimateType}
+                        EIP1559GasData={EIP1559GasData}
+                        origin={dappSuggestedGas ? url : null}
+                        gasSelected={gasSelected}
+                        originWarning={dappSuggestedGasWarning}
+                        onUpdatingValuesStart={onUpdatingValuesStart}
+                        onUpdatingValuesEnd={onUpdatingValuesEnd}
+                        animateOnChange={animateOnChange}
+                        isAnimating={isAnimating}
+                        multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                      />
                     </View>
-                    <TransactionReviewInformation
-                      navigation={navigation}
-                      error={error}
-                      edit={this.edit}
-                      ready={ready}
-                      assetAmount={assetAmount}
-                      fiatValue={fiatValue}
-                      toggleDataView={this.toggleDataView}
-                      over={over}
-                      onCancelPress={this.props.onCancel}
-                      gasEstimateType={gasEstimateType}
-                      EIP1559GasData={EIP1559GasData}
-                      origin={
-                        dappSuggestedGas ? currentPageInformation?.url : null
-                      }
-                      gasSelected={gasSelected}
-                      originWarning={dappSuggestedGasWarning}
-                      onUpdatingValuesStart={onUpdatingValuesStart}
-                      onUpdatingValuesEnd={onUpdatingValuesEnd}
-                      animateOnChange={animateOnChange}
-                      isAnimating={isAnimating}
-                      multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                    />
                   </View>
                 </ScrollView>
               </View>
@@ -537,7 +560,11 @@ class TransactionReview extends PureComponent {
 
   renderQRDetails() {
     const currentPageInformation = { url: this.getUrlFromBrowser() };
-    const { QRState } = this.props;
+    const {
+      QRState,
+      transaction: { from },
+    } = this.props;
+
     const styles = this.getStyles();
     return (
       <View style={styles.actionViewQRObject}>
@@ -548,6 +575,7 @@ class TransactionReview extends PureComponent {
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     );
@@ -570,8 +598,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   showHexData: state.settings.showHexData,
   transaction: getNormalizedTxState(state),
   browser: state.browser,

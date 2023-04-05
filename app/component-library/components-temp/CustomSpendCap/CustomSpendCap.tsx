@@ -6,8 +6,8 @@ import BigNumber from 'bignumber.js';
 // External dependencies.
 import { useStyles } from '../../hooks';
 import { strings } from '../../../../locales/i18n';
-import ButtonLink from '../../components/Buttons/Button/variants/ButtonLink';
-import Text, { TextVariants } from '../../components/Texts/Text';
+import Button, { ButtonVariants } from '../../components/Buttons/Button';
+import Text, { TextVariant } from '../../components/Texts/Text';
 import formatNumber from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
 import CustomInput from './CustomInput';
@@ -17,7 +17,7 @@ import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 import customSpendCapStyles from './CustomSpendCap.styles';
-import Icon, { IconName, IconSize } from '../../components/Icon';
+import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
 
 const CustomSpendCap = ({
   ticker,
@@ -76,7 +76,7 @@ const CustomSpendCap = ({
   const MAX_VALUE_SELECTED = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
+      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_balance')}
@@ -91,11 +91,11 @@ const CustomSpendCap = ({
   const DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
+      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
+      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(dappValue)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
@@ -105,11 +105,11 @@ const CustomSpendCap = ({
   const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
+      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(accountBalance)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariants.sBodyMDBold} style={styles.description}>
+      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
         {` ${formatNumber(difference)} ${ticker} `}
       </Text>
       {strings('contract_allowance.custom_spend_cap.future_tokens')}
@@ -124,15 +124,15 @@ const CustomSpendCap = ({
     <>
       <Icon
         size={IconSize.Sm}
-        name={IconName.DangerFilled}
+        name={IconName.Danger}
         color={colors.error.default}
       />
-      <Text variant={TextVariants.sBodyMDBold} style={styles.modalTitleDanger}>
+      <Text variant={TextVariant.BodyMDBold} style={styles.modalTitleDanger}>
         {strings('contract_allowance.custom_spend_cap.be_careful')}
       </Text>{' '}
     </>
   ) : (
-    <Text variant={TextVariants.sBodyMDBold} style={styles.modalTitle}>
+    <Text variant={TextVariant.BodyMDBold} style={styles.modalTitle}>
       {strings('contract_allowance.custom_spend_cap.set_spend_cap')}
     </Text>
   );
@@ -151,7 +151,9 @@ const CustomSpendCap = ({
                   )
                 : strings(
                     'contract_allowance.custom_spend_cap.no_value_selected',
-                    { domain },
+                    {
+                      domain,
+                    },
                   )}
             </Text>
           }
@@ -160,28 +162,29 @@ const CustomSpendCap = ({
       ) : null}
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text variant={TextVariants.sBodyMDBold} style={styles.title}>
+          <Text variant={TextVariant.BodyMDBold} style={styles.title}>
             {strings('contract_allowance.custom_spend_cap.title')}
           </Text>
           <Pressable onPress={toggleModal}>
             <Icon
               size={IconSize.Sm}
-              name={
-                defaultValueSelected
-                  ? IconName.DangerFilled
-                  : IconName.QuestionFilled
-              }
+              name={defaultValueSelected ? IconName.Danger : IconName.Question}
               color={
                 defaultValueSelected ? colors.error.default : colors.icon.muted
               }
             />
           </Pressable>
         </View>
-        <ButtonLink onPress={handlePress} textVariants={TextVariants.sBodyMD}>
-          {defaultValueSelected
-            ? strings('contract_allowance.custom_spend_cap.edit')
-            : strings('contract_allowance.custom_spend_cap.use_default')}
-        </ButtonLink>
+        <Button
+          variant={ButtonVariants.Link}
+          onPress={handlePress}
+          textVariant={TextVariant.BodyMD}
+          label={
+            defaultValueSelected
+              ? strings('contract_allowance.custom_spend_cap.edit')
+              : strings('contract_allowance.custom_spend_cap.use_default')
+          }
+        />
       </View>
       <View style={styles.inputContainer}>
         <CustomInput
@@ -194,12 +197,12 @@ const CustomSpendCap = ({
         />
       </View>
       {value.length > 0 && inputHasError && (
-        <Text variant={TextVariants.sBodyMD} style={styles.errorDescription}>
+        <Text variant={TextVariant.BodyMD} style={styles.errorDescription}>
           {strings('contract_allowance.custom_spend_cap.error_enter_number')}
         </Text>
       )}
       <View style={styles.descriptionContainer}>
-        <Text variant={TextVariants.sBodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
           {defaultValueSelected
             ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
             : maxSelected

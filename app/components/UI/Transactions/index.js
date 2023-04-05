@@ -14,22 +14,18 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {
-  getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainnetByChainId,
+  getBlockExplorerAddressUrl,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
@@ -45,6 +41,10 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -57,7 +57,6 @@ const createStyles = (colors) =>
       margin: 0,
     },
     emptyContainer: {
-      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colors.background.default,
@@ -223,7 +222,7 @@ class Transactions extends PureComponent {
   updateBlockExplorer = () => {
     const {
       network: {
-        provider: { type, rpcTarget },
+        providerConfig: { type, rpcTarget },
       },
       frequentRpcList,
     } = this.props;
@@ -339,23 +338,18 @@ class Transactions extends PureComponent {
       navigation,
       network: {
         network,
-        provider: { type },
+        providerConfig: { type },
       },
       selectedAddress,
       close,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      let url;
-      let title;
-      if (type === RPC) {
-        url = `${rpcBlockExplorer}/address/${selectedAddress}`;
-        title = new URL(rpcBlockExplorer).hostname;
-      } else {
-        const networkResult = getNetworkTypeById(network);
-        url = getEtherscanAddressUrl(networkResult, selectedAddress);
-        title = getEtherscanBaseUrl(networkResult).replace('https://', '');
-      }
+      const { url, title } = getBlockExplorerAddressUrl(
+        type,
+        selectedAddress,
+        rpcBlockExplorer,
+      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -379,7 +373,7 @@ class Transactions extends PureComponent {
     const {
       chainId,
       network: {
-        provider: { type },
+        providerConfig: { type },
       },
     } = this.props;
     const blockExplorerText = () => {
@@ -744,7 +738,7 @@ class Transactions extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
@@ -772,7 +766,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
 });
 
 Transactions.contextType = ThemeContext;

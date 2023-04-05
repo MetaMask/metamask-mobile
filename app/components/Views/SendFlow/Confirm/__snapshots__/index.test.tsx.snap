@@ -13,17 +13,6 @@ exports[`Confirm should render correctly 1`] = `
   contractExchangeRates={Object {}}
   conversionRate={1}
   currentCurrency="USD"
-  identities={Object {}}
-  keyrings={
-    Array [
-      Object {
-        "accounts": Array [
-          "0x",
-        ],
-        "type": "HD Key Tree",
-      },
-    ]
-  }
   network="1"
   prepareTransaction={[Function]}
   providerType="mainnet"

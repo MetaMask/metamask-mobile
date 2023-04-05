@@ -11,7 +11,8 @@ import { generateApproveData } from '../util/transactions';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
+import NotificationManager from '../core/NotificationManager';
 import {
   ACTIONS,
   ETH_ACTIONS,
@@ -19,15 +20,18 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
+import { getAddress } from '../util/address';
+
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, frequentRpcList, dispatch, network }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
+    this.network = network;
   }
 
   setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -60,7 +64,7 @@ class DeeplinkManager {
     );
   };
 
-  _approveTransaction = (ethUrl, origin) => {
+  _approveTransaction = async (ethUrl, origin) => {
     const {
       parameters: { address, uint256 },
       target_address,
@@ -83,11 +87,22 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
+    const spenderAddress = await getAddress(address, this.network);
+    if (!spenderAddress) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: strings('transaction.invalid_recipient_description'),
+      });
+      this.navigation.navigate('WalletView');
+    }
+
     const txParams = {
       to: target_address.toString(),
       from: PreferencesController.state.selectedAddress.toString(),
       value: '0x0',
-      data: generateApproveData({ spender: address, value }),
+      data: generateApproveData({ spender: spenderAddress, value }),
     };
 
     TransactionController.addTransaction(
@@ -160,8 +175,8 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
-        this.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-          screen: Routes.BROWSER_VIEW,
+        this.navigation.navigate(Routes.BROWSER.HOME, {
+          screen: Routes.BROWSER.VIEW,
           params: {
             newTabUrl: url,
             timestamp: Date.now(),
@@ -212,14 +227,30 @@ class DeeplinkManager {
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
-                id: params.channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
+            } else if (params.channelId) {
+              const channelExists =
+                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+              if (channelExists) {
+                if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                  // Automatically re-approve hosts.
+                  SDKConnect.getInstance().revalidateChannel({
+                    channelId: params.channelId,
+                  });
+                }
+                SDKConnect.getInstance().reconnect({
+                  channelId: params.channelId,
+                });
+              } else {
+                SDKConnect.getInstance().connectToChannel({
+                  id: params.channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
             }
+            return true;
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
@@ -306,14 +337,30 @@ class DeeplinkManager {
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
-          } else {
-            SDKConnect.connectToChannel({
-              id: params.channelId,
-              commLayer: params.comm,
-              origin,
-              otherPublicKey: params.pubkey,
-            });
+          } else if (params.channelId) {
+            const channelExists =
+              SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+            if (channelExists) {
+              if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                // Automatically re-approve hosts.
+                SDKConnect.getInstance().revalidateChannel({
+                  channelId: params.channelId,
+                });
+              }
+              SDKConnect.getInstance().reconnect({
+                channelId: params.channelId,
+              });
+            } else {
+              SDKConnect.connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
           }
+          return true;
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
@@ -340,8 +387,13 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch }) => {
-    instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
+  init: ({ navigation, frequentRpcList, dispatch, network }) => {
+    instance = new DeeplinkManager({
+      navigation,
+      frequentRpcList,
+      dispatch,
+      network,
+    });
   },
   parse: (url, args) => instance.parse(url, args),
   setDeeplink: (url) => instance.setDeeplink(url),

@@ -717,8 +717,6 @@
     "minimum": "最小 1.00 {{tokenSymbol}}",
     "cancel": "キャンセル",
     "approve": "承認",
-    "allow_to_access": "このサイトに {{tokenSymbol}} にアクセスする許可を与えますか?",
-    "allow_to_address_access": "このアドレスに {{tokenSymbol}} にアクセスする許可を与えますか?",
     "you_trust_this_site": "このサイトを信頼しますか?この許可を与えることで、このサイトが自分の資金にアクセスすることを許可することになります。",
     "you_trust_this_address": "このアドレスを信頼しますか?この許可を与えることで、このアドレスが自分の資金にアクセスすることを許可することになります。",
     "edit_permission": "許可の編集",

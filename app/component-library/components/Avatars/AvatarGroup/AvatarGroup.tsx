@@ -1,11 +1,11 @@
 // Third party dependencies.
-import React, { useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import { AvatarSize } from '../Avatar/Avatar.types';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import AvatarToken from '../Avatar/variants/AvatarToken';
 
 // Internal dependencies.
@@ -26,18 +26,21 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
   const stackWidth = avatarSpacing * (amountOfVisibleAvatars + 1);
   const shouldRenderOverflowCounter = overflowCounter > 0;
 
-  const { styles } = useStyles(styleSheet, { stackWidth });
+  const { styles } = useStyles(styleSheet, {
+    stackWidth,
+    stackHeight: Number(extraSmallSize),
+  });
 
-  const renderTokenList = useMemo(
+  const renderTokenList = useCallback(
     () =>
       tokenList
         .slice(0, MAX_STACKED_AVATARS)
-        .map(({ name, imageSource, id }, index) => {
+        .map(({ name, imageSource }, index) => {
           const leftOffset = avatarSpacing * index;
 
           return (
             <View
-              key={`${name}-${id}`}
+              key={`${name}-${index}`}
               style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
             >
               <AvatarToken
@@ -53,11 +56,11 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
 
   return (
     <View style={styles.base}>
-      <View style={styles.stack}>{renderTokenList}</View>
+      <View style={styles.stack}>{renderTokenList()}</View>
       <View style={styles.overflowCounterWrapper}>
         {shouldRenderOverflowCounter && (
           <Text
-            variant={TextVariants.sBodyMD}
+            variant={TextVariant.BodyMD}
             style={styles.textStyle}
             testID={STACKED_AVATARS_OVERFLOW_COUNTER_ID}
           >{`+${overflowCounter}`}</Text>

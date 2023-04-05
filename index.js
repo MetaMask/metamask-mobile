@@ -1,3 +1,5 @@
+// Needed to polyfill random number generation.
+import 'react-native-get-random-values';
 import './shim.js';
 
 import 'react-native-gesture-handler';
@@ -6,6 +8,7 @@ import 'react-native-url-polyfill/auto';
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
+import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
 import { setupSentry } from './app/util/sentryUtils';
 setupSentry();
 
@@ -61,6 +64,12 @@ LogBox.ignoreLogs([
   'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
 ]);
 
+const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
+// Ignore box logs, usefull for QA testing in development builds
+if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
+  LogBox.ignoreAllLogs();
+}
+
 /* Uncomment and comment regular registration below */
 // import Storybook from './storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
@@ -68,4 +77,4 @@ LogBox.ignoreLogs([
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Root);
+AppRegistry.registerComponent(name, () => Sentry.wrap(Root));

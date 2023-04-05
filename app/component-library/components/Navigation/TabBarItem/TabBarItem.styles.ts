@@ -19,18 +19,13 @@ const styleSheet = (params: {
   theme: Theme;
   vars: TabBarItemStyleSheetVars;
 }) => {
-  const { theme, vars } = params;
-  const { style, isSelected } = vars;
+  const { vars } = params;
+  const { style } = vars;
   return StyleSheet.create({
     base: Object.assign(
       { flex: 1, alignItems: 'center' } as ViewStyle,
       style,
     ) as ViewStyle,
-    label: {
-      color: isSelected
-        ? theme.colors.primary.default
-        : theme.colors.icon.alternative,
-    },
   });
 };
 

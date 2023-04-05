@@ -13,7 +13,7 @@ const initialState = {
         accounts: { '0x2': { balance: '0' } },
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: SEPOLIA,
         },
       },

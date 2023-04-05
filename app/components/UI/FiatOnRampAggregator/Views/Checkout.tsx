@@ -8,7 +8,7 @@ import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
+import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { useFiatOnRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
@@ -25,10 +25,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { hexToBN } from '../../../../util/number';
 import { protectWalletModalVisible } from '../../../../actions/user';
-import {
-  processAggregatorOrder,
-  aggregatorInitialFiatOrder,
-} from '../orderProcessor/aggregator';
+import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { getNotificationDetails } from '..';
 import NotificationManager from '../../../../core/NotificationManager';
@@ -104,12 +101,12 @@ const CheckoutWebView = () => {
     async (token: CryptoCurrency) => {
       if (!token) return;
 
-      const { address, symbol, decimals, network } = token;
+      const { address, symbol, decimals, network, name } = token;
       const chainId = network?.chainId;
 
       if (
         Number(chainId) !== Number(selectedChainId) ||
-        NETWORK_NATIVE_SYMBOL[chainId] === symbol
+        address === NATIVE_ADDRESS
       ) {
         return;
       }
@@ -122,7 +119,7 @@ const CheckoutWebView = () => {
           toLowerCaseEquals(t.address, address),
         )
       ) {
-        await TokensController.addToken(address, symbol, decimals);
+        await TokensController.addToken(address, symbol, decimals, null, name);
       }
     },
     [selectedChainId],
@@ -185,12 +182,12 @@ const CheckoutWebView = () => {
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
       !isRedirectionHandled &&
-      navState?.url.startsWith(callbackBaseUrl) &&
+      navState.url.startsWith(callbackBaseUrl) &&
       navState.loading === false
     ) {
       setIsRedirectionHandled(true);
       try {
-        const parsedUrl = parseUrl(navState?.url);
+        const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
           // There was no query params in the URL to parse
           // Most likely the user clicked the X in Wyre widget
@@ -199,14 +196,15 @@ const CheckoutWebView = () => {
           return;
         }
         const orders = await SDK.orders();
-        const orderId = await orders.getOrderIdFromCallback(
+        const order = await orders.getOrderFromCallback(
           provider.id,
           navState?.url,
+          selectedAddress,
         );
 
-        if (!orderId) {
+        if (!order) {
           throw new Error(
-            `Order ID could not be retrieved. Callback was ${navState?.url}`,
+            `Order could not be retrieved. Callback was ${navState?.url}`,
           );
         }
 
@@ -215,14 +213,7 @@ const CheckoutWebView = () => {
         }
 
         const transformedOrder = {
-          ...(await processAggregatorOrder(
-            aggregatorInitialFiatOrder({
-              id: orderId,
-              account: selectedAddress,
-              network: selectedChainId,
-            }),
-          )),
-          id: orderId,
+          ...aggregatorOrderToFiatOrder(order),
           account: selectedAddress,
           network: selectedChainId,
         };

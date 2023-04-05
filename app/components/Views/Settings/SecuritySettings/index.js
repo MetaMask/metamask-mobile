@@ -8,31 +8,23 @@ import {
   ScrollView,
   View,
   ActivityIndicator,
-  TouchableOpacity,
   Keyboard,
   InteractionManager,
-  Linking,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
-import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import {
-  clearHosts,
-  setPrivacyMode,
-  setThirdPartyApiMode,
-} from '../../../../actions/privacy';
+import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
-import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -42,34 +34,36 @@ import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
   EXISTING_USER,
-  BIOMETRY_CHOICE,
-  PASSCODE_CHOICE,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
-import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
+import { Authentication } from '../../../../core';
+import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
-  REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../constants/test-ids';
-import ClearCookiesSection from './Sections/ClearCookiesSection';
-import { LEARN_MORE_URL } from '../../../../constants/urls';
-import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
-import DeleteWalletData from './Sections/DeleteWalletData';
-import RememberMeOptionSection from './Sections/RememberMeOptionSection';
-import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
-
-const isIos = Device.isIos();
+import {
+  ClearCookiesSection,
+  DeleteMetaMetricsData,
+  DeleteWalletData,
+  RememberMeOptionSection,
+  AutomaticSecurityChecks,
+  ProtectYourWallet,
+  LoginOptionsSettings,
+} from './Sections';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectProviderType } from '../../../../selectors/networkController';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -87,9 +81,6 @@ const createStyles = (colors) =>
       paddingTop: 4,
       marginTop: -4,
     },
-    bump: {
-      marginBottom: 10,
-    },
     heading: {
       fontSize: 24,
       lineHeight: 30,
@@ -101,12 +92,6 @@ const createStyles = (colors) =>
       fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
-    },
-    learnMore: {
-      ...fontStyles.normal,
-      color: colors.primary.default,
-      fontSize: 14,
-      lineHeight: 20,
     },
     switchElement: {
       marginTop: 18,
@@ -162,25 +147,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    warningText: {
-      color: colors.text.default,
-      fontSize: 12,
-      flex: 1,
-      ...fontStyles.normal,
-    },
-    warningTextRed: {
-      color: colors.text.default,
-    },
-    warningTextGreen: {
-      color: colors.text.default,
-    },
-    warningBold: {
-      ...fontStyles.bold,
-      color: colors.primary.default,
-    },
-    viewHint: {
-      padding: 5,
-    },
     switch: {
       alignSelf: 'flex-start',
     },
@@ -197,14 +163,6 @@ const Heading = ({ children, first }) => {
   );
 };
 
-const WarningIcon = () => {
-  const { colors } = useTheme();
-
-  return (
-    <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
-  );
-};
-
 Heading.propTypes = {
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
@@ -213,19 +171,14 @@ Heading.propTypes = {
   first: PropTypes.bool,
 };
 
+const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+const BIOMETRY_CHOICE_STRING = 'biometryChoice';
+
 /**
  * Main view for app configurations
  */
 class Settings extends PureComponent {
   static propTypes = {
-    /**
-     * Indicates whether privacy mode is enabled
-     */
-    privacyMode: PropTypes.bool,
-    /**
-     * Called to toggle privacy mode
-     */
-    setPrivacyMode: PropTypes.func,
     /**
      * Called to toggle set party api mode
      */
@@ -242,14 +195,6 @@ class Settings extends PureComponent {
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
-    /**
-     * Map of hostnames with approved account access
-     */
-    approvedHosts: PropTypes.object,
-    /**
-     * Called to clear all hostnames with account access
-     */
-    clearHosts: PropTypes.func,
     /**
      * Array of visited websites
      */
@@ -303,11 +248,8 @@ class Settings extends PureComponent {
 
   state = {
     approvalModalVisible: false,
-    biometryChoice: null,
-    biometryType: false,
     browserHistoryModalVisible: false,
     analyticsEnabled: false,
-    passcodeChoice: false,
     showHint: false,
     hintText: '',
   };
@@ -373,7 +315,6 @@ class Settings extends PureComponent {
   componentDidMount = async () => {
     this.updateNavBar();
     AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
@@ -381,30 +322,10 @@ class Settings extends PureComponent {
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
-
-    if (biometryType) {
-      let passcodeEnabled = false;
-      const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-      if (!biometryChoice) {
-        const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
-        if (passcodeChoice !== '' && passcodeChoice === TRUE) {
-          passcodeEnabled = true;
-        }
-      }
-      this.setState({
-        biometryType:
-          biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: !!biometryChoice,
-        analyticsEnabled,
-        passcodeChoice: passcodeEnabled,
-        hintText: manualBackup,
-      });
-    } else {
-      this.setState({
-        analyticsEnabled,
-        hintText: manualBackup,
-      });
-    }
+    this.setState({
+      analyticsEnabled,
+      hintText: manualBackup,
+    });
 
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
@@ -414,20 +335,21 @@ class Settings extends PureComponent {
     this.updateNavBar();
   };
 
-  onSingInWithBiometrics = async (enabled) => {
+  setPassword = async (enabled, passwordType) => {
     this.setState({ loading: true }, async () => {
       let credentials;
       try {
-        credentials = await SecureKeychain.getGenericPassword();
+        credentials = await Authentication.getPassword();
       } catch (error) {
         Logger.error(error);
       }
+
       if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'biometryChoice');
+        this.storeCredentials(credentials.password, enabled, passwordType);
       } else {
         this.props.navigation.navigate('EnterPasswordSimple', {
           onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'biometryChoice');
+            this.storeCredentials(password, enabled, passwordType);
           },
         });
       }
@@ -437,29 +359,16 @@ class Settings extends PureComponent {
   isMainnet = () => this.props.type === MAINNET;
 
   onSignInWithPasscode = async (enabled) => {
-    this.setState({ loading: true }, async () => {
-      let credentials;
-      try {
-        credentials = await SecureKeychain.getGenericPassword();
-      } catch (error) {
-        Logger.error(error);
-      }
+    await this.setPassword(enabled, PASSCODE_CHOICE_STRING);
+  };
 
-      if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
-      } else {
-        this.props.navigation.navigate('EnterPasswordSimple', {
-          onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'passcodeChoice');
-          },
-        });
-      }
-    });
+  onSingInWithBiometrics = async (enabled) => {
+    await this.setPassword(enabled, BIOMETRY_CHOICE_STRING);
   };
 
   storeCredentials = async (password, enabled, type) => {
     try {
-      await SecureKeychain.resetGenericPassword();
+      await Authentication.resetPassword();
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
@@ -467,25 +376,29 @@ class Settings extends PureComponent {
 
       if (!enabled) {
         this.setState({ [type]: false, loading: false });
-        if (type === 'passcodeChoice') {
+        if (type === PASSCODE_CHOICE_STRING) {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (type === 'biometryChoice') {
+        } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
       }
 
-      if (type === 'passcodeChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.PASSCODE,
-        );
-      else if (type === 'biometryChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.BIOMETRICS,
-        );
+      try {
+        let authType;
+        if (type === BIOMETRY_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.BIOMETRIC;
+        } else if (type === PASSCODE_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.PASSCODE;
+        } else {
+          authType = AUTHENTICATION_TYPE.PASSWORD;
+        }
+        await Authentication.storePassword(password, authType);
+      } catch (error) {
+        Logger.error(error);
+      }
 
       this.props.passwordSet();
 
@@ -519,17 +432,14 @@ class Settings extends PureComponent {
   };
 
   clearApprovals = () => {
-    this.props.clearHosts();
+    const { PermissionController } = Engine.context;
+    PermissionController?.clearState?.();
     this.toggleClearApprovalsModal();
   };
 
   clearBrowserHistory = () => {
     this.props.clearBrowserHistory();
     this.toggleClearBrowserHistoryModal();
-  };
-
-  togglePrivacy = (value) => {
-    this.props.setPrivacyMode(value);
   };
 
   toggleThirdPartyAPI = (value) => {
@@ -576,32 +486,16 @@ class Settings extends PureComponent {
     }
   };
 
-  goToRevealPrivateCredential = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
-    this.props.navigation.navigate('RevealPrivateCredentialView', {
-      privateCredentialName: 'seed_phrase',
-    });
-  };
-
   goToExportPrivateKey = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
-    this.props.navigation.navigate('RevealPrivateCredentialView', {
-      privateCredentialName: 'private_key',
+    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      credentialName: 'private_key',
+      shouldUpdateNav: true,
     });
   };
 
   selectLockTime = (lockTime) => {
     this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
-  goToBackup = () => {
-    this.props.navigation.navigate('AccountBackupStep1B');
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
-        source: 'Settings',
-      });
-    });
   };
 
   resetPassword = () => {
@@ -644,91 +538,6 @@ class Settings extends PureComponent {
         value={hintText}
         onChangeText={this.handleChangeText}
       />
-    );
-  };
-
-  onBack = () => this.props.navigation.goBack();
-
-  renderProtectYourWalletSection = () => {
-    const { seedphraseBackedUp } = this.props;
-    const { hintText } = this.state;
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={[styles.setting, styles.firstSetting]}>
-        <Text style={[styles.title, styles.bump]}>
-          {!seedphraseBackedUp ? (
-            <>
-              <WarningIcon />{' '}
-            </>
-          ) : null}
-          <Text style={[styles.title, styles.bump]}>
-            {strings('app_settings.protect_title')}
-          </Text>
-        </Text>
-
-        <SeedPhraseVideo onClose={this.onBack} />
-
-        <Text style={styles.desc}>
-          {strings(
-            seedphraseBackedUp
-              ? 'app_settings.protect_desc'
-              : 'app_settings.protect_desc_no_backup',
-          )}
-        </Text>
-
-        {!seedphraseBackedUp && (
-          <TouchableOpacity onPress={() => Linking.openURL(LEARN_MORE_URL)}>
-            <Text style={styles.learnMore}>
-              {strings('app_settings.learn_more')}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        <SettingsNotification isWarning={!seedphraseBackedUp}>
-          <Text
-            style={[
-              styles.warningText,
-              seedphraseBackedUp
-                ? styles.warningTextGreen
-                : styles.warningTextRed,
-              styles.marginLeft,
-            ]}
-          >
-            {strings(
-              seedphraseBackedUp
-                ? 'app_settings.seedphrase_backed_up'
-                : 'app_settings.seedphrase_not_backed_up',
-            )}
-          </Text>
-          {hintText && seedphraseBackedUp ? (
-            <TouchableOpacity style={styles.viewHint} onPress={this.toggleHint}>
-              <Text style={[styles.warningText, styles.warningBold]}>
-                {strings('app_settings.view_hint')}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-        </SettingsNotification>
-
-        {!seedphraseBackedUp ? (
-          <StyledButton
-            type="blue"
-            onPress={this.goToBackup}
-            containerStyle={styles.confirm}
-          >
-            {strings('app_settings.back_up_now')}
-          </StyledButton>
-        ) : (
-          <StyledButton
-            type="normal"
-            onPress={this.goToRevealPrivateCredential}
-            containerStyle={styles.confirm}
-            testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
-          >
-            {strings('reveal_credential.seed_phrase_title')}
-          </StyledButton>
-        )}
-      </View>
     );
   };
 
@@ -776,58 +585,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderBiometricOptionsSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'biometrics-option'}>
-        <Text style={styles.title}>
-          {strings(
-            `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-          )}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={this.state.biometryChoice}
-            onValueChange={this.onSingInWithBiometrics}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  renderDevicePasscodeSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting}>
-        <Text style={styles.title}>
-          {isIos
-            ? strings(`biometrics.enable_device_passcode_ios`)
-            : strings(`biometrics.enable_device_passcode_android`)}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            onValueChange={this.onSignInWithPasscode}
-            value={this.state.passcodeChoice}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
   renderPrivateKeySection = () => {
     const { accounts, identities, selectedAddress } = this.props;
     const account = {
@@ -861,14 +618,10 @@ class Settings extends PureComponent {
   };
 
   renderClearPrivacySection = () => {
-    const { approvedHosts } = this.props;
     const { styles } = this.getStyles();
 
     return (
-      <View
-        style={[styles.setting, styles.firstSetting]}
-        testID={'clear-privacy-section'}
-      >
+      <View style={[styles.setting]} testID={'clear-privacy-section'}>
         <Text style={styles.title}>
           {strings('app_settings.clear_privacy_title')}
         </Text>
@@ -878,7 +631,6 @@ class Settings extends PureComponent {
         <StyledButton
           type="normal"
           onPress={this.toggleClearApprovalsModal}
-          disabled={Object.keys(approvedHosts).length === 0}
           containerStyle={styles.confirm}
         >
           {strings('app_settings.clear_privacy_title')}
@@ -907,33 +659,6 @@ class Settings extends PureComponent {
         >
           {strings('app_settings.clear_browser_history_desc')}
         </StyledButton>
-      </View>
-    );
-  };
-
-  renderPrivacyModeSection = () => {
-    const { privacyMode } = this.props;
-    const { styles, colors } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'privacy-mode-section'}>
-        <Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.privacy_mode_desc')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={privacyMode}
-            onValueChange={this.togglePrivacy}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
       </View>
     );
   };
@@ -997,6 +722,10 @@ class Settings extends PureComponent {
     );
   };
 
+  goToSDKSessionManager = () => {
+    this.props.navigation.navigate('SDKSessionsManager');
+  };
+
   renderApprovalModal = () => {
     const { approvalModalVisible } = this.state;
     const { styles } = this.getStyles();
@@ -1044,6 +773,31 @@ class Settings extends PureComponent {
           </Text>
         </View>
       </ActionModal>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <View
+        style={[styles.setting, styles.firstSetting]}
+        testID={'sdk-section'}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.manage_sdk_connections_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.manage_sdk_connections_text')}
+        </Text>
+        <StyledButton
+          type="normal"
+          containerStyle={styles.confirm}
+          onPress={this.goToSDKSessionManager}
+        >
+          {strings('app_settings.manage_sdk_connections_title')}
+        </StyledButton>
+      </View>
     );
   };
 
@@ -1103,8 +857,16 @@ class Settings extends PureComponent {
     );
   };
 
+  openSRPQuiz = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    });
+  };
+
   render = () => {
-    const { biometryType, biometryChoice, loading } = this.state;
+    const { hintText, loading } = this.state;
+    const { seedphraseBackedUp } = this.props;
     const { styles } = this.getStyles();
 
     if (loading)
@@ -1117,27 +879,32 @@ class Settings extends PureComponent {
     return (
       <ScrollView
         style={styles.wrapper}
-        testID={'security-settings-scrollview'}
+        testID={SECURITY_PRIVACY_VIEW_ID}
+        {...generateTestId(Platform, SECURITY_PRIVACY_VIEW_ID)}
         ref={(view) => {
           this.scrollView = view;
         }}
       >
         <View style={styles.inner}>
           <Heading first>{strings('app_settings.security_heading')}</Heading>
-          {this.renderProtectYourWalletSection()}
+          <ProtectYourWallet
+            srpBackedup={seedphraseBackedUp}
+            hintText={hintText}
+            toggleHint={this.toggleHint}
+          />
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
-          {biometryType && this.renderBiometricOptionsSection()}
+          <LoginOptionsSettings
+            onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
+            onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
+          />
           <RememberMeOptionSection />
-          {biometryType &&
-            !biometryChoice &&
-            this.renderDevicePasscodeSection()}
           {this.renderPrivateKeySection()}
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
+          {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
-          {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
@@ -1156,10 +923,8 @@ class Settings extends PureComponent {
 Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  approvedHosts: state.privacy.approvedHosts,
   browserHistory: state.browser.history,
   lockTime: state.settings.lockTime,
-  privacyMode: state.privacy.privacyMode,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -1172,14 +937,12 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  type: state.engine.backgroundState.NetworkController.provider.type,
+  type: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
   clearBrowserHistory: () => dispatch(clearHistory()),
-  clearHosts: () => dispatch(clearHosts()),
   setLockTime: (lockTime) => dispatch(setLockTime(lockTime)),
-  setPrivacyMode: (enabled) => dispatch(setPrivacyMode(enabled)),
   setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
   passwordSet: () => dispatch(passwordSet()),
 });

@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 
 export const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -24,22 +24,16 @@ export const createStyles = (colors: any) =>
       ...fontStyles.normal,
     },
     seedPhraseView: {
+      marginTop: 10,
+      alignItems: 'center',
       borderRadius: 10,
       borderWidth: 1,
       borderColor: colors.border.default,
-      marginTop: 10,
-      alignItems: 'center',
     },
-    privateCredentialAction: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderColor: colors.primary.default,
-      borderWidth: 1,
-      borderRadius: 20,
+    clipboardButton: {
+      alignSelf: 'center',
       width: '90%',
-      paddingVertical: 10,
-      marginBottom: 15,
+      marginVertical: 5,
     },
     rowWrapper: {
       padding: 20,
@@ -97,11 +91,16 @@ export const createStyles = (colors: any) =>
     tabContent: {
       padding: 20,
     },
+    qrCodeContainer: {
+      padding: 8,
+      backgroundColor: colors.background.default,
+    },
     qrCodeWrapper: {
       marginTop: 20,
-      flex: 1,
-      alignItems: 'center',
+      alignSelf: 'center',
       justifyContent: 'center',
+      padding: 8,
+      backgroundColor: importedColors.white,
     },
     tabUnderlineStyle: {
       height: 2,

@@ -3,17 +3,17 @@ import { View, Image, Platform } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import ButtonTertiary, {
-  ButtonTertiaryVariants,
-} from '../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
-import { ButtonSize } from '../../../component-library/components/Buttons/Button';
-import ButtonPrimary from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { useDispatch } from 'react-redux';
 import {
   setAutomaticSecurityChecks,
@@ -26,8 +26,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
-  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
-} from '../../../../wdio/features/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
+  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
@@ -99,32 +99,35 @@ const EnableAutomaticSecurityChecksModal = () => {
         >
           <Image source={onboardingDeviceImage} />
         </View>
-        <Text variant={TextVariants.lHeadingLG} style={styles.title}>
+        <Text variant={TextVariant.DisplayMD} style={styles.title}>
           {strings('enable_automatic_security_check_modal.title')}
         </Text>
-        <Text variant={TextVariants.sBodyMD} style={styles.description}>
+        <Text variant={TextVariant.BodyMD} style={styles.description}>
           {strings('enable_automatic_security_check_modal.description')}
         </Text>
       </ScrollView>
       <View style={styles.actionButtonWrapper}>
-        <ButtonPrimary
+        <Button
+          variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
           label={strings(
             'enable_automatic_security_check_modal.primary_action',
           )}
           onPress={enableAutomaticSecurityChecks}
           style={styles.actionButton}
         />
-        <ButtonTertiary
+        <Button
+          variant={ButtonVariants.Link}
+          width={ButtonWidthTypes.Full}
           label={strings(
             'enable_automatic_security_check_modal.secondary_action',
           )}
           {...generateTestId(
             Platform,
-            ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON,
+            ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
           )}
           size={ButtonSize.Md}
           onPress={triggerCloseAndDisableAutomaticSecurityChecks}
-          buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         />
       </View>
     </ReusableModal>

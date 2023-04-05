@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from 'react';
 
 import {
   ActivityIndicator,
@@ -9,14 +15,14 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
-import I18n from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
@@ -33,7 +39,7 @@ import {
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import { util } from '@metamask/controllers';
+import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
 import {
@@ -47,8 +53,21 @@ import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
+import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import {
+  selectProviderConfig,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const Stack = createStackNavigator();
 
@@ -114,7 +133,7 @@ const Main = (props) => {
     if (props.providerType !== 'rpc') {
       try {
         const { TransactionController } = Engine.context;
-        await util.query(TransactionController.ethQuery, 'blockNumber', []);
+        await query(TransactionController.ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
@@ -195,6 +214,42 @@ const Main = (props) => {
     if (skipCheckbox) toggleRemindLater();
   };
 
+  /**
+   * Current network
+   */
+  const networkProvider = useSelector(selectProviderConfig);
+  const prevNetworkProvider = useRef(undefined);
+  const { toastRef } = useContext(ToastContext);
+
+  // Show network switch confirmation.
+  useEffect(() => {
+    if (
+      prevNetworkProvider.current &&
+      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
+        networkProvider.type !== prevNetworkProvider.current.type)
+    ) {
+      const { type, chainId } = networkProvider;
+      const networkImage = getNetworkImageSource({
+        networkType: type,
+        chainId,
+      });
+      const networkName = getNetworkNameFromProvider(networkProvider);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: `${networkName} `,
+            isBold: true,
+          },
+          { label: strings('toast.now_active') },
+        ],
+        networkName,
+        networkImageSource: networkImage,
+      });
+    }
+    prevNetworkProvider.current = networkProvider;
+  }, [networkProvider, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
@@ -261,6 +316,16 @@ const Main = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const termsOfUse = useCallback(async () => {
+    if (props.navigation) {
+      await navigateTermsOfUse(props.navigation.navigate);
+    }
+  }, [props.navigation]);
+
+  useEffect(() => {
+    termsOfUse();
+  }, [termsOfUse]);
 
   return (
     <React.Fragment>
@@ -347,8 +412,7 @@ Main.propTypes = {
 const mapStateToProps = (state) => ({
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
-  backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  providerType: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

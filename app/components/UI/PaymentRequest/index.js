@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -40,14 +41,24 @@ import {
 } from '../../../util/payment-link-generator';
 import Device from '../../../util/device';
 import currencySymbols from '../../../util/currency-symbols.json';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/controllers/dist/util';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  REQUEST_AMOUNT_INPUT,
+  REQUEST_SEARCH_ASSET_INPUT,
+  REQUEST_SEARCH_SCREEN,
+} from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -442,7 +453,10 @@ class PaymentRequest extends PureComponent {
       return token;
     });
     return (
-      <View style={baseStyles.flexGrow} testID={'request-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        {...generateTestId(Platform, REQUEST_SEARCH_SCREEN)}
+      >
         <View>
           <Text style={styles.title}>
             {strings('payment_request.choose_asset')}
@@ -468,7 +482,7 @@ class PaymentRequest extends PureComponent {
               returnKeyType="go"
               value={this.state.searchInputValue}
               blurOnSubmit
-              testID={'request-search-asset-input'}
+              {...generateTestId(Platform, REQUEST_SEARCH_ASSET_INPUT)}
               keyboardAppearance={themeAppearance}
             />
             {this.state.searchInputValue ? (
@@ -765,7 +779,7 @@ class PaymentRequest extends PureComponent {
                     value={amount}
                     onSubmitEditing={this.onNext}
                     ref={this.amountInput}
-                    testID={'request-amount-input'}
+                    {...generateTestId(Platform, REQUEST_AMOUNT_INPUT)}
                     keyboardAppearance={themeAppearance}
                   />
                   <Text
@@ -875,8 +889,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   tokens: state.engine.backgroundState.TokensController.tokens,
   primaryCurrency: state.settings.primaryCurrency,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   tokenList: getTokenListArray(state),
 });
 

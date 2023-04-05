@@ -38,21 +38,6 @@ interface InitialAggregatorOrder {
   network: string;
 }
 
-export const aggregatorInitialFiatOrder = (
-  initialOrder: InitialAggregatorOrder,
-) => ({
-  ...initialOrder,
-  state: FIAT_ORDER_STATES.PENDING,
-  provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-  createdAt: Date.now(),
-  amount: null,
-  fee: null,
-  currency: '',
-  cryptoAmount: null,
-  cryptocurrency: '',
-  data: null,
-});
-
 export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   id: aggregatorOrder.id,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -71,8 +56,6 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
   excludeFromPurchases: aggregatorOrder.excludeFromPurchases,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore TODO: remove ignore when upgrading to on-ramp-sdk v1.3.1
   orderType: aggregatorOrder.orderType,
   data: aggregatorOrder,
 });

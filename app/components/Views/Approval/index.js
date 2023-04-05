@@ -25,7 +25,7 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
@@ -35,6 +35,10 @@ import {
   TX_SUBMITTED,
   TX_REJECTED,
 } from '../../../constants/transaction';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -500,9 +504,9 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   showCustomNonce: state.settings.showCustomNonce,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
 });
 

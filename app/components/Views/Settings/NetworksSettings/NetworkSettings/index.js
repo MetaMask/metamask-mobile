@@ -43,6 +43,7 @@ import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
+  NETWORKS_CHAIN_ID,
   PRIVATENETWORK,
   RPC,
 } from '../../../../../constants/network';
@@ -58,6 +59,7 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
+import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
@@ -67,11 +69,13 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
-} from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
   ButtonSize,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -166,6 +170,9 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
       fontSize: 14,
     },
+    tabLabelStyle: {
+      fontSize: scale(11),
+    },
     popularNetworkImage: {
       width: 20,
       height: 20,
@@ -177,7 +184,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     icon: {
-      marginRight: 16,
+      marginRight: moderateScale(12, 1.5),
       marginTop: 4,
     },
     button: {
@@ -237,9 +244,9 @@ class NetworkSettings extends PureComponent {
      */
     isCustomMainnet: PropTypes.bool,
     /**
-     * NetworkController povider object
+     * Current network provider configuration
      */
-    provider: PropTypes.object,
+    providerConfig: PropTypes.object,
   };
 
   state = {
@@ -331,6 +338,9 @@ class NetworkSettings extends PureComponent {
           networkInformation.rpcPrefs.blockExplorerUrl;
         ticker = networkInformation.ticker;
         editable = true;
+        if (networkInformation.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET) {
+          editable = false;
+        }
         rpcUrl = network;
       }
       const initialState =
@@ -484,6 +494,8 @@ class NetworkSettings extends PureComponent {
       ? this.getCustomMainnetRPCURL()
       : route.params?.network;
 
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
@@ -567,7 +579,9 @@ class NetworkSettings extends PureComponent {
       });
       isCustomMainnet
         ? navigation.navigate('OptinMetrics')
-        : navigation.navigate('WalletView');
+        : shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
     }
   };
 
@@ -761,11 +775,11 @@ class NetworkSettings extends PureComponent {
   };
 
   removeRpcUrl = () => {
-    const { navigation, provider } = this.props;
+    const { navigation, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
-      compareSanitizedUrl(rpcUrl, provider.rpcTarget) &&
-      provider.type === RPC
+      compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
+      providerConfig.type === RPC
     ) {
       this.switchToMainnet();
     }
@@ -939,6 +953,7 @@ class NetworkSettings extends PureComponent {
               label={strings('app_settings.networks_default_cta')}
               size={ButtonSize.Lg}
               disabled={isActionDisabled}
+              width={ButtonWidthTypes.Full}
             />
           ) : (
             (addMode || editable) && (
@@ -1023,6 +1038,8 @@ class NetworkSettings extends PureComponent {
   render() {
     const { route } = this.props;
     const network = route.params?.network;
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -1033,6 +1050,7 @@ class NetworkSettings extends PureComponent {
             this.customNetwork(network)
           ) : (
             <ScrollableTabView
+              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;
@@ -1050,6 +1068,9 @@ class NetworkSettings extends PureComponent {
                   toggleWarningModal={this.toggleWarningModal}
                   showNetworkModal={this.showNetworkModal}
                   switchTab={this.tabView}
+                  shouldNetworkSwitchPopToWallet={
+                    shouldNetworkSwitchPopToWallet
+                  }
                 />
               </View>
               <View
@@ -1104,7 +1125,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,

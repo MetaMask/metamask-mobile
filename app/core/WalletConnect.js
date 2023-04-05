@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
 import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
@@ -148,8 +148,8 @@ class WalletConnect {
 
       if (payload.method) {
         const payloadUrl = this.walletConnector.session.peerMeta.url;
-
-        if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+        const payloadHostname = new URL(payloadUrl).hostname;
+        if (payloadHostname === this.backgroundBridge.hostname) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -168,7 +168,9 @@ class WalletConnect {
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
                 chainId: payload.params[0].chainId,
+                isWalletConnect: true,
                 activeAccounts: [selectedAddress],
+                hostname: payloadHostname,
               });
 
               const hash = await (
@@ -276,7 +278,8 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId = Engine.context.NetworkController.state.provider.chainId;
+    const chainId =
+      Engine.context.NetworkController.state.providerConfig.chainId;
     const selectedAddress =
       Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
     const approveData = {
@@ -299,7 +302,7 @@ class WalletConnect {
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
-      url: this.hostname,
+      url: this.url.current,
       isWalletConnect: true,
       wcWalletConnector: this.walletConnector,
       wcRequestActions: {
@@ -312,9 +315,6 @@ class WalletConnect {
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
           navigation: null, //props.navigation,
-          getApprovedHosts: () => null,
-          setApprovedHosts: () => null,
-          approveHost: () => null, //props.approveHost,
           // Website info
           url: this.url,
           title: this.title,

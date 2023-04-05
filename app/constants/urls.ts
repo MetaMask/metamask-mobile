@@ -23,6 +23,9 @@ export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
+export const LINEA_TESTNET_BLOCK_EXPLORER =
+  'https://explorer.goerli.linea.build';
+export const LINEA_TESTNET_RPC_URL = 'https://rpc.goerli.linea.build';
 
 // Phishing
 export const MM_PHISH_DETECT_URL =
@@ -45,3 +48,6 @@ export const MM_APP_STORE_LINK =
   'itms-apps://apps.apple.com/app/metamask-blockchain-wallet/id1438144202';
 
 export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
+
+// SDK
+export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;

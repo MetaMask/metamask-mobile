@@ -5,6 +5,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -42,6 +43,14 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { isTestNet } from '../../../util/networks';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
+import { createWebviewNavDetails } from '../../Views/SimpleWebview';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -221,13 +230,11 @@ class AssetOverview extends PureComponent {
   };
 
   goToBrowserUrl(url) {
-    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-      screen: Routes.BROWSER_VIEW,
-      params: {
-        newTabUrl: url,
-        timestamp: Date.now(),
-      },
-    });
+    this.props.navigation.navigate(
+      ...createWebviewNavDetails({
+        url,
+      }),
+    );
   }
 
   renderLogo = () => {
@@ -337,7 +344,10 @@ class AssetOverview extends PureComponent {
       secondaryBalance = !balanceFiat ? balanceFiat : `${balance} ${symbol}`;
     }
     return (
-      <View style={styles.wrapper} testID={'token-asset-overview'}>
+      <View
+        style={styles.wrapper}
+        {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
+      >
         <View style={styles.assetLogo}>{this.renderLogo()}</View>
         <View style={styles.balance}>
           {balanceError ? (
@@ -374,7 +384,7 @@ class AssetOverview extends PureComponent {
               />
             )}
             <AssetActionButton
-              testID={'token-send-button'}
+              testID={SEND_BUTTON_ID}
               icon="send"
               onPress={this.onSend}
               label={strings('asset_overview.send_button')}
@@ -407,8 +417,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   swapsIsLive: swapsLivenessSelector(state),
   swapsTokens: swapsTokensObjectSelector(state),
   tokenList: getTokenList(state),
