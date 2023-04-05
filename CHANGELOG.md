@@ -1,46 +1,32 @@
 # Changelog
 
 ## Current Main Branch
+
+## 6.3.0 - Apr 05, 2023
 - [#6025](https://github.com/MetaMask/metamask-mobile/pull/6025): [FIX] Add url-parse lib to our MainNavigator
-- [#5942](https://github.com/MetaMask/metamask-mobile/pull/5942): 6.2.0
-- [#6039](https://github.com/MetaMask/metamask-mobile/pull/6039): Improve Android setup instructions
-- [#5996](https://github.com/MetaMask/metamask-mobile/pull/5996): Add document to refactor signature request code
-- [#5961](https://github.com/MetaMask/metamask-mobile/pull/5961): Fix for #5898 - Converting native ETH to fiat and fiat to native ETH results in wrong values beign displayed on the Amount screen
-- [#5958](https://github.com/MetaMask/metamask-mobile/pull/5958): feat: add consensys zkevm (Linea) support
+- [#6039](https://github.com/MetaMask/metamask-mobile/pull/6039): [ENHANCEMENT] Improve Android setup instructions
+- [#5996](https://github.com/MetaMask/metamask-mobile/pull/5996): [ENHANCEMENT] Add document to refactor signature request code
+- [#5961](https://github.com/MetaMask/metamask-mobile/pull/5961): [FIX] #5898 - Converting native ETH to fiat and fiat to native ETH results in wrong values beign displayed on the Amount screen
+- [#5958](https://github.com/MetaMask/metamask-mobile/pull/5958): [FEATURE] add consensys zkevm (Linea) support
 - [#5997](https://github.com/MetaMask/metamask-mobile/pull/5997): [FEATURE] Account selector on swaps screen
-- [#6019](https://github.com/MetaMask/metamask-mobile/pull/6019): On-ramp: Add #6009 strings
-- [#6023](https://github.com/MetaMask/metamask-mobile/pull/6023): disable back press and add margin to the bottom for accept ToU modal
-- [#6016](https://github.com/MetaMask/metamask-mobile/pull/6016): On-ramp: Add accessibility label to custom action images
-- [#6021](https://github.com/MetaMask/metamask-mobile/pull/6021): Revert "Move `eth_sendTransaction` method handler to a separate module (#5968)"
+- [#6019](https://github.com/MetaMask/metamask-mobile/pull/6019): [ENHANCEMENT] On-ramp: Add #6009 strings
+- [#6023](https://github.com/MetaMask/metamask-mobile/pull/6023): [ENHANCEMENT] disable back press and add margin to the bottom for accept ToU modal
+- [#6016](https://github.com/MetaMask/metamask-mobile/pull/6016): [ENHANCEMENT] On-ramp: Add accessibility label to custom action images
 - [#5948](https://github.com/MetaMask/metamask-mobile/pull/5948): [FEATURE] SDK Session Persistence
-- [#5882](https://github.com/MetaMask/metamask-mobile/pull/5882): Skip type checking library declaration files
-- [#5975](https://github.com/MetaMask/metamask-mobile/pull/5975): Fix 18 JS type errors for TSC to output 683 TS/TSX errors
+- [#5882](https://github.com/MetaMask/metamask-mobile/pull/5882): [FIX] Skip type checking library declaration files
+- [#5975](https://github.com/MetaMask/metamask-mobile/pull/5975): [FIX] 18 JS type errors for TSC to output 683 TS/TSX errors
 - [#5910](https://github.com/MetaMask/metamask-mobile/pull/5910): [ENHANCEMENT] E2E Permission system tests
-- [#6013](https://github.com/MetaMask/metamask-mobile/pull/6013): remove sonar config from actions that can be configured in the web portal
-- [#5998](https://github.com/MetaMask/metamask-mobile/pull/5998): Ignore e2e test artifacts
-- [#5839](https://github.com/MetaMask/metamask-mobile/pull/5839): Clear Hex data when Token Transfer reverts ETH
-- [#5930](https://github.com/MetaMask/metamask-mobile/pull/5930): dispaly nft info in browser
-- [#5785](https://github.com/MetaMask/metamask-mobile/pull/5785): feat: add portfolio button to asset action buttons
-- [#5242](https://github.com/MetaMask/metamask-mobile/pull/5242): [IMPLEMENT] Use Terms Modal
-- [#5978](https://github.com/MetaMask/metamask-mobile/pull/5978): fixed iyarc format removed exclusions not needed, added exclusion for production value since the project is stilll maintained
-- [#5931](https://github.com/MetaMask/metamask-mobile/pull/5931): Send to multisig address.
-- [#5941](https://github.com/MetaMask/metamask-mobile/pull/5941): fix: bundle video in app to prevent crash when not available (2nd attempt)
-- [#5968](https://github.com/MetaMask/metamask-mobile/pull/5968): Move `eth_sendTransaction` method handler to a separate module
-- [#5972](https://github.com/MetaMask/metamask-mobile/pull/5972): [UPDATE] sonar action configuration
-- [#5967](https://github.com/MetaMask/metamask-mobile/pull/5967): [UPDATE] pin sonar action to commit
-- [#5902](https://github.com/MetaMask/metamask-mobile/pull/5902): improv: add workflow triggers for tags on release and QA
-- [#5952](https://github.com/MetaMask/metamask-mobile/pull/5952): Extract test accounts to env vars
-- [#5669](https://github.com/MetaMask/metamask-mobile/pull/5669): Bump http-cache-semantics from 4.1.0 to 4.1.1
-- [#5959](https://github.com/MetaMask/metamask-mobile/pull/5959): Bump @xmldom/xmldom from 0.8.3 to 0.8.6
+- [#5839](https://github.com/MetaMask/metamask-mobile/pull/5839): [FIX] Clear Hex data when Token Transfer reverts ETH
+- [#5930](https://github.com/MetaMask/metamask-mobile/pull/5930): [ENHANCEMENT] dispaly nft info in browser
+- [#5785](https://github.com/MetaMask/metamask-mobile/pull/5785): [FEATURE] add portfolio button to asset action buttons
+- [#5242](https://github.com/MetaMask/metamask-mobile/pull/5242): [FEATURE] Use Terms Modal
+- [#5941](https://github.com/MetaMask/metamask-mobile/pull/5941): [FIX] bundle video in app to prevent crash when not available
+- [#5669](https://github.com/MetaMask/metamask-mobile/pull/5669): [UPDATE] http-cache-semantics from 4.1.0 to 4.1.1
+- [#5959](https://github.com/MetaMask/metamask-mobile/pull/5959): [UPDATE] @xmldom/xmldom from 0.8.3 to 0.8.6
 - [#5962](https://github.com/MetaMask/metamask-mobile/pull/5962): [FIX] Remove select address as a prop on App index.js
-- [#5964](https://github.com/MetaMask/metamask-mobile/pull/5964): Added translations for MC 0.5
-- [#5960](https://github.com/MetaMask/metamask-mobile/pull/5960): switch to nativeevent
-- [#4421](https://github.com/MetaMask/metamask-mobile/pull/4421): Vault corruption recovery flow
-- [#5949](https://github.com/MetaMask/metamask-mobile/pull/5949): INFRA-837: Add sonar integration
-- [#5327](https://github.com/MetaMask/metamask-mobile/pull/5327): Verify Contract Details
-- [#5947](https://github.com/MetaMask/metamask-mobile/pull/5947): E2E Establish performance baseline
-- [#5953](https://github.com/MetaMask/metamask-mobile/pull/5953): Update 6.1.2 changelog
-- [#5782](https://github.com/MetaMask/metamask-mobile/pull/5782): Upgrade on-ramp-sdk to 1.9.0
+- [#5964](https://github.com/MetaMask/metamask-mobile/pull/5964): [FEATURE] Added translations for MC 0.5
+- [#4421](https://github.com/MetaMask/metamask-mobile/pull/4421): [FEATURE] Vault corruption recovery flow
+- [#5327](https://github.com/MetaMask/metamask-mobile/pull/5327): [FEATURE] Verify Contract Details
 
 ## 6.2.0 - Mar 21, 2023
 - [#5890](https://github.com/MetaMask/metamask-mobile/pull/5890): [FIX] Swap with wallet connect
