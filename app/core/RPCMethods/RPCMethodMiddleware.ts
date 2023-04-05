@@ -46,7 +46,7 @@ interface RPCMethodsMiddleParameters {
   // Wizard
   wizardScrollAdjusted: { current: boolean };
   // For the browser
-  tabId: string;
+  tabId: number | '' | false;
   // For WalletConnect
   isWalletConnect: boolean;
   // For MM SDK
@@ -326,10 +326,14 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
+        const { TransactionController } = Engine.context;
         return RPCMethods.eth_sendTransaction({
-          next,
+          hostname,
           req,
           res,
+          sendTransaction: TransactionController.addTransaction.bind(
+            TransactionController,
+          ),
           validateAccountAndChainId: async ({
             from,
             chainId,
