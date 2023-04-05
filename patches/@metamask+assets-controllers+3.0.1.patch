@@ -1,62 +1,5 @@
-diff --git a/node_modules/@metamask/assets-controllers/.DS_Store b/node_modules/@metamask/assets-controllers/.DS_Store
-new file mode 100644
-index 0000000..ac03fdc
-Binary files /dev/null and b/node_modules/@metamask/assets-controllers/.DS_Store differ
-diff --git a/node_modules/@metamask/assets-controllers/dist/.DS_Store b/node_modules/@metamask/assets-controllers/dist/.DS_Store
-new file mode 100644
-index 0000000..5008ddf
-Binary files /dev/null and b/node_modules/@metamask/assets-controllers/dist/.DS_Store differ
-diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
-index 04ac0f0..a4cbcdd 100644
---- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
-+++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
-@@ -43,6 +43,8 @@ export declare class AccountTrackerController extends BaseController<AccountTrac
-      */
-     name: string;
-     private getIdentities;
-+    private getSelectedAddress;
-+    private getMultiAccountBalancesEnabled;
-     /**
-      * Creates an AccountTracker instance.
-      *
-@@ -52,9 +54,11 @@ export declare class AccountTrackerController extends BaseController<AccountTrac
-      * @param config - Initial options used to configure this controller.
-      * @param state - Initial state to set on this controller.
-      */
--    constructor({ onPreferencesStateChange, getIdentities, }: {
-+    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled, }: {
-         onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
-         getIdentities: () => PreferencesState['identities'];
-+        getSelectedAddress: () => PreferencesState['selectedAddress'];
-+        getMultiAccountBalancesEnabled: () => PreferencesState['isMultiAccountBalancesEnabled'];
-     }, config?: Partial<AccountTrackerConfig>, state?: Partial<AccountTrackerState>);
-     /**
-      * Sets a new provider.
-@@ -72,9 +76,21 @@ export declare class AccountTrackerController extends BaseController<AccountTrac
-      */
-     poll(interval?: number): Promise<void>;
-     /**
--     * Refreshes all accounts in the current keychain.
-+     * Refreshes the balances of the accounts depending on the multi-account setting.
-+     * If multi-account is disabled, only updates the selected account balance.
-+     * If multi-account is enabled, updates balances for all accounts.
-+     *
-+     * @async
-      */
-     refresh: () => Promise<void>;
-+    /**
-+     * Fetches the balance of a given address from the blockchain.
-+     *
-+     * @async
-+     * @param {string} address - The account address to fetch the balance for.
-+     * @returns {Promise<string>} - A promise that resolves to the balance in a hex string format.
-+     */
-+    getBalanceFromChain(address: string): Promise<string>;
-     /**
-      * Sync accounts balances with some additional addresses.
-      *
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..df75992 100644
+index 130e3dc..0cff0e2 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -64,7 +7,7 @@ index 130e3dc..df75992 100644
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ onPreferencesStateChange, getIdentities, }, config, state) {
-+    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled, }, config, state) {
++    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled,  }, config, state) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
@@ -78,7 +21,7 @@ index 130e3dc..df75992 100644
 +         * If multi-account is enabled, updates balances for all accounts.
 +         *
 +         * @async
-          */
+          */ 
          this.refresh = () => __awaiter(this, void 0, void 0, function* () {
              this.syncAccounts();
              const accounts = Object.assign({}, this.state.accounts);
@@ -99,7 +42,7 @@ index 130e3dc..df75992 100644
 +                accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
              }
              this.update({ accounts });
-         });
+         }); 
 @@ -57,6 +67,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
          this.defaultState = { accounts: {} };
          this.initialize();
@@ -132,143 +75,3 @@ index 130e3dc..df75992 100644
      /**
       * Sync accounts balances with some additional addresses.
       *
-diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js.map b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js.map
-index 2193eed..b4451e6 100644
---- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js.map
-+++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js.map
-@@ -1 +1 @@
--{"version":3,"file":"AccountTrackerController.js","sourceRoot":"","sources":["../src/AccountTrackerController.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;AAAA,0DAAiC;AACjC,6CAAoC;AACpC,+DAImC;AAEnC,iEAIoC;AAiCpC;;GAEG;AACH,MAAa,wBAAyB,SAAQ,gCAG7C;IAkCC;;;;;;;;OAQG;IACH,YACE,EACE,wBAAwB,EACxB,aAAa,GAMd,EACD,MAAsC,EACtC,KAAoC;QAEpC,KAAK,CAAC,MAAM,EAAE,KAAK,CAAC,CAAC;QArDf,UAAK,GAAG,IAAI,mBAAK,EAAE,CAAC;QAwB5B;;WAEG;QACM,SAAI,GAAG,0BAA0B,CAAC;QAsE3C;;WAEG;QACH,YAAO,GAAG,GAAS,EAAE;YACnB,IAAI,CAAC,YAAY,EAAE,CAAC;YACpB,MAAM,QAAQ,qBAAQ,IAAI,CAAC,KAAK,CAAC,QAAQ,CAAE,CAAC;YAC5C,KAAK,MAAM,OAAO,IAAI,QAAQ,EAAE;gBAC9B,MAAM,IAAA,2CAAwB,EAAC,GAAS,EAAE;oBACxC,MAAM,OAAO,GAAG,MAAM,IAAA,wBAAK,EAAC,IAAI,CAAC,QAAQ,EAAE,YAAY,EAAE,CAAC,OAAO,CAAC,CAAC,CAAC;oBACpE,QAAQ,CAAC,OAAO,CAAC,GAAG,EAAE,OAAO,EAAE,IAAA,0BAAO,EAAC,OAAO,CAAC,EAAE,CAAC;gBACpD,CAAC,CAAA,CAAC,CAAC;aACJ;YACD,IAAI,CAAC,MAAM,CAAC,EAAE,QAAQ,EAAE,CAAC,CAAC;QAC5B,CAAC,CAAA,CAAC;QAxDA,IAAI,CAAC,aAAa,GAAG;YACnB,QAAQ,EAAE,KAAK;SAChB,CAAC;QACF,IAAI,CAAC,YAAY,GAAG,EAAE,QAAQ,EAAE,EAAE,EAAE,CAAC;QACrC,IAAI,CAAC,UAAU,EAAE,CAAC;QAClB,IAAI,CAAC,aAAa,GAAG,aAAa,CAAC;QACnC,wBAAwB,CAAC,GAAG,EAAE;YAC5B,IAAI,CAAC,OAAO,EAAE,CAAC;QACjB,CAAC,CAAC,CAAC;QACH,IAAI,CAAC,IAAI,EAAE,CAAC;IACd,CAAC;IA5DO,YAAY;QAClB,MAAM,EAAE,QAAQ,EAAE,GAAG,IAAI,CAAC,KAAK,CAAC;QAChC,MAAM,SAAS,GAAG,MAAM,CAAC,IAAI,CAAC,IAAI,CAAC,aAAa,EAAE,CAAC,CAAC;QACpD,MAAM,QAAQ,GAAG,MAAM,CAAC,IAAI,CAAC,QAAQ,CAAC,CAAC;QACvC,MAAM,YAAY,GAAG,SAAS,CAAC,MAAM,CACnC,CAAC,OAAO,EAAE,EAAE,CAAC,QAAQ,CAAC,OAAO,CAAC,OAAO,CAAC,KAAK,CAAC,CAAC,CAC9C,CAAC;QACF,MAAM,YAAY,GAAG,QAAQ,CAAC,MAAM,CAClC,CAAC,OAAO,EAAE,EAAE,CAAC,SAAS,CAAC,OAAO,CAAC,OAAO,CAAC,KAAK,CAAC,CAAC,CAC/C,CAAC;QACF,YAAY,CAAC,OAAO,CAAC,CAAC,OAAO,EAAE,EAAE;YAC/B,QAAQ,CAAC,OAAO,CAAC,GAAG,EAAE,OAAO,EAAE,KAAK,EAAE,CAAC;QACzC,CAAC,CAAC,CAAC;QAEH,YAAY,CAAC,OAAO,CAAC,CAAC,OAAO,EAAE,EAAE;YAC/B,OAAO,QAAQ,CAAC,OAAO,CAAC,CAAC;QAC3B,CAAC,CAAC,CAAC;QACH,IAAI,CAAC,MAAM,CAAC,EAAE,QAAQ,oBAAO,QAAQ,CAAE,EAAE,CAAC,CAAC;IAC7C,CAAC;IA4CD;;;;;;OAMG;IACH,IAAI,QAAQ,CAAC,QAAa;QACxB,IAAI,CAAC,QAAQ,GAAG,IAAI,mBAAQ,CAAC,QAAQ,CAAC,CAAC;IACzC,CAAC;IAED,IAAI,QAAQ;QACV,MAAM,IAAI,KAAK,CAAC,gCAAgC,CAAC,CAAC;IACpD,CAAC;IAED;;;;OAIG;IACG,IAAI,CAAC,QAAiB;;YAC1B,MAAM,WAAW,GAAG,MAAM,IAAI,CAAC,KAAK,CAAC,OAAO,EAAE,CAAC;YAC/C,QAAQ,IAAI,IAAI,CAAC,SAAS,CAAC,EAAE,QAAQ,EAAE,EAAE,KAAK,EAAE,KAAK,CAAC,CAAC;YACvD,IAAI,CAAC,MAAM,IAAI,YAAY,CAAC,IAAI,CAAC,MAAM,CAAC,CAAC;YACzC,MAAM,IAAI,CAAC,OAAO,EAAE,CAAC;YACrB,IAAI,CAAC,MAAM,GAAG,UAAU,CAAC,GAAG,EAAE;gBAC5B,WAAW,EAAE,CAAC;gBACd,IAAI,CAAC,IAAI,CAAC,IAAI,CAAC,MAAM,CAAC,QAAQ,CAAC,CAAC;YAClC,CAAC,EAAE,IAAI,CAAC,MAAM,CAAC,QAAQ,CAAC,CAAC;QAC3B,CAAC;KAAA;IAiBD;;;;;OAKG;IACG,wBAAwB,CAC5B,SAAmB;;YAEnB,OAAO,MAAM,OAAO,CAAC,GAAG,CACtB,SAAS,CAAC,GAAG,CAAC,CAAC,OAAO,EAAyC,EAAE;gBAC/D,OAAO,IAAA,2CAAwB,EAAC,GAAS,EAAE;oBACzC,MAAM,OAAO,GAAG,MAAM,IAAA,wBAAK,EAAC,IAAI,CAAC,QAAQ,EAAE,YAAY,EAAE,CAAC,OAAO,CAAC,CAAC,CAAC;oBACpE,OAAO,CAAC,OAAO,EAAE,OAAO,CAAC,CAAC;gBAC5B,CAAC,CAAA,CAAC,CAAC;YACL,CAAC,CAAC,CACH,CAAC,IAAI,CAAC,CAAC,KAAK,EAAE,EAAE;gBACf,OAAO,KAAK,CAAC,MAAM,CAAC,CAAC,GAAG,EAAE,IAAI,EAAE,EAAE;oBAChC,IAAI,CAAC,IAAI,EAAE;wBACT,OAAO,GAAG,CAAC;qBACZ;oBAED,MAAM,CAAC,OAAO,EAAE,OAAO,CAAC,GAAG,IAAI,CAAC;oBAChC,uCACK,GAAG,KACN,CAAC,OAAO,CAAC,EAAE;4BACT,OAAO;yBACR,IACD;gBACJ,CAAC,EAAE,EAAE,CAAC,CAAC;YACT,CAAC,CAAC,CAAC;QACL,CAAC;KAAA;CACF;AAtJD,4DAsJC;AAED,kBAAe,wBAAwB,CAAC","sourcesContent":["import EthQuery from 'eth-query';\nimport { Mutex } from 'async-mutex';\nimport {\n  BaseConfig,\n  BaseController,\n  BaseState,\n} from '@metamask/base-controller';\nimport { PreferencesState } from '@metamask/preferences-controller';\nimport {\n  BNToHex,\n  query,\n  safelyExecuteWithTimeout,\n} from '@metamask/controller-utils';\n\n/**\n * @type AccountInformation\n *\n * Account information object\n * @property balance - Hex string of an account balancec in wei\n */\nexport interface AccountInformation {\n  balance: string;\n}\n\n/**\n * @type AccountTrackerConfig\n *\n * Account tracker controller configuration\n * @property provider - Provider used to create a new underlying EthQuery instance\n */\nexport interface AccountTrackerConfig extends BaseConfig {\n  interval: number;\n  provider?: any;\n}\n\n/**\n * @type AccountTrackerState\n *\n * Account tracker controller state\n * @property accounts - Map of addresses to account information\n */\nexport interface AccountTrackerState extends BaseState {\n  accounts: { [address: string]: AccountInformation };\n}\n\n/**\n * Controller that tracks the network balances for all user accounts.\n */\nexport class AccountTrackerController extends BaseController<\n  AccountTrackerConfig,\n  AccountTrackerState\n> {\n  private ethQuery: any;\n\n  private mutex = new Mutex();\n\n  private handle?: ReturnType<typeof setTimeout>;\n\n  private syncAccounts() {\n    const { accounts } = this.state;\n    const addresses = Object.keys(this.getIdentities());\n    const existing = Object.keys(accounts);\n    const newAddresses = addresses.filter(\n      (address) => existing.indexOf(address) === -1,\n    );\n    const oldAddresses = existing.filter(\n      (address) => addresses.indexOf(address) === -1,\n    );\n    newAddresses.forEach((address) => {\n      accounts[address] = { balance: '0x0' };\n    });\n\n    oldAddresses.forEach((address) => {\n      delete accounts[address];\n    });\n    this.update({ accounts: { ...accounts } });\n  }\n\n  /**\n   * Name of this controller used during composition\n   */\n  override name = 'AccountTrackerController';\n\n  private getIdentities: () => PreferencesState['identities'];\n\n  /**\n   * Creates an AccountTracker instance.\n   *\n   * @param options - The controller options.\n   * @param options.onPreferencesStateChange - Allows subscribing to preference controller state changes.\n   * @param options.getIdentities - Gets the identities from the Preferences store.\n   * @param config - Initial options used to configure this controller.\n   * @param state - Initial state to set on this controller.\n   */\n  constructor(\n    {\n      onPreferencesStateChange,\n      getIdentities,\n    }: {\n      onPreferencesStateChange: (\n        listener: (preferencesState: PreferencesState) => void,\n      ) => void;\n      getIdentities: () => PreferencesState['identities'];\n    },\n    config?: Partial<AccountTrackerConfig>,\n    state?: Partial<AccountTrackerState>,\n  ) {\n    super(config, state);\n    this.defaultConfig = {\n      interval: 10000,\n    };\n    this.defaultState = { accounts: {} };\n    this.initialize();\n    this.getIdentities = getIdentities;\n    onPreferencesStateChange(() => {\n      this.refresh();\n    });\n    this.poll();\n  }\n\n  /**\n   * Sets a new provider.\n   *\n   * TODO: Replace this wth a method.\n   *\n   * @param provider - Provider used to create a new underlying EthQuery instance.\n   */\n  set provider(provider: any) {\n    this.ethQuery = new EthQuery(provider);\n  }\n\n  get provider() {\n    throw new Error('Property only used for setting');\n  }\n\n  /**\n   * Starts a new polling interval.\n   *\n   * @param interval - Polling interval trigger a 'refresh'.\n   */\n  async poll(interval?: number): Promise<void> {\n    const releaseLock = await this.mutex.acquire();\n    interval && this.configure({ interval }, false, false);\n    this.handle && clearTimeout(this.handle);\n    await this.refresh();\n    this.handle = setTimeout(() => {\n      releaseLock();\n      this.poll(this.config.interval);\n    }, this.config.interval);\n  }\n\n  /**\n   * Refreshes all accounts in the current keychain.\n   */\n  refresh = async () => {\n    this.syncAccounts();\n    const accounts = { ...this.state.accounts };\n    for (const address in accounts) {\n      await safelyExecuteWithTimeout(async () => {\n        const balance = await query(this.ethQuery, 'getBalance', [address]);\n        accounts[address] = { balance: BNToHex(balance) };\n      });\n    }\n    this.update({ accounts });\n  };\n\n  /**\n   * Sync accounts balances with some additional addresses.\n   *\n   * @param addresses - the additional addresses, may be hardware wallet addresses.\n   * @returns accounts - addresses with synced balance\n   */\n  async syncBalanceWithAddresses(\n    addresses: string[],\n  ): Promise<Record<string, { balance: string }>> {\n    return await Promise.all(\n      addresses.map((address): Promise<[string, string] | undefined> => {\n        return safelyExecuteWithTimeout(async () => {\n          const balance = await query(this.ethQuery, 'getBalance', [address]);\n          return [address, balance];\n        });\n      }),\n    ).then((value) => {\n      return value.reduce((obj, item) => {\n        if (!item) {\n          return obj;\n        }\n\n        const [address, balance] = item;\n        return {\n          ...obj,\n          [address]: {\n            balance,\n          },\n        };\n      }, {});\n    });\n  }\n}\n\nexport default AccountTrackerController;\n"]}
-\ No newline at end of file
-+{"version":3,"file":"AccountTrackerController.js","sourceRoot":"","sources":["../src/AccountTrackerController.ts"],"names":[],"mappings":"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","sourcesContent":["import EthQuery from 'eth-query';\nimport { Mutex } from 'async-mutex';\nimport {\n  BaseConfig,\n  BaseController,\n  BaseState,\n} from '@metamask/base-controller';\nimport { PreferencesState } from '@metamask/preferences-controller';\nimport {\n  BNToHex,\n  query,\n  safelyExecuteWithTimeout,\n} from '@metamask/controller-utils';\n\n/**\n * @type AccountInformation\n *\n * Account information object\n * @property balance - Hex string of an account balancec in wei\n */\nexport interface AccountInformation {\n  balance: string;\n}\n\n/**\n * @type AccountTrackerConfig\n *\n * Account tracker controller configuration\n * @property provider - Provider used to create a new underlying EthQuery instance\n */\nexport interface AccountTrackerConfig extends BaseConfig {\n  interval: number;\n  provider?: any;\n}\n\n/**\n * @type AccountTrackerState\n *\n * Account tracker controller state\n * @property accounts - Map of addresses to account information\n */\nexport interface AccountTrackerState extends BaseState {\n  accounts: { [address: string]: AccountInformation };\n}\n\n/**\n * Controller that tracks the network balances for all user accounts.\n */\nexport class AccountTrackerController extends BaseController<\n  AccountTrackerConfig,\n  AccountTrackerState\n> {\n  private ethQuery: any;\n\n  private mutex = new Mutex();\n\n  private handle?: ReturnType<typeof setTimeout>;\n\n  private syncAccounts() {\n    const { accounts } = this.state;\n    const addresses = Object.keys(this.getIdentities());\n    const existing = Object.keys(accounts);\n    const newAddresses = addresses.filter(\n      (address) => existing.indexOf(address) === -1,\n    );\n    const oldAddresses = existing.filter(\n      (address) => addresses.indexOf(address) === -1,\n    );\n    newAddresses.forEach((address) => {\n      accounts[address] = { balance: '0x0' };\n    });\n\n    oldAddresses.forEach((address) => {\n      delete accounts[address];\n    });\n    this.update({ accounts: { ...accounts } });\n  }\n\n  /**\n   * Name of this controller used during composition\n   */\n  override name = 'AccountTrackerController';\n\n  private getIdentities: () => PreferencesState['identities'];\n  private getSelectedAddress: () => PreferencesState['selectedAddress'];\n  private getMultiAccountBalancesEnabled: () => PreferencesState['isMultiAccountBalancesEnabled'];\n  /**\n   * Creates an AccountTracker instance.\n   *\n   * @param options - The controller options.\n   * @param options.onPreferencesStateChange - Allows subscribing to preference controller state changes.\n   * @param options.getIdentities - Gets the identities from the Preferences store.\n   * @param config - Initial options used to configure this controller.\n   * @param state - Initial state to set on this controller.\n   */\n  constructor(\n    {\n      onPreferencesStateChange,\n      getIdentities,\n      getSelectedAddress,\n      getMultiAccountBalancesEnabled,\n    }: {\n      onPreferencesStateChange: (\n        listener: (preferencesState: PreferencesState) => void,\n      ) => void;\n      getIdentities: () => PreferencesState['identities'];\n      getSelectedAddress: () => PreferencesState['selectedAddress'];\n      getMultiAccountBalancesEnabled: () => PreferencesState['isMultiAccountBalancesEnabled'];\n    },\n    config?: Partial<AccountTrackerConfig>,\n    state?: Partial<AccountTrackerState>,\n  ) {\n    super(config, state);\n    this.defaultConfig = {\n      interval: 10000,\n    };\n    this.defaultState = { accounts: {} };\n    this.initialize();\n    this.getIdentities = getIdentities;\n    this.getSelectedAddress = getSelectedAddress;\n    this.getMultiAccountBalancesEnabled = getMultiAccountBalancesEnabled;\n    onPreferencesStateChange(() => {\n      this.refresh();\n    });\n    this.poll();\n  }\n\n  /**\n   * Sets a new provider.\n   *\n   * TODO: Replace this wth a method.\n   *\n   * @param provider - Provider used to create a new underlying EthQuery instance.\n   */\n  set provider(provider: any) {\n    this.ethQuery = new EthQuery(provider);\n  }\n\n  get provider() {\n    throw new Error('Property only used for setting');\n  }\n\n  /**\n   * Starts a new polling interval.\n   *\n   * @param interval - Polling interval trigger a 'refresh'.\n   */\n  async poll(interval?: number): Promise<void> {\n    const releaseLock = await this.mutex.acquire();\n    interval && this.configure({ interval }, false, false);\n    this.handle && clearTimeout(this.handle);\n    await this.refresh();\n    this.handle = setTimeout(() => {\n      releaseLock();\n      this.poll(this.config.interval);\n    }, this.config.interval);\n  }\n\n  /**\n   * Refreshes the balances of the accounts depending on the multi-account setting.\n   * If multi-account is disabled, only updates the selected account balance.\n   * If multi-account is enabled, updates balances for all accounts.\n   *\n   * @async\n   */\n  refresh = async () => {\n    this.syncAccounts();\n    const accounts = { ...this.state.accounts };\n    const isMultiAccountBalancesEnabled = this.getMultiAccountBalancesEnabled();\n\n    if (!isMultiAccountBalancesEnabled) {\n      const selectedAddress = this.getSelectedAddress();\n      const balance = await this.getBalanceFromChain(selectedAddress);\n      accounts[selectedAddress] = { balance: BNToHex(balance) };\n      this.update({ accounts });\n      return;\n    }\n\n    for (const address in accounts) {\n      const balance = await this.getBalanceFromChain(address);\n      accounts[address] = { balance: BNToHex(balance) };\n    }\n\n    this.update({ accounts });\n  };\n\n  /**\n   * Fetches the balance of a given address from the blockchain.\n   *\n   * @async\n   * @param {string} address - The account address to fetch the balance for.\n   * @returns {Promise<string>} - A promise that resolves to the balance in a hex string format.\n   */\n  async getBalanceFromChain(address: string): Promise<string> {\n    let balance = '0x0';\n\n    await safelyExecuteWithTimeout(async () => {\n      balance = await query(this.ethQuery, 'getBalance', [address]);\n    });\n\n    return balance;\n  }\n\n  /**\n   * Sync accounts balances with some additional addresses.\n   *\n   * @param addresses - the additional addresses, may be hardware wallet addresses.\n   * @returns accounts - addresses with synced balance\n   */\n  async syncBalanceWithAddresses(\n    addresses: string[],\n  ): Promise<Record<string, { balance: string }>> {\n    return await Promise.all(\n      addresses.map((address): Promise<[string, string] | undefined> => {\n        return safelyExecuteWithTimeout(async () => {\n          const balance = await query(this.ethQuery, 'getBalance', [address]);\n          return [address, balance];\n        });\n      }),\n    ).then((value) => {\n      return value.reduce((obj, item) => {\n        if (!item) {\n          return obj;\n        }\n\n        const [address, balance] = item;\n        return {\n          ...obj,\n          [address]: {\n            balance,\n          },\n        };\n      }, {});\n    });\n  }\n}\n\nexport default AccountTrackerController\n"]}
-\ No newline at end of file
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..4e0cdfb 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
-+++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-@@ -182,6 +182,79 @@ class TokensController extends base_controller_1.BaseController {
-             }
-         });
-     }
-+
-+
-+     /**
-+     * Adds a token to the stored token list for a specific wallet.
-+     * TODO - Should consolidate this with addToken method since much of the logic is similar.
-+     *
-+     * @param params - Params used for adding token to an account address.
-+     * @param params.accountAddress - Account address to add the token to.
-+     * @param params.token - Token to add.
-+     * @param params.token.address - Hex address of the token contract.
-+     * @param params.token.symbol - Symbol of the token.
-+     * @param params.token.decimals - Number of decimals the token uses.
-+     * @param params.token.image - Image of the token.
-+     * @returns Current token list.
-+     */
-+    addTokenToAccount({ accountAddress, token: { address, symbol, decimals, image } }) {
-+            return __awaiter(this, void 0, void 0, function* () {
-+                const currentChainId = this.config.chainId;
-+                const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
-+                const releaseLock = yield this.mutex.acquire();
-+                try {
-+                    address = (0, controller_utils_1.toChecksumHexAddress)(address);
-+                    const tokens = allTokens[currentChainId]?.[accountAddress] || [];
-+                    const ignoredTokens = allIgnoredTokens[currentChainId]?.[accountAddress] || [];
-+                    const detectedTokens = allDetectedTokens[currentChainId]?.[accountAddress] || [];
-+                    const newTokens = [...tokens];
-+                    const [isERC721, tokenMetadata] = yield Promise.all([
-+                        this._detectIsERC721(address),
-+                        this.fetchTokenMetadata(address),
-+                    ]);
-+                    if (currentChainId !== this.config.chainId) {
-+                        throw new Error('TokensController Error: Switched networks while adding token');
-+                    }
-+                    const newEntry = {
-+                        address,
-+                        symbol,
-+                        decimals,
-+                        image: image ||
-+                            (0, assetsUtil_1.formatIconUrlWithProxy)({
-+                                chainId: this.config.chainId,
-+                                tokenAddress: address,
-+                            }),
-+                        isERC721,
-+                        aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
-+                    };
-+                    const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
-+                    if (previousEntry) {
-+                        const previousIndex = newTokens.indexOf(previousEntry);
-+                        newTokens[previousIndex] = newEntry;
-+                    }
-+                    else {
-+                        newTokens.push(newEntry);
-+                    }
-+                    const newIgnoredTokens = ignoredTokens.filter((tokenAddress) => tokenAddress.toLowerCase() !== address.toLowerCase());
-+                    const newDetectedTokens = detectedTokens.filter((token) => token.address.toLowerCase() !== address.toLowerCase());
-+                    const { newAllTokens, newAllIgnoredTokens, newAllDetectedTokens } = this._getNewAllTokensState({
-+                        newTokens,
-+                        newIgnoredTokens,
-+                        newDetectedTokens,
-+                        detectionAddress: accountAddress,
-+                    });
-+                    this.update({
-+                        allTokens: newAllTokens,
-+                        allIgnoredTokens: newAllIgnoredTokens,
-+                        allDetectedTokens: newAllDetectedTokens,
-+                    });
-+                    return newTokens;
-+                }
-+                finally {
-+                    releaseLock();
-+                }
-+            });
-+        }
-     /**
-      * Add a batch of tokens.
-      *
-@@ -402,9 +475,10 @@ class TokensController extends base_controller_1.BaseController {
-      *
-      * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
-      * @param type - The asset type.
-+     * @param interactingAddress - The account that is interacting with the Dapp.
-      * @returns Object containing a Promise resolving to the suggestedAsset address if accepted.
-      */
--    watchAsset(asset, type) {
-+    watchAsset(asset, type, interactingAddress) {
-         return __awaiter(this, void 0, void 0, function* () {
-             const suggestedAssetMeta = {
-                 asset,
-@@ -412,6 +486,7 @@ class TokensController extends base_controller_1.BaseController {
-                 status: SuggestedAssetStatus.pending,
-                 time: Date.now(),
-                 type,
-+                interactingAddress
-             };
-             try {
-                 switch (type) {
-@@ -454,9 +529,12 @@ class TokensController extends base_controller_1.BaseController {
-      * A `<suggestedAssetMeta.id>:finished` hub event is fired after accepted or failure.
-      *
-      * @param suggestedAssetID - The ID of the suggestedAsset to accept.
-+     * @param interactingAddress - The account address that interacted with asset that is being watched.
-      */
--    acceptWatchAsset(suggestedAssetID) {
-+    acceptWatchAsset(suggestedAssetID, interactingAddress) {
-         return __awaiter(this, void 0, void 0, function* () {
-+            const { selectedAddress } = this.config;
-+            const isAddingOnWalletAccount = interactingAddress ? interactingAddress === selectedAddress : true;
-             const { suggestedAssets } = this.state;
-             const index = suggestedAssets.findIndex(({ id }) => suggestedAssetID === id);
-             const suggestedAssetMeta = suggestedAssets[index];
-@@ -464,7 +542,11 @@ class TokensController extends base_controller_1.BaseController {
-                 switch (suggestedAssetMeta.type) {
-                     case 'ERC20':
-                         const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
--                        yield this.addToken(address, symbol, decimals, image);
-+                        if (isAddingOnWalletAccount) {
-+                            yield this.addToken(address, symbol, decimals, image);
-+                        } else {
-+                            yield this.addTokenToAccount({ accountAddress: interactingAddress, token: { address, symbol, decimals, image } });
-+                        }
-                         suggestedAssetMeta.status = SuggestedAssetStatus.accepted;
-                         this.hub.emit(`${suggestedAssetMeta.id}:finished`, suggestedAssetMeta);
-                         break;
