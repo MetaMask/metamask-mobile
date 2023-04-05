@@ -33,6 +33,7 @@
 		2E32B0B929C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
 		2E32B0BA29C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
 		2E74440729BC0B7D00F6125B /* RNTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440629BC0B7D00F6125B /* RNTar.swift */; };
+		2E74441029BC0CE100F6125B /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440F29BC0CE100F6125B /* RNTar.m */; };
 		34CEE49BC79D411687B42FA9 /* Roboto-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */; };
 		373454C575C84C24B0BB24D4 /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		39D0D096A0F340ABAC1A8565 /* EuclidCircularB-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */; };
@@ -1076,6 +1077,7 @@
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				2E32B0B929C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
+				2E74441029BC0CE100F6125B /* RNTar.m in Sources */,
 				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
