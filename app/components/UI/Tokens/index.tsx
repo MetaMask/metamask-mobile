@@ -5,6 +5,8 @@ import {
   View,
   InteractionManager,
   Platform,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
@@ -13,6 +15,7 @@ import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
+  renderFiat,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -61,7 +64,19 @@ import createStyles from './styles';
 import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
-import { TokenI, TokensI } from './types';
+import AppConstants from '../../../core/AppConstants';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+
+import {
+  PORTFOLIO_BUTTON,
+  TOTAL_BALANCE_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
+
+import { BrowserTab, TokenI, TokensI } from './types';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -69,6 +84,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const actionSheet = useRef<ActionSheet>();
 
@@ -105,6 +121,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.useTokenDetection,
   );
+  const browserTabs = useSelector((state: any) => state.browser.tabs);
 
   const renderEmpty = () => (
     <View style={styles.emptyView}>
@@ -343,6 +360,81 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
+  const onRefresh = async () => {
+    requestAnimationFrame(async () => {
+      setRefreshing(true);
+
+      const {
+        TokenDetectionController,
+        AccountTrackerController,
+        CurrencyRateController,
+        TokenRatesController,
+      } = Engine.context;
+      const actions = [
+        TokenDetectionController.detectTokens(),
+        AccountTrackerController.refresh(),
+        CurrencyRateController.start(),
+        TokenRatesController.poll(),
+      ];
+      await Promise.all(actions);
+      setRefreshing(false);
+    });
+  };
+
+  const renderNetworth = () => {
+    const fiatBalance = `${renderFiat(
+      Engine.getTotalFiatAccountBalance(),
+      currentCurrency,
+    )}`;
+
+    const onOpenPortfolio = () => {
+      const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
+        tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+      );
+      let existingTabId;
+      let newTabUrl;
+      if (existingPortfolioTab) {
+        existingTabId = existingPortfolioTab.id;
+      } else {
+        newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+      }
+      const params = {
+        ...(newTabUrl && { newTabUrl }),
+        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+        timestamp: Date.now(),
+      };
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params,
+      });
+      Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+        portfolioUrl: AppConstants.PORTFOLIO_URL,
+      });
+    };
+
+    return (
+      <View style={styles.networth}>
+        <Text
+          style={styles.fiatBalance}
+          {...generateTestId(Platform, TOTAL_BALANCE_TEXT)}
+        >
+          {fiatBalance}
+        </Text>
+        <TouchableOpacity
+          onPress={onOpenPortfolio}
+          style={styles.portfolioLink}
+          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
+        >
+          <Icon
+            color={IconColor.Primary}
+            name={IconName.Diagram}
+            size={IconSize.Md}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const renderList = () => {
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
@@ -352,12 +444,27 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       : tokens;
 
     return (
-      <View>
-        {tokensToDisplay.map((item) => renderItem(item))}
-        {renderTokensDetectedSection()}
-        {renderBuyButton()}
-        {renderFooter()}
-      </View>
+      <FlatList
+        ListHeaderComponent={renderNetworth()}
+        data={tokensToDisplay}
+        renderItem={({ item }) => renderItem(item)}
+        keyExtractor={(_, index) => index.toString()}
+        ListFooterComponent={() => (
+          <>
+            {renderTokensDetectedSection()}
+            {renderBuyButton()}
+            {renderFooter()}
+          </>
+        )}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      />
     );
   };
 
