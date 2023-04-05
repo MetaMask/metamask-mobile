@@ -17,7 +17,7 @@ const initialState = {
         identities: { '0x2': { address: '0x2', name: 'Account 1' } },
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: SEPOLIA,
         },
       },

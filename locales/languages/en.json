@@ -976,7 +976,6 @@
     "mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'.",
     "fiat_conversion_not_available": "Fiat conversions are not available at this moment",
     "hex_data_copied": "Hex data copied to clipboard",
-    "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid"
   },
