@@ -3,9 +3,7 @@ package io.metamask;
 import com.facebook.react.ReactApplication;
 import com.cmcewen.blurview.BlurViewPackage;
 import com.brentvatne.react.ReactVideoPackage;
-import android.content.Context;
 import com.facebook.react.PackageList;
-import com.facebook.react.ReactInstanceManager;
 import com.airbnb.android.react.lottie.LottiePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchModule;
@@ -13,7 +11,8 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import cl.json.ShareApplication;
-import java.lang.reflect.InvocationTargetException;
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
+import com.facebook.react.defaults.DefaultReactNativeHost;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 import android.webkit.WebView;
@@ -27,7 +26,7 @@ import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
 
-	private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+	private final ReactNativeHost mReactNativeHost = new DefaultReactNativeHost(this) {
 		@Override
 		public boolean getUseDeveloperSupport() {
 			return BuildConfig.DEBUG;
@@ -44,6 +43,15 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 			return packages;
 		}
+
+    @Override
+    protected boolean isNewArchEnabled() {
+      return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+    }
+    @Override
+    protected Boolean isHermesEnabled() {
+      return BuildConfig.IS_HERMES_ENABLED;
+    }
 
 		@Override
 		protected String getJSMainModuleName() {
@@ -79,40 +87,13 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		}
 
 		SoLoader.init(this, /* native exopackage */ false);
-		initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+    if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
+      // If you opted-in for the New Architecture, we load the native entry point for this app.
+      DefaultNewArchitectureEntryPoint.load();
     }
 
-	/**
-   * Loads Flipper in React Native templates. Call this in the onCreate method with something like
-   * initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
-   *
-   * @param context
-   * @param reactInstanceManager
-   */
-  private static void initializeFlipper(
-      Context context, ReactInstanceManager reactInstanceManager) {
-    if (BuildConfig.DEBUG) {
-      try {
-        /*
-         We use reflection here to pick up the class that initializes Flipper,
-        since Flipper library is not available in release mode
-        */
-        Class<?> aClass = Class.forName("com.flipper.ReactNativeFlipper");
-        aClass
-            .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
-            .invoke(null, context, reactInstanceManager);
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      } catch (NoSuchMethodException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
-    }
+    ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
-
 
 	@Override
 	public String getFileProviderAuthority() {
