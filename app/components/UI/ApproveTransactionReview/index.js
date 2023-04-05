@@ -724,8 +724,8 @@ class ApproveTransactionReview extends PureComponent {
                   {tokenStandard === ERC20 && (
                     <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
                   )}
-                  {(tokenStandard === ERC721 || tokenStandard === ERC1155) &&
-                    (hasBlockExplorer ? (
+                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                    hasBlockExplorer ? (
                       <ButtonLink
                         onPress={showBlockExplorer}
                         label={
@@ -739,7 +739,8 @@ class ApproveTransactionReview extends PureComponent {
                       />
                     ) : (
                       <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
-                    ))}
+                    )
+                  ) : null}
                 </Text>
 
                 {tokenStandard !== ERC721 &&
