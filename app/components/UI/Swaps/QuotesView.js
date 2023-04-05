@@ -340,8 +340,8 @@ async function addTokenToAssetsController(newToken) {
       toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
-    const { address, symbol, decimals } = newToken;
-    await TokensController.addToken(address, symbol, decimals);
+    const { address, symbol, decimals, name } = newToken;
+    await TokensController.addToken(address, symbol, decimals, null, name);
   }
 }
 
