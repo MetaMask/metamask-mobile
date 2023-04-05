@@ -2,11 +2,10 @@
 @ChainScenarios
 @regression
 
-Feature: Adding Networks via the popular and custom networks flow
-  A user should be able to add a custom network via the popular network flow
-  A user should also have the ability to a add custom network via the custom network flow.
+Feature: Sending ETH to an Externally Owned Account (EOA)
+  A user should be able to send ETH to another EOA address.
 
-  Scenario Outline: Adding a network via the custom network flow
+  Scenario Outline: Setting up Ganache local network
     Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
@@ -30,26 +29,24 @@ Feature: Adding Networks via the popular and custom networks flow
 
     Examples:
       | Network        | rpcUrl                 | ChainID | Symbol |
-      | Localhost 8545 | http://localhost:8545 | 1337    | ETH    |
+      | Localhost 8545 | http://localhost:8545  | 1337    | ETH    |
 
-  Scenario Outline: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
+  Scenario Outline: Sending ETH to an EOA from inside MetaMask wallet
     When On the Main Wallet view I tap "Send"
+    And I enter address "<Address>" in the sender's input box
+    When I tap button "Next" on Send To view
+    Then I proceed to the amount view
 
-    When I enter address "<Address>" in the sender's input box
-    And I tap on button with text "Add this address to your address book"
-    Then On the Address book modal Cancel button is enabled
+    When I type amount "<Amount>" into amount input field
+    And I tap button "Next" on the Amount view
+    Then I should be taken to the transaction confirmation view
+    And the token amount <Amount> to be sent is visible
 
-    When I enter in a contact name "<ContactName>"
-    Then the Save button becomes enabled
+    When I tap button "Send" on Confirm Amount view
+    Then Sending token takes me to main wallet view
+    And the transaction is submitted with Transaction Complete! toast appearing
 
-    When I tap the Save button
-    And the contact name "<ContactName>" appears in the senders input box above the contact address
-    And I navigate to the main wallet screen
-    And I tap burger icon
-    And I tap on "Settings" in the menu
-    And In settings I tap on "Contacts"
-    Then the saved contact "<ContactName>" should appear
 
     Examples:
-      | Address                                    | ContactName |
-      | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | TestAlias   |
+      | Address                                    | Amount |
+      | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | 1      |

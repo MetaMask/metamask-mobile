@@ -80,7 +80,7 @@ export const config = {
        appPackage: "io.appium.android.apis",
        appActivity: ".view.TextFields",
        automationName: "UiAutomator2"
-       ***/ 
+       ***/
     },
   ],
   //
