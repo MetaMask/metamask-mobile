@@ -34,7 +34,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
 
   const handleShowAlert = (config: {
     isVisible: boolean;
-    autoDismiss: number;
+    autodismiss: number;
     content: string;
     data: { msg: string };
   }) => dispatch(showAlert(config));
