@@ -597,7 +597,7 @@ app:
       VERSION_NAME: 6.2.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1093
+      VERSION_NUMBER: 1096
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
