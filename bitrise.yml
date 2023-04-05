@@ -453,14 +453,15 @@ workflows:
                 yarn test:wdio:android:browserstack
       - script@1:
           is_always_run: true
+          is_skippable: false
           title: Add tests reports to Bitrise
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
       - deploy-to-bitrise-io@1:
-          is_always_run: false
-          is_skippable: true
+          is_always_run: true
+          is_skippable: false
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
