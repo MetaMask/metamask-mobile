@@ -210,6 +210,18 @@ workflows:
                 METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
           title: Detox Build & Test
           is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test report files
   start_e2e_tests:
     steps:
       - build-router-start@0:
