@@ -1,8 +1,8 @@
-import type {
-  AsyncJsonRpcEngineNextCallback,
-  JsonRpcRequest,
-  PendingJsonRpcResponse,
-} from 'json-rpc-engine';
+import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import {
+  TransactionController,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 /**
@@ -49,24 +49,29 @@ const hasProperty = <
  * Handle a `eth_sendTransaction` request.
  *
  * @param args - Named arguments.
- * @param args.checkActiveAccountAndChainId - A function that validates the account and chain ID
- * used in the transaction.
+ * @param args.hostname - The hostname associated with this request.
  * @param args.req - The JSON-RPC request.
  * @param args.res - The JSON-RPC response.
+ * @param args.sendTransaction - A function that requests approval for the given transaction, then
+ * signs the transaction and broadcasts it.
+ * @param args.validateAccountAndChainId - A function that validates the account and chain ID
+ * used in the transaction.
  */
 async function eth_sendTransaction({
-  next,
+  hostname,
   req,
-  res: _res,
+  res,
+  sendTransaction,
   validateAccountAndChainId,
 }: {
+  hostname: string;
+  req: JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' };
+  res: PendingJsonRpcResponse<unknown>;
+  sendTransaction: TransactionController['addTransaction'];
   validateAccountAndChainId: (args: {
     from: string;
     chainId?: number;
   }) => Promise<void>;
-  next: AsyncJsonRpcEngineNextCallback;
-  req: JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' };
-  res: PendingJsonRpcResponse<unknown>;
 }) {
   if (
     !Array.isArray(req.params) &&
@@ -87,8 +92,11 @@ async function eth_sendTransaction({
     chainId: req.params[0].chainId,
   });
 
-  // This is handled later in the network middleware
-  next();
+  const hash = await (
+    await sendTransaction(req.params[0], hostname, WalletDevice.MM_MOBILE)
+  ).result;
+
+  res.result = hash;
 }
 
 export default eth_sendTransaction;
