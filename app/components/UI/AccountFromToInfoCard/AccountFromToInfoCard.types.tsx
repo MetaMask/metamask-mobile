@@ -32,7 +32,6 @@ export interface Transaction {
 
 export interface AccountFromToInfoCardProps {
   accounts: Accounts;
-  addressBook: Record<string, Record<string, string>>;
   contractBalances: Record<string, number>;
   identities: Identities;
   network: string;

@@ -22,49 +22,11 @@ const createStyles = (colors: any) =>
       color: colors.primary.default,
       fontSize: 16,
       alignSelf: 'center',
+      marginTop: 30,
+      marginBottom: 30,
     },
     myAccountsTouchable: {
       padding: 28,
-    },
-    addToAddressBookRoot: {
-      flex: 1,
-      padding: 24,
-    },
-    addToAddressBookWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    addTextTitle: {
-      ...fontStyles.normal,
-      fontSize: 24,
-      color: colors.text.default,
-      marginBottom: 24,
-    },
-    addTextSubtitle: {
-      ...fontStyles.normal,
-      fontSize: 16,
-      color: colors.text.alternative,
-      marginBottom: 24,
-    },
-    addTextInput: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 20,
-    },
-    addInputWrapper: {
-      flexDirection: 'row',
-      borderWidth: 1,
-      borderRadius: 8,
-      borderColor: colors.border.default,
-      height: 50,
-      width: '100%',
-    },
-    input: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 6,
-      width: '100%',
     },
     nextActionWrapper: {
       flex: 1,
