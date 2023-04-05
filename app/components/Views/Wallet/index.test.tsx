@@ -23,6 +23,9 @@ jest.mock('../../../core/Engine', () => ({
       allNfts: { '0x': { '1': [] } },
       allNftContracts: { '0x': { '1': [] } },
     },
+    TokenRatesController: {
+      poll: jest.fn(),
+    },
   },
 }));
 

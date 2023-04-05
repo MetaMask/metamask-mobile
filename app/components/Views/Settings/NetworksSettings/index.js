@@ -38,8 +38,8 @@ import {
   AvatarVariants,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
