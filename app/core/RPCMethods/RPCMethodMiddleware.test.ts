@@ -604,4 +604,119 @@ describe('getRpcMethodMiddleware', () => {
       );
     });
   });
+
+  describe('personal_ecRecover', () => {
+    const helloWorldAddress = '0x29c76e6ad8f28bb1004902578fb108c507be341b';
+    // This is a signature of the message "Hello, world!" that was created using the private key of
+    // the helloWorldAddress account
+    const helloWorldSignature =
+      '0x90a938f7457df6e8f741264c32697fc52f9a8f867c52dd70713d9d2d472f2e415d9c94148991bbe1f4a1818d1dff09165782749c877f5cf1eff4ef126e55714d1c';
+    const helloWorldMessage = `0x${Buffer.from('Hello, world!').toString(
+      'hex',
+    )}`;
+
+    it('recovers the address of a signature', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_ecRecover',
+        params: [helloWorldMessage, helloWorldSignature],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect((response as JsonRpcSuccess<string>).result).toBe(
+        helloWorldAddress,
+      );
+    });
+
+    it('returns the wrong address if the wrong data is provided', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_ecRecover',
+        params: ['another message', helloWorldSignature],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect((response as JsonRpcSuccess<string>).result).toBeTruthy();
+      expect((response as JsonRpcSuccess<string>).result).not.toBe(
+        helloWorldAddress,
+      );
+    });
+
+    it('returns a JSON-RPC error if the signature is missing', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_ecRecover',
+        params: [helloWorldMessage],
+      };
+      const expectedError = ethErrors.rpc.internal(
+        'Missing signature parameter',
+      );
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('returns a JSON-RPC error if the data is missing', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_ecRecover',
+        params: [undefined, helloWorldSignature],
+      };
+      const expectedError = ethErrors.rpc.internal('Missing data parameter');
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+  });
+
+  describe('parity_checkRequest', () => {
+    it('returns null', async () => {
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'parity_checkRequest',
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect((response as JsonRpcSuccess<string>).result).toBeNull();
+    });
+  });
 });
