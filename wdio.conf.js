@@ -262,10 +262,11 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  before: function (capabilities) {
+  before: async function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+    await ganacheServer.start();
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -293,8 +294,6 @@ export const config = {
     if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
       await driver.launchApp();
     }
-    await ganacheServer.start();
-    console.log("ACCOUNTS", await ganacheServer.getAccounts())
   },
   /**
    *
@@ -332,7 +331,6 @@ export const config = {
     if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
       await driver.closeApp();
     }
-    await ganacheServer.quit();
   },
   /**
    *
@@ -359,11 +357,12 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  // after: function (result, capabilities) {
+  after: async function (result, capabilities) {
+    await ganacheServer.quit();
   // if (capabilities.bundleId) {
   //   driver.terminateApp(capabilities.bundleId)
   // }
-  // },
+  },
   /**
    * Gets executed right after terminating the webdriver session.
    * @param {Object} config wdio configuration object

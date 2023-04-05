@@ -31,3 +31,25 @@ Feature: Adding Networks via the popular and custom networks flow
     Examples:
       | Network        | rpcUrl                 | ChainID | Symbol |
       | Localhost 8545 | http://localhost:8545 | 1337    | ETH    |
+
+  Scenario Outline: A user adds an address to their contacts from the send flow and confirms it is visible on the contacts view
+    When On the Main Wallet view I tap "Send"
+
+    When I enter address "<Address>" in the sender's input box
+    And I tap on button with text "Add this address to your address book"
+    Then On the Address book modal Cancel button is enabled
+
+    When I enter in a contact name "<ContactName>"
+    Then the Save button becomes enabled
+
+    When I tap the Save button
+    And the contact name "<ContactName>" appears in the senders input box above the contact address
+    And I navigate to the main wallet screen
+    And I tap burger icon
+    And I tap on "Settings" in the menu
+    And In settings I tap on "Contacts"
+    Then the saved contact "<ContactName>" should appear
+
+    Examples:
+      | Address                                    | ContactName |
+      | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | TestAlias   |
