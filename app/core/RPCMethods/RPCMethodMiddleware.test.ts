@@ -247,6 +247,143 @@ describe('getRpcMethodMiddleware', () => {
     expect(response.result).toBe('success');
   });
 
+  const accountMethods = [
+    'eth_accounts',
+    'eth_coinbase',
+    'parity_defaultAccount',
+  ];
+  for (const method of accountMethods) {
+    describe(method, () => {
+      describe('browser', () => {
+        it('returns permitted accounts for connected site', async () => {
+          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          setupGlobalState({
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
+          });
+          const middleware = getRpcMethodMiddleware({
+            ...getMinimalBrowserOptions(),
+            hostname: 'example.metamask.io',
+          });
+          const request = {
+            jsonrpc,
+            id: 1,
+            method,
+          };
+
+          const response = await callMiddleware({ middleware, request });
+
+          expect((response as JsonRpcFailure).error).toBeUndefined();
+          expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
+            mockAddress1,
+          ]);
+        });
+
+        it('returns an empty array for an unconnected site', async () => {
+          const mockAddress = '0x0000000000000000000000000000000000000001';
+          setupGlobalState({
+            permittedAccounts: {},
+            selectedAddress: mockAddress,
+          });
+          const middleware = getRpcMethodMiddleware({
+            ...getMinimalBrowserOptions(),
+            hostname: 'example.metamask.io',
+          });
+          const request = {
+            jsonrpc,
+            id: 1,
+            method,
+          };
+
+          const response = await callMiddleware({ middleware, request });
+
+          expect((response as JsonRpcFailure).error).toBeUndefined();
+          expect((response as JsonRpcSuccess<string>).result).toStrictEqual([]);
+        });
+      });
+
+      describe('WalletConnect', () => {
+        it('returns the selected account', async () => {
+          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          setupGlobalState({
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
+          });
+          const middleware = getRpcMethodMiddleware({
+            ...getMinimalWalletConnectOptions(),
+            hostname: 'example.metamask.io',
+          });
+          const request = {
+            jsonrpc,
+            id: 1,
+            method,
+          };
+
+          const response = await callMiddleware({ middleware, request });
+
+          expect((response as JsonRpcFailure).error).toBeUndefined();
+          expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
+            mockAddress2,
+          ]);
+        });
+      });
+
+      describe('SDK', () => {
+        it('returns the selected account for an approved host', async () => {
+          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          setupGlobalState({
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
+          });
+          const middleware = getRpcMethodMiddleware({
+            ...getMinimalSDKOptions(),
+            hostname: 'example.metamask.io',
+            getApprovedHosts: () => ({ 'example.metamask.io': true }),
+          });
+          const request = {
+            jsonrpc,
+            id: 1,
+            method,
+          };
+
+          const response = await callMiddleware({ middleware, request });
+
+          expect((response as JsonRpcFailure).error).toBeUndefined();
+          expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
+            mockAddress2,
+          ]);
+        });
+
+        it('returns an empty array for an unapproved host', async () => {
+          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          setupGlobalState({
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
+          });
+          const middleware = getRpcMethodMiddleware({
+            ...getMinimalSDKOptions(),
+            hostname: 'example.metamask.io',
+            getApprovedHosts: () => ({}),
+          });
+          const request = {
+            jsonrpc,
+            id: 1,
+            method,
+          };
+
+          const response = await callMiddleware({ middleware, request });
+
+          expect((response as JsonRpcFailure).error).toBeUndefined();
+          expect((response as JsonRpcSuccess<string>).result).toStrictEqual([]);
+        });
+      });
+    });
+  }
+
   describe('eth_sendTransaction', () => {
     describe('browser', () => {
       it('sends the transaction and returns the resulting hash', async () => {
