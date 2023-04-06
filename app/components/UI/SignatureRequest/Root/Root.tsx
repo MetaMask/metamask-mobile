@@ -13,6 +13,12 @@ import TypedSign from '../../../UI/TypedSign';
 
 import { MessageInfo, MessageParams, PageMeta } from '../types';
 
+enum MessageType {
+  ETH = 'eth',
+  Personal = 'personal',
+  Typed = 'typed',
+}
+
 const styles = StyleSheet.create({
   bottomModal: {
     justifyContent: 'flex-end',
@@ -20,7 +26,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// todo: fix type
 const Root = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -58,21 +63,21 @@ const Root = () => {
     Engine.context.MessageManager.hub.on(
       'unapprovedMessage',
       (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, 'eth');
+        onUnapprovedMessage(messageParams, MessageType.ETH);
       },
     );
 
     Engine.context.PersonalMessageManager.hub.on(
       'unapprovedMessage',
       (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, 'personal');
+        onUnapprovedMessage(messageParams, MessageType.Personal);
       },
     );
 
     Engine.context.TypedMessageManager.hub.on(
       'unapprovedMessage',
       (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, 'typed');
+        onUnapprovedMessage(messageParams, MessageType.Typed);
       },
     );
 
@@ -105,7 +110,7 @@ const Root = () => {
       swipeDirection={'down'}
       propagateSwipe
     >
-      {signType === 'personal' && (
+      {signType === MessageType.Personal && (
         <PersonalSign
           messageParams={signMessageParams}
           onCancel={onSignAction}
@@ -115,7 +120,7 @@ const Root = () => {
           showExpandedMessage={showExpandedMessage}
         />
       )}
-      {signType === 'typed' && (
+      {signType === MessageType.Typed && (
         <TypedSign
           navigation={navigation}
           messageParams={signMessageParams}
@@ -126,7 +131,7 @@ const Root = () => {
           showExpandedMessage={showExpandedMessage}
         />
       )}
-      {signType === 'eth' && (
+      {signType === MessageType.ETH && (
         <MessageSign
           navigation={navigation}
           messageParams={signMessageParams}
