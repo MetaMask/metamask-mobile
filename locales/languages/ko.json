@@ -2004,14 +2004,18 @@
   },
   "whats_new": {
     "title": "새롭게 바뀐 사항을 확인하세요",
-    "feature_token_detection_title": "토큰 감지 기능이 개선되었습니다",
-    "feature_token_detection_description": "개선된 토큰 감지 기능은 현재 Ethereum Mainnet, Polygon, BSC 및 Avalanche 네트워크에서 사용할 수 있습니다. 더 많은 네트워크가 지원될 예정입니다!\n\n토큰은 타사 토큰 목록에서 소싱하고 있습니다. 2개 이상의 목록에 등재된 토큰은 자동으로 감지됩니다.\n\n토큰 감지 기능은 기본으로 활성화되어 있습니다. 기능은 설정에서 비활성화할 수 있습니다.",
-    "feature_token_detection_button_text": "설정으로 이동하기",
-    "feature_token_security_title_1": "사기 및 보안 위험",
-    "feature_token_security_description_1": "토큰은 누구나 만들 수 있기에 이름이 중복될 수도 있습니다. 신뢰할 수 없거나 이용한 적이 없는 토큰이 표시될 경우 주의해 주세요.",
-    "feature_token_security_title_2": "길게 눌러 토큰 숨기기",
-    "feature_token_security_description_2": "MetaMask 모바일 앱에서는 언제든지 토큰을 길게 누르고 '숨기기(Hide)'를 선택하여 토큰을 숨길 수 있습니다.",
-    "feature_token_security_button_text": "시작하기!"
+    "slides_button": "암호화폐 구매",
+    "slide_1_subtitle": "중앙화 거래소는 잊으세요. MetaMask로 암호화폐 구매가 더욱 쉬워졌습니다.",
+    "slide_1_body_1": "MetaMask 지갑에 직접 자금을 예치하세요. MetaMask를 통해 법정화폐로 암호화폐를 더욱 쉽게 구매할 수 있도록 새로운 협력사와 현지 결제 방법을 온보딩했습니다.",
+    "slide_1_body_2": "L2 등 8개의 서로 다른 네트워크에서 189개 국가 화폐가 지원됩니다. 선호하는 결제 옵션을 선택하고 가장 적합한 견적을 선택하세요.",
+    "slide_2_subtitle": "인도 사용자 여러분!",
+    "slide_2_body_1": "인도 사용자는 이제 UPI와 IMPS에 액세스하여 더욱 저렴한 가격으로 신속하고 효율적으로 결제할 수 있습니다. Transak 및 Onramp.money을 통해 인도에서 그 어느 때보다 web3의 접근성이 높아지고 있습니다.",
+    "slide_3_subtitle": "PayID, POLi, Interac 및 iDEAL 사용 가능!",
+    "slide_3_body_1": "Banxa와의 통합으로 캐나다, 네덜란드, 호주, 남아프리카 및 터키에서 현지 은행 인프라와 새로운 결제 방법을 제공합니다. 한번 체험해 보세요!",
+    "slide_4_subtitle": "LATAM의 현지 결제 옵션",
+    "slide_4_body_1": "이제 Transak를 통해 브라질, 멕시코, 우루과이, 칠레 및 페루에서 AstroPay를 활성화했습니다. 브라질 사용자는 Pix를 사용하여 암호화폐에 진입할 수도 있습니다.",
+    "slide_5_subtitle": "복잡한 신원 확인 절차를 거치지 않아도 됩니다",
+    "slide_5_body_1": "Mercuryo를 이용하시면 이제 신원 확인 없이도 최대 699유로 상당의 암호화폐를 구매할 수 있습니다. 이제 암호화 결제 경험이 단순해지고 온보딩이 훨씬 쉬워집니다."
   },
   "invalid_network": {
     "title": "맞춤 네트워크용 체인 ID \n %{network}\n네트워크를 다시 입력해야 합니다.",
