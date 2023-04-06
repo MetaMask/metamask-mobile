@@ -8,6 +8,8 @@ import {
   renderNumber,
   addCurrencySymbol,
   renderFiat,
+  renderFromTokenMinimalUnit,
+  toTokenMinimalUnit,
 } from '../../../util/number';
 import { getProviderName } from '../../../reducers/fiatOrders';
 import StatusText from '../../Base/StatusText';
@@ -31,6 +33,23 @@ const styles = StyleSheet.create({
  * @param {FiatOrder} props.order
  */
 function OrderListItem({ order }) {
+  let amount = '...';
+  if (order.cryptoAmount) {
+    if (
+      order.data?.cryptoCurrency?.decimals !== undefined &&
+      order.cryptocurrency
+    ) {
+      amount = renderFromTokenMinimalUnit(
+        toTokenMinimalUnit(
+          order.cryptoAmount,
+          order.data.cryptoCurrency.decimals,
+        ).toString(),
+        order.data.cryptoCurrency.decimals,
+      );
+    } else {
+      amount = renderNumber(String(order.cryptoAmount));
+    }
+  }
   return (
     <ListItem>
       {order.createdAt && (
@@ -56,10 +75,7 @@ function OrderListItem({ order }) {
         </ListItem.Body>
         <ListItem.Amounts>
           <ListItem.Amount>
-            {order.cryptoAmount
-              ? renderNumber(String(order.cryptoAmount))
-              : '...'}{' '}
-            {order.cryptocurrency}
+            {amount} {order.cryptocurrency}
           </ListItem.Amount>
           <ListItem.FiatAmount>
             {addCurrencySymbol(renderFiat(order.amount, ''), order.currency)}
