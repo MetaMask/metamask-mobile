@@ -15,6 +15,7 @@ import {
   safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
+  shouldShowBlockExplorer,
 } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -656,6 +657,9 @@ class ApproveTransactionReview extends PureComponent {
       updateTransactionState,
       showBlockExplorer,
       showVerifyContractDetails,
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -671,6 +675,16 @@ class ApproveTransactionReview extends PureComponent {
       !gasEstimateType ||
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
+
+    const hasBlockExplorer = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    const tokenLabel = `${
+      tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
+    } (#${tokenValue})`;
 
     return (
       <>
@@ -710,22 +724,23 @@ class ApproveTransactionReview extends PureComponent {
                   {tokenStandard === ERC20 && (
                     <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
                   )}
-                  {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-                    <ButtonLink
-                      onPress={showBlockExplorer}
-                      label={
-                        <Text
-                          variant={TextVariant.HeadingMD}
-                          style={styles.buttonColor}
-                        >
-                          {tokenName ||
-                            tokenSymbol ||
-                            strings(`spend_limit_edition.nft`)}{' '}
-                          (#{tokenValue})
-                        </Text>
-                      }
-                    />
-                  )}
+                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                    hasBlockExplorer ? (
+                      <ButtonLink
+                        onPress={showBlockExplorer}
+                        label={
+                          <Text
+                            variant={TextVariant.HeadingMD}
+                            style={styles.buttonColor}
+                          >
+                            {tokenLabel}
+                          </Text>
+                        }
+                      />
+                    ) : (
+                      <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
+                    )
+                  ) : null}
                 </Text>
 
                 {tokenStandard !== ERC721 &&
