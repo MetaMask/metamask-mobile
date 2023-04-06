@@ -699,11 +699,13 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View>
-                <ApproveTransactionHeader
-                  origin={origin}
-                  url={activeTabUrl}
-                  from={from}
-                />
+                {from && (
+                  <ApproveTransactionHeader
+                    origin={origin}
+                    url={activeTabUrl}
+                    from={from}
+                  />
+                )}
                 <Text
                   variant={TextVariant.HeadingMD}
                   style={styles.title}
