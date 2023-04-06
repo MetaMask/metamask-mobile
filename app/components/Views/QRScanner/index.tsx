@@ -208,7 +208,10 @@ const QRScanner = () => {
         // Checking if it can be handled like deeplinks
         const handledByDeeplink = SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          onHandled: () => navigation.pop(2),
+          onHandled: () => {
+            const routesLength = navigation.getState().routes.length;
+            navigation.pop(routesLength >= 2 ? 2 : 1);
+          },
         });
 
         if (handledByDeeplink) {
