@@ -5,7 +5,7 @@ import DeleteWalletData from './DeleteWalletData';
 import RememberMeOptionSection from './RememberMeOptionSection';
 import ProtectYourWallet from './ProtectYourWallet/ProtectYourWallet';
 import LoginOptionsSettings from './LoginOptionsSettings';
-import RevealPrivateKey from './PrivateKey/PrivateKey';
+import RevealPrivateKey from './RevealPrivateKey/RevealPrivateKey';
 
 export {
   AutomaticSecurityChecks,
