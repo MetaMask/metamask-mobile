@@ -6,6 +6,6 @@ describe('Failing Tests On Purpose', () => {
   });
 
   it('should fail', () => {
-    fail('This test is failing on purpose');
+    expect(element(by.id('non existing element id'))).toExist();
   });
 });
