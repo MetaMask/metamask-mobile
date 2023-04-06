@@ -22,7 +22,10 @@ import ShowBlockExplorer from '../ShowBlockExplorer';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './styles';
 import { AddNicknameProps } from './types';
-import { validateAddressOrENS } from '../../../../util/address';
+import {
+  validateAddressOrENS,
+  shouldShowBlockExplorer,
+} from '../../../../util/address';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import {
   CONTACT_ALREADY_SAVED,
@@ -49,6 +52,7 @@ const AddNickname = (props: AddNicknameProps) => {
     providerRpcTarget,
     addressBook,
     identities,
+    frequentRpcList,
   } = props;
 
   const [newNickname, setNewNickname] = useState(addressNickname);
@@ -148,6 +152,12 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
+  const hasBlockExplorer = shouldShowBlockExplorer({
+    providerType,
+    providerRpcTarget,
+    frequentRpcList,
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       {isBlockExplorerVisible ? (
@@ -196,12 +206,14 @@ const AddNickname = (props: AddNicknameProps) => {
                   style={styles.address}
                 />
               </TouchableOpacity>
-              <AntDesignIcon
-                style={styles.actionIcon}
-                name="export"
-                size={22}
-                onPress={toggleBlockExplorer}
-              />
+              {hasBlockExplorer ? (
+                <AntDesignIcon
+                  style={styles.actionIcon}
+                  name="export"
+                  size={22}
+                  onPress={toggleBlockExplorer}
+                />
+              ) : null}
             </View>
             <Text style={styles.label}>{strings('nickname.name')}</Text>
             <TextInput
@@ -252,6 +264,8 @@ const mapStateToProps = (state: any) => ({
   providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
