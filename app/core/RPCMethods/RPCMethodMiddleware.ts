@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
@@ -440,6 +441,21 @@ export const getRpcMethodMiddleware = ({
         });
 
         res.result = rawSig;
+      },
+
+      personal_ecRecover: () => {
+        const data = req.params[0];
+        const signature = req.params[1];
+        const address = recoverPersonalSignature({ data, signature });
+
+        res.result = address;
+      },
+
+      parity_checkRequest: () => {
+        // This method is retained for legacy reasons
+        // It doesn't serve it's intended purpose anymore of checking parity requests,
+        // because our API doesn't support parity requests.
+        res.result = null;
       },
 
       eth_signTypedData: async () => {
