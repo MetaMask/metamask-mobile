@@ -199,7 +199,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
 
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const xOffset = e.nativeEvent.contentOffset.x;
-    const slideIndex = Math.round(xOffset / screenWidth);
+    const slideIndex = Math.ceil(xOffset / screenWidth);
     if (currentSlide === slideIndex) {
       return;
     }
