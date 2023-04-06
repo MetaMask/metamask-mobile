@@ -246,31 +246,31 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             <View
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
+                  "alignItems": "center",
+                  "backgroundColor": "#F2F4F6",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 16,
+                  "justifyContent": "center",
                   "overflow": "hidden",
                   "width": 16,
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  Object {
-                    "testUri": "../../../app/images/ropsten-logo-dark.png",
-                  }
-                }
+              <Text
                 style={
                   Object {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 10,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": undefined,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                s
+              </Text>
             </View>
           </View>
         </View>
@@ -287,7 +287,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               }
             }
           >
-            Ropsten
+            sepolia
           </Text>
           <Text
             style={
