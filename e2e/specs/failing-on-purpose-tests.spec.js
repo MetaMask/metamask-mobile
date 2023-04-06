@@ -5,7 +5,7 @@ describe('Failing Tests On Purpose', () => {
     jest.setTimeout(200000);
   });
 
-  it('should fail', () => {
-    expect(element(by.id('non existing element id'))).toExist();
+  it('should fail', async () => {
+    await expect(element(by.id('non existing element id'))).toExist();
   });
 });
