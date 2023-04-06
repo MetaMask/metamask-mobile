@@ -17,8 +17,6 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
@@ -29,6 +27,8 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -39,11 +39,8 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
+import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
-import {
-  trackLegacyEvent,
-  trackLegacyAnonymousEvent,
-} from '../../../util/analyticsV2';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
@@ -76,6 +73,7 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
+import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -88,6 +86,11 @@ const createStyles = (colors) =>
     content: {
       flexGrow: 1,
       justifyContent: 'center',
+    },
+    accountSelector: {
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 16,
     },
     keypad: {
       flexGrow: 1,
@@ -188,6 +191,8 @@ function SwapsAmountView({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const previousSelectedAddress = useRef();
+
   const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const [amount, setAmount] = useState('0');
@@ -260,10 +265,14 @@ function SwapsAmountView({
               )?.symbol,
               chain_id: chainId,
             };
-            trackLegacyEvent(MetaMetricsEvents.SWAPS_OPENED, {});
-            trackLegacyAnonymousEvent(
+            Analytics.trackEventWithParameters(
+              MetaMetricsEvents.SWAPS_OPENED,
+              {},
+            );
+            Analytics.trackEventWithParameters(
               MetaMetricsEvents.SWAPS_OPENED,
               parameters,
+              true,
             );
           });
         } else {
@@ -380,6 +389,23 @@ function SwapsAmountView({
     })();
   }, [isTokenInBalances, selectedAddress, sourceToken]);
 
+  /**
+   * Reset the state when account changes
+   */
+  useEffect(() => {
+    if (selectedAddress !== previousSelectedAddress.current) {
+      setAmount('0');
+      setSourceToken(
+        swapsTokens?.find((token) =>
+          toLowerCaseEquals(token.address, initialSource),
+        ),
+      );
+      setDestinationToken(null);
+      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+      previousSelectedAddress.current = selectedAddress;
+    }
+  }, [selectedAddress, swapsTokens, initialSource]);
+
   const hasInvalidDecimals = useMemo(() => {
     if (sourceToken) {
       return amount?.split('.')[1]?.length > sourceToken.decimals;
@@ -490,8 +516,8 @@ function SwapsAmountView({
       !isBalanceZero
     ) {
       const { TokensController } = Engine.context;
-      const { address, symbol, decimals } = sourceToken;
-      await TokensController.addToken(address, symbol, decimals);
+      const { address, symbol, decimals, name } = sourceToken;
+      await TokensController.addToken(address, symbol, decimals, null, name);
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -627,6 +653,9 @@ function SwapsAmountView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
+        <View style={styles.accountSelector}>
+          <AccountSelector />
+        </View>
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}

@@ -301,6 +301,8 @@
       "cancel_cta": "Отмена",
       "confirm_cta": "Подтвердить"
     },
+    "add_to_get_started": "Добавьте криптовалюту, чтобы начать",
+    "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
     "no_nfts_yet": "Пока нет NFT",
     "nfts_autodetection_title": "Обнаружение NFT",
@@ -612,6 +614,7 @@
     "third_party_title": "Получить входящие транзакции",
     "third_party_description": "Сторонние API (Etherscan) используются для отображения входящих транзакций в истории. Отключите, если не хотите, чтобы мы извлекали данные из этих служб.",
     "metametrics_opt_out": "Отказ от MetaMetrics",
+    "metametrics_restart_required": "Вам нужно перезапустить приложение, чтобы изменения вступили в силу.",
     "create_password": "Создать пароль",
     "invalid_password": "Неверный пароль",
     "invalid_password_message": "Неверный пароль. Попробуйте еще раз.",

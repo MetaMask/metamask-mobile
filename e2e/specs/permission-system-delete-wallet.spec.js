@@ -20,7 +20,10 @@ import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  testDappConnectButtonCooridinates,
+} from '../viewHelper';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
@@ -45,7 +48,10 @@ describe('Permission System: Deleting wallet after connecting to a dapp', () => 
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 150, y: 270 });
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappConnectButtonCooridinates,
+    );
     await ConnectModal.isVisible();
     await ConnectModal.tapConnectButton();
   });

@@ -301,6 +301,8 @@
       "cancel_cta": "रद्द करें",
       "confirm_cta": "पुष्टि करें"
     },
+    "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
+    "buy_asset": "{{asset}} खरीदें",
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
     "no_nfts_yet": "अभी तक कोई NFT नहीं है",
     "nfts_autodetection_title": "NFT का पता लगाना",
@@ -612,6 +614,7 @@
     "third_party_title": "आवक लेन-देन पाएं",
     "third_party_description": "इतिहास में आपकी आवक लेन-देन प्रदर्शित करने के लिए तीसरे पक्ष API (Etherscan) का उपयोग होता है।  बंद कर दें यदि आप नहीं चाहते कि हम उन सेवाओं से डेटा अलग करें।",
     "metametrics_opt_out": "MetaMetrics ऑप्ट-आउट",
+    "metametrics_restart_required": "बदलाव को प्रभाव में लाने के लिए आपको ऐप को फिर से शुरु करने की जरुरत है।",
     "create_password": "पासवर्ड बनाएं",
     "invalid_password": "अमान्य पासवर्ड",
     "invalid_password_message": "पासवर्ड सही नहीं था। कृपया फिर से कोशिश करें।",

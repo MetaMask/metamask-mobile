@@ -8,14 +8,16 @@ import {
   View,
   InteractionManager,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
-import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -32,7 +34,7 @@ import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
 const createStyles = (colors, typography) =>
   StyleSheet.create({
     root: {
@@ -104,10 +106,11 @@ const createStyles = (colors, typography) =>
       marginRight: 6,
     },
     rememberme: {
-      marginTop: 10,
+      marginTop: 15,
+      marginBottom: 10,
       flexDirection: 'row',
       justifyContent: 'flex-start',
-      marginLeft: 30,
+      marginLeft: 20,
       alignItems: 'center',
     },
     rememberCheckbox: {
@@ -235,7 +238,7 @@ class AccountApproval extends PureComponent {
 
   componentDidMount = () => {
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_STARTED,
         this.getAnalyticsParams(),
       );
@@ -273,7 +276,7 @@ class AccountApproval extends PureComponent {
       // onConfirm will close current window by rejecting current approvalRequest.
       this.props.onCancel();
 
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
         this.getAnalyticsParams(),
       );
@@ -294,7 +297,7 @@ class AccountApproval extends PureComponent {
     }
 
     this.props.onConfirm();
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       this.getAnalyticsParams(),
     );
@@ -305,7 +308,7 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -359,7 +362,10 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
-      <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
+      <View
+        style={styles.root}
+        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+      >
         <TransactionHeader currentPageInformation={currentPageInformation} />
         {!currentPageInformation.reconnect && (
           <>

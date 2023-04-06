@@ -26,7 +26,6 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   Transaction,
   TransactionController,
-  WalletDevice,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -53,7 +52,7 @@ import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
-import { trackEvent } from '../util/analyticsV2';
+import AnalyticsV2 from '../util/analyticsV2';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -113,27 +112,6 @@ class Engine {
 
       const networkController = new NetworkController(networkControllerOpts);
       networkController.providerConfig = {
-        static: {
-          eth_sendTransaction: async (
-            payload: { params: any[]; origin: any },
-            _next: any,
-            end: (arg0: undefined, arg1: undefined) => void,
-          ) => {
-            const { TransactionController } = this.context;
-            try {
-              const hash = await (
-                await TransactionController.addTransaction(
-                  payload.params[0],
-                  payload.origin,
-                  WalletDevice.MM_MOBILE,
-                )
-              ).result;
-              end(undefined, hash);
-            } catch (error) {
-              end(error);
-            }
-          },
-        },
         getAccounts: (
           end: (arg0: null, arg1: any[]) => void,
           payload: { hostname: string | number },
@@ -205,6 +183,9 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+          assetsContractController,
+        ),
       });
 
       const tokenListController = new TokenListController({
@@ -321,7 +302,7 @@ class Engine {
             ),
           addDetectedTokens: (tokens) => {
             // Track detected tokens event
-            trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
               token_standard: 'ERC20',
               asset_type: 'token',
               chain_id: getDecimalChainId(
@@ -330,6 +311,8 @@ class Engine {
             });
             tokensController.addDetectedTokens(tokens);
           },
+          updateTokensName: (tokenList) =>
+            tokensController.updateTokensName(tokenList),
           getTokensState: () => tokensController.state,
           getTokenListState: () => tokenListController.state,
           getNetworkState: () => networkController.state,
