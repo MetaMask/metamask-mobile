@@ -175,7 +175,7 @@
     "@segment/analytics-react-native": "2.13.0",
     "@segment/sovran-react-native": "0.4.5",
     "@sentry/integrations": "6.3.1",
-    "@sentry/react-native": "2.4.2",
+    "@sentry/react-native": "3.0.3",
     "@testing-library/react": "^13.3.0",
     "@testing-library/react-native": "^11.5.0",
     "@tradle/react-native-http": "2.0.1",
@@ -491,7 +491,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^14.0.0",
+    "node": "^16.13.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {

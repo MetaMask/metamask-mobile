@@ -1,12 +1,12 @@
 /* global driver */
 import {
-  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
-  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
 } from '../testIDs/Screens/ImportFromSeedScreen.testIds';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
@@ -74,6 +74,7 @@ class ImportFromSeed {
     await Gestures.waitAndTap(this.screenTitle);
     await Gestures.waitAndTap(this.importButton);
   }
+
   async tapImportFromSeedTextToDismissKeyboard() {
     await Gestures.waitAndTap(this.screenTitle);
   }
@@ -83,7 +84,8 @@ class ImportFromSeed {
   }
 
   async isAlertTextVisible(text) {
-    const message = await driver.getAlertText();
+    await driver.pause(1000);
+    const message = driver.getAlertText();
     try {
       expect(message.includes(text.trim())).toBe(true);
     } catch (error) {

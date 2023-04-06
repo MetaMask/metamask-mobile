@@ -18,11 +18,11 @@ import {
   ENSCache,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
-import { RPC } from '../../constants/network';
 import {
   isMainnetByChainId,
   findBlockExplorerForRpc,
 } from '../../util/networks';
+import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,

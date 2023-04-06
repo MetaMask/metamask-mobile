@@ -77,6 +77,7 @@ export default class AddCustomToken extends PureComponent {
     address: '',
     symbol: '',
     decimals: '',
+    name: '',
     warningAddress: '',
     warningSymbol: '',
     warningDecimals: '',
@@ -112,8 +113,8 @@ export default class AddCustomToken extends PureComponent {
   addToken = async () => {
     if (!(await this.validateCustomToken())) return;
     const { TokensController } = Engine.context;
-    const { address, symbol, decimals } = this.state;
-    await TokensController.addToken(address, symbol, decimals);
+    const { address, symbol, decimals, name } = this.state;
+    await TokensController.addToken(address, symbol, decimals, null, name);
 
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.TOKEN_ADDED,
@@ -173,7 +174,9 @@ export default class AddCustomToken extends PureComponent {
       const symbol = await AssetsContractController.getERC721AssetSymbol(
         address,
       );
-      this.setState({ decimals: String(decimals), symbol });
+      const name = await AssetsContractController.getERC20TokenName(address);
+
+      this.setState({ decimals: String(decimals), symbol, name });
     }
   };
 
