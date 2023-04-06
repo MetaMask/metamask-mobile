@@ -27,6 +27,7 @@ export default (colors) =>
     },
     coachmark: {
       marginHorizontal: SMALL_DEVICE ? 25 : 45,
+      marginTop: 60,
     },
     coachmarkLeft: {
       marginLeft: SMALL_DEVICE ? 5 : 10,

@@ -161,6 +161,11 @@ const Wallet = ({ navigation }: any) => {
 
   const { colors: themeColors } = useTheme();
 
+  useEffect(() => {
+    const { TokenRatesController } = Engine.context;
+    TokenRatesController.poll();
+  }, [tokens]);
+
   /**
    * Check to see if we need to show What's New modal
    */
@@ -271,9 +276,10 @@ const Wallet = ({ navigation }: any) => {
     let assets = tokens;
     if (accounts[selectedAddress]) {
       balance = renderFromWei(accounts[selectedAddress].balance);
+
       assets = [
         {
-          name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
+          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
           balance,
