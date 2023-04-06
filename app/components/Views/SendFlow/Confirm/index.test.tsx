@@ -17,6 +17,9 @@ const initialState = {
           type: 'mainnet',
         },
       },
+      AddressBookController: {
+        addressBook: {},
+      },
       AccountTrackerController: {
         accounts: { '0x2': { balance: '0' } },
       },
