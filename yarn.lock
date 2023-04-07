@@ -3926,10 +3926,10 @@
     semver "^7.3.5"
     tar "^6.1.11"
 
-"@metamask/abi-utils@^1.1.0":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-1.1.1.tgz#3ef021f4a8b82d629e00459e769c8491807c8cb2"
-  integrity sha512-s0/eS/hbLZ3wLMV3IKxpRdxh2MRzSjHMf+SCIWznwyQYSylMk6feHUv2crYAKWfFVo8Z228H0dzssaW4j9Kn7A==
+"@metamask/abi-utils@1.2.0", "@metamask/abi-utils@^1.1.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-1.2.0.tgz#068e1b0f5e423dfae96961e0e5276a7c1babc03a"
+  integrity sha512-Hf7fnBDM9ptCPDtq/wQffWbw859CdVGMwlpWUEsTH6gLXhXONGrRXHA2piyYPRuia8YYTdJvRC/zSK1/nyLvYg==
   dependencies:
     "@metamask/utils" "^3.4.1"
     superstruct "^1.0.3"
