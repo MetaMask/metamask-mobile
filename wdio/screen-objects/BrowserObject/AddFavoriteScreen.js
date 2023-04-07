@@ -35,8 +35,7 @@ class AddFavoriteScreen {
 
   async titleEditTextContains(expectedTitle) {
     const textFromElement = await this.titleEditText;
-    const actualTitle = await textFromElement.getText();
-    await expect(expectedTitle).toContain(actualTitle);
+    await expect(await textFromElement.getText()).toContain(expectedTitle);
   }
 
   async editTitleEditText(title) {
@@ -45,8 +44,7 @@ class AddFavoriteScreen {
 
   async urlEditTextContains(expectedUrl) {
     const textFromElement = await this.urlEditText;
-    const actualUrl = await textFromElement.getText();
-    await expect(expectedUrl).toContain(actualUrl);
+    await expect(await textFromElement.getText()).toContain(expectedUrl);
   }
 
   async editUrlEditText(title) {
