@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -147,7 +147,8 @@
     "@metamask/controller-utils": "^2.0.0",
     "@metamask/design-tokens": "^1.11.1",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/gas-fee-controller": "^3.0.0",
+    "@metamask/eth-sig-util": "^4.0.1",
+    "@metamask/gas-fee-controller": "^2.0.1",
     "@metamask/keyring-controller": "^1.0.1",
     "@metamask/message-manager": "^1.0.2",
     "@metamask/network-controller": "^3.0.0",
@@ -491,7 +492,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^16.13.0",
+    "node": "^14.0.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
