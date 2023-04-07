@@ -835,47 +835,55 @@ Array [
 `;
 
 exports[`AccountFromToInfoCard should render correctly 1`] = `
-<AccountFromToInfoCard
-  accounts={
+<ContextProvider
+  value={
     Object {
-      "0x0": Object {
-        "balance": 200,
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
       },
-      "0x1": Object {
-        "balance": 200,
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-  addressBook={Object {}}
-  dispatch={[Function]}
-  identities={
-    Object {
-      "0x0": Object {
-        "address": "0x0",
-        "name": "Account 1",
-      },
-      "0x1": Object {
-        "address": "0x1",
-        "name": "Account 2",
-      },
+>
+  <Component
+    transactionState={
+      Object {
+        "selectedAsset": Object {
+          "address": "0x0",
+          "decimals": 8,
+          "isETH": true,
+          "symbol": "ETH",
+        },
+        "transaction": Object {
+          "from": "0x0",
+          "to": "0x1",
+        },
+        "transactionFromName": "Account 1",
+        "transactionTo": "0x1",
+        "transactionToName": "Account 2",
+      }
     }
-  }
-  transactionState={
-    Object {
-      "selectedAsset": Object {
-        "address": "0x0",
-        "decimals": 8,
-        "isETH": true,
-        "symbol": "ETH",
-      },
-      "transaction": Object {
-        "from": "0x0",
-        "to": "0x1",
-      },
-      "transactionFromName": "Account 1",
-      "transactionTo": "0x1",
-      "transactionToName": "Account 2",
-    }
-  }
-/>
+  />
+</ContextProvider>
 `;
