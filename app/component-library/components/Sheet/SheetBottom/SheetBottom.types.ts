@@ -1,7 +1,9 @@
+import { ViewProps } from 'react-native';
+
 /**
  * SheetBottom component props.
  */
-export interface SheetBottomProps {
+export interface SheetBottomProps extends ViewProps {
   /**
    * Content to wrap for multiselect.
    */
