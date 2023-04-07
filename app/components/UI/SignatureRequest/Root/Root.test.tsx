@@ -12,8 +12,7 @@ import Root from '.';
 Engine.init({});
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
-  // eslint-disable-next-line
-  const KeyboardAwareScrollView = require('react-native').ScrollView;
+  const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
   return { KeyboardAwareScrollView };
 });
 
