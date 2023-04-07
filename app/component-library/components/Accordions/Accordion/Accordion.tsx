@@ -3,10 +3,13 @@
 // Third party dependencies.
 import React, { useState, useRef } from 'react';
 import { View } from 'react-native';
-import {
-  Transitioning,
-  TransitioningView,
-  Transition,
+import Animated, {
+  Layout,
+  FadingTransition,
+  FadeIn,
+  SlideOutDown,
+  SlideInUp,
+  SlideInDown,
 } from 'react-native-reanimated';
 
 // External dependencies.
@@ -22,6 +25,8 @@ import {
   ACCORDION_EXPAND_TRANSITION_DURATION,
 } from './Accordion.constants';
 
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 const Accordion: React.FC<AccordionProps> = ({
   style,
   children,
@@ -32,23 +37,23 @@ const Accordion: React.FC<AccordionProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   const [expanded, setExpanded] = useState(isExpanded);
-  const ref = useRef<TransitioningView>(null);
-  const transition = (
-    <Transition.Together>
-      <Transition.In
-        type="fade"
-        durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
-      />
-      <Transition.Out
-        type="fade"
-        durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
-      />
-    </Transition.Together>
-  );
+  // const ref = useRef<TransitioningView>(null);
+  // const transition = (
+  //   <Transition.Together>
+  //     <Transition.In
+  //       type="fade"
+  //       durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
+  //     />
+  //     <Transition.Out
+  //       type="fade"
+  //       durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
+  //     />
+  //   </Transition.Together>
+  // );
   const onHeaderPressed = () => {
-    if (ref.current) {
-      ref.current.animateNextTransition();
-    }
+    // if (ref.current) {
+    //   ref.current.animateNextTransition();
+    // }
     setExpanded(!expanded);
     onPress?.();
   };
@@ -60,9 +65,14 @@ const Accordion: React.FC<AccordionProps> = ({
         isExpanded={expanded}
         onPress={onHeaderPressed}
       />
-      <Transitioning.View {...{ ref, transition }}>
-        {expanded && <View testID={ACCORDION_CONTENT_TEST_ID}>{children}</View>}
-      </Transitioning.View>
+      {expanded && (
+        <Animated.View
+          // TODO - Reintroduce layout animations to accordion
+          testID={ACCORDION_CONTENT_TEST_ID}
+        >
+          {children}
+        </Animated.View>
+      )}
     </View>
   );
 };
