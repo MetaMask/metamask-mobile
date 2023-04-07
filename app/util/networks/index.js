@@ -26,6 +26,7 @@ export { handleNetworkSwitch };
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
+const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
 const lineaLogo = require('../../images/linea-logo-dark.png');
 
 /* eslint-enable */
@@ -74,6 +75,7 @@ const NetworkList = {
     hexChainId: '0xaa36a7',
     color: '#cfb5f0',
     networkType: 'sepolia',
+    imageSource: sepoliaLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -129,7 +131,20 @@ export const getTestNetImage = (networkType) => {
   }
 };
 
+export const getTestNetImageByChainId = (chainId) => {
+  if (NETWORKS_CHAIN_ID.GOERLI === chainId) {
+    return networksWithImages?.GOERLI;
+  }
+  if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
+    return networksWithImages?.SEPOLIA;
+  }
+  if (NETWORKS_CHAIN_ID.LINEA_TESTNET === chainId) {
+    return networksWithImages?.LINEA;
+  }
+};
+
 export const isTestNet = (networkId) => {
+  if (networkId === NETWORKS_CHAIN_ID.LINEA_TESTNET) return true;
   const networkName = getNetworkName(networkId);
 
   return networkName === GOERLI || networkName === SEPOLIA;

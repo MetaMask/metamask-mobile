@@ -25,7 +25,12 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getTestNetImageByChainId,
+  isMainnetByChainId,
+  isTestNet,
+} from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
@@ -220,7 +225,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const isMainnet = isMainnetByChainId(chainId);
 
-    const NetworkBadgeSource = isMainnet ? images.ETHEREUM : images[ticker];
+    const NetworkBadgeSource = () => {
+      if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+
+      if (isMainnet) return images.ETHEREUM;
+
+      return images[ticker];
+    };
 
     const badgeName = (isMainnet ? providerType : ticker) || '';
 
@@ -236,7 +247,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           badgeProps={{
             variant: BadgeVariants.Network,
             name: badgeName,
-            imageSource: NetworkBadgeSource,
+            imageSource: NetworkBadgeSource(),
           }}
         >
           {asset.isETH ? (
