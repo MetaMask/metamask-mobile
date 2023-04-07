@@ -5,6 +5,7 @@ const config = {
   setupFiles: ['<rootDir>/app/util/test/testSetup.js'],
   transform: {
     '^.+\\.js$': '<rootDir>jest.preprocessor.js',
+    '^.+\\.[jt]sx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(@react-native|react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry))',
