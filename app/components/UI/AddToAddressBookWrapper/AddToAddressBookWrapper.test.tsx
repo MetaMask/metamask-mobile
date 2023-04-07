@@ -73,7 +73,7 @@ describe('AddToAddressBookWrapper', () => {
     expect(queryByText('DUMMY')).toBeDefined();
     expect(queryByText('add-address-button')).toBeNull();
   });
-  it('should return null if address is already saved and defaultNumm is true', async () => {
+  it('should return null if address is already saved and defaultNull is true', async () => {
     const { queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <AddToAddressBookWrapper address="0x0" defaultNull>
