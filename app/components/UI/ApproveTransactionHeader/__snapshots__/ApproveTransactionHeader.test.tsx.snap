@@ -246,31 +246,31 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             <View
               style={
                 Object {
-                  "alignItems": "center",
-                  "backgroundColor": "#F2F4F6",
+                  "backgroundColor": "#FFFFFF",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 16,
-                  "justifyContent": "center",
                   "overflow": "hidden",
                   "width": 16,
                 }
               }
             >
-              <Text
-                style={
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
                   Object {
-                    "color": "#24272A",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 10,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": undefined,
+                    "testUri": "../../../app/images/sepolia-logo-dark.png",
                   }
                 }
-              >
-                s
-              </Text>
+                style={
+                  Object {
+                    "flex": 1,
+                    "height": undefined,
+                    "width": undefined,
+                  }
+                }
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
