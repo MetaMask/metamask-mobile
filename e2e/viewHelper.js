@@ -53,19 +53,19 @@ export const importWalletWithRecoveryPhrase = async () => {
   await TestHelpers.delay(3500);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
-  // should tap on the close button to dismiss the whats new modal
-  await TestHelpers.delay(2500);
-  try {
-    await WhatsNewModal.tapCloseButton();
-  } catch {
-    //
-  }
-
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   try {
     await OnboardingWizardModal.tapNoThanksButton();
+  } catch {
+    //
+  }
+
+  // should tap on the close button to dismiss the whats new modal
+  await TestHelpers.delay(2500);
+  try {
+    await WhatsNewModal.tapCloseButton();
   } catch {
     //
   }
