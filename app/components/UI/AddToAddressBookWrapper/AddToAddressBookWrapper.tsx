@@ -16,6 +16,8 @@ import ActionModal from '../ActionModal';
 
 import createStyles from './styles';
 
+export const ADD_TO_ADDRESS_BOOK_BUTTON_ID = 'add-address-button';
+
 interface AddToAddressBookWrapperProps {
   address: string;
   children: ReactElement;
@@ -53,11 +55,11 @@ export const AddToAddressBookWrapper = ({
       <TouchableOpacity
         activeOpacity={0.5}
         onPress={() => setShowAddToAddressBook(true)}
-        testID={'add-address-button'}
+        testID={ADD_TO_ADDRESS_BOOK_BUTTON_ID}
       >
         {children}
       </TouchableOpacity>
-      {showAddToAddressBook && (
+      {showAddToAddressBook ? (
         <ActionModal
           modalVisible={showAddToAddressBook}
           confirmText={strings('address_book.save')}
@@ -105,7 +107,7 @@ export const AddToAddressBookWrapper = ({
             </View>
           </View>
         </ActionModal>
-      )}
+      ) : null}
     </>
   );
 };

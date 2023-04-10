@@ -3,7 +3,9 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AddToAddressBookWrapper from './AddToAddressBookWrapper';
+import AddToAddressBookWrapper, {
+  ADD_TO_ADDRESS_BOOK_BUTTON_ID,
+} from './AddToAddressBookWrapper';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -58,8 +60,8 @@ describe('AddToAddressBookWrapper', () => {
         </AddToAddressBookWrapper>
       </ThemeContext.Provider>,
     );
-    expect(queryByText('add-address-button')).toBeDefined();
-    fireEvent.press(getByTestId('add-address-button'));
+    expect(queryByText(ADD_TO_ADDRESS_BOOK_BUTTON_ID)).toBeDefined();
+    fireEvent.press(getByTestId(ADD_TO_ADDRESS_BOOK_BUTTON_ID));
     expect(getByText('Add to address book')).toBeDefined();
   });
   it('should not render touchable wrapper if address is already saved', async () => {
@@ -71,7 +73,7 @@ describe('AddToAddressBookWrapper', () => {
       </ThemeContext.Provider>,
     );
     expect(queryByText('DUMMY')).toBeDefined();
-    expect(queryByText('add-address-button')).toBeNull();
+    expect(queryByText(ADD_TO_ADDRESS_BOOK_BUTTON_ID)).toBeNull();
   });
   it('should return null if address is already saved and defaultNull is true', async () => {
     const { queryByText } = render(
@@ -82,6 +84,6 @@ describe('AddToAddressBookWrapper', () => {
       </ThemeContext.Provider>,
     );
     expect(queryByText('DUMMY')).toBeNull();
-    expect(queryByText('add-address-button')).toBeNull();
+    expect(queryByText(ADD_TO_ADDRESS_BOOK_BUTTON_ID)).toBeNull();
   });
 });

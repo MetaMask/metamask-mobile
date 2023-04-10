@@ -47,7 +47,7 @@ describe('useExistingAddress', () => {
     const { result } = renderHook(() => useExistingAddress('0x1'));
     expect(result?.current?.name).toEqual('Account 2');
   });
-  it('should return undefined for unknown address', async () => {
+  it('should return undefined address not in identities or address book', async () => {
     const { result } = renderHook(() => useExistingAddress('0x2'));
     expect(result?.current).toBeUndefined();
   });

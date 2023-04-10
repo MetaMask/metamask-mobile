@@ -504,7 +504,7 @@ class SendFlow extends PureComponent {
     const styles = createStyles(colors);
 
     const checksummedAddress = toAccount && toChecksumAddress(toAccount);
-    const addressName = this.getAddressNameFromBookOrIdentities(
+    const existingAddressName = this.getAddressNameFromBookOrIdentities(
       toEnsAddressResolved || toAccount,
     );
     const existingContact =
@@ -539,7 +539,7 @@ class SendFlow extends PureComponent {
             highlighted={toInputHighlighted}
             addressToReady={toSelectedAddressReady}
             toSelectedAddress={toEnsAddressResolved || toAccount}
-            toAddressName={addressName || toSelectedAddressName}
+            toAddressName={existingAddressName || toSelectedAddressName}
             onToSelectedAddressChange={this.onToSelectedAddressChange}
             onScan={this.onScan}
             onClear={this.onToClear}
@@ -550,7 +550,7 @@ class SendFlow extends PureComponent {
             confusableCollection={
               (!existingContact && confusableCollection) || []
             }
-            isFromAddressBook={addressName?.length > 0}
+            isFromAddressBook={existingAddressName?.length > 0}
           />
         </View>
 
