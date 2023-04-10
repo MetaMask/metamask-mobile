@@ -1,4 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
+import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import fiatOrderReducer, {
   addActivationKey,
   addAuthenticationUrl,
@@ -29,6 +30,7 @@ import fiatOrderReducer, {
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
+  updateOnRampNetworks,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -107,6 +109,81 @@ const dummyCustomOrderIdData3: CustomIdData = {
   lastTimeFetched: 123,
   errorCount: 0,
 };
+
+const networks: AggregatorNetwork[] = [
+  {
+    active: true,
+    chainId: 1,
+    chainName: 'Ethereum Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 10,
+    chainName: 'Optimism Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 25,
+    chainName: 'Cronos Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 56,
+    chainName: 'BNB Chain Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 137,
+    chainName: 'Polygon Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 250,
+    chainName: 'Fantom Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 1284,
+    chainName: 'Moonbeam Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 42161,
+    chainName: 'Arbitrum Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 42220,
+    chainName: 'Celo Mainnet',
+    nativeTokenSupported: false,
+  },
+  {
+    active: true,
+    chainId: 43114,
+    chainName: 'Avalanche C-Chain Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 1313161554,
+    chainName: 'Aurora Mainnet',
+    nativeTokenSupported: false,
+  },
+  {
+    active: true,
+    chainId: 1666600000,
+    chainName: 'Harmony Mainnet (Shard 0)',
+    nativeTokenSupported: true,
+  },
+];
 
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
@@ -459,6 +536,20 @@ describe('fiatOrderReducer', () => {
         },
       ],
     );
+  });
+
+  it('should update networks', () => {
+    const stateWithNetworks = fiatOrderReducer(
+      initialState,
+      updateOnRampNetworks(networks),
+    );
+
+    const stateWithNoNetworks = fiatOrderReducer(
+      stateWithNetworks,
+      updateOnRampNetworks([]),
+    );
+    expect(stateWithNetworks.networks).toEqual(networks);
+    expect(stateWithNoNetworks.networks).toEqual([]);
   });
 });
 
