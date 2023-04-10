@@ -74,6 +74,6 @@ export default class LockManager {
   };
 
   stopListening() {
-    this.appStateListener && this.appStateListener.remove();
+    this.appStateListener?.remove();
   }
 }

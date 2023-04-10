@@ -268,7 +268,11 @@ const DetectedTokens = () => {
   };
 
   return (
-    <SheetBottom ref={sheetRef} reservedMinOverlayHeight={250}>
+    <SheetBottom
+      ref={sheetRef}
+      reservedMinOverlayHeight={250}
+      onDismissed={trackCancelWithoutAction}
+    >
       {renderHeader()}
       {renderDetectedTokens()}
       {renderButtons()}

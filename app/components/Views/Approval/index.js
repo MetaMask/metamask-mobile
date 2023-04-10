@@ -138,7 +138,7 @@ class Approval extends PureComponent {
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
         );
-        this.appStateListener && this.appStateListener.remove();
+        this.appStateListener?.remove();
         this.clear();
       }
     } catch (e) {

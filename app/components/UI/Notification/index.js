@@ -106,7 +106,6 @@ function Notification({
 }
 
 Notification.propTypes = {
-  navigation: PropTypes.object,
   currentNotification: PropTypes.object,
   currentNotificationIsVisible: PropTypes.bool,
   hideCurrentNotification: PropTypes.func,

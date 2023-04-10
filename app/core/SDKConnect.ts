@@ -392,7 +392,7 @@ const SDKConnect = {
   },
   async init() {
     this.handleAppState = this.handleAppState.bind(this);
-    appStateListener && appStateListener.remove();
+    appStateListener?.remove();
     appStateListener = AppState.addEventListener('change', this.handleAppState);
 
     this.reconnect();

@@ -1,16 +1,9 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
-import Animated, {
-  Layout,
-  FadingTransition,
-  FadeIn,
-  SlideOutDown,
-  SlideInUp,
-  SlideInDown,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -22,10 +15,8 @@ import { AccordionProps } from './Accordion.types';
 import {
   ACCORDION_TEST_ID,
   ACCORDION_CONTENT_TEST_ID,
-  ACCORDION_EXPAND_TRANSITION_DURATION,
+  // ACCORDION_EXPAND_TRANSITION_DURATION,
 } from './Accordion.constants';
-
-const AnimatedView = Animated.createAnimatedComponent(View);
 
 const Accordion: React.FC<AccordionProps> = ({
   style,

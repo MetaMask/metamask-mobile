@@ -122,7 +122,7 @@ class LockScreen extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
-    this.appStateListener && this.appStateListener.remove();
+    this.appStateListener?.remove();
   }
 
   lock = async () => {

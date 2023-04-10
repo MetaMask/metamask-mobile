@@ -247,7 +247,7 @@ class Approve extends PureComponent {
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
-    this.appStateListener && this.appStateListener.remove();
+    this.appStateListener?.remove();
     Engine.context.TransactionController.hub.removeAllListeners(
       `${transaction.id}:finished`,
     );
