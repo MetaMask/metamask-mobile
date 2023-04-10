@@ -208,6 +208,8 @@ export const getHasOrders = createSelector(
   (orders) => orders.length > 0,
 );
 
+export const getRampNetworks = (state: RootState) => state.fiatOrders.networks;
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],

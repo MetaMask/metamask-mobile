@@ -9,7 +9,6 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import {
   FiatOrder,
   getPendingOrders,
@@ -34,19 +33,6 @@ import useOnRampNetworks from './hooks/useOnRampNetworks';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
-
-export const allowedToBuy = (chainId: string) =>
-  [
-    NETWORKS_CHAIN_ID.MAINNET,
-    NETWORKS_CHAIN_ID.OPTIMISM,
-    NETWORKS_CHAIN_ID.BSC,
-    NETWORKS_CHAIN_ID.POLYGON,
-    NETWORKS_CHAIN_ID.FANTOM,
-    NETWORKS_CHAIN_ID.ARBITRUM,
-    NETWORKS_CHAIN_ID.CELO,
-    NETWORKS_CHAIN_ID.AVAXCCHAIN,
-    NETWORKS_CHAIN_ID.HARMONY,
-  ].includes(chainId);
 
 const baseNotificationDetails = {
   duration: NOTIFICATION_DURATION,

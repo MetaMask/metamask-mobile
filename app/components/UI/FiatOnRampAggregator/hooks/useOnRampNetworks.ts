@@ -7,6 +7,11 @@ import {
 } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 
+/**
+ * Hook that fetches the available networks from the aggregator
+ * and updates the store
+ * @returns {null}
+ */
 function useOnRampNetworks() {
   const dispatch = useDispatch();
   const chainId = useSelector(chainIdSelector);

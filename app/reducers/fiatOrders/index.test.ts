@@ -16,6 +16,7 @@ import fiatOrderReducer, {
   getOrders,
   getPendingOrders,
   getProviderName,
+  getRampNetworks,
   initialState,
   makeOrderIdSelector,
   removeActivationKey,
@@ -1262,6 +1263,25 @@ describe('selectors', () => {
       };
       expect(getAuthenticationUrls(state)).toStrictEqual([]);
     });
+  });
+});
+
+describe('getRampNetworks', () => {
+  it('should return the correct ramp networks', () => {
+    const state = {
+      fiatOrders: {
+        ...initialState,
+        networks,
+      },
+    };
+    const otherState = {
+      fiatOrders: {
+        ...initialState,
+        networks: networks[1],
+      },
+    };
+    expect(getRampNetworks(state)).toStrictEqual(networks);
+    expect(getRampNetworks(otherState)).toStrictEqual(networks[1]);
   });
 });
 
