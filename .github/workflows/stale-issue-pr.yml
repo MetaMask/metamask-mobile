@@ -6,8 +6,11 @@ on:
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@72afbce2b0dbd1d903bb142cebe2d15dc307ae57
         with:
           stale-issue-message: 'This issue has been automatically marked as stale because it has not had recent activity in the last 90 days. It will be closed in 7 days. Thank you for your contributions.'
           stale-issue-label: 'stale'
