@@ -11,7 +11,7 @@ export interface ReusableModalProps extends ViewProps {
   /**
    * Optional callback that gets triggered when modal is dismissed.
    */
-  onDismiss?: () => void;
+  onDismiss?: (hasPendingAction: boolean) => void;
   /**
    * Optional boolean that indicates if modal is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
    * @default true
@@ -24,8 +24,3 @@ export type ReusableModalPostCallback = () => void;
 export interface ReusableModalRef {
   dismissModal: (callback?: ReusableModalPostCallback) => void;
 }
-
-/**
- * Style sheet input parameters.
- */
-export interface ReusableModalStyleSheetVars {}

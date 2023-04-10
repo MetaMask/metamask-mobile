@@ -88,7 +88,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
-      onDismissed?.();
+      onDismissed?.(!!postCallback.current);
       postCallback.current?.();
     }, [navigation, onDismissed]);
 

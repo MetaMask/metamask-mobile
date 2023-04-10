@@ -11,7 +11,7 @@ export interface SheetBottomProps extends ViewProps {
   /**
    * Optional callback that gets triggered when sheet is dismissed.
    */
-  onDismissed?: () => void;
+  onDismissed?: (hasPendingAction: boolean) => void;
   /**
    * Optional boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
    * @default true

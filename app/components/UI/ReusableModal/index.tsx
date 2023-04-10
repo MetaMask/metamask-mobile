@@ -67,7 +67,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
-      onDismiss?.();
+      onDismiss?.(!!postCallback.current);
       postCallback.current?.();
     }, [navigation, onDismiss]);
 
@@ -122,12 +122,14 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     });
 
     // Animate in on initial render.
-    const show = () => {
+    const show = useCallback(() => {
       currentYOffset.value = screenHeight;
       currentYOffset.value = withTiming(visibleYOffset.value, {
         duration: INITIAL_RENDER_ANIMATION_DURATION,
       });
-    };
+      // Ref values do not affect deps.
+      /* eslint-disable-next-line */
+    }, []);
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
@@ -148,7 +150,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     useEffect(() => {
       isMounted.current = true;
       show();
-    }, []);
+    }, [show]);
 
     useEffect(() => debouncedHide.cancel(), [children, debouncedHide]);
 
@@ -180,23 +182,23 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       [styles.overlay],
     );
 
-    const combinedSheetStyle = useMemo(
-      () => [styles.sheet, animatedSheetStyle],
+    const combinedModalStyle = useMemo(
+      () => [styles.absoluteFill, animatedSheetStyle],
       // eslint-disable-next-line
-      [styles.sheet],
+      [styles.absoluteFill],
     );
 
     return (
-      <View style={styles.base} {...props}>
+      <View style={styles.absoluteFill} {...props}>
         <Animated.View style={combinedOverlayStyle}></Animated.View>
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
         >
-          <Animated.View style={[combinedSheetStyle, style]}>
+          <Animated.View style={[combinedModalStyle, style]}>
             <TouchableOpacity
               disabled={!isInteractable}
-              style={styles.base}
+              style={styles.absoluteFill}
               onPress={debouncedHide}
             />
             {children}
