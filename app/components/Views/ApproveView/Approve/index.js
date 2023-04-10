@@ -49,6 +49,8 @@ const REVIEW = 'review';
  * PureComponent that manages ERC20 approve from the dapp browser
  */
 class Approve extends PureComponent {
+  appStateListener;
+
   static navigationOptions = ({ navigation }) =>
     getApproveNavbar('approve.title', navigation);
 
@@ -207,7 +209,10 @@ class Approve extends PureComponent {
 
     this.startPolling();
 
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
   };
 
   handleGetGasLimit = async () => {
@@ -242,7 +247,7 @@ class Approve extends PureComponent {
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener && this.appStateListener.remove();
     Engine.context.TransactionController.hub.removeAllListeners(
       `${transaction.id}:finished`,
     );

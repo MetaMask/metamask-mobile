@@ -20,7 +20,7 @@ import {
   mediaDevices,
   registerGlobals,
 } from 'react-native-webrtc';
-import { AppState } from 'react-native';
+import { AppState, NativeEventSubscription } from 'react-native';
 import Device from '../util/device';
 
 export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
@@ -294,6 +294,8 @@ class Connection {
   }
 }
 
+let appStateListener: NativeEventSubscription | undefined;
+
 const SDKConnect = {
   reconnected: false,
   async connectToChannel({
@@ -390,8 +392,8 @@ const SDKConnect = {
   },
   async init() {
     this.handleAppState = this.handleAppState.bind(this);
-    AppState.removeEventListener('change', this.handleAppState);
-    AppState.addEventListener('change', this.handleAppState);
+    appStateListener && appStateListener.remove();
+    appStateListener = AppState.addEventListener('change', this.handleAppState);
 
     this.reconnect();
   },
