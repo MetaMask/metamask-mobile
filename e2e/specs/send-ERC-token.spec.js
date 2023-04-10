@@ -55,7 +55,7 @@ describe('Send ERC Token', () => {
     await WalletView.tapImportTokensButton();
     await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
     await TestHelpers.delay(1000);
-    await AddCustomTokenView.tapTokenSymbolText();
+    await AddCustomTokenView.tapTokenSymbolInputBox();
     await TestHelpers.delay(1000);
     await AddCustomTokenView.tapTokenSymbolText();
     await TestHelpers.swipeByText('Token Decimal', 'up', 'slow', 0.1);

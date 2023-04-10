@@ -39,6 +39,7 @@ import {
   selectNetwork,
   selectProviderType,
   selectTicker,
+  selectRpcTarget,
 } from '../../../../selectors/networkController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
@@ -118,6 +119,8 @@ class Approve extends PureComponent {
      * The current network of the app
      */
     network: PropTypes.string,
+    frequentRpcList: PropTypes.array,
+    providerRpcTarget: PropTypes.string,
   };
 
   state = {
@@ -537,8 +540,10 @@ class Approve extends PureComponent {
     });
   };
 
-  setIsBlockExplorerVisible = (val) => {
-    this.setState({ isBlockExplorerVisible: val });
+  setIsBlockExplorerVisible = () => {
+    this.setState({
+      isBlockExplorerVisible: !this.state.isBlockExplorerVisible,
+    });
   };
 
   render = () => {
@@ -570,6 +575,8 @@ class Approve extends PureComponent {
       primaryCurrency,
       chainId,
       providerType,
+      providerRpcTarget,
+      frequentRpcList,
     } = this.props;
 
     const selectedGasObject = {
@@ -641,10 +648,12 @@ class Approve extends PureComponent {
           <ShowBlockExplorer
             setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
             type={providerType}
-            contractAddress={transaction.to}
+            address={transaction.to}
             headerWrapperStyle={styles.headerWrapper}
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
+            providerRpcTarget={providerRpcTarget}
+            frequentRpcList={frequentRpcList}
           />
         ) : (
           <KeyboardAwareScrollView
@@ -763,6 +772,9 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   network: selectNetwork(state),
   providerType: selectProviderType(state),
+  providerRpcTarget: selectRpcTarget(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 const mapDispatchToProps = (dispatch) => ({

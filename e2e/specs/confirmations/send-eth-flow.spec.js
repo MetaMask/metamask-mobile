@@ -8,6 +8,8 @@ import {
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
 } from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
@@ -20,7 +22,8 @@ describe('Send ETH Tests', () => {
     await importWalletWithRecoveryPhrase();
     await switchToGoreliNetwork();
     // Navigate to send flow
-    await WalletView.tapSendIcon();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
@@ -45,7 +48,7 @@ describe('Send ETH Tests', () => {
 
   it('should input and validate amount', async () => {
     // Input acceptable value
-    await AmountView.typeInTransactionAmount('0');
+    await AmountView.typeInTransactionAmount('.00001');
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view

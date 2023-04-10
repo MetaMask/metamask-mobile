@@ -26,7 +26,6 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   Transaction,
   TransactionController,
-  WalletDevice,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -112,44 +111,8 @@ class Engine {
       };
 
       const networkController = new NetworkController(networkControllerOpts);
-      networkController.providerConfig = {
-        static: {
-          eth_sendTransaction: async (
-            payload: { params: any[]; origin: any },
-            _next: any,
-            end: (arg0: undefined, arg1: undefined) => void,
-          ) => {
-            const { TransactionController } = this.context;
-            try {
-              const hash = await (
-                await TransactionController.addTransaction(
-                  payload.params[0],
-                  payload.origin,
-                  WalletDevice.MM_MOBILE,
-                )
-              ).result;
-              end(undefined, hash);
-            } catch (error) {
-              end(error);
-            }
-          },
-        },
-        getAccounts: (
-          end: (arg0: null, arg1: any[]) => void,
-          payload: { hostname: string | number },
-        ) => {
-          const { approvedHosts } = store.getState();
-          const isEnabled = approvedHosts[payload.hostname];
-          const { KeyringController } = this.context;
-          const isUnlocked = KeyringController.isUnlocked();
-          const selectedAddress =
-            this.context.PreferencesController.state.selectedAddress;
-          end(
-            null,
-            isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : [],
-          );
-        },
-      };
+      // This still needs to be set because it has the side-effect of initializing the provider
+      networkController.providerConfig = {};
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -205,6 +168,9 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+          assetsContractController,
+        ),
       });
 
       const tokenListController = new TokenListController({
@@ -330,6 +296,8 @@ class Engine {
             });
             tokensController.addDetectedTokens(tokens);
           },
+          updateTokensName: (tokenList) =>
+            tokensController.updateTokensName(tokenList),
           getTokensState: () => tokensController.state,
           getTokenListState: () => tokenListController.state,
           getNetworkState: () => networkController.state,

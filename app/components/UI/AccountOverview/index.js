@@ -1,4 +1,3 @@
-import { swapsUtils } from '@metamask/swaps-controller';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -13,49 +12,38 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
-import Device from '../../../util/device';
-import {
-  doENSReverseLookup,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import { renderFiat } from '../../../util/number';
-import { getEther } from '../../../util/transactions';
-import { isSwapsAllowed } from '../Swaps/utils';
-
 import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { showAlert } from '../../../actions/alert';
+import { toggleReceiveModal } from '../../../actions/modals';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { protectWalletModalVisible } from '../../../actions/user';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import ClipboardManager from '../../../core/ClipboardManager';
-import {
-  selectChainId,
-  selectNetwork,
-  selectTicker,
-} from '../../../selectors/networkController';
+import Engine from '../../../core/Engine';
+import { selectNetwork } from '../../../selectors/networkController';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import { mockTheme, ThemeContext } from '../../../util/theme';
+import {
+  doENSReverseLookup,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
+import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
+import Device from '../../../util/device';
+import { renderFiat } from '../../../util/number';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import AssetActionButton from '../AssetOverview/AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import Identicon from '../Identicon';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -207,21 +195,9 @@ class AccountOverview extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-     * Chain id
-     */
-    chainId: PropTypes.string,
-    /**
-     * Wether Swaps feature is live or not
-     */
-    swapsIsLive: PropTypes.bool,
-    /**
      * ID of the current network
      */
     network: PropTypes.string,
-    /**
-     * Current provider ticker
-     */
-    ticker: PropTypes.string,
     /**
      * Current opens tabs in browser
      */
@@ -327,33 +303,6 @@ class AccountOverview extends PureComponent {
     });
   };
 
-  onReceive = () => this.props.toggleReceiveModal();
-
-  onSend = () => {
-    const { newAssetTransaction, navigation, ticker } = this.props;
-    newAssetTransaction(getEther(ticker));
-    navigation.navigate('SendFlowView');
-  };
-
-  onBuy = () => {
-    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy',
-        location: 'Wallet',
-        chain_id_destination: this.props.chainId,
-      });
-    });
-  };
-
-  goToSwaps = () =>
-    this.props.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      },
-    });
-
   doENSLookup = async () => {
     const { network, account } = this.props;
     try {
@@ -394,8 +343,6 @@ class AccountOverview extends PureComponent {
       account: { address, name },
       currentCurrency,
       onboardingWizard,
-      chainId,
-      swapsIsLive,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -522,34 +469,6 @@ class AccountOverview extends PureComponent {
                 type={'short'}
               />
             </TouchableOpacity>
-            <View style={styles.actions}>
-              <AssetActionButton
-                icon="receive"
-                onPress={this.onReceive}
-                label={strings('asset_overview.receive_button')}
-              />
-              {allowedToBuy(chainId) && (
-                <AssetActionButton
-                  icon="buy"
-                  onPress={this.onBuy}
-                  label={strings('asset_overview.buy_button')}
-                />
-              )}
-              <AssetActionButton
-                testID={'token-send-button'}
-                icon="send"
-                onPress={this.onSend}
-                label={strings('asset_overview.send_button')}
-              />
-              {AppConstants.SWAPS.ACTIVE && (
-                <AssetSwapButton
-                  isFeatureLive={swapsIsLive}
-                  isNetworkAllowed={isSwapsAllowed(chainId)}
-                  onPress={this.goToSwaps}
-                  isAssetAllowed
-                />
-              )}
-            </View>
           </View>
         </ScrollView>
       </View>
@@ -563,10 +482,7 @@ const mapStateToProps = (state) => ({
   identities: state.engine.backgroundState.PreferencesController.identities,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  chainId: selectChainId(state),
-  ticker: selectTicker(state),
   network: String(selectNetwork(state)),
-  swapsIsLive: swapsLivenessSelector(state),
   browserTabs: state.browser.tabs,
 });
 
