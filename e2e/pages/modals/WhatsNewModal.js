@@ -3,7 +3,7 @@ import {
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
   WHATS_NEW_MODAL_CONTAINER_ID,
   WHATS_NEW_MODAL_GOT_IT_BUTTON_ID,
-} from '../../../wdio/screen-objects/testIDs/Components/WhatsNewModal.testIds';
+} from '../../../app/constants/test-ids';
 
 export default class WhatsNewModal {
   static async tapGotItButton() {

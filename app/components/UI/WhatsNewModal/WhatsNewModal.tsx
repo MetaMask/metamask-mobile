@@ -27,7 +27,7 @@ import { Colors } from '../../../util/theme/models';
 import {
   WHATS_NEW_MODAL_CONTAINER_ID,
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/WhatsNewModal.testIds';
+} from '../../../constants/test-ids';
 import { ScrollView } from 'react-native-gesture-handler';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 

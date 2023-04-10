@@ -3,7 +3,7 @@ import Selectors from '../../helpers/Selectors';
 import {
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
   WHATS_NEW_MODAL_CONTAINER_ID,
-} from '../testIDs/Components/WhatsNewModal.testIds';
+} from '../../../app/constants/test-ids';
 
 class WhatsNewModal {
   get container() {
