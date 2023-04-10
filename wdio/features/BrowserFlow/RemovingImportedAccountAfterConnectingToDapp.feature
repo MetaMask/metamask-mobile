@@ -7,6 +7,7 @@ Feature: Importing account via private then revoking permissions
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
 
 
   Scenario: User grants permission to a sushiswap to access one of their accounts

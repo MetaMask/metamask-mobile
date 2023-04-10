@@ -11,6 +11,7 @@ Feature: Adding Networks via the popular and custom networks flow
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
 
     When I tap on the navbar network title button
     And I tap on the Add a Network button

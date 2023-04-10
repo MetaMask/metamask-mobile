@@ -9,6 +9,7 @@ Feature: Adding a custom token to your wallet
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
 
   Scenario Outline: Adding AVAX testnet to my networks list
     When I tap on the navbar network title button
