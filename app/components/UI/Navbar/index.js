@@ -1527,3 +1527,9 @@ export function getFiatOnRampAggNavbar(
     headerTitleStyle: innerStyles.headerTitleStyle,
   };
 }
+
+export const getEditAccountNameNavBarOptions = (headerTitle, headerRight) => ({
+  headerTitle,
+  headerLeft: () => <View />,
+  headerRight,
+});
