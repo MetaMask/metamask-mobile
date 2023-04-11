@@ -68,17 +68,6 @@ describe('Revoke Single Account after connecting to a dapp', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button to dismiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2000);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should dismiss the onboarding wizard', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(1000);
@@ -86,6 +75,17 @@ describe('Revoke Single Account after connecting to a dapp', () => {
       await OnboardingWizardModal.isVisible();
       await OnboardingWizardModal.tapNoThanksButton();
       await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
+
+  it('should tap on the close button to dismiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2000);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }

@@ -214,7 +214,6 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       <Text style={styles.headerText}>{strings('whats_new.title')}</Text>
       <View style={styles.headerClose}>
         <TouchableOpacity
-          testID={WHATS_NEW_MODAL_CLOSE_BUTTON_ID}
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
           {...generateTestId(Platform, WHATS_NEW_MODAL_CLOSE_BUTTON_ID)}
@@ -258,7 +257,6 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
     >
       <View
         style={styles.modal}
-        testID={WHATS_NEW_MODAL_CONTAINER_ID}
         {...generateTestId(Platform, WHATS_NEW_MODAL_CONTAINER_ID)}
       >
         <View style={styles.bodyContainer}>
