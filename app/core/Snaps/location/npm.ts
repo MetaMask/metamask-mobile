@@ -74,7 +74,7 @@ const decompressFile = async (
     }
     throw new Error('Was unable to decompress tgz file');
   } catch (error) {
-    Logger.log(SNAPS_NPM_LOG_TAG, 'decompressFile error', error);
+    Logger.error(error as Error, `${SNAPS_NPM_LOG_TAG} 'decompressFile error`);
     throw new Error(`${SNAPS_NPM_LOG_TAG} decompressFile error: ${error}`);
   }
 };
@@ -82,7 +82,7 @@ const readAndParseAt = async (path: string) => {
   try {
     return await RNFetchBlob.fs.readFile(path, 'utf8');
   } catch (error) {
-    Logger.log(SNAPS_NPM_LOG_TAG, 'readAndParseAt error', error);
+    Logger.error(error as Error, `${SNAPS_NPM_LOG_TAG} readAndParseAt error`);
     throw new Error(`${SNAPS_NPM_LOG_TAG} readAndParseAt error: ${error}`);
   }
 };
@@ -105,18 +105,22 @@ const fetchAndStoreNPMPackage = async (
       const decompressedPath = await decompressFile(dataPath, targetPath);
       return decompressedPath;
     } catch (error) {
-      Logger.log(
-        SNAPS_NPM_LOG_TAG,
-        'fetchAndStoreNPMPackage failed to parse data with error:',
-        error,
+      Logger.error(
+        error as Error,
+        `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to decompress data`,
       );
       throw new Error(
-        `fetchAndStoreNPMPackage failed to parse data with error: ${error}`,
+        `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to decompress data with error: ${error}`,
       );
     }
   } catch (error) {
-    Logger.log(SNAPS_NPM_LOG_TAG, 'fetchAndStoreNPMPackage error', error);
-    throw new Error(`fetchAndStoreNPMPackage error: ${error}`);
+    Logger.error(
+      error as Error,
+      `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to fetch`,
+    );
+    throw new Error(
+      `${SNAPS_NPM_LOG_TAG} fetchAndStoreNPMPackage failed to fetch with error: ${error}`,
+    );
   }
 };
 
@@ -321,7 +325,7 @@ async function fetchNpmTarball(
 
   if (!isObject(packageMetadata)) {
     throw new Error(
-      `Failed to fetch package "${packageName}" metadata from npm.`,
+      `${SNAPS_NPM_LOG_TAG} Failed to fetch package "${packageName}" metadata from npm.`,
     );
   }
   const versions = Object.keys((packageMetadata as any)?.versions ?? {}).map(
@@ -335,7 +339,7 @@ async function fetchNpmTarball(
 
   if (targetVersion === null) {
     throw new Error(
-      `Failed to find a matching version in npm metadata for package "${packageName}" and requested semver range "${versionRange}".`,
+      `${SNAPS_NPM_LOG_TAG} Failed to find a matching version in npm metadata for package "${packageName}" and requested semver range "${versionRange}".`,
     );
   }
 
@@ -347,7 +351,7 @@ async function fetchNpmTarball(
     !tarballUrlString.toString().endsWith('.tgz')
   ) {
     throw new Error(
-      `Failed to find valid tarball URL in NPM metadata for package "${packageName}".`,
+      `${SNAPS_NPM_LOG_TAG} Failed to find valid tarball URL in NPM metadata for package "${packageName}".`,
     );
   }
 
@@ -368,7 +372,7 @@ async function fetchNpmTarball(
 
   if (!manifest) {
     throw new Error(
-      `Failed to fetch manifest from tarball for package "${packageName}".`,
+      `${SNAPS_NPM_LOG_TAG} Failed to fetch manifest from tarball for package "${packageName}".`,
     );
   }
 

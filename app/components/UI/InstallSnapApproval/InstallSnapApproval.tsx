@@ -10,6 +10,7 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   CANCEL_BUTTON_ID,
 } from '../../../constants/test-ids';
+
 interface KeyItem {
   key: string;
 }
