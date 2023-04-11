@@ -5,5 +5,14 @@
   "forceExit": true,
   "transform": {
     "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
-  }
+  },
+  "reporters": [
+    "default",
+    [
+      "jest-junit",
+      {
+        "outputDirectory": "./e2e/reports"
+      }
+    ]
+  ]
 }
