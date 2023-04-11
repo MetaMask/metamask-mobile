@@ -352,7 +352,7 @@ describe('processAggregatorOrder', () => {
     expect(updatedOrder).toEqual(mockOrder);
   });
 
-  it('should return the same object is the error backoff time has not passed', async () => {
+  it('should return the same object if the error backoff time has not passed', async () => {
     const lastTimeFetched = 1000;
     const errorCount = 3;
 
