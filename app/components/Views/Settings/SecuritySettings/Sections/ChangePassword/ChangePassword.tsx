@@ -19,7 +19,7 @@ const ChangePassword = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  const resetPassword = () => {
+  const resetPassword = (): void => {
     navigation.navigate(Routes.SETTINGS.CHANGE_PASSWORD);
   };
 
