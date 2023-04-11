@@ -24,10 +24,10 @@ workflows:
           title: Lint
           inputs:
             - command: lint
-      # - yarn@0:
-      #     inputs:
-      #       - command: audit:ci
-      #     title: Audit Dependencies
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
   code_setup_dev:
     before_run:
       - setup
@@ -594,10 +594,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.3.1
+      VERSION_NAME: 6.2.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1097
+      VERSION_NUMBER: 1088
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
