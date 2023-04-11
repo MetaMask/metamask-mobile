@@ -48,10 +48,6 @@ import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
-  CHANGE_PASSWORD_TITLE_ID,
-  CHANGE_PASSWORD_BUTTON_ID,
-} from '../../../../constants/test-ids';
-import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
   DeleteWalletData,
@@ -60,6 +56,7 @@ import {
   ProtectYourWallet,
   LoginOptionsSettings,
   RevealPrivateKey,
+  ChangePassword,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
@@ -491,10 +488,6 @@ class Settings extends PureComponent {
     this.props.setLockTime(parseInt(lockTime, 10));
   };
 
-  resetPassword = () => {
-    this.props.navigation.navigate('ResetPassword');
-  };
-
   saveHint = async () => {
     const { hintText } = this.state;
     if (!hintText) return;
@@ -531,28 +524,6 @@ class Settings extends PureComponent {
         value={hintText}
         onChangeText={this.handleChangeText}
       />
-    );
-  };
-
-  renderPasswordSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
-        <Text style={styles.title}>
-          {strings('password_reset.password_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('password_reset.password_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.resetPassword}
-          containerStyle={styles.confirm}
-          testID={CHANGE_PASSWORD_BUTTON_ID}
-        >
-          {strings('password_reset.change_password')}
-        </StyledButton>
-      </View>
     );
   };
 
@@ -853,7 +824,7 @@ class Settings extends PureComponent {
             hintText={hintText}
             toggleHint={this.toggleHint}
           />
-          {this.renderPasswordSection()}
+          <ChangePassword />
           {this.renderAutoLockSection()}
           <LoginOptionsSettings
             onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
