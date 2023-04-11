@@ -11,7 +11,7 @@ For all transactions coming from the DAPP (except approve) this view is shown, t
 
 <img src="https://github.com/MetaMask/metamask-mobile/blob/dapp_transaction_architectural_doc/docs/confirmation-refactoring/dapp-transaction/transfer_token.png?raw=true" width="150"/>
 
-The component responsible for rendering this view is: [/Views/ApproveView/Approve](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Views/Approval)
+The component responsible for rendering this view is: [/Views/Approval](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/Views/Approval)
 
 ### Refactoring `/Views/Approval`
 
