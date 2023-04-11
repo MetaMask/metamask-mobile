@@ -70,7 +70,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       backgroundColor: colors.background.default,
       paddingBottom: 32,
-      paddingHorizontal: 12,
+      paddingHorizontal: 8,
       shadowOffset: {
         width: 0,
         height: -2,
@@ -84,6 +84,8 @@ const createStyles = (colors) =>
     footerButton: {
       flexGrow: 1,
       marginHorizontal: 8,
+      flexShrink: 1,
+      width: '50%',
     },
   });
 

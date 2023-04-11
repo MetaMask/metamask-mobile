@@ -1,9 +1,12 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useContext, useEffect, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
-import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { strings } from '../../../../locales/i18n';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -16,8 +19,8 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
-import { safeToChecksumAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
+import { safeToChecksumAddress } from '../../../util/address';
 import {
   balanceToFiat,
   hexToBN,
@@ -25,17 +28,17 @@ import {
   renderFromWei,
   weiToFiat,
 } from '../../../util/number';
-import { mockTheme, ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
-import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
-import AssetActionButton from './AssetActionButton';
+import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
 import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import PriceChart from './PriceChart';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -69,15 +72,23 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: 20,
     },
     balanceWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
       paddingHorizontal: 16,
     },
     balanceButtons: {
       display: 'flex',
       flexDirection: 'row',
+      justifyContent: 'center',
+      paddingTop: 20,
+    },
+    receiveButton: {
+      flexShrink: 1,
+      marginRight: 8,
+      width: '50%',
+    },
+    sendButton: {
+      flexShrink: 1,
+      marginLeft: 8,
+      width: '50%',
     },
     aboutWrapper: {
       marginBottom: 20,
@@ -275,10 +286,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.balanceWrapper}>
             <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
             <View style={styles.balanceButtons}>
-              <AssetActionButton icon="receive" onPress={onReceive} />
-              <AssetActionButton
+              <Button
+                style={styles.receiveButton}
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                label={strings('asset_overview.receive_button')}
+                onPress={onReceive}
+              />
+              <Button
                 testID={SEND_BUTTON_ID}
-                icon="send"
+                style={styles.sendButton}
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                label={strings('asset_overview.send_button')}
                 onPress={onSend}
               />
             </View>
