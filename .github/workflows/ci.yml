@@ -56,9 +56,9 @@ jobs:
     strategy:
       matrix:
         scripts:
-          # - lint
-          # - audit:ci
-          # - test:tgz-check
+          - lint
+          - audit:ci
+          - test:tgz-check
     steps:
       - uses: actions/cache@v3
         id: restore-build
