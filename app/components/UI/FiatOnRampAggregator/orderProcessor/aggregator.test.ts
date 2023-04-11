@@ -370,7 +370,7 @@ describe('processAggregatorOrder', () => {
     expect(updatedOrder).toEqual(orderWithErrors);
   });
 
-  it('should return an updated object is the error backoff time has passed', async () => {
+  it('should return an updated object if the error backoff time has passed', async () => {
     mockGetOrder.mockImplementation(() => ({
       ...mockOrder.data,
     }));
@@ -396,7 +396,7 @@ describe('processAggregatorOrder', () => {
     });
   });
 
-  it('should return the an updated object is the error backoff time has not passed and processing was forced', async () => {
+  it('should return an updated object if the error backoff time has not passed and processing was forced', async () => {
     mockGetOrder.mockImplementation(() => ({
       ...mockOrder.data,
     }));
