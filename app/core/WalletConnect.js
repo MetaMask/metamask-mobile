@@ -11,6 +11,7 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
+  ApprovalTypes,
 } from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
@@ -339,21 +340,19 @@ class WalletConnect {
     this.walletConnector = null;
   };
 
-  sessionRequest = (peerInfo) =>
-    new Promise((resolve, reject) => {
-      hub.emit('walletconnectSessionRequest', peerInfo);
-
-      hub.on('walletconnectSessionRequest::approved', (peerId) => {
-        if (peerInfo.peerId === peerId) {
-          resolve(true);
-        }
+  sessionRequest = async (peerInfo) => {
+    const { ApprovalController } = Engine.context;
+    try {
+      return await ApprovalController.addAndShowApprovalRequest({
+        id: peerInfo.peerId,
+        origin: 'walletconnect',
+        requestData: peerInfo,
+        type: ApprovalTypes.WALLET_CONNECT,
       });
-      hub.on('walletconnectSessionRequest::rejected', (peerId) => {
-        if (peerInfo.peerId === peerId) {
-          reject(new Error('walletconnectSessionRequest::rejected'));
-        }
-      });
-    });
+    } catch (error) {
+      throw new Error('WalletConnect session request rejected');
+    }
+  };
 }
 
 const instance = {
