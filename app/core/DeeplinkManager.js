@@ -212,6 +212,7 @@ class DeeplinkManager {
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
+    const wcURL = params?.uri || urlObj.href;
 
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
@@ -304,10 +305,10 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        if (!WalletConnect.isValidUri(params?.uri)) return;
+        if (!WalletConnect.isValidUri(wcURL)) return;
 
         WalletConnect.newSession(
-          params?.uri,
+          wcURL,
           params?.redirect,
           params?.autosign,
           origin,
