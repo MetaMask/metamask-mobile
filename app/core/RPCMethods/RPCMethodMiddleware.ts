@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
@@ -46,7 +47,7 @@ interface RPCMethodsMiddleParameters {
   // Wizard
   wizardScrollAdjusted: { current: boolean };
   // For the browser
-  tabId: string;
+  tabId: number | '' | false;
   // For WalletConnect
   isWalletConnect: boolean;
   // For MM SDK
@@ -324,15 +325,32 @@ export const getRpcMethodMiddleware = ({
       },
       eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
+      parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-        await checkActiveAccountAndChainId({
+        const { TransactionController } = Engine.context;
+        return RPCMethods.eth_sendTransaction({
           hostname,
-          address: req.params[0].from,
-          chainId: req.params[0].chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
+          req,
+          res,
+          sendTransaction: TransactionController.addTransaction.bind(
+            TransactionController,
+          ),
+          validateAccountAndChainId: async ({
+            from,
+            chainId,
+          }: {
+            from?: string;
+            chainId?: number;
+          }) => {
+            await checkActiveAccountAndChainId({
+              hostname,
+              address: from,
+              chainId,
+              checkSelectedAddress: isMMSDK || isWalletConnect,
+            });
+          },
         });
-        next();
       },
       eth_signTransaction: async () => {
         // This is implemented later in our middleware stack – specifically, in
@@ -423,6 +441,21 @@ export const getRpcMethodMiddleware = ({
         });
 
         res.result = rawSig;
+      },
+
+      personal_ecRecover: () => {
+        const data = req.params[0];
+        const signature = req.params[1];
+        const address = recoverPersonalSignature({ data, signature });
+
+        res.result = address;
+      },
+
+      parity_checkRequest: () => {
+        // This method is retained for legacy reasons
+        // It doesn't serve it's intended purpose anymore of checking parity requests,
+        // because our API doesn't support parity requests.
+        res.result = null;
       },
 
       eth_signTypedData: async () => {

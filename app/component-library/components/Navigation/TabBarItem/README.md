@@ -20,15 +20,7 @@ Icon of the tab item.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icons/Icon.types.ts)               | Yes                                                     |
-
-### `isSelected`
-
-Boolean that states if the item is selected.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| boolean                                             | Yes                                                     |
+| [IconName](../Icons/Icon.types.ts)                  | Yes                                                     |
 
 ### `onPress`
 
@@ -37,6 +29,30 @@ Function to call when pressed.
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | function                                            | Yes                                                     |
+
+### `iconSize`
+
+Size of the icon.
+
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarSize](../../Avatars/Avatar/Avatar.types.ts#L11) | Yes                                                     |
+
+### `iconColor`
+
+Color of the icon.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | Yes                                                     |
+
+### `iconBackgroundColor`
+
+Background color of the icon.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | Yes                                                     |
 
 ## Usage
 
@@ -47,22 +63,28 @@ import TabBarItem from 'app/component-library/components/Navigation/TabBarItem';
 
 <HorizontallyAlignedWrapper>
   <TabBarItem
-    isSelected={isSelected}
     label={LABEL_1}
     icon={ICON_1}
     onPress={ONPRESS_HANDLER_1}
+    iconSize={ICON_SIZE}
+    iconColor={ICON_COLOR}
+    iconBackgroundColor={ICON_BACKGROUND_COLOR}
   />
   <TabBarItem
-    isSelected={isSelected}
     label={LABEL_2}
     icon={ICON_2}
     onPress={ONPRESS_HANDLER_2}
+    iconSize={ICON_SIZE}
+    iconColor={ICON_COLOR}
+    iconBackgroundColor={ICON_BACKGROUND_COLOR}
   />
   <TabBarItem
-    isSelected={isSelected}
     label={LABEL_3}
     icon={ICON_3}
     onPress={ONPRESS_HANDLER_3}
+    iconSize={ICON_SIZE}
+    iconColor={ICON_COLOR}
+    iconBackgroundColor={ICON_BACKGROUND_COLOR}
   />
 </HorizontallyAlignedWrapper>;
 ```

@@ -17,7 +17,10 @@ import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 
 const GOERLI = 'Goerli Test Network';
-const validAccount = Accounts.getValidAccount();
+
+// detox on ios does not have a clean way of interacting with webview eleemnts. You would need to tap by coordinates
+export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
+export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
@@ -30,6 +33,8 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
+  const validAccount = Accounts.getValidAccount();
+
   // tap on import seed phrase button
   await OnboardingCarouselView.isVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();

@@ -75,7 +75,7 @@ sudo gem install cocoapods -v 1.11.3
     -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
-    -   **Device:** iPhone 11 Pro
+    -   **Device:** iPhone 12 Pro
 
 
 
@@ -245,3 +245,7 @@ To get a better understanding of the internal architecture of this app take a lo
 ### Storybook
 
 We have begun documenting our components using storybook please read the [Documentation Guidelines](./storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.
+
+### Other Docs
+
+- [Adding Confirmations](./docs/confirmations.md)

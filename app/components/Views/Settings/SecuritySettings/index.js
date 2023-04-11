@@ -48,10 +48,6 @@ import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
-  CHANGE_PASSWORD_TITLE_ID,
-  CHANGE_PASSWORD_BUTTON_ID,
-} from '../../../../constants/test-ids';
-import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
   DeleteWalletData,
@@ -59,6 +55,8 @@ import {
   AutomaticSecurityChecks,
   ProtectYourWallet,
   LoginOptionsSettings,
+  RevealPrivateKey,
+  ChangePassword,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
@@ -486,20 +484,8 @@ class Settings extends PureComponent {
     }
   };
 
-  goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
-    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      credentialName: 'private_key',
-      shouldUpdateNav: true,
-    });
-  };
-
   selectLockTime = (lockTime) => {
     this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
-  resetPassword = () => {
-    this.props.navigation.navigate('ResetPassword');
   };
 
   saveHint = async () => {
@@ -541,28 +527,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderPasswordSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
-        <Text style={styles.title}>
-          {strings('password_reset.password_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('password_reset.password_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.resetPassword}
-          containerStyle={styles.confirm}
-          testID={CHANGE_PASSWORD_BUTTON_ID}
-        >
-          {strings('password_reset.change_password')}
-        </StyledButton>
-      </View>
-    );
-  };
-
   renderAutoLockSection = () => {
     const { styles } = this.getStyles();
     return (
@@ -581,38 +545,6 @@ class Settings extends PureComponent {
             />
           )}
         </View>
-      </View>
-    );
-  };
-
-  renderPrivateKeySection = () => {
-    const { accounts, identities, selectedAddress } = this.props;
-    const account = {
-      address: selectedAddress,
-      ...identities[selectedAddress],
-      ...accounts[selectedAddress],
-    };
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'reveal-private-key-section'}>
-        <Text style={styles.title}>
-          {strings('reveal_credential.private_key_title_for_account', {
-            accountName: account.name,
-          })}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('reveal_credential.private_key_warning', {
-            accountName: account.name,
-          })}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.goToExportPrivateKey}
-          containerStyle={styles.confirm}
-        >
-          {strings('reveal_credential.show_private_key')}
-        </StyledButton>
       </View>
     );
   };
@@ -892,14 +824,14 @@ class Settings extends PureComponent {
             hintText={hintText}
             toggleHint={this.toggleHint}
           />
-          {this.renderPasswordSection()}
+          <ChangePassword />
           {this.renderAutoLockSection()}
           <LoginOptionsSettings
             onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
             onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
           />
           <RememberMeOptionSection />
-          {this.renderPrivateKeySection()}
+          <RevealPrivateKey />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}

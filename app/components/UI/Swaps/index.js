@@ -516,8 +516,8 @@ function SwapsAmountView({
       !isBalanceZero
     ) {
       const { TokensController } = Engine.context;
-      const { address, symbol, decimals } = sourceToken;
-      await TokensController.addToken(address, symbol, decimals);
+      const { address, symbol, decimals, name } = sourceToken;
+      await TokensController.addToken(address, symbol, decimals, null, name);
     }
     return navigation.navigate(
       'SwapsQuotesView',

@@ -69,7 +69,6 @@ import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import { strings } from '../../../../locales/i18n';
 import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
@@ -250,7 +249,6 @@ const HomeTabs = () => {
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
-      tabBarLabel: strings('drawer.wallet'),
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
@@ -259,9 +257,12 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
+    actions: {
+      tabBarIconKey: TabBarIconKey.Actions,
+      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+    },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
-      tabBarLabel: strings('drawer.browser'),
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
@@ -311,6 +312,11 @@ const HomeTabs = () => {
           <Tab.Screen
             name={Routes.WALLET.HOME}
             options={options.home}
+            component={WalletTabModalFlow}
+          />
+          <Tab.Screen
+            name={Routes.MODAL.WALLET_ACTIONS}
+            options={options.actions}
             component={WalletTabModalFlow}
           />
           <Tab.Screen
