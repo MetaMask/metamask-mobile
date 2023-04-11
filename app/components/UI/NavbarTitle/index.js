@@ -21,6 +21,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
+      justifyContent: 'center',
       alignItems: 'center',
       flex: 1,
     },

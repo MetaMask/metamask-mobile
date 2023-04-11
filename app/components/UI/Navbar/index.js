@@ -1027,12 +1027,24 @@ export function getNetworkNavbarOptions(
   themeColors,
   onRightPress = undefined,
   disableNetwork = false,
+  contentOffset = 0,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
+      backgroundColor: contentOffset
+        ? themeColors.background.default
+        : themeColors.background.primary,
+      height: 105,
+    },
+    headerShadow: {
+      shadowColor: themeColors.background.primary,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: contentOffset < 40 ? contentOffset / 100 : 0.4,
+      shadowRadius: 4,
+      elevation: 2,
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -1072,7 +1084,10 @@ export function getNetworkNavbarOptions(
           // eslint-disable-next-line no-mixed-spaces-and-tabs
         )
       : () => <View />,
-    headerStyle: innerStyles.headerStyle,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
   };
 }
 

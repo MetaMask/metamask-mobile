@@ -161,7 +161,7 @@ class Asset extends PureComponent {
   navSymbol = undefined;
   navAddress = undefined;
 
-  updateNavBar = () => {
+  updateNavBar = (contentOffset = 0) => {
     const { navigation, route, chainId, rpcTarget, frequentRpcList } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -189,8 +189,13 @@ class Asset extends PureComponent {
               })
           : undefined,
         true,
+        contentOffset,
       ),
     );
+  };
+
+  onScrollThroughContent = (contentOffset = 0) => {
+    this.updateNavBar(contentOffset);
   };
 
   componentDidMount() {
@@ -209,7 +214,6 @@ class Asset extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    this.updateNavBar();
     if (
       prevProps.chainId !== this.props.chainId ||
       prevProps.selectedAddress !== this.props.selectedAddress
@@ -478,6 +482,7 @@ class Asset extends PureComponent {
             networkType={chainId}
             loading={!transactionsUpdated}
             headerHeight={280}
+            onScrollThroughContent={this.onScrollThroughContent}
           />
         )}
         {!asset.balanceError && (

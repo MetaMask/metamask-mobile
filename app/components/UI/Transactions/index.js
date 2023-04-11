@@ -177,6 +177,10 @@ class Transactions extends PureComponent {
     thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     chainId: PropTypes.string,
+    /**
+     * On scroll past navbar callback
+     */
+    onScrollThroughContent: PropTypes.func,
   };
 
   static defaultProps = {
@@ -461,6 +465,13 @@ class Transactions extends PureComponent {
     this.existingTx = null;
   };
 
+  onScroll = (event) => {
+    const { nativeEvent } = event;
+    const { contentOffset } = nativeEvent;
+    // 16 is the top padding of the list
+    this.props.onScrollThroughContent(contentOffset.y);
+  };
+
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
@@ -692,6 +703,7 @@ class Transactions extends PureComponent {
           ListFooterComponent={this.renderFooter}
           style={baseStyles.flexGrow}
           scrollIndicatorInsets={{ right: 1 }}
+          onScroll={this.onScroll}
         />
 
         {!isSigningQRObject && this.state.cancelIsOpen && (
