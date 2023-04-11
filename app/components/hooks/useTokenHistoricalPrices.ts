@@ -29,7 +29,7 @@ const useTokenHistoricalPrices = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const baseUri = 'https://price-api.mmi-prod.codefi.network/v1';
+        const baseUri = 'https://price-api.metafi.codefi.network/v1';
         const fromTo = from && to ? `&from=${from}&to=${to}` : '';
         const uri = `${baseUri}/chains/${chainId}/historical-prices/${address}?timePeriod=${
           timePeriod === '1w' ? '7d' : timePeriod
@@ -46,7 +46,6 @@ const useTokenHistoricalPrices = ({
     };
     fetchPrices();
   }, [address, chainId, timePeriod, from, to, vsCurrency]);
-
   return { prices, isLoading, error };
 };
 
