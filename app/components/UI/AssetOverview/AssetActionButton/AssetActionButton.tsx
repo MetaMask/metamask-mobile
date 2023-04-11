@@ -1,44 +1,41 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import Icon, {
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
+import FeatherIcon from 'react-native-vector-icons/Feather';
+import Ionicon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
     button: {
-      display: 'flex',
-      flexDirection: 'column',
+      flexShrink: 1,
+      marginHorizontal: 0,
+      justifyContent: 'center',
       alignItems: 'center',
+      minWidth: 60,
     },
     disabledButton: {
       opacity: 0.5,
     },
     buttonIconWrapper: {
-      width: 40,
-      height: 40,
-      borderRadius: 100,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       paddingTop: Device.isAndroid() ? 2 : 4,
-
-      display: 'flex',
+      paddingLeft: 1,
       justifyContent: 'center',
       alignContent: 'center',
-      backgroundColor: colors.background.default,
-
       alignItems: 'center',
-      flexShrink: 1,
-      marginHorizontal: 8,
-      borderWidth: 1.5,
-      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.default,
     },
     buttonIcon: {
-      width: 20,
-      height: 20,
-      color: colors.primary.default,
+      justifyContent: 'center',
+      alignContent: 'center',
+      textAlign: 'center',
+      color: colors.primary.inverse,
     },
     buttonText: {
       marginTop: 8,
@@ -63,7 +60,7 @@ const createStyles = (colors: any) =>
 
 interface AssetActionButtonProps {
   onPress?: () => void;
-  icon?: string | ReactNode;
+  icon?: string;
   label?: string;
   disabled?: boolean;
   testID?: string;
@@ -84,28 +81,56 @@ const AssetActionButton = ({
   const getIcon = (type: string) => {
     switch (type) {
       case 'send': {
-        return <Icon name={IconName.SendOutline} style={styles.buttonIcon} />;
+        return (
+          <MaterialCommunityIcon
+            name={'arrow-top-right'}
+            size={20}
+            style={styles.buttonIcon}
+          />
+        );
       }
       case 'receive': {
-        return <Icon name={IconName.Received} style={styles.buttonIcon} />;
+        return (
+          <MaterialCommunityIcon
+            name={'keyboard-tab'}
+            size={20}
+            color={colors.primary.inverse}
+            style={[styles.buttonIcon, styles.receive]}
+          />
+        );
       }
       case 'add': {
-        return <Icon name={IconName.Add} style={styles.buttonIcon} />;
+        return <Ionicon name="ios-add" size={30} style={styles.buttonIcon} />;
       }
       case 'information': {
-        return <Icon name={IconName.Info} style={styles.buttonIcon} />;
+        return (
+          <Ionicon name="md-information" size={30} style={styles.buttonIcon} />
+        );
       }
       case 'swap': {
-        return <Icon name={IconName.Swap} style={styles.buttonIcon} />;
+        return (
+          <MaterialCommunityIcon
+            name="repeat"
+            size={22}
+            style={[styles.buttonIcon, styles.swapsIcon]}
+          />
+        );
       }
       case 'buy': {
-        return <Icon name={IconName.CardOutline} style={styles.buttonIcon} />;
+        return (
+          <FeatherIcon
+            name="credit-card"
+            size={20}
+            style={[styles.buttonIcon, styles.buyIcon]}
+          />
+        );
       }
       default: {
         return null;
       }
     }
   };
+
   return (
     <TouchableOpacity
       {...generateTestId(Platform, testID)}

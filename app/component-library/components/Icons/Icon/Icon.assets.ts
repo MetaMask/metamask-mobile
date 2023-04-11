@@ -24,7 +24,6 @@ import Calculator from './assets/calculator.svg';
 import CardPos from './assets/card-pos.svg';
 import CardToken from './assets/card-token.svg';
 import Card from './assets/card.svg';
-import CardOutline from './assets/card-outline.svg';
 import Category from './assets/category.svg';
 import Chart2 from './assets/chart-2.svg';
 import Chart from './assets/chart.svg';
@@ -113,7 +112,6 @@ import SecurityUser from './assets/security-user.svg';
 import Security from './assets/security.svg';
 import Send1 from './assets/send-1.svg';
 import Send2 from './assets/send-2.svg';
-import SendOutline from './assets/send-outline.svg';
 import Setting from './assets/setting.svg';
 import Slash from './assets/slash.svg';
 import SnapsMobile from './assets/snaps-mobile.svg';
@@ -124,7 +122,6 @@ import Star from './assets/star.svg';
 import Student from './assets/student.svg';
 import SwapHorizontal from './assets/swap-horizontal.svg';
 import SwapVertival from './assets/swap-vertival.svg';
-import Swap from './assets/swap.svg';
 import Tag from './assets/tag.svg';
 import Tilde from './assets/tilde.svg';
 import Timer from './assets/timer.svg';
@@ -168,7 +165,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.CardPos]: CardPos,
   [IconName.CardToken]: CardToken,
   [IconName.Card]: Card,
-  [IconName.CardOutline]: CardOutline,
   [IconName.Category]: Category,
   [IconName.Chart2]: Chart2,
   [IconName.Chart]: Chart,
@@ -257,7 +253,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Security]: Security,
   [IconName.Send1]: Send1,
   [IconName.Send2]: Send2,
-  [IconName.SendOutline]: SendOutline,
   [IconName.Setting]: Setting,
   [IconName.Slash]: Slash,
   [IconName.SnapsMobile]: SnapsMobile,
@@ -268,7 +263,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Student]: Student,
   [IconName.SwapHorizontal]: SwapHorizontal,
   [IconName.SwapVertival]: SwapVertival,
-  [IconName.Swap]: Swap,
   [IconName.Tag]: Tag,
   [IconName.Tilde]: Tilde,
   [IconName.Timer]: Timer,
