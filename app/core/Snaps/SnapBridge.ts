@@ -13,12 +13,9 @@ import { NetworksChainId } from '@metamask/controller-utils';
 
 import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
-// import {
-//   createOriginMiddleware,
-//   createLoggerMiddleware,
-// } from '../../util/middlewares';
 import Logger from '../../util/Logger';
 import { getAllNetworks } from '../../util/networks';
+import { createSnapMethodMiddleware } from './createSnapMethodMiddleware';
 
 const ObjectMultiplex = require('obj-multiplex');
 const createFilterMiddleware = require('eth-json-rpc-filters');
@@ -141,6 +138,51 @@ export default class SnapBridge {
     // Filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
+
+    const { context, controllerMessenger } = Engine as any;
+    const { PermissionController } = context;
+
+    engine.push(
+      createSnapMethodMiddleware(true, {
+        // getAppKey: async () =>
+        //   new Promise((resolve, reject) => {
+        //     resolve('mockAppKey');
+        //   }),
+        // getUnlockPromise: () => Promise.resolve(),
+
+        getSnaps: controllerMessenger.call.bind(
+          controllerMessenger,
+          'SnapController:getPermitted',
+          this.snapId,
+        ),
+
+        requestPermissions: async (requestedPermissions: any) => {
+          const [approvedPermissions] =
+            await PermissionController.requestPermissions(
+              { origin: this.snapId },
+              requestedPermissions,
+            );
+
+          return Object.values(approvedPermissions);
+        },
+        getPermissions: PermissionController.getPermissions.bind(
+          PermissionController,
+          this.snapId,
+        ),
+        // getAccounts: (origin) => getPermittedAccounts(origin),
+        installSnaps: controllerMessenger.call.bind(
+          controllerMessenger,
+          'SnapController:install',
+          this.snapId,
+        ),
+      }),
+    );
+
+    engine.push(
+      PermissionController.createPermissionMiddleware({
+        origin: this.snapId,
+      }),
+    );
 
     // User-Facing RPC methods
     engine.push(

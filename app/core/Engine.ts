@@ -11,6 +11,7 @@ import {
   TokenDetectionController,
   NftDetectionController,
 } from '@metamask/assets-controllers';
+import { AppState } from 'react-native';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
@@ -263,12 +264,40 @@ class Engine {
         initialState.KeyringController,
       );
 
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
-      });
+      /**
+       * Gets the mnemonic of the user's primary keyring.
+       */
+      const getPrimaryKeyringMnemonic = async () => {
+        try {
+          const mnemonic = await keyringController.exportMnemonic();
+          if (mnemonic) {
+            return mnemonic;
+          }
+          throw new Error('No mnemonic found');
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      const getAppState = () => {
+        const state = AppState.currentState;
+        return state === 'active';
+      };
+
+      const getAppKeyForSubject = async (subject, requestedAccount) => {
+        let account;
+
+        if (requestedAccount) {
+          account = requestedAccount;
+        } else {
+          [account] = await keyringController.getAccounts();
+        }
+        const appKey = await keyringController.exportAppKeyForAddress(
+          account,
+          subject,
+        );
+        return appKey;
+      };
 
       const getSnapPermissionSpecifications = () => ({
         ...buildSnapEndowmentSpecifications(),
@@ -277,10 +306,8 @@ class Engine {
             this.controllerMessenger,
             'SnapController:clearSnapState',
           ),
-          // getMnemonic: this.getPrimaryKeyringMnemonic.bind(this),
-          // getUnlockPromise: this.appStateController.getUnlockPromise.bind(
-          //   this.appStateController,
-          // ),
+          getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+          getUnlockPromise: getAppState.bind(this),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -298,11 +325,26 @@ class Engine {
             'SnapController:updateSnapState',
           ),
           showConfirmation: (origin, confirmationData) =>
-            this.approvalController.addAndShowApprovalRequest({
+            approvalController.addAndShowApprovalRequest({
               origin,
               type: 'snapConfirmation',
               requestData: confirmationData,
             }),
+          showDialog: (origin, type, content, placeholder) =>
+            approvalController.addAndShowApprovalRequest({
+              origin,
+              type,
+              requestData: { content, placeholder },
+            }),
+          showInAppNotification: (origin, args) => {
+            // eslint-disable-next-line no-console
+            console.log(
+              'Snaps/ showInAppNotification called with args: ',
+              args,
+              ' and origin: ',
+              origin,
+            );
+          },
         }),
       });
 
@@ -412,10 +454,8 @@ class Engine {
         environmentEndowmentPermissions: Object.values(EndowmentPermissions),
         featureFlags: { dappsCanUpdateSnaps: true },
         // TO DO
-        getAppKey: async () =>
-          new Promise((resolve, reject) => {
-            resolve('mockAppKey');
-          }),
+        getAppKey: async (subject, appKeyType) =>
+          getAppKeyForSubject(`${appKeyType}:${subject}`),
         checkBlockList: async (snapsToCheck) =>
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
         state: initialState.snapController || {},
