@@ -6,6 +6,7 @@ import RememberMeOptionSection from './RememberMeOptionSection';
 import ProtectYourWallet from './ProtectYourWallet/ProtectYourWallet';
 import LoginOptionsSettings from './LoginOptionsSettings';
 import RevealPrivateKey from './RevealPrivateKey/RevealPrivateKey';
+import ChangePassword from './ChangePassword/ChangePassword';
 
 export {
   AutomaticSecurityChecks,
@@ -16,4 +17,5 @@ export {
   ProtectYourWallet,
   LoginOptionsSettings,
   RevealPrivateKey,
+  ChangePassword,
 };
