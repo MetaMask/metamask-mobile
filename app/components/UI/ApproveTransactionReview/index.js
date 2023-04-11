@@ -64,6 +64,7 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
+import { allowedToBuy } from '../FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   selectChainId,
@@ -611,10 +612,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.state;
 
     const {
-      accounts,
-      selectedAddress,
       primaryCurrency,
-      tokenBalances,
       gasError,
       activeTabUrl,
       transaction: { origin, from, to },
@@ -709,11 +707,13 @@ class ApproveTransactionReview extends PureComponent {
                         ? 'allow_to_address_access'
                         : spendCapCreated
                         ? 'review_spend_cap'
+                        : tokenStandard === ERC721 || tokenStandard === ERC1155
+                        ? 'allow_to_access'
                         : 'set_spend_cap'
                     }`,
                   )}
                 </Text>
-                <View>
+                <View style={styles.tokenContainer}>
                   {!fetchingUpdateDone && (
                     <Text
                       variant={TextVariant.HeadingMD}
@@ -723,7 +723,7 @@ class ApproveTransactionReview extends PureComponent {
                     </Text>
                   )}
                   {tokenStandard === ERC20 && (
-                    <View style={styles.tokenContainer}>
+                    <>
                       {tokenImage ? (
                         <Avatar
                           variant={AvatarVariants.Token}
@@ -739,9 +739,9 @@ class ApproveTransactionReview extends PureComponent {
                       >
                         {tokenSymbol}
                       </Text>
-                    </View>
+                    </>
                   )}
-                      {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
                     hasBlockExplorer ? (
                       <ButtonLink
                         onPress={showBlockExplorer}
@@ -758,24 +758,6 @@ class ApproveTransactionReview extends PureComponent {
                       <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
                     )
                   ) : null}
-
-                {tokenStandard !== ERC721 &&
-                  tokenStandard !== ERC1155 &&
-                  originalApproveAmount && (
-                    <View style={styles.tokenAccess}>
-                      <Text bold style={styles.tokenKey}>
-                        {` ${strings('spend_limit_edition.access_up_to')} `}
-                      </Text>
-                      <Text numberOfLines={4} style={styles.tokenValue}>
-                        {` ${
-                          customSpendAmount
-                            ? formatNumber(customSpendAmount)
-                            : originalApproveAmount &&
-                              formatNumber(originalApproveAmount)
-                        } ${tokenSymbol}`}
-                      </Text>
-                    </View>
-                  )}
                 </View>
                 {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
                   <Text reset style={styles.explanation}>
@@ -1103,12 +1085,9 @@ class ApproveTransactionReview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   ticker: selectTicker(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   provider: state.engine.backgroundState.NetworkController.provider,
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(
