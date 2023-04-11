@@ -19,7 +19,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 14**
+-   Install [Node.js](https://nodejs.org) **version 16**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
@@ -45,12 +45,14 @@ sudo gem install cocoapods -v 1.11.3
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-    - Go to Preferences > Appearance & Behavior > System Settings > Android SDK
+    - Go to Settings > Appearance & Behavior > System Settings > Android SDK
         - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
     - Select `SDK Tools` tab
-    - Locate `NDK (Side-by-side)` option in the tools list
     - Check `Show Package Details` option below the tools list to show available versions
+    - Locate `NDK (Side-by-side)` option in the tools list
     - Check NDK version `21.4.7075529` 
+    - Locate `CMake` option in the tools list
+    - Check CMake version `3.10.2`
     - Click "Apply" or "OK" to download
 -   Linux only:
     -   Ensure that you have the `secret-tool` binary on your machine.
@@ -73,7 +75,7 @@ sudo gem install cocoapods -v 1.11.3
     -   [React Native Getting Started - iOS](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> iOS)_
 -   Install the correct simulator
     -   **iOS OS Version:** Latest, unless told otherwise
-    -   **Device:** iPhone 11 Pro
+    -   **Device:** iPhone 12 Pro
 
 
 
@@ -199,7 +201,20 @@ You should see the console for the website that is running inside the WebView
 yarn test:unit
 ```
 
-#### E2E Tests (iOS)
+#### E2E Tests
+
+##### Platforms
+
+E2E test are currently using a combination of Detox for iOS (e2e folder) and Appium for Android (wdio folder).
+Work is in progress to have both platforms using Detox.
+
+##### Test wallet
+
+E2E tests use a wallet able to access testnet and mainnet.
+On Bitrise CI, the wallet is created using the secret recovery phrase from secret env var.
+For local testing, the wallet is created using the secret recovery phrase from the `.js.env` file.
+
+##### iOS
 
 First, [follow the instructions here](https://github.com/wix/AppleSimulatorUtils) to install `applesimutils`. Then:
 
@@ -207,7 +222,7 @@ First, [follow the instructions here](https://github.com/wix/AppleSimulatorUtils
 yarn test:e2e:ios
 ```
 
-#### E2E Tests (Android)
+##### Android
 
 ```bash
 yarn test:e2e:android

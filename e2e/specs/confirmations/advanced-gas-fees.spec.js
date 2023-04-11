@@ -1,6 +1,5 @@
 'use strict';
 import WalletView from '../../pages/WalletView';
-import DrawerView from '../../pages/Drawer/DrawerView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
@@ -8,6 +7,8 @@ import {
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
 } from '../../viewHelper';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -21,11 +22,9 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     await switchToGoreliNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    //Tap send Icon
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
 
     await SendView.inputAddress(VALID_ADDRESS);
     await SendView.tapNextButton();

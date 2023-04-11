@@ -3,8 +3,6 @@ import type {
   UserTraits,
   GroupTraits,
 } from '@segment/analytics-react-native';
-import { EVENT_NAME } from './MetaMetrics.events';
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 // Represents a custom implementation of the Segment ClientMethods type
 export interface ISegmentClient {
@@ -25,122 +23,36 @@ export interface ISegmentClient {
 
 // Represents the interface for the core class MetaMetrics
 export interface IMetaMetrics {
-  /**
-   * Gets MetaMetrics state.
-   *
-   * @returns MetaMetrics state.
-   */
+  // Method to get current MetaMetrics state
   state(): States;
-
-  /**
-   * Enable MetaMetrics Analytics engine.
-   */
+  // Method to enable data tracking
   enable(): void;
-
-  /**
-   * Disable MetaMetrics Analytics engine.
-   */
+  // Method to disable data tracking
   disable(): void;
-
-  /**
-   * Method to verify if the MetaMetrics Analytics engine
-   * is enabled.
-   *
-   * @returns Boolean value indicating if it's enabled.
-   */
-  checkEnabled(): boolean;
-
-  /**
-   * Method to add user properties (traits).
-   *
-   * @param userTraits The user properties.
-   */
-  addTraitsToUser(userTraits: UserIdentityProperties): void;
-
-  /**
-   * Method to add group properties (traits).
-   *
-   * @param groupId Group ID to add the properties.
-   * @param groupTraits The group properties.
-   */
+  // Method to add traits to an user
+  addTraitsToUser(userTraits: Record<string, string>): void;
+  // Method to add an user to a specific group
   group(groupId: string, groupTraits?: GroupTraits): void;
-
-  /**
-   * Method to track an event anonymously (without exposing the user ID).
-   *
-   * @param event Name of the event.
-   * @param properties Event properties.
-   */
-  trackAnonymousEvent(event: EVENT_NAME, properties?: JsonMap): void;
-
-  /**
-   * Method to track an event.
-   *
-   * @param event Name of the event.
-   * @param properties Event properties.
-   */
-  trackEvent(event: EVENT_NAME, properties?: JsonMap): void;
-
-  /**
-   * Method to clean the client internal state.
-   */
+  // Method track an anonymous event
+  trackAnonymousEvent(event: string, properties?: JsonMap): void;
+  // Method track an event
+  trackEvent(event: string, properties?: JsonMap): void;
+  // Method to clear the internal state of the library for the current user and group.
   reset(): void;
-
-  /**
-   * Method to create a new method to suppress and
-   * delete user's data from Segment and all related
-   * destinations.
-   *
-   * @returns Object containing the status and an error (optional)
-   */
-  createDeleteRegulation(): Promise<{ status: string; error?: string }>;
-
-  /**
-   * Method to get the delete request creation date.
-   *
-   * @returns Delete request creation date.
-   */
-  getDeleteRegulationDate(): Promise<string>;
-
-  /**
-   * Method to get a flag indicating if the user has data recorded.
-   *
-   * @returns Boolean indicating if the user has data recorded.
-   */
-  getIsDataRecorded(): boolean;
-
-  /**
-   * Method to get the delete regulation date.
-   *
-   * @returns The MetaMetrcis ID
-   */
-  getMetaMetricsId(): string;
-
-  /**
-   * Method to apply an authentication user property.
-   *
-   * @param property Authentication user property declared in AUTHENTICATION_TYPE.
-   */
-  applyAuthenticationUserProperty(property: AUTHENTICATION_TYPE): void;
+  // Method to create a new method to suppress and
+  // delete user's data from Segment and all related
+  // destinations.
+  createSegmentDeleteRegulation(): void;
 }
 
 // Represents an MetaMetrics event
 export interface IMetaMetricsEvent {
   // Event name to track
-  name: EVENT_NAME;
+  category: string;
   properties?: {
     name?: string;
     action?: string;
   };
-}
-
-// Interface to asign user properties
-export interface UserIdentityProperties {
-  'Enable OpenSea API'?: string;
-  'NFT AutoDetection'?: string;
-  Theme?: string;
-  'Authentication Type'?: string;
-  token_detection_enable?: string;
 }
 
 // Expected deletion task status

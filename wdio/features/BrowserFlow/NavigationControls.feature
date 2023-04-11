@@ -1,9 +1,9 @@
-@androidApp @regression
+@androidApp @regression @ChainScenarios
 Feature: This feature file covers all the navigation control options in browser.
 
   Scenario: Navigation with browser controls
-    Use the browser controls at the bottom of the view to go back,
-    forward, search, multi-browser tab view and home button.
+  Use the browser controls at the bottom of the view to go back,
+  forward, search, multi-browser tab view and home button.
 
     Given the app displayed the splash animation
     And I have imported my wallet

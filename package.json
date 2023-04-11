@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.1.1",
+  "version": "6.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -130,7 +130,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.9.0",
+    "@consensys/on-ramp-sdk": "1.9.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -153,12 +153,12 @@
     "@metamask/network-controller": "^2.0.0",
     "@metamask/permission-controller": "^1.0.2",
     "@metamask/preferences-controller": "^2.1.0",
+    "@metamask/sdk-communication-layer": "0.2.0",
     "@metamask/phishing-controller": "^2.0.0",
-    "@metamask/sdk-communication-layer": "^0.1.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^2.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@react-native-async-storage/async-storage": "^1.17.10",
+    "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.5.12",
@@ -175,7 +175,7 @@
     "@segment/analytics-react-native": "2.13.0",
     "@segment/sovran-react-native": "0.4.5",
     "@sentry/integrations": "6.3.1",
-    "@sentry/react-native": "2.4.2",
+    "@sentry/react-native": "3.0.3",
     "@testing-library/react": "^13.3.0",
     "@testing-library/react-native": "^11.5.0",
     "@tradle/react-native-http": "2.0.1",
@@ -421,7 +421,7 @@
         "build": "yarn start:ios:e2e",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11 Pro"
+          "type": "iPhone 12 Pro"
         }
       },
       "ios.sim.release": {
@@ -429,7 +429,7 @@
         "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
         "type": "ios.simulator",
         "device": {
-          "type": "iPhone 11 Pro"
+          "type": "iPhone 12 Pro"
         }
       },
       "android.emu.debug": {
@@ -491,7 +491,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^16.13.0",
+    "node": "^16.0.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {

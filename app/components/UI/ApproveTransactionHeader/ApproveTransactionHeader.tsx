@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 
-import { getHost } from '../../../util/browser';
+import { getHost, getUrlObj } from '../../../util/browser';
 import { useSelector } from 'react-redux';
 import {
   getNetworkNameFromProvider,
@@ -10,7 +10,6 @@ import {
 
 import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../util/transactions';
@@ -32,6 +31,7 @@ import {
   OriginsI,
 } from './ApproveTransactionHeader.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import AppConstants from '../../../../app/core/AppConstants';
 
 const ApproveTransactionHeader = ({
   from,
@@ -88,7 +88,9 @@ const ApproveTransactionHeader = ({
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
     const isOriginWalletConnect = origin?.startsWith(WALLET_CONNECT_ORIGIN);
 
-    const isOriginMMSDKRemoteConn = origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
+    const isOriginMMSDKRemoteConn = origin?.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+    );
 
     setAccountInfo({
       balance,
@@ -111,12 +113,17 @@ const ApproveTransactionHeader = ({
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
       origins;
     let title = '';
-    if (isOriginDeepLink) title = renderShortAddress(from);
-    else if (isOriginWalletConnect)
-      title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-    else if (isOriginMMSDKRemoteConn) {
-      title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
-    } else title = getHost(currentEnsName || url || origin);
+    if (isOriginDeepLink) {
+      title = renderShortAddress(from);
+    } else if (isOriginWalletConnect) {
+      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
+    } else if (isOriginMMSDKRemoteConn) {
+      title = getUrlObj(
+        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+      ).origin;
+    } else {
+      title = getUrlObj(currentEnsName || url || origin).origin;
+    }
 
     return title;
   }, [currentEnsName, origin, origins, from, url]);
@@ -127,7 +134,7 @@ const ApproveTransactionHeader = ({
     if (isOriginWalletConnect) {
       newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
-      newUrl = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, origins, url]);

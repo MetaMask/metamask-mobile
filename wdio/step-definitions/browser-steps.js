@@ -1,19 +1,22 @@
 /* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
-import WalletMainScreen from '../screen-objects/WalletMainScreen';
+
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
-import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
 import AddFavoriteScreen from '../screen-objects/BrowserObject/AddFavoriteScreen';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 import ExternalWebsitesScreen from '../screen-objects/BrowserObject/ExternalWebsitesScreen';
-import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
 import MultiTabScreen from '../screen-objects/BrowserObject/MultiTabScreen';
+import CommonScreen from '../screen-objects/CommonScreen';
+
+import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal';
+import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
 import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal';
 import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
-import AccountListComponent from '../screen-objects/AccountListComponent';
 import TabBarModal from '../screen-objects/Modals/TabBarModal';
+import ConnectedAccountsModal from '../screen-objects/Modals/ConnectedAccountsModal';
+import AccountListComponent from '../screen-objects/AccountListComponent';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
@@ -141,6 +144,12 @@ When(/^I tap on the browser home button$/, async () => {
   await BrowserScreen.tapHomeButton();
 });
 
+When(/^I dismiss the connected accounts modal/, async () => {
+  await driver.pause(2500);
+  await driver.touchPerform([{ action: 'tap', options: { x: 100, y: 200 } }]);
+  await driver.pause(2500);
+});
+
 When(/^I tap on Favorites on Home Website$/, async () => {
   await ExternalWebsitesScreen.tapHomeFavoritesButton();
 });
@@ -216,6 +225,18 @@ When(/^I tap on search button$/, async () => {
 When(/^I tap on browser tab button with count (\d+)$/, async (number) => {
   await BrowserScreen.numberOfTapsEqualsTo(number);
   await BrowserScreen.tapTabsButton();
+});
+
+When(/^I tap on the tab button$/, async () => {
+  await BrowserScreen.tapTabsButton();
+});
+Then(/^I open a new tab$/, async () => {
+  await OptionMenuModal.tapNewTabOption();
+});
+Then(/^I tap on browser tab with text "([^"]*)?"/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.tapOnText(text);
 });
 
 Then(/^multi browser tab view is displayed$/, async () => {
@@ -376,10 +397,34 @@ Given(/^I navigate to the browser$/, async () => {
   await BrowserScreen.isScreenContentDisplayed();
 });
 
+When(/^I navigate to the wallet$/, async () => {
+  await driver.pause(5000);
+  await TabBarModal.tapWalletButton();
+});
+
 When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
   await ExternalWebsitesScreen.tapUniswapConnectButton();
   await ExternalWebsitesScreen.tapUniswapMetaMaskWalletButton();
-  await AccountApprovalModal.tapConnectButton();
+});
+When(/^I connect my active wallet to the test dapp$/, async () => {
+  await ExternalWebsitesScreen.tapDappConnectButton();
+  await AccountApprovalModal.tapConnectButtonByText();
+  await driver.pause(3500);
+});
+When(/^I trigger the connect modal$/, async () => {
+  await ExternalWebsitesScreen.tapDappConnectButton();
+});
+When(/^the connect modal should be displayed$/, async () => {
+  await AccountApprovalModal.isVisible();
+});
+When(/^I connect my active wallet to the dapp$/, async () => {
+  await AccountApprovalModal.tapConnectButtonByText();
+  await driver.pause(3500);
+});
+
+When(/^I connect multiple accounts to a dapp$/, async () => {
+  await AccountApprovalModal.tapConnectMutipleAccountsButton();
+  await driver.pause(3500);
 });
 
 Then(/^the "([^"]*)" url is displayed in address field$/, async (text) => {
@@ -410,6 +455,17 @@ Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
   await AddressBarScreen.isUrlValueContains(url);
   await AddressBarScreen.tapUrlCancelButton();
 });
-When(/^I tap on the account icon on the Wallet screen$/, async () => {
-  await WalletMainScreen.tapIdenticon();
+When(/^I should be connected to the dapp$/, async () => {
+  await BrowserScreen.tapNetworkAvatarIcon();
+  await ConnectedAccountsModal.isVisible();
+  await NetworkListModal.isNotVisible();
+});
+
+When(/^I should not be connected to the dapp$/, async () => {
+  await BrowserScreen.tapNetworkAvatarIcon();
+  await ConnectedAccountsModal.isNotVisible();
+  await NetworkListModal.isVisible();
+});
+Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
+  await AccountListComponent.tapAccount(text);
 });
