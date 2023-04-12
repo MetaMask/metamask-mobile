@@ -10,13 +10,14 @@ import { BadgeVariant } from '../../Badge.types';
 // Internal dependencies.
 import BadgeStatus from './BadgeStatus';
 import { BadgeStatusState, BadgeStatusProps } from './BadgeStatus.types';
+import { DEFAULT_BADGESTATUS_STATE } from './BadgeStatus.constants';
 
 export const getBadgeStatusStoryProps = (): BadgeStatusProps => ({
   variant: BadgeVariant.Status,
   state: select(
     'state',
     BadgeStatusState,
-    BadgeStatusState.Disconnected,
+    DEFAULT_BADGESTATUS_STATE,
     storybookPropsGroupID,
   ),
 });

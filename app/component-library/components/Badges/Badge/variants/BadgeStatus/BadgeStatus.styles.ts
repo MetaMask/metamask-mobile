@@ -27,10 +27,10 @@ const styleSheet = (params: {
   let stateColor;
 
   switch (state) {
-    case BadgeStatusState.Connected:
+    case BadgeStatusState.Active:
       stateColor = theme.colors.success.default;
       break;
-    case BadgeStatusState.Disconnected:
+    case BadgeStatusState.Inactive:
       stateColor = theme.colors.icon.alternative;
       break;
     default:

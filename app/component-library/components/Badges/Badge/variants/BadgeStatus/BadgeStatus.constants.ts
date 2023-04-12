@@ -6,7 +6,7 @@ import { BadgeVariant } from '../../Badge.types';
 import { BadgeStatusState, BadgeStatusProps } from './BadgeStatus.types';
 
 // Defaults
-export const DEFAULT_BADGESTATUS_STATE = BadgeStatusState.Disconnected;
+export const DEFAULT_BADGESTATUS_STATE = BadgeStatusState.Inactive;
 
 // Test IDs
 export const BADGE_STATUS_TEST_ID = 'badge-status';

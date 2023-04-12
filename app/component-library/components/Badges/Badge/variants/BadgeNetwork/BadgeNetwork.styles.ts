@@ -23,9 +23,11 @@ const styleSheet = (params: {
   const { vars } = params;
   const { style, containerSize } = vars;
   let scaleRatio = 1;
+  let opacity = 0;
   if (containerSize) {
     scaleRatio =
       containerSize.height / Number(DEFAULT_BADGENETWORK_NETWORKICON_SIZE);
+    opacity = 1;
   }
 
   return StyleSheet.create({
@@ -36,6 +38,7 @@ const styleSheet = (params: {
         minHeight: 16,
         alignItems: 'center',
         justifyContent: 'center',
+        opacity,
       } as ViewStyle,
       style,
     ) as ViewStyle,

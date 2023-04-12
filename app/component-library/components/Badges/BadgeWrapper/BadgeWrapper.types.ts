@@ -23,7 +23,7 @@ export enum BadgePosition {
 /**
  * Badge Position Obj.
  */
-export interface BadgePositionObj {
+export interface BadgePositionCustom {
   top?: number | string | undefined;
   right?: number | string | undefined;
   bottom?: number | string | undefined;
@@ -43,7 +43,7 @@ export interface BadgeWrapperProps extends ViewProps {
    * Optional prop to control the position of the badge.
    * @default BadgePosition.TopRight
    */
-  badgePosition?: BadgePosition | BadgePositionObj;
+  badgePosition?: BadgePosition | BadgePositionCustom;
   /**
    * The children element that the badge will attach itself to.
    */
@@ -59,6 +59,6 @@ export interface BadgeWrapperProps extends ViewProps {
  */
 export type BadgeWrapperStyleSheetVars = Pick<BadgeWrapperProps, 'style'> & {
   anchorElementShape: BadgeAnchorElementShape;
-  badgePosition: BadgePosition | BadgePositionObj;
+  badgePosition: BadgePosition | BadgePositionCustom;
   containerSize: { width: number; height: number } | null;
 };

@@ -9,8 +9,8 @@ import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
  * Badge variants.
  */
 export enum BadgeStatusState {
-  Connected = 'Connected',
-  Disconnected = 'Disconnected',
+  Active = 'Active',
+  Inactive = 'Inactive',
 }
 
 /**
@@ -23,7 +23,7 @@ export interface BadgeStatusProps extends Omit<BadgeBaseProps, 'children'> {
   variant: BadgeVariant.Status;
   /**
    * Optional prop to control the status of BadgeStatus.
-   * @default BadgeStatusState.Disconnected
+   * @default BadgeStatusState.Inactive
    */
   state?: BadgeStatusState;
   /**

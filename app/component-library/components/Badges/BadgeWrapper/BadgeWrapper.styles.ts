@@ -85,6 +85,7 @@ const styleSheet = (params: {
       style,
     ) as ViewStyle,
     badge: {
+      // This is needed to pass the anchor element's bounding box to the Badge.
       position: 'absolute',
       height: elementHeight,
       aspectRatio: 1,

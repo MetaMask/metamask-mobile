@@ -10,6 +10,7 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
       "height": "50%",
       "justifyContent": "center",
       "minHeight": 16,
+      "opacity": 0,
     }
   }
   testID="badge-network"
