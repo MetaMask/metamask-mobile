@@ -1,4 +1,4 @@
-@androidApp
+@androidApp @regression
 Feature: This feature deletes the wallet from the Security and Privacy View
 
   Background: Import wallet
