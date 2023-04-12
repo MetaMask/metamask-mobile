@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "padding": 16,
+      "width": "100%",
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flex": 0,
+        "width": "auto",
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "marginHorizontal": 0,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "textAlign": "center",
+        }
+      }
+      variant="sHeadingSM"
+    >
+      Sample Header Title
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 0,
+        "width": "auto",
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+    />
+  </View>
+</View>
+`;
