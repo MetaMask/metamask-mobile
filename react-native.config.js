@@ -9,7 +9,9 @@ module.exports = {
     },
     'react-native-gesture-handler': {
       platforms: {
-        android: null, // disable Android platform, other platforms will still autolink if provided
+        android: {
+          sourceDir: './node_modules/react-native-gesture-handler/android',
+        },
       },
     },
     'react-native-video': {
