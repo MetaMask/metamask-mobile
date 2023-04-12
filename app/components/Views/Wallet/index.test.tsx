@@ -6,7 +6,7 @@ import configureMockStore from 'redux-mock-store';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
-
+import ScrollableTabView from 'react-native-scrollable-tab-view';
 const mockEngine = Engine;
 
 jest.unmock('react-redux');
@@ -158,5 +158,9 @@ describe('Wallet', () => {
   it('should render scan qr icon', () => {
     // There is an open issue https://github.com/react-navigation/react-navigation/issues/9487
     // It's blocking the testing to the nav bar custom headear
+  });
+  it('should render ScrollableTabView', () => {
+    renderComponent(initialState);
+    expect(ScrollableTabView).toHaveBeenCalled();
   });
 });
