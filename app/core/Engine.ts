@@ -926,14 +926,9 @@ export default {
   resetState() {
     return instance.resetState();
   },
-
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
-  },
-
-  sync(data: any) {
-    return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
