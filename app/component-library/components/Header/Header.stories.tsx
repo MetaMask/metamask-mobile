@@ -24,7 +24,7 @@ export const getHeaderStoryProps = (): HeaderProps => ({
       }}
     />
   ),
-  children: <Text>Super Long Header Title that may span 3 lines</Text>,
+  children: 'Super Long Header Title that may span 3 lines',
   endAccessory: (
     <Button
       variant={ButtonVariants.Primary}
