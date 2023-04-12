@@ -3,8 +3,6 @@ import ganache from 'ganache';
 const defaultOptions = {
   blockTime: 2,
   network_id: 1337,
-  mnemonic:
-    'phrase upgrade clock rough situate wedding elder clever doctor stamp excess tent',
   port: 8545,
   vmErrorsOnRPCResponse: false,
   hardfork: 'muirGlacier',
@@ -13,6 +11,9 @@ const defaultOptions = {
 
 export default class Ganache {
   async start(opts) {
+    if (!opts.mnemonic) {
+      throw new Error('Missing required mnemonic');
+    }
     const options = { ...defaultOptions, ...opts };
     const { port } = options;
     this._server = ganache.server(options);
