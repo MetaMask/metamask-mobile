@@ -8,9 +8,9 @@ import {
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
 
-import { strings } from '../../../../../locales/i18n';
+import messages from '../../../../../locales/languages/en.json';
 
-const CHANGE_PASSWORD_TEXT = strings('manual_backup_step_1.confirm_password');
+const CHANGE_PASSWORD_TEXT = messages.manual_backup_step_1.confirm_password;
 
 export default class ChangePasswordView {
   static async typeInConfirmPasswordInputBox(PASSWORD) {
