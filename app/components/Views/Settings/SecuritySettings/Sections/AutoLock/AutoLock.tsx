@@ -1,17 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { createStyles } from './styles';
 import AUTO_LOCK_OPTIONS from './constants';
 import { setLockTime } from '../../../../../../actions/settings';
-import { useTheme } from '../../../../../../util/theme';
+import { useStyles } from '../../../../../../component-library/hooks';
 import SelectComponent from '../../../../../UI/SelectComponent';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
+import styleSheet from './styles';
 
 const AutoLock = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
   const lockTime = useSelector((state: any) => state.settings.lockTime);

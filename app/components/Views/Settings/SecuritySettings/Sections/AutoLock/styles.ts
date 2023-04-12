@@ -1,9 +1,12 @@
-/* eslint-disable import/prefer-default-export */
 import { fontStyles } from '../../../../../../styles/common';
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../util/theme/models';
 
-export const createStyles = (colors: any) =>
-  StyleSheet.create({
+export const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
     setting: {
       marginTop: 50,
     },
@@ -29,3 +32,6 @@ export const createStyles = (colors: any) =>
       marginTop: 16,
     },
   });
+};
+
+export default styleSheet;
