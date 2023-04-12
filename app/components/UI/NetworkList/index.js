@@ -12,7 +12,6 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks, {
@@ -20,11 +19,12 @@ import Networks, {
   getDecimalChainId,
   getNetworkImageSource,
   isSafeChainId,
-  shouldShowZKEVM,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
@@ -219,7 +219,7 @@ export class NetworkList extends PureComponent {
     } else {
       onClose(false);
     }
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: type,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,
@@ -256,7 +256,10 @@ export class NetworkList extends PureComponent {
 
     let rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
 
-    if (!isLineaTestnetInFrequentRpcList) {
+    if (
+      !isLineaTestnetInFrequentRpcList &&
+      rpcTarget === new URL(LINEA_TESTNET_RPC_URL).href
+    ) {
       const url = new URLPARSE(LINEA_TESTNET_RPC_URL);
       const decimalChainId = getDecimalChainId(NETWORKS_CHAIN_ID.LINEA_TESTNET);
       PreferencesController.addToFrequentRpcList(
@@ -274,7 +277,10 @@ export class NetworkList extends PureComponent {
         symbol: LINEA_TESTNET_TICKER,
       };
 
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_ADDED,
+        analyticsParamsAdd,
+      );
       rpc = {
         rpcUrl: url.href,
         chainId: decimalChainId,
@@ -299,7 +305,7 @@ export class NetworkList extends PureComponent {
     CurrencyRateController.setNativeCurrency(ticker);
     NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
       source: this.props.currentBottomNavRoute,
       symbol: ticker,
@@ -395,11 +401,11 @@ export class NetworkList extends PureComponent {
     const { frequentRpcList, providerConfig } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     let rpcList = frequentRpcList;
-    if (!shouldShowZKEVM) {
-      rpcList = frequentRpcList.filter(
-        ({ chainId }) => chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      );
-    }
+
+    rpcList = frequentRpcList.filter(
+      ({ chainId }) => chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
+    );
+
     return rpcList.map(({ nickname, rpcUrl, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getNetworkImageSource({ chainId });
@@ -483,7 +489,7 @@ export class NetworkList extends PureComponent {
       name,
       image,
       networkIndex,
-      rpcUrl,
+      rpcURL.href,
       isCustomRpc,
     );
   };
@@ -501,12 +507,6 @@ export class NetworkList extends PureComponent {
   };
 
   render = () => {
-    const { frequentRpcList } = this.props;
-    const isLineaTestnetInFrequentRpcList =
-      frequentRpcList.findIndex(
-        (frequentRpc) =>
-          frequentRpc.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      ) !== -1;
     const styles = this.getStyles();
     return (
       <SafeAreaView
@@ -533,13 +533,11 @@ export class NetworkList extends PureComponent {
           {this.renderMainnet()}
           {this.renderRpcNetworks()}
           {this.renderOtherNetworks()}
-          {shouldShowZKEVM &&
-            !isLineaTestnetInFrequentRpcList &&
-            this.renderNonInfuraNetwork(
-              NETWORKS_CHAIN_ID.LINEA_TESTNET,
-              LINEA_TESTNET_RPC_URL,
-              LINEA_TESTNET_NICKNAME,
-            )}
+          {this.renderNonInfuraNetwork(
+            NETWORKS_CHAIN_ID.LINEA_TESTNET,
+            LINEA_TESTNET_RPC_URL,
+            LINEA_TESTNET_NICKNAME,
+          )}
         </ScrollView>
         <View style={styles.footer}>
           <StyledButton

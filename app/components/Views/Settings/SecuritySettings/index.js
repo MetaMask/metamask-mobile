@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -29,6 +28,7 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -40,17 +40,13 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import {
-  trackEvent,
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
 import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
-import {
-  CHANGE_PASSWORD_TITLE_ID,
-  CHANGE_PASSWORD_BUTTON_ID,
-} from '../../../../constants/test-ids';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -59,6 +55,8 @@ import {
   AutomaticSecurityChecks,
   ProtectYourWallet,
   LoginOptionsSettings,
+  RevealPrivateKey,
+  ChangePassword,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
@@ -314,8 +312,8 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const analyticsEnabled = MetaMetrics.checkEnabled();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
+    const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -463,7 +461,7 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: true,
       });
@@ -472,34 +470,22 @@ class Settings extends PureComponent {
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      MetaMetrics.enable();
+      Analytics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      MetaMetrics.disable();
+      Analytics.disable();
       this.setState({ analyticsEnabled: false });
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
-        strings('app_settings.metametrics_opt_out_description'),
+        strings('app_settings.metametrics_restart_required'),
       );
     }
   };
 
-  goToExportPrivateKey = () => {
-    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
-    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      credentialName: 'private_key',
-      hasNavigation: true,
-    });
-  };
-
   selectLockTime = (lockTime) => {
     this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
-  resetPassword = () => {
-    this.props.navigation.navigate('ResetPassword');
   };
 
   saveHint = async () => {
@@ -541,28 +527,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderPasswordSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
-        <Text style={styles.title}>
-          {strings('password_reset.password_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('password_reset.password_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.resetPassword}
-          containerStyle={styles.confirm}
-          testID={CHANGE_PASSWORD_BUTTON_ID}
-        >
-          {strings('password_reset.change_password')}
-        </StyledButton>
-      </View>
-    );
-  };
-
   renderAutoLockSection = () => {
     const { styles } = this.getStyles();
     return (
@@ -581,38 +545,6 @@ class Settings extends PureComponent {
             />
           )}
         </View>
-      </View>
-    );
-  };
-
-  renderPrivateKeySection = () => {
-    const { accounts, identities, selectedAddress } = this.props;
-    const account = {
-      address: selectedAddress,
-      ...identities[selectedAddress],
-      ...accounts[selectedAddress],
-    };
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'reveal-private-key-section'}>
-        <Text style={styles.title}>
-          {strings('reveal_credential.private_key_title_for_account', {
-            accountName: account.name,
-          })}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('reveal_credential.private_key_warning', {
-            accountName: account.name,
-          })}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.goToExportPrivateKey}
-          containerStyle={styles.confirm}
-        >
-          {strings('reveal_credential.show_private_key')}
-        </StyledButton>
       </View>
     );
   };
@@ -892,14 +824,14 @@ class Settings extends PureComponent {
             hintText={hintText}
             toggleHint={this.toggleHint}
           />
-          {this.renderPasswordSection()}
+          <ChangePassword />
           {this.renderAutoLockSection()}
           <LoginOptionsSettings
             onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
             onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
           />
           <RememberMeOptionSection />
-          {this.renderPrivateKeySection()}
+          <RevealPrivateKey />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}

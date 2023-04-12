@@ -8,20 +8,19 @@ import {
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { withNavigation } from '@react-navigation/compat';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getApproveNavbar } from '../../UI/Navbar';
+import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
   safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
+  shouldShowBlockExplorer,
 } from '../../../util/address';
+import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN } from '@metamask/controller-utils';
 import { fromTokenMinimalUnit } from '../../../util/number';
 import {
@@ -35,12 +34,15 @@ import {
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { showAlert } from '../../../actions/alert';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
   isMainnetByChainId,
@@ -368,7 +370,7 @@ class ApproveTransactionReview extends PureComponent {
         spendLimitCustomValue: minTokenAllowance,
       },
       () => {
-        trackEvent(
+        AnalyticsV2.trackEvent(
           MetaMetricsEvents.APPROVAL_STARTED,
           this.getAnalyticsParams(),
         );
@@ -432,7 +434,7 @@ class ApproveTransactionReview extends PureComponent {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(event, {
+      Analytics.trackEventWithParameters(event, {
         view: transaction.origin,
         numberOfTokens: tokensLength,
         numberOfAccounts: accountsLength,
@@ -448,7 +450,7 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
-    trackLegacyEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
+    Analytics.trackEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
     this.setState({ viewDetails: !viewDetails });
   };
 
@@ -495,7 +497,7 @@ class ApproveTransactionReview extends PureComponent {
       content: 'clipboard-alert',
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       this.getAnalyticsParams(),
     );
@@ -503,7 +505,7 @@ class ApproveTransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange } = this.props;
-    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -547,7 +549,7 @@ class ApproveTransactionReview extends PureComponent {
       Logger.log('Failed to setTransactionObject', err);
     }
     this.toggleEditPermission();
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       this.getAnalyticsParams(),
     );
@@ -655,6 +657,9 @@ class ApproveTransactionReview extends PureComponent {
       updateTransactionState,
       showBlockExplorer,
       showVerifyContractDetails,
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -671,6 +676,16 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
+    const hasBlockExplorer = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    const tokenLabel = `${
+      tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
+    } (#${tokenValue})`;
+
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
@@ -684,11 +699,13 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View>
-                <ApproveTransactionHeader
-                  origin={origin}
-                  url={activeTabUrl}
-                  from={from}
-                />
+                {from && (
+                  <ApproveTransactionHeader
+                    origin={origin}
+                    url={activeTabUrl}
+                    from={from}
+                  />
+                )}
                 <Text
                   variant={TextVariant.HeadingMD}
                   style={styles.title}
@@ -709,22 +726,23 @@ class ApproveTransactionReview extends PureComponent {
                   {tokenStandard === ERC20 && (
                     <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
                   )}
-                  {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-                    <ButtonLink
-                      onPress={showBlockExplorer}
-                      label={
-                        <Text
-                          variant={TextVariant.HeadingMD}
-                          style={styles.buttonColor}
-                        >
-                          {tokenName ||
-                            tokenSymbol ||
-                            strings(`spend_limit_edition.nft`)}{' '}
-                          (#{tokenValue})
-                        </Text>
-                      }
-                    />
-                  )}
+                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                    hasBlockExplorer ? (
+                      <ButtonLink
+                        onPress={showBlockExplorer}
+                        label={
+                          <Text
+                            variant={TextVariant.HeadingMD}
+                            style={styles.buttonColor}
+                          >
+                            {tokenLabel}
+                          </Text>
+                        }
+                      />
+                    ) : (
+                      <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
+                    )
+                  ) : null}
                 </Text>
 
                 {tokenStandard !== ERC721 &&
@@ -969,7 +987,7 @@ class ApproveTransactionReview extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

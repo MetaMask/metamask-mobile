@@ -621,7 +621,7 @@
     "third_party_title": "Get incoming transactions",
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
-    "metametrics_opt_out_description": "Your usage data will not be collected by MetaMetrics anymore.",
+    "metametrics_restart_required": "You need to restart the app for the changes to take effect.",
     "create_password": "Create Password",
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",
@@ -2284,12 +2284,12 @@
     "title": "Automatic security checks",
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
-"terms_of_use_modal": {
-  "title": "Our Terms of Use have been updated",
-  "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
-  "accept_cta": "Accept",
-  "accept_helper_description": "Please scroll to read all sections"
-},
+  "terms_of_use_modal": {
+    "title": "Our Terms of Use have been updated",
+    "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+    "accept_cta": "Accept",
+    "accept_helper_description": "Please scroll to read all sections"
+  },
   "update_needed": {
     "title": "Updates needed",
     "description": "We've increased security for your wallet! Please take a moment to protect yourself and update to the latest version.",
@@ -2441,7 +2441,7 @@
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App"
   },
-  "account_actions":{
+  "account_actions": {
     "edit_name": "Edit account name",
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",

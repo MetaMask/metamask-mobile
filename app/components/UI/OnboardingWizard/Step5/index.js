@@ -17,7 +17,7 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import { createBrowserNavDetails } from '../../../Views/Browser';
 
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 100,
+    bottom: 60,
   },
   dummyBrowserButton: {
     height: 82,
@@ -61,7 +61,7 @@ const Step5 = (props) => {
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(6);
     navigation && navigation.navigate(...createBrowserNavDetails());
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
     });
@@ -75,7 +75,7 @@ const Step5 = (props) => {
     setTimeout(() => {
       setOnboardingWizardStep && setOnboardingWizardStep(4);
     }, 1);
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
     });
