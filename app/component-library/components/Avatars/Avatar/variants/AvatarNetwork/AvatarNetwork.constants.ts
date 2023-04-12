@@ -11,5 +11,3 @@ export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
 
 /* eslint-disable-next-line */
 export const TEST_LOCAL_IMAGE_SOURCE: ImageSourcePropType = require('../../../../../../images/ethereum.png');
-
-export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
