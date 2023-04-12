@@ -9,6 +9,7 @@ Feature: Change password
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
 
   Scenario: Navigate to Change Password in Settings
     When I tap burger icon

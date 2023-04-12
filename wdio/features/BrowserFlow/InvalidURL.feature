@@ -6,6 +6,7 @@ Feature: This feature file covers invalid url functionality in the browser.
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
     And I navigate to the browser
 
     When I navigate to "https://quackquakc.easq"

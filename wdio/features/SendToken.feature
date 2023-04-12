@@ -10,6 +10,7 @@ Feature tests the sending of Native and ERC Tokens
     And I have imported my wallet
     When I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
     Then I am on the wallet view
 
   Scenario Outline: Adding AVAX testnet to my networks list
