@@ -67,6 +67,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontWeight: '500',
     },
     loader: {
       backgroundColor: colors.background.default,

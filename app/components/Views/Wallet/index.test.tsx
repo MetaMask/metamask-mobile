@@ -7,6 +7,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+
 const mockEngine = Engine;
 
 jest.unmock('react-redux');
@@ -106,13 +107,17 @@ jest.mock('react-redux', () => ({
     .fn()
     .mockImplementation((callback) => callback(initialState)),
 }));
+
 jest.mock('react-native-scrollable-tab-view', () => {
-  const ScrollableTabView = () => <></>;
-  ScrollableTabView.defaultProps = {
+  const ScrollableTabViewMock = jest
+    .fn()
+    .mockImplementation(() => ScrollableTabViewMock);
+
+  ScrollableTabViewMock.defaultProps = {
     onChangeTab: jest.fn(),
     renderTabBar: jest.fn(),
   };
-  return ScrollableTabView;
+  return ScrollableTabViewMock;
 });
 
 const mockNavigate = jest.fn();
