@@ -2,7 +2,7 @@
 name: General issue
 about: For any issues
 title: ''
-labels: awaiting-metamask
+labels: ["awaiting-metamask"]
 assignees: ''
 ---
 
