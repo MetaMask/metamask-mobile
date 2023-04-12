@@ -54,7 +54,6 @@ project.ext.react = [
 	enableHermes: false //System.getenv('METAMASK_ENVIRONMENT') == 'production'
 ]
 
-apply from: "../../node_modules/react-native/react.gradle"
  project.ext.sentryCli = [
 	logLevel: "debug",
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
@@ -129,22 +128,20 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace"io.metamask" 
+    namespace"io.metamask"
     defaultConfig {
-		    applicationId "io.metamask"
+		applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-		    versionCode 1072
-		    versionName "6.0.1"
-		    multiDexEnabled true
-		    testBuildType System.getProperty('testBuildType', 'debug')
-		    missingDimensionStrategy "minReactNative", "minReactNative46"
-		    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        versionCode 1072
+        versionName "6.0.1"
+        testBuildType System.getProperty('testBuildType', 'debug')
+        missingDimensionStrategy 'react-native-camera', 'general'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
+        manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
+        manifestPlaceholders.MM_MIXPANEL_TOKEN = "$System.env.MM_MIXPANEL_TOKEN"
     }
-
-		dexOptions {
-			javaMaxHeapSize "2048M"
-		}
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
@@ -182,9 +179,11 @@ android {
 
     buildTypes {
         debug {
+            manifestPlaceholders.isDebug = true
             signingConfig signingConfigs.debug
         }
         release {
+            manifestPlaceholders.isDebug = false
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
@@ -232,9 +231,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
-
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
