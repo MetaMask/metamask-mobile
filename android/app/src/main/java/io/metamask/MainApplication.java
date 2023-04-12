@@ -1,30 +1,32 @@
 package io.metamask;
 
+import android.app.Application;
 import com.facebook.react.ReactApplication;
-import com.cmcewen.blurview.BlurViewPackage;
 import com.brentvatne.react.ReactVideoPackage;
 import com.facebook.react.PackageList;
 import com.airbnb.android.react.lottie.LottiePackage;
-import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
+
+import cl.json.ShareApplication;
 import io.branch.rnbranch.RNBranchModule;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
-import cl.json.ShareApplication;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 import android.webkit.WebView;
-
-import androidx.multidex.MultiDexApplication;
+import android.os.Bundle;
 
 import android.database.CursorWindow;
 import java.lang.reflect.Field;
-import com.facebook.react.bridge.JSIModulePackage;
-import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
-public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
+public class MainApplication extends Application implements ShareApplication, ReactApplication {
+
+  @Override
+  public String getFileProviderAuthority() {
+    return BuildConfig.APPLICATION_ID + ".provider";
+  }
 
 	private final ReactNativeHost mReactNativeHost = new DefaultReactNativeHost(this) {
 		@Override
@@ -34,13 +36,11 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
 		@Override
 		protected List<ReactPackage> getPackages() {
-			@SuppressWarnings("UnnecessaryLocalVariable")
-			List<ReactPackage> packages = new PackageList(this).getPackages();
+      @SuppressWarnings("UnnecessaryLocalVariable")
+      List<ReactPackage> packages = new PackageList(this).getPackages();
 			packages.add(new LottiePackage());
-			packages.add(new RNGestureHandlerPackage());
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
-
 			return packages;
 		}
 
@@ -56,11 +56,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		@Override
 		protected String getJSMainModuleName() {
 			return "index";
-		}
-
-		@Override
-		protected JSIModulePackage getJSIModulePackage() {
-			return new ReanimatedJSIModulePackage();
 		}
   	};
 
@@ -94,9 +89,4 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 
     ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
-
-	@Override
-	public String getFileProviderAuthority() {
-		return BuildConfig.APPLICATION_ID + ".provider";
-	}
 }
