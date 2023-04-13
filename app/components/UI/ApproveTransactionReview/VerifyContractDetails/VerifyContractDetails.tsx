@@ -32,6 +32,7 @@ const VerifyContractDetails = ({
   providerRpcTarget,
   frequentRpcList,
   tokenStandard,
+  tokenSymbol,
 }: VerifyContractDetailsProps) => {
   const [contractNickname, setContractNickname] = React.useState<string>('');
   const [tokenNickname, setTokenNickname] = React.useState<string>('');
