@@ -102,7 +102,7 @@ const PopularList = [
     ticker: 'LineaETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.goerli.linea.build',
-      imageUrl: 'LINEA',
+      imageUrl: 'LINEA_TESTNET',
       imageSource: require('../../images/linea-logo-dark.png'),
     },
   },

@@ -139,7 +139,7 @@ export const getTestNetImageByChainId = (chainId) => {
     return networksWithImages?.SEPOLIA;
   }
   if (NETWORKS_CHAIN_ID.LINEA_TESTNET === chainId) {
-    return networksWithImages?.LINEA;
+    return networksWithImages?.LINEA_TESTNET;
   }
 };
 

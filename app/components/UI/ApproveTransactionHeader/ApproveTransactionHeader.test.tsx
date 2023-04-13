@@ -65,7 +65,7 @@ const initialState = {
         providerConfig: {
           chainId: '0xaa36a7',
           type: 'sepolia',
-          nickname: 'sepolia',
+          nickname: 'Sepolia',
         },
         provider: {
           ticker: 'eth',
