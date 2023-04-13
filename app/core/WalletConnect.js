@@ -343,7 +343,7 @@ class WalletConnect {
   sessionRequest = async (peerInfo) => {
     const { ApprovalController } = Engine.context;
     try {
-      return await ApprovalController.addAndShowApprovalRequest({
+      return await ApprovalController.add({
         id: peerInfo.peerId,
         origin: 'walletconnect',
         requestData: peerInfo,
