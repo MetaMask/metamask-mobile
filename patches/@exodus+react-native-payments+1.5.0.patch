@@ -1,3 +1,18 @@
+diff --git a/node_modules/@exodus/react-native-payments/android/build.gradle b/node_modules/@exodus/react-native-payments/android/build.gradle
+index 2dac59c..7f35ccb 100644
+--- a/node_modules/@exodus/react-native-payments/android/build.gradle
++++ b/node_modules/@exodus/react-native-payments/android/build.gradle
+@@ -19,7 +19,7 @@ android {
+ }
+ 
+ dependencies {
+-    compile 'com.facebook.react:react-native:+'
+-    compile 'com.google.android.gms:play-services-wallet:11.0.4'
+-    compile 'com.android.support:support-v4:23.0.1'
++    implementation 'com.facebook.react:react-native:+'
++    implementation 'com.google.android.gms:play-services-wallet:11.0.4'
++    implementation 'com.android.support:support-v4:23.0.1'
+ }
 diff --git a/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js b/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js
 index 0ae7fcd..320e1a6 100644
 --- a/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js
