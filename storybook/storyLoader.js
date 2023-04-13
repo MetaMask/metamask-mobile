@@ -39,6 +39,7 @@ function loadStories() {
   require('../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
+  require('../app/component-library/components/Overlay/Overlay.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
@@ -101,6 +102,7 @@ const stories = [
   '../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
+  '../app/component-library/components/Overlay/Overlay.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
