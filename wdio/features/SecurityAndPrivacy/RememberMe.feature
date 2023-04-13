@@ -13,10 +13,14 @@ Feature: A user enables remember me and is no longer prompted with password auth
     Then on Security & Privacy screen I toggle on Remember me
     When I kill the app
     And I relaunch the app
+    And the app displayed the splash animation
+    And the splash animation disappears
     And I fill my password in the Login screen
     And I toggle Remember Me on Login screen
     And I log into my wallet
     Then I am on the wallet view
     When I kill the app
     And I relaunch the app
+    And the app displayed the splash animation
+    And the splash animation disappears
     Then I am on the wallet view

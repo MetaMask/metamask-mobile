@@ -29,11 +29,12 @@ Feature: Change password
     And I tap Reset password
     Then Creating password is displayed
     And Security & Privacy screen is displayed
-    And I navigate to Wallet view from Security & Privacy
 
   Scenario Outline: Unlock with new password
     When I kill the app
     And I relaunch the app
+    And the app displayed the splash animation
+    And the splash animation disappears
     And I unlock wallet with <password>
     Then Wallet view is displayed
     Examples:
