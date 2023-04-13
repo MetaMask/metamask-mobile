@@ -15,6 +15,8 @@ jest.mock('../core/Engine', () => ({
 
 describe('linkCheck', () => {
   it('should correctly check links for safety', () => {
+    expect(isLinkSafe('htps://ww.example.com/')).toEqual(false);
+    expect(isLinkSafe('https://ww.example.com/')).toEqual(true);
     expect(isLinkSafe('http://example com/page?id=123')).toEqual(false);
     expect(isLinkSafe('https://www.example.com/')).toEqual(true);
     expect(isLinkSafe('http://phishing.com')).toEqual(false);
