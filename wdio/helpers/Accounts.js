@@ -6,14 +6,15 @@ const SHORT_PASSWORD = `1234567`;
 
 const INCORRECT_PASSWORD = `12345679`;
 
+//TODO refactor as a class with instance methods and instead of static methods
 class Accounts {
-  static getValidAccount() {
+  static getValidAccount(env) {
     return {
       // A correct BIP39 SRP that can be used for testing. Requires the var to be set in the environment.
-      seedPhrase: process.env.MM_TEST_ACCOUNT_SRP || 'undefined SRP env var',
+      seedPhrase: env.MM_TEST_ACCOUNT_SRP || 'undefined SRP env var',
       // Ethereum address for 1st account of derived on the seed that can be used for testing. Requires the var to be set in the environment.
       address:
-        process.env.MM_TEST_ACCOUNT_ADDRESS || 'undefined address env var',
+        env.MM_TEST_ACCOUNT_ADDRESS || 'undefined address env var',
       password: CORRECT_PASSWORD,
     };
   }
@@ -25,16 +26,16 @@ class Accounts {
     };
   }
 
-  static getAccountPrivateKey() {
+  static getAccountPrivateKey(env) {
     return {
       keys:
-        process.env.MM_TEST_ACCOUNT_PRIVATE_KEY ||
+        env.MM_TEST_ACCOUNT_PRIVATE_KEY ||
         'undefined Private key env var',
     };
   }
 
-  static getShortPasswordAccount() {
-    const account = Accounts.getValidAccount();
+  static getShortPasswordAccount(env) {
+    const account = Accounts.getValidAccount(env);
     account.password = SHORT_PASSWORD;
     return account;
   }

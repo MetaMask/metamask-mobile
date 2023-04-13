@@ -460,7 +460,7 @@
         }
       }
     },
-    "runner-config": "e2e/config.json",
+    "runner-config": "e2e/config.js",
     "test-runner": "jest"
   },
   "react-native": {

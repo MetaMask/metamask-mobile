@@ -8,7 +8,7 @@ jasmine.getEnv().addReporter(adapter);
 
 beforeAll(async () => {
   await detox.init(config);
-  await device.launchApp();
+  await device.launchApp({delete: true, launchArgs : { detoxEnableSynchronization: 0}});
 });
 
 beforeEach(async () => {
