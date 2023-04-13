@@ -28,8 +28,6 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   let validAccount;
 
   beforeAll(() => {
-    console.log('beforeAll delete-wallet.spec.js MM_TEST_ACCOUNT_SRP:', process.env.MM_TEST_ACCOUNT_SRP)
-    console.log('beforeAll delete-wallet.spec.js MM_TEST_ACCOUNT_ADDRESS:', process.env.MM_TEST_ACCOUNT_ADDRESS)
     validAccount = Accounts.getValidAccount(process.env);
   });
 
