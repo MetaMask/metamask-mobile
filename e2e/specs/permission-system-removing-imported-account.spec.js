@@ -97,8 +97,9 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
       testDappSendEIP1559ButtonCoordinates,
     );
 
+    await TransactionConfirmationView.isBalanceVisible();
     await TestHelpers.tapByText('Confirm', 1);
-    await TransactionConfirmationView.isNotVisible();
+    await TransactionConfirmationView.isBalanceNotVisible();
   });
 
   it('should navigate to wallet view', async () => {
