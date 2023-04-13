@@ -19,7 +19,10 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
-import { GOERLI_TEST_NETWORK_OPTION } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import {
+  GOERLI_TEST_NETWORK_OPTION,
+  SEPOLIA_TEST_NETWORK_OPTION,
+} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
 
@@ -76,6 +79,7 @@ const NetworkList = {
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
+    testId: SEPOLIA_TEST_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',
