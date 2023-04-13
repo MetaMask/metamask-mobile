@@ -81,6 +81,7 @@ import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import WalletActions from '../../Views/WalletActions';
+import NetworkSelector from '../../../components/Views/NetworkSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -498,6 +499,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_PERMISSIONS}
         component={AccountPermissions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.NETWORK_SELECTOR}
+        component={NetworkSelector}
       />
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}

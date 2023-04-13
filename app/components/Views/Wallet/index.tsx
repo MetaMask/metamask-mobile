@@ -47,6 +47,7 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -80,6 +81,7 @@ const createStyles = ({ colors, typography }: Theme) =>
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
+  const { navigate } = useNavigation();
   const { drawerRef } = useContext(DrawerContext);
   const [refreshing, setRefreshing] = useState(false);
   const accountOverviewRef = useRef(null);
@@ -157,7 +159,11 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Callback to trigger when pressing the navigation title.
    */
-  const onTitlePress = () => dispatch(toggleNetworkModal());
+  /* const onTitlePress = () => dispatch(toggleNetworkModal()); */
+  const onTitlePress = () =>
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
 
   const { colors: themeColors } = useTheme();
 
