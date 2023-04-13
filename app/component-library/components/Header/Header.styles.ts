@@ -19,13 +19,11 @@ const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
   const { vars } = params;
   const { style, startAccessorySize, endAccessorySize } = vars;
   const accessoryWidth =
-    Math.max(startAccessorySize?.width || 0, endAccessorySize?.width || 0) ||
-    'auto';
+    Math.max(startAccessorySize?.width, endAccessorySize?.width) || 'auto';
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
@@ -41,7 +39,6 @@ const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
       textAlign: 'center',
     },
     accessoryWrapper: {
-      flex: 0,
       width: accessoryWidth,
     },
   });
