@@ -1,4 +1,4 @@
-// noinspection ES6ConvertRequireIntoImport
+// eslint-disable-next-line import/no-commonjs
 require('dotenv').config({ path: '.e2e.env' });
 
 const config = {
