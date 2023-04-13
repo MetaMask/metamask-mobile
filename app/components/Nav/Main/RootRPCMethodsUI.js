@@ -488,10 +488,6 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const renderWalletConnectSessionRequestModal = () => {
-    const meta = walletConnectRequestInfo?.data?.peerMeta || null;
-    // walletConnectRequestInfo is reset to undefined in onWalletConnectSessionApproval as soon as the approval happens
-    if (!meta) return;
-
     return (
       <Modal
         isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}

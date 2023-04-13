@@ -1,5 +1,6 @@
 import RNWalletConnect from '@walletconnect/client';
 import { parseWalletConnectUri } from '@walletconnect/utils';
+import { v1 as random } from 'uuid';
 import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -343,9 +344,10 @@ class WalletConnect {
   sessionRequest = async (peerInfo) => {
     const { ApprovalController } = Engine.context;
     try {
+      const { host } = new URL(peerInfo.peerMeta.url);
       return await ApprovalController.add({
-        id: peerInfo.peerId,
-        origin: 'walletconnect',
+        id: random(),
+        origin: host,
         requestData: peerInfo,
         type: ApprovalTypes.WALLET_CONNECT,
       });
