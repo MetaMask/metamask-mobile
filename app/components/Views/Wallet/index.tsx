@@ -59,11 +59,12 @@ const createStyles = ({ colors, typography }: Theme) =>
       paddingBottom: 0,
     },
     tabBar: {
-      borderColor: colors.border.muted,
+      borderColor: colors.background.default,
       marginTop: 16,
     },
     textStyle: {
-      ...(typography.HeadingSM as TextStyle),
+      ...(typography.sBodyMD as TextStyle),
+      fontWeight: '500',
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -220,8 +221,8 @@ const Wallet = ({ navigation }: any) => {
     () => (
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.text.default}
-        inactiveTextColor={colors.text.muted}
+        activeTextColor={colors.primary.default}
+        inactiveTextColor={colors.text.default}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}

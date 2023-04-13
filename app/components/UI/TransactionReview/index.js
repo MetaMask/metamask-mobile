@@ -471,12 +471,14 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          <ApproveTransactionHeader
-            currentEnsName={ensRecipient}
-            origin={origin}
-            url={url}
-            from={from}
-          />
+          {from && (
+            <ApproveTransactionHeader
+              currentEnsName={ensRecipient}
+              origin={origin}
+              url={url}
+              from={from}
+            />
+          )}
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}
