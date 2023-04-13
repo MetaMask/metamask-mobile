@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 // External dependencies.
@@ -21,11 +21,7 @@ const Overlay: React.FC<OverlayProps> = ({ style, onPress, color }) => {
       exiting={FadeOut.duration(DEFAULT_OVERLAY_ANIMATION_DURATION)}
       style={styles.base}
     >
-      {onPress ? (
-        <TouchableOpacity onPress={onPress} style={styles.fill} />
-      ) : (
-        <View style={styles.fill} />
-      )}
+      {onPress && <TouchableOpacity onPress={onPress} style={styles.fill} />}
     </Animated.View>
   );
 };

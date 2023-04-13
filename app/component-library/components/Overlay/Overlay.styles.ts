@@ -20,9 +20,7 @@ const styleSheet = (params: { theme: Theme; vars: OverlayStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
+        ...StyleSheet.absoluteFillObject,
         backgroundColor: color || theme.colors.overlay.default,
       } as ViewStyle,
       style,
