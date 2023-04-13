@@ -39,6 +39,7 @@ Then(/^I should see an error (.*)/, async (errorMessage) => {
   await ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });
+
 Then(/^I close the import account screen/, async () => {
   await driver.pause(2500);
   await ImportAccountScreen.tapCloseButton();

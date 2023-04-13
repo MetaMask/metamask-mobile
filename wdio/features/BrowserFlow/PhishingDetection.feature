@@ -1,4 +1,4 @@
-@androidApp @smoke @ChainScenarios
+@androidApp @ChainScenarios
 Feature: This feature file covers phishing detection functionality the browser.
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning

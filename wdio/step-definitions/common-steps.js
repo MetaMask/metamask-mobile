@@ -126,6 +126,18 @@ Then(/^"([^"]*)?" is displayed on (.*) (.*) view/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^Expect "([^"]*)?" to be displayed/, async (expectedText) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(expectedText);
+});
+
+Then(/^Expect text to contain "([^"]*)?"/, async (expectedText) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(expectedText);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -201,7 +213,7 @@ Then(
 );
 
 Then(
-  /^(.*) "([^"]*)?" is displayed on (.*) (.*) view/,
+  /^(.*) "([^"]*)?" is displayed on (.*) (.*) view$/,
   async (elementType, text, type, screen) => {
     await CommonScreen.isTextDisplayed(text);
   },

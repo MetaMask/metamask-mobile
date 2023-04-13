@@ -152,7 +152,7 @@ class WalletMainScreen {
 
   async isTokenTextVisible(token) {
     const tokenText = await Selectors.getXpathElementByTextContains(token);
-    await expect(tokenText).toBeDisplayed();
+    expect(tokenText).toBeDisplayed();
     await tokenText.waitForExist({ reverse: true });
   }
 

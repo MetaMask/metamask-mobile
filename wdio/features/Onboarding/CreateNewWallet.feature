@@ -21,4 +21,4 @@ Feature: New wallet flow
     And secure wallet page is presented
     Then I select remind me later on secure wallet screen
     And Select "Skip" on remind secure modal
-    Then I should proceed to the new wallet
+    Then I should proceed to the new wallet 

@@ -27,8 +27,8 @@ Feature: Importing account in wallet
     Then the account list should not be visible
 
     Examples:
-      | PRIVATEKEY | warning                              |
-      | 23423411x  | We couldn't import that private key. |
+      | PRIVATEKEY | warning                                                                        |
+      | 23423411x  | We couldn't import that private key. Please make sure you entered it correctly. |
 
   Scenario Outline: Import an account using a valid private key
     Given I am on the wallet view
@@ -44,7 +44,8 @@ Feature: Importing account in wallet
     Then The account is imported
 
     When I dismiss the account list
-    Then I am on the imported account
+    Then I am on the main wallet view
+    And Expect "Account 2" to be displayed
 
     Examples:
       | PRIVATEKEY                                                       |

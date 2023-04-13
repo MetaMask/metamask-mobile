@@ -1,4 +1,7 @@
-@androidApp @regression @ChainScenarios
+@smoke
+@androidApp 
+@regression 
+@ChainScenarios
 
 Feature: Importing account via private then revoking permissions
 

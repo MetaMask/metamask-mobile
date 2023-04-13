@@ -1,6 +1,5 @@
 @androidApp
 @ChainScenarios
-@smoke
 
 Feature: Creating account in wallet
 
@@ -18,4 +17,5 @@ Feature: Creating account in wallet
 
     When I tap on Create a new account
     Then A new account is created
-    And I am on the new account
+    And Expect "Account 2" to be displayed 
+    
