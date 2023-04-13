@@ -687,6 +687,14 @@
       "comment_id": 1501825099,
       "created_at": "2023-04-10T13:40:11Z",
       "repoId": 141427485
+    },
+    {
+      "id": 7071180,
+      "name": "gauthierpetetin",
+      "pullRequestNo": 6187,
+      "comment_id": 1506852998,
+      "created_at": "2023-04-13T12:07:16Z",
+      "repoId": 141427485
     }
   ]
 }
