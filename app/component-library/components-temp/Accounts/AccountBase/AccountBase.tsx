@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
+import Badge from '../../../../component-library/components/Badges/Badge';
 import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
@@ -21,7 +22,10 @@ const AccountBase = ({
 }: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
-      <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
+      <BadgeWrapper
+        badgeElement={<Badge {...badgeProps} />}
+        style={styles.badgeWrapper}
+      >
         <Avatar
           variant={AvatarVariants.Account}
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}

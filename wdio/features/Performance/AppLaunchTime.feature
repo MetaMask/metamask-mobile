@@ -18,6 +18,8 @@ Feature: App Cold Start launch times.
     When I kill the app
     And I relaunch the app
     And the timer starts running
+    And the app displayed the splash animation
+    And the splash animation disappears
     And I fill my password in the Login screen
     And I log into my wallet
     Then the app should launch within "14" seconds
