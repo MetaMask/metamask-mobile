@@ -477,6 +477,7 @@ const RootRPCMethodsUI = (props) => {
       walletConnectRequestInfo.id,
       walletConnectRequestInfo.data,
     );
+    setWalletConnectRequestInfo(undefined);
   };
 
   const onWalletConnectSessionRejected = () => {
@@ -485,9 +486,11 @@ const RootRPCMethodsUI = (props) => {
       walletConnectRequestInfo.id,
       ethErrors.provider.userRejectedRequest(),
     );
+    setWalletConnectRequestInfo(undefined);
   };
 
   const renderWalletConnectSessionRequestModal = () => {
+    const meta = walletConnectRequestInfo?.data?.peerMeta || null;
     return (
       <Modal
         isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}
