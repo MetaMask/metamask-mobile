@@ -159,6 +159,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const handleBalance = (asset: TokenI) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
+    // When the exchange rate of a token is not found, the return is undefined
+    // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
     const exchangeRate =
       itemAddress in tokenExchangeRates
         ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
