@@ -62,6 +62,7 @@ import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
 import { TokenI, TokensI } from './types';
+import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -158,9 +159,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const handleBalance = (asset: TokenI) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
+    // When the exchange rate of a token is not found, the return is undefined
+    // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
     const exchangeRate =
       itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress]
+        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
         : undefined;
 
     const balance =
@@ -171,8 +174,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (!balance && !asset.isETH) {
       return {
-        balanceFiat: 'loading',
-        balanceValueFormatted: 'loading',
+        balanceFiat: TOKEN_BALANCE_LOADING,
+        balanceValueFormatted: TOKEN_BALANCE_LOADING,
       };
     }
 
@@ -180,7 +183,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (!conversionRate || !exchangeRate)
       return {
-        balanceFiat: asset.isETH ? asset.balanceFiat : 'loading',
+        balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_BALANCE_LOADING,
+        balanceValueFormatted,
+      };
+
+    if (exchangeRate === TOKEN_RATE_UNDEFINED)
+      return {
+        balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
         balanceValueFormatted,
       };
 
@@ -213,6 +222,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (asset?.balanceError) {
       mainBalance = asset.symbol;
+      secondaryBalance = strings('wallet.unable_to_load');
+    }
+
+    if (balanceFiat === TOKEN_RATE_UNDEFINED) {
+      mainBalance = balanceValueFormatted;
       secondaryBalance = strings('wallet.unable_to_load');
     }
 
@@ -262,7 +276,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           </Text>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance === 'loading' ? (
+            {mainBalance === TOKEN_BALANCE_LOADING ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
               mainBalance
