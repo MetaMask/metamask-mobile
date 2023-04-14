@@ -1,21 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Header should render correctly 1`] = `
+exports[`Header should render snapshot correctly 1`] = `
 <View
   style={
     Object {
       "alignItems": "center",
       "flexDirection": "row",
       "padding": 16,
-      "width": "100%",
     }
   }
+  testID="header"
 >
   <View
     style={
       Object {
-        "flex": 0,
-        "width": "auto",
+        "width": undefined,
       }
     }
   >
@@ -28,7 +27,7 @@ exports[`Header should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "flex": 1,
-        "marginHorizontal": 0,
+        "marginHorizontal": 16,
       }
     }
   >
@@ -38,6 +37,7 @@ exports[`Header should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+      testID="header-title"
       variant="sHeadingSM"
     >
       Sample Header Title
@@ -46,8 +46,7 @@ exports[`Header should render correctly 1`] = `
   <View
     style={
       Object {
-        "flex": 0,
-        "width": "auto",
+        "width": undefined,
       }
     }
   >

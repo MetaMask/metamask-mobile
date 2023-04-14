@@ -6,11 +6,16 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useComponentSize, useStyles } from '../../hooks';
-import Text, { TextVariant } from '../Texts/Text';
+import Text from '../Texts/Text';
 
 // Internal dependencies.
 import styleSheet from './Header.styles';
 import { HeaderProps } from './Header.types';
+import {
+  DEFAULT_HEADER_TITLE_TEXTVARIANT,
+  HEADER_TEST_ID,
+  HEADER_TITLE_TEST_ID,
+} from './Header.constants';
 
 const Header: React.FC<HeaderProps> = ({
   style,
@@ -29,13 +34,17 @@ const Header: React.FC<HeaderProps> = ({
   });
 
   return (
-    <View style={styles.base}>
+    <View style={styles.base} testID={HEADER_TEST_ID}>
       <View style={styles.accessoryWrapper}>
         <View onLayout={startAccessoryOnLayout}>{startAccessory}</View>
       </View>
       <View style={styles.titleWrapper}>
         {typeof children === 'string' ? (
-          <Text variant={TextVariant.HeadingSM} style={styles.title}>
+          <Text
+            variant={DEFAULT_HEADER_TITLE_TEXTVARIANT}
+            style={styles.title}
+            testID={HEADER_TITLE_TEST_ID}
+          >
             {children}
           </Text>
         ) : (
