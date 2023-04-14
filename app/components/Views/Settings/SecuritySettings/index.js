@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
 import { setThirdPartyApiMode } from '../../../../actions/privacy';
@@ -57,6 +56,7 @@ import {
   LoginOptionsSettings,
   RevealPrivateKey,
   ChangePassword,
+  AutoLock,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
@@ -252,49 +252,6 @@ class Settings extends PureComponent {
     hintText: '',
   };
 
-  autolockOptions = [
-    {
-      value: '0',
-      label: strings('app_settings.autolock_immediately'),
-      key: '0',
-    },
-    {
-      value: '5000',
-      label: strings('app_settings.autolock_after', { time: 5 }),
-      key: '5000',
-    },
-    {
-      value: '15000',
-      label: strings('app_settings.autolock_after', { time: 15 }),
-      key: '15000',
-    },
-    {
-      value: '30000',
-      label: strings('app_settings.autolock_after', { time: 30 }),
-      key: '30000',
-    },
-    {
-      value: '60000',
-      label: strings('app_settings.autolock_after', { time: 60 }),
-      key: '60000',
-    },
-    {
-      value: '300000',
-      label: strings('app_settings.autolock_after_minutes', { time: 5 }),
-      key: '300000',
-    },
-    {
-      value: '600000',
-      label: strings('app_settings.autolock_after_minutes', { time: 10 }),
-      key: '600000',
-    },
-    {
-      value: '-1',
-      label: strings('app_settings.autolock_never'),
-      key: '-1',
-    },
-  ];
-
   scrollView = undefined;
 
   updateNavBar = () => {
@@ -484,10 +441,6 @@ class Settings extends PureComponent {
     }
   };
 
-  selectLockTime = (lockTime) => {
-    this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
   saveHint = async () => {
     const { hintText } = this.state;
     if (!hintText) return;
@@ -524,28 +477,6 @@ class Settings extends PureComponent {
         value={hintText}
         onChangeText={this.handleChangeText}
       />
-    );
-  };
-
-  renderAutoLockSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'auto-lock-section'}>
-        <Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.auto_lock_desc')}
-        </Text>
-        <View style={styles.picker}>
-          {this.autolockOptions && (
-            <SelectComponent
-              selectedValue={this.props.lockTime.toString()}
-              onValueChange={this.selectLockTime}
-              label={strings('app_settings.auto_lock')}
-              options={this.autolockOptions}
-            />
-          )}
-        </View>
-      </View>
     );
   };
 
@@ -825,7 +756,7 @@ class Settings extends PureComponent {
             toggleHint={this.toggleHint}
           />
           <ChangePassword />
-          {this.renderAutoLockSection()}
+          <AutoLock />
           <LoginOptionsSettings
             onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
             onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}

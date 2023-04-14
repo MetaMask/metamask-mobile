@@ -1,12 +1,12 @@
 import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import TestHelpers from '../../helpers';
-import { strings } from '../../../locales/i18n';
+import messages from '../../../locales/languages/en.json';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const ONBOARDING_SCREEN_ID = 'onboarding-screen';
 const IMPORT_FROM_SEED_BUTTON_ID =
   'wallet-setup-screen-import-from-seed-button-id';
-const DeletePasswordString = strings('onboarding.your_wallet');
+const DeletePasswordString = messages.onboarding.your_wallet;
 
 export default class OnboardingView {
   static async tapCreateWallet() {
