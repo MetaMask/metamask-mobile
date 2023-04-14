@@ -8,7 +8,7 @@ import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
-import { CELL_DISPLAY_TEST_ID } from './CellDisplay.constants';
+import { CELL_DISPLAY_TEST_ID } from '../../../../../../constants/test-ids';
 
 describe('CellDisplay - Snapshot', () => {
   it('should render default settings correctly', () => {

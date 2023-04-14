@@ -1,7 +1,7 @@
-/* global driver */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
+  SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
   SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
   SECURITY_PRIVACY_VIEW_ID,
 } from './testIDs/Screens/SecurityPrivacy.testIds';
@@ -15,20 +15,35 @@ class SecurityAndPrivacyScreen {
     return Selectors.getElementByPlatform(SECURITY_PRIVACY_VIEW_ID);
   }
 
+  get deleteWalletButton() {
+    return Selectors.getElementByPlatform(
+      SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
+    );
+  }
+
   async tapChangePassword() {
     await Gestures.swipe({ x: 200, y: 1000 }, { x: 200, y: 200 });
     await Gestures.tapTextByXpath('Change password');
   }
 
   async isChangePasswordTextVisible(text) {
-    const changepasswordText = Selectors.getXpathElementByText(text);
-    await expect(changepasswordText).toBeDisplayed();
+    const changePasswordText = await Selectors.getXpathElementByText(text);
+    await expect(changePasswordText).toBeDisplayed();
   }
 
   async tapRememberToggle() {
     const element = await this.rememberMeToggle;
     while (!(await element.isDisplayed())) {
       await Gestures.swipeUp();
+    }
+
+    await Gestures.waitAndTap(element);
+  }
+
+  async tapDeleteWalletButton() {
+    const element = await this.deleteWalletButton;
+    while (!(await element.isDisplayed())) {
+      await Gestures.swipeUp(0.75);
     }
 
     await Gestures.waitAndTap(element);

@@ -1,4 +1,3 @@
-/* global driver */
 import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
@@ -85,7 +84,7 @@ class ImportFromSeed {
 
   async isAlertTextVisible(text) {
     await driver.pause(1000);
-    const message = driver.getAlertText();
+    const message = await driver.getAlertText();
     try {
       expect(message.includes(text.trim())).toBe(true);
     } catch (error) {

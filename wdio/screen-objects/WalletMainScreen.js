@@ -119,12 +119,6 @@ class WalletMainScreen {
     await Gestures.waitAndTap(this.ImportNFT);
   }
 
-  async tapBurgerButtonByXpath() {
-    await Gestures.tap(
-      await Selectors.getXpathElementByContentDescription(this.HamburgerButton),
-    );
-  }
-
   async tapNFTTab() {
     await Gestures.tapTextByXpath('NFTs');
   }
@@ -138,8 +132,7 @@ class WalletMainScreen {
   }
 
   async tapRemindMeLaterOnNotification() {
-    await Gestures.tap(await this.remindMeLaterNotification, 'MOVETO');
-    await Gestures.tap(await this.remindMeLaterNotification);
+    await Gestures.waitAndTap(await this.remindMeLaterNotification);
   }
 
   async backupAlertModalIsVisible() {
@@ -177,6 +170,7 @@ class WalletMainScreen {
     await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
+    await element.waitForExist({ reverse: true });
   }
 
   async isNetworkNavbarTitle(text) {

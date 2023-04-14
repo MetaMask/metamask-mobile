@@ -6,6 +6,7 @@ import LoginScreen from '../screen-objects/LoginScreen';
 Then(/^on Security & Privacy screen I toggle on Remember me/, async () => {
   await SecurityAndPrivacyScreen.tapToskipVideo();
   await SecurityAndPrivacyScreen.tapRememberToggle();
+  await driver.pause(2000);
   //await SecurityAndPrivacyScreen.isRememberMeToggle('ON');
 });
 
