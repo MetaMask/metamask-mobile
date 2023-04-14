@@ -15,6 +15,7 @@ function loadStories() {
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
+  require('../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
   require('../app/component-library/components/Banners/Banner/Banner.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories');
@@ -40,6 +41,7 @@ function loadStories() {
   require('../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
+  require('../app/component-library/components/Overlay/Overlay.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
@@ -78,6 +80,7 @@ const stories = [
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
+  '../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
   '../app/component-library/components/Banners/Banner/Banner.stories',
   '../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories',
@@ -103,6 +106,7 @@ const stories = [
   '../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
+  '../app/component-library/components/Overlay/Overlay.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
