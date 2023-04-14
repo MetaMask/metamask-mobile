@@ -30,6 +30,7 @@ export enum ApprovalTypes {
   ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
+  WATCH_ASSETS = 'wallet_watchAssets',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -610,6 +611,7 @@ export const getRpcMethodMiddleware = ({
         }),
 
       wallet_watchAsset: async () => {
+        console.log('XXXXXXXXXXXX RpcMethodMiddleware1');
         const {
           params: {
             options: { address, decimals, image, symbol },

@@ -89,8 +89,7 @@ const RootRPCMethodsUI = (props) => {
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
-  const [watchAsset, setWatchAsset] = useState(false);
-  const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+  const [watchAsset, setWatchAsset] = useState(null);
 
   const setTransactionObject = props.setTransactionObject;
   const toggleApproveModal = props.toggleApproveModal;
@@ -518,6 +517,7 @@ const RootRPCMethodsUI = (props) => {
 
   // Reject pending approval using MetaMask SDK.
   const rejectPendingApproval = (id, error) => {
+    console.log('RPC REJECT PENDING APPROVAL', id, error);
     const { ApprovalController } = Engine.context;
     try {
       ApprovalController.reject(id, error);
@@ -528,10 +528,12 @@ const RootRPCMethodsUI = (props) => {
 
   // Accept pending approval using MetaMask SDK.
   const acceptPendingApproval = (id, requestData) => {
+    console.log('RPC ACCEPT PENDING APPROVAL', id, requestData);
     const { ApprovalController } = Engine.context;
     try {
       ApprovalController.accept(id, requestData);
     } catch (err) {
+      console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', err);
       // Ignore err if request already approved or doesn't exists.
     }
   };
@@ -665,10 +667,19 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On rejection addinga an asset
+   * On rejection adding an asset
    */
-  const onCancelWatchAsset = () => {
-    setWatchAsset(false);
+  const onWatchAssetReject = () => {
+    setShowPendingApproval(false);
+    //rejectPendingApproval(watchAsset.id, watchAsset.data);
+  };
+
+  /**
+   * On confirming adding an asset
+   */
+  const onWatchAssetConfirm = () => {
+    setShowPendingApproval(false);
+    //acceptPendingApproval(watchAsset.id, watchAsset.data);
   };
 
   /**
@@ -676,7 +687,7 @@ const RootRPCMethodsUI = (props) => {
    */
   const renderWatchAssetModal = () => (
     <Modal
-      isVisible={watchAsset}
+      isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSETS}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -684,15 +695,15 @@ const RootRPCMethodsUI = (props) => {
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onCancelWatchAsset}
-      onSwipeComplete={onCancelWatchAsset}
+      onBackdropPress={onWatchAssetReject}
+      onSwipeComplete={onWatchAssetReject}
       swipeDirection={'down'}
       propagateSwipe
     >
       <WatchAssetRequest
-        onCancel={onCancelWatchAsset}
-        onConfirm={onCancelWatchAsset}
-        suggestedAssetMeta={suggestedAssetMeta}
+        onCancel={onWatchAssetReject}
+        onConfirm={onWatchAssetConfirm}
+        suggestedAssetMeta={watchAsset?.data}
         currentPageInformation={currentPageMeta}
       />
     </Modal>
@@ -719,7 +730,7 @@ const RootRPCMethodsUI = (props) => {
       const key = Object.keys(approval.pendingApprovals)[0];
       const request = approval.pendingApprovals[key];
       const requestData = request.requestData;
-      if (requestData.pageMeta) {
+      if (requestData?.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
       }
 
@@ -766,6 +777,14 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.WATCH_ASSETS:
+          console.log('handlePendingApprovals', approval, requestData);
+          setWatchAsset({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.WATCH_ASSETS,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -795,14 +814,6 @@ const RootRPCMethodsUI = (props) => {
     Engine.controllerMessenger.subscribe(
       'ApprovalController:stateChange',
       handlePendingApprovals,
-    );
-
-    Engine.context.TokensController.hub.on(
-      'pendingSuggestedAsset',
-      (suggestedAssetMeta) => {
-        setSuggestedAssetMeta(suggestedAssetMeta);
-        setWatchAsset(true);
-      },
     );
 
     return function cleanup() {
