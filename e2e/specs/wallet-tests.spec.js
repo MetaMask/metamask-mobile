@@ -29,7 +29,7 @@ describe('Wallet Tests', () => {
   const COLLECTIBLE_IDENTIFIER = '179';
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 
-  const validAccount = Accounts.getValidAccount(process.env);
+  const validAccount = Accounts.getValidAccount();
 
   beforeEach(() => {
     jest.setTimeout(200000);

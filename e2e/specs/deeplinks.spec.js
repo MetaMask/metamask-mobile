@@ -37,7 +37,7 @@ const networkNotFoundText = 'Network not found';
 const networkErrorBodyMessage =
   'Network with chain id 56 not found in your wallet. Please add the network first.';
 
-const validAccount = Accounts.getValidAccount(process.env);
+const validAccount = Accounts.getValidAccount();
 
 describe('Deep linking Tests', () => {
   beforeEach(() => {

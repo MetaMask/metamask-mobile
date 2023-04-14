@@ -38,7 +38,7 @@ describe('Adding Contract Nickname', () => {
   let validAccount;
 
   beforeAll(() => {
-    validAccount = Accounts.getValidAccount(process.env);
+    validAccount = Accounts.getValidAccount();
   });
 
   beforeEach(() => {

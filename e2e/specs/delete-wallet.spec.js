@@ -28,7 +28,7 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   let validAccount;
 
   beforeAll(() => {
-    validAccount = Accounts.getValidAccount(process.env);
+    validAccount = Accounts.getValidAccount();
   });
 
   beforeEach(() => {

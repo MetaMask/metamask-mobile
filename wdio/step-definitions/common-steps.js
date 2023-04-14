@@ -42,7 +42,7 @@ Then(/^Terms of Use is not displayed$/, async () => {
 });
 
 Given(/^I have imported my wallet$/, async () => {
-  const validAccount = Accounts.getValidAccount(process.env);
+  const validAccount = Accounts.getValidAccount();
 
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -64,7 +64,7 @@ Given(/^I have imported my wallet$/, async () => {
 });
 
 Given(/^I create a new wallet$/, async () => {
-  const validAccount = Accounts.getValidAccount(process.env);
+  const validAccount = Accounts.getValidAccount();
 
   await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
@@ -100,7 +100,7 @@ Given(
 );
 
 Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
-  const validAccount = Accounts.getValidAccount(process.env);
+  const validAccount = Accounts.getValidAccount();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(phrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
@@ -167,7 +167,7 @@ When(/^I relaunch the app$/, async () => {
 });
 
 When(/^I fill my password in the Login screen$/, async () => {
-  const validAccount = Accounts.getValidAccount(process.env);
+  const validAccount = Accounts.getValidAccount();
 
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword(validAccount.password);
