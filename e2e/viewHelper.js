@@ -33,7 +33,7 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
-  const validAccount = Accounts.getValidAccount();
+  const validAccount = Accounts.getValidAccount(process.env);
 
   // tap on import seed phrase button
   await OnboardingCarouselView.isVisible();

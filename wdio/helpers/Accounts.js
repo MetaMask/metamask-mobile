@@ -9,12 +9,15 @@ const INCORRECT_PASSWORD = `12345679`;
 //TODO refactor as a class with instance methods and instead of static methods
 class Accounts {
   static getValidAccount(env) {
+    console.log(
+      'MM_TEST_ACCOUNT_SRP:',
+      env.MM_TEST_ACCOUNT_SRP ? 'OK Defined' : env.MM_TEST_ACCOUNT_SRP,
+    );
     return {
       // A correct BIP39 SRP that can be used for testing. Requires the var to be set in the environment.
       seedPhrase: env.MM_TEST_ACCOUNT_SRP || 'undefined SRP env var',
       // Ethereum address for 1st account of derived on the seed that can be used for testing. Requires the var to be set in the environment.
-      address:
-        env.MM_TEST_ACCOUNT_ADDRESS || 'undefined address env var',
+      address: env.MM_TEST_ACCOUNT_ADDRESS || 'undefined address env var',
       password: CORRECT_PASSWORD,
     };
   }
@@ -28,9 +31,7 @@ class Accounts {
 
   static getAccountPrivateKey(env) {
     return {
-      keys:
-        env.MM_TEST_ACCOUNT_PRIVATE_KEY ||
-        'undefined Private key env var',
+      keys: env.MM_TEST_ACCOUNT_PRIVATE_KEY || 'undefined Private key env var',
     };
   }
 
