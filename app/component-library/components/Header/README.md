@@ -12,7 +12,7 @@ Content to wrap to display.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
+| string | ReactNode                                    | Yes                                                     |
 
 ### `startAccessory`
 
@@ -39,7 +39,7 @@ Optional prop to include content to be displayed after the title.
 <Header 
   startAccessory={SAMPLE_STARTACCESSORY} 
   endAccessory={SAMPLE_ENDACCESSORY}>
-  SAMPLE TITLE
+  {SAMPLE_TITLE_STRING}
 </Header>;
 
 // Header with custom title

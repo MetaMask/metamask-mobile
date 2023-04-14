@@ -18,8 +18,10 @@ import { HeaderStyleSheetVars } from './Header.types';
 const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
   const { vars } = params;
   const { style, startAccessorySize, endAccessorySize } = vars;
-  const accessoryWidth =
-    Math.max(startAccessorySize?.width, endAccessorySize?.width) || 'auto';
+  let accessoryWidth;
+  if (startAccessorySize && endAccessorySize) {
+    accessoryWidth = Math.max(startAccessorySize.width, endAccessorySize.width);
+  }
 
   return StyleSheet.create({
     base: Object.assign(
@@ -33,7 +35,7 @@ const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
     titleWrapper: {
       flex: 1,
       alignItems: 'center',
-      marginHorizontal: accessoryWidth === 'auto' ? 0 : 16,
+      marginHorizontal: accessoryWidth ? 0 : 16,
     },
     title: {
       textAlign: 'center',
