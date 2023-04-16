@@ -113,7 +113,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 1000000,
+  waitforTimeout: 100000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -286,9 +286,6 @@ export const config = {
    * @param {Object}                 context  Cucumber World object
    */
   beforeScenario: async function (world, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.launchApp();
-    }
   },
   /**
    *
@@ -323,9 +320,6 @@ export const config = {
    * @param {Object}                 context          Cucumber World object
    */
   afterScenario: async function (world, result, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.closeApp();
-    }
   },
   /**
    *
