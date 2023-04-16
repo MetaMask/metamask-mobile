@@ -22,6 +22,7 @@ import {
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+import { reverse } from 'lodash';
 
 class WalletMainScreen {
   get wizardContainer() {
@@ -177,6 +178,7 @@ class WalletMainScreen {
     await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
+    await element.waitForDisplayed({reverse: true});
   }
 
   async isNetworkNavbarTitle(text) {
