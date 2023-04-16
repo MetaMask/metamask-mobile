@@ -26,7 +26,7 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/*.feature', './wdio/features/**/*.feature'],
+  specs: ['./wdio/features/**/*.feature'],
 
   // Patterns to exclude.
   exclude: [
@@ -277,16 +277,14 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // beforeFeature: function (uri, feature) {
-  // },
+  beforeFeature: function (uri, feature) {},
   /**
    *
    * Runs before a Cucumber Scenario.
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  beforeScenario: async function (world, context) {
-  },
+  beforeScenario: async function (world, context) {},
   /**
    *
    * Runs before a Cucumber Step.
@@ -319,16 +317,14 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {
-  },
+  afterScenario: async function (world, result, context) {},
   /**
    *
    * Runs after a Cucumber Feature.
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // afterFeature: function (uri, feature) {
-  // },
+  afterFeature: function (uri, feature) {},
 
   /**
    * Runs after a WebdriverIO command gets executed
