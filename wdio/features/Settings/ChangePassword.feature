@@ -1,6 +1,4 @@
-@iosApp
 @androidApp
-@ChainScenarios
 @regression
 Feature: Change password
 

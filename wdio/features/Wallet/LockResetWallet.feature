@@ -1,6 +1,5 @@
-@iosApp
 @androidApp
-@ChainScenarios
+@regression
 Feature: Lock and Reset Wallet
 
   Scenario: Import account
