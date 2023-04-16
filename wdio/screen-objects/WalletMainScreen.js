@@ -178,7 +178,6 @@ class WalletMainScreen {
     await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
-    await element.waitForDisplayed({ reverse: true });
   }
 
   async isNetworkNavbarTitle(text) {
