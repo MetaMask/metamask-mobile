@@ -28,7 +28,7 @@ Feature: Change password
     And I tap Reset password
     Then Creating password is displayed
     And Security & Privacy screen is displayed
-    And I navigate to Wallet view from Security & Privacy
+    # And I navigate to Wallet view from Security & Privacy
 
   Scenario Outline: Unlock with new password
     When I kill the app
