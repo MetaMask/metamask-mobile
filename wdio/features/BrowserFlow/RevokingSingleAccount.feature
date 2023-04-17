@@ -1,5 +1,5 @@
-@androidApp @regression @ChainScenarios
-
+@androidApp 
+@regression
 Feature: Permission system in MetaMask Mobile
 
     Scenario: Import wallet
