@@ -7,8 +7,10 @@ import {
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
 
-const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
-const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+const UPDATE_BG_STATE_KEY = (controllerName: string) =>
+  `UPDATE_BG_STATE_${controllerName}`;
+// const INIT_BG_STATE_KEY = (controllerName: string) =>
+//   `INIT_BG_STATE_${controllerName}`;
 
 interface InitializeEngineResult {
   success: boolean;
@@ -73,17 +75,17 @@ class EngineService {
       },
     ];
 
-    engine?.datamodel?.subscribe?.(() => {
-      if (!this.engineInitialized) {
-        store.dispatch({ type: INIT_BG_STATE_KEY });
-        this.engineInitialized = true;
-      }
-    });
+    // engine?.datamodel?.subscribe?.(() => {
+    //   if (!this.engineInitialized) {
+    //     store.dispatch({ type: INIT_BG_STATE_KEY });
+    //     this.engineInitialized = true;
+    //   }
+    // });
 
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () =>
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+        store.dispatch({ type: UPDATE_BG_STATE_KEY(name), key: name });
       if (name !== 'NetworkController')
         !key
           ? engine.context[name].subscribe(update_bg_state_cb)
