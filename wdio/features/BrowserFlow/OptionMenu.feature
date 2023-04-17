@@ -33,7 +33,6 @@ Feature: This feature file covers the option menu in the browser.
   Scenario: Switch network options
     When I tap on the Network Icon
     And I select "Goerli" network option
-    And I tap on the Network Icon
     Then "Goerli" is selected for MMM app
 
   Scenario: New Tab options
