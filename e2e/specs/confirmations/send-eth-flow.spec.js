@@ -72,7 +72,9 @@ describe(Smoke('Send ETH Tests'), () => {
 
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0.000001 GoerliETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.000001 GoerliETH',
+    );
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen
