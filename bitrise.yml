@@ -610,7 +610,7 @@ app:
       VERSION_NAME: 6.4.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1098
+      VERSION_NUMBER: 1100
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
