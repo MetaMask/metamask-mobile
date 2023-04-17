@@ -260,7 +260,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               variant={AvatarVariants.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
-              size={AvatarSize.Sm}
+              size={AvatarSize.Md}
             />
           )}
         </BadgeWrapper>

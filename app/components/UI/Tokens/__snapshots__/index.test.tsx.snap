@@ -347,10 +347,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       undefined,
                                       undefined,
                                       Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       },
                                     ]
                                   }
@@ -373,10 +373,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     style={
                                       Array [
                                         Object {
-                                          "borderRadius": 12,
-                                          "height": 24,
+                                          "borderRadius": 16,
+                                          "height": 32,
                                           "overflow": "hidden",
-                                          "width": 24,
+                                          "width": 32,
                                         },
                                         Object {
                                           "backgroundColor": "#eee",
@@ -510,10 +510,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 style={
                                   Object {
                                     "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
+                                    "borderRadius": 16,
+                                    "height": 32,
                                     "overflow": "hidden",
-                                    "width": 24,
+                                    "width": 32,
                                   }
                                 }
                               >
@@ -1061,10 +1061,10 @@ exports[`Tokens should render correctly 1`] = `
                                       undefined,
                                       undefined,
                                       Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       },
                                     ]
                                   }
@@ -1087,10 +1087,10 @@ exports[`Tokens should render correctly 1`] = `
                                     style={
                                       Array [
                                         Object {
-                                          "borderRadius": 12,
-                                          "height": 24,
+                                          "borderRadius": 16,
+                                          "height": 32,
                                           "overflow": "hidden",
-                                          "width": 24,
+                                          "width": 32,
                                         },
                                         Object {
                                           "backgroundColor": "#eee",
@@ -1224,10 +1224,10 @@ exports[`Tokens should render correctly 1`] = `
                                 style={
                                   Object {
                                     "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
+                                    "borderRadius": 16,
+                                    "height": 32,
                                     "overflow": "hidden",
-                                    "width": 24,
+                                    "width": 32,
                                   }
                                 }
                               >
@@ -1775,10 +1775,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       undefined,
                                       undefined,
                                       Object {
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       },
                                     ]
                                   }
@@ -1801,10 +1801,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       Array [
                                         Object {
-                                          "borderRadius": 12,
-                                          "height": 24,
+                                          "borderRadius": 16,
+                                          "height": 32,
                                           "overflow": "hidden",
-                                          "width": 24,
+                                          "width": 32,
                                         },
                                         Object {
                                           "backgroundColor": "#eee",
@@ -1938,10 +1938,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 style={
                                   Object {
                                     "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
+                                    "borderRadius": 16,
+                                    "height": 32,
                                     "overflow": "hidden",
-                                    "width": 24,
+                                    "width": 32,
                                   }
                                 }
                               >
@@ -2086,10 +2086,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 style={
                                   Object {
                                     "backgroundColor": "#FFFFFF",
-                                    "borderRadius": 12,
-                                    "height": 24,
+                                    "borderRadius": 16,
+                                    "height": 32,
                                     "overflow": "hidden",
-                                    "width": 24,
+                                    "width": 32,
                                   }
                                 }
                               >
