@@ -3,19 +3,21 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
+import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import sanitizeString from '../../../util/string';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,7 +104,7 @@ class TypedSign extends PureComponent {
   };
 
   componentDidMount = () => {
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
@@ -123,7 +125,9 @@ class TypedSign extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          )) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
@@ -166,7 +170,7 @@ class TypedSign extends PureComponent {
 
   cancelSignature = () => {
     this.rejectMessage();
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -176,14 +180,14 @@ class TypedSign extends PureComponent {
   confirmSignature = async () => {
     try {
       await this.signMessage();
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        trackEvent(
+        AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );

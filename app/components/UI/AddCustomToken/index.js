@@ -7,21 +7,22 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import PropTypes from 'prop-types';
-import { isValidAddress } from 'ethereumjs-util';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import NotificationManager from '../../../core/NotificationManager';
+import PropTypes from 'prop-types';
+import { strings } from '../../../../locales/i18n';
+import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   CUSTOM_TOKEN_CONTAINER_ID,
@@ -76,6 +77,7 @@ export default class AddCustomToken extends PureComponent {
     address: '',
     symbol: '',
     decimals: '',
+    name: '',
     warningAddress: '',
     warningSymbol: '',
     warningDecimals: '',
@@ -111,10 +113,13 @@ export default class AddCustomToken extends PureComponent {
   addToken = async () => {
     if (!(await this.validateCustomToken())) return;
     const { TokensController } = Engine.context;
-    const { address, symbol, decimals } = this.state;
-    await TokensController.addToken(address, symbol, decimals);
+    const { address, symbol, decimals, name } = this.state;
+    await TokensController.addToken(address, symbol, decimals, null, name);
 
-    trackEvent(MetaMetricsEvents.TOKEN_ADDED, this.getAnalyticsParams());
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.TOKEN_ADDED,
+      this.getAnalyticsParams(),
+    );
 
     // Clear state before closing
     this.setState(
@@ -169,7 +174,9 @@ export default class AddCustomToken extends PureComponent {
       const symbol = await AssetsContractController.getERC721AssetSymbol(
         address,
       );
-      this.setState({ decimals: String(decimals), symbol });
+      const name = await AssetsContractController.getERC20TokenName(address);
+
+      this.setState({ decimals: String(decimals), symbol, name });
     }
   };
 

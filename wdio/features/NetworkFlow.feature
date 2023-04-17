@@ -42,9 +42,7 @@ Feature: Adding Networks via the popular and custom networks flow
       | Palm    |
 
   Scenario Outline: Adding a network via the custom network flow
-    Given I tap on the burger menu
-    And I tap on "Settings" in the menu
-    And In settings I tap on "Networks"
+    Given the network screen is displayed
     And I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
@@ -85,9 +83,7 @@ Feature: Adding Networks via the popular and custom networks flow
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap and hold network "<Network>"
-    Then I should see an alert window with the text "Do you want to remove this network?"
-
-    When I click "Delete" on remove network modal
+    And I click "Delete" on remove network modal
     Then "<Network>" should be removed from the list of RPC networks
 
     Examples:
@@ -95,9 +91,7 @@ Feature: Adding Networks via the popular and custom networks flow
       | Optimism |
 
   Scenario Outline: I can remove a custom network that was added via the custom network flow
-    Given I tap on the burger menu
-    And I tap on "Settings" in the menu
-    And In settings I tap on "Networks"
+    Given the network screen is displayed
     And I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
@@ -107,7 +101,7 @@ Feature: Adding Networks via the popular and custom networks flow
     When I type "<Network>" into Network name field
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
-    And I type "<Symbol>" into the Network symbol field
+    And I type "<Network>" into the Network symbol field
 
     When I tap on the Add button
     And I tap on Got it in the network education modal
@@ -121,5 +115,5 @@ Feature: Adding Networks via the popular and custom networks flow
     Then "<Network>" should be removed from the list of RPC networks
 
     Examples:
-      | Network            | rpcUrl                           | ChainID | Symbol |
-      | Optimism on Gnosis | https://optimism.gnosischain.com | 300     | xDAI   |
+      | Network      | rpcUrl                 | ChainID |  |
+      | Celo Mainnet | https://forno.celo.org | 42220   |  |

@@ -4,7 +4,8 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import StyledButton from '../../StyledButton';
@@ -21,7 +22,10 @@ import ShowBlockExplorer from '../ShowBlockExplorer';
 import { useTheme } from '../../../../util/theme';
 import createStyles from './styles';
 import { AddNicknameProps } from './types';
-import { validateAddressOrENS } from '../../../../util/address';
+import {
+  validateAddressOrENS,
+  shouldShowBlockExplorer,
+} from '../../../../util/address';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import {
   CONTACT_ALREADY_SAVED,
@@ -48,6 +52,7 @@ const AddNickname = (props: AddNicknameProps) => {
     providerRpcTarget,
     addressBook,
     identities,
+    frequentRpcList,
   } = props;
 
   const [newNickname, setNewNickname] = useState(addressNickname);
@@ -103,7 +108,10 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      getAnalyticsParams(),
+    );
   };
 
   const saveTokenNickname = () => {
@@ -115,7 +123,7 @@ const AddNickname = (props: AddNicknameProps) => {
       providerNetwork,
     );
     closeModal();
-    trackEvent(
+    AnalyticsV2.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );
@@ -143,6 +151,12 @@ const AddNickname = (props: AddNicknameProps) => {
 
     return errorMessage;
   };
+
+  const hasBlockExplorer = shouldShowBlockExplorer({
+    providerType,
+    providerRpcTarget,
+    frequentRpcList,
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -192,12 +206,14 @@ const AddNickname = (props: AddNicknameProps) => {
                   style={styles.address}
                 />
               </TouchableOpacity>
-              <AntDesignIcon
-                style={styles.actionIcon}
-                name="export"
-                size={22}
-                onPress={toggleBlockExplorer}
-              />
+              {hasBlockExplorer ? (
+                <AntDesignIcon
+                  style={styles.actionIcon}
+                  name="export"
+                  size={22}
+                  onPress={toggleBlockExplorer}
+                />
+              ) : null}
             </View>
             <Text style={styles.label}>{strings('nickname.name')}</Text>
             <TextInput
@@ -248,6 +264,8 @@ const mapStateToProps = (state: any) => ({
   providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
