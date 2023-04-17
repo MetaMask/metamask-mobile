@@ -92,7 +92,7 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.typeInNetworkName('Localhost');
   await NetworkView.typeInRpcUrl(LOCALHOST_URL);
   await NetworkView.typeInChainId('1337');
-  await NetworkView.typeInNetworkSymbol('TST\n');
+  await NetworkView.typeInNetworkSymbol('ETH\n');
 
   await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
   await NetworkView.tapRpcNetworkAddButton();

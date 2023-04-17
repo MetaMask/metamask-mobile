@@ -51,7 +51,7 @@ describe('Send ETH Tests', () => {
   // it('should switch currency from crypto to fiat and back to crypto', async () => {
   //   await AmountView.typeInTransactionAmount('0.004');
   //   await AmountView.tapCurrencySwitch();
-  //   await AmountView.isTransactionAmountConversionValueCorrect('0.004 TST');
+  //   await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
   //   await AmountView.tapCurrencySwitch();
   //   await AmountView.isTransactionAmountCorrect('0.004');
   // });
@@ -67,7 +67,7 @@ describe('Send ETH Tests', () => {
 
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0 TST');
+    await TransactionConfirmationView.isTransactionTotalCorrect('0 ETH');
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen
