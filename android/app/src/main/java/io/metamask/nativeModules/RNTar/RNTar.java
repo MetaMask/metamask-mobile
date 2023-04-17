@@ -19,6 +19,9 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+
 public class RNTar extends ReactContextBaseJavaModule {
   private static String MODULE_NAME = "RNTar";
 
@@ -32,47 +35,69 @@ public class RNTar extends ReactContextBaseJavaModule {
     return MODULE_NAME;
   }
 
-
-  private String extractTgzFile(String sourceFilePath, String destinationDirPath) throws Exception {
-      try {
-          FileInputStream fis = new FileInputStream(sourceFilePath);
-          GZIPInputStream gzis = new GZIPInputStream(fis);
-          TarArchiveInputStream tis = new TarArchiveInputStream(gzis);
-
-          File destinationDir = new File(destinationDirPath);
-          if (!destinationDir.exists()) {
-              destinationDir.mkdirs();
-          }
-
-        TarArchiveEntry entry;
-          while ((entry = tis.getCurrentEntry()) != null) {
-              String fileName = entry.getName();
-              File outputFile = new File(destinationDirPath + File.separator + fileName);
-
-              if (entry.isDirectory()) {
-                  if (!outputFile.exists()) {
-                      outputFile.mkdirs();
-                  }
-              } else {
-                  byte[] buffer = new byte[1024];
-                  FileOutputStream fos = new FileOutputStream(outputFile);
-                  int len;
-                  while ((len = tis.read(buffer)) > 0) {
-                      fos.write(buffer, 0, len);
-                  }
-                  fos.close();
-              }
-          }
-
-          tis.close();
-          gzis.close();
-          fis.close();
-        return destinationDir.getAbsolutePath();
-      } catch (IOException e) {
-          Log.e("DecompressTgzFile", "Error decompressing tgz file", e);
-          throw new Exception("Error decompressing tgz file");
+  private String extractTgzFile(String tgzPath, String outputPath) throws IOException {
+    try {
+      // Check if .tgz file exists
+      File tgzFile = new File(tgzPath);
+      if (!tgzFile.exists()) {
+        throw new IOException("The specified .tgz file does not exist.");
       }
-};
+
+      // Create output directory if it doesn't exist
+      File outputDirectory = new File(outputPath);
+      if (!outputDirectory.exists()) {
+        outputDirectory.mkdirs();
+      }
+
+      // Check if the output directory is readable and writable
+      if (!outputDirectory.canRead() || !outputDirectory.canWrite()) {
+        throw new IOException("The output directory is not readable and/or writable.");
+      }
+
+      // Set up the input streams for reading the .tgz file
+      FileInputStream fileInputStream = new FileInputStream(tgzFile);
+      GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
+      TarArchiveInputStream tarInputStream = new TarArchiveInputStream(new BufferedInputStream(gzipInputStream));
+
+      TarArchiveEntry entry;
+
+      // Loop through the entries in the .tgz file
+      while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
+        File outputFile = new File(outputDirectory, entry.getName());
+
+        // Check if the current entry is a directory
+        if (entry.isDirectory()) {
+          // If it is a directory, create the output directory
+          outputFile.mkdirs();
+        } else {
+          // If it is a file, set up the output streams for writing the file
+          FileOutputStream fos = new FileOutputStream(outputFile);
+          BufferedOutputStream dest = new BufferedOutputStream(fos, 1024);
+
+          // Initialize a buffer and a variable to hold the number of bytes read
+          int count;
+          byte[] data = new byte[1024];
+
+          // Read the file data from the .tgz file and write it to the output file
+          while ((count = tarInputStream.read(data, 0, 1024)) != -1) {
+            dest.write(data, 0, count);
+          }
+          dest.flush();
+          dest.close();
+        }
+      }
+      fileInputStream.close();
+      gzipInputStream.close();
+      tarInputStream.close();
+
+      // Return the output directory path
+      return outputDirectory.getAbsolutePath();
+    } catch (IOException e) {
+      Log.e("DecompressTgzFile", "Error decompressing tgz file", e);
+      throw new IOException("Error decompressing tgz file", e);
+    }
+  };
+
   @ReactMethod
   public void unTar(String pathToRead, String pathToWrite, final Promise promise) {
     Log.d(MODULE_NAME, "Create event called with name: " + pathToRead

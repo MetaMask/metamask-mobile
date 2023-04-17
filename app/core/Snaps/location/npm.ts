@@ -97,6 +97,7 @@ const fetchAndStoreNPMPackage = async (
   const filePath = `${RNFetchBlob.fs.dirs.DocumentDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
+  console.log(SNAPS_NPM_LOG_TAG, 'fetchAndStoreNPMPackage', urlToFetch);
 
   try {
     const response: FetchBlobResponse = await config({
@@ -106,7 +107,18 @@ const fetchAndStoreNPMPackage = async (
     const dataPath = response.data;
     const targetPath = RNFetchBlob.fs.dirs.DocumentDir;
     try {
+      console.log(
+        SNAPS_NPM_LOG_TAG,
+        'calling decompressFile with',
+        dataPath,
+        targetPath,
+      );
       const decompressedPath = await decompressFile(dataPath, targetPath);
+      console.log(
+        SNAPS_NPM_LOG_TAG,
+        'fetchAndStoreNPMPackage decompressedPath',
+        decompressedPath,
+      );
       return decompressedPath;
     } catch (error) {
       Logger.error(
