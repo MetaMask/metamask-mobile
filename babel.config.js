@@ -2,7 +2,7 @@
 module.exports = {
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
-    './plugins/remove-flask-code',
+    './plugins/babel-code-fencing',
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
   ],

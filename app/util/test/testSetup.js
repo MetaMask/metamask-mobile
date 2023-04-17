@@ -214,3 +214,13 @@ jest.mock('@segment/analytics-react-native', () => ({
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+
+//@metamask/browser-passworder
+NativeModules.Aes = {
+  pbkdf2: jest.fn(),
+  decrypt: jest.fn(),
+};
+
+NativeModules.AesForked = {
+  decrypt: jest.fn(),
+};

@@ -651,11 +651,13 @@ const MainNavigator = () => (
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
     <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
+    {/* ///: BEGIN:ONLY_INCLUDE_IN_FLASK */}
     <Stack.Screen
       name={Routes.SNAPS.HOME}
       mode={'modal'}
       component={SnapsDevUI}
     />
+    {/* ///: END:ONLY_INCLUDE_IN_FLASK */}
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
