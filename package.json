@@ -105,7 +105,7 @@
     "**/elliptic": "^6.5.4",
     "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
-    "**/vm2": "3.9.11",
+    "**/vm2": "3.9.16",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
@@ -231,7 +231,6 @@
     "pbkdf2": "3.1.2",
     "pify": "4.0.1",
     "prop-types": "15.7.2",
-    "pubnub": "4.27.3",
     "pump": "3.0.0",
     "punycode": "^2.1.1",
     "qs": "6.7.3",
@@ -406,7 +405,7 @@
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "wdio-image-comparison-service": "^3.1.0",
     "wdio-vscode-service": "^0.1.5",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.5.0"
   },
   "config": {
     "react-native-storybook-loader": {

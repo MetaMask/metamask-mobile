@@ -1,4 +1,3 @@
-/* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
@@ -58,7 +57,6 @@ When(
 );
 
 When(/^I tap on Switch network/, async () => {
-  await NetworkApprovalModal.tapSwitchToNetwork();
   await NetworkApprovalModal.tapSwitchToNetwork();
 });
 

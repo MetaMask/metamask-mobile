@@ -38,7 +38,7 @@ import {
 } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
 
 import images from 'images/image-icons';
 import {
@@ -234,7 +234,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       >
         <BadgeWrapper
           badgeProps={{
-            variant: BadgeVariants.Network,
+            variant: BadgeVariant.Network,
             name: badgeName,
             imageSource: NetworkBadgeSource,
           }}
