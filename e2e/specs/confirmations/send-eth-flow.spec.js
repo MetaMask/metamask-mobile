@@ -18,14 +18,14 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
 describe('Send ETH Tests', () => {
   let ganacheServer;
-  beforeEach(async () => {
+  beforeAll(async () => {
     jest.setTimeout(150000);
 
     ganacheServer = new Ganache();
     await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await ganacheServer.quit();
   });
 
