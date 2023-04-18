@@ -145,6 +145,8 @@ android {
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
+          // Make sure libjsc.so does not packed in APK
+          exclude "**/libjsc.so"
 	  }
 
 	  signingConfigs {
