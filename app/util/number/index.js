@@ -451,9 +451,28 @@ export function weiToFiat(
  * @returns {string} - Currency-formatted string
  */
 export function addCurrencySymbol(amount, currencyCode) {
-  if (currencyCode === 'usd') {
+  if (isNumberScientificNotationWhenString(amount)) {
+    amount = amount.toFixed(18);
+  }
+
+  // if bigger than 0.01, show 2 decimals
+  if (amount >= 0.01 || amount <= -0.01) {
     amount = parseFloat(amount).toFixed(2);
   }
+
+  // if less than 0.01, show all the decimals that are zero except the trailing zeros, and 3 decimals for the rest that are not zero
+  if ((amount < 0.01 && amount > 0) || (amount > -0.01 && amount < 0)) {
+    const decimalString = amount.toString().split('.')[1];
+    if (decimalString && decimalString.length > 1) {
+      const firstNonZeroDecimal = decimalString.indexOf(
+        decimalString.match(/[1-9]/)[0],
+      );
+      if (firstNonZeroDecimal > 0) {
+        amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
+      }
+    }
+  }
+
   if (currencySymbols[currencyCode]) {
     return `${currencySymbols[currencyCode]}${amount}`;
   }

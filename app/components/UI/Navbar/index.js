@@ -1037,14 +1037,11 @@ export function getNetworkNavbarOptions(
       height: 105,
     },
     headerShadow: {
-      shadowColor: themeColors.background.primary,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: contentOffset < 40 ? contentOffset / 100 : 0.4,
-      shadowRadius: 4,
       elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
     },
     headerIcon: {
       color: themeColors.primary.default,

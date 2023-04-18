@@ -37,7 +37,6 @@ import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
-import PriceChart from './PriceChart';
 import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors: ThemeColors) =>
@@ -140,7 +139,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     address: asset.address || zeroAddress(),
     chainId: chainId as string,
     timePeriod,
-    vsCurrency: 'usd',
+    vsCurrency: currentCurrency,
   });
 
   const { colors = mockTheme.colors } = useContext(ThemeContext);
@@ -205,6 +204,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const itemAddress = safeToChecksumAddress(asset.address);
+  const exchangeRate =
+    itemAddress && itemAddress in tokenExchangeRates
+      ? tokenExchangeRates[itemAddress]
+      : undefined;
 
   let balance, balanceFiat;
   if (asset.isETH) {
@@ -215,10 +218,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       currentCurrency,
     );
   } else {
-    const exchangeRate =
-      itemAddress && itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress]
-        : undefined;
     balance =
       itemAddress && itemAddress in tokenBalances
         ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
@@ -241,7 +240,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? balanceFiat
       : `${balance} ${asset.symbol}`;
   }
-  const currentPrice = prices[prices.length - 1]?.[1] || 0;
+  const currentPrice = asset.isETH
+    ? conversionRate
+    : exchangeRate * conversionRate;
   const comparePrice = prices[0]?.[1] || 0;
   const priceDiff = currentPrice - comparePrice;
 
@@ -256,18 +257,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         <View>
           <Price
             asset={asset}
+            prices={prices}
             priceDiff={priceDiff}
             currentCurrency={currentCurrency}
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
             timePeriod={timePeriod}
-          />
-          <PriceChart
-            prices={prices}
-            priceDiff={priceDiff}
-            isLoading={isLoading}
-            currentCurrency={currentCurrency}
           />
           <View style={styles.chartNavigationWrapper}>
             {(['1d', '1w', '1m', '3m', '1y', '3y'] as TimePeriod[]).map(

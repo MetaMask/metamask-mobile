@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   GestureResponderEvent,
@@ -11,12 +11,11 @@ import {
   Circle,
   Defs,
   G,
-  Line as SvgLine,
   LinearGradient,
   Path,
   Rect,
   Stop,
-  Text as SvgText,
+  Line as SvgLine,
 } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
@@ -27,32 +26,19 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { addCurrencySymbol } from '../../../../util/number';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
+import { placeholderData } from './utils';
 
-const placeholderData = [
-  3, 5, 6, 8, 7, 5, 7, 9, 10, 12, 14, 15, 14, 12, 11, 10, 9, 10, 8, 7, 5, 6, 5,
-  4, 5, 4, 3, 4, 5, 6, 7, 8, 10, 12, 13, 12, 10, 9, 8, 10, 11, 10, 8, 7, 8, 10,
-  12, 13, 14, 16, 15, 13, 12, 11, 12, 14, 15, 13, 11, 10, 9, 7, 6, 5, 4, 3, 2,
-  3, 4, 5, 6, 5, 7, 8, 10, 11, 13, 14, 16, 15, 14, 12, 10, 9, 11, 12, 10, 8, 7,
-  8, 9, 11, 13, 14, 16, 15, 13, 11, 9, 7, 6, 5, 4, 5, 7, 8, 28, 26, 24, 22, 20,
-  18, 20, 22, 19, 18, 20, 22, 24, 26, 23, 21, 20, 19, 22, 21, 20, 22, 23, 21,
-  19, 18, 16, 14, 12, 14, 13, 15, 16, 18, 20, 22, 24, 22, 21, 20, 18, 16, 15,
-  14, 12, 14, 13, 11, 10, 11, 13, 12, 10, 12, 14, 16, 18, 17, 16, 14, 12, 10, 9,
-  8, 10, 11, 13, 14, 12, 11, 9, 8, 7, 6, 7, 8, 10, 11, 12, 10, 9, 8, 7, 5, 10,
-  11, 12, 10, 12, 13, 14, 15, 17, 19, 21, 22, 24, 23, 26, 27, 29, 27, 32, 28,
-  35, 30, 39, 40, 38, 41, 36, 39, 42, 40, 37, 35, 38, 39, 40, 41, 43, 45, 47,
-  43, 41, 38, 36, 35, 33, 31, 30, 28, 27, 29, 30,
-];
+const CHART_HEIGHT = Dimensions.get('screen').height * 0.45;
 
 const createStyles = () =>
   StyleSheet.create({
     chart: {
       paddingRight: 0,
       paddingLeft: 0,
-      height: 305, // hack to remove internal padding that is not configurable
+      height: CHART_HEIGHT - 10, // hack to remove internal padding that is not configurable
       paddingTop: 0,
       marginVertical: 10,
       width: Dimensions.get('screen').width,
@@ -64,14 +50,6 @@ const createStyles = () =>
       width: Dimensions.get('screen').width,
       paddingHorizontal: 16,
       paddingTop: 10,
-    },
-    priceChannel: {
-      height: 14,
-      marginBottom: 10,
-    },
-    priceChannelText: {
-      textAlign: 'center',
-      fontSize: 12,
     },
     noDataOverlay: {
       position: 'absolute',
@@ -97,50 +75,29 @@ const createStyles = () =>
   });
 const styles = createStyles();
 
-// this function is used to sample the data points to be displayed on the chart
-// it will return a maximum of 100 data points
-// if there are less than 100 data points, it will return all of them
-// if there are more than 100 data points, it will return 100 data points
-// the first and last data points will always be included
-// the data points in between will be sampled at an interval of (numDataPoints / 98)
-// this is to ensure that the chart does not become unresponsive when there are too many data points
-function distributeDataPoints(dataPoints: TokenPrice[]): TokenPrice[] {
-  const numDataPoints = dataPoints.length;
-  const interval = Math.max(1, Math.floor(numDataPoints / 98));
-  const sampledDataPoints: [string, number][] = [];
-  sampledDataPoints.push(dataPoints[0]);
-  for (let i = interval; i < numDataPoints - 1; i += interval) {
-    if (sampledDataPoints.length === 98) break;
-    sampledDataPoints.push(dataPoints[i]);
-  }
-  sampledDataPoints.push(dataPoints[numDataPoints - 1]);
-  if (sampledDataPoints.length === 99) {
-    sampledDataPoints.push(dataPoints[numDataPoints - 2]);
-  }
-  return sampledDataPoints;
-}
-
 interface LineProps {
   line: string;
   chartHasData: boolean;
 }
+
 interface TooltipProps {
   x: (index: number) => number;
   y: (value: number) => number;
   ticks: number[];
 }
+
 interface PriceChartProps {
   prices: TokenPrice[];
   priceDiff: number;
   isLoading: boolean;
-  currentCurrency: string;
+  onChartIndexChange: (index: number) => void;
 }
 
 const PriceChart = ({
   prices,
   priceDiff,
   isLoading,
-  currentCurrency,
+  onChartIndexChange,
 }: PriceChartProps) => {
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
   const { colors = mockTheme.colors as ThemeColors } = useContext(ThemeContext);
@@ -161,17 +118,18 @@ const PriceChart = ({
     return (width / 750) * size;
   };
 
-  const sampled = useMemo(() => {
-    if (prices.length > 0) {
-      return distributeDataPoints(prices);
-    }
-    return [];
-  }, [prices]);
+  const priceList = prices.map((_: TokenPrice) => _[1]);
 
-  const dateList = sampled.map((_: TokenPrice) => _[0]);
-  const priceList = sampled.map((_: TokenPrice) => _[1]);
+  const onActiveIndexChange = (index: number) => {
+    setPositionX(index);
+    onChartIndexChange(index);
+  };
 
   const updatePosition = (x: number) => {
+    if (x === -1) {
+      onActiveIndexChange(-1);
+      return;
+    }
     const chartWidth = Dimensions.get('window').width;
     const xDistance = chartWidth / priceList.length;
     if (x <= 0) {
@@ -184,7 +142,7 @@ const PriceChart = ({
     if (value >= priceList.length - 1) {
       value = priceList.length - 1;
     }
-    setPositionX(value);
+    onActiveIndexChange(value);
   };
 
   const panResponder = useRef(
@@ -201,7 +159,7 @@ const PriceChart = ({
         updatePosition(evt.nativeEvent.locationX);
       },
       onPanResponderRelease: () => {
-        setPositionX(-1);
+        updatePosition(-1);
       },
     }),
   );
@@ -251,7 +209,7 @@ const PriceChart = ({
           x="0"
           y="0"
           width={Dimensions.get('screen').width}
-          height={315}
+          height={CHART_HEIGHT}
           fill="url(#gradient)"
         />
       </G>
@@ -275,38 +233,18 @@ const PriceChart = ({
   );
 
   const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
-    const tooltipWidth = Dimensions.get('window').width;
     if (positionX < 0) {
       return null;
     }
-
-    const date = dateList[positionX];
-    const text =
-      new Date(date).toLocaleDateString() +
-      ' ' +
-      addCurrencySymbol(priceList[positionX], currentCurrency);
-    const textXMargin = 10;
-    const textXPosition =
-      positionX > dateList.length / 2
-        ? text.length * -6.5 - textXMargin
-        : 2 + textXMargin;
-
     return (
       <G x={x?.(positionX)} key="tooltip">
-        <G x={textXPosition} y={10}>
-          <SvgText
-            x={0}
-            textLength={tooltipWidth}
-            fill={colors.text.alternative}
-            opacity={0.65}
-            fontSize={apx(24)}
-            textAnchor={'start'}
-          >
-            {text}
-          </SvgText>
-        </G>
         <G>
-          <SvgLine y1={1} y2={315} stroke={'#848C96'} strokeWidth={1} />
+          <SvgLine
+            y1={1}
+            y2={CHART_HEIGHT}
+            stroke={'#848C96'}
+            strokeWidth={1}
+          />
           <Circle
             cy={y?.(priceList[positionX])}
             r={apx(20 / 2)}
@@ -325,7 +263,7 @@ const PriceChart = ({
         <SkeletonPlaceholder>
           <SkeletonPlaceholder.Item
             width={Dimensions.get('screen').width - 32}
-            height={315}
+            height={CHART_HEIGHT}
             borderRadius={6}
           ></SkeletonPlaceholder.Item>
         </SkeletonPlaceholder>
