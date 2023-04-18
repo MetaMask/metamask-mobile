@@ -16,6 +16,7 @@ import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
+import Logger from '../../util/Logger';
 
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
@@ -221,6 +222,7 @@ export class Connection extends EventEmitter2 {
         keyExchangeLayer: false,
         remoteLayer: false,
         serviceLayer: false,
+        plaintext: false,
       },
       storage: {
         debug: false,
@@ -302,6 +304,10 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        Logger.log(
+          `SDKConnect::Connection - clients_ready channel=${this.channelId}`,
+        );
+
         this.originatorInfo = originatorInfo;
         updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
         this.setupBridge(originatorInfo);
@@ -328,8 +334,19 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        const needsRedirect = METHODS_TO_REDIRECT[message?.method];
+        let needsRedirect = METHODS_TO_REDIRECT[message?.method];
         if (needsRedirect) {
+          this.requestsToRedirect[message?.id] = true;
+        }
+
+        // Keep this section only for backward compatibility otherwise metamask doesn't redirect properly.
+        if (
+          !this.originatorInfo?.apiVersion &&
+          !needsRedirect &&
+          message?.method === 'metamask_getProviderState'
+        ) {
+          // Manually force redirect if apiVersion isn't defined for backward compatibility
+          needsRedirect = true;
           this.requestsToRedirect[message?.id] = true;
         }
 
@@ -677,6 +694,11 @@ export class SDKConnect extends EventEmitter2 {
       this.reconnect({ channelId: id });
       return;
     }
+
+    Logger.log(
+      `SDKConnect::connectToChannel - connecting to channel ${id} from '${origin}'`,
+      otherPublicKey,
+    );
 
     this.connecting[id] = true;
     this.connections[id] = {
