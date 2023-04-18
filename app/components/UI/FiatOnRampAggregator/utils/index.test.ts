@@ -126,22 +126,24 @@ describe('getOrderAmount', () => {
     expect(getOrderAmount(mockOrder)).toBe('...');
   });
 
-  it('should render correctly', () => {
+  it('should render correctly when data is provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
         cryptoAmount: 0.012361263,
       }),
     ).toBe('0.01236');
+  });
 
+  it('should render correctly when decimals is not provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
         cryptoAmount: 0.012361263,
         data: {
           ...mockOrder.data,
-          decimals: undefined,
-        } as Order,
+          cryptoCurrency: undefined as any,
+        },
       }),
     ).toBe('0.01236');
   });
