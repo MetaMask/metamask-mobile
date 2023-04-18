@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -31,6 +31,8 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -179,6 +181,10 @@ const AccountPermissionsRevoke = ({
             label={strings('accounts.revoke')}
             size={ButtonSize.Sm}
             style={styles.disconnectButton}
+            {...generateTestId(
+              Platform,
+              CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
+            )}
           />
         )}
         isSelectionDisabled

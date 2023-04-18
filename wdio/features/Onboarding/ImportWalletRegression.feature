@@ -40,8 +40,7 @@ Feature: Import Wallet Regression
     When I type <invalid_SRP> in SRP field
     And I tap "Import"
     Then device alert <error> is displayed
-
-    When I tap Yes on alert
+    And I tap Yes on alert
 
     Examples:
       | invalid_SRP                                                              | error                                                       |

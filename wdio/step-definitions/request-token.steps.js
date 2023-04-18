@@ -1,4 +1,3 @@
-/* global driver */
 import { Then, When } from '@wdio/cucumber-framework';
 
 import RequestTokenScreen from '../screen-objects/RequestTokenScreen';
