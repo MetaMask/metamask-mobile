@@ -778,17 +778,18 @@ const RootRPCMethodsUI = (props) => {
     initializeWalletConnect();
     onWalletConnectSessionRequest();
 
-    Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
-      onUnapprovedMessage(messageParams, 'eth'),
+    Engine.context.SignatureController.hub.on(
+      'unapprovedMessage',
+      (messageParams) => onUnapprovedMessage(messageParams, 'eth'),
     );
 
-    Engine.context.PersonalMessageManager.hub.on(
-      'unapprovedMessage',
+    Engine.context.SignatureController.hub.on(
+      'unapprovedPersonalMessage',
       (messageParams) => onUnapprovedMessage(messageParams, 'personal'),
     );
 
-    Engine.context.TypedMessageManager.hub.on(
-      'unapprovedMessage',
+    Engine.context.SignatureController.hub.on(
+      'unapprovedTypedMessage',
       (messageParams) => onUnapprovedMessage(messageParams, 'typed'),
     );
 
@@ -806,8 +807,7 @@ const RootRPCMethodsUI = (props) => {
     );
 
     return function cleanup() {
-      Engine.context.PersonalMessageManager.hub.removeAllListeners();
-      Engine.context.TypedMessageManager.hub.removeAllListeners();
+      Engine.context.SignatureController.clearUnapproved();
       Engine.context.TokensController.hub.removeAllListeners();
       Engine.controllerMessenger.unsubscribe(
         'ApprovalController:stateChange',
