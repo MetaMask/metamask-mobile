@@ -823,7 +823,7 @@
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
     "activity": "{{symbol}} activity",
-    "disclaimer": "Third-party and user-generated content is made available for informational purposes only and should not be treated as investment advice. MetaMask does not endorse or recommend such content and is not reponsible for its accuracy."
+    "disclaimer": "Market data is provided by one or more third party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",
