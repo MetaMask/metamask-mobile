@@ -3,8 +3,10 @@ import { shallow } from 'enzyme';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const mockEngine = Engine;
 
@@ -119,6 +121,27 @@ jest.mock('react-native-scrollable-tab-view', () => {
 });
 
 const mockNavigate = jest.fn();
+
+const Stack = createStackNavigator();
+
+const renderComponent = (state: any = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="Wallet">
+        {(props: any) => (
+          <Wallet
+            {...props}
+            navigation={{
+              navigate: mockNavigate,
+              setOptions: jest.fn(),
+              setParams: jest.fn(),
+            }}
+          />
+        )}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
 
 describe('Wallet', () => {
   beforeEach(() => {
