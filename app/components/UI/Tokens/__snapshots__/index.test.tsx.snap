@@ -466,11 +466,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               testID="asset-ETH"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -540,43 +543,24 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={
@@ -653,11 +637,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               testID="asset-BAT"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -693,43 +680,24 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={
@@ -1340,11 +1308,14 @@ exports[`Tokens should render correctly 1`] = `
                               testID="asset-ETH"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -1414,43 +1385,24 @@ exports[`Tokens should render correctly 1`] = `
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={
@@ -1527,11 +1479,14 @@ exports[`Tokens should render correctly 1`] = `
                               testID="asset-BAT"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -1567,43 +1522,24 @@ exports[`Tokens should render correctly 1`] = `
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={
@@ -2222,11 +2158,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               testID="asset-ETH"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -2296,43 +2235,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={
@@ -2409,11 +2329,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               testID="asset-BAT"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -2449,43 +2372,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={
@@ -2562,11 +2466,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               testID="asset-LINK"
                             >
                               <View
+                                onLayout={[Function]}
                                 style={
                                   Object {
                                     "alignSelf": "flex-start",
+                                    "position": "relative",
                                   }
                                 }
+                                testID="badge-wrapper-badge"
                               >
                                 <View>
                                   <View
@@ -2602,43 +2509,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <View
                                   style={
                                     Object {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
                                       "position": "absolute",
-                                      "right": -4,
-                                      "top": -4,
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": Array [
+                                        Object {
+                                          "translateX": 0,
+                                        },
+                                        Object {
+                                          "translateY": -0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="badge-base"
-                                >
-                                  <View
-                                    style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "testUri": "../../../app/images/eth-logo-new.png",
-                                        }
-                                      }
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                </View>
+                                />
                               </View>
                               <View
                                 style={

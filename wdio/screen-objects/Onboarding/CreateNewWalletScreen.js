@@ -1,4 +1,3 @@
-/* global driver */
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../testIDs/Components/TermsAndConditions.testIds';
 import {
   CONFIRM_PASSWORD_INPUT_FIRST_FIELD,

@@ -28,7 +28,6 @@ const VerifyContractDetails = ({
   showNickname,
   tokenAddress,
   savedContactListToArray,
-  tokenSymbol,
   providerType,
   providerRpcTarget,
   frequentRpcList,
@@ -51,8 +50,6 @@ const VerifyContractDetails = ({
       ),
     [tokens, tokenAddress],
   );
-
-  const tokenSymbolFirstLetter = tokenSymbol?.charAt(0);
 
   useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {
@@ -104,7 +101,6 @@ const VerifyContractDetails = ({
             contractLocalImage={
               tokenData.length ? { uri: tokenData[0]?.image } : undefined
             }
-            tokenSymbol={tokenSymbolFirstLetter && tokenSymbolFirstLetter}
             hasBlockExplorer={Boolean(hasBlockExplorer)}
             onContractPress={() => showNickname(tokenAddress)}
           />

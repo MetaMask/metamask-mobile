@@ -7,7 +7,6 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Alert,
   Image,
   InteractionManager,
   Platform,
@@ -54,8 +53,6 @@ import {
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import Routes from '../../../constants/navigation/Routes';
-
-const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -255,7 +252,6 @@ class Onboarding extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
-    this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
     this.props.unsetLoading();
     InteractionManager.runAfterInteractions(PreventScreenshot.allow);
   }
@@ -305,36 +301,6 @@ class Onboarding extends PureComponent {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
             this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-          },
-        });
-      }
-    };
-    this.handleExistingUser(action);
-  };
-
-  onPressSync = () => {
-    if (!PUB_KEY) {
-      // Dev message
-      Alert.alert(
-        'This feature has been disabled',
-        `Because you did not set the .js.env file. Look at .js.env.example for more information`,
-      );
-      return false;
-    }
-    const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
-        this.props.navigation.navigate('ExtensionSync', {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-        });
-        this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace('ExtensionSync', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-            });
-            this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
           },
         });
       }
@@ -434,19 +400,6 @@ class Onboarding extends PureComponent {
               {strings('import_wallet.import_from_seed_button')}
             </StyledButton>
           </View>
-          {/* Temporarily Disable Sync until the new improved version is ready for release */}
-          {__DEV__ && (
-            <View style={styles.buttonWrapper}>
-              <StyledButton
-                style={styles.button}
-                type={'normal'}
-                onPress={this.onPressSync}
-                testID={'onboarding-import-button'}
-              >
-                {strings('import_wallet.sync_from_browser_extension_button')}
-              </StyledButton>
-            </View>
-          )}
           <View style={styles.buttonWrapper}>
             <StyledButton
               type={'blue'}

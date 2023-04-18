@@ -5,13 +5,11 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import {
-  BadgeNetworkPosition,
-  BadgeNetworkStyleSheetVars,
-} from './BadgeNetwork.types';
+import { DEFAULT_BADGENETWORK_NETWORKICON_SIZE } from './BadgeNetwork.constants';
+import { BadgeNetworkStyleSheetVars } from './BadgeNetwork.types';
 
 /**
- * Style sheet function for Badge component.
+ * Style sheet function for BadgeNetwork component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -23,33 +21,30 @@ const styleSheet = (params: {
   vars: BadgeNetworkStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, position } = vars;
-  let badgePosition: ViewStyle = {};
-
-  switch (position) {
-    case BadgeNetworkPosition.TopRight: {
-      badgePosition = {
-        top: -4,
-        right: -4,
-      };
-      break;
-    }
-    case BadgeNetworkPosition.BottomRight: {
-      badgePosition = {
-        right: -4,
-        bottom: -4,
-      };
-      break;
-    }
+  const { style, containerSize } = vars;
+  let scaleRatio = 1;
+  let opacity = 0;
+  if (containerSize) {
+    scaleRatio =
+      containerSize.height / Number(DEFAULT_BADGENETWORK_NETWORKICON_SIZE);
+    opacity = 1;
   }
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        ...badgePosition,
+        height: '50%',
+        aspectRatio: 1,
+        minHeight: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    networkIcon: {
+      transform: [{ scale: scaleRatio }],
+    },
   });
 };
 
