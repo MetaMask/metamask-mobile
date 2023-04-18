@@ -1,8 +1,12 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
+import { Theme } from '../../../../util/theme/models';
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -125,5 +129,6 @@ const createStyles = (colors: any) =>
       marginRight: 8,
     },
   });
+}
 
 export default createStyles;

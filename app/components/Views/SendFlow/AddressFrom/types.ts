@@ -1,7 +1,7 @@
 export interface SFAddressFromProps {
     accountAddress: string;
     accountName: string;
-    accountBalance: string;
+    accountBalance: string | undefined;
     updateAccountInfo: ({accountAddress, accountName, accountBalance, balanceIsZero}: {accountAddress: string, accountName: string, accountBalance: string, balanceIsZero: boolean} ) => void;
 }
 

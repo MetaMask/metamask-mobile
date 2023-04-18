@@ -23,8 +23,9 @@ import {
     NetworkSwitchErrorType,
   } from '../../../../constants/error';
   import { showAlert } from '../../../../actions/alert';
+  import {SFAddressToProps} from './types'
 
-export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelectedAddress, toAddressName, onSubmit, inputWidth, confusableCollection, isFromAddressBook, updateParentState }) => {
+export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelectedAddress, toAddressName, onSubmit, inputWidth, confusableCollection, isFromAddressBook, updateParentState }: SFAddressToProps) => {
 
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -47,9 +48,9 @@ export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelecte
             state.engine.backgroundState.PreferencesController.frequentRpcList
             );
 
-            const showAlertAction = (config) => dispatch(showAlert(config));
+            const showAlertAction = (config: any) => dispatch(showAlert(config));
 
-    const handleNetworkSwitched = (chainId) => {
+    const handleNetworkSwitched = (chainId: string) => {
         try {
           const { NetworkController, CurrencyRateController } = Engine.context;
           const networkSwitch = handleNetworkSwitch(chainId, frequentRpcList, {
@@ -80,7 +81,7 @@ export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelecte
         }
       };
 
-      const getAddressNameFromBookOrIdentities = (toAccount) => {
+      const getAddressNameFromBookOrIdentities = (toAccount: string) => {
         if (!toAccount) return;
 
         const networkAddressBook = addressBook[network] || {};
@@ -94,7 +95,7 @@ export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelecte
           : null;
       };
 
-      const validateAddressOrENSFromInput = async (toAccount) => {
+      const validateAddressOrENSFromInput = async (toAccount: string) => {
         const {
           addressError,
           toEnsName,
@@ -113,26 +114,32 @@ export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelecte
           chainId,
         });
 
-        updateParentState({addressError, toEnsName, toSelectedAddressReady: addressReady, toEnsAddressResolved: toEnsAddress, addToAddressToAddressBook, toSelectedAddressName: toAddressName, errorContinue, isOnlyWarning, confusableCollection})
+        return {
+          addressError, toEnsName, 
+          // toSelectedAddressReady: addressReady, 
+          toEnsAddressResolved: toEnsAddress, addToAddressToAddressBook, toSelectedAddressName: toAddressName, errorContinue, isOnlyWarning, confusableCollection
+        }
       };
 
-      const onToSelectedAddressChange = (toAccount) => {
-        const addressName = getAddressNameFromBookOrIdentities(toAccount);
+      const onToSelectedAddressChange = async (toAccount: string) => {
+        const address = toAccount || toSelectedAddress;        
+        const addressName = getAddressNameFromBookOrIdentities(address);
         
         /**
          * If the address is from addressBook or identities
          * then validation is not necessary since it was already validated
          */
         if (addressName) {
-            updateParentState({toAccount, toSelectedAddressReady: true, isFromAddressBook: true, toSelectedAddressName: addressName})
+            updateParentState({toAccount: address, toSelectedAddressReady: true, isFromAddressBook: true, toSelectedAddressName: addressName})
         } else {
-          validateAddressOrENSFromInput(toAccount);
+          const data = await validateAddressOrENSFromInput(toAccount);          
           /**
            * Because validateAddressOrENSFromInput is an asynchronous function
            * we are setting the state here synchronously, so it does not block the UI
            * */
           
-          updateParentState({toAccount, isFromAddressBook: false, toSelectedAddressName: addressName, toSelectedAddressReady: false})
+
+          updateParentState({toAccount: address, isFromAddressBook: false, toSelectedAddressReady: false, ...data})
         }
       };
     const onScan = () => {
@@ -152,7 +159,7 @@ export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelecte
       };
 
       const onToInputFocus = () => {        
-        updateParentState({highlighted: !highlighted})
+        // updateParentState({highlighted: !highlighted})
       };
     const onClear = () => onToSelectedAddressChange()
     return (
