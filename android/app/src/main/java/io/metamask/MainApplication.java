@@ -57,7 +57,7 @@ public class MainApplication extends Application implements ShareApplication, Re
 		protected String getJSMainModuleName() {
 			return "index";
 		}
-  	};
+  };
 
 	@Override
 	public ReactNativeHost getReactNativeHost() {
