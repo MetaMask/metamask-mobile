@@ -10,10 +10,13 @@ import cl.json.ShareApplication;
 import io.branch.rnbranch.RNBranchModule;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.soloader.SoLoader;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
+import com.facebook.react.modules.systeminfo.AndroidInfoHelpers;
 import java.util.List;
+import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 import android.webkit.WebView;
 import android.os.Bundle;
@@ -52,6 +55,15 @@ public class MainApplication extends Application implements ShareApplication, Re
     protected Boolean isHermesEnabled() {
       return BuildConfig.IS_HERMES_ENABLED;
     }
+
+		@Override
+		protected JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
+			return new V8ExecutorFactory(
+				getApplicationContext(),
+				getPackageName(),
+				AndroidInfoHelpers.getFriendlyDeviceName(),
+				getUseDeveloperSupport());
+		}
 
 		@Override
 		protected String getJSMainModuleName() {
