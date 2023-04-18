@@ -20,7 +20,7 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
@@ -207,7 +207,6 @@ class DeeplinkManager {
         ),
     );
     let params;
-    let wcCleanUrl;
 
     if (urlObj.query.length) {
       try {
@@ -221,6 +220,7 @@ class DeeplinkManager {
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
+    const wcURL = params?.uri || urlObj.href;
 
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
@@ -235,14 +235,30 @@ class DeeplinkManager {
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
-                id: params.channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
+            } else if (params.channelId) {
+              const channelExists =
+                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+              if (channelExists) {
+                if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                  // Automatically re-approve hosts.
+                  SDKConnect.getInstance().revalidateChannel({
+                    channelId: params.channelId,
+                  });
+                }
+                SDKConnect.getInstance().reconnect({
+                  channelId: params.channelId,
+                });
+              } else {
+                SDKConnect.getInstance().connectToChannel({
+                  id: params.channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
             }
+            return true;
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
@@ -299,11 +315,10 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        wcCleanUrl = url.replace('wc://wc?uri=', '');
-        if (!WalletConnect.isValidUri(wcCleanUrl)) return;
+        if (!WalletConnect.isValidUri(wcURL)) return;
 
         WalletConnect.newSession(
-          wcCleanUrl,
+          wcURL,
           params?.redirect,
           params?.autosign,
           origin,
@@ -331,22 +346,35 @@ class DeeplinkManager {
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
-          } else {
-            SDKConnect.connectToChannel({
-              id: params.channelId,
-              commLayer: params.comm,
-              origin,
-              otherPublicKey: params.pubkey,
-            });
-          }
-        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
-          const href = cleanUrlObj.href;
+          } else if (params.channelId) {
+            const channelExists =
+              SDKConnect.getInstance().getApprovedHosts()[params.channelId];
 
-          if (!WalletConnect.isValidUri(href)) return;
+            if (channelExists) {
+              if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                // Automatically re-approve hosts.
+                SDKConnect.getInstance().revalidateChannel({
+                  channelId: params.channelId,
+                });
+              }
+              SDKConnect.getInstance().reconnect({
+                channelId: params.channelId,
+              });
+            } else {
+              SDKConnect.connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
+          }
+          return true;
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
+          if (!WalletConnect.isValidUri(params?.uri)) return;
 
           WalletConnect.newSession(
-            href,
+            params?.uri,
             params?.redirect,
             params?.autosign,
             origin,

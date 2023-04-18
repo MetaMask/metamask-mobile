@@ -1,5 +1,5 @@
 import Selectors from '../../helpers/Selectors';
-import {CHECKBOX_ICON_ID} from '../testIDs/Common.testIds';
+import { CHECKBOX_ICON_ID } from '../testIDs/Common.testIds';
 import {
   TERMS_OF_USE_ACCEPT_BUTTON_ID,
   TERMS_OF_USE_SCREEN_ID,
