@@ -1,7 +1,8 @@
 // Third parties dependencies
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-
+import { useNavigation } from '@react-navigation/native';
+import { Platform, View } from 'react-native';
 // External dependencies
 import Icon, {
   IconName,
@@ -9,12 +10,15 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { useNavigation } from '@react-navigation/native';
-import { Platform, View } from 'react-native';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import AddressCopy from '../AddressCopy';
+import {
+  isDefaultAccountName,
+  doENSReverseLookup,
+} from '../../../util/ENSUtils';
+import { selectChainId } from '../../../selectors/networkController';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
@@ -24,6 +28,7 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   const { navigate } = useNavigation();
+  const [ens, setEns] = useState<string>();
 
   /**
    * A string that represents the selected address
@@ -41,6 +46,8 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
       state.engine.backgroundState.PreferencesController.identities,
   );
 
+  const chainId = useSelector(selectChainId);
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -51,11 +58,26 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
     ...identities[selectedAddress],
   };
 
+  const lookupEns = useCallback(async () => {
+    try {
+      const accountEns = await doENSReverseLookup(account.address, chainId);
+
+      setEns(accountEns);
+      // eslint-disable-next-line no-empty
+    } catch {}
+  }, [account.address, chainId]);
+
+  useEffect(() => {
+    lookupEns();
+  }, [lookupEns]);
+
   return (
     <View style={styles.base}>
       <PickerAccount
         accountAddress={account.address}
-        accountName={account.name}
+        accountName={
+          isDefaultAccountName(account.name) && ens ? ens : account.name
+        }
         accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
