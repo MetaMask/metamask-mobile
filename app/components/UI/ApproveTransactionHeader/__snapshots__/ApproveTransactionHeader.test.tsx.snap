@@ -106,12 +106,15 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         }
       >
         <View
+          onLayout={[Function]}
           style={
             Object {
               "alignSelf": "center",
               "marginRight": 8,
+              "position": "relative",
             }
           }
+          testID="badge-wrapper-badge"
         >
           <View>
             <View
@@ -236,41 +239,72 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           <View
             style={
               Object {
+                "alignItems": "center",
+                "aspectRatio": 1,
+                "height": 0,
+                "justifyContent": "center",
                 "position": "absolute",
-                "right": -4,
-                "top": -4,
+                "right": 0,
+                "top": 0,
+                "transform": Array [
+                  Object {
+                    "translateX": 0,
+                  },
+                  Object {
+                    "translateY": -0,
+                  },
+                ],
               }
             }
-            testID="badge-base"
           >
             <View
+              onLayout={[Function]}
               style={
                 Object {
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 8,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 16,
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": "50%",
+                  "justifyContent": "center",
+                  "minHeight": 16,
+                  "opacity": 0,
                 }
               }
+              testID="badge-network"
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  Object {
-                    "testUri": "../../../app/images/ropsten-logo-dark.png",
-                  }
-                }
+              <View
                 style={
                   Object {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "overflow": "hidden",
+                    "transform": Array [
+                      Object {
+                        "scale": 1,
+                      },
+                    ],
+                    "width": 32,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    Object {
+                      "testUri": "../../../app/images/ropsten-logo-dark.png",
+                    }
+                  }
+                  style={
+                    Object {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
             </View>
           </View>
         </View>

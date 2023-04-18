@@ -23,10 +23,7 @@ import {
 import { NetworkController } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import {
-  Transaction,
-  TransactionController,
-} from '@metamask/transaction-controller';
+import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
@@ -34,7 +31,6 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
-import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -739,102 +735,6 @@ class Engine {
     });
   };
 
-  sync = async ({
-    accounts,
-    preferences,
-    network,
-    transactions,
-    seed,
-    pass,
-    importedAccounts,
-    tokens: { allTokens, allIgnoredTokens },
-  }) => {
-    const {
-      KeyringController,
-      PreferencesController,
-      NetworkController,
-      TransactionController,
-      TokensController,
-    } = this.context;
-
-    // Select same network ?
-    await NetworkController.setProviderType(network.providerConfig.type);
-
-    // Recreate accounts
-    await KeyringController.createNewVaultAndRestore(pass, seed);
-    for (let i = 0; i < accounts.hd.length - 1; i++) {
-      await KeyringController.addNewAccount();
-    }
-
-    // Recreate imported accounts
-    if (importedAccounts) {
-      for (const importedAccount of importedAccounts) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccount,
-        ]);
-      }
-    }
-
-    // Restore tokens
-    await TokensController.update({ allTokens, allIgnoredTokens });
-
-    // Restore preferences
-    const updatedPref = { ...preferences, identities: {} };
-    Object.keys(preferences.identities).forEach((address) => {
-      const checksummedAddress = toChecksumAddress(address);
-      if (
-        accounts.hd.includes(checksummedAddress) ||
-        accounts.simpleKeyPair.includes(checksummedAddress)
-      ) {
-        updatedPref.identities[checksummedAddress] =
-          preferences.identities[address];
-        updatedPref.identities[checksummedAddress].importTime = Date.now();
-      }
-    });
-    await PreferencesController.update(updatedPref);
-
-    if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
-      PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
-    } else {
-      PreferencesController.setSelectedAddress(accounts.hd[0]);
-    }
-
-    const mapTx = ({
-      id,
-      metamaskNetworkId,
-      origin,
-      status,
-      time,
-      hash,
-      rawTx,
-      txParams,
-    }: {
-      id: any;
-      metamaskNetworkId: string;
-      origin: string;
-      status: string;
-      time: any;
-      hash: string;
-      rawTx: string;
-      txParams: Transaction;
-    }) => ({
-      id,
-      networkID: metamaskNetworkId,
-      origin,
-      status,
-      time,
-      transactionHash: hash,
-      rawTx,
-      transaction: { ...txParams },
-    });
-
-    await TransactionController.update({
-      transactions: transactions.map(mapTx),
-    });
-
-    return true;
-  };
-
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
   }
@@ -926,14 +826,9 @@ export default {
   resetState() {
     return instance.resetState();
   },
-
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
-  },
-
-  sync(data: any) {
-    return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);
