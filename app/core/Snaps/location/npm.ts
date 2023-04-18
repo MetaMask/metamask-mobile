@@ -14,7 +14,7 @@ import {
 import { assert, assertStruct, isObject } from '@metamask/utils';
 
 import { DetectSnapLocationOptions, SnapLocation } from './location';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
 
@@ -63,6 +63,55 @@ const SNAPS_NPM_LOG_TAG = 'snaps/ NPM';
  * @returns The parsed file data.
  */
 
+/*
+const requestWritePermission = async (): Promise<boolean> => {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        title: 'Allow',
+        message: 'access to the files is required to download the snaps',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      return true;
+    }
+    console.log('Camera permission denied');
+    return false;
+  } catch (err) {
+    console.warn(err);
+    return false;
+  }
+};
+
+const requestReadPermission = async (): Promise<boolean> => {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      {
+        title: 'Allow',
+        message: 'access to the files is required to download the snaps',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      return true;
+    }
+    console.log('Camera permission denied');
+    return false;
+  } catch (err) {
+    console.warn(err);
+    return false;
+  }
+};
+
+*/
+
 const decompressFile = async (
   path: string,
   targetPath: string,
@@ -94,7 +143,11 @@ const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
   const { config } = RNFetchBlob;
-  const filePath = `${RNFetchBlob.fs.dirs.DocumentDir}/archive.tgz`;
+  const targetDir =
+    Platform.OS === 'ios'
+      ? RNFetchBlob.fs.dirs.DocumentDir
+      : RNFetchBlob.fs.dirs.DownloadDir;
+  const filePath = `${targetDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
   console.log(SNAPS_NPM_LOG_TAG, 'fetchAndStoreNPMPackage', urlToFetch);
@@ -105,7 +158,6 @@ const fetchAndStoreNPMPackage = async (
       path: filePath,
     }).fetch('GET', urlToFetch);
     const dataPath = response.data;
-    const targetPath = RNFetchBlob.fs.dirs.DocumentDir;
     try {
       console.log(
         SNAPS_NPM_LOG_TAG,
@@ -113,7 +165,7 @@ const fetchAndStoreNPMPackage = async (
         dataPath,
         targetPath,
       );
-      const decompressedPath = await decompressFile(dataPath, targetPath);
+      const decompressedPath = await decompressFile(dataPath, targetDir);
       console.log(
         SNAPS_NPM_LOG_TAG,
         'fetchAndStoreNPMPackage decompressedPath',

@@ -48,7 +48,6 @@ public class RNTar extends ReactContextBaseJavaModule {
       if (!outputDirectory.exists()) {
         outputDirectory.mkdirs();
       }
-
       // Check if the output directory is readable and writable
       if (!outputDirectory.canRead() || !outputDirectory.canWrite()) {
         throw new IOException("The output directory is not readable and/or writable.");
@@ -64,9 +63,10 @@ public class RNTar extends ReactContextBaseJavaModule {
       // Loop through the entries in the .tgz file
       while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
         File outputFile = new File(outputDirectory, entry.getName());
-
+        System.out.println("Snaps/  entry " + entry.getName());
         // Check if the current entry is a directory
         if (entry.isDirectory()) {
+          System.out.println("Snaps/  entry is a directory " + entry.getName());
           // If it is a directory, create the output directory
           outputFile.mkdirs();
         } else {
@@ -94,7 +94,7 @@ public class RNTar extends ReactContextBaseJavaModule {
       return outputDirectory.getAbsolutePath();
     } catch (IOException e) {
       Log.e("DecompressTgzFile", "Error decompressing tgz file", e);
-      throw new IOException("Error decompressing tgz file", e);
+      throw new IOException("Error decompressing tgz file: " + e.getMessage(), e);
     }
   };
 
