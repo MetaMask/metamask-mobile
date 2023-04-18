@@ -13,13 +13,17 @@ import { Theme } from '../../../../util/theme/models';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: any }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
+  const { colors } = theme;
   const { style, isFullscreen } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
-        width: isFullscreen ? Dimensions.get('window').width : 'auto',
+        width: Dimensions.get('window').width,
         height: isFullscreen ? Dimensions.get('window').height : 'auto',
+        backgroundColor: colors.background.default,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,
