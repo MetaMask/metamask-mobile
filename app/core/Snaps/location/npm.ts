@@ -146,7 +146,7 @@ const fetchAndStoreNPMPackage = async (
   const targetDir =
     Platform.OS === 'ios'
       ? RNFetchBlob.fs.dirs.DocumentDir
-      : RNFetchBlob.fs.dirs.DownloadDir;
+      : `${RNFetchBlob.fs.dirs.DownloadDir}`;
   const filePath = `${targetDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
@@ -163,7 +163,7 @@ const fetchAndStoreNPMPackage = async (
         SNAPS_NPM_LOG_TAG,
         'calling decompressFile with',
         dataPath,
-        targetPath,
+        targetDir,
       );
       const decompressedPath = await decompressFile(dataPath, targetDir);
       console.log(

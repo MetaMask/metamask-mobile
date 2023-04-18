@@ -48,6 +48,7 @@ public class RNTar extends ReactContextBaseJavaModule {
       if (!outputDirectory.exists()) {
         outputDirectory.mkdirs();
       }
+
       // Check if the output directory is readable and writable
       if (!outputDirectory.canRead() || !outputDirectory.canWrite()) {
         throw new IOException("The output directory is not readable and/or writable.");
@@ -63,14 +64,16 @@ public class RNTar extends ReactContextBaseJavaModule {
       // Loop through the entries in the .tgz file
       while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
         File outputFile = new File(outputDirectory, entry.getName());
-        System.out.println("Snaps/  entry " + entry.getName());
-        // Check if the current entry is a directory
+        System.out.println("Snaps/ entry " + entry.getName());
+
+        // If it is a directory, create the output directory
         if (entry.isDirectory()) {
-          System.out.println("Snaps/  entry is a directory " + entry.getName());
-          // If it is a directory, create the output directory
           outputFile.mkdirs();
         } else {
-          // If it is a file, set up the output streams for writing the file
+          // Create parent directories if they don't exist
+          outputFile.getParentFile().mkdirs();
+
+          // Set up the output streams for writing the file
           FileOutputStream fos = new FileOutputStream(outputFile);
           BufferedOutputStream dest = new BufferedOutputStream(fos, 1024);
 
@@ -96,7 +99,7 @@ public class RNTar extends ReactContextBaseJavaModule {
       Log.e("DecompressTgzFile", "Error decompressing tgz file", e);
       throw new IOException("Error decompressing tgz file: " + e.getMessage(), e);
     }
-  };
+  }
 
   @ReactMethod
   public void unTar(String pathToRead, String pathToWrite, final Promise promise) {
