@@ -208,7 +208,7 @@ class NetworksSettings extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
-  networkElement(name, image, i, network, isCustomRPC) {
+  networkElement(name, image, i, network, isCustomRPC, color) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
@@ -242,7 +242,7 @@ class NetworksSettings extends PureComponent {
                     />
                   ) : (
                     <View
-                      style={[styles.networkIcon, { backgroundColor: image }]}
+                      style={[styles.networkIcon, { backgroundColor: color }]}
                     >
                       <Text style={styles.text}>{name[0]}</Text>
                     </View>
@@ -266,8 +266,8 @@ class NetworksSettings extends PureComponent {
 
   renderOtherNetworks() {
     return this.getOtherNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
-      return this.networkElement(name, color, i, network, false);
+      const { name, imageSource, color } = Networks[network];
+      return this.networkElement(name, imageSource, i, network, false, color);
     });
   }
 

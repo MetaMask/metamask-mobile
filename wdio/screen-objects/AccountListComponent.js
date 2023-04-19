@@ -38,7 +38,8 @@ class AccountListComponent {
   }
 
   async isAccountTwoSelected() {
-    await expect(await this.accountTwoSelected).toBeDisplayed();
+    const element = await this.accountTwoSelected;
+    await element.waitForDisplayed();
   }
 
   async tapAccount(account) {
@@ -68,7 +69,8 @@ class AccountListComponent {
   }
 
   async isComponentNotDisplayed() {
-    await expect(await this.accountListContainer).not.toBeDisplayed();
+    const element = await this.accountListContainer;
+    await element.waitForExist({ reverse: true });
   }
 }
 

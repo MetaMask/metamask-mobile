@@ -188,10 +188,13 @@ export const getCustomOrderIds = createSelector(
     ),
 );
 
-export const makeOrderIdSelector = (orderId?: FiatOrder['id']) =>
-  createSelector(ordersSelector, (orders) =>
-    orders.find((order) => order.id === orderId),
-  );
+export const getOrderById: (
+  state: RootState,
+  orderId?: FiatOrder['id'],
+) => FiatOrder | undefined = createSelector(
+  [ordersSelector, (_state: RootState, orderId?: FiatOrder['id']) => orderId],
+  (orders, orderId) => orders.find((order) => order.id === orderId),
+);
 
 export const getAuthenticationUrls: (
   state: RootState,
