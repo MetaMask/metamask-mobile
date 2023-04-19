@@ -45,13 +45,11 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
-  isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../util/networks';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
-import InfoModal from '../Swaps/components/InfoModal';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
