@@ -11,13 +11,13 @@ import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';
 import { BadgeBaseProps } from './BadgeBase.types';
 import styleSheet from './BadgeBase.styles';
 
-const BadgeBase: React.FC<BadgeBaseProps> = ({ children, style }) => {
+const BadgeBase: React.FC<BadgeBaseProps> = ({ children, style, ...props }) => {
   const { styles } = useStyles(styleSheet, {
     style,
   });
 
   return (
-    <View style={styles.base} testID={BADGE_BASE_TEST_ID}>
+    <View style={styles.base} testID={BADGE_BASE_TEST_ID} {...props}>
       {children}
     </View>
   );
