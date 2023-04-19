@@ -2,6 +2,7 @@
 
 exports[`ReceiveRequest should render correctly 1`] = `
 <ReceiveRequest
+  isNetworkBuySupported={false}
   network="1"
   protectWalletModalVisible={[Function]}
   receiveAsset={Object {}}

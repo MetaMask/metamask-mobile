@@ -6,6 +6,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
   contractExchangeRates={Object {}}
   conversionRate={0.1}
   currentCurrency="usd"
+  isNativeTokenBuySupported={false}
   primaryCurrency="ETH"
   setNonce={[Function]}
   setProposedNonce={[Function]}
