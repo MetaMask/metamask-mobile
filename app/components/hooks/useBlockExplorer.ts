@@ -46,8 +46,12 @@ function useBlockExplorer() {
   useEffect(() => {
     if (providerConfig.type === RPC) {
       try {
+        if (!providerConfig.rpcTarget) {
+          throw new Error('No rpc target');
+        }
+
         const blockExplorer = findBlockExplorerForRpc(
-          providerConfig.rpcTarget as string,
+          providerConfig.rpcTarget,
           frequentRpcList,
         );
         if (!blockExplorer) {
