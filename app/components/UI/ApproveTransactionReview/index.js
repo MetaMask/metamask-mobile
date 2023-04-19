@@ -378,7 +378,10 @@ class ApproveTransactionReview extends PureComponent {
 
     const approvalData = generateApproveData({
       spender: spenderAddress,
-      value: '0',
+      value:
+        tokenStandard === ERC721 || tokenStandard === ERC1155
+          ? encodedValue
+          : '0',
     });
 
     setTransactionObject({
