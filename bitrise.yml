@@ -636,6 +636,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
+    machine_type_id: g2-m1.4core
 
 trigger_map:
   - push_branch: release/*
