@@ -14,6 +14,11 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 
+import Ganache from '../../app/util/test/ganache';
+
+const ganacheServer = new Ganache();
+const validAccount = Accounts.getValidAccount();
+
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
 });
@@ -221,4 +226,12 @@ Then(/^I am on the main wallet view/, async () => {
 When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
+});
+
+Given(/^Ganache server is started$/, async () => {
+  await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+});
+
+Then(/^Ganache server is stopped$/, async () => {
+  await ganacheServer.quit();
 });

@@ -1,10 +1,6 @@
 import generateTestReports from './wdio/utils/generateTestReports';
-import Ganache from './app/util/test/ganache';
-import Accounts from './wdio/helpers/Accounts';
 
 const { removeSync } = require('fs-extra');
-const ganacheServer = new Ganache();
-const validAccount = Accounts.getValidAccount();
 
 export const config = {
   //
@@ -285,11 +281,8 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-   beforeFeature: async function (uri, feature) {
-    if(uri.includes('Confirmations')) {
-      await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
-    }
-   },
+  // beforeFeature: async function (uri, feature) {
+  // },
   /**
    *
    * Runs before a Cucumber Scenario.
@@ -344,11 +337,8 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-   afterFeature: async function (uri, feature) {
-    if(uri.includes('Confirmations')) {
-      await ganacheServer.quit();
-    }
-  },
+  // afterFeature: async function (uri, feature) {
+  // },
 
   /**
    * Runs after a WebdriverIO command gets executed
