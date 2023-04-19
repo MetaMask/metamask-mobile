@@ -67,10 +67,8 @@ const CustomSpendCap = ({
     if (maxSelected) setValue(accountBalance);
   }, [maxSelected, accountBalance]);
 
-  const editedDefaultValue = new BigNumber(dappProposedValue);
   const newValue = new BigNumber(value);
 
-  const dappValue = editedDefaultValue.minus(accountBalance).toFixed();
   const difference = newValue.minus(accountBalance).toFixed();
 
   useEffect(() => {
@@ -92,20 +90,6 @@ const CustomSpendCap = ({
   const NO_SELECTED = strings(
     'contract_allowance.custom_spend_cap.no_value_selected',
     { domain },
-  );
-
-  const DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
-    <>
-      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(accountBalance)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(dappValue)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.future_tokens')}
-    </>
   );
 
   const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
@@ -136,7 +120,7 @@ const CustomSpendCap = ({
     setIsModalVisible(!isModalVisible);
   };
 
-  const infoModalTitle = defaultValueSelected ? (
+  const infoModalTitle = inputValueHigherThanAccountBalance ? (
     <>
       <Icon
         size={IconSize.Sm}
@@ -155,12 +139,10 @@ const CustomSpendCap = ({
 
   let message;
 
-  if (!value) {
+  if (!value || !Number(value)) {
     message = NO_SELECTED;
   } else if (maxSelected) {
     message = MAX_VALUE_SELECTED;
-  } else if (defaultValueSelected) {
-    message = DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE;
   } else if (inputValueHigherThanAccountBalance) {
     message = INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE;
   } else {
@@ -175,7 +157,7 @@ const CustomSpendCap = ({
           title={infoModalTitle}
           body={
             <Text>
-              {defaultValueSelected
+              {inputValueHigherThanAccountBalance
                 ? strings(
                     'contract_allowance.custom_spend_cap.info_modal_description_default',
                   )
@@ -198,9 +180,15 @@ const CustomSpendCap = ({
           <Pressable onPress={toggleModal}>
             <Icon
               size={IconSize.Sm}
-              name={defaultValueSelected ? IconName.Danger : IconName.Question}
+              name={
+                inputValueHigherThanAccountBalance
+                  ? IconName.Danger
+                  : IconName.Question
+              }
               color={
-                defaultValueSelected ? colors.error.default : colors.icon.muted
+                inputValueHigherThanAccountBalance
+                  ? colors.error.default
+                  : colors.icon.muted
               }
             />
           </Pressable>

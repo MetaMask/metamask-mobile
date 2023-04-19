@@ -793,7 +793,9 @@ class ApproveTransactionReview extends PureComponent {
                           disableEdit={spendCapCreated}
                           editValue={this.goToSpendCap}
                           onInputChanged={(value) =>
-                            this.setState({ tokenSpendValue: value })
+                            this.setState({
+                              tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+                            })
                           }
                         />
                       )
