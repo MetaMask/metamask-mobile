@@ -14,6 +14,7 @@ import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
+import AppConstants from '../AppConstants';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -25,6 +26,11 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
+    },
+    SignatureController: {
+      newUnsignedMessage: jest.fn(),
+      newUnsignedPersonalMessage: jest.fn(),
+      newUnsignedTypedMessage: jest.fn(),
     },
   },
 }));
@@ -222,6 +228,32 @@ function setupGlobalState({
     MockEngine.context.PreferencesController.state.selectedAddress =
       selectedAddress;
   }
+}
+
+const addressMock = '0x0000000000000000000000000000000000000001';
+const dataMock =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+const dataJsonMock = JSON.stringify({ test: 'data', domain: { chainId: '1' } });
+const hostMock = 'example.metamask.io';
+const signatureMock = '0x1234567890';
+
+function setupSignature() {
+  setupGlobalState({
+    activeTab: 1,
+    providerConfig: {
+      chainId: '1',
+      type: RPC,
+    },
+    selectedAddress: addressMock,
+    permittedAccounts: { [hostMock]: [addressMock] },
+  });
+
+  const middleware = getRpcMethodMiddleware({
+    ...getMinimalOptions(),
+    hostname: hostMock,
+  });
+
+  return { middleware };
 }
 
 describe('getRpcMethodMiddleware', () => {
@@ -854,6 +886,167 @@ describe('getRpcMethodMiddleware', () => {
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBeNull();
+    });
+  });
+
+  describe('eth_sign', () => {
+    async function sendRequest({ data = dataMock } = {}) {
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_sign',
+        params: [addressMock, data],
+      };
+
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    beforeEach(() => {
+      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
+        { eth_sign: true };
+    });
+
+    it('creates unsigned message', async () => {
+      await sendRequest();
+
+      expect(
+        Engine.context.SignatureController.newUnsignedMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedMessage,
+      ).toHaveBeenCalledWith({
+        data: dataMock,
+        from: addressMock,
+        meta: expect.any(Object),
+        origin: hostMock,
+      });
+    });
+
+    it('returns resolved value from message promise', async () => {
+      Engine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      const response = await sendRequest();
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toBe(signatureMock);
+    });
+
+    it('returns error if eth_sign disabled in preferences', async () => {
+      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
+        { eth_sign: false };
+
+      const response = await sendRequest();
+
+      expect(response.error.message).toBe(
+        'eth_sign has been disabled. You must enable it in the advanced settings',
+      );
+    });
+
+    it('returns error if data is wrong length', async () => {
+      const response = await sendRequest({ data: '0x1' });
+
+      expect(response.error.message).toBe(AppConstants.ETH_SIGN_ERROR);
+    });
+  });
+
+  describe('personal_sign', () => {
+    async function sendRequest() {
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_sign',
+        params: [dataMock, addressMock],
+      };
+
+      Engine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    it('creates unsigned message', async () => {
+      await sendRequest();
+
+      expect(
+        Engine.context.SignatureController.newUnsignedPersonalMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedPersonalMessage,
+      ).toHaveBeenCalledWith({
+        data: dataMock,
+        from: addressMock,
+        meta: expect.any(Object),
+        origin: hostMock,
+      });
+    });
+
+    it('returns resolved value from message promise', async () => {
+      const response = await sendRequest();
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toBe(signatureMock);
+    });
+  });
+
+  describe.each([
+    ['eth_signTypedData', 'V1', false],
+    ['eth_signTypedData_v3', 'V3', true],
+    ['eth_signTypedData_v4', 'V4', true],
+  ])('%s', (methodName, version, addressFirst) => {
+    async function sendRequest() {
+      Engine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: methodName,
+        params: [
+          addressFirst ? addressMock : dataJsonMock,
+          addressFirst ? dataJsonMock : addressMock,
+        ],
+      };
+
+      Engine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    it('creates unsigned message', async () => {
+      await sendRequest();
+
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledWith(
+        {
+          data: dataJsonMock,
+          from: addressMock,
+          meta: expect.any(Object),
+          origin: hostMock,
+        },
+        expect.any(Object),
+        version,
+      );
+    });
+
+    it('returns resolved value from message promise', async () => {
+      const response = await sendRequest();
+
+      expect(response.error).toBeUndefined();
+      expect(response.result).toBe(signatureMock);
     });
   });
 });

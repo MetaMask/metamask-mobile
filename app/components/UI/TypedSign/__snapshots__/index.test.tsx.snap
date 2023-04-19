@@ -15,7 +15,11 @@ exports[`TypedSign should render correctly 1`] = `
         "type": "string",
         "value": "Hi, Alice!",
       },
+      "metamaskId": "TestMessageId",
+      "origin": "example.com",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
 />
 `;

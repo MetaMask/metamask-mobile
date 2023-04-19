@@ -158,8 +158,8 @@ class TypedSign extends PureComponent {
     this.showWalletConnectNotification(messageParams);
   };
 
-  cancelSignature = () => {
-    this.rejectMessage();
+  cancelSignature = async () => {
+    await this.rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
