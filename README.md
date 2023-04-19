@@ -219,7 +219,7 @@ Prequisites for running tests:
 - make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites). 
 - Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils). 
 
-Keep in mind that there are two modes in which you can build the app: release mode and debug mode. Building the app in release mode is exclusively reserved for CI, and there's a high chance that you may not possess the required keys to build the application. To avoid any issues, it's recommended that you initiate the tests on a local build. To run tests against a local build run this command:
+Keep in mind that there are two modes in which you can build the app: `release mode` and `debug mode`. Building the app in release mode is exclusively reserved for CI, and there's a high chance that you may not possess the required keys to build the application. To avoid any issues, it's recommended that you initiate the tests on a local build. To run tests against a local build run this command:
 
 ```bash
 yarn test:e2e:ios:debug
