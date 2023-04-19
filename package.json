@@ -158,6 +158,7 @@
     "@metamask/sdk-communication-layer": "0.2.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^3.0.0",
+    "@metamask/utils": "^5.0.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
