@@ -38,6 +38,7 @@ export enum ApprovalTypes {
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
   TRANSACTION = 'transaction',
+  QR_SIGNING = 'QR_SIGNING',
 }
 
 interface RPCMethodsMiddleParameters {
