@@ -129,6 +129,6 @@ const createStyles = (params: { theme: Theme }) => {
       marginRight: 8,
     },
   });
-}
+};
 
 export default createStyles;

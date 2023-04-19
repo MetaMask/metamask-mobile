@@ -1,4 +1,10 @@
-import React, { Fragment, useCallback, useEffect, useState, createRef } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useState,
+  createRef,
+} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -15,8 +21,8 @@ import Engine from '../../../../core/Engine';
 import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from '../AddressList';
 import Text from '../../../Base/Text';
-import {SendToAddressFrom} from '../AddressFrom';
-import {SendToAddressTo} from '../AddressTo';
+import SendToAddressFrom from '../AddressFrom';
+import SendToAddressTo from '../AddressTo';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import ActionModal from '../../../UI/ActionModal';
@@ -50,7 +56,7 @@ import {
   NO_ETH_MESSAGE,
   SEND_SCREEN,
   ADDRESS_ERROR,
-  ADD_ADDRESS_BUTTON_ID
+  ADD_ADDRESS_BUTTON_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -72,19 +78,18 @@ import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregat
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 // import {validateAddressOrENSFromInput} from '../util'
 import { useNavigation, useRoute } from '@react-navigation/native';
-import {useSelector, useDispatch} from 'react-redux';
-import {SFSendToProps} from './types'
+import { useSelector, useDispatch } from 'react-redux';
 
 const dummy = () => true;
 
 /**
  * View that wraps the wraps the "Send" screen
  */
-  const SendTo = (props: SFSendToProps) => {
-    const { styles, theme } = useStyles(createStyles, {});
-    const { colors, themeAppearance } = theme;
+const SendTo = () => {
+  const { styles, theme } = useStyles(createStyles, {});
+  const { colors, themeAppearance } = theme;
 
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const identities = useSelector(
     (state: any) =>
@@ -92,47 +97,36 @@ const dummy = () => true;
   );
 
   const selectedAddress = useSelector(
-    (state: any) => state.engine.backgroundState.PreferencesController.selectedAddress,
-  )
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
 
   const accounts = useSelector(
-    (state: any) => state.engine.backgroundState.AccountTrackerController.accounts,
-  )
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
 
   const addressBook = useSelector(
-    (state: any) => state.engine.backgroundState.AddressBookController.addressBook,
-  )
+    (state: any) =>
+      state.engine.backgroundState.AddressBookController.addressBook,
+  );
 
-  const chainId = useSelector(
-    (state: any) => selectChainId(state),
-  )
+  const chainId = useSelector((state: any) => selectChainId(state));
 
-  const ticker = useSelector(
-    (state: any) => selectTicker(state),
-  )
+  const ticker = useSelector((state: any) => selectTicker(state));
 
-  const network = useSelector(
-    (state: any) => selectNetwork(state),
-  )
+  const network = useSelector((state: any) => selectNetwork(state));
 
-const providerType = useSelector(
-    (state: any) => selectProviderType(state),
-)
+  const providerType = useSelector((state: any) => selectProviderType(state));
 
-const isPaymentRequest = useSelector(
+  const isPaymentRequest = useSelector(
     (state: any) => state.transaction.paymentRequest,
-)
-
-const frequentRpcList = useSelector(
-    (state: any) => state.engine.backgroundState.PreferencesController.frequentRpcList,
-)
-
+  );
 
   const addressToInputRef = createRef();
-  const [addToAddressToAddressBook, setAddToAddressToAddressBook] = useState(false);
   const [sendToState, setSendToState] = useState({
     accountName: identities[selectedAddress].name,
-    accountBalance: undefined,
+    accountBalance: '',
     accountAddress: selectedAddress,
     balanceIsZero: false,
     addressError: undefined,
@@ -148,9 +142,29 @@ const frequentRpcList = useSelector(
     toSelectedAddressName: undefined,
     alias: undefined,
     addToAddressBookModalVisible: false,
-  })
+    addToAddressToAddressBook: false,
+  });
 
-  const {addressError,balanceIsZero,accountAddress, accountBalance, accountName, inputWidth, confusableCollection, toEnsAddressResolved, toEnsName, errorContinue, isOnlyWarning, toAccount, toSelectedAddressReady, isFromAddressBook, toSelectedAddressName, alias, addToAddressBookModalVisible  } = sendToState
+  const {
+    addressError,
+    balanceIsZero,
+    accountAddress,
+    addToAddressToAddressBook,
+    accountBalance,
+    accountName,
+    inputWidth,
+    confusableCollection,
+    toEnsAddressResolved,
+    toEnsName,
+    errorContinue,
+    isOnlyWarning,
+    toAccount,
+    toSelectedAddressReady,
+    isFromAddressBook,
+    toSelectedAddressName,
+    alias,
+    addToAddressBookModalVisible,
+  } = sendToState;
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -161,59 +175,132 @@ const frequentRpcList = useSelector(
     );
   }, [colors, navigation, route]);
 
-
   useEffect(() => {
     updateNavBar();
-  }, []);
-
-  useEffect(() => {
-    updateNavBar();
-        // For analytics
-        navigation.setParams({ providerType, isPaymentRequest });
-        const networkAddressBook = addressBook[network] || {};
-        const accountBalance = `${renderFromWei(
-          accounts[selectedAddress].balance,
-        )} ${getTicker(ticker)}`;
-
-        // check for ens
-        setTimeout(() => {
-          setSendToState({...sendToState, accountBalance, inputWidth: { width: '100%' },  balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero()})
-        }, 100);
-        if (!Object.keys(networkAddressBook).length) {
-          setTimeout(() => {
-            addressToInputRef &&
-              addressToInputRef.current &&
-              addressToInputRef.current.focus();
-          }, 500);
-        }
-        //Fills in to address and sets the transaction if coming from QR code scan
-        const targetAddress = route.params?.txMeta?.target_address;
-        if (targetAddress) {
-          dispatch(newAssetTransaction(getEther(ticker)));
-          onToSelectedAddressChange(targetAddress);
-        }
-      }, []);
-
-  const toggleAddToAddressBookModal = () => {
-    setSendToState({...sendToState, addToAddressBookModalVisible: !addToAddressBookModalVisible})
-  };
+  }, [updateNavBar]);
 
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
-   * @param {String} toAccount - Address input
+   * @param {String} account - Address input
    * @returns {String | null} - Address or null if toAccount is not in the addressBook or identities array
    */
-  const getAddressNameFromBookOrIdentities = (toAccount) => {
-    if (!toAccount) return;
+  const getAddressNameFromBookOrIdentities = (account: string) => {
+    if (!account) return;
     const networkAddressBook = addressBook[network] || {};
 
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = toChecksumAddress(account);
 
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : identities[checksummedAddress]
       ? identities[checksummedAddress].name
       : null;
+  };
+
+  const validateAddressOrENSFromInput = async (account: string) => {
+    const {
+      addressError: addressHasError,
+      toEnsName: ensName,
+      addressReady,
+      toEnsAddress,
+      addToAddressToAddressBook: addToAddressBook,
+      toAddressName,
+      errorContinue: hasErrorContinue,
+      isOnlyWarning: isWarning,
+      confusableCollection: confusablesCollection,
+    } = await validateAddressOrENS({
+      toAccount: account,
+      network,
+      addressBook,
+      identities,
+      chainId,
+    });
+
+    return {
+      addressHasError,
+      ensName,
+      toSelectedAddressReady: addressReady,
+      toEnsAddressResolved: toEnsAddress,
+      addToAddressBook,
+      toSelectedAddressName: toAddressName,
+      hasErrorContinue,
+      isWarning,
+      confusablesCollection,
+    };
+  };
+
+  const onToSelectedAddressChange = async (account: string) => {
+    const addressName = getAddressNameFromBookOrIdentities(account);
+
+    /**
+     * If the address is from addressBook or identities
+     * then validation is not necessary since it was already validated
+     */
+    if (addressName) {
+      setSendToState({
+        ...sendToState,
+        toAccount: account,
+        toSelectedAddressReady: true,
+        isFromAddressBook: true,
+        toSelectedAddressName: addressName,
+      });
+    } else {
+      const validatedInput = await validateAddressOrENSFromInput(account);
+
+      /**
+       * Because validateAddressOrENSFromInput is an asynchronous function
+       * we are setting the state here synchronously, so it does not block the UI
+       * */
+      setSendToState({
+        ...sendToState,
+        toAccount: account,
+        isFromAddressBook: false,
+        toSelectedAddressReady: false,
+        ...validatedInput,
+      });
+    }
+  };
+
+  useEffect(() => {
+    async function init() {
+      navigation.setParams({ providerType, isPaymentRequest });
+      const networkAddressBook = addressBook[network] || {};
+      const balance = `${renderFromWei(
+        accounts[selectedAddress].balance,
+      )} ${getTicker(ticker)}`;
+
+      const ens = await doENSReverseLookup(selectedAddress, network);
+      // what does this settimeout do?
+      setTimeout(() => {
+        setSendToState({
+          ...sendToState,
+          accountName: ens || accountName,
+          accountBalance: balance,
+          inputWidth: { width: '100%' },
+          balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
+        });
+      }, 100);
+      if (!Object.keys(networkAddressBook).length) {
+        // and this?
+        setTimeout(() => {
+          addressToInputRef?.current?.focus();
+        }, 500);
+      }
+      //Fills in to address and sets the transaction if coming from QR code scan
+      const targetAddress = route.params?.txMeta?.target_address;
+      if (targetAddress) {
+        dispatch(newAssetTransaction(getEther(ticker)));
+        onToSelectedAddressChange(targetAddress);
+      }
+    }
+    init();
+  }, []);
+
+  const toggleAddToAddressBookModal = () => {
+    setSendToState({
+      ...sendToState,
+      addToAddressBookModalVisible: !addToAddressBookModalVisible,
+    });
   };
 
   const isAddressSaved = () => {
@@ -224,67 +311,21 @@ const frequentRpcList = useSelector(
     );
   };
 
-  /**
-   * This set to the state all the information
-   *  that come from validating an ENS or address
-   * @param {*} toSelectedAddress - The address or the ens writted on the destination input
-   */
-  const validateAddressOrENSFromInput = async (toAccount) => {
-    const {
-      addressError,
-      toEnsName,
-      addressReady,
-      toEnsAddress,
-      addToAddressToAddressBook,
-      toAddressName,
-      errorContinue,
-      isOnlyWarning,
-      confusableCollection,
-    } = await validateAddressOrENS({
-      toAccount,
-      network,
-      addressBook,
-      identities,
-      chainId,
-    });
-
-    setSendToState({...sendToState, addressError, toEnsAddressResolved: toEnsAddress, toEnsName, toSelectedAddressReady: addressReady, addToAddressToAddressBook, toSelectedAddressName: toAddressName, errorContinue, isOnlyWarning, confusableCollection})
-  };
-
-  const onToSelectedAddressChange = (toAccount) => {
-    const addressName = getAddressNameFromBookOrIdentities(toAccount);
-
-    /**
-     * If the address is from addressBook or identities
-     * then validation is not necessary since it was already validated
-     */
-    if (addressName) {
-      setSendToState({...sendToState, toAccount, toSelectedAddressReady: true, isFromAddressBook: true, toSelectedAddressName: addressName })
-    } else {
-      validateAddressOrENSFromInput(toAccount);
-      /**
-       * Because validateAddressOrENSFromInput is an asynchronous function
-       * we are setting the state here synchronously, so it does not block the UI
-       * */
-      setSendToState({...sendToState, toAccount, isFromAddressBook: false })
-    }
-  };
-
   const validateToAddress = () => {
-    let addressError;
+    let addressHasError;
     if (isENS(toAccount)) {
       if (!toEnsAddressResolved) {
-        addressError = strings('transaction.could_not_resolve_ens');
+        addressHasError = strings('transaction.could_not_resolve_ens');
       }
     } else if (!isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
-      addressError = strings('transaction.invalid_address');
+      addressHasError = strings('transaction.invalid_address');
     }
-    setSendToState({...sendToState, addressError})
-    return addressError;
+    setSendToState({ ...sendToState, addressError: addressHasError });
+    return addressHasError;
   };
 
-  const onChangeAlias = (alias) => {
-    setSendToState({...sendToState, alias})
+  const onChangeAlias = (value: any) => {
+    setSendToState({ ...sendToState, alias: value });
   };
 
   const onSaveToAddressBook = () => {
@@ -292,17 +333,32 @@ const frequentRpcList = useSelector(
     const toAddress = toEnsAddressResolved || toAccount;
     AddressBookController.set(toAddress, alias, network);
     toggleAddToAddressBookModal();
-    setSendToState({...sendToState, toSelectedAddressName: alias, addToAddressToAddressBook: false, isFromAddressBook: true, toAccount: toAddress, alias: undefined })
+    setSendToState({
+      ...sendToState,
+      toSelectedAddressName: alias,
+      addToAddressToAddressBook: false,
+      isFromAddressBook: true,
+      toAccount: toAddress,
+      alias: undefined,
+    });
   };
 
   const onTransactionDirectionSet = async () => {
     if (!isAddressSaved()) {
-      const addressError = validateToAddress();
-      if (addressError) return;
+      const addressHasError = validateToAddress();
+      if (addressHasError) return;
     }
     const toAddress = toEnsAddressResolved || toAccount;
     dispatch(addRecent(toAddress));
-    dispatch(setRecipient(accountAddress, toAddress, toEnsName, toSelectedAddressName, accountName));
+    dispatch(
+      setRecipient(
+        accountAddress,
+        toAddress,
+        toEnsName,
+        toSelectedAddressName,
+        accountName,
+      ),
+    );
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
@@ -314,54 +370,55 @@ const frequentRpcList = useSelector(
     navigation.navigate('Amount');
   };
 
-  const renderAddToAddressBookModal = () => {
-    return (
-      <ActionModal
-        modalVisible={addToAddressBookModalVisible}
-        confirmText={strings('address_book.save')}
-        cancelText={strings('address_book.cancel')}
-        onCancelPress={toggleAddToAddressBookModal}
-        onRequestClose={toggleAddToAddressBookModal}
-        onConfirmPress={onSaveToAddressBook}
-        cancelButtonMode={'normal'}
-        confirmButtonMode={'confirm'}
-        confirmDisabled={!alias}
-      >
-        <View style={styles.addToAddressBookRoot}>
-          <View style={styles.addToAddressBookWrapper} testID={ADD_ADDRESS_MODAL_CONTAINER_ID}>
-            <View style={baseStyles.flexGrow}>
-              <Text style={styles.addTextTitle}>
-                {strings('address_book.add_to_address_book')}
-              </Text>
-              <Text style={styles.addTextSubtitle}>
-                {strings('address_book.enter_an_alias')}
-              </Text>
-              <View style={styles.addInputWrapper}>
-                <View style={styles.input}>
-                  <TextInput
-                    autoFocus
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    onChangeText={onChangeAlias}
-                    placeholder={strings(
-                      'address_book.enter_an_alias_placeholder',
-                    )}
-                    placeholderTextColor={colors.text.muted}
-                    spellCheck={false}
-                    style={styles.addTextInput}
-                    numberOfLines={1}
-                    value={alias}
-                    keyboardAppearance={themeAppearance}
-                    {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
-                  />
-                </View>
+  const renderAddToAddressBookModal = () => (
+    <ActionModal
+      modalVisible={addToAddressBookModalVisible}
+      confirmText={strings('address_book.save')}
+      cancelText={strings('address_book.cancel')}
+      onCancelPress={toggleAddToAddressBookModal}
+      onRequestClose={toggleAddToAddressBookModal}
+      onConfirmPress={onSaveToAddressBook}
+      cancelButtonMode={'normal'}
+      confirmButtonMode={'confirm'}
+      confirmDisabled={!alias}
+    >
+      <View style={styles.addToAddressBookRoot}>
+        <View
+          style={styles.addToAddressBookWrapper}
+          testID={ADD_ADDRESS_MODAL_CONTAINER_ID}
+        >
+          <View style={baseStyles.flexGrow}>
+            <Text style={styles.addTextTitle}>
+              {strings('address_book.add_to_address_book')}
+            </Text>
+            <Text style={styles.addTextSubtitle}>
+              {strings('address_book.enter_an_alias')}
+            </Text>
+            <View style={styles.addInputWrapper}>
+              <View style={styles.input}>
+                <TextInput
+                  autoFocus
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  onChangeText={onChangeAlias}
+                  placeholder={strings(
+                    'address_book.enter_an_alias_placeholder',
+                  )}
+                  placeholderTextColor={colors.text.muted}
+                  spellCheck={false}
+                  style={styles.addTextInput}
+                  numberOfLines={1}
+                  value={alias}
+                  keyboardAppearance={themeAppearance}
+                  {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
+                />
               </View>
             </View>
           </View>
         </View>
-      </ActionModal>
-    );
-  };
+      </View>
+    </ActionModal>
+  );
 
   const goToBuy = () => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
@@ -381,8 +438,7 @@ const frequentRpcList = useSelector(
 
     return (
       <>
-        <Text bold style={styles.buyEth}
-         onPress={goToBuy}>
+        <Text bold style={styles.buyEth} onPress={goToBuy}>
           {strings('fiat_on_ramp.buy', {
             ticker: getTicker(ticker),
           })}
@@ -391,202 +447,205 @@ const frequentRpcList = useSelector(
     );
   };
 
-  const renderAddressError = (addressError) =>
-    addressError === SYMBOL_ERROR ? (
+  const renderAddressError = (addressHasError: any) =>
+    addressHasError === SYMBOL_ERROR ? (
       <Fragment>
         <Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
         <Text bold>{strings('transaction.tokenContractAddressWarning_2')}</Text>
         <Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
       </Fragment>
     ) : (
-      addressError
+      addressHasError
     );
 
-    const updateAccountDetails = ({accountAddress, balanceIsZero, accountBalance, accountName}) => {
-      setSendToState({...sendToState, accountName, accountBalance, accountAddress, balanceIsZero})
-    };
+  const updateAccountDetails = ({
+    address,
+    isBalanceZero,
+    balance,
+    accName,
+  }: {
+    address: string;
+    isBalanceZero: boolean;
+    balance: string;
+    accName: string;
+  }) => {
+    setSendToState({
+      ...sendToState,
+      accountName: accName,
+      accountBalance: balance,
+      accountAddress: address,
+      balanceIsZero: isBalanceZero,
+    });
+  };
 
-    const updateParentState = (state) => {
-      setSendToState({...sendToState, ...state})
-    }
+  const updateParentState = (state) => {
+    setSendToState({ ...sendToState, ...state });
+  };
 
-    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
-    const existingContact =
-      checksummedAddress &&
-      addressBook[network] &&
-      addressBook[network][checksummedAddress];
-    const displayConfusableWarning =
-      !existingContact && confusableCollection && !!confusableCollection.length;
-    const displayAsWarning =
-      confusableCollection &&
-      confusableCollection.length &&
-      !confusableCollection.some(hasZeroWidthPoints);
-    const explanations =
-      displayConfusableWarning &&
-      getConfusablesExplanations(confusableCollection);
+  const checksummedAddress = toAccount && toChecksumAddress(toAccount);
+  const existingContact =
+    checksummedAddress &&
+    addressBook[network] &&
+    addressBook[network][checksummedAddress];
+  const displayConfusableWarning =
+    !existingContact && confusableCollection && !!confusableCollection.length;
+  const displayAsWarning =
+    confusableCollection?.length &&
+    !confusableCollection.some(hasZeroWidthPoints);
+  const explanations =
+    displayConfusableWarning &&
+    getConfusablesExplanations(confusableCollection);
 
-    return (
-      <SafeAreaView
-        edges={['bottom']}
-        style={styles.wrapper}
-        testID={SEND_SCREEN}
-      >
-        <View style={styles.imputWrapper}>
-          <SendToAddressFrom 
+  return (
+    <SafeAreaView
+      edges={['bottom']}
+      style={styles.wrapper}
+      testID={SEND_SCREEN}
+    >
+      <View style={styles.imputWrapper}>
+        <SendToAddressFrom
           updateAccountInfo={updateAccountDetails}
           accountAddress={accountAddress}
           accountName={accountName}
           accountBalance={accountBalance}
-          />
-          <SendToAddressTo 
-            inputRef={addressToInputRef}
-            addressToReady={toSelectedAddressReady}
-            toSelectedAddress={toEnsAddressResolved || toAccount}
-            updateParentState={updateParentState}
-            toAddressName={toSelectedAddressName}
-            onSubmit={onTransactionDirectionSet}
-            inputWidth={inputWidth}
-            confusableCollection={
-              (!existingContact && confusableCollection) || []
+        />
+        <SendToAddressTo
+          inputRef={addressToInputRef}
+          addressToReady={toSelectedAddressReady}
+          toSelectedAddress={toEnsAddressResolved || toAccount}
+          updateParentState={updateParentState}
+          toSelectedAddressName={toSelectedAddressName}
+          onSubmit={onTransactionDirectionSet}
+          inputWidth={inputWidth}
+          confusableCollectionArray={
+            (!existingContact && confusableCollection) || []
+          }
+          isFromAddressBook={isFromAddressBook}
+          highlighted={false}
+        />
+      </View>
+
+      {!toSelectedAddressReady && !!toAccount && (
+        <View style={styles.warningContainer}>
+          <WarningMessage
+            warningMessage={
+              toAccount.substring(0, 2) === '0x'
+                ? strings('transaction.address_invalid')
+                : strings('transaction.ens_not_found')
             }
-            isFromAddressBook={isFromAddressBook}
           />
         </View>
+      )}
 
-        {!toSelectedAddressReady && !!toAccount && (
-          <View style={styles.warningContainer}>
-            <WarningMessage
-              warningMessage={
-                toAccount.substring(0, 2) === '0x'
-                  ? strings('transaction.address_invalid')
-                  : strings('transaction.ens_not_found')
-              }
-            />
-          </View>
-        )}
-
-        {!toSelectedAddressReady ? (
-          <AddressList
-            inputSearch={toAccount}
-            onAccountPress={onToSelectedAddressChange}
-            onAccountLongPress={dummy}
-          />
-        ) : (
-          <View style={styles.nextActionWrapper}>
-            <ScrollView>
-              {addressError && addressError !== CONTACT_ALREADY_SAVED && (
-                <View
-                  style={styles.addressErrorWrapper}
-                  testID={ADDRESS_ERROR}
-                >
-                  <ErrorMessage
-                    errorMessage={renderAddressError(addressError)}
-                    errorContinue={!!errorContinue}
-                    onContinue={onTransactionDirectionSet}
-                    isOnlyWarning={!!isOnlyWarning}
-                  />
-                </View>
-              )}
-              {displayConfusableWarning && (
-                <View
-                  style={[
-                    styles.confusabeError,
-                    displayAsWarning && styles.confusabeWarning,
-                  ]}
-                >
-                  <View 
-                  style={styles.warningIcon}
-                  >
-                    <Icon
-                      size={16}
-                      color={
-                        displayAsWarning
-                          ? colors.warning.default
-                          : colors.error.default
-                      }
-                      name="exclamation-triangle"
-                    />
-                  </View>
-                  <View>
-                    <Text 
-                    style={styles.confusableTitle}
-                    >
-                      {strings('transaction.confusable_title')}
-                    </Text>
-                    <Text 
-                    style={styles.confusableMsg}
-                    >
-                      {strings('transaction.confusable_msg')}{' '}
-                      {explanations.join(', ')}.
-                    </Text>
-                  </View>
-                </View>
-              )}
-              {addToAddressToAddressBook && (
-                <TouchableOpacity
-                  style={styles.myAccountsTouchable}
-                  onPress={toggleAddToAddressBookModal}
-                  testID={ADD_ADDRESS_BUTTON_ID}
-                >
-                  <Text
-                    style={styles.myAccountsText}
-                    {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
-                  >
-                    {strings('address_book.add_this_address')}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {balanceIsZero && (
-                <View 
-                style={styles.warningContainer}
-                >
-                  <WarningMessage
-                    warningMessage={
-                      <>
-                        {strings('transaction.not_enough_for_gas', {
-                          ticker: getTicker(ticker),
-                        })}
-
-                        {renderBuyEth()}
-                      </>
-                    }
-                  />
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        )}
-
-        {!errorContinue && (
-          <View 
-          style={styles.footerContainer}
-           testID={NO_ETH_MESSAGE}>
-            {!errorContinue && (
-              <View style={styles.buttonNextWrapper}>
-                <StyledButton
-                  type={'confirm'}
-                  containerStyle={styles.buttonNext}
-                  onPress={onTransactionDirectionSet}
-                  testID={ADDRESS_BOOK_NEXT_BUTTON}
-                  //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
-                  //Will be here just to ensure that we don't break existing conditions
-                  disabled={
-                    !(
-                      (isValidHexAddress(toEnsAddressResolved) ||
-                        isValidHexAddress(toAccount)) &&
-                      toSelectedAddressReady
-                    )
-                  }
-                >
-                  {strings('address_book.next')}
-                </StyledButton>
+      {!toSelectedAddressReady ? (
+        <AddressList
+          inputSearch={toAccount}
+          onAccountPress={onToSelectedAddressChange}
+          onAccountLongPress={dummy}
+        />
+      ) : (
+        <View style={styles.nextActionWrapper}>
+          <ScrollView>
+            {addressError && addressError !== CONTACT_ALREADY_SAVED && (
+              <View style={styles.addressErrorWrapper} testID={ADDRESS_ERROR}>
+                <ErrorMessage
+                  errorMessage={renderAddressError(addressError)}
+                  errorContinue={!!errorContinue}
+                  onContinue={onTransactionDirectionSet}
+                  isOnlyWarning={!!isOnlyWarning}
+                />
               </View>
             )}
-          </View>
-        )}
-        {renderAddToAddressBookModal()}
-      </SafeAreaView>
-    );
-  };
+            {displayConfusableWarning && (
+              <View
+                style={[
+                  styles.confusabeError,
+                  displayAsWarning && styles.confusabeWarning,
+                ]}
+              >
+                <View style={styles.warningIcon}>
+                  <Icon
+                    size={16}
+                    color={
+                      displayAsWarning
+                        ? colors.warning.default
+                        : colors.error.default
+                    }
+                    name="exclamation-triangle"
+                  />
+                </View>
+                <View>
+                  <Text style={styles.confusableTitle}>
+                    {strings('transaction.confusable_title')}
+                  </Text>
+                  <Text style={styles.confusableMsg}>
+                    {strings('transaction.confusable_msg')}{' '}
+                    {explanations.join(', ')}.
+                  </Text>
+                </View>
+              </View>
+            )}
+            {addToAddressToAddressBook && (
+              <TouchableOpacity
+                style={styles.myAccountsTouchable}
+                onPress={toggleAddToAddressBookModal}
+                testID={ADD_ADDRESS_BUTTON_ID}
+              >
+                <Text
+                  style={styles.myAccountsText}
+                  {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
+                >
+                  {strings('address_book.add_this_address')}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {balanceIsZero && (
+              <View style={styles.warningContainer}>
+                <WarningMessage
+                  warningMessage={
+                    <>
+                      {strings('transaction.not_enough_for_gas', {
+                        ticker: getTicker(ticker),
+                      })}
+
+                      {renderBuyEth()}
+                    </>
+                  }
+                />
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      )}
+
+      {!errorContinue && (
+        <View style={styles.footerContainer} testID={NO_ETH_MESSAGE}>
+          {!errorContinue && (
+            <View style={styles.buttonNextWrapper}>
+              <StyledButton
+                type={'confirm'}
+                containerStyle={styles.buttonNext}
+                onPress={onTransactionDirectionSet}
+                testID={ADDRESS_BOOK_NEXT_BUTTON}
+                //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
+                //Will be here just to ensure that we don't break existing conditions
+                disabled={
+                  !(
+                    (isValidHexAddress(toEnsAddressResolved) ||
+                      isValidHexAddress(toAccount)) &&
+                    toSelectedAddressReady
+                  )
+                }
+              >
+                {strings('address_book.next')}
+              </StyledButton>
+            </View>
+          )}
+        </View>
+      )}
+      {renderAddToAddressBookModal()}
+    </SafeAreaView>
+  );
+};
 
 export default SendTo;

@@ -1,183 +1,202 @@
 import React from 'react';
-import {
-    Alert,
-  } from 'react-native';
+import { Alert } from 'react-native';
 import { AddressTo } from '../../../UI/AddressInputs';
 import { useNavigation } from '@react-navigation/native';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { createQRScannerNavDetails } from '../../QRScanner';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import Routes from '../../../../constants/navigation/Routes';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
-    selectNetwork,
-    selectChainId
-  } from '../../../../selectors/networkController';
+  selectNetwork,
+  selectChainId,
+} from '../../../../selectors/networkController';
+import { validateAddressOrENS } from '../../../../util/address';
+import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
+import { NetworkSwitchErrorType } from '../../../../constants/error';
+import { showAlert } from '../../../../actions/alert';
+import { SFAddressToProps } from './types';
 
-  import {
-    validateAddressOrENS,
-  } from '../../../../util/address';
-  import Engine from '../../../../core/Engine';
-  import { strings } from '../../../../../locales/i18n';
-  import {
-    NetworkSwitchErrorType,
-  } from '../../../../constants/error';
-  import { showAlert } from '../../../../actions/alert';
-  import {SFAddressToProps} from './types'
+const SendToAddressTo = ({
+  inputRef,
+  highlighted,
+  addressToReady,
+  toSelectedAddress,
+  toSelectedAddressName,
+  onSubmit,
+  inputWidth,
+  confusableCollectionArray,
+  isFromAddressBook,
+  updateParentState,
+}: SFAddressToProps) => {
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
 
-export const SendToAddressTo = ({inputRef, highlighted,addressToReady, toSelectedAddress, toAddressName, onSubmit, inputWidth, confusableCollection, isFromAddressBook, updateParentState }: SFAddressToProps) => {
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
 
-    const navigation = useNavigation();
-    const dispatch = useDispatch();
+  const addressBook = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AddressBookController.addressBook,
+  );
 
-    const identities = useSelector(
-        (state: any) =>
-          state.engine.backgroundState.PreferencesController.identities,
-      );
+  const network = useSelector(selectNetwork);
+  const chainId = useSelector(selectChainId);
 
-      const addressBook = useSelector(
-        (state: any) =>
-        state.engine.backgroundState.AddressBookController.addressBook
-        );
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
 
-        const network = useSelector(selectNetwork);
-        const chainId = useSelector(selectChainId);
+  const showAlertAction = (config: any) => dispatch(showAlert(config));
 
-        const frequentRpcList = useSelector(
-            (state: any) =>
-            state.engine.backgroundState.PreferencesController.frequentRpcList
-            );
+  const handleNetworkSwitched = (chain_id: string) => {
+    try {
+      const { NetworkController, CurrencyRateController } = Engine.context;
+      const networkSwitch = handleNetworkSwitch(chain_id, frequentRpcList, {
+        networkController: NetworkController,
+        currencyRateController: CurrencyRateController,
+      });
 
-            const showAlertAction = (config: any) => dispatch(showAlert(config));
+      if (!networkSwitch) return;
 
-    const handleNetworkSwitched = (chainId: string) => {
-        try {
-          const { NetworkController, CurrencyRateController } = Engine.context;
-          const networkSwitch = handleNetworkSwitch(chainId, frequentRpcList, {
-            networkController: NetworkController,
-            currencyRateController: CurrencyRateController,
+      showAlertAction({
+        isVisible: true,
+        autodismiss: 5000,
+        content: 'clipboard-alert',
+        data: { msg: strings('send.warn_network_change') + network },
+      });
+    } catch (e: any) {
+      let alertMessage;
+      switch (e.message) {
+        case NetworkSwitchErrorType.missingNetworkId:
+          alertMessage = strings('send.network_missing_id');
+          break;
+        default:
+          alertMessage = strings('send.network_not_found_description', {
+            chain_id,
           });
-    
-          if (!networkSwitch) return;
-    
-          showAlertAction({
-            isVisible: true,
-            autodismiss: 5000,
-            content: 'clipboard-alert',
-            data: { msg: strings('send.warn_network_change') + network },
-          });
-        } catch (e) {
-          let alertMessage;
-          switch (e?.message) {
-            case NetworkSwitchErrorType.missingNetworkId:
-              alertMessage = strings('send.network_missing_id');
-              break;
-            default:
-              alertMessage = strings('send.network_not_found_description', {
-                chain_id: chainId,
-              });
+      }
+      Alert.alert(strings('send.network_not_found_title'), alertMessage);
+    }
+  };
+
+  const getAddressNameFromBookOrIdentities = (toAccount?: string) => {
+    if (!toAccount) return;
+
+    const networkAddressBook = addressBook[network] || {};
+
+    const checksummedAddress = toChecksumAddress(toAccount);
+
+    return networkAddressBook[checksummedAddress]
+      ? networkAddressBook[checksummedAddress].name
+      : identities[checksummedAddress]
+      ? identities[checksummedAddress].name
+      : null;
+  };
+
+  const validateAddressOrENSFromInput = async (toAccount?: string) => {
+    const {
+      addressError,
+      toEnsName,
+      addressReady,
+      toEnsAddress,
+      addToAddressToAddressBook,
+      toAddressName,
+      errorContinue,
+      isOnlyWarning,
+      confusableCollection,
+    } = await validateAddressOrENS({
+      toAccount,
+      network,
+      addressBook,
+      identities,
+      chainId,
+    });
+
+    return {
+      addressError,
+      toEnsName,
+      toSelectedAddressReady: addressReady,
+      toEnsAddressResolved: toEnsAddress,
+      addToAddressToAddressBook,
+      toSelectedAddressName: toAddressName,
+      errorContinue,
+      isOnlyWarning,
+      confusableCollection,
+    };
+  };
+
+  const onToSelectedAddressChange = async (toAccount?: string) => {
+    const addressName = getAddressNameFromBookOrIdentities(toAccount);
+
+    /**
+     * If the address is from addressBook or identities
+     * then validation is not necessary since it was already validated
+     */
+    if (addressName) {
+      updateParentState({
+        toAccount,
+        toSelectedAddressReady: true,
+        isFromAddressBook: true,
+        toSelectedAddressName: addressName,
+      });
+    } else {
+      const validatedInput = await validateAddressOrENSFromInput(toAccount);
+      /**
+       * Because validateAddressOrENSFromInput is an asynchronous function
+       * we are setting the state here synchronously, so it does not block the UI
+       * */
+
+      updateParentState({
+        toAccount,
+        isFromAddressBook: false,
+        ...validatedInput,
+      });
+    }
+  };
+  const onScan = () => {
+    navigation.navigate(
+      ...createQRScannerNavDetails({
+        onScanSuccess: (meta) => {
+          if (meta.chain_id) {
+            handleNetworkSwitched(meta.chain_id);
           }
-          Alert.alert(strings('send.network_not_found_title'), alertMessage);
-        }
-      };
+          if (meta.target_address) {
+            onToSelectedAddressChange(meta.target_address);
+          }
+        },
+        origin: Routes.SEND_FLOW.SEND_TO,
+      }),
+    );
+  };
 
-      const getAddressNameFromBookOrIdentities = (toAccount: string) => {
-        if (!toAccount) return;
+  const onToInputFocus = () => {
+    updateParentState({ highlighted: !highlighted });
+  };
+  const onClear = () => onToSelectedAddressChange();
 
-        const networkAddressBook = addressBook[network] || {};
-    
-        const checksummedAddress = toChecksumAddress(toAccount);
-    
-        return networkAddressBook[checksummedAddress]
-          ? networkAddressBook[checksummedAddress].name
-          : identities[checksummedAddress]
-          ? identities[checksummedAddress].name
-          : null;
-      };
+  return (
+    <AddressTo
+      inputRef={inputRef}
+      highlighted={highlighted}
+      addressToReady={addressToReady}
+      toSelectedAddress={toSelectedAddress}
+      toAddressName={toSelectedAddressName}
+      onToSelectedAddressChange={onToSelectedAddressChange}
+      onScan={onScan}
+      onClear={onClear}
+      onInputFocus={onToInputFocus}
+      onInputBlur={onToInputFocus}
+      onSubmit={onSubmit}
+      inputWidth={inputWidth}
+      confusableCollection={confusableCollectionArray}
+      isFromAddressBook={isFromAddressBook}
+    />
+  );
+};
 
-      const validateAddressOrENSFromInput = async (toAccount: string) => {
-        const {
-          addressError,
-          toEnsName,
-          addressReady,
-          toEnsAddress,
-          addToAddressToAddressBook,
-          toAddressName,
-          errorContinue,
-          isOnlyWarning,
-          confusableCollection,
-        } = await validateAddressOrENS({
-          toAccount,
-          network,
-          addressBook,
-          identities,
-          chainId,
-        });
-
-        return {
-          addressError, toEnsName, 
-          // toSelectedAddressReady: addressReady, 
-          toEnsAddressResolved: toEnsAddress, addToAddressToAddressBook, toSelectedAddressName: toAddressName, errorContinue, isOnlyWarning, confusableCollection
-        }
-      };
-
-      const onToSelectedAddressChange = async (toAccount: string) => {
-        const address = toAccount || toSelectedAddress;        
-        const addressName = getAddressNameFromBookOrIdentities(address);
-        
-        /**
-         * If the address is from addressBook or identities
-         * then validation is not necessary since it was already validated
-         */
-        if (addressName) {
-            updateParentState({toAccount: address, toSelectedAddressReady: true, isFromAddressBook: true, toSelectedAddressName: addressName})
-        } else {
-          const data = await validateAddressOrENSFromInput(toAccount);          
-          /**
-           * Because validateAddressOrENSFromInput is an asynchronous function
-           * we are setting the state here synchronously, so it does not block the UI
-           * */
-          
-
-          updateParentState({toAccount: address, isFromAddressBook: false, toSelectedAddressReady: false, ...data})
-        }
-      };
-    const onScan = () => {
-        navigation.navigate(
-          ...createQRScannerNavDetails({
-            onScanSuccess: (meta) => {
-              if (meta.chain_id) {
-                handleNetworkSwitched(meta.chain_id);
-              }
-              if (meta.target_address) {
-                onToSelectedAddressChange(meta.target_address);
-              }
-            },
-            origin: Routes.SEND_FLOW.SEND_TO,
-          }),
-        );
-      };
-
-      const onToInputFocus = () => {        
-        // updateParentState({highlighted: !highlighted})
-      };
-    const onClear = () => onToSelectedAddressChange()
-    return (
-        <AddressTo
-        inputRef={inputRef}
-        highlighted={highlighted}
-        addressToReady={addressToReady}
-        toSelectedAddress={toSelectedAddress}
-        toAddressName={toAddressName}
-        onToSelectedAddressChange={onToSelectedAddressChange}
-        onScan={onScan}
-        onClear={onClear}
-        onInputFocus={onToInputFocus}
-        onInputBlur={onToInputFocus}
-        onSubmit={onSubmit}
-        inputWidth={inputWidth}
-        confusableCollection={confusableCollection}
-        isFromAddressBook={isFromAddressBook}
-        />
-    )
-}
+export default SendToAddressTo;

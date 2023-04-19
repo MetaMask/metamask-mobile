@@ -1,65 +1,74 @@
 import React from 'react';
 import { AddressFrom } from '../../../UI/AddressInputs';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import {
-    selectTicker,
-  } from '../../../../selectors/networkController';
+import { selectTicker } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker, getEther } from '../../../../util/transactions';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { hexToBN } from '@metamask/controller-utils';
-import {
-    setSelectedAsset,
-  } from '../../../../actions/transaction';
-import {SFAddressFromProps, SelectedAsset} from './types'
+import { setSelectedAsset } from '../../../../actions/transaction';
+import { SFAddressFromProps, SelectedAsset } from './types';
 
-export const SendToAddressFrom = ({accountAddress, accountName, accountBalance, updateAccountInfo}: SFAddressFromProps) => {
-   
-    const navigation = useNavigation();
-    const identities = useSelector(
-        (state: any) =>
-          state.engine.backgroundState.PreferencesController.identities,
-      );
-    
-      const accounts = useSelector(
-        (state: any) => state.engine.backgroundState.AccountTrackerController.accounts,
-        );
-        const ticker = useSelector(selectTicker);        
+const SendToAddressFrom = ({
+  accountAddress,
+  accountName,
+  accountBalance,
+  updateAccountInfo,
+}: SFAddressFromProps) => {
+  const navigation = useNavigation();
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
 
-        const dispatch = useDispatch();
+  const accounts = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
+  const ticker = useSelector(selectTicker);
 
-        const selectedAssetAction = (selectedAsset: SelectedAsset) => dispatch(setSelectedAsset(selectedAsset))
+  const dispatch = useDispatch();
 
-    const onSelectAccount = async (accountAddress: string) => {
-        const { name } = identities[accountAddress];
-        const accountBalance = `${renderFromWei(
-          accounts[accountAddress].balance,
-        )} ${getTicker(ticker)}`;
-        const ens = await doENSReverseLookup(accountAddress);
-        const accountName = ens || name;        
-        selectedAssetAction(getEther(ticker));
-        const balanceIsZero = hexToBN(accounts[accountAddress].balance).isZero()
-        updateAccountInfo({accountAddress, accountName, accountBalance, balanceIsZero});
-      };
+  const selectedAssetAction = (selectedAsset: SelectedAsset) =>
+    dispatch(setSelectedAsset(selectedAsset));
 
-    const openAccountSelector = () => {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.ACCOUNT_SELECTOR,
-          params: {
-            isSelectOnly: true,
-            onSelectAccount: onSelectAccount,
-          },
-        });
-      };
+  const onSelectAccount = async (address: string) => {
+    const { name } = identities[address];
+    const balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
+      ticker,
+    )}`;
+    const ens = await doENSReverseLookup(address);
+    const accName = ens || name;
+    selectedAssetAction(getEther(ticker));
+    const isBalanceZero = hexToBN(accounts[address].balance).isZero();
+    updateAccountInfo({
+      address,
+      accName,
+      balance,
+      isBalanceZero,
+    });
+  };
+
+  const openAccountSelector = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+      params: {
+        isSelectOnly: true,
+        onSelectAccount,
+      },
+    });
+  };
 
   return (
-      <AddressFrom 
-       onPressIcon={openAccountSelector}
-       fromAccountAddress={accountAddress}
-       fromAccountName={accountName}
-       fromAccountBalance={accountBalance}
-      />
+    <AddressFrom
+      onPressIcon={openAccountSelector}
+      fromAccountAddress={accountAddress}
+      fromAccountName={accountName}
+      fromAccountBalance={accountBalance}
+    />
   );
 };
+
+export default SendToAddressFrom;
