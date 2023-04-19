@@ -94,7 +94,7 @@ public class RNTar extends ReactContextBaseJavaModule {
       tarInputStream.close();
 
       // Return the output directory path
-      return outputDirectory.getAbsolutePath();
+      return new File(outputDirectory, "package").getAbsolutePath();
     } catch (IOException e) {
       Log.e("DecompressTgzFile", "Error decompressing tgz file", e);
       throw new IOException("Error decompressing tgz file: " + e.getMessage(), e);
