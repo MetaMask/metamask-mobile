@@ -15,13 +15,18 @@ import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import Accounts from '../../wdio/helpers/Accounts';
+
+import {
+  importWalletWithRecoveryPhrase,
+  testDappConnectButtonCooridinates,
+  testDappSendEIP1559ButtonCoordinates,
+} from '../viewHelper';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const GOERLI = 'Goerli Test Network';
 
-const TEST_PRIVATE_KEY =
-  '0d5ccb94db3953df52183134e0bce82a132afb5fddd14a157e2ae91c4d3cf141';
+const accountPrivateKey = Accounts.getAccountPrivateKey();
 
 describe('Permission System Test: Revoking accounts after connecting to a dapp', () => {
   beforeEach(() => {
@@ -35,31 +40,29 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
   it('should navigate to browser', async () => {
     await TestHelpers.delay(2000);
     await TabBarComponent.tapBrowser();
-    // Check that we are on the browser screen
     await Browser.isVisible();
   });
 
   it('should connect to the test dapp', async () => {
     await TestHelpers.delay(3000);
-    // Tap on search in bottom navbar
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
     await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 150, y: 270 });
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappConnectButtonCooridinates,
+    );
     await ConnectModal.isVisible();
   });
 
   it('should go to multiconnect in the connect account modal', async () => {
-    // Wait for page to load
     await ConnectModal.tapConnectMultipleAccountsButton();
   });
 
   it('should import account', async () => {
-    // Wait for page to load
     await ConnectModal.tapImportAccountButton();
     await ImportAccountView.isVisible();
-    await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    // Check that we are on the account succesfully imported screen
+    await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
     await ImportAccountView.isImportSuccessSreenVisible();
     await ImportAccountView.tapCloseButtonOnImportSuccess();
   });
@@ -87,17 +90,20 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
   });
 
-  it('should submit a dapp transaction ', async () => {
-    await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.2);
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 250, y: 420 }); // tapping connect button
+  it('should submit a EIP1559 transaction ', async () => {
+    await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1);
+    await TestHelpers.tapAtPoint(
+      BROWSER_SCREEN_ID,
+      testDappSendEIP1559ButtonCoordinates,
+    );
 
+    await TransactionConfirmationView.isBalanceVisible();
     await TestHelpers.tapByText('Confirm', 1);
-    await TransactionConfirmationView.isNotVisible();
+    await TransactionConfirmationView.isBalanceNotVisible();
   });
 
   it('should navigate to wallet view', async () => {
     await TabBarComponent.tapWallet();
-    // Check that we are on the browser screen
     await WalletView.isVisible();
   });
 

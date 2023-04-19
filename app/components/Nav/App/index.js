@@ -14,14 +14,12 @@ import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
-import ExtensionSync from '../../Views/ExtensionSync';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
-import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
@@ -35,7 +33,8 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import Analytics from '../../../core/Analytics/Analytics';
+import { connect, useSelector, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -79,6 +78,7 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import WalletActions from '../../Views/WalletActions';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -115,7 +115,6 @@ const OnboardingNav = () => (
       component={ChoosePassword}
       options={ChoosePassword.navigationOptions}
     />
-    <Stack.Screen name="ExtensionSync" component={ExtensionSync} />
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
@@ -176,10 +175,6 @@ const OnboardingRootNav = () => (
     screenOptions={{ headerShown: false }}
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <Stack.Screen
-      name="SyncWithExtensionSuccess"
-      component={SyncWithExtensionSuccess}
-    />
     <Stack.Screen
       name={Routes.QR_SCANNER}
       component={QRScanner}
@@ -345,6 +340,23 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
 
   useEffect(() => {
+    const initAnalytics = async () => {
+      await Analytics.init();
+    };
+
+    initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
+    return () => {
+      SDKConnect.getInstance().unmount();
+    };
+  }, [navigator]);
+
+  useEffect(() => {
     if (navigator) {
       SDKConnect.getInstance().init({ navigation: navigator });
     }
@@ -443,6 +455,10 @@ const App = ({ userLoggedIn }) => {
 
   const RootModalFlow = () => (
     <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+      <Stack.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        component={WalletActions}
+      />
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}

@@ -9,6 +9,7 @@ import {
 const TRANSACTION_VIEW_CONTAINER_ID = 'txn-confirm-screen';
 const CONFIRM_TRANSACTION_BUTTON_ID = 'txn-confirm-send-button';
 const NAVBAR_TITLE_TEXT = 'navbar-title-text';
+const TRANSACTION_ACCOUNT_BALANCE = 'account-balance';
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {
     await TestHelpers.tap(CONFIRM_TRANSACTION_BUTTON_ID);
@@ -53,6 +54,10 @@ export default class TransactionConfirmationView {
     );
   }
 
+  static async isAmountVisible(amount) {
+    await TestHelpers.checkIfElementWithTextIsVisible(amount);
+  }
+
   static async tapMaxPriorityFeeSaveButton() {
     await TestHelpers.tapByText('Save');
   }
@@ -62,6 +67,14 @@ export default class TransactionConfirmationView {
   }
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(TRANSACTION_VIEW_CONTAINER_ID);
+  }
+
+  static async isBalanceVisible() {
+    await TestHelpers.checkIfVisible(TRANSACTION_ACCOUNT_BALANCE);
+  }
+
+  static async isBalanceNotVisible() {
+    await TestHelpers.checkIfNotVisible(TRANSACTION_ACCOUNT_BALANCE);
   }
 
   static async isNetworkNameVisible(text) {

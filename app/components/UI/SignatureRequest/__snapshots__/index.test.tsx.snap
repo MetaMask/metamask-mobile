@@ -9,6 +9,6 @@ exports[`SignatureRequest should render correctly 1`] = `
     }
   }
   dispatch={[Function]}
-  networkType="ropsten"
+  networkType="sepolia"
 />
 `;

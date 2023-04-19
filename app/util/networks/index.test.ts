@@ -6,14 +6,10 @@ import {
   findBlockExplorerForRpc,
   compareRpcUrls,
   handleNetworkSwitch,
+  getBlockExplorerAddressUrl,
+  getBlockExplorerTxUrl,
 } from '.';
-import {
-  MAINNET,
-  ROPSTEN,
-  GOERLI,
-  RPC,
-  KOVAN,
-} from '../../../app/constants/network';
+import { MAINNET, GOERLI, RPC, SEPOLIA } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
 
@@ -39,7 +35,7 @@ describe('NetworkUtils::getAllNetworks', () => {
   const allNetworks = getAllNetworks();
   it('should get all networks', () => {
     expect(allNetworks.includes(MAINNET)).toEqual(true);
-    expect(allNetworks.includes(ROPSTEN)).toEqual(true);
+    expect(allNetworks.includes(SEPOLIA)).toEqual(true);
     expect(allNetworks.includes(GOERLI)).toEqual(true);
   });
   it('should exclude rpc', () => {
@@ -64,7 +60,7 @@ describe('NetworkUtils::isMainNet', () => {
       isMainNet({
         network: {
           providerConfig: {
-            type: ROPSTEN,
+            type: SEPOLIA,
           },
         },
       }),
@@ -78,16 +74,15 @@ describe('NetworkUtils::getNetworkName', () => {
     expect(main).toEqual(MAINNET);
   });
 
-  it(`should get network name for ${ROPSTEN} id`, () => {
-    const main = getNetworkName(String(3));
-    expect(main).toEqual(ROPSTEN);
+  it(`should get network name for ${GOERLI} id`, () => {
+    const main = getNetworkName(String(5));
+    expect(main).toEqual(GOERLI);
   });
 
-  it(`should get network name for ${KOVAN} id`, () => {
-    const main = getNetworkName(String(42));
-    expect(main).toEqual(KOVAN);
+  it(`should get network name for ${SEPOLIA} id`, () => {
+    const main = getNetworkName(String(11155111));
+    expect(main).toEqual(SEPOLIA);
   });
-
   it(`should return undefined for unknown network id`, () => {
     const main = getNetworkName(String(99));
     expect(main).toEqual(undefined);
@@ -96,8 +91,8 @@ describe('NetworkUtils::getNetworkName', () => {
 
 describe('NetworkUtils::getNetworkTypeById', () => {
   it('should get network type by Id', () => {
-    const type = getNetworkTypeById(42);
-    expect(type).toEqual(KOVAN);
+    const type = getNetworkTypeById(11155111);
+    expect(type).toEqual(SEPOLIA);
   });
   it('should fail if network Id is missing', () => {
     try {
@@ -215,5 +210,68 @@ describe('NetworkUtils::handleNetworkSwitch', () => {
       },
     );
     expect(newNetwork).toBe(network.nickname);
+  });
+});
+
+describe('NetworkUtils::getBlockExplorerAddressUrl', () => {
+  const mockEthereumAddress = '0x0000000000000000000000000000000000000001';
+  it('should return null result when network type === "rpc" | network type === "lineatestnet" and rpcBlockExplorerUrl === null', () => {
+    const { url, title } = getBlockExplorerAddressUrl(RPC, mockEthereumAddress);
+
+    expect(url).toBe(null);
+    expect(title).toBe(null);
+  });
+
+  it('should return rpc block explorer address url when network type === "rpc"', () => {
+    const { url, title } = getBlockExplorerAddressUrl(
+      RPC,
+      mockEthereumAddress,
+      'http://avalanche-rpc-url',
+    );
+
+    expect(url).toBe(`http://avalanche-rpc-url/address/${mockEthereumAddress}`);
+    expect(title).toBe(`avalanche-rpc-url`);
+  });
+
+  it('should return etherscan block explorer address url when network type !== "rpc" and type !== "lineatestnet"', () => {
+    const { url, title } = getBlockExplorerAddressUrl(
+      GOERLI,
+      mockEthereumAddress,
+    );
+
+    expect(url).toBe(
+      `https://goerli.etherscan.io/address/${mockEthereumAddress}`,
+    );
+    expect(title).toBe(`goerli.etherscan.io`);
+  });
+});
+
+describe('NetworkUtils::getBlockExplorerTxUrl', () => {
+  const mockTransactionHash =
+    '0xc4fd7d4ca49e57fed7f533dedc9447cdf3818df2a1f61b405d3e5c10e8fd5b86';
+
+  it('should return null result when network type === "rpc" and rpcBlockExplorerUrl === null', () => {
+    const { url, title } = getBlockExplorerTxUrl(RPC, mockTransactionHash);
+
+    expect(url).toBe(null);
+    expect(title).toBe(null);
+  });
+
+  it('should return rpc block explorer address url when network type === "rpc"', () => {
+    const { url, title } = getBlockExplorerTxUrl(
+      RPC,
+      mockTransactionHash,
+      'http://avalanche-rpc-url',
+    );
+
+    expect(url).toBe(`http://avalanche-rpc-url/tx/${mockTransactionHash}`);
+    expect(title).toBe(`avalanche-rpc-url`);
+  });
+
+  it('should return etherscan block explorer address url when network type !== "rpc" and type !== "lineatestnet"', () => {
+    const { url, title } = getBlockExplorerTxUrl(GOERLI, mockTransactionHash);
+
+    expect(url).toBe(`https://goerli.etherscan.io/tx/${mockTransactionHash}`);
+    expect(title).toBe(`goerli.etherscan.io`);
   });
 });

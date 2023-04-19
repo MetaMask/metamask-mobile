@@ -26,6 +26,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { getOrderAmount } from '../utils';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -190,6 +191,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const explorer = useBlockExplorer();
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
+  const renderAmount = getOrderAmount(order);
   const amountOut = Number(amount) - Number(cryptoFee);
   const exchangeRate =
     (order.data as Order)?.exchangeRate ??
@@ -238,20 +240,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
         />
         <Group>
           <Text centered primary style={styles.tokenAmount}>
-            {orderData?.cryptoCurrency?.decimals !== undefined &&
-            cryptoAmount &&
-            cryptocurrency ? (
-              renderFromTokenMinimalUnit(
-                toTokenMinimalUnit(
-                  cryptoAmount,
-                  orderData.cryptoCurrency.decimals,
-                ).toString(),
-                orderData.cryptoCurrency.decimals,
-              )
-            ) : (
-              <Text>...</Text>
-            )}{' '}
-            {cryptocurrency}
+            {renderAmount} {cryptocurrency}
           </Text>
           {state !== FIAT_ORDER_STATES.PENDING &&
           orderData?.fiatCurrency?.decimals !== undefined &&

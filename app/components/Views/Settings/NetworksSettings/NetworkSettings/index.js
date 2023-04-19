@@ -10,7 +10,6 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   fontStyles,
   colors as staticColors,
@@ -34,7 +33,8 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import { trackEvent } from '../../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
@@ -43,6 +43,7 @@ import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
+  NETWORKS_CHAIN_ID,
   PRIVATENETWORK,
   RPC,
 } from '../../../../../constants/network';
@@ -207,7 +208,8 @@ const createStyles = (colors) =>
   });
 
 const allNetworks = getAllNetworks();
-const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
+const allNetworksblockExplorerUrl = (networkName) =>
+  `https://${networkName}.infura.io/v3/`;
 /**
  * Main view for app configurations
  */
@@ -318,7 +320,7 @@ class NetworkSettings extends PureComponent {
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl + network;
+        rpcUrl = allNetworksblockExplorerUrl(network);
         ticker = strings('unit.eth');
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {
@@ -336,6 +338,9 @@ class NetworkSettings extends PureComponent {
           networkInformation.rpcPrefs.blockExplorerUrl;
         ticker = networkInformation.ticker;
         editable = true;
+        if (networkInformation.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET) {
+          editable = false;
+        }
         rpcUrl = network;
       }
       const initialState =
@@ -562,7 +567,10 @@ class NetworkSettings extends PureComponent {
         source: 'Custom network form',
         symbol: ticker,
       };
-      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_ADDED,
+        analyticsParamsAdd,
+      );
       this.props.showNetworkOnboardingAction({
         networkUrl,
         networkType,

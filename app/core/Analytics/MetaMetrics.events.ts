@@ -12,14 +12,14 @@ const generateOpt = (
 ): IMetaMetricsEvent => {
   if (action || description) {
     return {
-      name,
+      category: name,
       properties: {
         ...(action && { action }),
         ...(description && { name: description }),
       },
     };
   }
-  return { name };
+  return { category: name };
 };
 
 const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
@@ -128,9 +128,6 @@ enum EVENT_NAME {
   WALLET_IMPORT_STARTED = 'Wallet Import Started',
   WALLET_IMPORT_ATTEMPTED = 'Wallet Import Attempted',
   WALLET_IMPORTED = 'Wallet Imported',
-  WALLET_SYNC_STARTED = 'Wallet Sync Started',
-  WALLET_SYNC_ATTEMPTED = 'Wallet Sync Attempted',
-  WALLET_SYNC_SUCCESSFUL = 'Wallet Sync Successful',
   WALLET_CREATION_ATTEMPTED = 'Wallet Creation Attempted',
   WALLET_CREATED = 'Wallet Created',
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
@@ -295,6 +292,12 @@ enum EVENT_NAME {
 
   // Delete Wallet Modal
   DELETE_WALLET_MODAL_WALLET_DELETED = 'Delete Wallet Modal Wallet Deleted',
+
+  // Tab Bar Actions
+  ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
+  RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
+  SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
+  SEND_BUTTON_CLICKED = 'Send Button Clicked',
 }
 
 enum ACTIONS {
@@ -341,11 +344,7 @@ enum ACTIONS {
 }
 
 const events = {
-  // V2 TRACKING EVENTS
-
-  // Error
   ERROR: generateOpt(EVENT_NAME.ERROR),
-  // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
   APPROVAL_COMPLETED: generateOpt(EVENT_NAME.APPROVAL_COMPLETED),
   APPROVAL_CANCELLED: generateOpt(EVENT_NAME.APPROVAL_CANCELLED),
@@ -461,9 +460,6 @@ const events = {
   WALLET_IMPORT_STARTED: generateOpt(EVENT_NAME.WALLET_IMPORT_STARTED),
   WALLET_IMPORT_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_IMPORT_ATTEMPTED),
   WALLET_IMPORTED: generateOpt(EVENT_NAME.WALLET_IMPORTED),
-  WALLET_SYNC_STARTED: generateOpt(EVENT_NAME.WALLET_SYNC_STARTED),
-  WALLET_SYNC_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_SYNC_ATTEMPTED),
-  WALLET_SYNC_SUCCESSFUL: generateOpt(EVENT_NAME.WALLET_SYNC_SUCCESSFUL),
   WALLET_CREATION_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_CREATION_ATTEMPTED),
   WALLET_CREATED: generateOpt(EVENT_NAME.WALLET_CREATED),
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
@@ -480,7 +476,9 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
+  // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
+  // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
   REVEAL_SRP_SCREEN: generateOpt(EVENT_NAME.REVEAL_SRP_SCREEN),
   GO_BACK_SRP_SCREEN: generateOpt(EVENT_NAME.GO_BACK_SRP_SCREEN),
@@ -659,6 +657,11 @@ const events = {
   DELETE_WALLET_MODAL_WALLET_DELETED: generateOpt(
     EVENT_NAME.DELETE_WALLET_MODAL_WALLET_DELETED,
   ),
+
+  ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
+  RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
+  SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
+  SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
 };
 
 /**

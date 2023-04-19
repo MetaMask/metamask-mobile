@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 
-import { getHost } from '../../../util/browser';
+import { getHost, getUrlObj } from '../../../util/browser';
 import { useSelector } from 'react-redux';
 import {
   getNetworkNameFromProvider,
@@ -16,7 +16,7 @@ import { getTicker } from '../../../util/transactions';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../../component-library/hooks';
 import stylesheet from './ApproveTransactionHeader.styles';
@@ -72,6 +72,10 @@ const ApproveTransactionHeader = ({
   const networkProvider = useSelector(selectProviderConfig);
   const networkName = getNetworkNameFromProvider(networkProvider);
 
+  const useBlockieIcon = useSelector(
+    (state: any) => state.settings.useBlockieIcon,
+  );
+
   useEffect(() => {
     const { ticker } = network;
     const weiBalance = activeAddress
@@ -113,12 +117,17 @@ const ApproveTransactionHeader = ({
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
       origins;
     let title = '';
-    if (isOriginDeepLink) title = renderShortAddress(from);
-    else if (isOriginWalletConnect)
-      title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-    else if (isOriginMMSDKRemoteConn) {
-      title = getHost(origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]);
-    } else title = getHost(currentEnsName || url || origin);
+    if (isOriginDeepLink) {
+      title = renderShortAddress(from);
+    } else if (isOriginWalletConnect) {
+      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
+    } else if (isOriginMMSDKRemoteConn) {
+      title = getUrlObj(
+        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+      ).origin;
+    } else {
+      title = getUrlObj(currentEnsName || url || origin).origin;
+    }
 
     return title;
   }, [currentEnsName, origin, origins, from, url]);
@@ -149,10 +158,11 @@ const ApproveTransactionHeader = ({
         accountBalanceLabel={strings('transaction.balance')}
         accountNetwork={networkName}
         badgeProps={{
-          variant: BadgeVariants.Network,
+          variant: BadgeVariant.Network,
           name: networkName,
           imageSource: networkImage,
         }}
+        useBlockieIcon={useBlockieIcon}
       />
     </View>
   );
