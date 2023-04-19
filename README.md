@@ -215,18 +215,47 @@ On Bitrise CI, the wallet is created using the secret recovery phrase from secre
 For local testing, the wallet is created using the secret recovery phrase from the `.js.env` file.
 
 ##### iOS
+Prequisites for running tests:
+- make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites). 
+- Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils). 
 
-First, [follow the instructions here](https://github.com/wix/AppleSimulatorUtils) to install `applesimutils`. Then:
+Keep in mind that there are two modes in which you can build the app: release mode and debug mode. Building the app in release mode is exclusively reserved for CI, and there's a high chance that you may not possess the required keys to build the application. To avoid any issues, it's recommended that you initiate the tests on a local build. To run tests against a local build run this command:
+
+```bash
+yarn test:e2e:ios:debug
+```
+
+In case you happen to have access to the necessary keys for creating a release build, you may proceed by executing this command:
 
 ```bash
 yarn test:e2e:ios
 ```
 
-##### Android
+If you have already built the application for Detox and want to run a specific test from the test folder, you can use this command:
 
 ```bash
-yarn test:e2e:android
+yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
 ```
+
+##### Android
+Prequisites for running tests:
+- ensure you have an emulator installed
+- create a test build. To do so:
+```bash 
+yarn start:android:qa 
+```
+
+Then to run tests run: 
+
+```bash
+yarn test:wdio:android
+```
+
+Furthermore, if you want to execute specific tests, you can include the --spec option in the aforementioned commands. For instance you can use the command 
+```bash
+yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature 
+```
+
 
 ### Changing dependencies
 
