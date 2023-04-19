@@ -1222,7 +1222,6 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
-    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon.",
     "select_network": "Select a network"
   },
   "select": {
@@ -1239,7 +1238,7 @@
     "balance_title": "Balance:",
     "message": "Message",
     "message_from": "Message from",
-    "learn_more": "Learn More",
+    "learn_more": "Learn more",
     "read_more": "Read more",
     "eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
   },
@@ -1581,7 +1580,7 @@
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
-    "switch_network": "Please switch to mainnet or rinkeby"
+    "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
