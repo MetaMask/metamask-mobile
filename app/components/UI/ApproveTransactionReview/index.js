@@ -258,7 +258,6 @@ class ApproveTransactionReview extends PureComponent {
     spenderAddress: '0x...',
     transaction: this.props.transaction,
     token: {},
-    showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
     fetchingUpdateDone: false,
@@ -560,46 +559,6 @@ class ApproveTransactionReview extends PureComponent {
     );
   };
 
-  openLinkAboutGas = () =>
-    Linking.openURL(
-      'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-    );
-
-  toggleGasTooltip = () =>
-    this.setState((state) => ({ showGasTooltip: !state.showGasTooltip }));
-
-  renderGasTooltip = () => {
-    const isMainnet = isMainnetByChainId(this.props.chainId);
-    return (
-      <InfoModal
-        isVisible={this.state.showGasTooltip}
-        title={strings(
-          `transaction.gas_education_title${isMainnet ? '_ethereum' : ''}`,
-        )}
-        toggleModal={this.toggleGasTooltip}
-        body={
-          <View>
-            <Text grey infoModal>
-              {strings('transaction.gas_education_1')}
-              {strings(
-                `transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`,
-              )}{' '}
-              <Text bold>{strings('transaction.gas_education_3')}</Text>
-            </Text>
-            <Text grey infoModal>
-              {strings('transaction.gas_education_4')}
-            </Text>
-            <TouchableOpacity onPress={this.openLinkAboutGas}>
-              <Text grey link infoModal>
-                {strings('transaction.gas_education_learn_more')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        }
-      />
-    );
-  };
-
   renderEditPermission = () => {
     const {
       host,
@@ -863,7 +822,6 @@ class ApproveTransactionReview extends PureComponent {
             </ActionView>
           </View>
         </View>
-        {this.renderGasTooltip()}
       </>
     );
   };
