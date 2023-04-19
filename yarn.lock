@@ -2477,7 +2477,7 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
-"@ethersproject/providers@5.7.2", "@ethersproject/providers@^5.7.0":
+"@ethersproject/providers@5.7.2", "@ethersproject/providers@^5.7.0", "@ethersproject/providers@^5.7.2":
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.7.2.tgz#f8b1a4f275d7ce58cf0a2eec222269a08beb18cb"
   integrity sha512-g34EWZ1WWAVgr4aptGlVBF8mhl3VWjv+8hoAnzStu8Ah22VHBsuGzP17eb6xDVRzw895G4W7vvx60lFFur/1Rg==
@@ -4316,6 +4316,11 @@
     ethereumjs-util "^7.0.10"
     human-standard-token-abi "^2.0.0"
     web3 "^0.20.7"
+
+"@metamask/test-dapp@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-5.6.0.tgz#11e115689f0202166638458d8031bf29a650af48"
+  integrity sha512-z7c2fmFgciNvtHRQxIGP4YilsxxJwVQGwrhy45ta7fmue9fZkGu9pOYJVbk4Lm6AT2JKIiNUTtcX3eyA0tfl9A==
 
 "@metamask/transaction-controller@^3.0.0":
   version "3.0.0"
