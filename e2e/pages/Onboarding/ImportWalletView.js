@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { strings } from '../../../locales/i18n';
+import messages from '../../../locales/languages/en.json';
 
 import {
   CREATE_PASSWORD_INPUT_BOX_ID,
@@ -13,12 +13,9 @@ import { IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID } from '../../../wdio/scre
 const REMEMBER_ME_ID = 'remember-me-toggle';
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
 
-// use i18n for these
-// this way if the strings ever change the tests will not break :)
-const Incorrect_Password_Length = strings(
-  'import_from_seed.password_length_error',
-);
-const Invalid_Seed_Error = strings('import_from_seed.invalid_seed_phrase');
+const Incorrect_Password_Length =
+  messages.import_from_seed.password_length_error;
+const Invalid_Seed_Error = messages.import_from_seed.invalid_seed_phrase;
 
 export default class ImportWalletView {
   static async enterPassword(password) {

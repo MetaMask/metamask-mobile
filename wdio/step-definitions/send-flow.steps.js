@@ -1,5 +1,4 @@
 // eslint-disable-next-line no-unused-vars
-/* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
@@ -117,6 +116,7 @@ Then(/^I am taken to the token overview screen/, async () => {
 Then(/^I tap back from the Token overview page/, async () => {
   await TokenOverviewScreen.tapBackButton();
 });
+
 When(/^I tap button Send on Token screen view$/, async () => {
   await TokenOverviewScreen.tapSendButton();
 });

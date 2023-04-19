@@ -46,7 +46,7 @@ class ImportAccountScreen {
   }
 
   async tapCloseButton() {
-    await Gestures.tap(this.closeButton);
+    await Gestures.waitAndTap(this.closeButton);
   }
   async isVisible() {
     await expect(this.importAccountContainer).toBeDisplayed();

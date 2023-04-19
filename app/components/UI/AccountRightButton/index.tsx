@@ -28,9 +28,11 @@ import {
   getNetworkNameFromProvider,
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -146,11 +148,13 @@ const AccountRightButton = ({
       {selectedAddress ? (
         isNetworkVisible ? (
           <BadgeWrapper
-            badgeProps={{
-              variant: BadgeVariants.Network,
-              name: networkName,
-              imageSource: networkImageSource,
-            }}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={networkImageSource}
+              />
+            }
           >
             {renderAvatarAccount()}
           </BadgeWrapper>
