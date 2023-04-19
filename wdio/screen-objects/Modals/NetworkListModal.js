@@ -39,7 +39,8 @@ class NetworkListModal {
   }
 
   async isNotVisible() {
-    await expect(this.NetworkListModal).not.toBeDisplayed();
+    const networkListModal = await this.NetworkListModal;
+    await networkListModal.waitForExist({ reverse: true });
   }
 
   async tapGoerliTestNetwork() {
