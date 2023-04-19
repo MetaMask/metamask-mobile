@@ -53,6 +53,8 @@ const mockOrder1 = {
   txHash: '0x987654321',
   excludeFromPurchases: false,
   orderType: 'BUY',
+  errorCount: 0,
+  lastTimeFetched: 0,
   data: {
     id: 'test-id',
     isOnlyLink: false,

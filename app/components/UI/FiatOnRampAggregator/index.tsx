@@ -184,11 +184,16 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
   }
 };
 
+export interface ProcessorOptions {
+  forced?: boolean;
+}
+
 export async function processFiatOrder(
   order: FiatOrder,
   dispatchUpdateFiatOrder: (updatedOrder: FiatOrder) => void,
+  options?: ProcessorOptions,
 ) {
-  const updatedOrder = await processOrder(order);
+  const updatedOrder = await processOrder(order, options);
   dispatchUpdateFiatOrder(updatedOrder);
   if (updatedOrder.state !== order.state) {
     const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
