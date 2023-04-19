@@ -281,7 +281,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // beforeFeature: async function (uri, feature) {
+  // beforeFeature: function (uri, feature) {
   // },
   /**
    *
@@ -337,7 +337,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // afterFeature: async function (uri, feature) {
+  // afterFeature: function (uri, feature) {
   // },
 
   /**
