@@ -1,6 +1,10 @@
 import generateTestReports from './wdio/utils/generateTestReports';
+import Ganache from './app/util/test/ganache';
+import Accounts from './wdio/helpers/Accounts';
 
 const { removeSync } = require('fs-extra');
+const ganacheServer = new Ganache();
+const validAccount = Accounts.getValidAccount();
 
 export const config = {
   //
@@ -28,6 +32,10 @@ export const config = {
   //
   specs: ['./wdio/features/*.feature', './wdio/features/**/*.feature'],
 
+  suites: {
+    confirmations: ['./wdio/features/Confirmations/*.feature']
+  },
+  
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -277,8 +285,11 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // beforeFeature: function (uri, feature) {
-  // },
+   beforeFeature: async function (uri, feature) {
+    if(uri.includes('Confirmations')) {
+      await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+    }
+   },
   /**
    *
    * Runs before a Cucumber Scenario.
@@ -333,8 +344,11 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // afterFeature: function (uri, feature) {
-  // },
+   afterFeature: async function (uri, feature) {
+    if(uri.includes('Confirmations')) {
+      await ganacheServer.quit();
+    }
+  },
 
   /**
    * Runs after a WebdriverIO command gets executed
