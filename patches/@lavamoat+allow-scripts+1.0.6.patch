@@ -1,0 +1,35 @@
+diff --git a/node_modules/@lavamoat/allow-scripts/src/index.js b/node_modules/@lavamoat/allow-scripts/src/index.js
+index 9937546..687a0cb 100644
+--- a/node_modules/@lavamoat/allow-scripts/src/index.js
++++ b/node_modules/@lavamoat/allow-scripts/src/index.js
+@@ -229,18 +229,18 @@ function getCanonicalNameInfo (resolvedUrl) {
+         canonicalName: `github:${ownerName}/${repoName}`
+       }
+     }
+-    case '': {
+-      // "github" as protocol
+-      // 'eg: github:ipfs/webrtcsupport#0a7099ff04fd36227a32e16966dbb3cca7002378'
+-      if (url.protocol !== 'github:') {
+-        throw new Error(`failed to parse canonical name for url: "${url}"`)
+-      }
+-      const [ownerName, repoName] = url.pathname.split('/')
+-      return {
+-        namespace: 'github',
+-        canonicalName: `github:${ownerName}/${repoName}`
+-      }
+-    }
++    // case '': {
++    //   // "github" as protocol
++    //   // 'eg: github:ipfs/webrtcsupport#0a7099ff04fd36227a32e16966dbb3cca7002378'
++    //   if (url.protocol !== 'github:') {
++    //     throw new Error(`failed to parse canonical name for url: "${url}"`)
++    //   }
++    //   const [ownerName, repoName] = url.pathname.split('/')
++    //   return {
++    //     namespace: 'github',
++    //     canonicalName: `github:${ownerName}/${repoName}`
++    //   }
++    // }
+     default: {
+       return {
+         namespace: 'url',

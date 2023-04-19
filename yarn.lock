@@ -4302,7 +4302,7 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@file:.yalc/@metamask/signature-controller":
+"@metamask/signature-controller@file:temp/signature-controller":
   version "1.0.0"
   dependencies:
     "@metamask/approval-controller" "^2.1.0"
