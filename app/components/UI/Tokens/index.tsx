@@ -25,7 +25,12 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getTestNetImageByChainId,
+  isMainnetByChainId,
+  isTestNet,
+} from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
@@ -38,7 +43,7 @@ import {
 } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
 
 import images from 'images/image-icons';
 import {
@@ -234,7 +239,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const isMainnet = isMainnetByChainId(chainId);
 
-    const NetworkBadgeSource = isMainnet ? images.ETHEREUM : images[ticker];
+    const NetworkBadgeSource = () => {
+      if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+
+      if (isMainnet) return images.ETHEREUM;
+
+      return images[ticker];
+    };
 
     const badgeName = (isMainnet ? providerType : ticker) || '';
 
@@ -248,9 +259,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       >
         <BadgeWrapper
           badgeProps={{
-            variant: BadgeVariants.Network,
+            variant: BadgeVariant.Network,
             name: badgeName,
-            imageSource: NetworkBadgeSource,
+            imageSource: NetworkBadgeSource(),
           }}
         >
           {asset.isETH ? (

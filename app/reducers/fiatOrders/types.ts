@@ -49,6 +49,8 @@ export interface FiatOrder {
   txHash?: string; // Transaction hash
   excludeFromPurchases: boolean; // Exclude from purchases
   orderType: string; // Order type
+  errorCount?: number; // Number of errors
+  lastTimeFetched?: number; // Last time fetched
   data: Order | WyreOrder; // Original provider data
 }
 
