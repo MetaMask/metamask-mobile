@@ -215,17 +215,27 @@ On Bitrise CI, the wallet is created using the secret recovery phrase from secre
 For local testing, the wallet is created using the secret recovery phrase from the `.js.env` file.
 
 ##### iOS
+All tests live within the e2e/specs folder.  
+
 Prequisites for running tests:
 - Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites). 
 - Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils). 
+- Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
+- Make sure that Metro is running. Use this command to launch the metro server:
 
-Keep in mind that there are two modes in which you can build the app: `release mode` and `debug mode`. Building the app in release mode is exclusively reserved for CI, and there's a high chance that you may not possess the required keys to build the application. To avoid any issues, it's recommended that you initiate the tests on a local build. To run tests against a local build run this command:
+```bash
+yarn watch
+```
+
+You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build. 
+
+To trigger the tests on a debug build run this command:
 
 ```bash
 yarn test:e2e:ios:debug
 ```
 
-In case you happen to have access to the necessary keys for creating a release build, you may proceed by executing this command:
+If you choose to run tests against a release build, you can do so by running this command:
 
 ```bash
 yarn test:e2e:ios
@@ -238,24 +248,27 @@ yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
 ```
 
 ##### Android
-Prequisites for running tests:
-- ensure you have an emulator installed
-- create a test build. To do so:
+All android tests live within the wdio/feature folder. 
+
+By default the tests use an avd named `Android 11 - Pixel 4a API 31`, with API `Level 30` (Android 11). You can modify the emulator and platform version by navigating to `wdio/config/android.config.debug.js` and adjusting the values of `deviceName` to match your emulator's name, and `platformVersion` to match your operating system's version. Make sure to verify that the config file accurately represents your emulator settings before executing any tests.
+
+The sequence in which you should run tests:
+
+create a test build using this command:
 ```bash 
 yarn start:android:qa 
 ```
 
-Then to run tests run: 
+Then run tests using this command: 
 
 ```bash
 yarn test:wdio:android
 ```
 
-Furthermore, if you want to execute specific tests, you can include the --spec option in the aforementioned commands. For instance you can use the command 
+If you want to run a specific test, you can include the `--spec` flag in the aforementioned command. For example:
 ```bash
 yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature 
 ```
-
 
 ### Changing dependencies
 
