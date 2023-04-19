@@ -48,22 +48,26 @@ describe(Smoke('Send ETH Tests'), () => {
     await AmountView.isVisible();
   });
 
-  // TODO: Add support for conversion rate on localhost during e2e tests
-  // it('should switch currency from crypto to fiat and back to crypto', async () => {
-  //   await AmountView.typeInTransactionAmount('0.004');
-  //   await AmountView.tapCurrencySwitch();
-  //   await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
-  //   await AmountView.tapCurrencySwitch();
-  //   await AmountView.isTransactionAmountCorrect('0.004');
-  // });
+  it('should switch currency from crypto to fiat and back to crypto', async () => {
+    await AmountView.typeInTransactionAmount('0.004');
+    await AmountView.tapCurrencySwitch();
+    await AmountView.isTransactionAmountConversionValueCorrect(
+      '0.004 GOERLIETH',
+    );
+    await AmountView.tapCurrencySwitch();
+    await AmountView.isTransactionAmountCorrect('0.004');
+  });
 
   it('should input and validate amount', async () => {
     // Type in a non numeric value
     await AmountView.typeInTransactionAmount('0xA');
     // Check that the amount remains 0
-    await AmountView.isTransactionAmountCorrect('0');
+    await AmountView.isTransactionAmountCorrect('0xA');
+    // Click next and check that error is shown
+    await AmountView.tapNextButton();
+    await AmountView.isAmountErrorVisible();
     // Input acceptable value
-    await AmountView.typeInTransactionAmount('.00001');
+    await AmountView.typeInTransactionAmount('0.00001');
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view
@@ -73,7 +77,7 @@ describe(Smoke('Send ETH Tests'), () => {
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
     await TransactionConfirmationView.isTransactionTotalCorrect(
-      '0.000001 GoerliETH',
+      '0.00001 GoerliETH',
     );
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();

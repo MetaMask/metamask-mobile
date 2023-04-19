@@ -40,4 +40,8 @@ export default class AmountView {
   static async isInsufficientFundsErrorVisible() {
     await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
   }
+
+  static async isAmountErrorVisible() {
+    await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
+  }
 }
