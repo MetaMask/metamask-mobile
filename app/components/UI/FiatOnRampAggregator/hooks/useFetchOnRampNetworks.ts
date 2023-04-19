@@ -12,7 +12,7 @@ import Logger from '../../../../util/Logger';
  * and updates the store
  * @returns {null}
  */
-function useOnRampNetworks() {
+function useFetchOnRampNetworks() {
   const dispatch = useDispatch();
   const chainId = useSelector(chainIdSelector);
   useEffect(() => {
@@ -21,7 +21,7 @@ function useOnRampNetworks() {
         const networks = await SDK.getNetworks();
         dispatch(updateOnRampNetworks(networks));
       } catch (error) {
-        Logger.error('useOnRampNetworks::getNetworks', error as Error);
+        Logger.error('useFetchOnRampNetworks::getNetworks', error as Error);
       }
     };
     getNetworks();
@@ -30,4 +30,4 @@ function useOnRampNetworks() {
   return null;
 }
 
-export default useOnRampNetworks;
+export default useFetchOnRampNetworks;

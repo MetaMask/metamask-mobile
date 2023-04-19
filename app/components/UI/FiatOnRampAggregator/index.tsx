@@ -29,7 +29,7 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from '../FiatOnRampAggregator/sdk';
-import useOnRampNetworks from './hooks/useOnRampNetworks';
+import useFetchOnRampNetworks from './hooks/useFetchOnRampNetworks';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
-  useOnRampNetworks();
+  useFetchOnRampNetworks();
   const dispatch = useDispatch();
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
