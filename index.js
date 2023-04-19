@@ -77,3 +77,66 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  * Application entry point responsible for registering root component
  */
 AppRegistry.registerComponent(name, () => Root);
+
+// Test BigInt primitives
+
+console.log(1n + 2n); // 3n
+console.log(typeof (1n + 2n)); // bigint
+
+console.log(BigInt(2) + BigInt(3)); // 5n
+console.log(typeof (BigInt(2) + BigInt(3))); // bigint
+
+// Test "@metamask/utils": "^5.0.1" (latest)
+
+import { isObject, hasProperty } from '@metamask/utils';
+
+const obj = { a: 1, b: { c: 2 } };
+console.log(isObject(obj)); // true
+
+const propName = 'b';
+console.log(hasProperty(obj, propName)); // true
+
+const nonExistentPropName = 'd';
+console.log(hasProperty(obj, nonExistentPropName)); // false
+
+// Test "@ethereumjs/util": "^8.0.5" (latest)
+
+import {
+  arrToBufArr,
+  bufferToHex,
+  ecsign,
+  publicToAddress,
+  toBuffer,
+  hashPersonalMessage,
+  privateToPublic,
+} from '@ethereumjs/util';
+
+// Test arrToBufArr fn
+// const arr = [1, 2, 3, 4, 5]; // TypeError: The "value" argument must not be of type number. Received type number
+const arr = new Uint8Array([1, 2, 3]);
+const bufArr = arrToBufArr(arr);
+console.log(bufArr); // {"data": [1, 2, 3], "type": "Buffer"}
+
+// Test bufferToHex fn
+const buffer = Buffer.from('Hello World', 'utf8');
+const hex = bufferToHex(buffer);
+console.log(hex); // 0x48656c6c6f20576f726c64
+
+// Test ecsign fn
+const privateKey = Buffer.from(
+  'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899',
+  'hex',
+);
+const message = hashPersonalMessage(Buffer.from('Hello World', 'utf8'));
+const signature = ecsign(message, privateKey);
+console.log(signature); // {"r": {"data": [Array], "type": "Buffer"}, "s": {"data": [Array], "type": "Buffer"}, "v": 28n}
+
+// Test publicToAddress fn
+const publicKey = privateToPublic(privateKey);
+const address = publicToAddress(publicKey);
+console.log(address); // {"data": [239, 192, 115, 33, 211, 214, 168, 250, 73, 97, 48, 108, 123, 245, 85, 240, 114, 63, 40, 193], "type": "Buffer"}
+
+// Test toBuffer fn
+const int = 12345;
+const bufferInt = toBuffer(int);
+console.log(bufferInt); // {"data": [48, 57], "type": "Buffer"}
