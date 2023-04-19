@@ -64,9 +64,9 @@ import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
 import { TokenI, TokensI } from './types';
+import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -74,6 +74,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const [isNetworkBuySupported, isNativeTokenBuySupported] = useOnRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
 
@@ -332,7 +333,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderBuyButton = () => {
     const mainToken = tokens.find(({ isETH }) => isETH);
-    if (!mainToken || !isZero(mainToken.balance) || !allowedToBuy(chainId)) {
+    if (
+      !mainToken ||
+      !isZero(mainToken.balance) ||
+      !(isNetworkBuySupported && isNativeTokenBuySupported)
+    ) {
       return null;
     }
 

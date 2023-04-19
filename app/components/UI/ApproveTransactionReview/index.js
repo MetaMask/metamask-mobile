@@ -61,7 +61,6 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   selectChainId,
@@ -76,6 +75,8 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
+import { isNetworkBuyNativeTokenSupported } from '../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -238,6 +239,10 @@ class ApproveTransactionReview extends PureComponent {
     shouldVerifyContractDetails: PropTypes.bool,
     frequentRpcList: PropTypes.array,
     providerRpcTarget: PropTypes.string,
+    /**
+     * Boolean that indicates if the native token buy is supported
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -660,6 +665,7 @@ class ApproveTransactionReview extends PureComponent {
       providerType,
       providerRpcTarget,
       frequentRpcList,
+      isNativeTokenBuySupported,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -817,7 +823,7 @@ class ApproveTransactionReview extends PureComponent {
 
                     {gasError && (
                       <View style={styles.errorWrapper}>
-                        {isTestNetwork || allowedToBuy(network) ? (
+                        {isTestNetwork || isNativeTokenBuySupported ? (
                           <TouchableOpacity onPress={errorPress}>
                             <Text reset style={styles.error}>
                               {gasError}
@@ -1084,6 +1090,10 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: getTokenList(state),
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
