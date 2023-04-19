@@ -78,5 +78,3 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  * Application entry point responsible for registering root component
  */
 AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
-
-console.log(1n); // [SyntaxError: No identifiers allowed directly after numeric literal]
