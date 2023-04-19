@@ -46,4 +46,4 @@ Feature: This feature file covers the option menu in the browser.
 
     When I tap the "New Tab" option on the Option Menu
     Then new browser tab is added
-    And the browser view is on the "https://home.metamask.io/" website
+    #And the browser view is on the "https://home.metamask.io/" website

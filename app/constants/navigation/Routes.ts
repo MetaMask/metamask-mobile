@@ -52,6 +52,7 @@ const Routes = {
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+    CHANGE_PASSWORD: 'ResetPassword',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
