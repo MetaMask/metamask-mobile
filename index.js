@@ -78,3 +78,14 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  * Application entry point responsible for registering root component
  */
 AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
+
+import { isObject, hasProperty } from '@metamask/utils';
+
+const obj = { a: 1, b: { c: 2 } };
+console.log(isObject(obj)); // true
+
+const propName = 'b';
+console.log(hasProperty(obj, propName)); // true
+
+const nonExistentPropName = 'd';
+console.log(hasProperty(obj, nonExistentPropName)); // false
