@@ -78,3 +78,5 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  * Application entry point responsible for registering root component
  */
 AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
+
+console.log(BigInt(2) + BigInt(3)); // 5, expected 5n
