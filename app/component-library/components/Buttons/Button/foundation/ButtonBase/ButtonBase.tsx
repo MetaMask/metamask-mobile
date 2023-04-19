@@ -9,9 +9,9 @@ import Text, { TextVariant } from '../../../../Texts/Text';
 import Icon, { IconSize } from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 import {
-  DEFAULT_BUTTON_SIZE,
-  DEFAULT_BUTTON_WIDTH,
-} from '../../Button.constants';
+  DEFAULT_BUTTONBASE_SIZE,
+  DEFAULT_BUTTONBASE_WIDTH,
+} from './ButtonBase.constants';
 
 // Internal dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';
@@ -19,12 +19,13 @@ import styleSheet from './ButtonBase.styles';
 
 const ButtonBase = ({
   label,
-  iconName,
-  size = DEFAULT_BUTTON_SIZE,
+  startIconName,
+  endIconName,
+  size = DEFAULT_BUTTONBASE_SIZE,
   onPress,
   style,
   labelColor,
-  width = DEFAULT_BUTTON_WIDTH,
+  width = DEFAULT_BUTTONBASE_WIDTH,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -40,17 +41,25 @@ const ButtonBase = ({
       style={styles.base}
       {...props}
     >
-      {iconName && (
+      {startIconName && (
         <Icon
-          color={labelColor}
-          name={iconName}
+          color={styles.label.color.toString()}
+          name={startIconName}
           size={IconSize.Sm}
-          style={styles.icon}
+          style={styles.startIcon}
         />
       )}
       <Text variant={TextVariant.BodyMD} style={styles.label}>
         {label}
       </Text>
+      {endIconName && (
+        <Icon
+          color={styles.label.color.toString()}
+          name={endIconName}
+          size={IconSize.Sm}
+          style={styles.endIcon}
+        />
+      )}
     </TouchableOpacity>
   );
 };
