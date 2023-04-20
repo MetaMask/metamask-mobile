@@ -1,36 +1,42 @@
 import { createSelector } from 'reselect';
 import { EngineState } from './types';
+import {
+  ProviderConfig,
+  NetworkState,
+  NetworkType,
+} from '@metamask/network-controller';
 
 const selectNetworkControllerState = (state: EngineState) =>
   state?.engine?.backgroundState?.NetworkController;
 
-export const selectProviderConfig = createSelector(
+export const selectProviderConfig: ProviderConfig = createSelector(
   selectNetworkControllerState,
-  (networkControllerState) => networkControllerState?.providerConfig,
+  (networkControllerState: NetworkState) =>
+    networkControllerState?.providerConfig,
 );
 
-export const selectTicker = createSelector(
+export const selectTicker: string = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.ticker,
+  (providerConfig: ProviderConfig) => providerConfig?.ticker,
 );
 
-export const selectChainId = createSelector(
+export const selectChainId: string = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.chainId,
+  (providerConfig: ProviderConfig) => providerConfig?.chainId,
 );
-export const selectProviderType = createSelector(
+export const selectProviderType: NetworkType = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.type,
+  (providerConfig: ProviderConfig) => providerConfig?.type,
 );
-export const selectNickname = createSelector(
+export const selectNickname: string = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.nickname,
+  (providerConfig: ProviderConfig) => providerConfig?.nickname,
 );
-export const selectRpcTarget = createSelector(
+export const selectRpcTarget: string = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig.rpcTarget,
+  (providerConfig: ProviderConfig) => providerConfig.rpcTarget,
 );
-export const selectNetwork = createSelector(
+export const selectNetwork: string = createSelector(
   selectNetworkControllerState,
-  (networkControllerState) => networkControllerState?.network,
+  (networkControllerState: NetworkState) => networkControllerState?.network,
 );

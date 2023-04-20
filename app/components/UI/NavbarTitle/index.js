@@ -17,6 +17,7 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -77,6 +78,10 @@ class NavbarTitle extends PureComponent {
      * Boolean that specifies if the network can be changed
      */
     disableNetwork: PropTypes.bool,
+    /**
+     * Object that represents the navigator
+     */
+    navigation: PropTypes.object,
   };
 
   static defaultProps = {
@@ -89,7 +94,11 @@ class NavbarTitle extends PureComponent {
     if (!this.props.disableNetwork) {
       if (!this.animating) {
         this.animating = true;
-        this.props.toggleNetworkModal();
+        if (this.props.navigation) {
+          this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.NETWORK_SELECTOR,
+          });
+        }
         setTimeout(() => {
           this.animating = false;
         }, 500);

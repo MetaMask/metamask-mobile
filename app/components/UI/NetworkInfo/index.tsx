@@ -22,6 +22,7 @@ import {
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
+import { ProviderConfig } from '@metamask/network-controller';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -114,7 +115,7 @@ interface NetworkInfoProps {
 
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
-  const networkProvider = useSelector(selectProviderConfig);
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
   const { type, ticker: networkTicker, rpcTarget, chainId } = networkProvider;
   const { colors } = useTheme();
   const styles = createStyles(colors);

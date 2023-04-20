@@ -1,8 +1,11 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useRef } from 'react';
+import { ScrollView } from 'react-native';
 import images from 'images/image-icons';
 import urlParse from 'url-parse';
+import { useNavigation } from '@react-navigation/native';
+import { FrequentRpc } from '@metamask/preferences-controller';
+import { ProviderConfig } from '@metamask/network-controller';
 
 // External dependencies.
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
@@ -21,7 +24,6 @@ import Networks, {
   getAllNetworks,
   getDecimalChainId,
   getNetworkImageSource,
-  isSafeChainId,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
 import {
@@ -29,7 +31,6 @@ import {
   LINEA_TESTNET_TICKER,
   MAINNET,
   NETWORKS_CHAIN_ID,
-  PRIVATENETWORK,
 } from '../../../constants/network';
 import {
   LINEA_TESTNET_BLOCK_EXPLORER,
@@ -44,11 +45,14 @@ import {
 import Engine from '../../../core/Engine';
 import analyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import sanitizeUrl from '../../../util/sanitizeUrl';
-import { useNavigation } from '@react-navigation/native';
+import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+
+// Internal dependencies
+import styles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
-  const { navigate, goBack } = useNavigation();
+  const { navigate } = useNavigation();
+
   const sheetRef = useRef<SheetBottomRef>(null);
 
   const currentBottomNavRoute = useSelector(
@@ -58,14 +62,14 @@ const NetworkSelector = () => {
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
-  const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(
+
+  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const frequentRpcList: FrequentRpc[] = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
 
   const onNetworkChange = (type: string) => {
-    //handleNetworkSelected(type, ETH, type);
     const { NetworkController, CurrencyRateController } = Engine.context;
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
@@ -73,7 +77,13 @@ const NetworkSelector = () => {
       setTimeout(() => {
         Engine.refreshTransactionHistory();
       }, 1000);
-    goBack();
+
+    sheetRef.current?.hide();
+    analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+      chain_id: type,
+      source: currentBottomNavRoute,
+      symbol: providerConfig.ticker,
+    });
   };
 
   const onSetRpcTarget = async (rpcTarget: string) => {
@@ -82,11 +92,11 @@ const NetworkSelector = () => {
 
     const isLineaTestnetInFrequentRpcList =
       frequentRpcList.findIndex(
-        (frequentRpc) =>
+        (frequentRpc: FrequentRpc) =>
           frequentRpc.chainId?.toString() === NETWORKS_CHAIN_ID.LINEA_TESTNET,
       ) !== -1;
 
-    let rpc = frequentRpcList.find(({ rpcUrl }) =>
+    let rpc = frequentRpcList.find(({ rpcUrl }: { rpcUrl: string }) =>
       compareRpcUrls(rpcUrl, rpcTarget),
     );
 
@@ -128,23 +138,11 @@ const NetworkSelector = () => {
 
     const { rpcUrl, chainId, ticker, nickname } = rpc;
 
-    const useRpcName = nickname || sanitizeUrl(rpcUrl);
-    const useTicker = ticker || PRIVATENETWORK;
-    // handleNetworkSelected(useRpcName, useTicker, sanitizeUrl(rpcUrl));
-
-    // If the network does not have chainId then show invalid custom network alert
-    const chainIdNumber = parseInt(chainId, 10);
-    if (!isSafeChainId(chainIdNumber)) {
-      //See where those are coming from
-      // this.props.onClose(false);
-      // this.props.showInvalidCustomNetworkAlert(rpcTarget);
-      return;
-    }
-
     CurrencyRateController.setNativeCurrency(ticker);
-    NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-    goBack();
 
+    NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+
+    sheetRef.current?.hide();
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: chainId,
       source: currentBottomNavRoute,
@@ -171,29 +169,41 @@ const NetworkSelector = () => {
 
   const renderRpcNetworks = () => {
     const rpcList = frequentRpcList.filter(
-      ({ chainId }) => chainId?.toString() !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
+      ({ chainId }: { chainId: string }) =>
+        chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
     );
 
-    return rpcList.map(({ nickname, rpcUrl, chainId }) => {
-      if (!chainId) return null;
-      const { name } = { name: nickname || rpcUrl };
-      const image = getNetworkImageSource({ chainId: chainId?.toString() });
+    return rpcList.map(
+      ({
+        nickname,
+        rpcUrl,
+        chainId,
+      }: {
+        nickname: string;
+        rpcUrl: string;
+        chainId: string;
+      }) => {
+        if (!chainId) return null;
+        const { name } = { name: nickname || rpcUrl };
+        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
-      return (
-        <Cell
-          key={chainId}
-          variant={CellVariants.Select}
-          title={name}
-          avatarProps={{
-            variant: AvatarVariants.Network,
-            name,
-            imageSource: image,
-          }}
-          isSelected={chainId.toString() === providerConfig.chainId}
-          onPress={() => onSetRpcTarget(rpcUrl)}
-        />
-      );
-    });
+        return (
+          <Cell
+            key={chainId}
+            variant={CellVariants.Select}
+            title={name}
+            avatarProps={{
+              variant: AvatarVariants.Network,
+              name,
+              imageSource: image,
+            }}
+            isSelected={chainId.toString() === providerConfig.chainId}
+            onPress={() => onSetRpcTarget(rpcUrl)}
+          />
+        );
+      },
+    );
   };
 
   const renderOtherNetworks = () => {
@@ -211,7 +221,7 @@ const NetworkSelector = () => {
             name,
             imageSource,
           }}
-          isSelected={chainId === providerConfig.chainId}
+          isSelected={chainId.toString() === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
         />
       );
@@ -223,6 +233,7 @@ const NetworkSelector = () => {
     rpcUrl: string,
     nickname: string,
   ) => {
+    //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
     const image = getNetworkImageSource({ chainId: chainId.toString() });
 
     return (
@@ -256,9 +267,7 @@ const NetworkSelector = () => {
   return (
     <SheetBottom ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
-      <ScrollView /* testID={NETWORK_SCROLL_ID} */
-      /* style={styles.networksWrapper} */
-      >
+      <ScrollView testID={NETWORK_SCROLL_ID}>
         {renderMainnet()}
         {renderRpcNetworks()}
         {renderOtherNetworks()}
@@ -275,7 +284,7 @@ const NetworkSelector = () => {
         onPress={goToNetworkSettings}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        style={{ marginHorizontal: 16 }}
+        style={styles.addNetworkButton}
       />
     </SheetBottom>
   );
