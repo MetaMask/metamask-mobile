@@ -334,7 +334,7 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        let needsRedirect = METHODS_TO_REDIRECT[message?.method];
+        let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
         if (needsRedirect) {
           this.requestsToRedirect[message?.id] = true;
         }
@@ -837,6 +837,12 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     const existingConnection = this.connected[channelId];
+
+    Logger.log(
+      `SDKConnect::reconnect - channel=${channelId} (existing=${
+        existingConnection !== undefined
+      })`,
+    );
 
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
