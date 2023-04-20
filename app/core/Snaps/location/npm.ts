@@ -63,55 +63,6 @@ const SNAPS_NPM_LOG_TAG = 'snaps/ NPM';
  * @returns The parsed file data.
  */
 
-/*
-const requestWritePermission = async (): Promise<boolean> => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        title: 'Allow',
-        message: 'access to the files is required to download the snaps',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      },
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      return true;
-    }
-    console.log('Camera permission denied');
-    return false;
-  } catch (err) {
-    console.warn(err);
-    return false;
-  }
-};
-
-const requestReadPermission = async (): Promise<boolean> => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      {
-        title: 'Allow',
-        message: 'access to the files is required to download the snaps',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      },
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      return true;
-    }
-    console.log('Camera permission denied');
-    return false;
-  } catch (err) {
-    console.warn(err);
-    return false;
-  }
-};
-
-*/
-
 const decompressFile = async (
   path: string,
   targetPath: string,
