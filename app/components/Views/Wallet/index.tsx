@@ -16,7 +16,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -41,13 +41,13 @@ import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
 } from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import { ProviderConfig } from '@metamask/network-controller';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -141,8 +141,8 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const dispatch = useDispatch();
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),
     [networkProvider],

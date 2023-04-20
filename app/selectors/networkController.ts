@@ -9,18 +9,18 @@ import {
 const selectNetworkControllerState = (state: EngineState) =>
   state?.engine?.backgroundState?.NetworkController;
 
-export const selectProviderConfig: ProviderConfig = createSelector(
+export const selectProviderConfig = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.providerConfig,
 );
 
-export const selectTicker: string = createSelector(
+export const selectTicker = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.ticker,
 );
 
-export const selectChainId: string = createSelector(
+export const selectChainId = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.chainId,
 );
@@ -28,15 +28,15 @@ export const selectProviderType: NetworkType = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.type,
 );
-export const selectNickname: string = createSelector(
+export const selectNickname = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.nickname,
 );
-export const selectRpcTarget: string = createSelector(
+export const selectRpcTarget = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig.rpcTarget,
 );
-export const selectNetwork: string = createSelector(
+export const selectNetwork = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => networkControllerState?.network,
 );
