@@ -6,8 +6,8 @@ const browserstack = require('browserstack-local');
 // Appium capabilities
 // https://appium.io/docs/en/writing-running-appium/caps/
 
-config.user = "yande_9ZLNVQ";
-config.key = "4qP7M92A7bykoPyp87QH";
+config.user = 'yande_9ZLNVQ';
+config.key = '4qP7M92A7bykoPyp87QH';
 config.capabilities = [
   {
     platformName: 'Android',
@@ -17,7 +17,7 @@ config.capabilities = [
     build: 'Android QA E2E Tests',
     device: 'Google Pixel 3a',
     os_version: '9.0',
-    app: "bs://dec3128b57d963601de64e1a49a41f82aa360e06", // TODO: Add package ID when upload to BrowserStack
+    app: 'bs://5dde3d6c2b4d32a9d3713aa19849bad3eaed7acc', // TODO: Add package ID when upload to BrowserStack
     'browserstack.debug': true,
     'browserstack.local': true,
   },
