@@ -24,6 +24,9 @@ const initialState = {
           },
         },
       },
+      AddressBookController: {
+        addressBook: {},
+      },
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {

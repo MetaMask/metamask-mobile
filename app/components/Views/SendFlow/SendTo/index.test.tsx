@@ -1,8 +1,18 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import SendTo from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { shallow } from 'enzyme';
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigation: {},
+  }),
+  useRoute: () => ({
+    route: {},
+  }),
+  createNavigatorFactory: () => ({}),
+}));
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -79,6 +89,13 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
+
 describe('SendTo', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
@@ -86,6 +103,6 @@ describe('SendTo', () => {
         <SendTo />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
