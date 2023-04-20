@@ -179,6 +179,8 @@ const SendTo = () => {
     updateNavBar();
   }, [updateNavBar]);
 
+  const networkAddressBook = addressBook[network] || {};
+
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
    * @param {String} account - Address input
@@ -186,8 +188,6 @@ const SendTo = () => {
    */
   const getAddressNameFromBookOrIdentities = (account: string) => {
     if (!account) return;
-    const networkAddressBook = addressBook[network] || {};
-
     const checksummedAddress = toChecksumAddress(account);
 
     return networkAddressBook[checksummedAddress]
@@ -281,7 +281,6 @@ const SendTo = () => {
   useEffect(() => {
     async function init() {
       navigation.setParams({ providerType, isPaymentRequest });
-      const networkAddressBook = addressBook[network] || {};
       const balance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${getTicker(ticker)}`;
@@ -309,6 +308,7 @@ const SendTo = () => {
       }
     }
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleAddToAddressBookModal = () => {
@@ -319,7 +319,6 @@ const SendTo = () => {
   };
 
   const isAddressSaved = () => {
-    const networkAddressBook = addressBook[network] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
