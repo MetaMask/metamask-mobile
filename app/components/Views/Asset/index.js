@@ -43,11 +43,12 @@ import {
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import AssetOverview from '../../UI/AssetOverview';
-import { allowedToBuy } from '../../UI/FiatOnRampAggregator';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
+import { isNetworkBuyNativeTokenSupported } from '../../UI/FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -139,6 +140,10 @@ class Asset extends PureComponent {
     route: PropTypes.object,
     rpcTarget: PropTypes.string,
     frequentRpcList: PropTypes.array,
+    /**
+     * Boolean that indicates if native token is supported to buy
+     */
+    isNetworkBuyNativeTokenSupported: PropTypes.bool,
   };
 
   state = {
@@ -484,7 +489,7 @@ class Asset extends PureComponent {
         )}
         {!asset.balanceError && (
           <View style={styles.footer}>
-            {asset.isETH && allowedToBuy(chainId) && (
+            {asset.isETH && this.props.isNetworkBuyNativeTokenSupported && (
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -533,6 +538,10 @@ const mapStateToProps = (state) => ({
   rpcTarget: selectRpcTarget(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 export default connect(mapStateToProps)(Asset);

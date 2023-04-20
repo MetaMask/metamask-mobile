@@ -111,7 +111,18 @@ class WalletMainScreen {
   }
 
   async tapImportTokensButton() {
-    await Gestures.waitAndTap(this.ImportToken);
+    const importToken = await this.ImportToken;
+    await importToken.waitForDisplayed();
+
+    let displayed = true;
+    while (displayed) {
+      if (await importToken.isExisting()) {
+        await importToken.click();
+        await driver.pause(3000);
+      } else {
+        displayed = false;
+      }
+    }
   }
 
   async tapImportNFTButton() {
@@ -163,6 +174,12 @@ class WalletMainScreen {
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
     await element.waitForDisplayed();
+  }
+
+  async waitForNotificationToDisplayed() {
+    const element = await this.TokenNotificationTitle;
+    await element.waitForDisplayed();
+    await element.waitForExist({ reverse: true });
   }
 
   async isToastNotificationDisplayed() {
