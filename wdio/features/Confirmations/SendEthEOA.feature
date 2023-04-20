@@ -2,7 +2,7 @@
 @ChainScenarios
 @regression
 
-Feature: Sending ETH to an Externally Owned Account (EOA)
+Feature: Sending ETH to an EOA
   A user should be able to send ETH to another EOA address.
 
   Scenario: Import wallet
@@ -12,6 +12,7 @@ Feature: Sending ETH to an Externally Owned Account (EOA)
     And I tap No thanks on the onboarding welcome tutorial
 
   Scenario: Setting up Ganache local network
+    Given Ganache server is started
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
@@ -49,8 +50,8 @@ Feature: Sending ETH to an Externally Owned Account (EOA)
     When I tap button "Send" on Confirm Amount view
     Then I am taken to the token overview screen
     And the transaction is submitted with Transaction Complete! toast appearing
-
-
+    Then Ganache server is stopped
+        
     Examples:
       | Address                                    | Amount |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | 1      |
