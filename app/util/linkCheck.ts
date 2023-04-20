@@ -1,3 +1,5 @@
+import Url from 'url-parse';
+import isUrl from 'is-url';
 import { PhishingController as PhishingControllerClass } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
@@ -20,9 +22,11 @@ const isAllowedHostname = (hostname: string): boolean => {
 
 export const isLinkSafe = (link: string): boolean => {
   try {
-    const url = new URL(link);
-    const { protocol, hostname } = url;
-    return isAllowedProtocol(protocol) && isAllowedHostname(hostname);
+    const url = new Url(link);
+    const { protocol, hostname, href } = url;
+    return (
+      isUrl(href) && isAllowedProtocol(protocol) && isAllowedHostname(hostname)
+    );
   } catch (err) {
     return false;
   }
