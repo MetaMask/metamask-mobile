@@ -47,7 +47,7 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
     "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/",
-    "test:unit:components-ui": "jest ./app/components/UI/",
+    "test:unit:components-ui": "./scripts/run-component-tests.js",
     "test:unit:components-views": "jest ./app/components/Views/",
     "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/",
     "test:unit:update": "time jest -u ./app/",
@@ -130,7 +130,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.9.1",
+    "@consensys/on-ramp-sdk": "1.12.0",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -146,8 +146,8 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^2.0.0",
     "@metamask/design-tokens": "^1.11.1",
-    "@metamask/etherscan-link": "^2.0.0",
     "@metamask/eth-sig-util": "^4.0.1",
+    "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^3.0.0",
     "@metamask/keyring-controller": "^1.0.1",
     "@metamask/message-manager": "^1.0.2",
@@ -155,7 +155,7 @@
     "@metamask/permission-controller": "^2.0.0",
     "@metamask/phishing-controller": "^2.0.0",
     "@metamask/preferences-controller": "^2.1.0",
-    "@metamask/sdk-communication-layer": "0.2.0",
+    "@metamask/sdk-communication-layer": "0.2.2",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^3.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -371,6 +371,7 @@
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "7.16.0",
     "eslint-plugin-react-native": "3.7.0",
+    "execa": "^5.0.0",
     "fbjs-scripts": "^3.0.1",
     "fs-extra": "^10.1.0",
     "ganache": "^7.7.7",
@@ -493,7 +494,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^14.0.0",
+    "node": "^16.13.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {

@@ -49,8 +49,9 @@ Feature: Sending Native and ERC Tokens
     And the token <TOKEN> being sent is visible
     And the token amount <AMOUNT> to be sent is visible
     When I tap button "Send" on Confirm Amount view
-    Then Sending token takes me to main wallet view
-    And the transaction is submitted with Transaction Complete! toast appearing
+    Then the transaction is submitted with Transaction Complete! toast appearing
+    And Sending token takes me to main wallet view
+
     Examples:
       | NETWORK   | TOKEN | AMOUNT | Address                                    |
       | AVAX Fuji | AVAX  | 0.005  | 0x2990079bcdEe240329a520d2444386FC119da21a |
@@ -69,8 +70,10 @@ Feature: Sending Native and ERC Tokens
     And the token <TOKEN> being sent is visible
     And the token amount <AMOUNT> to be sent is visible
     When I tap button "Send" on Confirm Amount view
-    Then I am taken to the token overview screen
-    And the transaction is submitted with Transaction Complete! toast appearing
+    Then the transaction is submitted with Transaction Complete! toast appearing
+    And I am taken to the token overview screen
+
+
     Examples:
       | NETWORK   | TOKEN | AMOUNT | Address                                    |
       | AVAX Fuji | USDC  | 0.002  | 0x2990079bcdEe240329a520d2444386FC119da21a |

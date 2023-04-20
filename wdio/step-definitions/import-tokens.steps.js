@@ -15,8 +15,8 @@ When(/^I tap (.*) of the token Address field/, async (label) => {
 });
 
 Then(/^The Token Symbol is displayed/, async () => {
-  await AddCustomImportTokensScreen.isTokenSymbolDisplayed();
-  await AddCustomImportTokensScreen.tapTokenSymbolFieldAndDismissKeyboard();
+  await AddCustomImportTokensScreen.tapTokenSymbolField();
+  await AddCustomImportTokensScreen.isTokenSymbolFieldNotNull();
 });
 
 When(/^I tap on the Import button/, async () => {

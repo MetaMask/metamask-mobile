@@ -1,3 +1,4 @@
+import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import { Order } from '@consensys/on-ramp-sdk';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import {
@@ -107,6 +108,26 @@ export function formatAmount(amount: number) {
   } catch (e) {
     return String(amount);
   }
+}
+
+export function isNetworkBuySupported(
+  chainId: string,
+  networks: AggregatorNetwork[],
+) {
+  return (
+    networks.find((network) => String(network.chainId) === chainId)?.active ??
+    false
+  );
+}
+
+export function isNetworkBuyNativeTokenSupported(
+  chainId: string,
+  networks: AggregatorNetwork[],
+) {
+  const network = networks.find(
+    (_network) => String(_network.chainId) === chainId,
+  );
+  return (network?.active && network.nativeTokenSupported) ?? false;
 }
 
 export function getOrderAmount(order: FiatOrder) {
