@@ -15,9 +15,8 @@ import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 
 import Ganache from '../../app/util/test/ganache';
-
-const { SMART_CONTRACTS } = require('../../app/util/test/smart-contracts');
-const GanacheSeeder = require('../../app/util/test/ganache-seeder');
+import { SMART_CONTRACTS } from '../../app/util/test/smart-contracts';
+import GanacheSeeder from '../../app/util/test/ganache-seeder';
 
 const ganacheServer = new Ganache();
 const validAccount = Accounts.getValidAccount();

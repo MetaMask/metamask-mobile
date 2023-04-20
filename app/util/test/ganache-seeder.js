@@ -1,8 +1,7 @@
-const { Web3Provider } = require('@ethersproject/providers');
-const { ContractFactory } = require('@ethersproject/contracts');
-
-const { SMART_CONTRACTS, contractConfiguration } = require('./smart-contracts');
-const GanacheContractAddressRegistry = require('./ganache-contract-address-registry');
+import { Web3Provider } from '@ethersproject/providers';
+import { ContractFactory } from '@ethersproject/contracts';
+import { SMART_CONTRACTS, contractConfiguration } from './smart-contracts';
+import GanacheContractAddressRegistry from './ganache-contract-address-registry';
 
 /*
  * Ganache seeder is used to seed initial smart contract or set initial blockchain state.
@@ -87,4 +86,4 @@ class GanacheSeeder {
   }
 }
 
-module.exports = GanacheSeeder;
+export default GanacheSeeder;

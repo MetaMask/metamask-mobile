@@ -25,4 +25,4 @@ class GanacheContractAddressRegistry {
   }
 }
 
-module.exports = GanacheContractAddressRegistry;
+export default GanacheContractAddressRegistry;

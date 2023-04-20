@@ -55,4 +55,4 @@ Feature: Sending ETH to a Multisig
     
     Examples:
       | MultisigAddress                            | Amount |
-      | 0x4aff835038b16dccdb1670103c4877a8f93e5219 | 1      |
+      | 0x18b06605539dc02ecd3f7ab314e38eb7c1da5c9b | 1      |

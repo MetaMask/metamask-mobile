@@ -1,4 +1,4 @@
-const {
+import {
   hstBytecode,
   hstAbi,
   piggybankBytecode,
@@ -11,7 +11,7 @@ const {
   failingContractBytecode,
   multisigAbi,
   multisigBytecode,
-} = require('@metamask/test-dapp/dist/constants.json');
+} from '@metamask/test-dapp/dist/constants.json';
 
 const hstFactory = {
   initialAmount: 100,
@@ -65,4 +65,4 @@ const contractConfiguration = {
   [SMART_CONTRACTS.MULTISIG]: multisigFactory,
 };
 
-module.exports = { SMART_CONTRACTS, contractConfiguration };
+export { SMART_CONTRACTS, contractConfiguration };
