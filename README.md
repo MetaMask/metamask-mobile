@@ -19,7 +19,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
 
--   Install [Node.js](https://nodejs.org) **version 14**
+-   Install [Node.js](https://nodejs.org) **version 16**
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
