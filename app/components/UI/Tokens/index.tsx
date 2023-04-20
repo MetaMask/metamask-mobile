@@ -28,7 +28,12 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getTestNetImageByChainId,
+  isMainnetByChainId,
+  isTestNet,
+} from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
@@ -62,7 +67,6 @@ import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import Icon, {
@@ -77,6 +81,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
+import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -85,6 +90,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isNetworkBuySupported, isNativeTokenBuySupported] = useOnRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
 
@@ -237,7 +243,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const isMainnet = isMainnetByChainId(chainId);
 
-    const NetworkBadgeSource = isMainnet ? images.ETHEREUM : images[ticker];
+    const NetworkBadgeSource = () => {
+      if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+
+      if (isMainnet) return images.ETHEREUM;
+
+      return images[ticker];
+    };
 
     const badgeName = (isMainnet ? providerType : ticker) || '';
 
@@ -253,7 +265,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           badgeProps={{
             variant: BadgeVariant.Network,
             name: badgeName,
-            imageSource: NetworkBadgeSource,
+            imageSource: NetworkBadgeSource(),
           }}
         >
           {asset.isETH ? (
@@ -338,7 +350,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderBuyButton = () => {
     const mainToken = tokens.find(({ isETH }) => isETH);
-    if (!mainToken || !isZero(mainToken.balance) || !allowedToBuy(chainId)) {
+    if (
+      !mainToken ||
+      !isZero(mainToken.balance) ||
+      !(isNetworkBuySupported && isNativeTokenBuySupported)
+    ) {
       return null;
     }
 

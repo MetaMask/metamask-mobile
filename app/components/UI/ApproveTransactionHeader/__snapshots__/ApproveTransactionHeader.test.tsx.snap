@@ -292,7 +292,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     Object {
-                      "testUri": "../../../app/images/ropsten-logo-dark.png",
+                      "testUri": "../../../app/images/sepolia-logo-dark.png",
                     }
                   }
                   style={
@@ -321,7 +321,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               }
             }
           >
-            Ropsten
+            Sepolia
           </Text>
           <Text
             style={

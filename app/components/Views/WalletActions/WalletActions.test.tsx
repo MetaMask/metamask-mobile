@@ -16,6 +16,16 @@ const mockEngine = Engine;
 
 const mockInitialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
   engine: {
     backgroundState: {
       PreferencesController: {},
@@ -73,6 +83,16 @@ describe('WalletActions', () => {
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     const state = {
       swaps: { '1': { isLive: false }, hasOnboarded: false, isLive: true },
+      fiatOrders: {
+        networks: [
+          {
+            active: true,
+            chainId: 1,
+            chainName: 'Ethereum Mainnet',
+            nativeTokenSupported: true,
+          },
+        ],
+      },
       engine: {
         backgroundState: {
           PreferencesController: {},

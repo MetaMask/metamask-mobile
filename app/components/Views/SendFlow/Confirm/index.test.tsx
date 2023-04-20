@@ -52,6 +52,16 @@ const initialState = {
       to: '0x2',
     },
   },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
 };
 const store = mockStore(initialState);
 
