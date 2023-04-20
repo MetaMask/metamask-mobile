@@ -8,6 +8,7 @@ import LoginOptionsSettings from './LoginOptionsSettings';
 import RevealPrivateKey from './RevealPrivateKey/RevealPrivateKey';
 import ChangePassword from './ChangePassword/ChangePassword';
 import AutoLock from './AutoLock/AutoLock';
+import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
 
 export {
   AutomaticSecurityChecks,
@@ -20,4 +21,5 @@ export {
   RevealPrivateKey,
   ChangePassword,
   AutoLock,
+  ClearPrivacy,
 };
