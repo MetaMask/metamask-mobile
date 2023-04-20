@@ -12,7 +12,7 @@ import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
-import { NETWORK_AVATAR_IMAGE_ID } from './AvatarNetwork.constants';
+import { NETWORK_AVATAR_IMAGE_ID } from './../../../../../../constants/test-ids';
 import stylesheet from './AvatarNetwork.styles';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 

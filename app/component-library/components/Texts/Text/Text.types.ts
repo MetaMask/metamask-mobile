@@ -14,7 +14,6 @@ export enum TextVariant {
   BodyLGMedium = 'sBodyLGMedium',
   BodyMD = 'sBodyMD',
   BodyMDBold = 'sBodyMDBold',
-  BodyLGMedium = 'sBodyLGMedium',
   BodySM = 'sBodySM',
   BodySMBold = 'sBodySMBold',
   BodyXS = 'sBodyXS',

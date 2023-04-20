@@ -26,14 +26,14 @@ Feature: Importing account via private then revoking permissions
 
   Scenario Outline: From the connect accounts modal, a user import an account via private key
 
-    And I trigger the connect modal
+    When I trigger the connect modal
     Then the connect modal should be displayed
     When I tap on button with text "Connect multiple accounts"
     And I tap on button with text "Import an account"
     When I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
     Then The account is imported
-    When I tap on button with text "Select all"
+    When I tap on Select all button
     And I connect multiple accounts to a dapp
     Then I should be connected to the dapp
     And I set "Account 2" as my primary account

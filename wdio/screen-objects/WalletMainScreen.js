@@ -111,18 +111,23 @@ class WalletMainScreen {
   }
 
   async tapImportTokensButton() {
-    await Gestures.waitAndTap(this.ImportToken);
+    const importToken = await this.ImportToken;
+    await importToken.waitForDisplayed();
+
+    let displayed = true;
+    while (displayed) {
+      if (await importToken.isExisting()) {
+        await importToken.click();
+        await driver.pause(3000);
+      } else {
+        displayed = false;
+      }
+    }
   }
 
   async tapImportNFTButton() {
     await Gestures.swipe({ x: 100, y: 500 }, { x: 100, y: 10 });
     await Gestures.waitAndTap(this.ImportNFT);
-  }
-
-  async tapBurgerButtonByXpath() {
-    await Gestures.tap(
-      await Selectors.getXpathElementByContentDescription(this.HamburgerButton),
-    );
   }
 
   async tapNFTTab() {
@@ -138,8 +143,7 @@ class WalletMainScreen {
   }
 
   async tapRemindMeLaterOnNotification() {
-    await Gestures.tap(await this.remindMeLaterNotification, 'MOVETO');
-    await Gestures.tap(await this.remindMeLaterNotification);
+    await Gestures.waitAndTap(await this.remindMeLaterNotification);
   }
 
   async backupAlertModalIsVisible() {
@@ -172,11 +176,18 @@ class WalletMainScreen {
     await element.waitForDisplayed();
   }
 
+  async waitForNotificationToDisplayed() {
+    const element = await this.TokenNotificationTitle;
+    await element.waitForDisplayed();
+    await element.waitForExist({ reverse: true });
+  }
+
   async isToastNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
+    await element.waitForExist({ reverse: true });
   }
 
   async isNetworkNavbarTitle(text) {
