@@ -1,4 +1,4 @@
-export interface SFAddressToProps {
+export interface STAddressToProps {
   inputRef: any;
   highlighted: boolean;
   addressToReady: boolean;

@@ -3,8 +3,9 @@ import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 
 const createStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
+  const {
+    theme: { colors },
+  } = params;
 
   return StyleSheet.create({
     wrapper: {

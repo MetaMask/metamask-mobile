@@ -182,7 +182,7 @@ const SendTo = () => {
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
    * @param {String} account - Address input
-   * @returns {String | null} - Address or null if toAccount is not in the addressBook or identities array
+  //  * @returns {String | null} - Address or null if toAccount is not in the addressBook or identities array
    */
   const getAddressNameFromBookOrIdentities = (account: string) => {
     if (!account) return;
@@ -245,7 +245,17 @@ const SendTo = () => {
         toSelectedAddressName: addressName,
       });
     } else {
-      const validatedInput = await validateAddressOrENSFromInput(account);
+      const {
+        addToAddressBook,
+        addressHasError,
+        confusablesCollection,
+        ensName,
+        hasErrorContinue,
+        isWarning,
+        toEnsAddressResolved: toEnsAddress,
+        toSelectedAddressName: toAddressName,
+        toSelectedAddressReady: addressReady,
+      } = await validateAddressOrENSFromInput(account);
 
       /**
        * Because validateAddressOrENSFromInput is an asynchronous function
@@ -255,8 +265,15 @@ const SendTo = () => {
         ...sendToState,
         toAccount: account,
         isFromAddressBook: false,
-        toSelectedAddressReady: false,
-        ...validatedInput,
+        addToAddressToAddressBook: addToAddressBook,
+        addressError: addressHasError,
+        confusableCollection: confusablesCollection,
+        toEnsName: ensName,
+        errorContinue: hasErrorContinue,
+        isOnlyWarning: isWarning,
+        toEnsAddressResolved: toEnsAddress,
+        toSelectedAddressName: toAddressName,
+        toSelectedAddressReady: addressReady,
       });
     }
   };
@@ -270,7 +287,6 @@ const SendTo = () => {
       )} ${getTicker(ticker)}`;
 
       const ens = await doENSReverseLookup(selectedAddress, network);
-      // what does this settimeout do?
       setTimeout(() => {
         setSendToState({
           ...sendToState,
@@ -281,7 +297,6 @@ const SendTo = () => {
         });
       }, 100);
       if (!Object.keys(networkAddressBook).length) {
-        // and this?
         setTimeout(() => {
           addressToInputRef?.current?.focus();
         }, 500);
@@ -367,7 +382,7 @@ const SendTo = () => {
         },
       );
     });
-    navigation.navigate('Amount');
+    navigation.navigate(Routes.SEND_FLOW.AMOUNT);
   };
 
   const renderAddToAddressBookModal = () => (

@@ -1,4 +1,4 @@
-export interface SFAddressFromProps {
+export interface STAddressFromProps {
   accountAddress: string;
   accountName: string;
   accountBalance: string | undefined;
