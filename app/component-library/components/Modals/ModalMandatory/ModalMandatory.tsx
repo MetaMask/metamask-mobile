@@ -65,12 +65,12 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   } = route.params;
 
   const scrollToEndJS = `window.scrollTo(0, document.body.scrollHeight - ${
-    scrollEndBottomMargin ?? 0
+    scrollEndBottomMargin ?? 1
   } );`;
 
   const isScrollEndedJS = `(function(){ window.onscroll = function() {
     if (window.scrollY + window.innerHeight + ${
-      scrollEndBottomMargin ?? 0
+      scrollEndBottomMargin ?? 1
     } >= document.documentElement.scrollHeight) {
       window.ReactNativeWebView.postMessage('${WEBVIEW_SCROLL_END_EVENT}');
     }else{
