@@ -138,7 +138,7 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : (
-            addCurrencySymbol(price, currentCurrency)
+            addCurrencySymbol(price, currentCurrency, true)
           )}
         </Title>
         <Text>
@@ -165,7 +165,8 @@ const Price = ({
                 size={16}
                 style={styles.priceDiffIcon}
               />{' '}
-              {addCurrencySymbol(diff, currentCurrency)} ({diff > 0 ? '+' : ''}
+              {addCurrencySymbol(diff, currentCurrency, true)} (
+              {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %) <Text style={styles.timePeriod}>{date}</Text>
             </Text>
