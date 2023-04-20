@@ -55,7 +55,7 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
           name={secureConnectionIcon}
           size={IconSize.Sm}
         />
-        <Text numberOfLines={1} style={styles.text}>
+        <Text numberOfLines={1} style={styles.text} ellipsizeMode="head">
           {mainUrl}
         </Text>
       </View>
