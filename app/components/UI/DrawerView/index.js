@@ -1071,7 +1071,6 @@ class DrawerView extends PureComponent {
     const styles = createStyles(colors);
 
     const {
-      /*       invalidCustomNetwork, */
       account: { name: nameFromState, ens: ensFromState },
     } = this.state;
 

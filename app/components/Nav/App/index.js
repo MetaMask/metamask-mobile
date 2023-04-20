@@ -231,10 +231,6 @@ const App = ({ userLoggedIn }) => {
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
   );
 
-  const network = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.network,
-  );
-
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
@@ -317,7 +313,6 @@ const App = ({ userLoggedIn }) => {
           },
         },
         frequentRpcList,
-        network,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -338,7 +333,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
+  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {

@@ -25,18 +25,17 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-// Internal dependencies.
-import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
-import styles from './AccountPermissionsConnected.styles';
 import {
   CONNECTED_ACCOUNTS_MODAL_CONTAINER,
   CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
-
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
+
+// Internal dependencies.
+import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
+import styles from './AccountPermissionsConnected.styles';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
