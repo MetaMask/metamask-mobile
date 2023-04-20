@@ -12,7 +12,6 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
-  ApprovalTypes,
 } from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
@@ -21,6 +20,7 @@ import { strings } from '../../locales/i18n';
 import NotificationManager from './NotificationManager';
 import { msBetweenDates, msToHours } from '../util/date';
 import URL from 'url-parse';
+import { ApprovalType } from '@metamask/controller-utils';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -349,7 +349,7 @@ class WalletConnect {
         id: random(),
         origin: host,
         requestData: peerInfo,
-        type: ApprovalTypes.WALLET_CONNECT,
+        type: ApprovalType.WalletConnect,
       });
     } catch (error) {
       throw new Error('WalletConnect session request rejected');

@@ -1,0 +1,14 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+index 311b7c0..194c5dd 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+@@ -88,6 +88,7 @@ export declare enum ApprovalType {
+     SnapDialogConfirmation = "snap_dialog:confirmation",
+     SnapDialogPrompt = "snap_dialog:prompt",
+     Unlock = "unlock",
+-    ConnectAccounts = "connect_accounts"
++    ConnectAccounts = "connect_accounts",
++    WalletConnect = "wallet_connect"
+ }
+ //# sourceMappingURL=constants.d.ts.map
+\ No newline at end of file

@@ -1,7 +1,7 @@
 import RNWalletConnect from '@walletconnect/client';
 import Engine from './Engine';
-import { ApprovalTypes } from '../core/RPCMethods/RPCMethodMiddleware';
 import { flushPromises } from '../util/test/utils';
+import { ApprovalType } from '@metamask/controller-utils';
 
 const mockDappHost = 'metamask.io';
 const mockDappUrl = `https://${mockDappHost}`;
@@ -63,7 +63,7 @@ describe('WalletConnect', () => {
           redirectUrl: mockRedirectUrl,
           requestOriginatedFrom: mockDappOrigin,
         },
-        type: ApprovalTypes.WALLET_CONNECT,
+        type: ApprovalType.WalletConnect,
       };
 
       const spyApprovalControllerAdd = jest.spyOn(
