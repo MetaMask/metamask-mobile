@@ -1,12 +1,9 @@
 @androidApp
-@ChainScenarios
 @smoke
-
 Feature: New wallet flow
 
   Scenario: Onboarding New walllet
-  A user opens the app for first time and creates a new wallet.
-
+  User opens the app for first time and creates a new wallet.
     Given the Welcome Screen is displayed
     When I tap "Get started"
     Then "Wallet setup" is displayed

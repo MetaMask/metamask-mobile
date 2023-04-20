@@ -3,6 +3,9 @@
   "setupFilesAfterEnv": ["./e2e/init.js"],
   "testEnvironment": "node",
   "forceExit": true,
+  "transform": {
+    "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
+  },
   "reporters": [
     "default",
     [
