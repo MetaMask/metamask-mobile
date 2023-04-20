@@ -76,7 +76,6 @@ import {
 } from '../../../../selectors/networkController';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
-// import {validateAddressOrENSFromInput} from '../util'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -121,6 +120,13 @@ const SendTo = () => {
 
   const isPaymentRequest = useSelector(
     (state: any) => state.transaction.paymentRequest,
+  );
+
+  const isNativeTokenBuySupported = useSelector((state: any) =>
+    isNetworkBuyNativeTokenSupported(
+      selectChainId(state),
+      getRampNetworks(state),
+    ),
   );
 
   const addressToInputRef = createRef();
@@ -446,7 +452,7 @@ const SendTo = () => {
   };
 
   const renderBuyEth = () => {
-    if (!allowedToBuy(network)) {
+    if (!isNativeTokenBuySupported) {
       return null;
     }
 
