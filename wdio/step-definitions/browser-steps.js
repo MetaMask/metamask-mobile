@@ -376,6 +376,7 @@ When(/^I select "([^"]*)" network option$/, async (option) => {
 
   await NetworkEducationModal.isNetworkEducationNetworkName(option);
   await NetworkEducationModal.tapGotItButton();
+  await NetworkEducationModal.waitForGotItButtonToDisappear();
 });
 
 Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
@@ -398,7 +399,6 @@ Given(/^I navigate to the browser$/, async () => {
 });
 
 When(/^I navigate to the wallet$/, async () => {
-  await driver.pause(5000);
   await TabBarModal.tapWalletButton();
 });
 
@@ -444,10 +444,6 @@ Then(/^I should close the address view$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
 });
 
-Then(/^the created account is selected$/, async () => {
-  await AccountListComponent.isAccountTwoSelected();
-  await AccountListComponent.tapAccount('Account 2');
-});
 When(/^I tap on the Network Icon$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
 });
@@ -471,6 +467,11 @@ When(/^I should not be connected to the dapp$/, async () => {
   await ConnectedAccountsModal.isNotVisible();
   await NetworkListModal.isVisible();
 });
+
 Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
   await AccountListComponent.tapAccount(text);
+});
+
+When(/^I tap on Select all button$/, async () => {
+  await AccountApprovalModal.tapSelectAllButton();
 });

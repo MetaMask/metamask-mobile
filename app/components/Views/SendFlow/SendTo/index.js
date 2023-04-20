@@ -24,7 +24,7 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
-import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
+
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
@@ -71,6 +71,8 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const dummy = () => true;
 
@@ -147,6 +149,10 @@ class SendFlow extends PureComponent {
      * Frequent RPC list from PreferencesController
      */
     frequentRpcList: PropTypes.array,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   addressToInputRef = React.createRef();
@@ -559,7 +565,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (!allowedToBuy(this.props.network)) {
+    if (!this.props.isNativeTokenBuySupported) {
       return null;
     }
 
@@ -799,6 +805,10 @@ const mapStateToProps = (state) => ({
   isPaymentRequest: state.transaction.paymentRequest,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
