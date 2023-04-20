@@ -702,6 +702,7 @@ class DrawerView extends PureComponent {
 
   onReceive = () => {
     this.toggleReceiveModal();
+    this.hideDrawer();
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 

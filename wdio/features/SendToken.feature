@@ -73,8 +73,8 @@ Feature tests the sending of Native and ERC Tokens
     And the token amount <AMOUNT> to be sent is visible
 
     When I tap button "Send" on Confirm Amount view
-    Then Sending token takes me to main wallet view
-    And the transaction is submitted with Transaction Complete! toast appearing
+    Then the transaction is submitted with Transaction Complete! toast appearing
+    And Sending token takes me to main wallet view
 
     Examples:
       | NETWORK   | TOKEN | AMOUNT | Address                                    |
@@ -96,8 +96,8 @@ Feature tests the sending of Native and ERC Tokens
     And the token amount <AMOUNT> to be sent is visible
 
     When I tap button "Send" on Confirm Amount view
-    Then I am taken to the token overview screen
-    And the transaction is submitted with Transaction Complete! toast appearing
+    Then the transaction is submitted with Transaction Complete! toast appearing
+    And I am taken to the token overview screen
 
 
     Examples:
