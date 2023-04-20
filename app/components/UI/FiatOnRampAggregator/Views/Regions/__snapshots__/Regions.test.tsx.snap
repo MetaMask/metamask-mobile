@@ -131,6 +131,7 @@ exports[`Regions View renders correctly 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -2463,6 +2464,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -3055,6 +3057,7 @@ exports[`Regions View renders correctly with error 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -3721,6 +3724,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -4313,6 +4317,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -4979,6 +4984,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -7309,6 +7315,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -9635,6 +9642,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
