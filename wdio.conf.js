@@ -26,7 +26,7 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/**/*.feature'],
+  specs: ['./wdio/features/*.feature', './wdio/features/**/*.feature'],
 
   // Patterns to exclude.
   exclude: [
@@ -285,7 +285,11 @@ export const config = {
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  beforeScenario: async function (world, context) {},
+  beforeScenario: async function (world, context) {
+    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
+      await driver.launchApp();
+    }
+  },
   /**
    *
    * Runs before a Cucumber Step.
@@ -318,7 +322,11 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {},
+  afterScenario: async function (world, result, context) {
+    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
+      await driver.closeApp();
+    }
+  },
   /**
    *
    * Runs after a Cucumber Feature.
