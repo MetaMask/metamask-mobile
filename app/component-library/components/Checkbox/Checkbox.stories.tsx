@@ -1,18 +1,41 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console, react-native/no-inline-styles */
 
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
 import { boolean } from '@storybook/addon-knobs';
+import { storiesOf } from '@storybook/react-native';
+
+// External dependencies.
+import { storybookPropsGroupID } from '../../constants/storybook.constants';
 
 // Internal dependencies.
 import Checkbox from './Checkbox';
+import { CheckboxProps } from './Checkbox.types';
 
-storiesOf('Component Library / Checkbox', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const selectedSelector = boolean('isSelected', false, groupId);
+export const getCheckboxStoryProps = (): CheckboxProps => {
+  const isCheckedToggle = boolean('isChecked', false, storybookPropsGroupID);
+  const isIndeterminateToggle = boolean(
+    'isIndeterminate',
+    false,
+    storybookPropsGroupID,
+  );
+  const isDisabledToggle = boolean('isDisabled', false, storybookPropsGroupID);
+  const isReadonlyToggle = boolean('isReadonly', false, storybookPropsGroupID);
 
-    return <Checkbox isSelected={selectedSelector} />;
-  });
+  return {
+    isChecked: isCheckedToggle,
+    isIndeterminate: isIndeterminateToggle,
+    isDisabled: isDisabledToggle,
+    isReadonly: isReadonlyToggle,
+    onPress: () => console.log("I'm clicked!"),
+  };
+};
+
+const CheckboxStory = () => <Checkbox {...getCheckboxStoryProps()} />;
+
+storiesOf('Component Library / Checkbox', module).add(
+  'Checkbox',
+  CheckboxStory,
+);
+
+export default CheckboxStory;

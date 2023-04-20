@@ -232,7 +232,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           onPress={handleSelect}
           activeOpacity={1}
         >
-          <Checkbox isSelected={isCheckboxSelected} />
+          <Checkbox isChecked={isCheckboxSelected} />
           <Text style={styles.checkboxText}>{checkboxText}</Text>
         </TouchableOpacity>
         <ButtonPrimary
