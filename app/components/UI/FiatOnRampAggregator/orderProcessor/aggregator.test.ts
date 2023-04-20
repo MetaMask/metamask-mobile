@@ -1,10 +1,21 @@
 import { Order } from '@consensys/on-ramp-sdk';
+import { FiatOrder } from '../../../../reducers/fiatOrders';
 import {
   aggregatorOrderToFiatOrder,
+  POLLING_FRECUENCY_IN_SECONDS,
   processAggregatorOrder,
 } from './aggregator';
 
 describe('aggregatorOrderToFiatOrder', () => {
+  const now = 1673886669608;
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+  });
+
+  afterAll(() => {
+    jest.spyOn(Date, 'now').mockRestore();
+  });
+
   it('should return a fiat order', () => {
     const mockOrder = {
       id: 'test-id',
@@ -68,6 +79,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: mockOrder,
     });
 
@@ -88,6 +101,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: failedOrder,
     });
     expect(aggregatorOrderToFiatOrder(cancelledOrder as Order)).toEqual({
@@ -107,6 +122,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: cancelledOrder,
     });
     expect(aggregatorOrderToFiatOrder(pendingOrder as Order)).toEqual({
@@ -126,6 +143,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: pendingOrder,
     });
     expect(aggregatorOrderToFiatOrder(unknownStateOrder as Order)).toEqual({
@@ -145,6 +164,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: unknownStateOrder,
     });
   });
@@ -204,6 +225,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: mockOrder1,
     });
     expect(aggregatorOrderToFiatOrder(mockOrder2 as Order)).toEqual({
@@ -222,6 +245,8 @@ describe('aggregatorOrderToFiatOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
       orderType: 'BUY',
+      errorCount: 0,
+      lastTimeFetched: 1673886669608,
       data: mockOrder2,
     });
   });
@@ -238,10 +263,6 @@ jest.mock('../sdk', () => ({
 }));
 
 describe('processAggregatorOrder', () => {
-  afterEach(() => {
-    mockGetOrder.mockClear();
-  });
-
   const mockOrder = {
     id: 'test-id',
     provider: 'AGGREGATOR',
@@ -259,6 +280,8 @@ describe('processAggregatorOrder', () => {
     txHash: '0x987654321',
     excludeFromPurchases: false,
     orderType: 'BUY',
+    errorCount: 0,
+    lastTimeFetched: 1673886669600,
     data: {
       id: 'test-id',
       isOnlyLink: false,
@@ -284,24 +307,34 @@ describe('processAggregatorOrder', () => {
       txHash: '0x987654321',
       excludeFromPurchases: false,
     },
-  };
+  } as FiatOrder;
+
+  afterEach(() => {
+    jest.spyOn(Date, 'now').mockClear();
+    mockGetOrder.mockClear();
+  });
 
   it('should process an order', async () => {
     mockGetOrder.mockImplementation(() => ({
       ...mockOrder.data,
       status: 'FAILED',
     }));
+    jest.spyOn(Date, 'now').mockImplementation(() => 1673886669600);
+
     const updatedOrder = await processAggregatorOrder(mockOrder);
     expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
     expect(updatedOrder).toEqual({
       ...mockOrder,
       state: 'FAILED',
+      lastTimeFetched: 1673886669600,
       data: { ...mockOrder.data, status: 'FAILED' },
     });
   });
 
   it('should return the same order if response is empty', async () => {
     mockGetOrder.mockImplementation(() => null);
+    jest.spyOn(Date, 'now').mockImplementation(() => 1673886669600);
+
     const updatedOrder = await processAggregatorOrder(mockOrder);
     expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
     expect(mockGetOrder).toHaveReturnedWith(null);
@@ -312,8 +345,79 @@ describe('processAggregatorOrder', () => {
     mockGetOrder.mockImplementation(() => {
       throw new Error('test error');
     });
+    jest.spyOn(Date, 'now').mockImplementation(() => 1673886669600);
+
     const updatedOrder = await processAggregatorOrder(mockOrder);
     expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
     expect(updatedOrder).toEqual(mockOrder);
+  });
+
+  it('should return the same object if the error backoff time has not passed', async () => {
+    const lastTimeFetched = 1000;
+    const errorCount = 3;
+
+    jest
+      .spyOn(Date, 'now')
+      .mockImplementation(
+        () =>
+          lastTimeFetched +
+          Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000 -
+          1,
+      );
+    const orderWithErrors = { ...mockOrder, lastTimeFetched, errorCount };
+    const updatedOrder = await processAggregatorOrder(orderWithErrors);
+    expect(mockGetOrder).not.toHaveBeenCalled();
+    expect(updatedOrder).toEqual(orderWithErrors);
+  });
+
+  it('should return an updated object if the error backoff time has passed', async () => {
+    mockGetOrder.mockImplementation(() => ({
+      ...mockOrder.data,
+    }));
+
+    const lastTimeFetched = 1000;
+    const errorCount = 3;
+
+    const now =
+      lastTimeFetched +
+      Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000 +
+      1;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const orderWithErrors = { ...mockOrder, lastTimeFetched, errorCount };
+
+    const updatedOrder = await processAggregatorOrder(orderWithErrors);
+    expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
+    expect(updatedOrder).toEqual({
+      ...orderWithErrors,
+      errorCount: 0,
+      lastTimeFetched: now,
+    });
+  });
+
+  it('should return an updated object if the error backoff time has not passed and processing was forced', async () => {
+    mockGetOrder.mockImplementation(() => ({
+      ...mockOrder.data,
+    }));
+    const lastTimeFetched = 1000;
+    const errorCount = 3;
+
+    const now =
+      lastTimeFetched +
+      Math.pow(POLLING_FRECUENCY_IN_SECONDS, errorCount + 1) * 1000 -
+      1;
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+    const orderWithErrors = { ...mockOrder, lastTimeFetched, errorCount };
+    const updatedOrder = await processAggregatorOrder(orderWithErrors, {
+      forced: true,
+    });
+    expect(mockGetOrder).toHaveBeenCalled();
+    expect(updatedOrder).toEqual({
+      ...orderWithErrors,
+      errorCount: 0,
+      lastTimeFetched: now,
+    });
   });
 });

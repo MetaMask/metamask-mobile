@@ -5,6 +5,7 @@ import {
   TAB_BAR_WALLET_BUTTON,
 } from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
+import BrowserScreen from '../BrowserObject/BrowserScreen';
 
 class TabBarModal {
   get walletButton() {
@@ -20,9 +21,17 @@ class TabBarModal {
   }
 
   async tapWalletButton() {
-    const element = await this.walletButton;
-    await element.waitForEnabled();
-    await Gestures.waitAndTap(this.walletButton);
+    const walletButton = await this.walletButton;
+    await walletButton.waitForDisplayed();
+
+    const browserScreen = await BrowserScreen.container;
+    let isBrowserDisplayed = true;
+
+    while (isBrowserDisplayed) {
+      await walletButton.click();
+      await driver.pause(3000);
+      isBrowserDisplayed = await browserScreen.isExisting();
+    }
   }
 
   async tapBrowserButton() {
