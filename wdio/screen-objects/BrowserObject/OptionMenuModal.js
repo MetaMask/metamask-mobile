@@ -57,6 +57,8 @@ class OptionMenuModal {
 
   async tapNewTabOption() {
     await Gestures.waitAndTap(this.newTabOption);
+    const element = await this.newTabOption;
+    await element.waitForExist({ reverse: true });
   }
 
   async isNewTabOptionDisplayed() {

@@ -9,7 +9,7 @@ exports[`TransactionHeader should render correctly 1`] = `
     }
   }
   dispatch={[Function]}
-  networkType="ropsten"
-  nickname="Ropsten"
+  networkType="sepolia"
+  nickname="Sepolia"
 />
 `;
