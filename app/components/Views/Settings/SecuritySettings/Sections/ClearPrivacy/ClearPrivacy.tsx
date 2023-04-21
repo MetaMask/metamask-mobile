@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { styleSheet } from './styles';
 import Engine from '../../../../../../core/Engine';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+import StyledButton from '../../../../../UI/StyledButton';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ActionModal from '../../../../../UI/ActionModal';
@@ -49,12 +47,13 @@ const ClearPrivacy = () => {
       <Text style={styles.desc}>
         {strings('app_settings.clear_privacy_desc')}
       </Text>
-      <Button
-        label={strings('app_settings.clear_privacy_title')}
-        variant={ButtonVariants.Secondary}
+      <StyledButton
+        type="normal"
         onPress={() => setModalVisible(true)}
-        style={styles.confirm}
-      />
+        containerStyle={styles.confirm}
+      >
+        {strings('app_settings.clear_privacy_title')}
+      </StyledButton>
       {approvalModal()}
     </View>
   );
