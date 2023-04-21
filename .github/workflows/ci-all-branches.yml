@@ -1,6 +1,6 @@
 # Fails the pull request if it has the "DO-NOT-MERGE" label
 
-name: ci / all branches
+name: ci / check all branches
 
 on:
   pull_request:
