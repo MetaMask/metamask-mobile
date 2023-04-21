@@ -44,7 +44,7 @@ Function to trigger when pressing the button.
 
 ### `startIconName`
 
-Optional prop for the icon name of the icon that will be displayed after the label.
+Optional prop for the icon name of the icon that will be displayed before the label.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
