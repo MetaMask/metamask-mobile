@@ -87,10 +87,27 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
 
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
-      navigation.goBack();
-      onDismissed?.(!!postCallback.current);
-      postCallback.current?.();
-    }, [navigation, onDismissed]);
+
+      // Hermes (Android) crash notes
+
+      // // No crash after dismiss, modal stays open in bg, any tap calls onHidden
+      // postCallback.current?.();
+
+      // // After dismiss, still responsive, then crash tapping Connect 2nd time
+      // navigation.goBack();
+      // postCallback.current?.();
+
+      // // Crash after dismiss (after onHidden called)
+      // onDismissed?.(!!postCallback.current);
+      // postCallback.current?.();
+
+      // // Crash after dismiss
+      // navigation.goBack();
+      // onDismissed?.(!!postCallback.current);
+      // postCallback.current?.();
+
+      debugger;
+    }, []);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -139,6 +156,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
           { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
           () => isDismissed && runOnJS(onHidden)(),
         );
+        debugger; // Not reached
       },
     });
 
@@ -166,14 +184,14 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       [hide],
     );
 
-    useEffect(
-      () =>
-        // Automatically handles animation when content changes
-        // Disable for now since network switches causes the screen to hang with this on.
-        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        debouncedHide.cancel(),
-      [children, debouncedHide],
-    );
+    useEffect(() =>
+      // Automatically handles animation when content changes
+      // Disable for now since network switches causes the screen to hang with this on.
+      // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      {
+        debouncedHide.cancel();
+        debugger;
+      }, [debouncedHide]);
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
@@ -188,6 +206,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       hide: (callback) => {
         postCallback.current = callback;
         debouncedHide();
+        debugger; // Not reached
       },
     }));
 

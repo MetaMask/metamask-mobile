@@ -303,11 +303,13 @@ export const getRpcMethodMiddleware = ({
             try {
               checkTabActive();
               await Engine.context.ApprovalController.clear();
+              debugger;
               await Engine.context.PermissionController.requestPermissions(
                 { origin: hostname },
                 { eth_accounts: {} },
                 { id: random() },
               );
+              debugger; // Not reached
               const acc = await getPermittedAccounts(hostname);
               res.result = acc;
             } catch (error) {
