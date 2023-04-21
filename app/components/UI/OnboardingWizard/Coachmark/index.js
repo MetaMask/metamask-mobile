@@ -1,13 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, View, Text, StyleSheet } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import {
-  fontStyles,
   colors as importedColors,
+  fontStyles,
 } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
   IconName,
@@ -20,6 +20,13 @@ import {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  ONBOARDING_WIZARD_BACK_BUTTON,
+  ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
+  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+  ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -321,6 +328,7 @@ export default class Coachmark extends PureComponent {
           containerStyle={[styles.progressButton, styles.rightProgessButton]}
           type={'inverse'}
           onPress={this.onNext}
+          testID={ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON}
         >
           {strings('onboarding_wizard.coachmark.progress_next')}
         </StyledButton>
@@ -342,20 +350,23 @@ export default class Coachmark extends PureComponent {
           size={ButtonSize.Sm}
           width={ButtonWidthTypes.Full}
           onPress={this.onBack}
-          testID={'onboarding-wizard-back-button'}
           label={strings('onboarding_wizard.coachmark.action_back')}
           style={styles.actionButtonPrimary}
           variant={ButtonVariants.Primary}
+          {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID)}
         />
 
         <Button
           size={ButtonSize.Sm}
           width={ButtonWidthTypes.Full}
           onPress={this.onNext}
-          testID={'onboarding-wizard-next-button'}
           label={strings('onboarding_wizard.coachmark.action_next')}
           variant={ButtonVariants.Secondary}
           style={styles.actionButtonSecondary}
+          {...generateTestId(
+            Platform,
+            ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
+          )}
         />
       </View>
     );
@@ -391,6 +402,7 @@ export default class Coachmark extends PureComponent {
                 size={IconSize.Sm}
                 onPress={this.onBack}
                 iconColorOverride={colors.primary.inverse}
+                {...generateTestId(Platform, ONBOARDING_WIZARD_BACK_BUTTON)}
               />
             ) : (
               <View />

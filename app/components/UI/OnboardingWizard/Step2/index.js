@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -11,7 +11,9 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
@@ -113,7 +115,13 @@ class Step2 extends PureComponent {
 
     return (
       <View style={dynamicOnboardingStyles.contentContainer}>
-        <Text style={dynamicOnboardingStyles.content} testID={'step2-title'}>
+        <Text
+          style={dynamicOnboardingStyles.content}
+          {...generateTestId(
+            Platform,
+            ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
+          )}
+        >
           {strings('onboarding_wizard.step2.content1')}
         </Text>
       </View>

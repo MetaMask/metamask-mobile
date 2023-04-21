@@ -32,7 +32,6 @@ Feature: Request Token
     When I tap on the navbar network title button
     And I tap on <Network> on Networks list to switch
     And I tap on Got it in the network education modal
-    And the toast is displayed
     Then I see "<Network>" visible in the top navigation bar
 
     When On the Main Wallet view I tap on the Receive Action

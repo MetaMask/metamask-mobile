@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import { colors as importedColors } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -14,6 +14,8 @@ import {
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import { createBrowserNavDetails } from '../../../Views/Browser';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
@@ -77,7 +79,10 @@ const Step5 = (props) => {
    */
   const content = () => (
     <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text style={dynamicOnboardingStyles.content} testID={'step5-title'}>
+      <Text
+        style={dynamicOnboardingStyles.content}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID)}
+      >
         {strings('onboarding_wizard.step5.content1')}
       </Text>
     </View>
