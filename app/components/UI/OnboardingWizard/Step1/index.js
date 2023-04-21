@@ -22,6 +22,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+
 const styles = StyleSheet.create({
   main: {
     flex: 1,
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36,
+    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 60,
   },
 });
 
@@ -101,6 +102,7 @@ class Step1 extends PureComponent {
             onNext={this.onNext}
             onBack={this.onClose}
             coachmarkStyle={styles.coachmark}
+            bottomIndicatorPosition={'bottomLeft'}
             action
             onClose={this.onClose}
           />

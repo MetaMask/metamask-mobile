@@ -64,6 +64,26 @@ class Step3 extends PureComponent {
     this.getCoachmarkPosition(this.props.coachmarkRef.accountActionsRef);
   };
 
+  coachMarkTopPosition = (height) => {
+    const screenWidth = Dimensions.get('screen').width;
+    let coachmarkTop;
+
+    if (screenWidth >= 390) {
+      // iPhone 14 pro and larger
+      coachmarkTop = height * 3.3;
+    } else if (screenWidth >= 375) {
+      // iPhone 6/7/8 Plus, iPhone X/XS/11 Pro Max, iPhone 12/13 Pro
+      coachmarkTop = height * 2.8;
+    } else if (screenWidth >= 320) {
+      // iPhone 6/7/8, iPhone SE (1st and 2nd generation), iPhone 12/13 mini
+      coachmarkTop = height * 2.4;
+    } else {
+      // smaller devices
+      coachmarkTop = Dimensions.get('window').height - height - 16;
+    }
+    return coachmarkTop;
+  };
+
   /**
    * Sets coachmark top position getting AccountOverview component ref from Wallet
    */
@@ -72,7 +92,7 @@ class Step3 extends PureComponent {
       ref.current &&
       ref.current.measure((fx, fy, width, height) => {
         this.setState({
-          coachmarkTop: height * 3.3,
+          coachmarkTop: this.coachMarkTopPosition(height),
           coachmarkTopReady: true,
         });
       });

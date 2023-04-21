@@ -1,4 +1,5 @@
-@androidApp @ChainScenarios
+@androidApp 
+@regression
 Feature: Terms of Use
 
   Scenario: Install and launch app

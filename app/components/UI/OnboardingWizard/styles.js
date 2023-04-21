@@ -18,6 +18,7 @@ export default (colors) =>
       fontSize: 14,
       textAlign: 'justify',
       marginBottom: SMALL_DEVICE ? 5 : 20,
+      marginHorizontal: 8,
     },
     contentContainer: {
       marginTop: 20,

@@ -134,7 +134,7 @@ const createStyles = (colors) =>
       marginBottom: 10,
       top: -2,
       alignItems: 'flex-start',
-      marginLeft: 30,
+      marginLeft: 60,
     },
     bottomRight: {
       marginBottom: 10,
