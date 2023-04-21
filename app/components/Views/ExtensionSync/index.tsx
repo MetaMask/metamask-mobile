@@ -14,7 +14,6 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
-import PubNubWrapper from '../../../util/syncWithExtension';
 import Logger from '../../../util/Logger';
 import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
