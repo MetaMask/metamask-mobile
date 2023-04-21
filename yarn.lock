@@ -1636,7 +1636,6 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-<<<<<<< HEAD
 "@chainsafe/as-sha256@^0.4.1":
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/@chainsafe/as-sha256/-/as-sha256-0.4.1.tgz#cfc0737e25f8c206767bdb6703e7943e5d44513e"
@@ -1657,28 +1656,6 @@
   dependencies:
     "@chainsafe/as-sha256" "^0.4.1"
     "@chainsafe/persistent-merkle-tree" "^0.6.1"
-=======
-"@chainsafe/as-sha256@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/as-sha256/-/as-sha256-0.3.1.tgz#3639df0e1435cab03f4d9870cc3ac079e57a6fc9"
-  integrity sha512-hldFFYuf49ed7DAakWVXSJODuq3pzJEguD8tQ7h+sGkM18vja+OFoJI9krnGmgzyuZC2ETX0NOIcCTy31v2Mtg==
-
-"@chainsafe/persistent-merkle-tree@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@chainsafe/persistent-merkle-tree/-/persistent-merkle-tree-0.4.2.tgz#4c9ee80cc57cd3be7208d98c40014ad38f36f7ff"
-  integrity sha512-lLO3ihKPngXLTus/L7WHKaw9PnNJWizlOF1H9NNzHP6Xvh82vzg9F2bzkXhYIFshMZ2gTCEz8tq6STe7r5NDfQ==
-  dependencies:
-    "@chainsafe/as-sha256" "^0.3.1"
-
-"@chainsafe/ssz@0.9.4":
-  version "0.9.4"
-  resolved "https://registry.yarnpkg.com/@chainsafe/ssz/-/ssz-0.9.4.tgz#696a8db46d6975b600f8309ad3a12f7c0e310497"
-  integrity sha512-77Qtg2N1ayqs4Bg/wvnWfg5Bta7iy7IRh8XqXh7oNMeP2HBbBwx8m6yTpA8p0EHItWPEBkgZd5S5/LSlp3GXuQ==
-  dependencies:
-    "@chainsafe/as-sha256" "^0.3.1"
-    "@chainsafe/persistent-merkle-tree" "^0.4.2"
-    case "^1.6.3"
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
@@ -2062,7 +2039,6 @@
     crc-32 "^1.2.0"
     ethereumjs-util "^7.1.5"
 
-<<<<<<< HEAD
 "@ethereumjs/common@^3.1.2":
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-3.1.2.tgz#c810301b78bcb7526bd690c6d7eb3f4a3c70839d"
@@ -2071,26 +2047,10 @@
     crc-32 "^1.2.0"
 
 =======
-=======
-"@ethereumjs/common@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-3.1.1.tgz#6f754c8933727ad781f63ca3929caab542fe184e"
-  integrity sha512-iEl4gQtcrj2udNhEizs04z7WA15ez1QoXL0XzaCyaNgwRyXezIg1DnfNeZUUpJnkrOF/0rYXyq2UFSLxt1NPQg==
-  dependencies:
-    "@ethereumjs/util" "^8.0.5"
-    crc-32 "^1.2.0"
-
-"@ethereumjs/rlp@^4.0.0-beta.2":
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
   version "4.0.0"
 
 "@ethereumjs/rlp@^4.0.1":
   version "4.0.1"
-  integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
-
-"@ethereumjs/rlp@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
 
 "@ethereumjs/tx@3.0.0":
@@ -2115,7 +2075,6 @@
     "@ethereumjs/common" "^2.4.0"
     ethereumjs-util "^7.1.0"
 
-<<<<<<< HEAD
 "@ethereumjs/tx@^3.5.2":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.5.2.tgz#197b9b6299582ad84f9527ca961466fce2296c1c"
@@ -2134,19 +2093,6 @@
     "@ethereumjs/rlp" "^4.0.1"
     "@ethereumjs/util" "^8.0.6"
     ethereum-cryptography "^2.0.0"
-=======
-"@ethereumjs/tx@^4.1.1":
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-4.1.1.tgz#d1b5bf2c4fd3618f2f333b66e262848530d4686a"
-  integrity sha512-QDj7nuROfoeyK83RObMA0XCZ+LUDdneNkSCIekO498uEKTY25FxI4Whduc/6j0wdd4IqpQvkq+/7vxSULjGIBQ==
-  dependencies:
-    "@chainsafe/ssz" "0.9.4"
-    "@ethereumjs/common" "^3.1.1"
-    "@ethereumjs/rlp" "^4.0.1"
-    "@ethereumjs/util" "^8.0.5"
-    "@ethersproject/providers" "^5.7.2"
-    ethereum-cryptography "^1.1.2"
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
 
 "@ethereumjs/util@^8.0.0":
   version "8.0.2"
@@ -2157,7 +2103,6 @@
     async "^3.2.4"
     ethereum-cryptography "^1.1.2"
 
-<<<<<<< HEAD
 "@ethereumjs/util@^8.0.6":
   version "8.0.6"
   resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.0.6.tgz#f9716ed34235ea05eff8353bc5d483e5a6455989"
@@ -2167,16 +2112,6 @@
     "@ethereumjs/rlp" "^4.0.1"
     ethereum-cryptography "^2.0.0"
     micro-ftch "^0.3.1"
-=======
-"@ethereumjs/util@^8.0.5":
-  version "8.0.5"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.0.5.tgz#b9088fc687cc13f0c1243d6133d145dfcf3fe446"
-  integrity sha512-259rXKK3b3D8HRVdRmlOEi6QFvwxdt304hhrEAmpZhsj7ufXEOTIc9JRZPMnXatKjECokdLNBcDOFBeBSzAIaw==
-  dependencies:
-    "@chainsafe/ssz" "0.9.4"
-    "@ethereumjs/rlp" "^4.0.1"
-    ethereum-cryptography "^1.1.2"
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
 
 "@ethersproject/abi@5.4.1":
   version "5.4.1"
@@ -2696,7 +2631,7 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
-"@ethersproject/providers@5.7.2", "@ethersproject/providers@^5.7.0", "@ethersproject/providers@^5.7.2":
+"@ethersproject/providers@5.7.2", "@ethersproject/providers@^5.7.0":
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.7.2.tgz#f8b1a4f275d7ce58cf0a2eec222269a08beb18cb"
   integrity sha512-g34EWZ1WWAVgr4aptGlVBF8mhl3VWjv+8hoAnzStu8Ah22VHBsuGzP17eb6xDVRzw895G4W7vvx60lFFur/1Rg==
@@ -4153,7 +4088,6 @@
     "@metamask/utils" "^3.4.1"
     superstruct "^1.0.3"
 
-<<<<<<< HEAD
 "@metamask/address-book-controller@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-1.1.0.tgz#45106353c113c17357bb23a5191eb0bd56cbfc8d"
@@ -4178,36 +4112,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-4.0.0.tgz#81278619128cf6b22503584eebcd25a529e42386"
   integrity sha512-e/ngelUbyo6drDsIm/lzh7qf43Laju/sxDLaEtolRWJDVW8ZiTrWzCAVQ1m7aduVIS7WDUR51uKzsxiTWY19cA==
   dependencies:
-=======
-"@metamask/approval-controller@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-1.0.1.tgz#903e44e762b209c95d0fc7aed8cb3870d0baead0"
-  integrity sha512-QpIE5z+3wRZyt2cHJ8kbG7xxI+VBLBbo5qUi56/XPTtKn8lo6dpP3oznMVSjdEe926tShLPSR0mHLVaE0saX5w==
-  dependencies:
-    "@metamask/base-controller" "^1.1.1"
-    "@metamask/controller-utils" "^1.0.0"
-    eth-rpc-errors "^4.0.0"
-    immer "^9.0.6"
-    nanoid "^3.1.31"
-
-"@metamask/approval-controller@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-1.1.0.tgz#1f0c89ffa3a60600f69886ffb9a8bd06ef823b32"
-  integrity sha512-6RFPMUayRDxe1ZrkDPIqPNSQ10pMUB1uGr8c52X7gm+EEaS3OnZV4qLMASvwpu7gNQe5dFiCZPypRHlM5qiq+A==
-  dependencies:
-    "@metamask/base-controller" "^1.1.2"
-    "@metamask/controller-utils" "^2.0.0"
-    eth-rpc-errors "^4.0.0"
-    immer "^9.0.6"
-    nanoid "^3.1.31"
-
-"@metamask/assets-controllers@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-3.0.1.tgz#0dff14dd0b9f5be5037b45eab9669f16ae5fd302"
-  integrity sha512-QyqLMArbDfQ+YnLmr9CN/dekWI6IZ/D4wf3jpJxPVRrzi1GszHraNBcj1mKxiR4kLSZymLP4Gq3WZlRvMtGopQ==
-  dependencies:
-    "@ethersproject/abi" "^5.7.0"
->>>>>>> 639b9bd4a ([FEATURE] Create detectSnapLocation method to install a Local Snap (#5923))
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
@@ -4510,11 +4414,7 @@
     "@metamask/safe-event-emitter" "^2.0.0"
     through2 "^2.0.3"
 
-<<<<<<< HEAD
 "@metamask/permission-controller@^1.0.1":
-=======
-"@metamask/permission-controller@^1.0.1", "@metamask/permission-controller@^1.0.2":
->>>>>>> 639b9bd4a ([FEATURE] Create detectSnapLocation method to install a Local Snap (#5923))
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-1.0.2.tgz#ca0f79d817ba2dab2ce831065506ab3658ce6b94"
   integrity sha512-YW8OGCS5ZjG+BlgSG+HEi+mqOIDvZonOpFNLzAVasE1DCReJdumBELEsy+l05XVCf1Dp4kLZ3MfRsPSPfHl0YA==
@@ -4616,30 +4516,7 @@
     pump "^3.0.0"
     webextension-polyfill-ts "^0.25.0"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 "@metamask/rpc-methods@0.26.2", "@metamask/rpc-methods@^0.26.2":
-=======
-"@metamask/rpc-methods@0.24.1":
-  version "0.24.1"
-  resolved "https://registry.yarnpkg.com/@metamask/rpc-methods/-/rpc-methods-0.24.1.tgz#77bb9d3c0960a53b04aeec5e97967a7581a341f7"
-  integrity sha512-mUwN5Ya1F51p/yq81MAqUwR1D3R8CU1cLw3sKypfH0gVtwHNxXogp6Jeyv1VI/46Hrh4i9yXDztsRMOr+AjZEw==
-  dependencies:
-    "@metamask/controllers" "^32.0.2"
-    "@metamask/key-tree" "^6.0.0"
-    "@metamask/snaps-utils" "^0.24.1"
-    "@metamask/types" "^1.1.0"
-    "@metamask/utils" "^3.3.1"
-    "@noble/hashes" "^1.1.3"
-    eth-rpc-errors "^4.0.2"
-    nanoid "^3.1.31"
-    superstruct "^0.16.7"
-
-"@metamask/rpc-methods@^0.26.2":
->>>>>>> 639b9bd4a ([FEATURE] Create detectSnapLocation method to install a Local Snap (#5923))
-=======
-"@metamask/rpc-methods@0.26.2", "@metamask/rpc-methods@^0.26.2":
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
   version "0.26.2"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-methods/-/rpc-methods-0.26.2.tgz#c07bd2e7a7e59f88c72cf4e951852278b3115ab4"
   integrity sha512-8fKU6dzn06YlIz5Ik2RjaFnpQ3QeM++uUODiw+zKfiSt2EtXJHa18RruRbGIc+DlMr+cPkzrf6kpz2OGBOgfeg==
@@ -4727,7 +4604,6 @@
     stream-browserify "^3.0.0"
     superstruct "^0.16.7"
 
-<<<<<<< HEAD
 "@metamask/snaps-types@^0.26.2":
   version "0.26.2"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-types/-/snaps-types-0.26.2.tgz#f44ce3d0e8631e372caf165c56c1b78d33961f25"
@@ -4776,8 +4652,6 @@
     "@metamask/snaps-utils" "^0.24.1"
     "@metamask/types" "^1.1.0"
 
-=======
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
 "@metamask/snaps-types@^0.26.2":
   version "0.26.2"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-types/-/snaps-types-0.26.2.tgz#f44ce3d0e8631e372caf165c56c1b78d33961f25"
@@ -4807,7 +4681,26 @@
     superstruct "^0.16.7"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/subject-metadata-controller@^1.0.0", "@metamask/subject-metadata-controller@^1.0.1":
+"@metamask/snaps-utils@^0.24.1":
+  version "0.24.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-0.24.1.tgz#b95678828a739a5cf0c4e25c0843094931d3a0c7"
+  integrity sha512-W0wtDcvZd/y6MGyPWKnOBQ4ORpUTSCy8cwuxS0NsMuV1FhLgl9RlTmNWUlUS+eEGkUiQxdX8l+W34Cfe4ZZnuA==
+  dependencies:
+    "@babel/core" "^7.18.6"
+    "@babel/types" "^7.18.7"
+    "@metamask/snaps-types" "^0.24.1"
+    "@metamask/utils" "^3.3.1"
+    "@noble/hashes" "^1.1.3"
+    "@scure/base" "^1.1.1"
+    cron-parser "^4.5.0"
+    eth-rpc-errors "^4.0.3"
+    fast-deep-equal "^3.1.3"
+    rfdc "^1.3.0"
+    semver "^7.3.7"
+    ses "^0.17.0"
+    superstruct "^0.16.7"
+
+"@metamask/subject-metadata-controller@^1.0.1":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/subject-metadata-controller/-/subject-metadata-controller-1.0.2.tgz#35f571231cf99889bd413d683f8b7459adc655fb"
   integrity sha512-zOtgtS+NHnfhrzyaxlMi9iR6Wo4qm04TWp7c/bMFjCI8XY/Rs1VoJegxR/481ELwbzBNzGwnEc/TwSW2qBi39A==
@@ -4872,15 +4765,9 @@
     superstruct "^1.0.3"
 
 "@metamask/utils@^5.0.0":
-<<<<<<< HEAD
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-5.0.1.tgz#8a60adcfeaa33f046dc66c0b9b02f2b172872d1b"
   integrity sha512-8XCCYlLYoW4rZD2+QjEZ0UjOuvvS/EBmn89QwWW8A9+KVEO2B9HxXJFGZF/Rl+E4IoCxVczrjjIjXLg2kvkNPg==
-=======
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-5.0.0.tgz#592dea36bb83d8cbf8f12ee236dd9fa49827e5e9"
-  integrity sha512-bsy7YiGxMo3rvyYbZc33yfMIfX4vVENFcxKctvNjLwCMx9d0xbLPT1T8yiqobb4NkZbwlacYEGxnv3GkTePGig==
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
   dependencies:
     "@ethereumjs/tx" "^4.1.1"
     "@types/debug" "^4.1.7"
@@ -9765,16 +9652,7 @@ capture-exit@^2.0.0:
   dependencies:
     rsvp "^4.8.4"
 
-<<<<<<< HEAD
 caseless@~0.12.0:
-=======
-case@^1.6.3:
-  version "1.6.3"
-  resolved "https://registry.yarnpkg.com/case/-/case-1.6.3.tgz#0a4386e3e9825351ca2e6216c60467ff5f1ea1c9"
-  integrity sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==
-
-caseless@^0.12.0, caseless@~0.12.0:
->>>>>>> 64fac6168 ([Feature] execute snaps methods from Dapp on iOS (#6049))
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
@@ -14588,7 +14466,7 @@ glob-parent@^5.0.0, glob-parent@^5.1.2, glob-parent@~5.1.2:
   dependencies:
     is-glob "^4.0.1"
 
-glob@7.0.6, glob@8.0.3, glob@^6.0.1, glob@^7.0.0, glob@^7.0.5, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6, glob@^8.0.3, glob@~7.1.1:
+glob@8.0.3, glob@^6.0.1, glob@^7.0.0, glob@^7.0.5, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6, glob@^7.2.3, glob@^8.0.3, glob@~7.1.1:
   version "8.0.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-8.0.3.tgz#415c6eb2deed9e502c68fa44a272e6da6eeca42e"
   integrity sha512-ull455NHSHI/Y1FqGaaYFaLGkNMMJbavMrEGFXG/PGrg6y7sutWHUHrz6gy6WEBH6akM1M414dWKCNs+IhKdiQ==
@@ -21126,6 +21004,22 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
+react-native-blob-util@^0.16.0:
+  version "0.16.4"
+  resolved "https://registry.yarnpkg.com/react-native-blob-util/-/react-native-blob-util-0.16.4.tgz#eeb0e28f6fa6ecb357c10f154be3d2e66c010f62"
+  integrity sha512-rNKMcVsrVn+l6PQVrCIJy3N2t9zEpXP1yrP3CdnWNHh9Dsup7tJMcoun4S1Cz869L0acx4LiM40XdqqfLyqrDw==
+  dependencies:
+    base-64 "0.1.0"
+    glob "^7.2.3"
+
+react-native-blob-util@^0.17.2:
+  version "0.17.2"
+  resolved "https://registry.yarnpkg.com/react-native-blob-util/-/react-native-blob-util-0.17.2.tgz#5a3b31d827bd8cc4306cf6fa39e842a38c5d96b0"
+  integrity sha512-JXdUt/NfG6lDtDNDJ4/mAXiOl4elzhIPZDWQBlIwiCwQczo4TU10iGZl5+f8uMwKtbh3leuUjL2PESOkBYCRBg==
+  dependencies:
+    base-64 "0.1.0"
+    glob "^7.2.3"
+
 react-native-branch@^5.6.2:
   version "5.6.2"
   resolved "https://registry.yarnpkg.com/react-native-branch/-/react-native-branch-5.6.2.tgz#c3ec137a5427a21fcd6559b83f02e6162ea627f6"
@@ -22021,25 +21915,12 @@ redux-mock-store@1.5.4:
   dependencies:
     lodash.isplainobject "^4.0.6"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ec6a865a ([Patch fix] Android build for snaps integration system (#6053))
 redux-persist-filesystem-storage@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/redux-persist-filesystem-storage/-/redux-persist-filesystem-storage-3.0.0.tgz#4848825d6157f694af5218d8ebb3ca6db09d3cb9"
   integrity sha512-rJe8Hb5ULC/rUyqt5E1G62r1cUQA7hmdrVd38q32bWRnv+KiIAORuzpcOW5eDkzaS0w3v1juxUcKciNyZmeCsg==
-<<<<<<< HEAD
-=======
-redux-persist-filesystem-storage@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/redux-persist-filesystem-storage/-/redux-persist-filesystem-storage-4.1.0.tgz#bfe62aa2287d980e43a7987de04fa443d0c62337"
-  integrity sha512-ufwl883C68aoOzOBc4so5cx0ka4atcXp5VW4S0o/MyykxwgKB976NuNYp723zx/3aAAk3llFMfdbDnhcroju2Q==
->>>>>>> 639b9bd4a ([FEATURE] Create detectSnapLocation method to install a Local Snap (#5923))
-=======
->>>>>>> 5ec6a865a ([Patch fix] Android build for snaps integration system (#6053))
   dependencies:
-    rn-fetch-blob "^0.12.0"
+    react-native-blob-util "^0.16.0"
 
 redux-persist@6.0.0:
   version "6.0.0"
@@ -22492,14 +22373,6 @@ rlp@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/rlp/-/rlp-3.0.0.tgz#5a60725ca4314a3a165feecca1836e4f2c1e2343"
   integrity sha512-PD6U2PGk6Vq2spfgiWZdomLvRGDreBLxi5jv5M8EpRo3pU6VEm31KO+HFxE18Q3vgqfDrQ9pZA3FP95rkijNKw==
-
-rn-fetch-blob@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/rn-fetch-blob/-/rn-fetch-blob-0.12.0.tgz#ec610d2f9b3f1065556b58ab9c106eeb256f3cba"
-  integrity sha512-+QnR7AsJ14zqpVVUbzbtAjq0iI8c9tCg49tIoKO2ezjzRunN7YL6zFSFSWZm6d+mE/l9r+OeDM3jmb2tBb2WbA==
-  dependencies:
-    base-64 "0.1.0"
-    glob "7.0.6"
 
 rn-nodeify@10.0.1:
   version "10.0.1"

@@ -15,7 +15,7 @@ import { assert, assertStruct, isObject } from '@metamask/utils';
 
 import { DetectSnapLocationOptions, SnapLocation } from './location';
 import { NativeModules, Platform } from 'react-native';
-import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import RNFetchBlob, { FetchBlobResponse } from 'react-native-blob-util';
 import Logger from '../../../util/Logger';
 
 const { RNTar } = NativeModules;
