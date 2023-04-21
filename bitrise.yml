@@ -596,7 +596,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: r24
+      NDK_VERSION: r23
     - opts:
         is_expand: false
       MODULE: app
