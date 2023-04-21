@@ -1,5 +1,12 @@
 // Third parties dependencies
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Platform, View } from 'react-native';
@@ -24,12 +31,19 @@ import { selectChainId } from '../../../selectors/networkController';
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
 
-const WalletAccount = ({ style }: WalletAccountProps) => {
+const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
 
   const { navigate } = useNavigation();
   const [ens, setEns] = useState<string>();
 
+  const yourAccountRef = useRef(null);
+  const accountActionsRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    yourAccountRef,
+    accountActionsRef,
+  }));
   /**
    * A string that represents the selected address
    */
@@ -72,7 +86,7 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
   }, [lookupEns]);
 
   return (
-    <View style={styles.base}>
+    <View style={styles.base} ref={yourAccountRef}>
       <PickerAccount
         accountAddress={account.address}
         accountName={
@@ -88,7 +102,7 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
         {...generateTestId(Platform, 'account-picker')}
       />
       <View style={styles.middleBorder} />
-      <View style={styles.addressContainer}>
+      <View style={styles.addressContainer} ref={accountActionsRef}>
         <AddressCopy formatAddressType="short" />
 
         <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} />
@@ -96,4 +110,4 @@ const WalletAccount = ({ style }: WalletAccountProps) => {
     </View>
   );
 };
-export default WalletAccount;
+export default forwardRef(WalletAccount);

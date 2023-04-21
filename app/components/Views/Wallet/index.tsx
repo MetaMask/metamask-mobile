@@ -80,7 +80,7 @@ const createStyles = ({ colors, typography }: Theme) =>
  */
 const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
-  const accountOverviewRef = useRef(null);
+  const walletRef = useRef(null);
   const theme = useTheme();
   const styles = createStyles(theme);
   const { colors } = theme;
@@ -263,7 +263,7 @@ const Wallet = ({ navigation }: any) => {
 
     return (
       <View style={styles.wrapper}>
-        <WalletAccount style={styles.walletAccount} />
+        <WalletAccount style={styles.walletAccount} ref={walletRef} />
 
         <ScrollableTabView
           renderTabBar={renderTabBar}
@@ -314,7 +314,7 @@ const Wallet = ({ navigation }: any) => {
       [1, 2, 3, 4].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
-          coachmarkRef={accountOverviewRef.current}
+          coachmarkRef={walletRef.current}
         />
       ),
     [navigation, wizardStep],

@@ -22,7 +22,6 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-
 const styles = StyleSheet.create({
   main: {
     flex: 1,
@@ -85,9 +84,6 @@ class Step1 extends PureComponent {
         <Text style={dynamicOnboardingStyles.content}>
           {strings('onboarding_wizard.step1.content1')}
         </Text>
-        <Text style={dynamicOnboardingStyles.content}>
-          {strings('onboarding_wizard.step1.content2')}
-        </Text>
       </View>
     );
   };
@@ -106,6 +102,7 @@ class Step1 extends PureComponent {
             onBack={this.onClose}
             coachmarkStyle={styles.coachmark}
             action
+            onClose={this.onClose}
           />
         </View>
       </View>

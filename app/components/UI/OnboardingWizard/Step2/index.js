@@ -36,6 +36,10 @@ class Step2 extends PureComponent {
      * Coachmark ref to get position
      */
     coachmarkRef: PropTypes.object,
+    /**
+     * Callback called when closing step
+     */
+    onClose: PropTypes.func,
   };
 
   state = {
@@ -43,7 +47,7 @@ class Step2 extends PureComponent {
   };
 
   componentDidMount = () => {
-    this.getPosition(this.props.coachmarkRef.mainView);
+    this.getPosition(this.props.coachmarkRef.yourAccountRef);
   };
 
   /**
@@ -59,7 +63,7 @@ class Step2 extends PureComponent {
             height -
             INDICATOR_HEIGHT -
             // TODO: FIX Hardcoded offset to account for tab tab.
-            82,
+            120,
         });
       });
   };
@@ -94,6 +98,14 @@ class Step2 extends PureComponent {
   };
 
   /**
+   * Calls props 'onClose'
+   */
+  onClose = () => {
+    const { onClose } = this.props;
+    onClose && onClose(false);
+  };
+
+  /**
    * Returns content for this step
    */
   content = () => {
@@ -103,9 +115,6 @@ class Step2 extends PureComponent {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text style={dynamicOnboardingStyles.content} testID={'step2-title'}>
           {strings('onboarding_wizard.step2.content1')}
-        </Text>
-        <Text style={dynamicOnboardingStyles.content}>
-          {strings('onboarding_wizard.step2.content2')}
         </Text>
       </View>
     );
@@ -127,6 +136,7 @@ class Step2 extends PureComponent {
             style={dynamicOnboardingStyles.coachmark}
             topIndicatorPosition={'topCenter'}
             currentStep={1}
+            onClose={this.onClose}
           />
         </View>
       </View>
