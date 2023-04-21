@@ -72,6 +72,10 @@ const ApproveTransactionHeader = ({
   const networkProvider = useSelector(selectProviderConfig);
   const networkName = getNetworkNameFromProvider(networkProvider);
 
+  const useBlockieIcon = useSelector(
+    (state: any) => state.settings.useBlockieIcon,
+  );
+
   useEffect(() => {
     const { ticker } = network;
     const weiBalance = activeAddress
@@ -158,6 +162,7 @@ const ApproveTransactionHeader = ({
           name: networkName,
           imageSource: networkImage,
         }}
+        useBlockieIcon={useBlockieIcon}
       />
     </View>
   );
