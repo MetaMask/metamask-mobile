@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';

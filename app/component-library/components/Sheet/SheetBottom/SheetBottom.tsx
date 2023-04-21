@@ -1,3 +1,5 @@
+/* eslint-disable no-debugger */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
@@ -106,6 +108,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       // onDismissed?.(!!postCallback.current);
       // postCallback.current?.();
 
+      // eslint-disable-next-line no-debugger
       debugger;
     }, []);
 

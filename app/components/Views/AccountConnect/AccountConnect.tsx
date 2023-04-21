@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 // Third party dependencies.
 import React, {
   useCallback,
