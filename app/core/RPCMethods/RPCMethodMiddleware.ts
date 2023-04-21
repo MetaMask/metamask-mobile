@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-json-rpc-errors'; // https://github.com/facebook/hermes/issues/886
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
