@@ -2,11 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, Platform } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { CHECKBOX_ICON_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Icon from '../Icons/Icon';
 import { useStyles } from '../../hooks';
 
@@ -15,9 +13,9 @@ import { CheckboxProps } from './Checkbox.types';
 import styleSheet from './Checkbox.styles';
 import {
   CHECKBOX_ICON_TESTID,
-  DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME,
-  DEFAULT_CHECKBOX_ISCHECKED_ICONNAME,
   DEFAULT_CHECKBOX_ICONSIZE,
+  DEFAULT_CHECKBOX_ISCHECKED_ICONNAME,
+  DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME,
 } from './Checkbox.constants';
 
 const Checkbox = ({
@@ -47,7 +45,6 @@ const Checkbox = ({
     <TouchableOpacity style={styles.base} {...props} disabled={isDisabled}>
       {iconName && (
         <Icon
-          {...generateTestId(Platform, CHECKBOX_ICON_ID)}
           testID={CHECKBOX_ICON_TESTID}
           name={iconName}
           size={DEFAULT_CHECKBOX_ICONSIZE}
