@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     backgroundColor: importedColors.transparent,
+    marginLeft: 16,
   },
   some: {
     width: WIDTH - 32,
