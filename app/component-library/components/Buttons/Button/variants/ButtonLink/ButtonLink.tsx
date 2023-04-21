@@ -8,20 +8,22 @@ import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 import { ButtonSize } from '../../Button.types';
 import Button from '../../foundation/ButtonBase';
-import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 
 // Internal dependencies.
 import { ButtonLinkProps } from './ButtonLink.types';
 import styleSheet from './ButtonLink.styles';
-import { DEFAULT_BUTTON_LINK_SIZE } from './ButtonLink.constants';
+import {
+  DEFAULT_BUTTONLINK_SIZE,
+  DEFAULT_BUTTONLINK_TEXTVARIANT,
+} from './ButtonLink.constants';
 
 const ButtonLink: React.FC<ButtonLinkProps> = ({
   style,
-  textVariant = DEFAULT_TEXT_VARIANT,
+  textVariant = DEFAULT_BUTTONLINK_TEXTVARIANT,
   onPressIn,
   onPressOut,
   isDanger = false,
-  size = DEFAULT_BUTTON_LINK_SIZE,
+  size = DEFAULT_BUTTONLINK_SIZE,
   label,
   ...props
 }) => {
