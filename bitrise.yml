@@ -12,6 +12,9 @@ workflows:
       - nvm@1.3.0:
           inputs:
             - node_version: '14'
+      - install-missing-android-tools@3:
+          inputs:
+            - gradlew_path: $PROJECT_LOCATION/gradlew
   code_setup:
     before_run:
       - setup
