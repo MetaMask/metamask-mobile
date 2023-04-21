@@ -30,8 +30,8 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Hermes
-# -keep class com.facebook.hermes.unicode.** { *; }
-# -keep class com.facebook.jni.** { *; }#
+-keep class com.facebook.hermes.unicode.** { *; }
+-keep class com.facebook.jni.** { *; }#
 
 # react-native-webrt https://github.com/react-native-webrtc/react-native-webrtc/issues/590
 -keep class org.webrtc.** { *; }
