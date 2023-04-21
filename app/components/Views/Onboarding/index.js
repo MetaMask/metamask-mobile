@@ -257,7 +257,6 @@ class Onboarding extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
-    this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
     this.props.unsetLoading();
     InteractionManager.runAfterInteractions(PreventScreenshot.allow);
   }
