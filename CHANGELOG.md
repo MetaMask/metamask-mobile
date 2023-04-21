@@ -1,6 +1,47 @@
 # Changelog
 
 ## Current Main Branch
+- [#5743](https://github.com/MetaMask/metamask-mobile/pull/5743): [FEATURE] On-ramp: Add buy-crypto deeplink
+- [#6146](https://github.com/MetaMask/metamask-mobile/pull/6146): 6.4.0
+- [#6233](https://github.com/MetaMask/metamask-mobile/pull/6233): planning 906
+- [#6201](https://github.com/MetaMask/metamask-mobile/pull/6201): [FIX] [SDK] Missing redirect breaking backward compatibility
+- [#6232](https://github.com/MetaMask/metamask-mobile/pull/6232): Fix bottom margin for detecting end of the page
+- [#6166](https://github.com/MetaMask/metamask-mobile/pull/6166): feat: trigger walletconnect modal using approval controller
+- [#6223](https://github.com/MetaMask/metamask-mobile/pull/6223): Update to Node.js v16
+- [#6051](https://github.com/MetaMask/metamask-mobile/pull/6051): [MC 0.5][FEATURE] Total balance and portfolio button changed
+- [#6219](https://github.com/MetaMask/metamask-mobile/pull/6219): Split up componeont-ui tests
+- [#6156](https://github.com/MetaMask/metamask-mobile/pull/6156): On-ramp: Use dynamic list of networks
+- [#6145](https://github.com/MetaMask/metamask-mobile/pull/6145): Synced and optimized icons
+- [#6138](https://github.com/MetaMask/metamask-mobile/pull/6138): [feature] On-ramp: Add orderProcessor exponential backoff for orders
+- [#6139](https://github.com/MetaMask/metamask-mobile/pull/6139): On-ramp: Add same amount rendering as the order details to the order list
+- [#6189](https://github.com/MetaMask/metamask-mobile/pull/6189): On-ramp:Remove hiding the provider modal when quotes refresh
+- [#6216](https://github.com/MetaMask/metamask-mobile/pull/6216): account icon matches user's preferred identicon
+- [#5956](https://github.com/MetaMask/metamask-mobile/pull/5956): Show token symbol in verify contract details
+- [#6089](https://github.com/MetaMask/metamask-mobile/pull/6089): Add support for using Ganache in Detox iOS e2e tests
+- [#5811](https://github.com/MetaMask/metamask-mobile/pull/5811): Add Bitrise caching
+- [#5458](https://github.com/MetaMask/metamask-mobile/pull/5458): Support sepolia network
+- [#6154](https://github.com/MetaMask/metamask-mobile/pull/6154): Case change
+- [#6126](https://github.com/MetaMask/metamask-mobile/pull/6126): [IMPROVEMENT] - Adding Stale Bot
+- [#6185](https://github.com/MetaMask/metamask-mobile/pull/6185): fix: remove pubnub package and associated sync with extension code
+- [#6181](https://github.com/MetaMask/metamask-mobile/pull/6181): Componentize Header Component
+- [#6153](https://github.com/MetaMask/metamask-mobile/pull/6153): On-ramp: Refactor order selector by id
+- [#6044](https://github.com/MetaMask/metamask-mobile/pull/6044): Componentize Badge and Badge Wrapper
+- [#6180](https://github.com/MetaMask/metamask-mobile/pull/6180): Componentized Overlay Component
+- [#6186](https://github.com/MetaMask/metamask-mobile/pull/6186): update: patch vm2 from a dependabot audit
+- [#6173](https://github.com/MetaMask/metamask-mobile/pull/6173): [REFACTOR] Auto Lock section
+- [#6171](https://github.com/MetaMask/metamask-mobile/pull/6171): Bump xml2js from 0.4.23 to 0.5.0
+- [#6148](https://github.com/MetaMask/metamask-mobile/pull/6148): Added Security and Privacy WebDriver.IO e2e test scripts
+- [#6088](https://github.com/MetaMask/metamask-mobile/pull/6088): Use Node environment for e2e tests
+- [#6174](https://github.com/MetaMask/metamask-mobile/pull/6174): [UI][MC] Update Tab bar styles
+- [#6056](https://github.com/MetaMask/metamask-mobile/pull/6056): Show Identicon for unknown token and if token icon is unknown
+- [#6024](https://github.com/MetaMask/metamask-mobile/pull/6024): Adding document for approve view refactoring
+- [#6057](https://github.com/MetaMask/metamask-mobile/pull/6057): Adding document for DAPP transactions refactoring
+- [#6076](https://github.com/MetaMask/metamask-mobile/pull/6076): [BUGFIX] Fixes WalletConnect deep links (wc:// schema) not working properly
+- [#6157](https://github.com/MetaMask/metamask-mobile/pull/6157): [REFACTOR] Change Password setting
+- [#5718](https://github.com/MetaMask/metamask-mobile/pull/5718): [FIX] Nonce Too Low for Approve Transaction
+- [#6071](https://github.com/MetaMask/metamask-mobile/pull/6071): Add documentation for creating new confirmations
+- [#6150](https://github.com/MetaMask/metamask-mobile/pull/6150): deps/security: vm2@3.9.11->3.9.15
+- [#6136](https://github.com/MetaMask/metamask-mobile/pull/6136): Make e2e test results available in Bitrise
 
 ## 6.4.0 - Apr 20, 2023
 - [#6144](https://github.com/MetaMask/metamask-mobile/pull/6144): [FEATURE] New Crowdin translations by Github Action
