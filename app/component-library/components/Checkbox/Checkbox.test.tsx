@@ -34,7 +34,7 @@ describe('Checkbox', () => {
     expect(iconName).toBe(DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME);
   });
 
-  it('should render not render any icon when isChecked and isIndeterminate are false', () => {
+  it('should not render any icon when isChecked and isIndeterminate are false', () => {
     const wrapper = shallow(<Checkbox />);
     const iconComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
