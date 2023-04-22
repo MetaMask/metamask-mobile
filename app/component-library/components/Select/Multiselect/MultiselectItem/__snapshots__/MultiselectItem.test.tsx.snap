@@ -27,7 +27,7 @@ exports[`MultiselectItem should render correctly 1`] = `
     testID="multiselect-item-underlay"
   />
   <Checkbox
-    isSelected={true}
+    isChecked={true}
     style={
       Object {
         "marginRight": 8,
