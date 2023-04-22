@@ -17,7 +17,7 @@ export interface ListItemProps extends ViewProps {
   /**
    * Content to wrap to display.
    */
-  children: React.ReactNode;
+  children?: React.ReactNode[];
   /**
    * Content to wrap to display.
    */

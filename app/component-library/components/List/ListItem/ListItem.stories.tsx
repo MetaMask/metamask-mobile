@@ -3,16 +3,42 @@
 // Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
+import { select, number } from '@storybook/addon-knobs';
 
 // External dependencies.
+import { storybookPropsGroupID } from 'app/component-library/constants/storybook.constants';
 import Button, { ButtonVariants } from '../../Buttons/Button';
 
 // Internal dependencies.
 import ListItem from './ListItem';
-import { ListItemProps } from './ListItem.types';
+import { ListItemProps, VerticalAlignment } from './ListItem.types';
+import {
+  DEFAULT_LISTITEM_GAP,
+  DEFAULT_LISTITEM_VERTICALALIGNMENT,
+} from './ListItem.constants';
+
+export const getListItemStoryProps = (): ListItemProps => {
+  const gapInput = number(
+    'gap',
+    DEFAULT_LISTITEM_GAP,
+    { min: 0 },
+    storybookPropsGroupID,
+  );
+  const verticalAlignmentSelector = select(
+    'verticalAlignment',
+    VerticalAlignment,
+    DEFAULT_LISTITEM_VERTICALALIGNMENT,
+    storybookPropsGroupID,
+  );
+
+  return {
+    gap: gapInput,
+    verticalAlignment: verticalAlignmentSelector,
+  };
+};
 
 const ListItemStory = () => (
-  <ListItem>
+  <ListItem {...getListItemStoryProps()}>
     <Button
       variant={ButtonVariants.Secondary}
       label="Test"
@@ -26,6 +52,6 @@ const ListItemStory = () => (
   </ListItem>
 );
 
-storiesOf('Morph / Lists', module).add('ListItem', ListItemStory);
+storiesOf('Component Library / ListItem', module).add('Default', ListItemStory);
 
 export default ListItemStory;

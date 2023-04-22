@@ -9,26 +9,27 @@ import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
 import styleSheet from './ListItem.styles';
-import { ListItemProps, VerticalAlignment } from './ListItem.types';
+import { ListItemProps } from './ListItem.types';
+import {
+  DEFAULT_LISTITEM_VERTICALALIGNMENT,
+  DEFAULT_LISTITEM_GAP,
+} from './ListItem.constants';
 
 const ListItem: React.FC<ListItemProps> = ({
   style,
   children,
-  gap,
-  verticalAlignment = VerticalAlignment.Top,
+  gap = DEFAULT_LISTITEM_GAP,
+  verticalAlignment = DEFAULT_LISTITEM_VERTICALALIGNMENT,
 }) => {
-  const { styles } = useStyles(styleSheet, { style, gap, verticalAlignment });
+  const { styles } = useStyles(styleSheet, { style, verticalAlignment });
   return (
     <View style={styles.base}>
-      {React.Children.map(children, (child, index) => {
-        // if (index > 0 && React.isValidElement(child)) {
-        //   return React.cloneElement(child, {
-        //     ...child.props,
-        //     style: { ...child.props.style },
-        //   });
-        // }
-        return child;
-      })}
+      {React.Children.map(children, (child, index) => (
+        <>
+          {index > 0 && <View style={{ width: gap }} />}
+          {child}
+        </>
+      ))}
     </View>
   );
 };

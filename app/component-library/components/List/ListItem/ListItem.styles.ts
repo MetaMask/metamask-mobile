@@ -17,7 +17,7 @@ import { VerticalAlignment } from './ListItem.types';
  */
 const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { vars } = params;
-  const { style, gap, verticalAlignment } = vars;
+  const { style, verticalAlignment } = vars;
   let alignItems;
   switch (verticalAlignment) {
     case VerticalAlignment.Top:
@@ -41,9 +41,6 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    subsequentChild: {
-      marginLeft: gap || 16,
-    },
   });
 };
 
