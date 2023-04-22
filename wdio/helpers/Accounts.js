@@ -5,6 +5,10 @@ const CORRECT_PASSWORD = `12345678`;
 const SHORT_PASSWORD = `1234567`;
 
 const INCORRECT_PASSWORD = `12345679`;
+const ERC_1155_TOKEN = `0xCBBA076Cd4c35432203F71fc5CaeEBA38C25aa2C`;
+const ERC_1155_TOKEN_ID = `2`;
+const ERC_1155_COLLECTION_NAME = `Soccer Cats`;
+const ERC_1155_TOKEN_NAME = `Soccer Cats Spain`;
 
 class Accounts {
   static getValidAccount() {
@@ -37,6 +41,15 @@ class Accounts {
     const account = Accounts.getValidAccount();
     account.password = SHORT_PASSWORD;
     return account;
+  }
+
+  static getERC1155Token() {
+    return {
+      erc1155token: ERC_1155_TOKEN,
+      erc1155tokenID: ERC_1155_TOKEN_ID,
+      erc1155collectionName: ERC_1155_COLLECTION_NAME,
+      erc1155tokenName: ERC_1155_TOKEN_NAME,
+    };
   }
 }
 

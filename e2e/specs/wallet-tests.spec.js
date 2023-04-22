@@ -24,12 +24,11 @@ describe('Wallet Tests', () => {
   // I should NEVER hold any eth or token
   const TEST_PRIVATE_KEY =
     'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-  const COLLECTIBLE_CONTRACT_ADDRESS =
-    '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
-  const COLLECTIBLE_IDENTIFIER = '179';
+
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 
   const validAccount = Accounts.getValidAccount();
+  const tokenOwner = Accounts.getERC1155Token();
 
   beforeEach(() => {
     jest.setTimeout(200000);
@@ -87,9 +86,6 @@ describe('Wallet Tests', () => {
 
     await RequestPaymentModal.closeRequestModal();
 
-    await DrawerView.isVisible();
-    await DrawerView.closeDrawer();
-
     await WalletView.isVisible();
   });
 
@@ -128,18 +124,18 @@ describe('Wallet Tests', () => {
     await WalletView.tapImportNFTButton();
 
     await AddCustomTokenView.isVisible();
-    await AddCustomTokenView.typeInNFTAddress(COLLECTIBLE_CONTRACT_ADDRESS);
-    await AddCustomTokenView.typeInNFTIdentifier(COLLECTIBLE_IDENTIFIER);
+    await AddCustomTokenView.typeInNFTAddress(tokenOwner.erc1155token);
+    await AddCustomTokenView.typeInNFTIdentifier(tokenOwner.erc1155tokenID);
 
     await WalletView.isVisible();
     // Wait for asset to load
     await TestHelpers.delay(3000);
 
-    await WalletView.isNFTVisibleInWallet('Refinable721');
+    await WalletView.isNFTVisibleInWallet(tokenOwner.erc1155collectionName);
     // Tap on Crypto Kitty
-    await WalletView.tapOnNFTInWallet('Refinable721');
+    await WalletView.tapOnNFTInWallet(tokenOwner.erc1155collectionName);
 
-    await WalletView.isNFTNameVisible('Refinable721 #179');
+    await WalletView.isNFTNameVisible(tokenOwner.erc1155tokenName);
 
     await WalletView.scrollUpOnNFTsTab();
   });
