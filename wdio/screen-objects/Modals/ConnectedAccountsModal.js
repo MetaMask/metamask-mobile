@@ -7,7 +7,7 @@ import {
 
 import {
   CONNECTED_ACCOUNTS_MODAL_CONTAINER,
-  CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID
+  CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
 } from '../testIDs/Components/ConnectedAccountsModal.testIds';
 class ConnectedAccountsModal {
   get connectedModalContainer() {
@@ -15,7 +15,9 @@ class ConnectedAccountsModal {
   }
 
   get revokeButton() {
-    return Selectors.getElementByPlatform(CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID);
+    return Selectors.getElementByPlatform(
+      CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
+    );
   }
 
   static async tapCancelButton() {

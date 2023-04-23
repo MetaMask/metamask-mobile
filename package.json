@@ -361,6 +361,7 @@
     "chromedriver": "^99.0.0",
     "concat-cli": "4.0.0",
     "detox": "^19.11.0",
+    "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
@@ -460,7 +461,7 @@
         }
       }
     },
-    "runner-config": "e2e/config.json",
+    "runner-config": "e2e/config.js",
     "test-runner": "jest"
   },
   "react-native": {
