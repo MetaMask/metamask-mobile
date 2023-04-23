@@ -212,7 +212,7 @@ Work is in progress to have both platforms using Detox.
 
 E2E tests use a wallet able to access testnet and mainnet.
 On Bitrise CI, the wallet is created using the secret recovery phrase from secret env var.
-For local testing, the wallet is created using the secret recovery phrase from the `.js.env` file.
+For local testing, the wallet is created using the secret recovery phrase from the `.e2e.env` file.
 
 ##### iOS
 All tests live within the e2e/specs folder.  
