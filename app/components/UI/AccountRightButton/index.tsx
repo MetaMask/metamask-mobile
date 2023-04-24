@@ -35,6 +35,8 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { ProviderConfig } from '@metamask/network-controller';
 import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -65,6 +67,7 @@ const AccountRightButton = ({
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -119,10 +122,23 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+        {
+          chain_id: networkProvider.chainId,
+        },
+      );
     } else {
       onPress?.();
     }
-  }, [dismissKeyboard, selectedAddress, isNetworkVisible, onPress, navigate]);
+  }, [
+    dismissKeyboard,
+    selectedAddress,
+    isNetworkVisible,
+    onPress,
+    navigate,
+    networkProvider.chainId,
+  ]);
 
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),

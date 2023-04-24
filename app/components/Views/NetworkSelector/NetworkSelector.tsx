@@ -55,10 +55,6 @@ const NetworkSelector = () => {
 
   const sheetRef = useRef<SheetBottomRef>(null);
 
-  const currentBottomNavRoute = useSelector(
-    (state: any) => state.navigation.currentBottomNavRoute,
-  );
-
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
@@ -79,10 +75,14 @@ const NetworkSelector = () => {
       }, 1000);
 
     sheetRef.current?.hide();
+
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: type,
-      source: currentBottomNavRoute,
-      symbol: providerConfig.ticker,
+      chain_id: providerConfig.chainId,
+      from_network:
+        providerConfig.type === 'rpc'
+          ? providerConfig.nickname
+          : providerConfig.type,
+      to_network: type,
     });
   };
 
@@ -144,9 +144,9 @@ const NetworkSelector = () => {
 
     sheetRef.current?.hide();
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: chainId,
-      source: currentBottomNavRoute,
-      symbol: ticker,
+      chain_id: providerConfig.chainId,
+      from_network: providerConfig.type,
+      to_network: nickname,
     });
   };
 

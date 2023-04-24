@@ -18,6 +18,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -98,6 +100,12 @@ class NavbarTitle extends PureComponent {
           this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.NETWORK_SELECTOR,
           });
+          Analytics.trackEventWithParameters(
+            MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+            {
+              chain_id: this.network.providerConfig.chainId,
+            },
+          );
         }
         setTimeout(() => {
           this.animating = false;

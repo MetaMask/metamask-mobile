@@ -156,12 +156,17 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Callback to trigger when pressing the navigation title.
    */
-  /* const onTitlePress = () => dispatch(toggleNetworkModal()); */
-  const onTitlePress = () =>
+  const onTitlePress = () => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+      {
+        chain_id: networkProvider.chainId,
+      },
+    );
+  };
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {

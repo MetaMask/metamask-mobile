@@ -115,8 +115,8 @@ const AccountPermissionsConnected = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
-      from_chain_id: providerConfig.chainId,
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+      chain_id: providerConfig.chainId,
     });
   }, [providerConfig.chainId, navigate]);
 
