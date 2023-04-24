@@ -45,7 +45,7 @@ import {
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
-import USER_INTENT from '../../../constants/permissions';
+import { USER_INTENT } from '../../../constants/permissions';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
