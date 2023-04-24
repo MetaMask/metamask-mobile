@@ -1,14 +1,11 @@
 import React, {
   useEffect,
   useRef,
-  useState,
   useCallback,
   useContext,
   useMemo,
 } from 'react';
 import {
-  RefreshControl,
-  ScrollView,
   InteractionManager,
   ActivityIndicator,
   StyleSheet,
@@ -62,11 +59,12 @@ const createStyles = ({ colors, typography }: Theme) =>
       paddingBottom: 0,
     },
     tabBar: {
-      borderColor: colors.border.muted,
+      borderColor: colors.background.default,
       marginTop: 16,
     },
     textStyle: {
-      ...(typography.HeadingSM as TextStyle),
+      ...(typography.sBodyMD as TextStyle),
+      fontWeight: '500',
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -81,7 +79,6 @@ const createStyles = ({ colors, typography }: Theme) =>
  */
 const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
-  const [refreshing, setRefreshing] = useState(false);
   const accountOverviewRef = useRef(null);
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -220,34 +217,12 @@ const Wallet = ({ navigation }: any) => {
     /* eslint-disable-next-line */
   }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
-  const onRefresh = useCallback(async () => {
-    requestAnimationFrame(async () => {
-      setRefreshing(true);
-      const {
-        TokenDetectionController,
-        NftDetectionController,
-        AccountTrackerController,
-        CurrencyRateController,
-        TokenRatesController,
-      } = Engine.context as any;
-      const actions = [
-        TokenDetectionController.detectTokens(),
-        NftDetectionController.detectNfts(),
-        AccountTrackerController.refresh(),
-        CurrencyRateController.start(),
-        TokenRatesController.poll(),
-      ];
-      await Promise.all(actions);
-      setRefreshing(false);
-    });
-  }, [setRefreshing]);
-
   const renderTabBar = useCallback(
     () => (
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.text.default}
-        inactiveTextColor={colors.text.muted}
+        activeTextColor={colors.primary.default}
+        inactiveTextColor={colors.text.default}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
@@ -368,19 +343,8 @@ const Wallet = ({ navigation }: any) => {
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-        <ScrollView
-          style={styles.wrapper}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
-          }
-        >
-          {selectedAddress ? renderContent() : renderLoader()}
-        </ScrollView>
+        {selectedAddress ? renderContent() : renderLoader()}
+
         {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>

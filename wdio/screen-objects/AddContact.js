@@ -39,6 +39,11 @@ class Contacts {
     await Gestures.tap(this.addContactButton);
   }
 
+  async waitForAddContactButton() {
+    const element = await this.addContactButton;
+    await element.waitForDisplayed();
+  }
+
   async fillContactNamefield(name) {
     await Gestures.typeText(this.contactInputfield, name);
   }

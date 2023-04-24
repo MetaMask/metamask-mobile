@@ -19,7 +19,6 @@ export enum FIAT_ORDER_STATES {
 export const NETWORKS_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
-  [NETWORKS_CHAIN_ID.KOVAN]: 'Kovan',
   [NETWORKS_CHAIN_ID.BSC]: 'BNB Smart Chain',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.FANTOM]: 'Fantom',
