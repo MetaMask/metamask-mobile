@@ -665,6 +665,23 @@ class DrawerView extends PureComponent {
     this.hideDrawer();
     this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
   };
+  goToTransactionHistory = () => {
+    this.props.navigation.navigate('TransactionsHome');
+    this.hideDrawer();
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
+  };
+
+  navigateToSnapsView = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.SNAPS.HOME);
+    this.hideDrawer();
+  };
+
+  showSettings = async () => {
+    this.props.navigation.navigate('SettingsView');
+    this.hideDrawer();
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+  };
 
   onPressLock = async () => {
     const { passwordSet } = this.props;
@@ -863,6 +880,21 @@ class DrawerView extends PureComponent {
       blockExplorerName = getBlockExplorerName(blockExplorer);
     }
     return [
+      [
+        {
+          name: strings('drawer.transaction_activity'),
+          icon: this.getFeatherIcon('list'),
+          selectedIcon: this.getSelectedFeatherIcon('list'),
+          action: this.goToTransactionHistory,
+          routeNames: ['TransactionsView'],
+        },
+        {
+          name: 'Snaps',
+          icon: this.getFeatherIcon('box'),
+          selectedIcon: this.getSelectedFeatherIcon('box'),
+          action: this.navigateToSnapsView,
+        },
+      ],
       [
         {
           name: strings('drawer.share_address'),

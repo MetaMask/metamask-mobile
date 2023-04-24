@@ -55,6 +55,7 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
 import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
 import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
+import { SnapsDev } from '../../Views/Snaps';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -618,6 +619,16 @@ const SetPasswordFlow = () => (
       name="OptinMetrics"
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
+const SnapsDevUI = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.SNAPS.HOME}
+      component={SnapsDev}
+      options={SnapsDev.navigationOptions}
     />
   </Stack.Navigator>
 );

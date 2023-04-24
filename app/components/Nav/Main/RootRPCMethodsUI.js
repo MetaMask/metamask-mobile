@@ -32,6 +32,7 @@ import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
+import { InstallSnapApproval } from '../../UI/InstallSnapApproval';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
@@ -640,6 +641,47 @@ const RootRPCMethodsUI = (props) => {
     />
   );
 
+  const onInstallSnapConfirm = () => {
+    acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    setShowPendingApproval(false);
+  };
+
+  const onInstallSnapReject = () => {
+    // eslint-disable-next-line no-console
+    console.log(
+      'onInstallSnapReject',
+      hostToApprove.id,
+      hostToApprove.requestData,
+    );
+    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    setShowPendingApproval(false);
+  };
+
+  /**
+   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
+   */
+  const renderInstallSnapApprovalModal = () => (
+    <Modal
+      isVisible={showPendingApproval?.type === ApprovalTypes.INSTALL_SNAP}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={300}
+      animationOutTiming={300}
+      onSwipeComplete={onInstallSnapReject}
+      onBackdropPress={onInstallSnapReject}
+      swipeDirection={'down'}
+    >
+      <InstallSnapApproval
+        onCancel={onInstallSnapReject}
+        onConfirm={onInstallSnapConfirm}
+        requestData={hostToApprove}
+      />
+    </Modal>
+  );
+
   // unapprovedTransaction effect
   useEffect(() => {
     Engine.context.TransactionController.hub.on(
@@ -666,26 +708,39 @@ const RootRPCMethodsUI = (props) => {
       }
 
       switch (request.type) {
+        case ApprovalTypes.INSTALL_SNAP:
+          // eslint-disable-next-line no-console
+          console.log({ requestData, id: request.id });
+          setHostToApprove({ requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.INSTALL_SNAP,
+            origin: request.origin,
+          });
+          break;
+        case ApprovalTypes.UPDATE_SNAP:
+          // eslint-disable-next-line no-console
+          console.log('Update Snap');
+          break;
         case ApprovalTypes.REQUEST_PERMISSIONS:
-          if (requestData?.permissions?.eth_accounts) {
-            const {
-              metadata: { id },
-            } = requestData;
+          // eslint-disable-next-line no-case-declarations
+          const {
+            metadata: { id },
+          } = requestData;
 
-            const totalAccounts = props.accountsLength;
+          // eslint-disable-next-line no-case-declarations
+          const totalAccounts = props.accountsLength;
 
-            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-              number_of_accounts: totalAccounts,
-              source: 'PERMISSION SYSTEM',
-            });
+          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+            number_of_accounts: totalAccounts,
+            source: 'PERMISSION SYSTEM',
+          });
 
-            props.navigation.navigate(
-              ...createAccountConnectNavDetails({
-                hostInfo: requestData,
-                permissionRequestId: id,
-              }),
-            );
-          }
+          props.navigation.navigate(
+            ...createAccountConnectNavDetails({
+              hostInfo: requestData,
+              permissionRequestId: id,
+            }),
+          );
           break;
         case ApprovalTypes.CONNECT_ACCOUNTS:
           setHostToApprove({ data: requestData, id: request.id });
@@ -769,6 +824,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderInstallSnapApprovalModal()}
     </React.Fragment>
   );
 };

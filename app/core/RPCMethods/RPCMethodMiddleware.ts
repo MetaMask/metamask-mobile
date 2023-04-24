@@ -37,6 +37,8 @@ export enum ApprovalTypes {
   PERSONAL_SIGN = 'personal_sign',
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
+  INSTALL_SNAP = 'wallet_installSnap',
+  UPDATE_SNAP = 'wallet_updateSnap',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -223,6 +225,12 @@ export const getRpcMethodMiddleware = ({
     };
 
     const rpcMethods: any = {
+      // SNAPS TEMPORAL METHODS
+      snap_confirm: () => {
+        // eslint-disable-next-line no-console
+        console.log('[RPCMethodsMiddleware LOG] snap_confirm executed');
+        res.result = {};
+      },
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
       },
@@ -746,6 +754,8 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
+        // eslint-disable-next-line no-console
+        console.log('[RpcMethodMiddleware LOG] metamask_getProviderState');
         res.result = {
           ...getProviderState(),
           accounts: isMMSDK
