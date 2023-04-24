@@ -1,5 +1,12 @@
 /* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
+// eslint-disable-next-line import/no-commonjs
+const TextEncodingPolyfill = require('text-encoding');
+
+Object.assign(global, {
+  TextEncoder: TextEncodingPolyfill.TextEncoder,
+  TextDecoder: TextEncodingPolyfill.TextDecoder,
+});
 
 if (!global.btoa) {
   global.btoa = encode;
@@ -8,6 +15,8 @@ if (!global.btoa) {
 if (!global.atob) {
   global.atob = decode;
 }
+
+if (typeof BigInt === 'undefined') global.BigInt = require('big-integer');
 
 // Fix for https://github.com/facebook/react-native/issues/5667
 if (typeof global.self === 'undefined') {
