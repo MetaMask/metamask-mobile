@@ -1,10 +1,7 @@
-# ButtonLink
+# Button
 
-ButtonLink is a component that we use for accessing external links or navigating to other places in the app.
-
-## Props
-
-This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts) component.
+Buttons allow users to take actions, and make choices, with a single tap.
+This component is a union component, which consists of [ButtonLink](./variants/ButtonLink/ButtonLink.tsx), [ButtonPrimary](./variants/ButtonPrimary/ButtonPrimary.tsx), and [ButtonSecondary](./variants/ButtonSecondary/ButtonSecondary.tsx).
 
 ## ButtonLink Props
 
@@ -77,7 +74,9 @@ Optional param to control the width of the button.
 ## Usage
 
 ```javascript
-<ButtonLink
+// ButtonLink
+<Button
+  variant={ButtonVariants.Link}
   label={SAMPLE_LABEL}
   startIconName={IconName.Bank}
   endIconName={IconName.Bank}
@@ -86,5 +85,29 @@ Optional param to control the width of the button.
   isDanger
   width={ButtonWidthTypes.Auto}
   textVariant={TextVariant.DisplayMD}
+/>;
+
+// ButtonPrimary
+<Button
+  variant={ButtonVariants.Primary}
+  label={SAMPLE_LABEL}
+  startIconName={IconName.Bank}
+  endIconName={IconName.Bank}
+  size={ButtonSize.Md}
+  onPress={SAMPLE_ONPRESS_HANDLER}
+  isDanger
+  width={ButtonWidthTypes.Auto}
+/>;
+
+// ButtonSecondary
+<Button
+  variant={ButtonVariants.Secondary}
+  label={SAMPLE_LABEL}
+  startIconName={IconName.Bank}
+  endIconName={IconName.Bank}
+  size={ButtonSize.Md}
+  onPress={SAMPLE_ONPRESS_HANDLER}
+  isDanger
+  width={ButtonWidthTypes.Auto}
 />;
 ```
