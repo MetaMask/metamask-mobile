@@ -57,6 +57,7 @@ import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
 import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
 import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import ThemeSettings from '../../Views/ThemeSettings';
+import { SnapsDev } from '../../Views/Snaps';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -621,6 +622,16 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+const SnapsDevUI = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.SNAPS.HOME}
+      component={SnapsDev}
+      options={SnapsDev.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -646,6 +657,11 @@ const MainNavigator = () => (
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
     <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
+    <Stack.Screen
+      name={Routes.SNAPS.HOME}
+      mode={'modal'}
+      component={SnapsDevUI}
+    />
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

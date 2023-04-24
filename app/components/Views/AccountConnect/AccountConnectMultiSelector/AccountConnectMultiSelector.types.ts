@@ -4,7 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 // External dependencies.
 import { UseAccounts } from '../../../hooks/useAccounts';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 
 /**
  * AccountConnectMultiSelector props.

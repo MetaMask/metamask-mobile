@@ -35,7 +35,7 @@ import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
-import USER_INTENT from '../../../constants/permissions';
+import { USER_INTENT } from '../../../constants/permissions';
 
 // Internal dependencies.
 import {

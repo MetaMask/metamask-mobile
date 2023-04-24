@@ -30,6 +30,10 @@
 		2A27FC9EEF1F4FD18E658544 /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = EF1C01B7F08047F9B8ADCFBA /* config.json */; };
 		2CDF19FE9DEE4BF8B07154B1 /* EuclidCircularB-LightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = F79EAC4A7BF74E458277AFA4 /* EuclidCircularB-LightItalic.otf */; };
 		2DB27BE39B164356A98A0FB1 /* Roboto-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5D7956F8525C4A45A2A555C3 /* Roboto-Italic.ttf */; };
+		2E32B0B929C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
+		2E32B0BA29C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
+		2E74440729BC0B7D00F6125B /* RNTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440629BC0B7D00F6125B /* RNTar.swift */; };
+		2E74441029BC0CE100F6125B /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440F29BC0CE100F6125B /* RNTar.m */; };
 		34CEE49BC79D411687B42FA9 /* Roboto-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */; };
 		373454C575C84C24B0BB24D4 /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		39D0D096A0F340ABAC1A8565 /* EuclidCircularB-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */; };
@@ -277,6 +281,9 @@
 		278065D027394AD9B2906E38 /* libBVLinearGradient.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libBVLinearGradient.a; sourceTree = "<group>"; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
+		2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
+		2E74440629BC0B7D00F6125B /* RNTar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNTar.swift; sourceTree = "<group>"; };
+		2E74440F29BC0CE100F6125B /* RNTar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNTar.m; sourceTree = "<group>"; };
 		3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BlackItalic.ttf"; path = "../app/fonts/Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
@@ -479,6 +486,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		2EC1321B29C51D6600E3DF48 /* Light-Swift-Untar-V2 */ = {
+			isa = PBXGroup;
+			children = (
+				2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */,
+			);
+			path = "Light-Swift-Untar-V2";
+			sourceTree = "<group>";
+		};
 		4A27949D046C4516B9653BBB /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -547,6 +562,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				2EC1321B29C51D6600E3DF48 /* Light-Swift-Untar-V2 */,
+				2E74440629BC0B7D00F6125B /* RNTar.swift */,
+				2E74440F29BC0CE100F6125B /* RNTar.m */,
 				654378AF243E2ADC00571B9C /* File.swift */,
 				15FDD86021B76461006B7C35 /* release.xcconfig */,
 				15FDD82721B7642B006B7C35 /* debug.xcconfig */,
@@ -1055,8 +1073,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				2E74440729BC0B7D00F6125B /* RNTar.swift in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
+				2E32B0B929C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
+				2E74441029BC0CE100F6125B /* RNTar.m in Sources */,
 				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
@@ -1067,6 +1088,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */,
+				2E32B0BA29C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */,
 				B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
 				B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */,

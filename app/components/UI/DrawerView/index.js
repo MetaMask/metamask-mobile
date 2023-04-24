@@ -733,6 +733,12 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
   };
 
+  navigateToSnapsView = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.SNAPS.HOME);
+    this.hideDrawer();
+  };
+
   showSettings = async () => {
     this.props.navigation.navigate('SettingsView');
     this.hideDrawer();
@@ -955,6 +961,12 @@ class DrawerView extends PureComponent {
           selectedIcon: this.getSelectedFeatherIcon('list'),
           action: this.goToTransactionHistory,
           routeNames: ['TransactionsView'],
+        },
+        {
+          name: 'Snaps',
+          icon: this.getFeatherIcon('box'),
+          selectedIcon: this.getSelectedFeatherIcon('box'),
+          action: this.navigateToSnapsView,
         },
       ],
       [
