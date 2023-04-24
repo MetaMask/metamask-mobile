@@ -113,6 +113,9 @@ const AccountPermissionsConnected = ({
   const switchNetwork = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: {
+        fromAccountPermission: true,
+      },
     });
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
