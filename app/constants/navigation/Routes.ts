@@ -75,6 +75,9 @@ const Routes = {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
   },
+  SNAPS: {
+    HOME: 'SnapsHome',
+  },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
     WALLET_RESTORED: 'WalletRestored',
