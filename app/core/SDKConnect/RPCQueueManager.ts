@@ -16,6 +16,10 @@ export class RPCQueueManager {
   get() {
     return this.rpcQueue;
   }
+
+  getId(id: string) {
+    return this.rpcQueue?.[id];
+  }
 }
 
 export default RPCQueueManager;
