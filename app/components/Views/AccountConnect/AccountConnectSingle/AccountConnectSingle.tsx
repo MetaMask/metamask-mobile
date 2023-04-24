@@ -29,7 +29,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 // Internal dependencies.
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 
 import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
