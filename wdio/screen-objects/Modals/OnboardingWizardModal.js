@@ -5,7 +5,6 @@ import {
   ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
   ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
   ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID,
-  ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
   ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
@@ -16,23 +15,23 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class OnboardingWizardModal {
-  get onBoardingWizardContainer() {
+  get container() {
     return Selectors.getElementByPlatform(
       ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
     );
   }
 
-  get onBoardingWizardNoThanksButton() {
+  get noThanksButton() {
     return Selectors.getElementByPlatform(
       ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
     );
   }
 
-  get onBoardingWizardBackButton() {
-    return Selectors.getXpathElementByText(ONBOARDING_WIZARD_BACK_BUTTON);
+  get backButton() {
+    return Selectors.getElementByPlatform(ONBOARDING_WIZARD_BACK_BUTTON);
   }
 
-  get onBoardingWizardTakeTourButton() {
+  get takeTourButton() {
     return Selectors.getElementByPlatform(
       ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
     );
@@ -68,26 +67,20 @@ class OnboardingWizardModal {
     );
   }
 
-  get onBoardingWizardSkipTutorialButton() {
-    return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
-    );
-  }
-
   get onBoardingWizardGotItButton() {
     return Selectors.getElementByPlatform(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
   }
 
   async isVisible() {
-    await expect(this.onBoardingWizardContainer).toBeDisplayed();
+    await expect(this.container).toBeDisplayed();
   }
 
   async tapNoThanksButton() {
-    await Gestures.tap(this.onBoardingWizardNoThanksButton);
+    await Gestures.waitAndTap(this.noThanksButton);
   }
 
   async tapTakeTourButton() {
-    await Gestures.tap(this.onBoardingWizardTakeTourButton);
+    await Gestures.waitAndTap(this.takeTourButton);
   }
 
   async isHeaderDisplayedByXPath(text) {
@@ -114,18 +107,6 @@ class OnboardingWizardModal {
     await expect(await this.step6Description).toBeDisplayed();
   }
 
-  async isSkipTutorialButtonDisplayed() {
-    await expect(this.onBoardingWizardSkipTutorialButton).toBeDisplayed();
-  }
-
-  async isSkipTutorialButtonNotDisplayed() {
-    await expect(this.onBoardingWizardSkipTutorialButton).not.toBeDisplayed();
-  }
-
-  async tapSkipTutorialButton() {
-    await Gestures.tap(this.onBoardingWizardSkipTutorialButton);
-  }
-
   async tapGotItButton() {
     await Gestures.tap(this.onBoardingWizardGotItButton);
   }
@@ -135,7 +116,7 @@ class OnboardingWizardModal {
   }
 
   async tapBackButton() {
-    await Gestures.tap(this.onBoardingWizardBackButton);
+    await Gestures.waitAndTap(this.backButton);
   }
 }
 

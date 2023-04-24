@@ -1,6 +1,8 @@
 import {
+  ONBOARDING_WIZARD_BACK_BUTTON,
   ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID,
   ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
+  ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
   ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
   ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID,
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
@@ -20,15 +22,11 @@ export default class OnboardingWizardModal {
   }
 
   static async tapGotItButton() {
-    await TestHelpers.tapByText('Got it!');
+    await TestHelpers.waitAndTap(ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON);
   }
 
   static async tapBackButton() {
-    await TestHelpers.tapByText('Back');
-  }
-
-  static async tapSkipTutorialButton() {
-    await TestHelpers.tapByText('Skip Tutorial');
+    await TestHelpers.waitAndTap(ONBOARDING_WIZARD_BACK_BUTTON);
   }
 
   static async isVisible() {

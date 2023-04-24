@@ -1,4 +1,4 @@
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import {Given, Then, When} from '@wdio/cucumber-framework';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
 
@@ -16,9 +16,6 @@ When(/^On the onboarding wizard I tap on "([^"]*)" button$/, async (text) => {
       break;
     case 'Back':
       await OnboardingWizardModal.tapBackButton();
-      break;
-    case 'Skip':
-      await OnboardingWizardModal.tapSkipTutorialButton();
       break;
     default:
       throw new Error('Button not found');
@@ -44,21 +41,10 @@ Then(
   },
 );
 
-Then(/^I should see the "([^"]*)" button$/, async (text) => {
-  switch (text) {
-    case 'Skip Tutorial':
-      await OnboardingWizardModal.isSkipTutorialButtonDisplayed();
-      break;
-    default:
-      throw new Error('Button not found');
-  }
-});
-
 Then(
   /^there should be an explanation about adding a nickname to your account.$/,
   async () => {
-    await OnboardingWizardModal.isEditAccountNameDesc1Displayed();
-    await OnboardingWizardModal.isEditAccountNameDesc2Displayed();
+    await OnboardingWizardModal.isStep3ContentDisplayed();
   },
 );
 
@@ -93,14 +79,4 @@ Then(
 
 Then(/^the onboarding wizard is no longer visible$/, async () => {
   await OnboardingWizardModal.isGotItButtonNotDisplayed();
-});
-
-Then(/^the "([^"]*)" button is no longer visible$/, async (text) => {
-  switch (text) {
-    case 'Skip':
-      await OnboardingWizardModal.isSkipTutorialButtonNotDisplayed();
-      break;
-    default:
-      throw new Error('Button not found');
-  }
 });
