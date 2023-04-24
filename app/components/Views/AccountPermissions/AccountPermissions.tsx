@@ -48,7 +48,7 @@ import {
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
-import USER_INTENT from '../../../constants/permissions';
+import { USER_INTENT } from '../../../constants/permissions';
 import URLParse from 'url-parse';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
