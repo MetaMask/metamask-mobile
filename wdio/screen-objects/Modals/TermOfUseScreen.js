@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
-import {CHECKBOX_ICON_ID} from '../testIDs/Common.testIds';
 import {
   TERMS_OF_USE_ACCEPT_BUTTON_ID,
+  TERMS_OF_USE_CHECKBOX_ICON_ID,
   TERMS_OF_USE_SCREEN_ID,
   TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
   TERMS_OF_USE_WEBVIEW_ID,
@@ -14,7 +14,7 @@ class TermOfUseScreen {
   }
 
   get checkbox() {
-    return Selectors.getElementByPlatform(CHECKBOX_ICON_ID);
+    return Selectors.getElementByPlatform(TERMS_OF_USE_CHECKBOX_ICON_ID);
   }
 
   get scrollEndArrowButton() {

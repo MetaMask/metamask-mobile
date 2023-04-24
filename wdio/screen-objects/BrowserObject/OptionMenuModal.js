@@ -44,7 +44,8 @@ class OptionMenuModal {
   }
 
   async isModalNotDisplayed() {
-    await expect(await this.container).not.toBeDisplayed();
+    const container = await this.container;
+    await container.waitForExist({ reverse: true });
   }
 
   async tapAddFavoriteOption() {
@@ -57,6 +58,8 @@ class OptionMenuModal {
 
   async tapNewTabOption() {
     await Gestures.waitAndTap(this.newTabOption);
+    const element = await this.newTabOption;
+    await element.waitForExist({ reverse: true });
   }
 
   async isNewTabOptionDisplayed() {

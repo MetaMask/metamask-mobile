@@ -11,7 +11,7 @@ import React, {
   useRef,
 } from 'react';
 import {
-  // LayoutAnimation,
+  BackHandler,
   LayoutChangeEvent,
   TouchableOpacity,
   useWindowDimensions,
@@ -92,6 +92,28 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       postCallback.current?.();
     }, [navigation, onDismissed]);
 
+    const hide = useCallback(() => {
+      currentYOffset.value = withTiming(
+        sheetHeight.value,
+        { duration: TAP_TRIGGERED_ANIMATION_DURATION },
+        () => runOnJS(onHidden)(),
+      );
+      // Ref values do not affect deps.
+      /* eslint-disable-next-line */
+    }, [onHidden]);
+
+    // Dismiss the sheet when Android back button is pressed.
+    useEffect(() => {
+      const hardwareBackPress = () => {
+        isInteractable && hide();
+        return true;
+      };
+      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+      };
+    }, [hide, isInteractable]);
+
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
       { startY: number }
@@ -149,16 +171,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
         duration: INITIAL_RENDER_ANIMATION_DURATION,
       });
     };
-
-    const hide = useCallback(() => {
-      currentYOffset.value = withTiming(
-        sheetHeight.value,
-        { duration: TAP_TRIGGERED_ANIMATION_DURATION },
-        () => runOnJS(onHidden)(),
-      );
-      // Ref values do not affect deps.
-      /* eslint-disable-next-line */
-    }, [onHidden]);
 
     const debouncedHide = useMemo(
       // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.

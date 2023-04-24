@@ -23,11 +23,7 @@ import {
 import { NetworkController } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import {
-  Transaction,
-  TransactionController,
-  WalletDevice,
-} from '@metamask/transaction-controller';
+import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
@@ -35,7 +31,6 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
-import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -112,44 +107,8 @@ class Engine {
       };
 
       const networkController = new NetworkController(networkControllerOpts);
-      networkController.providerConfig = {
-        static: {
-          eth_sendTransaction: async (
-            payload: { params: any[]; origin: any },
-            _next: any,
-            end: (arg0: undefined, arg1: undefined) => void,
-          ) => {
-            const { TransactionController } = this.context;
-            try {
-              const hash = await (
-                await TransactionController.addTransaction(
-                  payload.params[0],
-                  payload.origin,
-                  WalletDevice.MM_MOBILE,
-                )
-              ).result;
-              end(undefined, hash);
-            } catch (error) {
-              end(error);
-            }
-          },
-        },
-        getAccounts: (
-          end: (arg0: null, arg1: any[]) => void,
-          payload: { hostname: string | number },
-        ) => {
-          const { approvedHosts } = store.getState();
-          const isEnabled = approvedHosts[payload.hostname];
-          const { KeyringController } = this.context;
-          const isUnlocked = KeyringController.isUnlocked();
-          const selectedAddress =
-            this.context.PreferencesController.state.selectedAddress;
-          end(
-            null,
-            isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : [],
-          );
-        },
-      };
+      // This still needs to be set because it has the side-effect of initializing the provider
+      networkController.providerConfig = {};
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -205,6 +164,9 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+          assetsContractController,
+        ),
       });
 
       const tokenListController = new TokenListController({
@@ -330,6 +292,8 @@ class Engine {
             });
             tokensController.addDetectedTokens(tokens);
           },
+          updateTokensName: (tokenList) =>
+            tokensController.updateTokensName(tokenList),
           getTokensState: () => tokensController.state,
           getTokenListState: () => tokenListController.state,
           getNetworkState: () => networkController.state,
@@ -771,102 +735,6 @@ class Engine {
     });
   };
 
-  sync = async ({
-    accounts,
-    preferences,
-    network,
-    transactions,
-    seed,
-    pass,
-    importedAccounts,
-    tokens: { allTokens, allIgnoredTokens },
-  }) => {
-    const {
-      KeyringController,
-      PreferencesController,
-      NetworkController,
-      TransactionController,
-      TokensController,
-    } = this.context;
-
-    // Select same network ?
-    await NetworkController.setProviderType(network.providerConfig.type);
-
-    // Recreate accounts
-    await KeyringController.createNewVaultAndRestore(pass, seed);
-    for (let i = 0; i < accounts.hd.length - 1; i++) {
-      await KeyringController.addNewAccount();
-    }
-
-    // Recreate imported accounts
-    if (importedAccounts) {
-      for (const importedAccount of importedAccounts) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccount,
-        ]);
-      }
-    }
-
-    // Restore tokens
-    await TokensController.update({ allTokens, allIgnoredTokens });
-
-    // Restore preferences
-    const updatedPref = { ...preferences, identities: {} };
-    Object.keys(preferences.identities).forEach((address) => {
-      const checksummedAddress = toChecksumAddress(address);
-      if (
-        accounts.hd.includes(checksummedAddress) ||
-        accounts.simpleKeyPair.includes(checksummedAddress)
-      ) {
-        updatedPref.identities[checksummedAddress] =
-          preferences.identities[address];
-        updatedPref.identities[checksummedAddress].importTime = Date.now();
-      }
-    });
-    await PreferencesController.update(updatedPref);
-
-    if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
-      PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
-    } else {
-      PreferencesController.setSelectedAddress(accounts.hd[0]);
-    }
-
-    const mapTx = ({
-      id,
-      metamaskNetworkId,
-      origin,
-      status,
-      time,
-      hash,
-      rawTx,
-      txParams,
-    }: {
-      id: any;
-      metamaskNetworkId: string;
-      origin: string;
-      status: string;
-      time: any;
-      hash: string;
-      rawTx: string;
-      txParams: Transaction;
-    }) => ({
-      id,
-      networkID: metamaskNetworkId,
-      origin,
-      status,
-      time,
-      transactionHash: hash,
-      rawTx,
-      transaction: { ...txParams },
-    });
-
-    await TransactionController.update({
-      transactions: transactions.map(mapTx),
-    });
-
-    return true;
-  };
-
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
   }
@@ -958,14 +826,9 @@ export default {
   resetState() {
     return instance.resetState();
   },
-
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
-  },
-
-  sync(data: any) {
-    return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);

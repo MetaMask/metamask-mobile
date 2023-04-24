@@ -20,6 +20,7 @@ import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
 import USER_INTENT from '../../../../constants/permissions';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -94,6 +95,7 @@ const AccountConnectMultiSelector = ({
             ...(isLoading && styles.disabled),
           }}
           label={strings('accounts.select_all')}
+          {...generateTestId(Platform, ACCOUNT_APPROVAL_SELECT_ALL_BUTTON)}
         />
       ),
     [accounts, isLoading, onSelectAddress, styles],

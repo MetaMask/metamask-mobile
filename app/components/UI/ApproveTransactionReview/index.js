@@ -15,6 +15,7 @@ import {
   safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
+  shouldShowBlockExplorer,
 } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -60,7 +61,6 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   selectChainId,
@@ -75,6 +75,8 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
+import { isNetworkBuyNativeTokenSupported } from '../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -237,6 +239,10 @@ class ApproveTransactionReview extends PureComponent {
     shouldVerifyContractDetails: PropTypes.bool,
     frequentRpcList: PropTypes.array,
     providerRpcTarget: PropTypes.string,
+    /**
+     * Boolean that indicates if the native token buy is supported
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -656,6 +662,10 @@ class ApproveTransactionReview extends PureComponent {
       updateTransactionState,
       showBlockExplorer,
       showVerifyContractDetails,
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+      isNativeTokenBuySupported,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -672,6 +682,16 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
+    const hasBlockExplorer = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    const tokenLabel = `${
+      tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
+    } (#${tokenValue})`;
+
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
@@ -685,11 +705,13 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View>
-                <ApproveTransactionHeader
-                  origin={origin}
-                  url={activeTabUrl}
-                  from={from}
-                />
+                {from && (
+                  <ApproveTransactionHeader
+                    origin={origin}
+                    url={activeTabUrl}
+                    from={from}
+                  />
+                )}
                 <Text
                   variant={TextVariant.HeadingMD}
                   style={styles.title}
@@ -710,22 +732,23 @@ class ApproveTransactionReview extends PureComponent {
                   {tokenStandard === ERC20 && (
                     <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
                   )}
-                  {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-                    <ButtonLink
-                      onPress={showBlockExplorer}
-                      label={
-                        <Text
-                          variant={TextVariant.HeadingMD}
-                          style={styles.buttonColor}
-                        >
-                          {tokenName ||
-                            tokenSymbol ||
-                            strings(`spend_limit_edition.nft`)}{' '}
-                          (#{tokenValue})
-                        </Text>
-                      }
-                    />
-                  )}
+                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                    hasBlockExplorer ? (
+                      <ButtonLink
+                        onPress={showBlockExplorer}
+                        label={
+                          <Text
+                            variant={TextVariant.HeadingMD}
+                            style={styles.buttonColor}
+                          >
+                            {tokenLabel}
+                          </Text>
+                        }
+                      />
+                    ) : (
+                      <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
+                    )
+                  ) : null}
                 </Text>
 
                 {tokenStandard !== ERC721 &&
@@ -800,7 +823,7 @@ class ApproveTransactionReview extends PureComponent {
 
                     {gasError && (
                       <View style={styles.errorWrapper}>
-                        {isTestNetwork || allowedToBuy(network) ? (
+                        {isTestNetwork || isNativeTokenBuySupported ? (
                           <TouchableOpacity onPress={errorPress}>
                             <Text reset style={styles.error}>
                               {gasError}
@@ -1067,6 +1090,10 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: getTokenList(state),
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

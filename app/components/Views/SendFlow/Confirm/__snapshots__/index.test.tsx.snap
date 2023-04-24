@@ -13,6 +13,7 @@ exports[`Confirm should render correctly 1`] = `
   contractExchangeRates={Object {}}
   conversionRate={1}
   currentCurrency="USD"
+  isNativeTokenBuySupported={false}
   network="1"
   prepareTransaction={[Function]}
   providerType="mainnet"

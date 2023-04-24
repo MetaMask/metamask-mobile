@@ -97,6 +97,26 @@ const RootRPCMethodsUI = (props) => {
   const toggleDappTransactionModal = props.toggleDappTransactionModal;
   const setEtherTransaction = props.setEtherTransaction;
 
+  // Reject pending approval using MetaMask SDK.
+  const rejectPendingApproval = (id, error) => {
+    const { ApprovalController } = Engine.context;
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
+  };
+
+  // Accept pending approval using MetaMask SDK.
+  const acceptPendingApproval = (id, requestData) => {
+    const { ApprovalController } = Engine.context;
+    try {
+      ApprovalController.accept(id, requestData);
+    } catch (err) {
+      // Ignore err if request already approved or doesn't exists.
+    }
+  };
+
   const showPendingApprovalModal = ({ type, origin }) => {
     InteractionManager.runAfterInteractions(() => {
       setShowPendingApproval({ type, origin });
@@ -117,12 +137,6 @@ const RootRPCMethodsUI = (props) => {
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
-  };
-
-  const onWalletConnectSessionRequest = () => {
-    WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
-      setWalletConnectRequestInfo(peerInfo);
-    });
   };
 
   const trackSwaps = useCallback(
@@ -458,25 +472,28 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const onWalletConnectSessionApproval = () => {
-    const { peerId } = walletConnectRequestInfo;
+    setShowPendingApproval(false);
+    acceptPendingApproval(
+      walletConnectRequestInfo.id,
+      walletConnectRequestInfo.data,
+    );
     setWalletConnectRequestInfo(undefined);
-    WalletConnect.hub.emit('walletconnectSessionRequest::approved', peerId);
   };
 
   const onWalletConnectSessionRejected = () => {
-    const peerId = walletConnectRequestInfo?.peerId;
+    setShowPendingApproval(false);
+    rejectPendingApproval(
+      walletConnectRequestInfo.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     setWalletConnectRequestInfo(undefined);
-    WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
   };
 
   const renderWalletConnectSessionRequestModal = () => {
-    const meta = walletConnectRequestInfo?.peerMeta || null;
-    // walletConnectRequestInfo is reset to undefined in onWalletConnectSessionApproval as soon as the approval happens
-    if (!meta) return;
-
+    const meta = walletConnectRequestInfo?.data?.peerMeta || null;
     return (
       <Modal
-        isVisible={!!meta}
+        isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
@@ -515,26 +532,6 @@ const RootRPCMethodsUI = (props) => {
     props.approveModalVisible && (
       <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
     );
-
-  // Reject pending approval using MetaMask SDK.
-  const rejectPendingApproval = (id, error) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.reject(id, error);
-    } catch (error) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
-    }
-  };
-
-  // Accept pending approval using MetaMask SDK.
-  const acceptPendingApproval = (id, requestData) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.accept(id, requestData);
-    } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
-    }
-  };
 
   const onAddCustomNetworkReject = () => {
     setShowPendingApproval(false);
@@ -766,6 +763,13 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.WALLET_CONNECT:
+          setWalletConnectRequestInfo({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.WALLET_CONNECT,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -776,7 +780,6 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
-    onWalletConnectSessionRequest();
 
     Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
       onUnapprovedMessage(messageParams, 'eth'),

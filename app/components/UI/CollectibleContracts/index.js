@@ -7,6 +7,8 @@ import {
   InteractionManager,
   Image,
   Platform,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -43,13 +45,17 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      minHeight: 500,
       marginTop: 16,
     },
     emptyView: {
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 10,
+    },
+    importNftView: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 28,
     },
     add: {
       flexDirection: 'row',
@@ -111,6 +117,8 @@ const CollectibleContracts = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   const isCollectionDetectionBannerVisible =
     networkType === MAINNET && !nftDetectionDismissed && !useNftDetection;
 
@@ -217,20 +225,40 @@ const CollectibleContracts = ({
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
 
+  const onRefresh = useCallback(async () => {
+    requestAnimationFrame(async () => {
+      setRefreshing(true);
+      const { NftDetectionController } = Engine.context;
+      const actions = [NftDetectionController.detectNfts()];
+      await Promise.all(actions);
+      setRefreshing(false);
+    });
+  }, [setRefreshing]);
+
   const renderList = useCallback(
     () => (
-      <View>
-        {renderFavoriteCollectibles()}
-        <View>
-          {collectibleContracts?.map((item, index) =>
-            renderCollectibleContract(item, index),
-          )}
-        </View>
-      </View>
+      <FlatList
+        ListHeaderComponent={renderFavoriteCollectibles()}
+        data={collectibleContracts}
+        renderItem={({ item, index }) => renderCollectibleContract(item, index)}
+        keyExtractor={(_, index) => index}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      />
     ),
     [
-      collectibleContracts,
       renderFavoriteCollectibles,
+      collectibleContracts,
+      colors.primary.default,
+      colors.icon.default,
+      refreshing,
+      onRefresh,
       renderCollectibleContract,
     ],
   );
@@ -246,7 +274,7 @@ const CollectibleContracts = ({
   };
 
   const renderEmpty = () => (
-    <View style={styles.emptyView}>
+    <View style={styles.importNftView}>
       <View style={styles.emptyContainer}>
         <Image
           style={styles.emptyImageContainer}

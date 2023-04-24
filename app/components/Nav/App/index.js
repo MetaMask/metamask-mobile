@@ -14,14 +14,12 @@ import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
 import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
-import ExtensionSync from '../../Views/ExtensionSync';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
-import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
@@ -81,6 +79,7 @@ import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
+import WalletActions from '../../Views/WalletActions';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -117,7 +116,6 @@ const OnboardingNav = () => (
       component={ChoosePassword}
       options={ChoosePassword.navigationOptions}
     />
-    <Stack.Screen name="ExtensionSync" component={ExtensionSync} />
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
@@ -178,10 +176,6 @@ const OnboardingRootNav = () => (
     screenOptions={{ headerShown: false }}
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <Stack.Screen
-      name="SyncWithExtensionSuccess"
-      component={SyncWithExtensionSuccess}
-    />
     <Stack.Screen
       name={Routes.QR_SCANNER}
       component={QRScanner}
@@ -462,6 +456,10 @@ const App = ({ userLoggedIn }) => {
 
   const RootModalFlow = () => (
     <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+      <Stack.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        component={WalletActions}
+      />
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}

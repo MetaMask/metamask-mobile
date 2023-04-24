@@ -68,16 +68,6 @@ describe('Custom RPC Tests', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on "Got it" to dimiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapGotItButton();
-    } catch {
-      //
-    }
-  });
   it('should dismiss the onboarding wizard', async () => {
     // dealing with flakiness on bitrise
     await TestHelpers.delay(1000);
@@ -85,6 +75,17 @@ describe('Custom RPC Tests', () => {
       await OnboardingWizardModal.isVisible();
       await OnboardingWizardModal.tapNoThanksButton();
       await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
+
+  it('should tap on "Got it" to dimiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }
@@ -113,20 +114,6 @@ describe('Custom RPC Tests', () => {
 
     await NetworkView.isNetworkViewVisible();
   });
-  // it('should tap add a popular network from network list modal', async () => {
-  // 	await WalletView.tapNetworksButtonOnNavBar();
-
-  // 	await NetworkListModal.isVisible();
-  // 	await NetworkListModal.tapAddNetworkButton();
-  // 	await NetworkView.isNetworkViewVisible();
-
-  // });
-  // it('should add a popular network', async () => {
-  // 	await WalletView.tapNetworksButtonOnNavBar();
-
-  // 	await NetworkView.selectPopularNetwork("Optimism");
-
-  // });
 
   it('should add xDai network', async () => {
     // Tap on Add Network button
@@ -134,7 +121,6 @@ describe('Custom RPC Tests', () => {
     await NetworkView.tapAddNetworkButton();
     await NetworkView.switchToCustomNetworks();
 
-    //await NetworkView.isRpcViewVisible();
     await NetworkView.typeInNetworkName('xDai');
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await NetworkView.isRPCWarningVisble(); // Check that warning is displayed

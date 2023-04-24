@@ -80,7 +80,6 @@ import WarningMessage from '../WarningMessage';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import GlobalAlert from '../../../UI/GlobalAlert';
-import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   startGasPolling,
@@ -94,6 +93,8 @@ import {
 } from '../../../../selectors/networkController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -208,6 +209,10 @@ class Confirm extends PureComponent {
      * Triggers global alert
      */
     showAlert: PropTypes.func,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -501,11 +506,17 @@ class Confirm extends PureComponent {
         currentCurrency,
       );
     } else {
-      const { address, symbol = 'ERC20', decimals, image } = selectedAsset;
+      const {
+        address,
+        symbol = 'ERC20',
+        decimals,
+        image,
+        name,
+      } = selectedAsset;
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken(address, symbol, decimals, image);
+        await TokensController.addToken(address, symbol, decimals, image, name);
       }
 
       const [, , rawAmount] = decodeTransferData('transfer', data);
@@ -1078,6 +1089,7 @@ class Confirm extends PureComponent {
       network,
       chainId,
       gasEstimateType,
+      isNativeTokenBuySupported,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1191,7 +1203,7 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              {isTestNetwork || allowedToBuy(network) ? (
+              {isTestNetwork || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>
@@ -1287,6 +1299,10 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

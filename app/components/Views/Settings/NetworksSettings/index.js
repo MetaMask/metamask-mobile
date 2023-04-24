@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
-  ScrollView,
+  TextInput,
   TouchableOpacity,
   View,
-  TextInput,
 } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -19,15 +20,17 @@ import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   isDefaultMainnet,
-  shouldShowZKEVM,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import { MAINNET, NETWORKS_CHAIN_ID, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
-import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import {
+  ADD_NETWORK_BUTTON,
+  NETWORK_SCREEN_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
@@ -35,6 +38,7 @@ import {
   AvatarVariants,
 } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
 
 const createStyles = (colors) =>
@@ -204,7 +208,7 @@ class NetworksSettings extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
-  networkElement(name, image, i, network, isCustomRPC) {
+  networkElement(name, image, i, network, isCustomRPC, color) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
@@ -238,7 +242,7 @@ class NetworksSettings extends PureComponent {
                     />
                   ) : (
                     <View
-                      style={[styles.networkIcon, { backgroundColor: image }]}
+                      style={[styles.networkIcon, { backgroundColor: color }]}
                     >
                       <Text style={styles.text}>{name[0]}</Text>
                     </View>
@@ -262,8 +266,8 @@ class NetworksSettings extends PureComponent {
 
   renderOtherNetworks() {
     return this.getOtherNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
-      return this.networkElement(name, color, i, network, false);
+      const { name, imageSource, color } = Networks[network];
+      return this.networkElement(name, imageSource, i, network, false, color);
     });
   }
 
@@ -400,7 +404,11 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} testID={'networks-screen'}>
+      <View
+        style={styles.wrapper}
+        testID={NETWORK_SCREEN_ID}
+        {...generateTestId(Platform, NETWORK_SCREEN_ID)}
+      >
         <View style={styles.inputWrapper}>
           <Icon name="ios-search" size={20} color={colors.icon.default} />
           <TextInput
@@ -433,7 +441,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.test_network_name')}
               </Text>
               {this.renderOtherNetworks()}
-              {shouldShowZKEVM && this.renderNonInfuraNetworksView()}
+              {this.renderNonInfuraNetworksView()}
             </>
           )}
         </ScrollView>

@@ -8,6 +8,7 @@ import {
   View,
   InteractionManager,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
@@ -33,7 +34,7 @@ import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
-
+import generateTestId from '../../../../wdio/utils/generateTestId';
 const createStyles = (colors, typography) =>
   StyleSheet.create({
     root: {
@@ -116,7 +117,7 @@ const createStyles = (colors, typography) =>
       height: 20,
       width: 20,
     },
-    rememberText: { paddingLeft: 10 },
+    rememberText: { paddingLeft: 10, color: colors.text.default },
     option: {
       flex: 1,
     },
@@ -361,7 +362,10 @@ class AccountApproval extends PureComponent {
         AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
-      <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
+      <View
+        style={styles.root}
+        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+      >
         <TransactionHeader currentPageInformation={currentPageInformation} />
         {!currentPageInformation.reconnect && (
           <>
