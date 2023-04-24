@@ -69,6 +69,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 import { addHexPrefix, toHexadecimal } from '../../../util/number';
+import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 
 const Stack = createStackNavigator();
 
@@ -329,6 +330,9 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
+        <View>
+          <SnapsExecutionWebView />
+        </View>
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
