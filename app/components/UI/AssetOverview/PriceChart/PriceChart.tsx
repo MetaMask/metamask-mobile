@@ -31,7 +31,7 @@ import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { placeholderData } from './utils';
 
-const CHART_HEIGHT = Dimensions.get('screen').height * 0.45;
+const CHART_HEIGHT = Dimensions.get('screen').height * 0.35;
 
 const createStyles = () =>
   StyleSheet.create({
