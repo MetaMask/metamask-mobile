@@ -31,7 +31,11 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+<<<<<<< HEAD
 import { routingInstrumentation } from '../../../util/sentry/utils';
+=======
+import { routingInstrumentation } from '../../../util/sentry/sentryUtils';
+>>>>>>> 814c1c8d3 (Mobile snaps)
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {

@@ -5,14 +5,20 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
+<<<<<<< HEAD
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+=======
+>>>>>>> 814c1c8d3 (Mobile snaps)
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+<<<<<<< HEAD
 import java.nio.charset.StandardCharsets;
+=======
+>>>>>>> 814c1c8d3 (Mobile snaps)
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,11 +50,19 @@ public class RNTarTest {
   @Test
   public void testUnTar_validTgzFile() throws IOException, InterruptedException {
     // Prepare a sample .tgz file
+<<<<<<< HEAD
     InputStream tgzResource = Thread.currentThread().getContextClassLoader().getResourceAsStream("validTestTGZFile.tgz");
     CountDownLatch latch = new CountDownLatch(1); // Create a CountDownLatch
 
     try {
       File tgzFile = new File(reactContext.getCacheDir(), "validTestTGZFile.tgz");
+=======
+    InputStream tgzResource = Thread.currentThread().getContextClassLoader().getResourceAsStream("validTgzFile.tgz");
+    CountDownLatch latch = new CountDownLatch(1); // Create a CountDownLatch
+
+    try {
+      File tgzFile = new File(reactContext.getCacheDir(), "validTgzFile.tgz");
+>>>>>>> 814c1c8d3 (Mobile snaps)
       Files.copy(tgzResource, tgzFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
       String outputPath = reactContext.getCacheDir().getAbsolutePath() + "/output";
 
@@ -69,6 +83,7 @@ public class RNTarTest {
       // Verify the promise was resolved with the expected path
       Path expectedDecompressedPath = Paths.get(outputPath, "package");
       verify(promise).resolve(expectedDecompressedPath.toString());
+<<<<<<< HEAD
 
       // verify the filename is properly parsed
       File outputDir = new File(outputPath, "package");
@@ -82,6 +97,8 @@ public class RNTarTest {
       // Assert that the file content is as expected
       String expectedContent = "testing";
       assertEquals("Extracted file content does not match expected content", expectedContent, fileContent.trim());
+=======
+>>>>>>> 814c1c8d3 (Mobile snaps)
     } finally {
       tgzResource.close();
     }

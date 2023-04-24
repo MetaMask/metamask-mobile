@@ -128,7 +128,20 @@ remapFlaskEnvVariables() {
 	# remap flask env variables to match what the app expects
 
 	echo "Remapping flask env variable names to match production"
+<<<<<<< HEAD
 	# ios.env/android.env variables
+=======
+
+	# js.env variables``
+	remapEnvVariable "FLASK_MOONPAY_API_KEY_STAGING" "MOONPAY_API_KEY_STAGING"
+	remapEnvVariable "SEGMENT_FLASK_DEV_KEY" "SEGMENT_DEV_KEY"
+	remapEnvVariable "SEGMENT_FLASK_PROD_KEY" "SEGMENT_PROD_KEY"
+	remapEnvVariable "MM_FLASK_SENTRY_DSN" "MM_SENTRY_DSN"
+
+	# ios.env/ios.env variables
+	remapEnvVariable "MM_FLASK_BRANCH_KEY_TEST" "MM_BRANCH_KEY_TEST"
+	remapEnvVariable "MM_FLASK_BRANCH_KEY_LIVE" "MM_BRANCH_KEY_LIVE"
+>>>>>>> 814c1c8d3 (Mobile snaps)
 	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
 }
 
@@ -189,7 +202,11 @@ buildAndroidRunQA(){
 
 buildAndroidRunFlask(){
 	prebuild_android
+<<<<<<< HEAD
 	react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
+=======
+	react-native run-android --variant=flaskDebug
+>>>>>>> 814c1c8d3 (Mobile snaps)
 }
 
 buildIosSimulator(){
@@ -206,8 +223,13 @@ buildIosSimulatorQA(){
 
 buildIosSimulatorFlask(){
 	prebuild_ios
+<<<<<<< HEAD
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
+=======
+	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-Flask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+>>>>>>> 814c1c8d3 (Mobile snaps)
 }
 
 buildIosSimulatorE2E(){
@@ -298,7 +320,11 @@ buildIosFlaskRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
+<<<<<<< HEAD
 		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
+=======
+		./node_modules/.bin/react-native run-ios  --scheme "MetaMask-Flask" --configuration Release --simulator "iPhone 12 Pro"
+>>>>>>> 814c1c8d3 (Mobile snaps)
 	fi
 }
 
@@ -403,9 +429,15 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
+<<<<<<< HEAD
 	
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
+=======
+
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask || true
+>>>>>>> 814c1c8d3 (Mobile snaps)
 	fi
 	prebuild_android
 
@@ -442,7 +474,11 @@ buildAndroidQAE2E(){
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+<<<<<<< HEAD
 	elif [ "$MODE" == "flask" ] ; then
+=======
+	elif [ "$MODE" == "Flask" ] ; then
+>>>>>>> 814c1c8d3 (Mobile snaps)
 		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
@@ -474,7 +510,11 @@ buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
+<<<<<<< HEAD
 	elif [ "$MODE" == "flask" ] ; then
+=======
+	elif [ "$MODE" == "Flask" ] ; then
+>>>>>>> 814c1c8d3 (Mobile snaps)
 		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
@@ -542,7 +582,7 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ] || [ "$MODE" == "Flask" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"

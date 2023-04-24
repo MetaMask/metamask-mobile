@@ -37,7 +37,7 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import USER_INTENT from '../../../constants/permissions';
+import { USER_INTENT } from '../../../constants/permissions';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectIdentities,

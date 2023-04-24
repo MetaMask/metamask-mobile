@@ -24,6 +24,7 @@ import {
   selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -313,6 +314,15 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
     // watch asset
+
+    // Snaps middleware
+    engine.push(
+      snapMethodMiddlewareBuilder(
+        Engine.context,
+        Engine.controllerMessenger,
+        origin,
+      ),
+    );
 
     // user-facing RPC methods
     engine.push(

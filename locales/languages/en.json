@@ -2739,5 +2739,17 @@
     "ipfs_gateway_content2": "You can turn off IPFS resolution in",
     "ipfs_gateway_content3": "Settings > Security and privacy",
     "ipfs_gateway_content4": "at any time"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request",
+    "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
+    "approve_permissions": "Approve",
+    "installed": "Installed",
+    "install_successful": "{{snap}} was successfully installed.",
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }
