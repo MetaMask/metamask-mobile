@@ -100,10 +100,11 @@ class NavbarTitle extends PureComponent {
           this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.NETWORK_SELECTOR,
           });
+
           Analytics.trackEventWithParameters(
             MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
             {
-              chain_id: this.network.providerConfig.chainId,
+              chain_id: this.props.network.providerConfig.chainId,
             },
           );
         }
