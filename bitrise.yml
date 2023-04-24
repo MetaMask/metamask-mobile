@@ -175,7 +175,7 @@ workflows:
     steps:
       - install-missing-android-tools@3.1:
           inputs:
-            - ndk_version: 23.0.7599858
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - avd-manager@1:
           inputs:
@@ -330,7 +330,7 @@ workflows:
             - destination: android/keystores/release.keystore
       - install-missing-android-tools@3.1:
           inputs:
-            - ndk_version: 23.0.7599858
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -388,7 +388,7 @@ workflows:
             - destination: android/keystores/internalRelease.keystore
       - install-missing-android-tools@3.1:
           inputs:
-            - ndk_version: 23.0.7599858
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -596,7 +596,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 21e
+      NDK_VERSION: 21.4.7075529
     - opts:
         is_expand: false
       MODULE: app
