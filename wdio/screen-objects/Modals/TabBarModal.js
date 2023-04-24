@@ -39,7 +39,7 @@ class TabBarModal {
   }
 
   async tapActionButton() {
-    await Gestures.waitAndTap(this.actionButton);
+    await Gestures.longPress(this.actionButton, 500);
   }
 }
 
