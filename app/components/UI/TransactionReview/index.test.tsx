@@ -118,22 +118,48 @@ describe('TransactionReview', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('should have confirm button disabled if from account has no balance', async () => {
-    jest.mock('react-redux', () => ({
-      ...jest.requireActual('react-redux'),
-      useSelector: (fn: any) => fn(mockState),
-    }));
-    mockState.engine.backgroundState.AccountTrackerController.accounts[
-      '0x0'
-    ].balance = 0x0;
-    const { queryByRole } = renderWithProvider(
+  it('should not have confirm button disabled if from account has balance', () => {
+    const { getByRole } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
       />,
       { state: mockState },
     );
-    const confirmButton = await queryByRole('button', { name: 'Confirm' });
+    const confirmButton = getByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).toBe(true);
+  });
+
+  it('should have confirm button disabled if from account has no balance', () => {
+    const mockNewState = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AccountTrackerController: {
+            ...mockState.engine.backgroundState.AccountTrackerController,
+            accounts: {
+              '0x0': {
+                balance: 0x0,
+              },
+            },
+          },
+        },
+      },
+    };
+    jest.mock('react-redux', () => ({
+      ...jest.requireActual('react-redux'),
+      useSelector: (fn: any) => fn(mockNewState),
+    }));
+    const { getByRole } = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+      />,
+      { state: mockState },
+    );
+    const confirmButton = getByRole('button', { name: 'Confirm' });
     expect(confirmButton.props.disabled).toBe(true);
   });
 });
