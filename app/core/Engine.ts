@@ -22,6 +22,7 @@ import {
   TokensController,
   TokensState,
 } from '@metamask/assets-controllers';
+import { AppState } from 'react-native';
 import {
   AddressBookController,
   AddressBookState,
@@ -74,6 +75,14 @@ import {
   PermissionControllerState,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import {
+  SnapController,
+  SnapControllerState,
+} from '@metamask/snaps-controllers';
+import {
+  SubjectMetadataController,
+  SubjectMetadataControllerState,
+} from '@metamask/subject-metadata-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import {
@@ -98,9 +107,20 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
+import { EndowmentPermissions } from '../constants/permissions';
+import { SNAP_BLOCKLIST, checkSnapsBlockList } from '../util/snaps';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+import {
+  SnapBridge,
+  WebviewExecutionService,
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
+  detectSnapLocation,
+  fetchFunction,
+} from './Snaps';
+import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
 import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
@@ -168,7 +188,9 @@ export interface EngineState {
   TokensController: TokensState;
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
+  SnapController: SnapControllerState;
   PermissionController: PermissionControllerState<Permissions>;
+  SubjectMetadataController: SubjectMetadataControllerState;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
 }
@@ -448,6 +470,192 @@ class Engine {
       keyringBuilders: [qrKeyringBuilder],
     });
 
+    /**
+     * Gets the mnemonic of the user's primary keyring.
+     */
+    const getPrimaryKeyringMnemonic = async () => {
+      try {
+        const mnemonic = await keyringController.exportMnemonic();
+        if (mnemonic) {
+          return mnemonic;
+        }
+        throw new Error('No mnemonic found');
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const getAppState = () => {
+      const state = AppState.currentState;
+      return state === 'active';
+    };
+
+    const getAppKeyForSubject = async (subject, requestedAccount) => {
+      let account;
+
+      if (requestedAccount) {
+        account = requestedAccount;
+      } else {
+        [account] = await keyringController.getAccounts();
+      }
+      const appKey = await keyringController.exportAppKeyForAddress(
+        account,
+        subject,
+      );
+      return appKey;
+    };
+
+    const getSnapPermissionSpecifications = () => ({
+      ...buildSnapEndowmentSpecifications(),
+      ...buildSnapRestrictedMethodSpecifications({
+        clearSnapState: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          'SnapController:clearSnapState',
+        ),
+        getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+        getUnlockPromise: getAppState.bind(this),
+        getSnap: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          'SnapController:get',
+        ),
+        handleSnapRpcRequest: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          'SnapController:handleRequest',
+        ),
+        getSnapState: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          'SnapController:getSnapState',
+        ),
+        updateSnapState: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          'SnapController:updateSnapState',
+        ),
+        showConfirmation: (origin, confirmationData) =>
+          approvalController.addAndShowApprovalRequest({
+            origin,
+            type: 'snapConfirmation',
+            requestData: confirmationData,
+          }),
+        showDialog: (origin, type, content, placeholder) =>
+          approvalController.addAndShowApprovalRequest({
+            origin,
+            type,
+            requestData: { content, placeholder },
+          }),
+        showInAppNotification: (origin, args) => {
+          // eslint-disable-next-line no-console
+          console.log(
+            'Snaps/ showInAppNotification called with args: ',
+            args,
+            ' and origin: ',
+            origin,
+          );
+        },
+      }),
+    });
+
+    const subjectMetadataController = new SubjectMetadataController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SubjectMetadataController',
+        allowedActions: [`${permissionController.name}:hasPermissions`],
+      }),
+      state: initialState.SubjectMetadataController || {},
+      subjectCacheLimit: 100,
+    });
+
+    this.setupSnapProvider = (snapId, connectionStream) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[ENGINE LOG] Engine+setupSnapProvider: Setup stream for Snap',
+        snapId,
+      );
+      // TO DO:
+      // Develop a simpler getRpcMethodMiddleware object for SnapBridge
+      // Consider developing an abstract class to derived custom implementations for each use case
+      const bridge = new SnapBridge({
+        snapId,
+        connectionStream,
+        getRPCMethodMiddleware: ({ hostname, getProviderState }) =>
+          getRpcMethodMiddleware({
+            hostname,
+            getProviderState,
+            navigation: null,
+            getApprovedHosts: () => null,
+            setApprovedHosts: () => null,
+            approveHost: () => null,
+            // Mock URL
+            url: 'https://www.google.com',
+            title: 'Snap',
+            icon: null,
+            isHomepage: false,
+            fromHomepage: false,
+            toggleUrlModal: () => null,
+            wizardScrollAdjusted: () => null,
+            tabId: false,
+            isWalletConnect: true,
+          }),
+      });
+
+      bridge.setupProviderConnection();
+    };
+
+    this.snapExecutionService = new WebviewExecutionService({
+      // iframeUrl: new URL(
+      //   'https://metamask.github.io/iframe-execution-environment/0.11.0',
+      // ),
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ExecutionService',
+      }),
+      setupSnapProvider: this.setupSnapProvider.bind(this),
+    });
+
+    const snapControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'SnapController',
+      allowedEvents: [
+        'ExecutionService:unhandledError',
+        'ExecutionService:outboundRequest',
+        'ExecutionService:outboundResponse',
+      ],
+      allowedActions: [
+        `${approvalController.name}:addRequest`,
+        `${permissionController.name}:getEndowments`,
+        `${permissionController.name}:getPermissions`,
+        `${permissionController.name}:hasPermission`,
+        `${permissionController.name}:hasPermissions`,
+        `${permissionController.name}:requestPermissions`,
+        `${permissionController.name}:revokeAllPermissions`,
+        `${permissionController.name}:revokePermissions`,
+        `${permissionController.name}:revokePermissionForAllSubjects`,
+        `${permissionController.name}:grantPermissions`,
+        `${subjectMetadataController.name}:getSubjectMetadata`,
+        'ExecutionService:executeSnap',
+        'ExecutionService:getRpcRequestHandler',
+        'ExecutionService:terminateSnap',
+        'ExecutionService:terminateAllSnaps',
+        'ExecutionService:handleRpcRequest',
+      ],
+    });
+
+    const snapController = new SnapController({
+      environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      featureFlags: { dappsCanUpdateSnaps: true },
+      // TO DO
+      getAppKey: async (subject, appKeyType) =>
+        getAppKeyForSubject(`${appKeyType}:${subject}`),
+      checkBlockList: async (snapsToCheck) =>
+        checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
+      state: initialState.snapController || {},
+      messenger: snapControllerMessenger,
+      // TO DO
+      closeAllConnections: () =>
+        // eslint-disable-next-line no-console
+        console.log(
+          'TO DO: Create method to close all connections (Closes all connections for the given origin, and removes the references)',
+        ),
+      detectSnapLocation: (location, options) =>
+        detectSnapLocation(location, { ...options, fetch: fetchFunction }),
+    });
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -626,9 +834,7 @@ class Engine {
           ...getPermissionSpecifications({
             getAllAccounts: () => keyringController.getAccounts(),
           }),
-          /*
-            ...this.getSnapPermissionSpecifications(),
-            */
+          ...getSnapPermissionSpecifications(),
         },
         unrestrictedMethods,
       }),
@@ -663,6 +869,8 @@ class Engine {
         }),
         state: initialState.LoggingController,
       }),
+      snapController,
+      subjectMetadataController,
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -1071,7 +1279,9 @@ export default {
       TokensController,
       TokenDetectionController,
       NftDetectionController,
+      SnapController,
       PermissionController,
+      SubjectMetadataController,
       ApprovalController,
       LoggingController,
     } = instance.datamodel.state;
@@ -1106,7 +1316,9 @@ export default {
       GasFeeController,
       TokenDetectionController,
       NftDetectionController,
+      SnapController,
       PermissionController,
+      SubjectMetadataController,
       ApprovalController,
       LoggingController,
     };
