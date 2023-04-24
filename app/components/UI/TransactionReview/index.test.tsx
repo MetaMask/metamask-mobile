@@ -3,23 +3,52 @@ import TransactionReview from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import Engine from '../../../core/Engine';
 
-const generateTransform = jest.fn();
-const mockStore = configureMockStore();
-const initialState = {
+jest.mock('react-native-keyboard-aware-scroll-view', () => {
+  const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
+  return { KeyboardAwareScrollView };
+});
+
+jest.mock('../QRHardware/withQRHardwareAwareness', () => (obj: any) => obj);
+
+jest.mock('@react-navigation/compat', () => {
+  const actualNav = jest.requireActual('@react-navigation/compat');
+  return {
+    actualNav,
+    withNavigation: (obj: any) => obj,
+  };
+});
+
+const mockState = {
   engine: {
     backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x2',
-      },
       AccountTrackerController: {
-        accounts: [],
+        accounts: {
+          '0x0': {
+            balance: 0x2,
+          },
+        },
       },
       TokensController: {
         tokens: [],
       },
       TokenListController: {
         tokenList: {},
+      },
+      PreferencesController: {
+        selectedAddress: '0x2',
+      },
+      NetworkController: {
+        providerConfig: {
+          chainId: '0xaa36a7',
+          type: 'sepolia',
+          nickname: 'Sepolia',
+        },
+        provider: {
+          ticker: 'eth',
+        },
       },
       CurrencyRateController: {
         currentCurrency: 'usd',
@@ -29,10 +58,9 @@ const initialState = {
           '0x': '0.1',
         },
       },
-      NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-        },
+      TokenBalancesController: {},
+      AddressBookController: {
+        addressBook: {},
       },
     },
   },
@@ -41,28 +69,71 @@ const initialState = {
     primaryCurrency: 'ETH',
   },
   transaction: {
-    value: '',
-    data: '',
-    from: '0x1',
-    gas: '',
-    gasPrice: '',
-    to: '0x2',
-    selectedAsset: undefined,
-    assetType: undefined,
+    transaction: { from: '0x0', to: '0x1' },
+    transactionTo: '0x1',
+    selectedAsset: { isETH: true, address: '0x0', symbol: 'ETH', decimals: 8 },
+    transactionToName: 'Account 2',
+    transactionFromName: 'Account 1',
   },
-  browser: {
-    tabs: [],
+  fiatOrders: {
+    networks: [
+      {
+        chainId: '0xaa36a7',
+        type: 'sepolia',
+        nickname: 'Sepolia',
+      },
+    ],
   },
+  alert: { isVisible: false },
 };
-const store = mockStore(initialState);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (fn: any) => fn(mockState),
+}));
+
+Engine.init({});
+const generateTransform = jest.fn();
 
 describe('TransactionReview', () => {
   it('should render correctly', () => {
+    const mockStore = configureMockStore();
+    const store = mockStore(mockState);
     const wrapper = shallow(
       <Provider store={store}>
-        <TransactionReview generateTransform={generateTransform} />
+        <TransactionReview generateTransform={generateTransform as any} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should match snapshot', () => {
+    const container = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+      />,
+      { state: mockState },
+    );
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should have confirm button disabled if from account has no balance', async () => {
+    jest.mock('react-redux', () => ({
+      ...jest.requireActual('react-redux'),
+      useSelector: (fn: any) => fn(mockState),
+    }));
+    mockState.engine.backgroundState.AccountTrackerController.accounts[
+      '0x0'
+    ].balance = 0x0;
+    const { queryByRole } = renderWithProvider(
+      <TransactionReview
+        EIP1559GasData={{}}
+        generateTransform={generateTransform}
+      />,
+      { state: mockState },
+    );
+    const confirmButton = await queryByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).toBe(true);
   });
 });
