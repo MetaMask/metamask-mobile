@@ -19,6 +19,7 @@ interface SelectedAsset {
   decimals: number;
   image?: string;
   name?: string;
+  standard?: string;
 }
 
 export interface Transaction {
