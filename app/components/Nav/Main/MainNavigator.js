@@ -58,6 +58,7 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
+import { SnapsDev } from '../../Views/Snaps';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -613,6 +614,16 @@ const SetPasswordFlow = () => (
       name="OptinMetrics"
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
+const SnapsDevUI = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.SNAPS.HOME}
+      component={SnapsDev}
+      options={SnapsDev.navigationOptions}
     />
   </Stack.Navigator>
 );

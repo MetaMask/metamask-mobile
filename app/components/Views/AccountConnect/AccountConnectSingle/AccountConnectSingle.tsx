@@ -31,7 +31,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 // Internal dependencies.
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 import styleSheet from './AccountConnectSingle.styles';
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
